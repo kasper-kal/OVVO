@@ -16,7 +16,7 @@ const OCCUPANCY_TEXT: Record<Journey['occupancy'], string> = {
   busy: 'Expected busy',
 };
 
-const OCCUPANCY_TONE: Record<Journey['occupancy'], 'sage' | 'butter' | 'coral'> = {
+const OCCUPANCY_METER_TONE: Record<Journey['occupancy'], 'sage' | 'butter' | 'coral'> = {
   quiet: 'sage',
   moderate: 'butter',
   busy: 'coral',
@@ -24,7 +24,7 @@ const OCCUPANCY_TONE: Record<Journey['occupancy'], 'sage' | 'butter' | 'coral'> 
 
 export function JourneyCard({ journey, highlight = false }: { journey: Journey; highlight?: boolean }) {
   const format = useFormat();
-  const { search, isJourneySaved, saveJourney, settings } = useApp();
+  const { search, isJourneySaved, saveJourney } = useApp();
   const saved = isJourneySaved(journey.signature);
   const operators = [...new Set(journey.operatorIds)].map((id) => operatorName(id));
   const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
@@ -41,7 +41,7 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
         </div>
         <div className="row-wrap">
           {journey.label ? <Pill tone="butter">{JOURNEY_LABELS[journey.label]}</Pill> : null}
-          {journey.transfers === 0 ? <Pill tone="sage">Direct</Pill> : null}
+          {journey.transfers === 0 ? <Pill>Direct</Pill> : null}
           {journey.delayMinutes > 0 ? (
             <Pill tone="coral" dot dotTone="coral">
               Example delay +{journey.delayMinutes} min
@@ -104,9 +104,12 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
         <div className="panel stack-2">
           <div className="between">
             <span className="field__label">Simulated occupancy</span>
-            <Pill tone={OCCUPANCY_TONE[journey.occupancy]}>{OCCUPANCY_TEXT[journey.occupancy]}</Pill>
+            <Pill>{OCCUPANCY_TEXT[journey.occupancy]}</Pill>
           </div>
-          <Meter value={journey.occupancyHistory.reduce((a, b) => a + b, 0) / journey.occupancyHistory.length} tone={OCCUPANCY_TONE[journey.occupancy]} />
+          <Meter
+            value={journey.occupancyHistory.reduce((a, b) => a + b, 0) / journey.occupancyHistory.length}
+            tone={OCCUPANCY_METER_TONE[journey.occupancy]}
+          />
           <div className="between">
             <AvatarStack
               people={[
@@ -144,7 +147,6 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           <Icon name={saved ? 'check' : 'bookmark'} size={16} />
           {saved ? 'Saved' : 'Save journey'}
         </button>
-        {settings.showDemoBadges ? <Pill tone="butter">Simulated journey</Pill> : null}
       </div>
 
       <Disclosure title="Journey legs" summary={legSummary} id={`journey-${journey.id}`}>

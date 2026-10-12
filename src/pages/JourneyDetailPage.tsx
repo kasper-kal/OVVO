@@ -249,8 +249,12 @@ export function JourneyDetailPage() {
                 ]}
                 extra={journey.occupancy === 'busy' ? 14 : 6}
               />
-              <Pill tone={journey.occupancy === 'busy' ? 'coral' : journey.occupancy === 'moderate' ? 'butter' : 'sage'}>
-                {journey.occupancy}
+              <Pill>
+                {journey.occupancy === 'busy'
+                  ? 'Expected busy'
+                  : journey.occupancy === 'moderate'
+                    ? 'Expected fairly busy'
+                    : 'Expected quiet'}
               </Pill>
             </div>
             <p className="t-sm t-faint">

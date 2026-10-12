@@ -4,7 +4,7 @@ import { useApp } from '../../state/AppState';
 import { getStop, stopLabel } from '../../data/stops';
 import { StopCombobox } from './StopCombobox';
 import { PreferencesControls } from './PreferencesControls';
-import { Button, Chip, Dialog, Disclosure, Field, IconButton, Panel, Segmented } from '../ui/primitives';
+import { Button, Chip, Dialog, Disclosure, Field, IconButton, Segmented } from '../ui/primitives';
 import { Icon } from '../ui/Icons';
 import { addDaysIso, nowMinutes, roundToStep, todayIso } from '../../lib/format';
 import type { Stop } from '../../data/types';
@@ -145,7 +145,7 @@ export function SearchForm({
               Use my location (simulated)
             </Button>
             {simulatedFix ? (
-              <span className="pill pill--sage">
+              <span className="pill">
                 <Icon name="check" size={13} />
                 {simulatedFix}
               </span>
@@ -236,35 +236,31 @@ export function SearchForm({
         </div>
 
         {variant === 'hero' && favouriteStopIds.length > 0 ? (
-          <Panel>
-            <div className="stack-2">
-              <span className="field__label">Quick fill from favourite locations</span>
-              <div className="row-wrap">
-                {favouriteStopIds.slice(0, 6).map((stopId) => (
-                  <span key={stopId} className="row">
-                    <Chip
-                      icon="arrowRight"
-                      onClick={() => {
-                        setTo(getStop(stopId) ?? null);
-                        pushToast(`Destination set to ${stopLabel(stopId)}`);
-                      }}
-                    >
-                      {stopLabel(stopId)}
-                    </Chip>
-                    <Chip
-                      icon="location"
-                      onClick={() => {
-                        setFrom(getStop(stopId) ?? null);
-                        pushToast(`Origin set to ${stopLabel(stopId)}`);
-                      }}
-                    >
-                      from here
-                    </Chip>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </Panel>
+          <div className="row-wrap">
+            <span className="field__label">Favourites</span>
+            {favouriteStopIds.slice(0, 4).map((stopId) => (
+              <span key={stopId} className="row">
+                <Chip
+                  icon="arrowRight"
+                  onClick={() => {
+                    setTo(getStop(stopId) ?? null);
+                    pushToast(`Destination set to ${stopLabel(stopId)}`);
+                  }}
+                >
+                  {stopLabel(stopId)}
+                </Chip>
+                <Chip
+                  icon="location"
+                  onClick={() => {
+                    setFrom(getStop(stopId) ?? null);
+                    pushToast(`Origin set to ${stopLabel(stopId)}`);
+                  }}
+                >
+                  from here
+                </Chip>
+              </span>
+            ))}
+          </div>
         ) : null}
       </form>
 

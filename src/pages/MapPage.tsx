@@ -152,7 +152,7 @@ export function MapPage() {
         }
       />
 
-      <Banner tone="sage" icon="info" title="This map is a schematic, not a geographical map">
+      <Banner tone="hairline" icon="info" title="This map is a schematic, not a geographical map">
         It uses no external map tiles, no vehicle feeds and no map APIs. Stops are placed on a schematic canvas so the
         interface can be evaluated.
       </Banner>

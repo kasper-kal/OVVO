@@ -707,15 +707,15 @@
 }
 
 .mode-badge--train {
-  background: var(--struct-main);
-  border-color: var(--struct-secondary);
-  color: var(--on-dark);
+  background: var(--l1-bg);
+  border-color: var(--border-hairline);
+  color: var(--ink-strong);
 }
 
 .mode-badge--bus {
-  background: var(--accent-primary);
-  border-color: #e9694f;
-  color: var(--struct-main);
+  background: var(--tint-coral);
+  border-color: #f6d3cd;
+  color: #8f3423;
 }
 
 .mode-badge--tram {

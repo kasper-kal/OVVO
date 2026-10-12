@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Icon, type IconName } from '../ui/Icons';
-import { Button, Dialog, IconButton, Pill, Toaster } from '../ui/primitives';
+import { Button, Dialog, IconButton, Toaster } from '../ui/primitives';
 import { useApp } from '../../state/AppState';
 
 /**
@@ -268,42 +268,20 @@ export function AppShell({ children }: { children: ReactNode }) {
       </a>
       <header className="app-header">
         <div className="app-header__inner">
-          <Link to="/" className="row-3" aria-label="OV Planner home">
-            <span
-              aria-hidden="true"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 'var(--r-compact)',
-                background: 'var(--accent-primary)',
-                color: 'var(--struct-main)',
-                display: 'grid',
-                placeItems: 'center',
-                fontWeight: 800,
-                fontSize: 15,
-                letterSpacing: '-0.02em',
-              }}
-            >
+          <Link to="/" className="app-header__brand" aria-label="OV Planner home">
+            <span className="app-header__mark" aria-hidden="true">
               OV
             </span>
-            <span className="stack-1">
-              <span className="t-h2" style={{ color: 'var(--on-dark)', fontSize: 17 }}>
-                OV Planner
-              </span>
-              <span className="t-sm" style={{ color: 'var(--on-dark-muted)' }}>
-                Dutch public transport · prototype
-              </span>
-            </span>
+            <span className="app-header__title">OV Planner</span>
           </Link>
           <span className="grow" />
-          <Pill tone="butter">Demo data</Pill>
+          <span className="app-header__chip">Demo data</span>
           <IconButton
             icon="info"
             label="About this prototype"
             className="app-header__info"
-            variant="surface"
+            variant="ghost"
             onClick={() => setAboutOpen(true)}
-            style={{ background: 'var(--struct-secondary)', borderColor: 'var(--struct-secondary)', color: 'var(--on-dark)' }}
           />
         </div>
       </header>

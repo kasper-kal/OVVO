@@ -175,7 +175,7 @@ export function ResultsPage() {
       )}
 
       {stopAlerts.length > 0 ? (
-        <Banner tone="coral" icon="alert" title="Example alerts affect this search">
+        <Banner tone="hairline" icon="alert" title="Example alerts affect this search">
           <div className="stack-2">
             {stopAlerts.slice(0, 2).map((alert) => (
               <Link key={alert.id} to={`/disruptions/${alert.id}`} className="t-sm">

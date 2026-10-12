@@ -68,7 +68,7 @@ function RideLegRow({ leg }: { leg: Leg }) {
         </span>
         <div className="stack-2 grow">
           <div className="row-wrap">
-            <span className="pill pill--obsidian">
+            <span className={`mode-badge mode-badge--${leg.mode}`}>
               <ModeIcon mode={leg.mode} size={13} />
               {leg.lineName ?? line?.name ?? 'Service'}
             </span>
@@ -117,7 +117,7 @@ function RideLegRow({ leg }: { leg: Leg }) {
           </div>
 
           {disruption ? (
-            <Link to={`/disruptions/${disruption.id}`} className="pill pill--coral">
+            <Link to={`/disruptions/${disruption.id}`} className="pill pill--outline">
               <Icon name="alert" size={13} />
               {disruption.title}
             </Link>
