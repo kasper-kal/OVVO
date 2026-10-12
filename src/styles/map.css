@@ -1,0 +1,161 @@
+/* =============================================================================
+   OV PLANNER — ILLUSTRATIVE MAP MODULE
+   [OCR Visual Transcode - Illustrative Map]
+   CANVAS: viewBox 0 0 100 100 | WATER=#E1EADF | LAND=#F3F1EA |
+   ROUTE_STROKE=#18181B w=1.2 | ROUTE_ACTIVE=#FF7E67 w=1.6 | STOP_R=1.2 |
+   STOP_SELECTED_R=1.9 with #FF7E67 fill | VEHICLE=#18181B inner dot #FFF5A5
+   ============================================================================= */
+
+.map-shell {
+  position: relative;
+  background: var(--l1-bg);
+  border: var(--l1-border);
+  border-radius: var(--r-hero);
+  padding: var(--pad-hero);
+  overflow: hidden;
+}
+
+.map-canvas {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 70vh;
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-inner);
+  touch-action: manipulation;
+}
+
+.map-water {
+  fill: var(--tint-sage);
+}
+
+.map-land {
+  fill: var(--surface-alt);
+  stroke: var(--border-hairline);
+  stroke-width: 0.3;
+}
+
+.map-river {
+  fill: none;
+  stroke: var(--tint-sage);
+  stroke-width: 0.8;
+}
+
+.map-stop {
+  cursor: pointer;
+}
+
+.map-stop circle {
+  fill: var(--surface-raised);
+  stroke: var(--struct-secondary);
+  stroke-width: 0.4;
+}
+
+.map-stop--landmark circle {
+  fill: var(--accent-secondary);
+  stroke: var(--struct-main);
+}
+
+.map-stop--favourite circle {
+  fill: var(--accent-primary);
+}
+
+.map-stop--selected circle {
+  fill: var(--accent-primary);
+  stroke: var(--struct-main);
+  stroke-width: 0.6;
+}
+
+.map-stop text {
+  font-size: 2.1px;
+  fill: var(--ink);
+  pointer-events: none;
+  font-weight: 600;
+  paint-order: stroke fill;
+  stroke: var(--surface-alt);
+  stroke-width: 0.55px;
+  stroke-linejoin: round;
+}
+
+.map-route {
+  fill: none;
+  stroke: var(--struct-main);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-route--highlight {
+  stroke: var(--accent-primary);
+  stroke-width: 1.5;
+}
+
+.map-route--walk {
+  stroke: var(--ink-faint);
+  stroke-width: 0.7;
+  stroke-dasharray: 1.4 1.4;
+}
+
+.map-route--ferry {
+  stroke: #8f3423;
+  stroke-dasharray: 2 1.4;
+}
+
+.map-route--bus {
+  stroke: var(--accent-primary);
+}
+
+.map-route--tram {
+  stroke: #5a7a58;
+}
+
+.map-route--metro {
+  stroke: #c9a227;
+}
+
+.map-vehicle {
+  fill: var(--struct-main);
+  stroke: var(--surface-raised);
+  stroke-width: 0.4;
+}
+
+.map-vehicle__dot {
+  fill: var(--accent-secondary);
+}
+
+.map-pan {
+  display: grid;
+  grid-template-columns: repeat(3, var(--target-min));
+  grid-template-rows: repeat(2, var(--target-min));
+  gap: var(--s-1);
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+}
+
+.map-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.map-legend__swatch {
+  width: 22px;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--struct-main);
+}
+
+.map-legend__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--r-circle);
+  background: var(--surface-raised);
+  border: 2px solid var(--struct-secondary);
+}
