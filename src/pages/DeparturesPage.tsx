@@ -291,12 +291,17 @@ export function DeparturesPage() {
           {alerts.length ? (
             <div className="row-wrap">
               <span className="field__label">Example alerts at this stop</span>
-              {alerts.map((alert) => (
+              {alerts.slice(0, 3).map((alert) => (
                 <Link key={alert.id} to={`/disruptions/${alert.id}`} className="pill pill--coral">
                   <Icon name="alert" size={13} />
                   {alert.title}
                 </Link>
               ))}
+              {alerts.length > 3 ? (
+                <Link to="/disruptions" className="t-sm t-muted">
+                  +{alerts.length - 3} more
+                </Link>
+              ) : null}
             </div>
           ) : null}
 

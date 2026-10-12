@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../state/AppState';
-import { getStop, stopLabel } from '../../data/stops';
+import { getStop } from '../../data/stops';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
 import { useFormat } from '../../lib/useFormat';
@@ -71,7 +71,7 @@ export function DepartureTable({
                   <div className="stack-1">
                     <span className="t-strong t-sm">{departure.destinationLabel}</span>
                     <span className="t-sm t-faint">
-                      {operatorName(departure.operatorId)} · via {stopLabel(getStop(departure.stopId)?.city)}
+                      {operatorName(departure.operatorId)} · {getStop(departure.stopId)?.city ?? 'Unknown stop'}
                     </span>
                   </div>
                 </td>
