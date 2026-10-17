@@ -8,6 +8,9 @@
 #   ./scripts/dev-preview.sh pv-<id>.style.dev
 #
 # Preview hostname changes after a restore — re-run with the current one.
+#
+# REVIEW_BATCH=<name> chooses which folder under review/ the review dot saves into
+# (default: desktop; REVIEW_BATCH=mobile writes to the archived phone batch).
 set -euo pipefail
 
 HOSTNAME_ARG="${1:-}"

@@ -4,8 +4,9 @@
  * Why it exists: pointing at the interface is a hundred times more useful than describing it, and
  * describing it in a message loses the thing being pointed at. So this floats a dot over the app;
  * open it, paste a screenshot, click the picture to drop pins, write beside each one, and save.
- * The image and the notes land in `review/` (see `review/README.md`), and the fix plan is written
- * against them afterwards.
+ * The image and the notes land in one round's folder under `review/` — `review/desktop/` for this
+ * round, `review/mobile/` for the archived phone batch (see `review/README.md`) — and the fix plan
+ * is written against them afterwards.
  *
  * Three rules it keeps so it can be deleted without a trace:
  *
@@ -79,10 +80,20 @@ const MAX_EDGE = 1600;
 /** A save that has not answered by now is not going to; say so instead of waiting forever. */
 const SAVE_TIMEOUT_MS = 20_000;
 
+/**
+ * The folder this run saves into, as the dev server chose it (`vite.config.ts` defines it from the
+ * same value the middleware was given). The fallback is the same default the plugin has, so a build
+ * or a page where the constant did not arrive still names a real folder rather than `undefined`.
+ */
+const REVIEW_BATCH =
+  typeof __REVIEW_BATCH__ === 'undefined' || !__REVIEW_BATCH__ ? 'desktop' : __REVIEW_BATCH__;
+
 /** What `/__review` answers with, before it is trusted. */
 interface SaveResult {
   ok?: boolean;
   image?: string;
+  /** The folder it was written to — the server's answer, not this module's guess. */
+  batch?: string;
   error?: unknown;
 }
 
@@ -541,7 +552,7 @@ export function ReviewLayer() {
       }
       if (!result.ok) throw new Error(explain(result.error));
       setShots((current) => current.map((item) => (item.id === shot.id ? { ...item, saved: result?.image } : item)));
-      setStatus(`Saved to review/${result.image}`);
+      setStatus(`Saved to review/${result.batch ?? REVIEW_BATCH}/${result.image}`);
     } catch (error) {
       const message =
         error instanceof Error && error.name === 'AbortError'
@@ -568,7 +579,7 @@ export function ReviewLayer() {
       <button
         type="button"
         aria-label="Review notes"
-        title="Review notes — drag to move, click to open"
+        title={`Review notes — saving to review/${REVIEW_BATCH} — drag to move, click to open`}
         onPointerDown={onDotDown}
         onPointerMove={onDotMove}
         onPointerUp={onDotUp}
@@ -629,7 +640,14 @@ export function ReviewLayer() {
           }}
         >
           <div style={panelHeader}>
-            <strong style={{ flex: 1 }}>Review notes</strong>
+            {/* The folder is on the panel, not just in the README: the dot saves into one round at a
+                time, and the round it is on is the one thing a capture cannot be filed wrong by. */}
+            <span style={{ flex: 1, display: 'grid', gap: 2 }}>
+              <strong>Review notes</strong>
+              <span style={{ font: '500 11px/1.3 system-ui, sans-serif', color: '#57544b' }}>
+                saving to review/{REVIEW_BATCH}
+              </span>
+            </span>
             <button type="button" style={quietButton} onClick={() => setOpen(false)}>
               Close
             </button>
@@ -875,7 +893,7 @@ export function ReviewLayer() {
                   }}
                   onClick={() => void save(active)}
                 >
-                  {active.saved ? 'Saved' : busy ? 'Saving…' : 'Save to review/'}
+                  {active.saved ? 'Saved' : busy ? 'Saving…' : `Save to review/${REVIEW_BATCH}`}
                 </button>
                 <button type="button" style={{ ...quietButton, minHeight: 44 }} onClick={() => discard(active)}>
                   Discard

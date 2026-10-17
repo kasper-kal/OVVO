@@ -8,4 +8,7 @@
  */
 import type { Plugin } from 'vite';
 
-export default function reviewUpload(): Plugin;
+/** Which folder under `review/` this run's captures are written to (`desktop` unless chosen). */
+export function reviewBatchName(requested?: string): string;
+
+export default function reviewUpload(options?: { batch?: string }): Plugin;

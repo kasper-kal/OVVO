@@ -5,7 +5,8 @@
 **not** covered here and is **not** claimed fixed by these items — that is `DESKTOP-FIXES.md`, and
 anything that only misbehaves on a wide screen is deliberately left out of this file.
 
-The source of truth is `review/notes.json` plus the 29 screenshots beside it: **29 screenshots, 35
+The source of truth is `review/mobile/notes.json` plus the 29 screenshots beside it (the phone
+batch's own folder now that the desktop round has started): **29 screenshots, 35
 marked areas, 0 pins**, every one at 378px wide. Nothing here is invented; each item quotes the mark
 that asked for it, word for word, and names the screenshot it is on.
 

@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
  * plain JavaScript with its own two-line declaration so this project does not need `@types/node`
  * for a tool that is going to be deleted.
  */
-import reviewUpload from './review/upload-plugin.mjs';
+import reviewUpload, { reviewBatchName } from './review/upload-plugin.mjs';
 
 // The config runs in Node, where `process` exists but is not in the browser typings.
 declare const process: { env: Record<string, string | undefined> };
@@ -17,8 +17,25 @@ declare const process: { env: Record<string, string | undefined> };
 const previewHost = process.env.PREVIEW_HOST;
 const allowedHosts = previewHost ? [previewHost] : undefined;
 
+/*
+ * Which batch the review layer saves into.
+ *
+ * The phone round is finished and archived in `review/mobile/`; the desktop round starts in
+ * `review/desktop/`, which is where a capture goes unless the run says otherwise. The name is
+ * chosen once, here, and handed to both halves: the middleware that writes the files and the
+ * browser layer that says where they went (`__REVIEW_BATCH__` below) — so the label on the Save
+ * button cannot name a different folder from the one the picture lands in.
+ *
+ *   REVIEW_BATCH=mobile npm run dev      writes to review/mobile/ again
+ *   npm run dev                          writes to review/desktop/
+ */
+const reviewBatch = reviewBatchName();
+
 export default defineConfig({
-  plugins: [react(), reviewUpload()],
+  define: {
+    __REVIEW_BATCH__: JSON.stringify(reviewBatch),
+  },
+  plugins: [react(), reviewUpload({ batch: reviewBatch })],
   server: {
     host: '0.0.0.0',
     port: 3000,

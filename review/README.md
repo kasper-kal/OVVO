@@ -1,9 +1,22 @@
 # review — screenshots and notes from the design review layer
 
 Temporary. Everything here exists so the traveller can point at the interface instead of
-describing it, and so the fix plan can be written against what was actually seen. The plan
-written from this batch — every note, in their words — is `../MOBILE-FIXES.md`;
-these captures are all phone-width (378px), so that file covers mobile only.
+describing it, and so the fix plan can be written against what was actually seen.
+
+## The two rounds
+
+One folder per round, so a capture is never filed with a batch it does not belong to:
+
+| Folder | What it holds | The plan written from it |
+|---|---|---|
+| `mobile/` | the finished phone batch — 29 screenshots at 378px, `notes.json` beside them | `../MOBILE-FIXES.md` |
+| `desktop/` | the round starting now — empty until the first Save | `../DESKTOP-FIXES.md`, when it exists |
+
+The dot saves into **one** folder per run: `desktop/` unless the dev server was started with
+`REVIEW_BATCH=mobile`, and the panel says which one it is on ("saving to review/desktop"). The
+name is chosen in `vite.config.ts` and handed to both the upload endpoint and the browser layer, so
+the label and the write cannot disagree. Files never move between rounds afterwards: a desktop
+screenshot in `mobile/` would be counted by a plan whose numbers were measured on 29 pictures.
 
 ## How a note gets here
 
@@ -17,8 +30,9 @@ these captures are all phone-width (378px), so that file covers mobile only.
      file manager draws a selection.
    Then type what you think beside its number or its "Area n" label. As many of each per picture as
    you like, no labels or tags.
-4. **Save to review/** sends the image and the notes to `review/upload-plugin.mjs`, which writes
-   both files here. Nothing leaves the machine.
+4. **Save to review/<round>** — the button names the folder the panel is on — sends the image and
+   the notes to `review/upload-plugin.mjs`, which writes both files into that round's folder
+   (`review/desktop/` today). Nothing leaves the machine.
 
 On a phone the panel fills the screen as a sheet with the picture scrolling between a fixed header
 and a footer that holds Save and Discard, so the button that finishes a note is never off-screen.
@@ -32,9 +46,9 @@ dev-preview proxy without reaching the dev server. The reduction is recorded in 
 
 | Path | What it is |
 |---|---|
-| `<stamp>-<route>-<width>-<theme>.<ext>` | the screenshot, exactly as pasted |
-| `notes.json` | one entry per screenshot: where it was taken, on what, and the pins |
-| `upload-plugin.mjs` | the dev-server endpoint that writes the two above |
+| `<round>/<stamp>-<route>-<width>-<theme>.<ext>` | the screenshot, exactly as pasted |
+| `<round>/notes.json` | one entry per screenshot in that round: where it was taken, on what, and the pins |
+| `upload-plugin.mjs` | the dev-server endpoint that writes the two above, into the round it was started for |
 | `upload-plugin.d.mts` | its types, so `vite.config.ts` can import it |
 
 `notes.json` entries carry the whole context the app knows about the person looking at it, because
@@ -71,5 +85,5 @@ pins stay in the panel, so the same Save button is the retry.
 ## Removing it
 
 Delete this folder, the two lines that mount it in `src/App.tsx` and `vite.config.ts`, and
-`src/review/`. The production build never contained any of it: the layer is behind
+`src/review/`. All three belong together: the endpoint, the constant and the dot. The production build never contained any of it: the layer is behind
 `import.meta.env.DEV` and the endpoint is `apply: 'serve'`.
