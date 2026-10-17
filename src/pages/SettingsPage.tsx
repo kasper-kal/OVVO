@@ -1,11 +1,11 @@
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { getStop } from '../data/stops';
-import { Button, Card, Dialog, Field, Pill, Segmented, Switch } from '../components/ui/primitives';
-import { Icon } from '../components/ui/Icons';
+import { Banner, Button, Card, Dialog, Field, Pill, Segmented, Switch } from '../components/ui/primitives';
+import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { LANGUAGES } from '../lib/i18n';
@@ -365,68 +365,103 @@ export function SettingsPage() {
         <div className="stack-4">
           <Card className="stack">
             <h2 className="t-section">{t('Preview with current settings')}</h2>
-            <p className="t-sm t-muted">
-              {t(
-                'A quick look at how times, dates, density and the accent colours render with the settings you have chosen.',
-              )}
-            </p>
-            <dl className="dl">
-              <dt>{t('Time')}</dt>
-              <dd>{format.time(sampleTime)}</dd>
-              <dt>{t('Duration')}</dt>
-              <dd>{format.duration(97)}</dd>
-              <dt>{t('Date')}</dt>
-              <dd>{format.date(sampleDate)}</dd>
-              <dt>{t('Relative')}</dt>
-              <dd>{format.relative(600, 606)}</dd>
-            </dl>
-            <div className="row-wrap">
-              <Pill tone="butter">{t('Highlighted')}</Pill>
-              <Pill tone="outline">{t('Neutral')}</Pill>
+            {/*
+              A specimen, not a description (F25): the card is the one place on a screen of text
+              that is meant to be looked at — "the rest of the page is text so here is where we
+              show it IRL, not in text". Everything below is the app's own furniture drawn with
+              the settings in force: a journey's times and its delay, the board's rows, two
+              buttons, a chip row, a notice, and the accent swatches with the name of what each
+              one means. Nothing here is a control; changing a setting above re-draws it.
+            */}
+            <div className="preview-specimen stack-2">
+              <div className="between wrap">
+                <div className="journey-card__times">
+                  <span className="journey-card__time">{format.time(sampleTime)}</span>
+                  <Icon name="arrowRight" size={18} className="journey-card__arrow" />
+                  <span className="journey-card__time">{format.time(sampleTime + 97)}</span>
+                  <span className="pill">{format.duration(97)}</span>
+                </div>
+                <Pill tone="coral" dot dotTone="coral">
+                  {t('Delay +{minutes} min', { minutes: 4 })}
+                </Pill>
+              </div>
+              <div className="row-wrap">
+                <span className="mode-badge mode-badge--tram">
+                  <ModeIcon mode="tram" size={13} />
+                  {t('Tram')} 2
+                </span>
+                <span className="t-sm t-muted">{format.date(sampleDate)}</span>
+                <span className="t-sm t-faint">{format.relative(600, 606)}</span>
+              </div>
+              <div className="row-wrap">
+                <Pill tone="sage">{t('Expected quiet')}</Pill>
+                <Pill tone="butter">{t('Highlighted')}</Pill>
+                <Pill tone="outline">{t('Neutral')}</Pill>
+              </div>
             </div>
 
-            {/*
-              The palette, then the settings that have no sample of their own.
+            <div className="preview-specimen stack-1">
+              <span className="field__label">{t('Departure board')}</span>
+              <ul className="board-list">
+                <li className="board-list__row">
+                  <span className="board-list__time">
+                    <span className="t-mono-num">{format.time(sampleTime)}</span>
+                  </span>
+                  <span className="board-list__main">
+                    <span className="board-list__destination">{t('Amsterdam Centraal')}</span>
+                    <span className="t-sm t-faint">{t('Tram')} 2 · GVB</span>
+                  </span>
+                  <span className="board-list__platform">1</span>
+                </li>
+                <li className="board-list__row">
+                  <span className="board-list__time">
+                    <span className="t-mono-num">{format.time(sampleTime + 10)}</span>
+                    <span className="board-list__delta">
+                      <span className="strike">{format.time(sampleTime + 7)}</span>
+                      <span className="delay">+3</span>
+                    </span>
+                  </span>
+                  <span className="board-list__main">
+                    <span className="board-list__destination">{t('Utrecht Centraal')}</span>
+                    <span className="t-sm t-faint">{t('Tram')} 4 · GVB</span>
+                  </span>
+                  <span className="board-list__platform">2</span>
+                </li>
+              </ul>
+            </div>
 
-              Both blocks answer the same report — the preview showed one accent and five format
-              lines, and said nothing about the appearance, the language, the density, the contrast
-              or the motion that were actually in force. Nothing here is a second control: every
-              line is a reading of the settings above it, and the appearance line is the resolved
-              one, so "System" is never printed as if it were an appearance.
-            */}
+            <div className="row-wrap">
+              <Button variant="primary" icon="route">
+                {t('Plan journey')}
+              </Button>
+              <Button icon="sliders">{t('Filters')}</Button>
+            </div>
+
+            <Banner tone="butter" icon="info" title={t('Service notice')}>
+              {t('Work on the line until 18:00 — add ten minutes.')}
+            </Banner>
+
             <h3 className="t-label">{t('Accent colours')}</h3>
-            <dl className="dl dl--swatch">
+            <div className="row-wrap">
               {ACCENTS.map((accent) => (
-                <Fragment key={accent.key}>
-                  <dt>
-                    <span
-                      className={`palette__swatch palette__swatch--${accent.key}`}
-                      aria-hidden="true"
-                    />
-                    {t(accent.name)}
-                  </dt>
-                  <dd>{t(accent.role)}</dd>
-                </Fragment>
+                <span key={accent.key} className="row row--inline">
+                  <span
+                    className={`palette__swatch palette__swatch--${accent.key}`}
+                    aria-hidden="true"
+                  />
+                  <span className="t-sm">{t(accent.name)}</span>
+                </span>
               ))}
-            </dl>
+            </div>
 
             <h3 className="t-label">{t('Currently in effect')}</h3>
-            <dl className="dl">
-              <dt>{t('Appearance')}</dt>
-              <dd>{appearanceLabel}</dd>
-              <dt>{t('Language')}</dt>
-              <dd>{languageLabel}</dd>
-              <dt>{t('Density')}</dt>
-              <dd>{settings.density === 'compact' ? t('Compact') : t('Comfortable')}</dd>
-              <dt>{t('Contrast')}</dt>
-              <dd>{settings.highContrast ? t('Raised') : t('Standard')}</dd>
-              <dt>{t('Motion')}</dt>
-              <dd>{settings.reduceMotion ? t('Reduced') : t('Full')}</dd>
-            </dl>
-
-            <p className="t-sm t-faint">
-              {t('Settings are presentation-only: they never change the timetable or your journeys.')}
-            </p>
+            <div className="row-wrap">
+              <Pill tone="outline">{appearanceLabel}</Pill>
+              <Pill tone="outline">{languageLabel}</Pill>
+              <Pill tone="outline">{settings.density === 'compact' ? t('Compact') : t('Comfortable')}</Pill>
+              <Pill tone="outline">{settings.highContrast ? t('Raised') : t('Standard')}</Pill>
+              <Pill tone="outline">{settings.reduceMotion ? t('Reduced') : t('Full')}</Pill>
+            </div>
           </Card>
 
         </div>

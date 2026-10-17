@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useApp } from '../../state/AppState';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
 import { getStop } from '../../data/stops';
@@ -39,7 +38,6 @@ export function BoardList({
   const format = useFormat();
   const t = useT();
   const navigate = useNavigate();
-  const { search, startSearch, preferences } = useApp();
 
   if (departures.length === 0) {
     return (
@@ -55,20 +53,16 @@ export function BoardList({
   const hidden = departures.length - shown.length;
   const next = Math.min(ROWS_PER_LOAD, hidden);
 
+  /*
+   * A row's plan action names that departure's destination and nothing else.
+   *
+   * It used to run a search on the spot — carrying the session's other end with it when there
+   * was one, and inventing a departure time from the row when there was not — so the traveller
+   * was dropped on results for a journey they never described (F28). Now the row fills the TO
+   * and opens the planner on the FROM.
+   */
   const planTo = (departure: Departure) => {
-    if (search) {
-      startSearch({ ...search.query, toStopId: departure.destinationStopId, preferences });
-    } else {
-      startSearch({
-        fromStopId: departure.stopId,
-        toStopId: departure.destinationStopId,
-        date: new Date().toISOString().slice(0, 10),
-        time: Math.floor(departure.planned / 5) * 5,
-        timeMode: 'depart',
-        preferences,
-      });
-    }
-    navigate('/results');
+    navigate(`/?to=${departure.destinationStopId}&pick=from`);
   };
 
   return (

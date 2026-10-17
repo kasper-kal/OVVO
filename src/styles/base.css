@@ -479,17 +479,29 @@ svg.map-canvas {
   inset: -6px;
 }
 
-.app-header__alert-count {
-  min-width: 18px;
-  height: 18px;
+/*
+ * **One count, one box** (F24).
+ *
+ * The same number of alerts is drawn in three places — the header, the navigation and the "all
+ * sections" sheet — and it was three sizes: 18×18 in the header against 24×20 in the nav, which
+ * is the report ("not the same size as the number background in the header"). Declared once, so
+ * they cannot drift again: the header's small mark and the nav's badge are the same element, and
+ * the sheet reads the same class.
+ */
+.app-header__alert-count,
+.nav-item__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
   padding: 0 var(--s-1);
   border-radius: var(--r-pill);
   background: var(--accent-primary);
   color: var(--struct-main);
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
-  line-height: 18px;
-  text-align: center;
+  letter-spacing: var(--track-pill);
+  line-height: 1;
 }
 
 .app-body {
@@ -643,19 +655,9 @@ svg.map-canvas {
  * the same number of alerts, and they were two different colours for no reason — the nav in
  * butter, the header in coral. The header was not touched: this is the one that changed.
  */
+/* The nav badge keeps only its position: its size is the shared rule above. */
 .nav-item__badge {
   margin-left: auto;
-  min-width: 24px;
-  height: 20px;
-  padding: 0 var(--s-2);
-  border-radius: var(--r-pill);
-  background: var(--accent-primary);
-  color: var(--struct-main);
-  font-size: var(--fs-pill);
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--track-pill);
-  display: grid;
-  place-items: center;
 }
 
 .nav-item__dot {
@@ -695,6 +697,34 @@ svg.map-canvas {
    list, which is the drift the audit recorded. */
 .page-head__actions {
   justify-content: flex-end;
+}
+
+/*
+ * A head whose name is drawn on a phone only (the stop page, F18): on a narrow screen the name
+ * and its controls are one left-aligned block — the controls start at the margin under the name
+ * instead of floating alone in the middle of an otherwise empty row ("why it on the right",
+ * 2026-10-17t20-48-37). From 641px up the name is not drawn and the controls return to the
+ * trailing edge, which is the head that page has always had on a wide screen.
+ */
+.page-head--mobile-title .page-head__title {
+  /* A column, not a row: the title's `flex: 1 1 12rem` above is a basis for sharing a line with
+     the controls, and in a column it was a 192px-tall name with a gap under it (measured, at
+     378px). Here it is as tall as the words it holds. */
+  flex: 0 0 auto;
+}
+
+.page-head--mobile-title .page-head__actions {
+  justify-content: flex-start;
+}
+
+@media (min-width: 641px) {
+  .page-head--mobile-title .page-head__title {
+    display: none;
+  }
+
+  .page-head--mobile-title .page-head__actions {
+    justify-content: flex-end;
+  }
 }
 
 

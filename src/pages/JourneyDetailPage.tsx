@@ -11,7 +11,6 @@ import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primiti
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { plural } from '../lib/format';
-import { modeLabel } from '../data/preferences';
 
 export function JourneyDetailPage() {
   const { journeyId } = useParams();
@@ -68,12 +67,65 @@ export function JourneyDetailPage() {
   return (
     <div className="stack-6">
       <PageHeader
-        title={`${stopLabel(journey.legs[0].fromStopId)} → ${stopLabel(journey.legs[journey.legs.length - 1].toStopId)}`}
+        /*
+         * The glyph, not the character: `→` in a heading is a text arrow drawn in whatever face
+         * the heading happens to use, at whatever weight and whatever side bearing it has, so the
+         * one direction this app means was drawn two different ways here and on every leg row
+         * below it ("ugly arrow, replace with icon instead of text", 2026-10-17t20-36-48). It is
+         * the same `arrowRight` glyph the leg rows and the line rows use (F16).
+         */
+        title={
+          <>
+            {stopLabel(journey.legs[0].fromStopId)}
+            <Icon name="arrowRight" size={18} className="page-head__arrow" />
+            {stopLabel(journey.legs[journey.legs.length - 1].toStopId)}
+          </>
+        }
         description={`${format.date(search?.query.date ?? '')} · departs ${format.time(journey.departure)} · arrives ${format.time(
           journey.arrival,
         )} · ${journey.transfers === 0 ? 'direct' : plural(journey.transfers, 'transfer')}`}
         showTitle
       />
+
+      {/*
+        The journey's own actions, in their own row under the head — not three pills squeezed into
+        the foot of the summary card ("looks awkwardly squeezed in", 2026-10-17t20-30-01). At a
+        phone width each one takes the full width of the row, so no label wraps inside its button;
+        on a wide screen the row is a wrapping line of pills again, exactly where it was in the
+        card. Nothing else on this page repeats them.
+      */}
+      <div className="journey-actions">
+        {search ? (
+          <Button
+            icon="route"
+            onClick={() => {
+              startSearch({ ...search.query, fromStopId: journey.legs[journey.legs.length - 1].toStopId, toStopId: journey.legs[0].fromStopId, preferences });
+              navigate('/results');
+            }}
+          >
+            Plan return journey
+          </Button>
+        ) : null}
+        <Link to={`/map?journey=${journey.id}`} className="btn">
+          <Icon name="map" size={16} />
+          Show on map
+        </Link>
+        {/*
+          The same control as the one on this journey's card: a heart, filled while the journey is
+          kept, with the two labels the card uses (`Favourite this journey` / `Favourited`). It
+          used to be a bookmark that swapped to a tick here and read "Favourite" — the same
+          function wearing a third face on the one screen that is about the journey itself.
+        */}
+        <button
+          type="button"
+          className="btn journey-save"
+          aria-pressed={saved}
+          onClick={() => search && saveJourney(journey, search.query, search.windowOffsetMinutes)}
+        >
+          <Icon name="heart" size={16} />
+          {saved ? 'Favourited' : 'Favourite this journey'}
+        </button>
+      </div>
 
       {/*
         The four tiles that opened this page — departure, arrival, duration, transfers — were
@@ -117,88 +169,54 @@ export function JourneyDetailPage() {
         <div className="stack-4">
           <Card className="stack">
             <h2 className="t-section">Journey summary</h2>
-            <dl className="dl">
-              <dt>{operators.length > 1 ? 'Operators' : 'Operator'}</dt>
-              <dd>{operators.length ? operators.join(', ') : 'Walking only'}</dd>
-              <dt>Services</dt>
-              <dd>
-                {rideLegs.length
-                  ? rideLegs.map((leg) => getLine(leg.lineId)?.name ?? leg.lineName).join(' · ')
-                  : 'No public transport needed'}
-              </dd>
-              <dt>Modes</dt>
-              <dd className="row-wrap">
-                {journey.modes.map((mode) => (
-                  <span key={mode} className="mode-badge">
-                    <ModeIcon mode={mode} size={13} />
-                    {modeLabel(mode)}
-                  </span>
-                ))}
-              </dd>
-              <dt>Fare</dt>
-              <dd>
-                €{journey.fare.eur.toFixed(2)} <span className="t-faint">· {journey.fare.label}</span>
-              </dd>
-              <dt>Step-free</dt>
-              <dd>{journey.stepFree ? 'Yes — no stairs on this option' : 'Not on this option'}</dd>
-              <dt>Bicycle</dt>
-              <dd>{journey.bikeAllowed ? 'Bicycle can be taken on board' : 'Bicycle not possible on this option'}</dd>
-              <dt>Duration</dt>
-              <dd>
-                {format.duration(journey.durationMinutes)} ·{' '}
-                {journey.transfers === 0 ? 'direct' : plural(journey.transfers, 'transfer')} ·{' '}
-                {plural(journey.legs.length, 'leg')} · {journey.walkMinutes} min walking
-              </dd>
-            </dl>
             {/*
-              The same three controls as the journey card this page was opened from, in the same
-              layout — `journey-card__actions`, the even two-column grid with the odd action taking
-              the full width — and in the same order, with `Favourite` last.
-
-              It was a plain wrapping row, so the same `Favourite` that spans the width of a
-              journey card sat hugging the left edge here, and `Show on map` sat on the other side
-              of the card than it does there (the audit's `save a journey` and `show on the map`:
-              one instance out of eight, in each case, on this page alone). A traveller reading a
-              journey and then going back to the list should find the same control in the same
-              place; the container is the same card foot, so the layout is the same layout.
+              Drawn, not described: the seven-row definition list it replaces read as a
+              paragraph of sentences ("EXTREMLY text heavy, replace with mostly icons",
+              2026-10-17t20-33-24). Every fact is still here, in the app's own chip idiom — the
+              same `mode-badge` the services wore on the journey card, and `Pill`s with the same
+              glyphs the card's own meta row uses (`ticket`, `walk`, `swap`, `station`). Nothing
+              reads as a sentence any more, and each chip is one line at 378px.
             */}
-            <div className="row-wrap journey-card__actions">
-              {search ? (
-                <Button
-                  /* `route`: planning the journey back is planning. It wore `sliders`, which
-                     is the options glyph, and the audit caught the clash. */
-                  icon="route"
-                  onClick={() => {
-                    startSearch({ ...search.query, fromStopId: journey.legs[journey.legs.length - 1].toStopId, toStopId: journey.legs[0].fromStopId, preferences });
-                    navigate('/results');
-                  }}
-                >
-                  Plan return journey
-                </Button>
+            <div className="row-wrap journey-facts">
+              {rideLegs.length === 0 ? (
+                <Pill tone="outline">Walking only</Pill>
+              ) : (
+                rideLegs.map((leg) => (
+                  <span key={leg.id} className={`mode-badge mode-badge--${leg.mode}`}>
+                    <ModeIcon mode={leg.mode} size={13} />
+                    {getLine(leg.lineId)?.name ?? leg.lineName ?? 'Service'}
+                  </span>
+                ))
+              )}
+              {operators.length ? (
+                <Pill tone="outline">
+                  <Icon name="station" size={12} />
+                  {operators.join(' · ')}
+                </Pill>
               ) : null}
-              {/* The same words the journey card uses for the same destination, and the same
-                  column it takes there. */}
-              <Link to={`/map?journey=${journey.id}`} className="btn">
-                <Icon name="map" size={16} />
-                Show on map
-              </Link>
-              {/*
-                The same control as the one on this journey's own card, in the same words and the
-                same two states ("Favourite" / "Favourited" with `aria-pressed`): it used to read
-                "Favourite this journey" here and "Favourite" there, which is the same function
-                identified two ways (WCAG 3.2.4). It was then the app's only obsidian Favourite, so
-                the *same* control was a white pill on that card and the loudest thing on this page
-                — and it was the first of the row here, where on the card it is last and spans it.
-                Nothing on this page is *the* action: it is a journey you are reading, not a form
-                you are filling in. So: the same pill, in the same place.
-              */}
-              <Button
-                icon={saved ? 'check' : 'bookmark'}
-                aria-pressed={saved}
-                onClick={() => search && saveJourney(journey, search.query, search.windowOffsetMinutes)}
-              >
-                {saved ? 'Favourited' : 'Favourite'}
-              </Button>
+              <Pill tone="outline">
+                <Icon name="ticket" size={12} />€{journey.fare.eur.toFixed(2)}{' '}
+                <span className="t-faint">{journey.fare.label}</span>
+              </Pill>
+              <Pill>
+                <Icon name="clock" size={12} />
+                {format.duration(journey.durationMinutes)}
+              </Pill>
+              <Pill>
+                <Icon name="swap" size={12} />
+                {journey.transfers === 0 ? 'Direct' : plural(journey.transfers, 'transfer')} ·{' '}
+                {plural(journey.legs.length, 'leg')}
+              </Pill>
+              <Pill tone="outline">
+                <Icon name="walk" size={12} />
+                {journey.walkMinutes} min walking
+              </Pill>
+              {/* A plain yes/no, kept short and kept: absence of the chip is what would hide the
+                  answer, not the answer itself. */}
+              <Pill tone={journey.bikeAllowed ? 'sage' : 'outline'}>
+                <Icon name="bike" size={12} />
+                {journey.bikeAllowed ? 'Bicycle allowed' : 'No bicycle'}
+              </Pill>
             </div>
           </Card>
 
@@ -216,11 +234,12 @@ export function JourneyDetailPage() {
                         <Icon name="swap" size={18} />
                       </span>
                       <span className="stack-1 grow">
+                        {/*
+                          The "step-free transfer · staff assistance" line is deleted with every
+                          other visible accessibility claim (F19). What is left is the fact that
+                          belongs to a transfer: where to change.
+                        */}
                         <span className="t-strong t-sm">Change at {stop?.name}</span>
-                        <span className="t-sm t-muted">
-                          {stop?.accessibility.stepFree ? 'Step-free transfer' : 'Not step-free'} ·{' '}
-                          {stop?.accessibility.assistance ? 'staff assistance available' : 'no staff assistance listed'}
-                        </span>
                       </span>
                     </li>
                   );

@@ -51,6 +51,41 @@ export function boardForStop(stopId: string, options: BoardOptions): Departure[]
   return entries.sort((a, b) => a.expected - b.expected || a.planned - b.planned).slice(0, limit);
 }
 
+/**
+ * One line's board at one stop — the screen a line row in "Lines calling here" opens (F20).
+ *
+ * `boardForStop` cannot answer this: it builds every line's departures and only then cuts the
+ * list to `limit`, so a line that is not among a busy stop's first dozen services would come
+ * back empty. This walks just this line's two directions, from the same `nextDeparture` and the
+ * same `makeDeparture` the stop board uses, so a delay, a cancellation and a platform are the
+ * same facts on both screens.
+ */
+export function boardForLine(lineId: string, stopId: string, options: BoardOptions): Departure[] {
+  const line = getLine(lineId);
+  const stop = getStop(stopId);
+  if (!line || !stop) return [];
+  const limit = options.limit ?? 24;
+  const tick = options.tick ?? 0;
+  const entries: Departure[] = [];
+
+  for (const dir of directions(line)) {
+    const index = dir.stops.indexOf(stopId);
+    if (index < 0) continue;
+    /* The terminus only receives traffic: a service ending here has no departure to show. */
+    if (index === dir.stops.length - 1 && dir.stops.length > 1) continue;
+    const destinationStopId = dir.stops[dir.stops.length - 1];
+    let departure = nextDeparture(line, options.fromMinutes);
+    for (let i = 0; i < 10 && entries.length < limit * 2; i += 1) {
+      if (!isInService(line, departure)) break;
+      entries.push(makeDeparture(line.id, dir.index, stopId, destinationStopId, departure, tick));
+      departure += line.headway;
+      if (departure > 1440 + 180) break;
+    }
+  }
+
+  return entries.sort((a, b) => a.expected - b.expected || a.planned - b.planned).slice(0, limit);
+}
+
 function makeDeparture(
   lineId: string,
   directionIndex: 0 | 1,

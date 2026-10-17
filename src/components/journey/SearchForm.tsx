@@ -29,14 +29,25 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
   const { search, startSearch, preferences, pushToast, settings } = useApp();
   const t = useT();
 
+  /*
+   * `?pick=` marks a hand-over from a "Plan … here" control: the URL answers one end and the
+   * traveller answers the other. In that case the card must not borrow the remaining end from the
+   * search still in the session, nor from the default origin — an empty row with its picker open
+   * is the whole point of the hand-over (F28).
+   */
+  const pickParam = params.get('pick');
+  const handOver = pickParam === 'from' || pickParam === 'to';
+
   const defaults = useMemo(() => {
     const base = search?.query;
     const fallbackOrigin = settings.defaultOriginStopId ? getStop(settings.defaultOriginStopId) : undefined;
+    const fromParam = getStop(params.get('from') ?? undefined);
+    const toParam = getStop(params.get('to') ?? undefined);
     return {
-      from: getStop(params.get('from') ?? base?.fromStopId) ?? fallbackOrigin ?? null,
-      to: getStop(params.get('to') ?? base?.toStopId) ?? null,
+      from: fromParam ?? (handOver ? null : getStop(base?.fromStopId) ?? fallbackOrigin ?? null),
+      to: toParam ?? (handOver ? null : getStop(base?.toStopId) ?? null),
     };
-  }, [params, search, settings.defaultOriginStopId]);
+  }, [params, search, settings.defaultOriginStopId, handOver]);
 
   /**
    * A new pair keeps the when of the search already on screen (changing only the
@@ -68,16 +79,6 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
    */
   const paramFrom = params.get('from');
   const paramTo = params.get('to');
-  useEffect(() => {
-    if (paramFrom !== null) {
-      const stop = getStop(paramFrom);
-      if (stop) setFrom(stop);
-    }
-    if (paramTo !== null) {
-      const stop = getStop(paramTo);
-      if (stop) setTo(stop);
-    }
-  }, [paramFrom, paramTo]);
   /*
    * An address "use my current location" resolved to, per end. Kept beside the stop rather
    * than inside it: the journey is planned from the stop, and the traveller named the
@@ -90,6 +91,44 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
   const [errors, setErrors] = useState<{ from?: string; to?: string }>({});
   const [sheet, setSheet] = useState<{ kind: 'pick' | 'map'; side: Side } | null>(null);
 
+  useEffect(() => {
+    if (paramFrom !== null) {
+      const stop = getStop(paramFrom);
+      if (stop) setFrom(stop);
+    }
+    if (paramTo !== null) {
+      const stop = getStop(paramTo);
+      if (stop) setTo(stop);
+    }
+    /* A hand-over that arrives on an already-mounted card clears the end it did not name, so the
+       previous search's stop cannot stand in for the traveller's answer. */
+    if (!handOver) return;
+    if (paramFrom === null) {
+      setFrom(null);
+      setLabels((current) => ({ ...current, from: undefined }));
+    }
+    if (paramTo === null) {
+      setTo(null);
+      setLabels((current) => ({ ...current, to: undefined }));
+    }
+    setErrors({});
+  }, [paramFrom, paramTo, handOver]);
+
+  /*
+   * `?pick=from|to` opens the picker on the end that is still missing.
+   *
+   * A "Plan to here" anywhere in the app now answers one end and hands the other to the
+   * traveller: it fills **only** the end that was named, lands here, and opens the picker for the
+   * *other* end ("when you press a button like 'PLAN TO HERE' that it only auto-inputs the 'TO'
+   * and brings you to the search menu with the 'FROM' selected instead of the results"). Before
+   * this, a search already in the session was quietly reused — its other end was carried into the
+   * new query and the screen jumped to results — which is the "it auto-fills the from" in the
+   * report.
+   */
+  useEffect(() => {
+    if (pickParam === 'from' || pickParam === 'to') setSheet({ kind: 'pick', side: pickParam });
+  }, [pickParam]);
+
   const run = (origin: Stop, destination: Stop, named: { from?: string; to?: string } = labels) => {
     const query: SearchQuery = {
       fromStopId: origin.id,
@@ -101,11 +140,20 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
       timeMode: when.timeMode,
       preferences,
     };
-    /* No toast: the results screen is the answer to the question that was just asked. */
+    /*
+     * Route first, close the sheet on the way out (F4).
+     *
+     * The sheet covers the screen, so closing it before the route moved left the planner — the
+     * home screen — visible for the frames in between: the reported "flicker of the home screen"
+     * that made the traveller think the press had failed. Now the destination is chosen first and
+     * the next screen paints under the closing overlay, where it has always been.
+     *
+     * No toast: the results screen is the answer to the question that was just asked.
+     */
     startSearch(query);
+    navigate('/results');
     setSheet(null);
     onSearch?.();
-    navigate('/results');
   };
 
   /**

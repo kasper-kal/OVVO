@@ -16,7 +16,7 @@ import { operatorName } from '../data/operators';
 import { disruptionsForStop } from '../data/disruptions';
 import { boardForStop } from '../data/departures';
 import { useMinuteNow } from '../lib/useMinuteNow';
-import { Button, Card, EmptyState, IconButton, Pill } from '../components/ui/primitives';
+import { Button, Card, EmptyState, IconButton } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
@@ -32,9 +32,6 @@ export function StopDetailPage() {
     toggleFavourite,
     boardStopIds,
     toggleBoardStop,
-    search,
-    startSearch,
-    preferences,
   } = useApp();
   const format = useFormat();
   const t = useT();
@@ -69,18 +66,14 @@ export function StopDetailPage() {
   /* The head's Plan button asks the same question the stop cards do (see `PlanStopDialog`). */
   const [planOpen, setPlanOpen] = useState(false);
 
+  /*
+   * One end, then the other. This used to reuse whatever search was in the session when there was
+   * one — carrying its other end into the new query and landing on the results — which is the
+   * "it auto-fills the from" in the round's report. `pick` opens the picker on the end that is
+   * still missing, and the results are never reached without both ends being answered here (F28).
+   */
   const planTo = (direction: 'from' | 'to') => {
-    if (!search) {
-      /*
-       * Nothing planned yet, so there is no other end to attach this to — the same answer the
-       * stop cards give: open the planner with this stop in the row that was chosen. No toast,
-       * because the planner's filled row is the message.
-       */
-      navigate(`/?${direction === 'from' ? 'from' : 'to'}=${stop.id}`);
-      return;
-    }
-    startSearch({ ...search.query, ...(direction === 'from' ? { fromStopId: stop.id } : { toStopId: stop.id }), preferences });
-    navigate('/results');
+    navigate(`/?${direction}=${stop.id}&pick=${direction === 'from' ? 'to' : 'from'}`);
   };
 
   return (
@@ -93,6 +86,10 @@ export function StopDetailPage() {
          */
         title={customStopName(stop.id) ?? stop.name}
         description={`${customStopName(stop.id) ? `${stop.name} · ` : ''}${stop.city} · ${stop.region} · stop code ${stop.code}`}
+        /* On a phone the name is drawn above the controls, so the head is one block at the
+           margin instead of three buttons alone in a row (F18). Wide screens keep the trailing
+           row they had. */
+        mobileTitle
         actions={
           <>
             {/*
@@ -181,33 +178,16 @@ export function StopDetailPage() {
                 {stop.ovFiets ? ' · OV-fiets rental available' : ''}
               </dd>
               {/*
-                Accessibility is a row of this table, not a second block of its own: it is one
-                more fact about the place, and it is a fact about *boarding*, so a walking
-                landmark does not claim it at all — "step-free, lift available" says nothing
-                about a museum entrance (see `hasBoard` in `data/stops`).
+                The Accessibility row is deleted, by name: "get rid of ALL accesibility
+                descriptions EVERYWHERE" (2026-10-17t20-49-20). Step-free, lift, tactile paving,
+                staff assistance and low-floor boarding were five claims this page made about a
+                traveller it does not know; the row is gone rather than restyled, and so is the
+                claim in every other surface that drew one (the stop card's Step-free pill, the
+                journey card's chip, each leg's Step-free pill, the transfer lines and the alert
+                page's affected-stop meta). Hidden accessibility — `aria` names, roles, alt text —
+                stays, because it is not a description on the page and removing it would break
+                controls for a screen reader without changing anything visible.
               */}
-              {hasBoard(stop) ? (
-                <>
-                  <dt>Accessibility</dt>
-                  <dd className="row-wrap">
-                    <Pill tone={stop.accessibility.stepFree ? 'sage' : 'coral'}>
-                      {stop.accessibility.stepFree ? 'Step-free access' : 'Stairs only'}
-                    </Pill>
-                    <Pill tone={stop.accessibility.lift ? 'sage' : 'outline'}>
-                      {stop.accessibility.lift ? 'Lift' : 'No lift'}
-                    </Pill>
-                    <Pill tone={stop.accessibility.tactilePaving ? 'sage' : 'outline'}>
-                      {stop.accessibility.tactilePaving ? 'Tactile paving' : 'No tactile paving'}
-                    </Pill>
-                    <Pill tone={stop.accessibility.assistance ? 'sage' : 'outline'}>
-                      {stop.accessibility.assistance ? 'Staff assistance' : 'No staff assistance'}
-                    </Pill>
-                    <Pill tone={stop.accessibility.lowFloorBoarding ? 'sage' : 'outline'}>
-                      {stop.accessibility.lowFloorBoarding ? 'Low-floor boarding' : 'Not low-floor'}
-                    </Pill>
-                  </dd>
-                </>
-              ) : null}
             </dl>
           </Card>
 
@@ -320,7 +300,18 @@ export function StopDetailPage() {
             ) : (
               <ul className="stack-2">
                 {lines.map((line) => (
-                  <li key={line.id} className="list-row list-row--static">
+                  /*
+                   * The whole row opens that line's own board, not just the chevron (F21): the
+                   * stretch link covers the row, the `Alerts` pill sits above it, and the row
+                   * lifts like every other interactive surface (F22 — it is no longer
+                   * `list-row--static`).
+                   */
+                  <li key={line.id} className="list-row list-row--link">
+                    <Link
+                      to={`/departures?line=${line.id}&stop=${stop.id}`}
+                      className="list-row__stretch"
+                      aria-label={`${line.name} departures at ${stop.name}`}
+                    />
                     <span className="leg-row__marker">
                       <ModeIcon mode={line.mode} size={18} />
                     </span>
@@ -338,9 +329,12 @@ export function StopDetailPage() {
                         {stopLabel(getLine(line.id)?.stops[getLine(line.id)!.stops.length - 1])}
                       </span>
                     </span>
-                    <Link to={`/disruptions?line=${line.id}`} className="btn btn--sm btn--ghost">
+                    {/* `xs`: the row is a link now, so this pill is the one labelled control in it and
+                        the route text needs the width more than the word does. */}
+                    <Link to={`/disruptions?line=${line.id}`} className="btn btn--xs btn--ghost list-row__control">
                       Alerts
                     </Link>
+                    <Icon name="chevronRight" size={16} className="list-row__chevron" />
                   </li>
                 ))}
               </ul>
@@ -354,16 +348,22 @@ export function StopDetailPage() {
             ) : (
               <ul className="stack-2">
                 {nearby.slice(0, 6).map((neighbour) => (
-                  <li key={neighbour.id} className="list-row list-row--static">
+                  /* One target, the whole row (F21): a real link stretched over it, so keyboard,
+                     middle-click and "open in new tab" keep working, and the chevron is the
+                     affordance rather than the only hit area. */
+                  <li key={neighbour.id} className="list-row list-row--link">
+                    <Link
+                      to={`/stops/${neighbour.id}`}
+                      className="list-row__stretch"
+                      aria-label={`Open ${neighbour.name}`}
+                    />
                     <span className="stack-1 grow">
-                      <Link to={`/stops/${neighbour.id}`} className="t-strong t-sm tap-target">
-                        {neighbour.name}
-                      </Link>
+                      <span className="t-strong t-sm">{neighbour.name}</span>
                       <span className="t-sm t-muted">
                         {walkMinutesBetween(stop, neighbour)} min walk · {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').join(', ') || 'walking only'}
                       </span>
                     </span>
-                    <IconButton icon="chevronRight" label={`Open ${neighbour.name}`} onClick={() => navigate(`/stops/${neighbour.id}`)} />
+                    <Icon name="chevronRight" size={16} className="list-row__chevron" />
                   </li>
                 ))}
               </ul>

@@ -463,6 +463,50 @@ export function Banner({
   );
 }
 
+/*
+ * Waiting, drawn rather than described (F4).
+ *
+ * The results screen holds the list's place with one of these while it plans, so the screen the
+ * traveller arrives on is the results screen from the first frame. `role="status"` gives a screen
+ * reader the same sentence the ring gives the eye, and the ring is `aria-hidden` — it is a
+ * picture of waiting, not content.
+ */
+export function Spinner({ label = 'Loading' }: { label?: string }) {
+  return (
+    <div className="spinner" role="status" aria-live="polite">
+      <span className="spinner__ring" aria-hidden="true" />
+      <span className="sr-only">{label}</span>
+    </div>
+  );
+}
+
+/*
+ * A list that is still settling (F17).
+ *
+ * The stops list filters on local data, so there was never a moment between pressing a filter
+ * and having the list — it simply changed, with nothing to say it had ("add skeleton loading
+ * instead of just... nothing like currently, dont add still skeleton loading, they should
+ * actually like slowly animate"). The placeholder is the stop card's own shape — a name line, a
+ * meta line and three departure lines — drawn in muted bars, so the list that arrives lands in
+ * the same boxes the bars filled. `aria-hidden`, and the body around it is `aria-busy` while it
+ * is up: a skeleton is a picture of the list, not a list.
+ */
+export function SkeletonCards({ count = 4 }: { count?: number }) {
+  return (
+    <ul className="grid-2 stops-grid skeleton-grid" aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <li key={index} className="card skeleton-card">
+          <span className="skeleton skeleton--title" />
+          <span className="skeleton skeleton--meta" />
+          <span className="skeleton skeleton--row" />
+          <span className="skeleton skeleton--row" />
+          <span className="skeleton skeleton--row" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="stat">
@@ -546,11 +590,25 @@ export function Toaster() {
   const { toasts, dismissToast } = useApp();
   return (
     <div className="toast-region" role="status" aria-live="polite">
+      {/*
+       * A toast is a message, drawn as one (F27, "incredibly ugly"): the app's own glyph at the
+       * start — `alert` for a warning, `info` for anything else, instead of the 8px status dot
+       * that said nothing the colour did not — the message on the body type scale, and the same
+       * 44px dismiss disc every other control uses. The box hugs its own text (see `.toast` in
+       * `styles/components.css`); it is not a full-width bar.
+       */}
       {toasts.map((toast) => (
-        <div key={toast.id} className="toast">
-          <span className={`status-dot${toast.tone === 'warning' ? ' status-dot--coral' : ''}`} />
-          <span className="t-sm grow">{toast.message}</span>
-          <IconButton icon="close" label="Dismiss message" onClick={() => dismissToast(toast.id)} />
+        <div key={toast.id} className={`toast${toast.tone === 'warning' ? ' toast--warning' : ''}`}>
+          <span className="toast__icon">
+            <Icon name={toast.tone === 'warning' ? 'alert' : 'info'} size={18} />
+          </span>
+          <span className="toast__message">{toast.message}</span>
+          <IconButton
+            icon="close"
+            label="Dismiss message"
+            className="toast__close"
+            onClick={() => dismissToast(toast.id)}
+          />
         </div>
       ))}
     </div>

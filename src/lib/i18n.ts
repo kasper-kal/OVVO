@@ -389,7 +389,6 @@ const NL: Record<string, string> = {
   '{count} transfer': '{count} overstap',
   '{count} transfers': '{count} overstappen',
   '{count} minute walk': '{count} minuten lopen',
-  'Step-free': 'Zonder trappen',
   'Bicycle allowed': 'Fiets mee toegestaan',
   Occupancy: 'Drukte',
   'Expected quiet': 'Naar verwachting rustig',
@@ -510,7 +509,6 @@ const NL: Record<string, string> = {
   More: 'Meer',
   /* The board's row of favourited locations — the stops the traveller has pinned. */
   Favourites: 'Favorieten',
-  'Stairs only': 'Alleen trappen',
   Departures: 'Vertrektijden',
   'Plan a journey first, then use these shortcuts':
     'Plan eerst een reis en gebruik dan deze snelkoppelingen',
@@ -630,8 +628,6 @@ const NL: Record<string, string> = {
   'No intermediate stops on this service.': 'Geen tussenhalten op deze rit.',
   'Transfer · {duration} at {stop}': 'Overstap · {duration} bij {stop}',
   'Transfer via walk to {stop}': 'Overstap met een stuk lopen naar {stop}',
-  'Step-free transfer': 'Overstap zonder trappen',
-  'Staff assistance available': 'Personeel kan helpen',
   Bicycle: 'Fiets',
   'Walk to, from and between stops.': 'Lopen naar, van en tussen haltes.',
   'Cycle short access and egress legs where a marked bicycle path exists.':

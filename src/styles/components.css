@@ -1470,6 +1470,47 @@
   grid-column: 1 / -1;
 }
 
+/*
+ * The journey page's own action row (F12), under the page's head rather than inside the summary
+ * card. On a phone every action takes the whole row — one per line, no label wrapping inside its
+ * own button — and from 641px up it is the wrapping line of pills the card used to hold.
+ */
+.journey-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2);
+}
+
+.journey-actions > .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 641px) {
+  .journey-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .journey-actions > .btn {
+    width: auto;
+  }
+}
+
+/* A glyph standing in for a word in a heading (the journey page's from → to). */
+.page-head__arrow {
+  margin-inline: var(--s-2);
+  vertical-align: -0.15em;
+  color: var(--ink-muted);
+}
+
+/* The journey summary's chips (F14): one block of facts, so the gap between chips is tighter
+   than the page's own step and the two lines group as a set. */
+.journey-facts {
+  gap: var(--s-1) var(--s-2);
+}
+
 /* --------------------------------------------------------------- Toggles etc */
 .switch {
   display: inline-flex;
@@ -1751,6 +1792,37 @@
   background: var(--l2-bg);
 }
 
+/*
+ * The arrival end of a journey (F15): a square, not a circle — the traveller's own rule for
+ * "here", the same shape the map canvases use for the place they are looking at. The connector
+ * closes the gap between the last leg's rail and this node, because the rail is drawn per row
+ * and the last row's segment stops short of its own foot.
+ */
+.timeline__end {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding-left: var(--s-6);
+}
+
+.timeline__end::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: calc(var(--s-3) * -1);
+  height: calc(var(--s-3) + 8px);
+  width: 2px;
+  background: var(--border-hairline);
+}
+
+.timeline__node--end {
+  top: 6px;
+  border-radius: 2px;
+  border-color: var(--struct-main);
+  background: var(--struct-main);
+}
+
 /* --------------------------------------------------------------- Board table */
 
 .delay {
@@ -1761,6 +1833,131 @@
 .strike {
   text-decoration: line-through;
   color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------------- Spinner */
+/*
+ * The ring that holds the results list's place while a search is planned (F4). It spins; with
+ * motion asked off — the system preference or the app's own switch — it is drawn as the same
+ * ring, still, which is the shape of waiting without the movement.
+ */
+.spinner {
+  display: grid;
+  place-items: center;
+  padding: var(--s-6) 0;
+}
+
+.spinner__ring {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-circle);
+  border: 3px solid var(--border-hairline);
+  border-top-color: var(--accent-primary);
+  animation: spinner-turn 900ms linear infinite;
+}
+
+@keyframes spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.planning {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-2);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner__ring {
+    animation: none;
+  }
+}
+
+:root[data-motion='reduced'] .spinner__ring {
+  animation: none;
+}
+
+/* ----------------------------------------------------------------- Skeletons */
+/*
+ * The stops list's settling state (F17). One shimmer for the whole list rather than one
+ * animation per card: every bar wears the same gradient and the same `background-size`, and the
+ * gradient is driven by the container's own keyframes so ten cards cannot drift out of phase.
+ * The tint is the card's own raised surface and the palette's hairline — nothing new is coloured.
+ */
+.skeleton-grid {
+  align-items: start;
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.skeleton {
+  display: block;
+  height: 12px;
+  border-radius: var(--r-hair);
+  background: linear-gradient(
+    90deg,
+    var(--l2-bg) 0%,
+    var(--border-hairline) 45%,
+    var(--l2-bg) 90%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.5s linear infinite;
+}
+
+.skeleton--title {
+  height: 18px;
+  width: 58%;
+}
+
+.skeleton--meta {
+  width: 78%;
+}
+
+.skeleton--row {
+  width: 100%;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+
+/* The ask is a still grey box *not* being the fix, so the only time the bars stand still is when
+   motion was asked off — the system preference or the app's own switch (`tokens.css`). */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--l2-bg);
+  }
+}
+
+:root[data-motion='reduced'] .skeleton {
+  animation: none;
+  background: var(--l2-bg);
+}
+
+/*
+ * A specimen inside the settings card (F25): the app's own furniture — a journey's times, board
+ * rows, buttons, a notice — drawn on the nested surface, so the preview is a picture of the app
+ * rather than a table about it.
+ */
+/* `--pad-card` rather than a fixed step: the specimen is made of the card's own furniture, so
+   Density has to move it the way it moves every other card (F25). */
+.preview-specimen {
+  padding: var(--pad-card);
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-nested);
 }
 
 /* -------------------------------------------------------------- List modules */
@@ -1788,6 +1985,55 @@
 
 .list-row:active {
   transform: scale(var(--press-scale));
+}
+
+/*
+ * A row that is one target (F21: "add support for clicks on the background, not just the >").
+ *
+ * The link is a real anchor stretched over the row — not a click handler on the `li` — so
+ * keyboard focus, middle-click and "open in new tab" keep working, and the row's own controls
+ * are lifted above it instead of being swallowed. The text and the glyphs sit above the link
+ * with `pointer-events: none`, so a press on any of them lands on the link underneath.
+ *
+ * Its hover is the row's own hover (`.list-row:hover`, the 2px lift every card and chip uses),
+ * which is the F22 ask answered with the animation that already exists rather than a second one.
+ */
+.list-row--link {
+  position: relative;
+}
+
+/* Every child sits above the link and lets presses through to it… */
+.list-row--link > * {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* …and the link itself is the layer under all of them. It is declared after the blanket rule
+   above on purpose: `position: relative` there and `absolute` here are the same specificity, so
+   the further rule wins, and an anchor that stayed relative would draw 0×0 (measured). */
+.list-row--link > .list-row__stretch {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: auto;
+  border-radius: inherit;
+}
+
+.list-row--link > .list-row__stretch:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+.list-row--link > .list-row__control {
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.list-row__chevron {
+  flex: none;
+  color: var(--ink-faint);
 }
 
 .list-row--static {
@@ -2053,10 +2299,19 @@
   }
 }
 
+/*
+ * The toast itself (F27): the app's type on the app's surface, a real glyph, and a width that hugs
+ * the message instead of a bar pinned across the screen. The two themes take their ink from the
+ * same obsidian surface, which is why the colour is one value and not a pair.
+ */
 .toast {
   display: flex;
   align-items: center;
   gap: var(--s-3);
+  /* Hug the message, capped to the viewport: a short confirmation is a short capsule. */
+  width: fit-content;
+  max-width: 100%;
+  min-height: 56px;
   /* The region lets clicks through to the page, and the toast inherited that: every toast's
      dismiss button was measured with `pointer-events: none` and the click landed on whatever
      sat behind it — the button looked live and did nothing. */
@@ -2069,6 +2324,34 @@
   border-radius: var(--r-input);
   color: var(--on-dark);
   animation: toast-in var(--t-spring) var(--ease-spring);
+}
+
+.toast__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--tint-butter-ink);
+}
+
+.toast--warning .toast__icon {
+  color: var(--coral-ink);
+}
+
+.toast__message {
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+/* The 44px disc keeps its size; only its paint goes, so the row is text, glyph and an invisible
+   target rather than a third button-shaped thing at the end of a sentence. */
+.toast__close,
+.toast__close:hover,
+.toast__close:active {
+  background: none;
+  border-color: transparent;
+  color: var(--on-dark);
+  margin: calc(var(--s-1) * -1) calc(var(--s-1) * -1) calc(var(--s-1) * -1) 0;
 }
 
 @keyframes toast-in {
@@ -2806,6 +3089,25 @@
   gap: var(--s-1);
   flex: 0 0 auto;
   margin-left: auto;
+}
+
+/* An up/down at the end of the list is a move that cannot happen: it is drawn dimmed rather
+   than taken away, so the row of controls does not change width under the hand (F1). */
+.widget__actions .btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/*
+ * On a phone the head holds the title and up to four 44px controls, which is wider than the
+ * card. The title gives way to its own line rather than squeezing the controls into ovals
+ * (F1/F3).
+ */
+@media (max-width: 640px) {
+  .widget__head {
+    flex-wrap: wrap;
+    row-gap: var(--s-1);
+  }
 }
 
 .widget__grip {

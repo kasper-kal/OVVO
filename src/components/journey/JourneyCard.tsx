@@ -106,12 +106,6 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
             {operators.join(' · ')}
           </span>
         ) : null}
-        {journey.stepFree ? (
-          <span className="row">
-            <Icon name="accessibility" size={14} />
-            {t('Step-free')}
-          </span>
-        ) : null}
         {journey.bikeAllowed ? (
           <span className="row">
             <Icon name="bike" size={14} />

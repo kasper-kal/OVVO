@@ -25,6 +25,7 @@ import {
   EmptyState,
   IconButton,
   Pill,
+  SkeletonCards,
 } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { Icon, ModeIcon } from '../components/ui/Icons';
@@ -36,7 +37,7 @@ type StopTypeFilter = 'any' | Stop['type'];
 
 export function StopsPage() {
   const navigate = useNavigate();
-  const { favouriteStopIds, toggleFavourite, search, startSearch, preferences, nearestOrigin } = useApp();
+  const { favouriteStopIds, toggleFavourite, nearestOrigin } = useApp();
   const t = useT();
   const format = useFormat();
 
@@ -127,6 +128,21 @@ export function StopsPage() {
    * minutes went on offering departures that had already left (the same minute-behind defect the
    * boards had). It re-reads on the minute with everything else.
    */
+  /*
+   * The list's settling state (F17). The data is local, so a filter change is instant and there
+   * was never anything on screen to say work was happening — the ask is for an animated
+   * placeholder, and a placeholder needs a moment to be a placeholder. 360ms is long enough to
+   * read as a shimmer and short enough not to be in the way; it is restarted by any change to
+   * the filters, and it starts on first paint, which is the same brief wait on a cold open.
+   */
+  const [settling, setSettling] = useState(true);
+  const filterKey = `${query}|${modes.join(',')}|${type}|${region}|${city}|${favouritesOnly}|${sort}|${resetBatch}`;
+  useEffect(() => {
+    setSettling(true);
+    const timer = window.setTimeout(() => setSettling(false), 360);
+    return () => window.clearTimeout(timer);
+  }, [filterKey]);
+
   const fromMinutes = useMinuteNow();
   const departuresFor = useCallback(
     (stop: Stop) =>
@@ -136,22 +152,16 @@ export function StopsPage() {
     [fromMinutes],
   );
 
+  /*
+   * One end, then the other — never a search that is already in the session.
+   *
+   * With a search on screen this used to carry its other end into the new query and jump to the
+   * results, which is the "it auto-fills the from" in the report (F28). The named end is filled,
+   * and `pick` opens the picker on the end that is still missing, so the pair is answered by the
+   * traveller rather than borrowed from the last journey.
+   */
   const planTo = (stopId: string, direction: 'from' | 'to') => {
-    if (!search) {
-      /*
-       * Nothing planned yet, so there is no other end to attach this to. The planner is the
-       * honest answer: it opens with this stop in the row that was chosen and asks for the other
-       * one. No toast — the planner's filled row *is* the message.
-       */
-      navigate(`/?${direction}=${stopId}`);
-      return;
-    }
-    startSearch({
-      ...search.query,
-      ...(direction === 'from' ? { fromStopId: stopId } : { toStopId: stopId }),
-      preferences,
-    });
-    navigate('/results');
+    navigate(`/?${direction}=${stopId}&pick=${direction === 'from' ? 'to' : 'from'}`);
   };
 
   const openCard = (stop: Stop) => navigate(`/stops/${stop.id}`);
@@ -317,14 +327,22 @@ export function StopsPage() {
         ) : null}
       </Card>
 
-      <div className="between wrap">
-        <span className="t-sm t-muted">
-          {t('{shown} of {total} stops', { shown: shown.length, total: results.length })}
-        </span>
+      {/* The count is a reading of a list that exists, so it appears with the list, not over the
+          placeholders. */}
+      {settling ? null : (
+        <div className="between wrap">
+          <span className="t-sm t-muted">
+            {t('{shown} of {total} stops', { shown: shown.length, total: results.length })}
+          </span>
+        </div>
+      )}
 
-      </div>
-
-      {results.length === 0 ? (
+      {/* One `aria-busy` region around whichever of the three states is up, so a screen reader is
+          told the list is working rather than read a placeholder that is hidden on purpose. */}
+      <div className="stack-4" aria-busy={settling || undefined}>
+      {settling ? (
+        <SkeletonCards count={4} />
+      ) : results.length === 0 ? (
         <EmptyState
           icon="search"
           title={t('No stops match these filters')}
@@ -397,11 +415,8 @@ export function StopsPage() {
                           {modeLabel(mode)}
                         </span>
                       ))}
-                    {stop.accessibility.stepFree ? (
-                      <Pill tone="sage">{t('Step-free')}</Pill>
-                    ) : (
-                      <Pill tone="coral">{t('Stairs only')}</Pill>
-                    )}
+                    {/* The Step-free / Stairs-only pill is deleted with every other visible
+                        accessibility claim (F19). */}
                     {stop.ovFiets ? <Pill tone="outline">OV-fiets</Pill> : null}
                   </div>
 
@@ -489,6 +504,7 @@ export function StopsPage() {
           ) : null}
         </>
       )}
+      </div>
 
       <PlanStopDialog
         stop={planStop}

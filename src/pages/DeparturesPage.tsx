@@ -4,8 +4,10 @@ import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { BoardList } from '../components/stops/BoardList';
 import { StopCombobox } from '../components/journey/StopCombobox';
-import { customStopName, getStop, hasBoard } from '../data/stops';
-import { boardForStop } from '../data/departures';
+import { customStopName, getStop, hasBoard, stopLabel } from '../data/stops';
+import { boardForLine, boardForStop } from '../data/departures';
+import { directions, getLine } from '../data/network';
+import { operatorName } from '../data/operators';
 import { STORAGE_KEYS, writeStored } from '../lib/storage';
 import { disruptionsForStop } from '../data/disruptions';
 import { useMinuteNow } from '../lib/useMinuteNow';
@@ -45,14 +47,10 @@ export function DeparturesPage() {
   const navigate = useNavigate();
   const {
     settings,
-    search,
-    startSearch,
-    preferences,
     boardStopIds,
     isOnBoard,
     toggleBoardStop,
     setBoardStops,
-    pushToast,
   } = useApp();
   const format = useFormat();
   const t = useT();
@@ -155,6 +153,79 @@ export function DeparturesPage() {
     input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     input?.focus({ preventScroll: true });
   };
+
+  /*
+   * A line is a destination too (F20): `?line=f3&stop=amsterdam-buiksloterweg` — the link a
+   * "Lines calling here" row opens — is that service's own board at that stop, not the stop's
+   * board with a filter on it. It answers the same question the stop board does (when does the
+   * next one leave, from which platform, is it late) for one line, in both directions, and it
+   * names the whole route so the traveller can see where that line goes.
+   */
+  const requestedLineId = params.get('line');
+  const line = getLine(requestedLineId ?? undefined);
+  const lineStop = getStop(params.get('stop') ?? undefined);
+  const lineBoard = useMemo(
+    () =>
+      line && lineStop && line.stops.includes(lineStop.id)
+        ? boardForLine(line.id, lineStop.id, { fromMinutes: minutes, limit: 16, tick })
+        : [],
+    [line, lineStop, minutes, tick],
+  );
+
+  if (line && lineStop && line.stops.includes(lineStop.id)) {
+    return (
+      <div className="stack-6">
+        <PageHeader
+          title={line.name}
+          description={`${lineStop.name} · ${operatorName(line.operatorId)} · every ${line.headway} min`}
+          showTitle
+        />
+
+        <Card className="stack">
+          <div className="between wrap">
+            <div className="stack-1">
+              <h2 className="t-section">{t('Next departures from {stop}', { stop: lineStop.name })}</h2>
+              <span className="t-sm t-muted">
+                {t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
+              </span>
+            </div>
+            {/* The way back to where the line was pressed — the stop's own page, not a dead end. */}
+            <Link to={`/stops/${lineStop.id}`} className="btn btn--sm">
+              <Icon name="arrowLeft" size={15} />
+              {t('Stop page')}
+            </Link>
+          </div>
+          <BoardList
+            departures={lineBoard}
+            limit={8}
+            emptyHint={t('This line has no departures left today at this stop.')}
+          />
+        </Card>
+
+        <Card className="stack">
+          <h2 className="t-section">{t('Route')}</h2>
+          {directions(line).map((dir) => {
+            const towards = stopLabel(dir.stops[dir.stops.length - 1]);
+            return (
+              <div key={dir.index} className="stack-1">
+                <span className="field__label">{t('Towards {stop}', { stop: towards })}</span>
+                <div className="row-wrap">
+                  {dir.stops.map((stopId, index) => (
+                    <span key={stopId} className="row row--inline">
+                      {index > 0 ? <Icon name="chevronRight" size={12} /> : null}
+                      <span className={stopId === lineStop.id ? 't-sm t-strong' : 't-sm t-muted'}>
+                        {stopLabel(stopId)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="stack-6">
@@ -327,18 +398,16 @@ export function DeparturesPage() {
             same fix, for the same reason, as the board's "Show N more" row.
           */}
           <div className="row-wrap" style={{ marginTop: 'var(--s-1)' }}>
+            {/*
+              One end, then the other: `Plan from here` fills the FROM and opens the picker on
+              the TO, and its twin does the mirror image. Neither reuses a search that is already
+              in the session, and neither jumps to the results (F28).
+            */}
             <Button
               size="sm"
               /* `route`, not the crosshair: this plans a journey, it does not locate anyone. */
               icon="route"
-              onClick={() => {
-                if (!search) {
-                  pushToast('Plan a journey first to use this shortcut', 'warning');
-                  return;
-                }
-                startSearch({ ...search.query, fromStopId: stop.id, preferences });
-                navigate('/results');
-              }}
+              onClick={() => navigate(`/?from=${stop.id}&pick=to`)}
             >
               {t('Plan from here')}
             </Button>
@@ -347,14 +416,7 @@ export function DeparturesPage() {
               /* Same glyph as "Plan from here" beside it — the pair is one action, and the
                  words say which end of the journey this stop is. */
               icon="route"
-              onClick={() => {
-                if (!search) {
-                  pushToast('Plan a journey first to use this shortcut', 'warning');
-                  return;
-                }
-                startSearch({ ...search.query, toStopId: stop.id, preferences });
-                navigate('/results');
-              }}
+              onClick={() => navigate(`/?to=${stop.id}&pick=from`)}
             >
               {t('Plan to here')}
             </Button>

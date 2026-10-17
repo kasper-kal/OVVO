@@ -40,12 +40,6 @@ function WalkLegRow({ leg }: { leg: Leg }) {
               {metres ? ` · ${metres} m` : ''}
             </span>
             <Pill tone="outline">{format.time(leg.departure)} – {format.time(leg.arrival)}</Pill>
-            {leg.stepFree ? (
-              <Pill tone="sage">
-                <Icon name="accessibility" size={12} />
-                {t('Step-free')}
-              </Pill>
-            ) : null}
           </div>
           <p className="t-sm t-muted">
             {stopLabel(leg.fromStopId)} <Icon name="arrowRight" size={13} /> {stopLabel(leg.toStopId)}
@@ -107,12 +101,6 @@ function RideLegRow({ leg }: { leg: Leg }) {
             <PlatformTag platform={leg.arrivalPlatform} label={t('Arrival platform')} />
             <Pill>{operatorName(leg.operatorId)}</Pill>
             {leg.headsign ? <Pill tone="outline">{t('Direction {headsign}', { headsign: leg.headsign })}</Pill> : null}
-            {leg.stepFree ? (
-              <Pill tone="sage">
-                <Icon name="accessibility" size={12} />
-                {t('Step-free')}
-              </Pill>
-            ) : null}
             {leg.bikeAllowed ? (
               <Pill tone="outline">
                 <Icon name="bike" size={12} />
@@ -188,12 +176,6 @@ export function LegList({ journey }: { journey: Journey }) {
                   })
                 : t('Transfer via walk to {stop}', { stop: stopLabel(leg.fromStopId) })}
             </Pill>
-            {transfer.stop?.accessibility.stepFree ? (
-              <Pill tone="sage">{t('Step-free transfer')}</Pill>
-            ) : null}
-            {transfer.stop?.accessibility.assistance ? (
-              <Pill tone="outline">{t('Staff assistance available')}</Pill>
-            ) : null}
           </li>,
         );
       }
@@ -207,5 +189,27 @@ export function LegList({ journey }: { journey: Journey }) {
     );
   });
 
-  return <ol className="timeline">{rows}</ol>;
+  /*
+   * The line had no end: it stopped dead under the last leg, so a journey read as a list of
+   * events rather than as somewhere to somewhere ("no clear end, there should be an arrival
+   * thing, similar to the selected thing with a square instead of a circle", 2026-10-17t20-35-38).
+   * The terminus is the traveller's own rule — a circle for a departure, a **square** for an
+   * arrival — with the arrival stop named beside it and its time, so the rail finishes at a place
+   * and not at a hyphen. Same 16px box as every other node, so the rail's width is unchanged.
+   */
+  const arrivalId = journey.legs[journey.legs.length - 1].toStopId;
+  return (
+    <ol className="timeline">
+      {rows}
+      <li className="timeline__end">
+        <span className="timeline__node timeline__node--end" />
+        <span className="stack-1 grow">
+          <span className="t-strong t-sm">{stopLabel(arrivalId)}</span>
+          <span className="t-sm t-muted">
+            {t('Arrive {time}', { time: format.time(journey.arrival) })}
+          </span>
+        </span>
+      </li>
+    </ol>
+  );
 }

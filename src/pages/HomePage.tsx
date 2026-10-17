@@ -337,6 +337,8 @@ export function HomePage() {
   const cornerPointer = useRef({ x: 0, y: 0 });
   const cornerFrame = useRef<number | null>(null);
   const [resize, setResize] = useState<{ id: string; size: WidgetSize } | null>(null);
+  /* The phone's height control announces its own result through the same live region below. */
+  const [sizeNote, setSizeNote] = useState('');
   const resizeLive = useRef<{ id: string; size: WidgetSize } | null>(null);
 
   const drawCorner = () => {
@@ -702,13 +704,26 @@ export function HomePage() {
         ref={gridRef}
         className={`widget-grid${editing ? ' widget-grid--editing' : ''}${drag ? ' widget-grid--dragging' : ''}${resize ? ' widget-grid--resizing' : ''}`}
       >
-        {visible.map((widget) => {
+        {visible.map((widget, index) => {
           const Body = widget.Body;
           const isDragging = drag === widget.id;
-          /* Below its own threshold a widget is drawn full width at its default height: the
-             stored choice is kept for the window that can honour it, not overwritten by this one. */
+          /*
+           * Below its own threshold a widget is drawn full width: the stored width is kept for
+           * the window that can honour it, not overwritten by this one.
+           *
+           * On a phone the height is the one thing a full-width card can still choose, so the
+           * stored height is honoured there too and the card's own control cycles it (F3). Between
+           * a phone and a widget's own width threshold nothing is offered and nothing is applied,
+           * which is the shape this rule has always had.
+           */
           const canResize = viewport >= widget.resizeFrom;
-          const size = canResize ? sizeOf(widget) : { w: 12 as WidgetWidth, h: 'standard' as WidgetTier };
+          const phone = viewport < 641;
+          const stored = sizeOf(widget);
+          const size: WidgetSize = phone
+            ? { w: 12 as WidgetWidth, h: stored.h }
+            : canResize
+              ? stored
+              : { w: 12 as WidgetWidth, h: 'standard' as WidgetTier };
           const live = resize?.id === widget.id ? resize.size : size;
           const heights = TIERS;
           return (
@@ -743,6 +758,49 @@ export function HomePage() {
                   <h2 className="t-section">{t(widget.title)}</h2>
                   {editing ? (
                     <div className="widget__actions">
+                      {/*
+                        Two taps, not a drag (F1): the grip's ←/→/↑/↓ contract has always existed
+                        for a keyboard, and a phone has no arrow keys. Up and down are the same
+                        `nudge` the grip listens for, so a widget can be put back where it was
+                        without lifting it — which is the half of the report that is not about
+                        the drag at all ("its hard to move it back without pressing done and going
+                        back to customize mode"). Disabled at the ends, where the move would be
+                        a no-op.
+                      */}
+                      <IconButton
+                        icon="chevronUp"
+                        label={t('Move {title} up', { title: t(widget.title) })}
+                        disabled={index === 0}
+                        onClick={() => nudge(widget.id, -1)}
+                      />
+                      <IconButton
+                        icon="chevronDown"
+                        label={t('Move {title} down', { title: t(widget.title) })}
+                        disabled={index === visible.length - 1}
+                        onClick={() => nudge(widget.id, 1)}
+                      />
+                      {/*
+                        The phone's resizing control (F3). The corner is hidden below each
+                        widget's own `resizeFrom` — which is every widget at 378px — because a
+                        one-column grid makes the width ladder meaningless. The height ladder is
+                        not: this cycles Compact → Standard → Tall, pins the card to 12/12 and
+                        writes the same stored size the corner writes, so the choice survives a
+                        reload and the corner picks it up on a wide screen.
+                      */}
+                      {phone ? (
+                        <IconButton
+                          icon="swap"
+                          label={t('Change the height of {title} ({height})', {
+                            title: t(widget.title),
+                            height: t(TIER_LABEL[live.h]),
+                          })}
+                          onClick={() => {
+                            const nextTier = TIERS[(TIERS.indexOf(live.h) + 1) % TIERS.length];
+                            setWidgetSize(widget.id, { w: 12 as WidgetWidth, h: nextTier });
+                            setSizeNote(`${t(widget.title)} · ${t(TIER_LABEL[nextTier])}`);
+                          }}
+                        />
+                      ) : null}
                       <button
                         type="button"
                         className="widget__grip"
@@ -834,7 +892,7 @@ export function HomePage() {
       <span className="sr-only" aria-live="polite">
         {resize
           ? `${resize.size.w}/12 · ${t(TIER_LABEL[resize.size.h])}`
-          : ''}
+          : sizeNote}
       </span>
 
       {holding ? (

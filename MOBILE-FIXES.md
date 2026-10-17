@@ -13,16 +13,17 @@ that asked for it, word for word, and names the screenshot it is on.
 
 ## The work order
 
-Status starts at **open** for all 28 items. Each one is closed only when it is measured on the
-running preview at **378px** — the width the batch was captured at — and the evidence is pasted
-under the item, the way `USER-FIXES.md` does it.
+Every item started **open**. Each one is closed only when it is measured on the running preview at
+**378px** — the width the batch was captured at — and the evidence is pasted under the item, the way
+`USER-FIXES.md` does it. All 28 are closed below; the two things that are *not* closed are named
+where they are measured, not left out.
 
 | # | Screen | The ask, in one line | Status |
 |---|---|---|---|
-| F1 | Home | A widget can't be moved back without leaving and re-entering customising | open |
+| F1 | Home | A widget can't be moved back without leaving and re-entering customising | **done** |
 | F2 | Home | The station picker's list can't be scrolled; scrolling the page closes it | **done** |
-| F3 | Home | A widget has no resizing control on a phone | open |
-| F4 | Results | Home flashes before the results screen appears | open |
+| F3 | Home | A widget has no resizing control on a phone | **done** |
+| F4 | Results | Home flashes before the results screen appears | **done** |
 | F5 | Results | The access dialog's DONE button is unnecessary | **done** |
 | F6 | Results | Delete the Carriers section from Options | **done** |
 | F7 | Results | Delete the Preferences button from the filter panel | **done** |
@@ -30,35 +31,41 @@ under the item, the way `USER-FIXES.md` does it.
 | F9 | Results / Home | Add a SAVED SEARCHES widget; make saved search ≠ saved journey obvious | **done** |
 | F10 | Results | Rebuild the Date-and-time dialog (one control, no Earlier/Later, X saves) | **done** |
 | F11 | Results | Occupancy levels need a real colour system (green / orange / red) | **done** |
-| F12 | Journey | Plan return journey + Show on map are squeezed into the summary card | open |
+| F12 | Journey | Plan return journey + Show on map are squeezed into the summary card | **done** |
 | F13 | Journey | Favouriting a journey should fill the icon, like favouriting a stop | **done** |
-| F14 | Journey | The Journey summary is text-heavy; use icons + short labels | open |
-| F15 | Journey | The journey line has no arrival end (no square, no arrival name) | open |
-| F16 | Journey | Replace the text arrow with an icon | open |
-| F17 | Stops list | Add animated skeleton loading to the stop list | open |
-| F18 | Stop page | Plan/heart/pin are right-aligned in the head | open |
-| F19 | Everywhere | Remove all visible accessibility descriptions | open |
-| F20 | Stop page | Clicking a line (e.g. Ferry F3) should open that line's board with times | open |
-| F21 | Stop page | Whole rows must be clickable, not just the › | open |
-| F22 | Stop page | Hover lift on the rows | open |
-| F23 | Alert page | Delete the "Plan around this alert" card | open |
-| F24 | Alerts | The alert count badge is a different size in the header, nav and menu | open |
-| F25 | Settings | The preview is more text, when it is the one place meant to be visual | open |
+| F14 | Journey | The Journey summary is text-heavy; use icons + short labels | **done** |
+| F15 | Journey | The journey line has no arrival end (no square, no arrival name) | **done** |
+| F16 | Journey | Replace the text arrow with an icon | **done** |
+| F17 | Stops list | Add animated skeleton loading to the stop list | **done** |
+| F18 | Stop page | Plan/heart/pin are right-aligned in the head | **done** |
+| F19 | Everywhere | Remove all visible accessibility descriptions | **done** |
+| F20 | Stop page | Clicking a line (e.g. Ferry F3) should open that line's board with times | **done** |
+| F21 | Stop page | Whole rows must be clickable, not just the › | **done** |
+| F22 | Stop page | Hover lift on the rows | **done** |
+| F23 | Alert page | Delete the "Plan around this alert" card | **done** |
+| F24 | Alerts | The alert count badge is a different size in the header, nav and menu | **done** |
+| F25 | Settings | The preview is more text, when it is the one place meant to be visual | **done** |
 | F26 | Settings | The default-origin list cannot be scrolled | **done** |
-| F27 | Settings | The toast is ugly | open |
-| F28 | Cross-screen | PLAN TO HERE must fill only the TO and open the planner, not the results | open |
+| F27 | Settings | The toast is ugly | **done** |
+| F28 | Cross-screen | PLAN TO HERE must fill only the TO and open the planner, not the results | **done** |
 
-**10 of 28 done and measured** (F2, F5, F6, F7, F8, F9, F10, F11, F13, F26). The other 18
-(F1, F3, F4, F12, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, F25, F27, F28) are
-untouched and still open — nothing about them is claimed here.
+**28 of 28 done and measured.** Ten (F2, F5, F6, F7, F8, F9, F10, F11, F13, F26) were closed in
+the first pass; the other eighteen (F1, F3, F4, F12, F14, F15, F16, F17, F18, F19, F20, F21, F22,
+F23, F24, F25, F27, F28) are closed in the second, with their own numbers under each item and in
+the second measurement block below. One thing is *not* closed and is named in that block rather
+than hidden: `consistency-audit --gate` still reports one pre-existing grouping (`remove stored
+data`, which lumps a stop's heart with the settings trash), and the sweep for F19 finds no
+accessibility claim but leaves the word `Lift` in a station's **Facilities** list, which is a
+facility and not a claim about the traveller.
 
 ---
 
 ## Progress — what was measured, on the running app
 
 Every line below is a number the app printed at **378 × 734**, the width this batch was captured at,
-plus the project's own audits. The instrument is `logs/mobile-fixes-verify.cjs` (kept out of the
-repo like the rest of `.logs/`), and it is run against the live dev server.
+plus the project's own audits. The instruments are `logs/mobile-fixes-verify.cjs` (the ten items of
+the first pass) and `logs/mobile-fixes-verify-2.cjs` (the eighteen of the second), both kept out of
+the repo like the rest of `.logs/`, both run against the live dev server.
 
 ```
 29/29 checks passed
@@ -116,6 +123,98 @@ Two things found while verifying, rather than asserted:
   exactly; `ui-audit` is back to 460px of list on every wide sample. The phone cap is what makes the
   list's own bottom — and its scrollbar — land on screen: 726px of 734.
 
+### Second pass — the eighteen that were open
+
+Instrument: `logs/mobile-fixes-verify-2.cjs`, run against the same dev server at **378 × 734**,
+light, English. **56/56 checks passed.** The lines that carry each item's number, verbatim:
+
+```
+PASS  F4 the home screen is never painted bare after the second pick   [frames=90 home-without-overlay=0]
+PASS  F4 the results screen opens with a spinner in the list’s place   [frames=16]
+PASS  F4 the journeys arrive on that same screen   [frames-with-journeys=4]
+PASS  F16 the title draws the arrow glyph   [glyph=true]
+PASS  F16 no text arrow is left in the heading   [text="Amsterdam CentraalUtrecht Centraal"]
+PASS  F15 the journey line has an arrival end   [Utrecht CentraalArrive 19:54]
+PASS  F15 the arrival marker is a square, not a circle   [end=2px other=50%]
+PASS  F15 the arrival stop is named beside it, with its time   ["Utrecht CentraalArrive 19:54"]
+PASS  F14 the summary is not a definition list   [dl=0 dt=0]
+PASS  F14 every fact is a chip   [chips=7 :: Intercity 800 | NS | €13.20 Indicative single fare | 24 min]
+PASS  F12 the actions are not inside the summary card   [insideCard=false]
+PASS  F12 the action row sits above the summary card   [row=141 card=804]
+PASS  F12 no action label wraps inside its button   [Plan return journey=354x44 | Show on map=354x44 | Favourite this journey=354x44]
+PASS  F28 the URL carries only the named end   [/?to=amsterdam-dam&pick=from]
+PASS  F28 the TO row is filled   [to="ToAmsterdam, Dam"]
+PASS  F28 the FROM row is not borrowed from the last search   [from="From"]
+PASS  F28 the FROM picker opens on arrival   [id=picker-from]
+PASS  F1 customising stays open across a move   [cards=5 after=5]
+PASS  F1 a move button reorders the grid   [planner,map -> map,planner]
+PASS  F1 the widget can be moved back without leaving customising   ["Move Plan a journey down"]
+PASS  F1 the first and last widgets show a disabled move   [disabled=2]
+PASS  F1 a first drag moves the card and the mode stays open   [planner,map -> map,favourited-journeys editing=5]
+PASS  F1 a second drag puts it back in the same session   [map,favourited-journeys -> planner,map]
+PASS  F3 every widget offers a resizing control at 378   [controls=5 widgets=5]
+PASS  F3 the width corner is not offered on a phone   [corners=0]
+PASS  F3 a press changes the card’s height one tier   [widget--h-standard -> widget--h-tall]
+PASS  F3 the height survives a reload   [Change the height of Plan a journey (Standard) -> (Tall)]
+PASS  F17 the stops list opens on skeleton cards   [cards=4 bars=20]
+PASS  F17 the placeholders animate   [skeleton-shimmer 1.5s]
+PASS  F17 the shimmer actually moves   [92.9% 0px -> 69.8% 0px]
+PASS  F17 the placeholder is kept out of the accessibility tree   [busy=true aria-hidden=true]
+PASS  F17 the real cards replace them   [cards=5]
+PASS  F17 with Reduce motion on the shimmer is dropped   [none]
+PASS  F18 the stop’s name and its controls share the left margin   [title x=12 controls x=12]
+PASS  F18 the controls sit under the name, not in the right corner   ["Amsterdam, Buiksloterweg ferry" y=96 / 125]
+PASS  F18 all three controls are still offered   [controls=3]
+PASS  F22 the row lifts under the pointer   [none -> matrix(1, 0, 0, 1, 0, -2)]
+PASS  F21 the middle of a line row opens that line’s board   [#/departures?line=f3&stop=amsterdam-buiksloterweg]
+PASS  F20 the board names the line   [title="Ferry F3"]
+PASS  F20 it lists that line’s next departures   [rows=7 times=22:55,23:07,23:16,23:20]
+PASS  F20 the whole route is shown, both directions   [Towards … ferry / Towards Amsterdam Centraal]
+PASS  F20 the board can be left for the stop it came from   [#/stops/amsterdam-buiksloterweg]
+PASS  F23 the Plan-around-the-alert card is gone   [plan=false avoid=false back=false]
+PASS  F23 each affected stop keeps its own plan action   [buttons=3]
+PASS  F24 the header and the navigation badges are the same box   [header=20x20 nav=20x20]
+PASS  F19 no visible accessibility claim on any route   [8 routes clean]
+PASS  F25 the preview draws specimens   [specimens=2]
+PASS  F25 it is not a definition list any more   [dl=0]
+PASS  F25 board rows and buttons are drawn   [boardRows=2 buttons=2]
+PASS  F25 the accent set is swatches, not sentences   [swatches=6]
+PASS  F25 a settings change re-draws the specimen   [160.0 -> 152.0]
+PASS  F27 the toast fits the message, not the screen   [w=362 of 378]
+PASS  F27 it wears a real glyph, not a dot   [icon=true dot=false]
+PASS  F27 the dismiss target is still 44px   [44x44]
+PASS  F27 the message is on the app’s own type scale   [12px "Origin and destination must be different stops"]
+PASS  F27 at 900px it is still a message-sized capsule, not a bar   [toast=375 region=520]
+```
+
+The project's own checks, run after the last change of this pass (same commands, same order):
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | clean |
+| `npm run build` | clean (the same >500 kB chunk warning the build has always printed; not a failure) |
+| `class-audit` | all **372** styled class names accounted for |
+| `icon-audit` | OK — square, whole-pixel, named, within 1.5px of the label's optical centre |
+| `caps-audit` | OK — 0 lowercase starts over 18 screens × 2 languages |
+| `consistency-audit` | exits 0; **1 unexplained grouping** under `--gate` (below) |
+| `ui-audit` | OK — 0 contrast, 0 target, 0 clipped, 0 header band, 0 wrapped capsule, 0 picker-popover problems at 320/390/768/1440 |
+
+Two things about those runs, rather than a clean sweep claimed as one:
+
+- **The timetable is a clock.** `consistency-audit` and `ui-audit` both plan a real journey, and
+  run after 23:00 the network's last services have gone, so the results screen is empty and the
+  audit that follows a journey link cannot find one (measured: it timed out on
+  `main a[href*="/journey/"]`). Both were run with `TZ=America/Curacao` (≈19:00, in service), which
+  changes nothing about the app — only the hour the browser thinks it is. That is a fact about the
+  demo timetable, not about these fixes.
+- **`consistency-audit --gate` still fails on one grouping, and it is not new**: `remove stored
+  data` collects a stop's heart ("Remove Haarlem from favourites") with the settings trash
+  ("Remove all stored data") because both start with *remove* — 13 instances, 5 shapes. The five
+  shapes have not changed in this pass; what changed is that the stop page's heart now sits at the
+  head's left instead of its right (F18), which is the same signature counted at a different edge.
+  Fixing it means renaming a control (the trash) for the audit's sake, which is a product decision
+  and not one this file gets to make silently.
+
 ### Consequences worth naming
 
 - **F10 deletes the only control that shifted the search window.** `shiftWindow` and
@@ -149,6 +248,15 @@ be a way back that is not a drag at all:
 `widget__actions` block in the render, `src/styles/components.css` `.widget__actions`).
 **Done when.** Drag A below B, then drag A back to the top in the same session without touching
 Done — and the same two moves done with the new buttons.
+
+**Measured.** In one customising session at 378px, with the new buttons: *Move Plan a journey down*
+took the grid from `[planner, map, …]` to `[map, planner, …]` and the mode stayed open (5 of 5
+cards still `widget--editable`); *Move … up* put it back exactly. The first and last cards each show
+one disabled move (2 disabled controls). With the pointer: drag the first card below the second —
+`[planner, map]` → `[map, favourited-journeys]`, mode still open — then drag it back in the same
+session, `[map, favourited-journeys]` → `[planner, map]`, without touching Done. The drag state is
+cleared on every drop (node, transform, zones, preview order), which is why the second press lifts
+the card instead of re-using the first drag's zone map.
 
 ### F2 — The station picker's list cannot be scrolled
 *Mark: `2026-10-17t20-06-25-901-home-378-light.png`:*
@@ -187,6 +295,12 @@ changes the card's height one tier at a time and the choice survives a reload.
 
 ## Journey results
 
+**Measured.** At 378px in customising mode **5 of 5** widgets carry the height control and **0**
+carry the width corner. One press took the first card from `widget--h-standard` to
+`widget--h-tall`; a reload later the same control reads *Change the height of Plan a journey (Tall)*
+and the card still draws tall — the width is pinned to 12/12 and the stored size is the same
+`widgetSizes` entry the corner writes, so a wide screen picks the choice up unchanged.
+
 ### F4 — Home flashes before the results appear
 *Mark: `2026-10-17t20-18-26-182-results-378-light.png` (placeholder image; the note is the report):*
 > "So is goes to the results but then it shows a flicker of the home screen instead of the results screen so you think you did something wrong, what it should do instead is show the results screen just without results and a spinner in place of the results while waiting for the results."
@@ -202,6 +316,11 @@ a spinner where the journey cards will be — never the planner.
 already there), `src/components/journey/StopPicker.tsx` (the sheet's own close).
 **Done when.** Planning a journey at 378px: frame-by-frame the results screen is what appears, with a
 spinner, and `#/` is never rendered.
+
+**Measured.** Every animation frame across the second pick was sampled (90 frames, ~1.5s): the
+hash was never `#/` without an overlay over the planner — **0 frames** of bare home. **16 frames**
+were the results screen in its planning state (its own head and search card, a spinner where the
+cards go), and the journeys then arrived on that same screen.
 
 ### F5 — DONE in the access dialog is unnecessary
 *Mark: `2026-10-17t20-25-37-893-results-378-light.png`:*
@@ -337,6 +456,10 @@ duplicated anywhere else on the page.
 **Done when.** At 378px no action label wraps inside its button, and the row is not inside the
 summary card.
 
+**Measured.** At 378px the action row is outside the summary card (`insideCard=false`), sits at
+y=141 against the card's y=804, and each of the three actions measures **354 × 44** inside the
+378px page — the full width of the row, no wrapped label.
+
 ### F13 — Favouriting a journey should fill the icon
 *Mark: `2026-10-17t20-31-35-512-journey-j-1s6gjtz-378-light.png`:*
 > "Change the favouriting a journey reaction to the icon filling, to fit the favouriting locations"
@@ -366,6 +489,11 @@ line). Nothing is lost: the facts stay, the sentences go.
 `src/styles/components.css`.
 **Done when.** At 378px the summary is at most two lines of chips per fact, with no `dt`/`dd` rows left.
 
+**Measured.** The summary card has **0** `dl` and **0** `dt` left, and **7** chips carry the
+facts: *Intercity 800 · NS · €13.20* (indicative single fare) *· 24 min · Direct, 1 leg · 0 min
+walking · Bicycle allowed*, each with its glyph — the services and modes keep the `mode-badge` the
+journey card already uses.
+
 ### F15 — The journey line has no end
 *Mark: `2026-10-17t20-35-38-985-journey-j-1s6gjtz-378-light.png`:*
 > "No clear end, there should be an arrival thing, similar to the selected thing with a square instead of a circle and like the name of the arrival place, you get it"
@@ -379,6 +507,10 @@ name beside it, so the line reads as a journey from somewhere to somewhere inste
 (the marker), `src/lib/i18n.ts`.
 **Done when.** The line ends in a square marker, the arrival stop is named beside it, and the marker
 matches the selected-stop square on the map canvases.
+
+**Measured.** The leg list now ends in `.timeline__end`: a **2px-radius square** node (`2px`,
+against the circles' `50%`) with the arrival stop and *Arrive 19:54* beside it — the traveller's own
+rule, circle to leave and square to arrive.
 
 ### F16 — Replace the arrow with an icon
 *Mark: `2026-10-17t20-36-48-918-journey-j-1s6gjtz-378-light.png`:*
@@ -394,6 +526,10 @@ use — so one direction means one drawing.
 ---
 
 ## Stations & stops
+
+**Measured.** The page title holds `svg[data-icon="arrowRight"]` between the two stop names, and
+the heading's text contains **no** `→` character: one direction, one drawing, the same glyph the leg
+rows use.
 
 ### F17 — Animated skeleton loading
 *Mark: `2026-10-17t20-47-00-496-stops-378-light.png` (placeholder image):*
@@ -415,6 +551,13 @@ the real cards; with Reduce motion on, the shimmer is dropped for a static tone.
 
 ## A stop's page
 
+**Measured.** On first paint the stops list draws **4** skeleton cards (**20** bars), each list
+`aria-hidden` inside an `aria-busy` region; the bars run `skeleton-shimmer` for **1.5s** and their
+`background-position` moved from 92.9% to 69.8% in 220ms, so the animation is real and not a still
+tone. After settling the skeletons are **0** and the real cards are there (5). With Reduce motion on
+— the media preference — the animation name is `none`; the app's own switch does the same thing
+through `:root[data-motion='reduced']`.
+
 ### F18 — The head's actions are on the right
 *Mark: `2026-10-17t20-48-37-118-stops-amsterdam-dam-378-light.png`:*
 > "Why it on the right, i aint arabic."
@@ -428,6 +571,11 @@ The controls keep their 44px targets and their order.
 (`page-head__actions`), `src/styles/base.css`.
 **Done when.** At 378px the cluster starts at the left margin with the title, and nothing is clipped;
 at desktop widths the existing trailing arrangement is untouched (see `DESKTOP-FIXES.md`).
+
+**Measured.** At 378px the stop's name starts at x=**12** and the first control at x=**12**, with
+the controls on the next line (name y=96, controls y=125) — one left-aligned block, three controls,
+nothing clipped. From 641px up the name is not drawn and the controls return to the trailing edge,
+which is the head that page has on a wide screen.
 
 ### F19 — Remove all accessibility descriptions
 *Mark: `2026-10-17t20-49-20-928-stops-amsterdam-dam-378-light.png`:*
@@ -453,6 +601,13 @@ reads them for display afterwards) unless you want them deleted too — say the 
 "staff assistance" or "low-floor" string on screen, and `tsc` has no unused-import errors from the
 deletions.
 
+**Measured.** A sweep of eight routes at 378px (`/`, `/stops`, `/stops/amsterdam-dam`,
+`/departures`, `/disruptions`, `/settings`, `/preferences`, `/map`) finds **none** of *step-free,
+stairs only, tactile, staff assistance, low-floor, no lift*. Two survivors are deliberate and are
+not claims about a traveller: a station's **Facilities** list still says *Lift* (a facility), and
+one alert's own description says a lift is out of service — both are facts about a building, not a
+promise about someone's access. `aria-label`s, roles and `alt` text are untouched.
+
 ### F20 — Clicking a line opens that line's board
 *Mark: `2026-10-17t20-51-30-565-stops-amsterdam-buiksloterweg-378-light.png`:*
 > "Add that if the user clicks one of these lines (like Ferry F3) they show the full line and its times in the departure board, if the departure board currently doesnt support lines and only stations, add support for lines"
@@ -473,6 +628,12 @@ line and offers the way back to the stop.
 **Done when.** At 378px, pressing Ferry F3 lands on a board that says which line it is, shows its
 upcoming departures in time order and refreshes, and can be left without a dead end.
 
+**Measured.** Pressing *Ferry F3* in *Lines calling here* lands on `#/departures?line=f3&stop=…`;
+the page's title is **Ferry F3**, it lists **7** departures from that stop in time order with
+platforms and delays, prints the whole route in both directions (*Towards Amsterdam, Buiksloterweg
+ferry* / *Towards Amsterdam Centraal*) with the current stop in bold, and offers *Stop page* back to
+where it came from. It refreshes on the same clock as every other board.
+
 ### F21 — Whole rows must be clickable
 *Marks: `2026-10-17t20-53-55-794-stops-amsterdam-buiksloterweg-378-light.png` and `2026-10-17t20-54-39-918-stops-amsterdam-buiksloterweg-378-light.png`:*
 > "Add support for clicks on the background, not just the >"
@@ -488,6 +649,12 @@ already do. The chevron stays as the affordance, not as the only hit area.
 existing stretch rule).
 **Done when.** At 378px, pressing the whitespace in the middle of a nearby-stop row opens that stop,
 and pressing the middle of a line row opens that line's board (F20).
+
+**Measured.** A press in the whitespace at 55% of a line row's width — not on the chevron, not on
+the *Alerts* pill — opens `#/departures?line=f3&stop=amsterdam-buiksloterweg`. The link is a real
+anchor stretched over the row (measured 318 × 101 inside a 320 × 103 row), so keyboard, middle-click
+and *open in new tab* work; row text passes presses through to it, and the *Alerts* pill is lifted
+above it so it still does its own thing.
 
 ### F22 — Hover lift on those rows
 *Mark: `2026-10-17t20-52-50-754-stops-amsterdam-buiksloterweg-378-light.png`, two areas (lines and
@@ -508,6 +675,11 @@ journey card.
 
 ## Alerts
 
+**Measured.** Hovering either row class moves the row from `none` to
+`matrix(1, 0, 0, 1, 0, -2)` — the same 2px lift and the same curve `.card--interactive`, `.btn`,
+`.chip` and `.list-row` already use. It is a pointer-only affordance: on touch there is no hover to
+answer, and the press state is the row's own.
+
 ### F23 — Delete the "Plan around this alert" card
 *Mark: `2026-10-17t20-57-06-355-disruptions-d-metro-noord-zuid-378-light.png`:*
 > "Remove this widget."
@@ -521,6 +693,10 @@ route is lost — the two ends are one tap away inside those lists.
 the imports/strings left unused), `src/lib/i18n.ts`.
 **Done when.** At 378px the card is gone, the remaining page has no orphaned `row-wrap`, and `tsc` is
 clean.
+
+**Measured.** The alert page has no *Plan around this alert*, no *… in my search* and no *Back to
+all alerts*; the three affected stops each keep their own *Plan to here*, and the way back is the
+shell's arrow.
 
 ### F24 — One count badge, everywhere
 *Mark: `2026-10-17t21-09-41-860-disruptions-378-light.png`, two areas:*
@@ -541,6 +717,10 @@ to the pixel.
 
 ## Settings
 
+**Measured.** At 378px the header's count and the navigation's badge are the same box:
+**20 × 20** both, one shared declaration, same radius, same pill type size. The "all sections"
+sheet draws the same class, so it is the third of the same box rather than a third size.
+
 ### F25 — The preview must be visual, not textual
 *Mark: `2026-10-17t21-01-32-386-settings-378-light.png`:*
 > "Preview with current settings is very text heavy while its quite literally supposed to be the opposite, 'the rest of the page is text so here is where we show it IRL, not in text' is what its supposed to be, yet theres more text than visuals here."
@@ -558,6 +738,12 @@ to the pixel.
 `src/components/journey/JourneyCard.tsx` if a sample card is reused, `src/styles/components.css`.
 **Done when.** At 378px the card is mostly drawings; changing Density, Contrast, Appearance or an
 Accent visibly changes the specimens above the fold, without a reload.
+
+**Measured.** The preview card holds **2** specimens (a journey with its times, duration, delay,
+mode, date and relative time; and two board rows with a delay), **2** buttons, a notice, and **0**
+definition lists; the six accents are **6** swatches with names and no sentences. Changing Density
+re-draws it without a reload (specimen height 160.0 → 152.0) — the specimen's padding is the card's
+own token, so the change is visible where the settings are supposed to be shown.
 
 ### F26 — The default-origin list cannot be scrolled
 *Mark: `2026-10-17t21-03-18-483-settings-378-light.png`:*
@@ -589,6 +775,12 @@ the dismiss target still measures 44px.
 
 ## Cross-screen
 
+**Measured.** A warning toast at 378px is **362px wide in a 378px page** — the width of its own
+message, not the viewport — with an **18px alert glyph** (no status dot), the message on the app's
+12px body size, and a **44 × 44** dismiss target. At 900px it is **375px inside a 520px region**,
+which is what "a capsule that hugs its text" means; at 378 it is only wide because the sentence is
+long ("Origin and destination must be different stops").
+
 ### F28 — PLAN TO HERE must fill only the TO
 *Mark: `2026-10-17t20-58-13-155-results-378-light.png` (placeholder image):*
 > "When you click the PLAN TO HERE button on absolutely anything, it auto-fills the from (or the to, depedning on what you clicked exactly) make sure it doesnt do that and when you presss a button like 'PLAN TO HERE' that it only auto-inputs the 'TO' and brings you to the search menu with the 'FROM' selected instead of the results."
@@ -617,6 +809,14 @@ the case the `<SearchForm>` param effect was written for).
 the planner with FROM empty and its picker open, and the URL carries only `to=`.
 
 ---
+
+**Measured.** With a search already in the session, pressing *Plan to here* on a stop page lands
+on `#/?to=amsterdam-dam&pick=from`: the URL carries **only** `to=`, the TO row reads the stop, the
+FROM row is empty (not the previous search's origin, not the default origin), and the picker opens
+on `#picker-from`. The mirror image is the same rule in the other direction, and every "plan … here"
+control in the app — stop cards, a stop's page, the board's rows, a line's rows, an alert's affected
+stops, the pinned-stops widget, the stop dialog — now goes through it. The results screen is reached
+only when the traveller answers the second end.
 
 ## Deliberately not in this file
 

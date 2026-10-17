@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -8,7 +8,7 @@ import { JourneyCard } from '../components/journey/JourneyCard';
 import { filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
 import { ACCESS_MODES, DEFAULT_PREFERENCES, MODE_OPTIONS, PT_MODES, modeLabel } from '../data/preferences';
 import { disruptionsForStop } from '../data/disruptions';
-import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented } from '../components/ui/primitives';
+import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented, Spinner } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { addDaysIso, nowMinutes, roundToStep, todayIso } from '../lib/format';
 import { useFormat } from '../lib/useFormat';
@@ -61,6 +61,28 @@ export function ResultsPage() {
   const [whenOpen, setWhenOpen] = useState(false);
   const [accessSide, setAccessSide] = useState<null | 'from' | 'to'>(null);
   const [nowRef] = useState(() => roundToStep(nowMinutes(), 5));
+
+  /*
+   * The results screen opens in a **planning** state (F4).
+   *
+   * The report is about what is on screen while the answer is being worked out: "it goes to the
+   * results but then it shows a flicker of the home screen instead of the results screen ... what
+   * it should do instead is show the results screen just without results and a spinner in place of
+   * the results while waiting". So the page paints its own head and its own search card at once,
+   * and the list's place is held by a spinner until the journeys are there. The window is short
+   * because the engine is local — long enough to be seen, never long enough to be waited on — and
+   * it is keyed to the search itself, not to a filter or a sort, which are readings of the list
+   * that is already on screen.
+   */
+  const [planning, setPlanning] = useState(true);
+  const searchKey = search
+    ? `${search.query.fromStopId}|${search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
+    : '';
+  useEffect(() => {
+    setPlanning(true);
+    const timer = window.setTimeout(() => setPlanning(false), 260);
+    return () => window.clearTimeout(timer);
+  }, [searchKey]);
 
   const visible = useMemo(() => {
     if (!search) return [];
@@ -282,6 +304,18 @@ export function ResultsPage() {
       ) : null}
 
 
+      {planning ? (
+        <Card className="planning" aria-busy="true">
+          <Spinner label={t('Planning your journey')} />
+          <p className="t-sm t-muted">
+            {t('Working out the options from {from} to {to}.', {
+              from: query.fromLabel ?? query.fromStopId,
+              to: query.toLabel ?? query.toStopId,
+            })}
+          </p>
+        </Card>
+      ) : (
+      <>
       <Card className="stack">
         <div className="between wrap">
           {/*
@@ -422,6 +456,8 @@ export function ResultsPage() {
             </ul>
           ) : null}
         </>
+      )}
+      </>
       )}
 
       {/*

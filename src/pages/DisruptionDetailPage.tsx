@@ -1,22 +1,18 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { DISRUPTIONS, DISRUPTION_TYPE_LABELS, getDisruption } from '../data/disruptions';
 import { getLine } from '../data/network';
 import { getStop, stopLabel } from '../data/stops';
-import { MODE_OPTIONS, modeLabel } from '../data/preferences';
-import type { TravelMode } from '../data/types';
+import { modeLabel } from '../data/preferences';
 import { operatorName } from '../data/operators';
 import { severityTone } from './DisruptionsPage';
 import { Banner, Button, Card, EmptyState, Panel, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
-import { nowMinutes, roundToStep, todayIso } from '../lib/format';
 
 export function DisruptionDetailPage() {
   const { disruptionId } = useParams();
   const navigate = useNavigate();
-  const { search, startSearch, preferences, updatePreferences, pushToast } = useApp();
   const format = useFormat();
   const alert = getDisruption(disruptionId);
 
@@ -39,34 +35,6 @@ export function DisruptionDetailPage() {
   const next = DISRUPTIONS[(index + 1) % DISRUPTIONS.length];
   const affectedStops = alert.affectedStopIds.map((id) => getStop(id)).filter(Boolean);
   const affectedLines = alert.affectedLineIds.map((id) => getLine(id)).filter(Boolean);
-
-  const planAround = () => {
-    if (!search) {
-      pushToast('Plan a journey first, then you can route around an alert', 'warning');
-      return;
-    }
-    const affected = alert.modes as TravelMode[];
-    const allowedModes = preferences.allowedModes.filter((mode) => !affected.includes(mode));
-    updatePreferences({ allowedModes });
-    startSearch({ ...search.query, preferences: { ...preferences, allowedModes } });
-    navigate('/results');
-  };
-
-  const planBetweenAffected = () => {
-    if (alert.affectedStopIds.length < 2) {
-      pushToast('This alert affects a single stop — use the stop page instead', 'warning');
-      return;
-    }
-    startSearch({
-      fromStopId: alert.affectedStopIds[0],
-      toStopId: alert.affectedStopIds[1],
-      date: todayIso(),
-      time: roundToStep(nowMinutes() + 15, 5),
-      timeMode: 'depart',
-      preferences,
-    });
-    navigate('/results');
-  };
 
   return (
     <div className="stack-6">
@@ -130,21 +98,18 @@ export function DisruptionDetailPage() {
                       <Link to={`/stops/${stop.id}`} className="t-strong t-sm tap-target">
                         {stop.name}
                       </Link>
+                      {/* The `step-free` / `stairs only` fragment is deleted with every other
+                          visible accessibility claim (F19). */}
                       <span className="t-sm t-muted">
-                        {stop.city} · {stop.code} · {stop.accessibility.stepFree ? 'step-free' : 'stairs only'}
+                        {stop.city} · {stop.code}
                       </span>
                     </span>
+                    {/* One end, then the other: this fills the TO and opens the FROM picker
+                        (F28). `navigate` from the import line below is the whole handler. */}
                     <Button
                       size="sm"
                       icon="route"
-                      onClick={() => {
-                        if (!search) {
-                          pushToast('Plan a journey first to use this shortcut', 'warning');
-                          return;
-                        }
-                        startSearch({ ...search.query, toStopId: stop.id, preferences });
-                        navigate('/results');
-                      }}
+                      onClick={() => navigate(`/?to=${stop.id}&pick=from`)}
                     >
                       Plan to here
                     </Button>
@@ -190,64 +155,13 @@ export function DisruptionDetailPage() {
           </Card>
         </div>
 
-        <div className="stack-4">
-          <Card className="stack">
-            <h2 className="t-section">Plan around this alert</h2>
-            <p className="t-sm t-muted">
-              These actions re-plan your search around the alert.
-            </p>
-            <Button variant="primary" icon="sliders" onClick={planAround}>
-              Avoid {alert.modes.join(', ')} in my search
-            </Button>
-            {/*
-              One primary action, then the ways on and back as pills that hug their labels — the
-              row the journey page's Continue panel and the results panel put their links in.
-              This was a column of full-width controls, which is the *widget* pattern (a card in
-              a grid, where a row of pills has no room), and it made the same link a stretched
-              bar here and a 174px pill on the four other screens that offer it — the audit's
-              `travel preferences`, five instances in two shapes for one destination (WCAG
-              3.2.4).
-            */}
-            <div className="row-wrap">
-              <Button icon="route" onClick={planBetweenAffected}>
-                Plan between the affected stops
-              </Button>
-              {/*
-                `Travel preferences`, the name the same destination is given on the four other
-                screens that offer it (a widget card, the settings screen, both pickers, and the
-                line below this card) — it read "Manage avoidance preferences" here, one concept
-                wearing two names. `sliders` is the options/filters/preferences glyph and is
-                right here.
-              */}
-              <Link to="/preferences" className="btn">
-                <Icon name="sliders" size={16} />
-                Travel preferences
-              </Link>
-              {/* Bordered, like the other two return links ("Back to planner", "Back to
-                  results"): this one alone was drawn borderless inside a row of bordered
-                  controls. */}
-              <Link to="/disruptions" className="btn">
-                <Icon name="arrowLeft" size={16} />
-                Back to all alerts
-              </Link>
-            </div>
-            {preferences.allowedModes.length < MODE_OPTIONS.length ? (
-              <p className="t-sm t-faint">
-                Modes currently left out of your journeys:{' '}
-                {MODE_OPTIONS.filter((mode) => !preferences.allowedModes.includes(mode)).join(', ')}. Change this in
-                Travel preferences.
-              </p>
-            ) : null}
-          </Card>
-
-          {/*
-            A "Related screens" panel closed this column: Departure boards, Network map, My
-            results. The first is in the sidebar; the other two are the same list of doors the
-            shell already offers on the screens that ask for them, and none of them is advice
-            about *this* alert — which is what the card above is for. Deleted rather than
-            restyled: navigation is the sidebar's job, not a card's.
-          */}
-        </div>
+        {/*
+          "Plan around this alert" is deleted whole — heading, sentence, "Avoid <modes> in my
+          search", "Plan between the affected stops", "Travel preferences" and "Back to all
+          alerts" ("Remove this widget", 2026-10-17t20-57-06). Nothing is stranded by it: the
+          section that used to be its column is gone with it, every affected stop above still
+          carries its own way to plan, and the way back is the shell's own arrow.
+        */}
       </div>
 
       {/*

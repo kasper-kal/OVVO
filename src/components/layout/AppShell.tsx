@@ -198,18 +198,37 @@ export function PageHeader({
   actions,
   badge,
   showTitle = false,
+  mobileTitle = false,
 }: {
-  title: string;
+  /* A heading can carry a glyph between its words (the journey page's `from → to`), so the title
+     is a node rather than a string — the icon is `aria-hidden`, and the words are still the name. */
+  title: ReactNode;
   description?: string;
   actions?: ReactNode;
   badge?: ReactNode;
   /** Draw the page's own name on screen. For screens the navigation cannot name. */
   showTitle?: boolean;
+  /*
+   * Draw the name on a phone only: the stop page's head holds the name and its three controls as
+   * one left-aligned block at 378px, and from 641px up the name is not drawn and the controls go
+   * back to the trailing edge — the head that page had before (F18).
+   */
+  mobileTitle?: boolean;
 }) {
   return (
     <>
       {description ? <p className="sr-only">{description}</p> : null}
-      {showTitle ? (
+      {mobileTitle ? (
+        <header className="page-head page-head--mobile-title">
+          <h1 className="page-head__title t-section">{title}</h1>
+          {badge || actions ? (
+            <div className="row-wrap page-head__actions">
+              {badge}
+              {actions}
+            </div>
+          ) : null}
+        </header>
+      ) : showTitle ? (
         <header className="page-head">
           <div className="row-wrap">
             <h1 className="page-head__title t-section grow">{title}</h1>

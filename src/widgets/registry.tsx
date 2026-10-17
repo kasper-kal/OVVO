@@ -1009,7 +1009,7 @@ function PinnedStopsWidget() {
                * planner with this stop as the origin — the same `?from=` route the stop page
                * uses — and waits for them to say where to.
                */
-              navigate(`/?from=${stopId}`);
+              navigate(`/?from=${stopId}&pick=to`);
             }}
           >
             Plan from here
