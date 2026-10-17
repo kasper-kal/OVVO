@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../../state/AppState';
-import { STOPS, getStop, stopLabel } from '../../data/stops';
+import { customStopName, stopLabel } from '../../data/stops';
+import { modeLabel } from '../../data/preferences';
+import { rankStops } from '../../lib/stopSearch';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { Pill } from '../ui/primitives';
 import type { Stop } from '../../data/types';
@@ -8,23 +10,53 @@ import type { Stop } from '../../data/types';
 interface Props {
   id: string;
   label: string;
+  /**
+   * Let the caller render the `<label htmlFor={id}>` instead of rendering it here.
+   */
+  hideLabel?: boolean;
   value: Stop | null;
   onSelect: (stop: Stop | null) => void;
   placeholder?: string;
   invalid?: boolean;
   describedBy?: string;
+  /**
+   * Show the resolved-stop line under the box.
+   */
+  showHint?: boolean;
+  /**
+   * Offer only the stops this passes.
+   *
+   * The departure board's picker passes `hasBoard`: a board lists services, so an address with
+   * no services is not a stop this field can open — it would commit to a board that cannot
+   * exist. The planner's own pickers pass nothing, because you can perfectly well travel to a
+   * museum; the two uses of the same control differ only in this.
+   */
+  filter?: (stop: Stop) => boolean;
+  /** The line under “No stops match” — say why nothing matched when a filter is in play. */
+  emptyHint?: string;
 }
 
-function score(stop: Stop, query: string): number {
-  const haystack = `${stop.name} ${stop.city} ${stop.code}`.toLowerCase();
-  if (!query) return 0;
-  if (haystack.startsWith(query)) return 3;
-  if (stop.name.toLowerCase().startsWith(query)) return 2;
-  if (haystack.includes(query)) return 1;
-  return -1;
-}
-
-export function StopCombobox({ id, label, value, onSelect, placeholder, invalid, describedBy }: Props) {
+/**
+ * A labelled stop field with its own suggestion list.
+ *
+ * The planner does not use this any more — its two rows open the full-screen picker — but
+ * the departure board, the settings picker and the "find a stop" widget do, so the same
+ * control still has to work inline. The ranking itself is shared with that picker
+ * (`rankStops`), so the two can never disagree about what a query matches.
+ */
+export function StopCombobox({
+  id,
+  label,
+  value,
+  onSelect,
+  placeholder,
+  invalid,
+  describedBy,
+  showHint = true,
+  hideLabel = false,
+  filter,
+  emptyHint,
+}: Props) {
   const { favouriteStopIds } = useApp();
   const [query, setQuery] = useState(value ? stopLabel(value.id) : '');
   const [open, setOpen] = useState(false);
@@ -44,25 +76,29 @@ export function StopCombobox({ id, label, value, onSelect, placeholder, invalid,
   }, [value]);
 
   const suggestions = useMemo(() => {
-    const normalised = query.trim().toLowerCase();
-    if (!normalised) {
-      const favourites = favouriteStopIds.map((stopId) => getStop(stopId)).filter((s): s is Stop => Boolean(s));
-      const popular = ['amsterdam-centraal', 'utrecht-centraal', 'rotterdam-centraal', 'schiphol-airport', 'den-haag-centraal', 'eindhoven-centraal']
-        .map((stopId) => getStop(stopId))
-        .filter((s): s is Stop => Boolean(s));
-      const merged = [...favourites, ...popular.filter((p) => !favourites.some((f) => f.id === p.id))];
-      return merged.slice(0, 8);
-    }
-    return STOPS.map((stop) => ({ stop, rank: score(stop, normalised) }))
-      .filter((entry) => entry.rank > 0)
-      .sort((a, b) => b.rank - a.rank || a.stop.name.localeCompare(b.stop.name, 'nl'))
-      .slice(0, 8)
-      .map((entry) => entry.stop);
-  }, [query, favouriteStopIds]);
+    const ranked = rankStops(query, favouriteStopIds);
+    return filter ? ranked.filter(filter) : ranked;
+  }, [query, favouriteStopIds, filter]);
+
+  /*
+   * The stop whose code and modes are shown in the hint line under the field.
+   *
+   * It is **not** just `value`: typing the first letter of a new stop makes the field clear its
+   * value ("this end is no longer chosen"), and the hint used to vanish with it — so the line
+   * appeared and disappeared under the caret while the traveller was still typing. What the field
+   * still holds until another stop is committed is the previous one, and its code and modes are
+   * still the useful description of it. Choosing another stop replaces it; clearing the field with
+   * the × empties it (`commit(null)`).
+   */
+  const [held, setHeld] = useState<Stop | null>(value ?? null);
+  useEffect(() => {
+    if (value) setHeld(value);
+  }, [value]);
 
   const commit = (stop: Stop | null) => {
     typingRef.current = false;
     selectedIdRef.current = stop?.id ?? null;
+    if (!stop) setHeld(null);
     onSelect(stop);
     setQuery(stop ? stopLabel(stop.id) : '');
     setOpen(false);
@@ -77,9 +113,10 @@ export function StopCombobox({ id, label, value, onSelect, placeholder, invalid,
       event.preventDefault();
       setActiveIndex((index) => Math.max(index - 1, 0));
     } else if (event.key === 'Enter') {
-      if (open && suggestions[activeIndex]) {
+      if (open && activeIndex < suggestions.length) {
         event.preventDefault();
-        commit(suggestions[activeIndex]);
+        const stop = suggestions[activeIndex];
+        if (stop) commit(stop);
       }
     } else if (event.key === 'Escape') {
       setOpen(false);
@@ -88,95 +125,106 @@ export function StopCombobox({ id, label, value, onSelect, placeholder, invalid,
 
   return (
     <div className="combobox">
-      <label className="field__label" htmlFor={id}>
-        {label}
-      </label>
-      <div className={`input-group${invalid ? ' input-group--invalid' : ''}`}>
-        <Icon name="location" size={18} />
-        <input
-          id={id}
-          ref={inputRef}
-          className="input-group__field"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={`${id}-listbox`}
-          aria-autocomplete="list"
-          aria-invalid={invalid || undefined}
-          aria-describedby={describedBy}
-          autoComplete="off"
-          placeholder={placeholder ?? 'Type a station, stop or landmark'}
-          value={query}
-          onChange={(event) => {
-            typingRef.current = true;
-            selectedIdRef.current = null;
-            setQuery(event.target.value);
-            setOpen(true);
-            setActiveIndex(0);
-            if (value) onSelect(null);
-          }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => window.setTimeout(() => setOpen(false), 140)}
-          onKeyDown={onKeyDown}
-        />
-        {query ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--icon-circle"
-            aria-label={`Clear ${label.toLowerCase()}`}
-            onClick={() => {
-              commit(null);
-              inputRef.current?.focus();
+      {hideLabel ? null : (
+        <label className="field__label" htmlFor={id}>
+          {label}
+        </label>
+      )}
+      <div className="combobox__field">
+        <div className={`input-group${invalid ? ' input-group--invalid' : ''}`}>
+          <Icon name="search" size={18} />
+          <input
+            id={id}
+            ref={inputRef}
+            className="input-group__field"
+            /* With the visible label hidden, the name still has to exist — a placeholder is not
+               an accessible name, and it disappears the moment the field is typed in. */
+            aria-label={hideLabel ? label : undefined}
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={`${id}-listbox`}
+            aria-autocomplete="list"
+            aria-invalid={invalid || undefined}
+            aria-describedby={describedBy}
+            autoComplete="off"
+            placeholder={placeholder ?? 'Type a station, stop or landmark'}
+            value={query}
+            onChange={(event) => {
+              typingRef.current = true;
+              selectedIdRef.current = null;
+              setQuery(event.target.value);
+              setOpen(true);
+              setActiveIndex(0);
+              if (value) onSelect(null);
             }}
-          >
-            <Icon name="close" size={16} />
-          </button>
-        ) : null}
-      </div>
-      {open && suggestions.length > 0 ? (
-        <ul className="suggestions" id={`${id}-listbox`} role="listbox" aria-label={`${label} suggestions`}>
-          {suggestions.map((stop, index) => (
-            <li key={stop.id} role="option" aria-selected={index === activeIndex}>
-              <button
-                type="button"
-                className="suggestion"
-                data-active={index === activeIndex}
-                onMouseEnter={() => setActiveIndex(index)}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => commit(stop)}
-              >
+            onFocus={() => setOpen(true)}
+            onBlur={() => window.setTimeout(() => setOpen(false), 140)}
+            onKeyDown={onKeyDown}
+          />
+          {query ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--icon-circle"
+              aria-label={`Clear ${label.toLowerCase()}`}
+              onClick={() => {
+                commit(null);
+                inputRef.current?.focus();
+              }}
+            >
+              <Icon name="close" size={16} />
+            </button>
+          ) : null}
+        </div>
+
+        {open && suggestions.length > 0 ? (
+          <ul className="suggestions" id={`${id}-listbox`} role="listbox" aria-label={`${label} suggestions`}>
+            {suggestions.map((stop, index) => (
+              <li key={stop.id} role="option" aria-selected={index === activeIndex}>
+                <button
+                  type="button"
+                  className="suggestion"
+                  data-active={index === activeIndex}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => commit(stop)}
+                >
                 <span className="stack-1 grow">
-                  <span className="t-strong t-sm">{stop.name}</span>
+                  <span className="t-strong t-body row">
+                    {favouriteStopIds.includes(stop.id) ? <Icon name="heart" size={13} /> : null}
+                    {customStopName(stop.id) ?? stop.name}
+                  </span>
                   <span className="t-sm t-muted">
                     {stop.city} · {stop.code} · {stop.type}
                   </span>
                 </span>
-                <span className="suggestion__modes">
-                  {stop.modes
-                    .filter((mode) => mode !== 'walk' && mode !== 'bike')
+                  <span className="suggestion__modes">
+                    {stop.modes
+                      .filter((mode) => mode !== 'walk' && mode !== 'bike')
                     .slice(0, 3)
                     .map((mode) => (
-                      <ModeIcon key={mode} mode={mode} size={15} />
+                      <ModeIcon key={mode} mode={mode} size={17} />
                     ))}
-                </span>
-              </button>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {open && query && suggestions.length === 0 ? (
+          <ul className="suggestions" id={`${id}-listbox`} role="listbox" aria-label={`${label} suggestions`}>
+            <li className="stack-1" style={{ padding: 'var(--s-3)' }}>
+              <span className="t-strong t-body">No stops match “{query}”</span>
+              <span className="t-sm t-muted">{emptyHint ?? 'Search by station, stop or landmark name.'}</span>
             </li>
-          ))}
-        </ul>
-      ) : null}
-      {open && query && suggestions.length === 0 ? (
-        <ul className="suggestions" id={`${id}-listbox`} role="listbox" aria-label={`${label} suggestions`}>
-          <li className="stack-1" style={{ padding: 'var(--s-3)' }}>
-            <span className="t-strong t-sm">No stops match “{query}”</span>
-            <span className="t-sm t-muted">
-              This prototype searches its own local list of demonstration stops, stations and landmarks.
-            </span>
-          </li>
-        </ul>
-      ) : null}
-      {value ? (
+          </ul>
+        ) : null}
+
+      </div>
+      {showHint && held ? (
         <p className="field__hint row">
-          <Pill tone="sage">{value.code}</Pill>
-          {value.modes.join(', ')}
+          <Pill tone="sage">{held.code}</Pill>
+          {held.modes.map(modeLabel).join(', ')}
         </p>
       ) : null}
     </div>

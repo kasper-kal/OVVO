@@ -2,27 +2,29 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/layout/AppShell';
 import { EmptyState } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
+import { useT } from '../lib/useT';
 
 export function NotFoundPage() {
+  const t = useT();
   return (
-    <div className="stack" style={{ gap: 'var(--s-6)' }}>
-      <PageHeader title="Page not found" description="This part of the prototype does not exist." breadcrumbs={[{ label: 'Planner', to: '/' }]} />
+    <div className="stack-6">
+      {/* Named on screen: not-found is not a navigation entry, so nothing else on the page says
+          where the traveller has landed (item A). */}
+      <PageHeader title={t('Page not found')} description={t('This page does not exist.')} showTitle />
       <EmptyState
         icon="info"
-        title="Nothing here"
-        description="Use the navigation to reach the planner, results, map, stops, departure boards, alerts, favourites, saved journeys, history, preferences or settings."
+        title={t('Nothing here')}
+        description={t(
+          'Use the navigation for the planner, results, stops and departure boards.',
+        )}
       >
         <Link to="/" className="btn btn--primary">
           <Icon name="home" size={16} />
-          Back to the planner
+          {t('Back to the planner')}
         </Link>
         <Link to="/map" className="btn">
           <Icon name="map" size={16} />
-          Illustrative map
-        </Link>
-        <Link to="/disruptions" className="btn">
-          <Icon name="alert" size={16} />
-          Example alerts
+          {t('Network map')}
         </Link>
       </EmptyState>
     </div>

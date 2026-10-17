@@ -65,7 +65,16 @@ svg {
   vertical-align: middle;
 }
 
-svg.sparkline,
+/* An icon is a flex item in nearly every row here, and flex items shrink: when a row
+   ran short of space the icon's *width* collapsed while its height held, so the glyph
+   was drawn squashed rather than smaller — measured on the disruptions page, the
+   favourites star at size 15 drew 11.66 x 15, and the departure-board button 14.72 x 15.
+   The audit that found this reads the rendered box of every icon on every route
+   (scripts listed in README); a build and a screenshot both missed it. */
+.icon {
+  flex: none;
+}
+
 svg.map-canvas {
   display: block;
 }
@@ -77,8 +86,17 @@ svg.map-canvas {
   border-radius: var(--r-compact);
 }
 
+/*
+ * Selected text takes the signature coral — the same `--accent-primary` the navigation dock's
+ * current item is painted with, on the same obsidian ink (`--struct-main`), so the highlight and
+ * the nav bar are one colour rather than two oranges in one interface. It was butter before.
+ *
+ * The pairing is the nav bar's own, and it is the readable one: obsidian on sunset coral measures
+ * 7.1:1, against the 4.5:1 a selection has to clear to keep the text legible while it is lit.
+ * Declared once, unprefixed: every engine this app targets takes `::selection` bare.
+ */
 ::selection {
-  background: var(--accent-secondary);
+  background: var(--accent-primary);
   color: var(--struct-main);
 }
 
@@ -165,6 +183,26 @@ svg.map-canvas {
   gap: var(--s-3);
 }
 
+/* Vertical rhythm steps beyond the default 12px: 16px between items inside a
+ * column, 24px between the sections of a page. */
+.stack-3 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.stack-4 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.stack-6 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
 .stack-2 {
   display: flex;
   flex-direction: column;
@@ -215,13 +253,13 @@ svg.map-canvas {
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--s-3);
+  gap: var(--s-4); /* same 16px step as the card lists */
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: var(--s-3);
+  gap: var(--s-4);
 }
 
 .grid-4 {
@@ -238,77 +276,220 @@ svg.map-canvas {
   flex-direction: column;
 }
 
-/* Slim app bar: a single capsule, 44px tall content, no subtitle block. */
+/*
+ * No app bar.
+ *
+ * The mark is centred in the middle column of a three-column row; the alerts entry is pinned to
+ * the last column, so nothing has to be padded into the middle. The row is as tall as the mark,
+ * and the alerts entry is aligned to the row's top rather than to its middle, so a bigger mark
+ * cannot drag the entry down with it.
+ *
+ * The row **stays at the top of the viewport** (`sticky`, `top: 0`) and **paints nothing**: no
+ * background, no image, no shadow. That pair is the whole point — a header you can see is a band,
+ * and a band is the thing this header must never be. Both halves have been got wrong separately:
+ * first `sticky` plus `background: var(--l0-bg)`, which measures identical to the canvas at rest
+ * and a different colour the moment a white card scrolls under it, so every scrolled screen drew
+ * a 72px strip with the card sliced along its edge; then, to remove the strip, the stickiness
+ * itself, which left the mark and the alerts entry scrolling away with the page.
+ *
+ * `pointer-events: none` is what makes a transparent sticky row safe: it spans the full width of
+ * the top of the viewport, so without this it would swallow every tap on the content passing
+ * under it. The two things in it that are actually controls take their events back.
+ */
+/*
+ * No bar: just a clear sticky row across the top. It is not painted and it must not be — R49
+ * put the canvas tone on it, which is invisible over the page and very visible over a white card
+ * scrolling under it, and the row's own paint is what made that band. `.app-header`'s comment
+ * above records the two attempts to have it both ways; what stays is `pointer-events: none` on
+ * the row and `auto` on the controls, so a transparent row cannot swallow taps on the content
+ * passing under it.
+ *
+ * The three things in this row are the mark, a page's way back and the alerts entry. The mark's
+ * 56px square is the number the other two are drawn at, and all three step the same 16px down
+ * off the row's own 4px padding, so they start on one line, 20px from the top of the viewport —
+ * which is where the mark has always been.
+ */
+/*
+ * No bar: just a clear sticky row across the top. It is not painted and it must not be — R49
+ * put the canvas tone on it, which is invisible over the page and very visible over a white card
+ * scrolling under it, and the row's own paint is what made that band. `.app-header`'s comment
+ * above records the two attempts to have it both ways; what stays is `pointer-events: none` on
+ * the row and `auto` on the controls, so a transparent row cannot swallow taps on the content
+ * passing under it.
+ *
+ * The three things in this row are the mark, a page's way back and the alerts entry. They share
+ * **one top edge** and nothing else: the mark's 56px square, the arrow's 44px disc and the alerts
+ * entry's 36px pill are each their own size, and all three take the mark's 16px step off the row's
+ * own 4px padding, so they start on one line, 20px from the top of the viewport — which is where
+ * the mark has always been.
+ */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 40;
   padding: var(--s-1) var(--s-3);
+  background: none;
+  pointer-events: none;
 }
 
+.app-header__brand,
+.app-header .app-header__alerts,
+.app-header .app-header__back {
+  pointer-events: auto;
+}
+
+/*
+ * The row the three of them are drawn in: `min-height: var(--target-min)` with the mark's own
+ * square growing it, exactly as it was. Nothing in this row is sized here — each slot says its own
+ * size — and the one step that puts them on a line is stated per slot (below).
+ *
+ * What was wrong was a **top edge**, not a size. The three did not share one, and it was
+ * structural rather than a wrong number anywhere: nothing in this row *was* the line, so every
+ * item was positioned by a private correction of its own — `align-self: start` and an 8px step on
+ * the way back, a 16px step on the mark, `align-self: start` and a 4px step on the alerts entry.
+ * Measured at 390px: the alerts entry **top 8**, the mark **top 20**, the way back **top 12**.
+ * All three now take the mark's 16px step and measure **top 20**, and their heights are their own,
+ * so their middles and bottoms differ on purpose: one line drawn above the row touches all three,
+ * one drawn below it does not have to. `ui-audit` fails the run if the tops stop agreeing.
+ */
 .app-header__inner {
   max-width: var(--shell-max);
   margin: 0 auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: var(--s-2);
-  background: var(--l3-bg);
-  border: var(--l3-border);
-  border-radius: var(--r-pill);
-  padding: 0 var(--s-1) 0 var(--s-2);
-  min-height: 44px;
+  padding: 0 var(--s-1);
+  min-height: var(--target-min);
+}
+
+/*
+ * A page's own way back, in the place the full-screen pickers put theirs.
+ *
+ * The mark is centred in its column, which leaves the row's first column empty; this is what goes
+ * in it — the same corner of the bar the full-screen pickers put theirs in, which is the number a
+ * reporter compared across screens (12,12 against 12,105; the arrow's shape was never the
+ * complaint). Its size is its own (`btn--icon-circle`: 44px, the same disc the pickers' bar
+ * draws, and the minimum this app measures a control against); the only thing it takes from the
+ * mark is the step, so its disc starts on the mark's line. The left edge is pulled back by the
+ * inner row's own padding for the reason it always was: 4 + 12 - 4 = 12.
+ */
+.app-header__back {
+  grid-column: 1;
+  justify-self: start;
+  align-self: start;
+  margin-top: var(--s-4);
+  margin-left: calc(-1 * var(--s-1));
 }
 
 .app-header__brand {
+  grid-column: 2;
+  justify-self: center;
+  align-self: start;
   display: inline-flex;
   align-items: center;
-  gap: var(--s-2);
   min-height: var(--target-min);
-  color: var(--on-dark);
+  /* Brings the mark down off the top edge — one 16px step — and takes the row's height with
+     it, so the page below moves down rather than crowding the mark. This is the step the other
+     two take as well, which is what puts all three on one line. */
+  margin-top: var(--s-4);
 }
 
+/*
+ * The mark is a white tile with the artwork's obsidian ink on it, and it is the **only** thing
+ * in this row that is painted: the row itself stays clear and sticky, the alerts entry stays a
+ * bare glyph. What was removed earlier was the header's own bar, not this ground — the logo
+ * keeps one, or the artwork reads as four floating pieces on the page colour.
+ *
+ * Its corners take a 14px soften — chosen from a magnified strip of 0/4/6/8/10/12/14/18px, where
+ * 6 and 10 were indistinguishable and 0 - no softening at all - was too far. 14px is a quarter of
+ * the 56px tile; the 12px on the old 40px tile that read as a crop was 30%.
+ *
+ * `color` is set to the mark's ink as well as the ground to `--brand-tile`, because the ink is
+ * drawn as `fill` on the paths while the element's own colour is what an icon is read against
+ * its background with — keeping the two equal is what makes the mark's contrast measurable
+ * rather than assumed.
+ */
 .app-header__mark {
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  background: var(--accent-primary);
-  color: var(--struct-main);
   display: grid;
   place-items: center;
-  font-weight: var(--fw-extrabold);
-  font-size: 12px;
-  letter-spacing: var(--track-heading);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--brand-tile);
+  color: var(--brand-ink);
 }
 
-.app-header__title {
-  font-size: 15px;
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--track-heading);
+.brand-mark__tile {
+  /* The artwork's four tiles: two are ink, the other two are its own background, and the SVG
+     rect that would draw them stays unfilled so the artwork can be dropped on any ground. The
+     visible ground is the mark's tile behind it (`.app-header__mark`), which is white in both
+     appearances; the favicon file paints the same white into the artwork itself. */
+  fill: none;
 }
 
-.app-header__chip {
-  height: 22px;
-  padding: 0 var(--s-2);
+.brand-mark__ink {
+  fill: var(--brand-ink);
+}
+
+/*
+ * The alerts entry, in its own size, starting on the mark's line.
+ *
+ * The 16px step is the only thing it takes from the mark — the mark's 56px square, the arrow's
+ * 44px disc and this entry's 36px pill are three sizes, and a line drawn above them is what has to
+ * touch all three. Everything else about it is what it has always been: 36px tall with 8px of
+ * padding either side of the glyph and the count, so its hover background is the pill it was.
+ */
+.app-header .app-header__alerts {
+  position: relative;
+  grid-column: 3;
+  align-self: start;
+  justify-self: end;
+  margin-top: var(--s-4);
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--hairline-on-dark);
+  justify-content: center;
+  gap: var(--s-1);
+  min-width: 36px;
+  height: 36px;
+  padding: 0 var(--s-2);
   border-radius: var(--r-pill);
-  color: var(--on-dark-muted);
-  font-size: 10px;
+  border: 1px solid transparent;
+  color: var(--ink-muted);
+  transition: background var(--t-press) var(--ease-press), color var(--t-press) var(--ease-press);
+}
+
+.app-header .app-header__alerts:hover {
+  background: var(--l1-bg);
+  border-color: var(--border-hairline);
+  color: var(--ink-strong);
+}
+
+/*
+ * 36px of paint, 46px of target.
+ *
+ * `inset` is measured from the **padding** box, and this entry carries a 1px transparent
+ * border, so -4px of it bought 4px a side of paint box and only 2px of target: 42px, not the
+ * 44px it claimed. -6px clears the border with room to spare, and the audit — which probes the
+ * four edge midpoints of a 44px square rather than reading the declaration — is what found it.
+ */
+.app-header .app-header__alerts::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+
+.app-header__alert-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--s-1);
+  border-radius: var(--r-pill);
+  background: var(--accent-primary);
+  color: var(--struct-main);
+  font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
-  letter-spacing: var(--track-pill);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.app-header .app-header__info {
-  color: var(--on-dark-muted);
-}
-
-.app-header .app-header__info:hover {
-  background: var(--struct-secondary);
-  border-color: var(--struct-secondary);
-  color: var(--on-dark);
+  line-height: 18px;
+  text-align: center;
 }
 
 .app-body {
@@ -400,7 +581,9 @@ svg.map-canvas {
 /* ------------------------------------------------------------ Sidebar module */
 .app-sidebar {
   position: sticky;
-  top: 64px;
+  /* Clears the sticky header (68px) and then one 16px step, so the sidebar's own top edge
+     never slides under the mark's row. */
+  top: calc(var(--header-h) + var(--s-4));
   background: var(--l2-bg);
   border: var(--l2-border);
   border-radius: var(--r-card);
@@ -408,7 +591,7 @@ svg.map-canvas {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
-  max-height: calc(100vh - 84px);
+  max-height: calc(100vh - var(--header-h) - var(--s-8));
   overflow-y: auto;
 }
 
@@ -419,7 +602,7 @@ svg.map-canvas {
 .nav-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s-1);
 }
 
 .nav-item {
@@ -428,7 +611,8 @@ svg.map-canvas {
   gap: var(--s-3);
   min-height: var(--target-min);
   padding: 0 var(--s-3);
-  border-radius: var(--r-inner);
+  /* sits on the sidebar card's 16px padding line: 28 - 16 keeps the corners concentric */
+  border-radius: var(--r-nested);
   color: var(--ink);
   font-weight: var(--fw-medium);
   font-size: var(--fs-body);
@@ -454,13 +638,18 @@ svg.map-canvas {
   font-weight: var(--fw-bold);
 }
 
+/*
+ * The count on a navigation entry, in the same coral the header's alert badge uses: the two show
+ * the same number of alerts, and they were two different colours for no reason — the nav in
+ * butter, the header in coral. The header was not touched: this is the one that changed.
+ */
 .nav-item__badge {
   margin-left: auto;
   min-width: 24px;
   height: 20px;
   padding: 0 var(--s-2);
   border-radius: var(--r-pill);
-  background: var(--accent-secondary);
+  background: var(--accent-primary);
   color: var(--struct-main);
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
@@ -491,19 +680,23 @@ svg.map-canvas {
   gap: var(--s-2);
 }
 
-.breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: var(--s-1);
-  flex-wrap: wrap;
-  font-size: var(--fs-sm);
-  color: var(--ink-muted);
+/* The page's own name, drawn only where the navigation cannot name the screen (see
+   `PageHeader`). It shares the row with the page's actions and gives way to them on a
+   narrow screen, so a long stop name never pushes a control off the line. */
+.page-head__title {
+  margin: 0;
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
-.breadcrumbs a:hover {
-  color: var(--ink-strong);
-  text-decoration: underline;
+/* A head with no drawn title holds only controls, and they go to the trailing edge — the same
+   end of the row every card, panel and list in the app puts its own controls on. Measured
+   before this rule: the keep-a-stop pin read `left` on the stop page and `right` on the stops
+   list, which is the drift the audit recorded. */
+.page-head__actions {
+  justify-content: flex-end;
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   * {

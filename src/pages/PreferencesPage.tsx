@@ -1,17 +1,15 @@
 import { useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { PreferencesControls } from '../components/journey/PreferencesControls';
-import { filterJourneys, sortJourneys } from '../data/journeyEngine';
-import { stopLabel } from '../data/stops';
-import { Button, Card, DemoBadge, EmptyState, Panel, Pill, Stat } from '../components/ui/primitives';
+import { endLabel, filterJourneys, sortJourneys } from '../data/journeyEngine';
+import { Button, Card, Pill } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 
 export function PreferencesPage() {
-  const navigate = useNavigate();
-  const { preferences, updatePreferences, resetPreferences, journeys, search, startSearch, pushToast } = useApp();
+  const { preferences, updatePreferences, resetPreferences, journeys, search } = useApp();
   const format = useFormat();
 
   const preview = useMemo(() => {
@@ -26,36 +24,29 @@ export function PreferencesPage() {
   }, [journeys, preferences, search]);
 
   return (
-    <div className="stack" style={{ gap: 'var(--s-6)' }}>
+    <div className="stack-6">
+      {/*
+        One action at the head, and it is a way on rather than a way to save: every control on
+        this page applies as you touch it, so an APPLY button acted on settings that were
+        already applied, and a RESET sat above the list it undoes. Reset is at the foot of the
+        list now, where the thing it reverses has already been read.
+      */}
       <PageHeader
         title="Travel preferences"
-        description="These preferences shape the simulated search results: the planner respects them, the results list filters by them and the ordering changes with them."
-        breadcrumbs={[{ label: 'Planner', to: '/' }, { label: 'Travel preferences' }]}
-        badge={<DemoBadge label="Stored on this device" />}
+        description="These preferences shape your search results: the planner respects them, the results list filters by them and the ordering changes with them."
+        showTitle
         actions={
-          <>
-            <Button icon="refresh" onClick={() => { resetPreferences(); pushToast('Preferences reset to the prototype defaults'); }}>
-              Reset to defaults
-            </Button>
-            {search ? (
-              <Button
-                variant="primary"
-                icon="route"
-                onClick={() => {
-                  startSearch({ ...search.query, preferences });
-                  pushToast('Results re-generated with these preferences', 'success');
-                  navigate('/results');
-                }}
-              >
-                Apply and view results
-              </Button>
-            ) : (
-              <Link to="/" className="btn btn--primary">
-                <Icon name="search" size={16} />
-                Plan a journey
-              </Link>
-            )}
-          </>
+          search ? (
+            <Link to="/results" className="btn btn--primary">
+              <Icon name="route" size={16} />
+              See the results
+            </Link>
+          ) : (
+            <Link to="/" className="btn btn--primary">
+              <Icon name="search" size={16} />
+              Plan a journey
+            </Link>
+          )
         }
       />
 
@@ -65,7 +56,7 @@ export function PreferencesPage() {
             <div className="stack-1">
               <h2 className="t-section">Effect on your current search</h2>
               <span className="t-sm t-muted">
-                {stopLabel(search!.query.fromStopId)} → {stopLabel(search!.query.toStopId)} ·{' '}
+                {endLabel(search!.query, 'from')} → {endLabel(search!.query, 'to')} ·{' '}
                 {format.date(search!.query.date)} {format.time(search!.query.time)}
               </span>
             </div>
@@ -81,49 +72,24 @@ export function PreferencesPage() {
               )}
             </div>
           </div>
-          {preview.best ? (
-            <div className="grid-3">
-              <Stat label="Transfers" value={String(preview.best.transfers)} hint="In the best option" />
-              <Stat label="Walking" value={`${preview.best.walkMinutes} min`} hint="Access and transfer walks" />
-              <Stat label="Modes" value={preview.best.modes.filter((mode) => mode !== 'walk').join(', ') || 'walking'} hint="Used by the best option" />
-            </div>
-          ) : (
-            <Panel variant="coral">
-              <span className="t-sm">
-                No simulated journey satisfies the current combination of modes, walking, transfers and accessibility
-                requirements for this search. Loosen one requirement to see options again.
-              </span>
-            </Panel>
-          )}
+          {/* The two pills above are the summary; the three tiles that used to sit under them —
+              transfers, walking, modes — said the same three facts a second time. */}
         </Card>
       ) : (
-        <EmptyState
-          icon="sliders"
-          title="No active search to preview"
-          description="Preferences are always saved, but the live effect can only be previewed once you have a search. Plan a journey to see it here."
-        >
-          <Link to="/" className="btn btn--primary">
-            <Icon name="search" size={16} />
-            Plan a journey
-          </Link>
-        </EmptyState>
+        <p className="t-sm t-muted">Plan a journey to preview these settings.</p>
       )}
 
       <Card hero className="stack">
         <h2 className="t-section">All preferences</h2>
         <PreferencesControls preferences={preferences} onChange={updatePreferences} />
+        <div className="row-wrap">
+          {/* No toast: every control in the panel visibly snaps back to its default. */}
+          <Button icon="refresh" onClick={resetPreferences}>
+            Reset to defaults
+          </Button>
+        </div>
       </Card>
 
-      <Panel className="stack-2">
-        <span className="field__label">Where each preference is applied</span>
-        <ul className="stack-1 t-sm">
-          <li>Allowed and avoided modes: filter the simulated journeys, including their connections.</li>
-          <li>Maximum walking time and transfers: the planner will not propose options beyond the limits.</li>
-          <li>Accessibility switches: only journeys whose stops meet the requirement are listed.</li>
-          <li>Fewer transfers / less walking: change how the planner ranks and weights its options.</li>
-          <li>Bicycle choice: adds a bicycle access leg or shows bicycle information on services.</li>
-        </ul>
-      </Panel>
     </div>
   );
 }

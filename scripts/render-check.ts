@@ -1,42 +1,36 @@
 /**
  * Renders every page with react-dom/server to catch runtime errors that a build
  * cannot detect. Run with:
- *   npx esbuild scripts/render-check.ts --bundle --format=esm --platform=node --outfile=/tmp/render.mjs --loader:.css=empty && node /tmp/render.mjs
+ *   npx esbuild scripts/render-check.ts --bundle --format=cjs --platform=node --outfile=/tmp/render.cjs --loader:.css=empty && node /tmp/render.cjs
  */
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AppProvider } from '../src/state/AppState';
 import { AppShell } from '../src/components/layout/AppShell';
-import { PlannerPage } from '../src/pages/PlannerPage';
+import { HomePage } from '../src/pages/HomePage';
 import { ResultsPage } from '../src/pages/ResultsPage';
 import { JourneyDetailPage } from '../src/pages/JourneyDetailPage';
-import { MapPage } from '../src/pages/MapPage';
 import { StopsPage } from '../src/pages/StopsPage';
+import { MapPage } from '../src/pages/MapPage';
 import { StopDetailPage } from '../src/pages/StopDetailPage';
 import { DeparturesPage } from '../src/pages/DeparturesPage';
 import { DisruptionsPage } from '../src/pages/DisruptionsPage';
 import { DisruptionDetailPage } from '../src/pages/DisruptionDetailPage';
-import { FavouritesPage } from '../src/pages/FavouritesPage';
-import { SavedJourneysPage } from '../src/pages/SavedJourneysPage';
-import { RecentSearchesPage } from '../src/pages/RecentSearchesPage';
 import { PreferencesPage } from '../src/pages/PreferencesPage';
 import { SettingsPage } from '../src/pages/SettingsPage';
 import { NotFoundPage } from '../src/pages/NotFoundPage';
 
 const cases: [string, () => JSX.Element][] = [
-  ['/', PlannerPage],
+  ['/', HomePage],
   ['/results', ResultsPage],
   ['/journey/nonexistent', JourneyDetailPage],
-  ['/map', MapPage],
   ['/stops', StopsPage],
+  ['/map', MapPage],
   ['/stops/utrecht-centraal', StopDetailPage],
   ['/departures', DeparturesPage],
   ['/disruptions', DisruptionsPage],
   ['/disruptions/d-signal-utrecht', DisruptionDetailPage],
-  ['/favourites', FavouritesPage],
-  ['/journeys', SavedJourneysPage],
-  ['/recent', RecentSearchesPage],
   ['/preferences', PreferencesPage],
   ['/settings', SettingsPage],
   ['/does-not-exist', NotFoundPage],

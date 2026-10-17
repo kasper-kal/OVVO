@@ -5,15 +5,17 @@ import { seededRandom } from '../lib/random';
 import type { Departure } from './types';
 
 /**
- * DEMONSTRATION DATA — simulated departure boards.
- * Times are generated from the prototype's own network, never from a live feed.
+ * Departure boards.
+ *
+ * Times are generated from the network in `./network`. The interface only reads
+ * `Departure` objects, so a live feed can replace this generator directly.
  */
 
 export interface BoardOptions {
   /** Minutes since midnight the board starts showing. */
   fromMinutes: number;
   limit?: number;
-  /** Bumping the tick re-simulates the board ("refresh"). */
+  /** Bumping the tick rebuilds the board ("refresh"). */
   tick?: number;
   modeFilter?: Departure['mode'][];
   lineQuery?: string;

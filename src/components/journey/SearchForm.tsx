@@ -1,310 +1,240 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../../state/AppState';
-import { getStop, stopLabel } from '../../data/stops';
-import { StopCombobox } from './StopCombobox';
-import { PreferencesControls } from './PreferencesControls';
-import { Button, Chip, Dialog, Disclosure, Field, IconButton, Segmented } from '../ui/primitives';
+import { getStop } from '../../data/stops';
+import { StopPicker } from './StopPicker';
+import { MapPicker } from './MapPicker';
 import { Icon } from '../ui/Icons';
-import { addDaysIso, nowMinutes, roundToStep, todayIso } from '../../lib/format';
+import { nowMinutes, roundToStep, todayIso } from '../../lib/format';
+import { useT } from '../../lib/useT';
 import type { Stop } from '../../data/types';
 import type { SearchQuery } from '../../data/journeyEngine';
 
-/** A small set of invented "current locations" — this prototype never asks for real device location. */
-const SIMULATED_LOCATIONS: { label: string; stopId: string; description: string }[] = [
-  { label: 'Near Amsterdam Centraal', stopId: 'amsterdam-centraal', description: 'Simulated GPS fix · city centre' },
-  { label: 'Near Utrecht Centraal', stopId: 'utrecht-centraal', description: 'Simulated GPS fix · station area' },
-  { label: 'Near Rotterdam Blaak', stopId: 'rotterdam-blaak', description: 'Simulated GPS fix · city centre' },
-  { label: 'Near Eindhoven Centraal', stopId: 'eindhoven-centraal', description: 'Simulated GPS fix · station area' },
-];
+type Side = 'from' | 'to';
 
-interface Errors {
-  from?: string;
-  to?: string;
-  date?: string;
-  general?: string;
-}
-
-export function SearchForm({
-  variant = 'hero',
-  onSearch,
-}: {
-  variant?: 'hero' | 'inline';
-  onSearch?: () => void;
-}) {
+/**
+ * The planner card: two rows and a rail, and nothing else.
+ *
+ * The card asks one question — where from, where to — so it holds one answer per row and
+ * no other control at all. There is no search button and no date or time here: the second
+ * stop *is* the search, and the journey's when, how and which carriers are answered on the
+ * results screen, where they apply to something you can already see.
+ *
+ * Both rows are buttons, not fields: typing happens on the full-screen picker, which is
+ * the screen built for it. This keeps the card readable, tappable and 106px tall.
+ */
+export function SearchForm({ onSearch }: { onSearch?: () => void }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { search, startSearch, preferences, updatePreferences, favouriteStopIds, pushToast, settings } = useApp();
+  const { search, startSearch, preferences, pushToast, settings } = useApp();
+  const t = useT();
 
   const defaults = useMemo(() => {
     const base = search?.query;
-    const paramFrom = params.get('from');
-    const paramTo = params.get('to');
     const fallbackOrigin = settings.defaultOriginStopId ? getStop(settings.defaultOriginStopId) : undefined;
     return {
-      from: getStop(paramFrom ?? base?.fromStopId) ?? fallbackOrigin ?? null,
-      to: getStop(paramTo ?? base?.toStopId) ?? null,
-      date: base?.date ?? todayIso(),
-      time: base ? base.time : roundToStep(nowMinutes() + 10, 5),
-      timeMode: base?.timeMode ?? settings.defaultTimeMode,
+      from: getStop(params.get('from') ?? base?.fromStopId) ?? fallbackOrigin ?? null,
+      to: getStop(params.get('to') ?? base?.toStopId) ?? null,
     };
-  }, [params, search, settings.defaultOriginStopId, settings.defaultTimeMode]);
+  }, [params, search, settings.defaultOriginStopId]);
+
+  /**
+   * A new pair keeps the when of the search already on screen (changing only the
+   * destination should not silently move the departure time), unless that search is in
+   * the past, which the planner cannot serve.
+   */
+  const when = useMemo(() => {
+    const base = search?.query;
+    const usable = base && base.date >= todayIso() ? base : null;
+    return {
+      date: usable?.date ?? todayIso(),
+      time: usable?.time ?? roundToStep(nowMinutes(), 5),
+      timeMode: usable?.timeMode ?? settings.defaultTimeMode,
+    };
+  }, [search, settings.defaultTimeMode]);
 
   const [from, setFrom] = useState<Stop | null>(defaults.from);
   const [to, setTo] = useState<Stop | null>(defaults.to);
-  const [date, setDate] = useState(defaults.date);
-  const [timeMinutes, setTimeMinutes] = useState(defaults.time);
-  const [timeMode, setTimeMode] = useState<'depart' | 'arrive'>(defaults.timeMode);
-  const [errors, setErrors] = useState<Errors>({});
-  const [locationOpen, setLocationOpen] = useState(false);
-  const [simulatedFix, setSimulatedFix] = useState<string | null>(null);
 
-  const timeValue = `${String(Math.floor(timeMinutes / 60)).padStart(2, '0')}:${String(timeMinutes % 60).padStart(2, '0')}`;
-
-  const setNow = (offsetMinutes: number) => {
-    const target = roundToStep(nowMinutes() + offsetMinutes, 5);
-    const dayShift = Math.floor(target / 1440);
-    setDate(dayShift > 0 ? addDaysIso(todayIso(), dayShift) : todayIso());
-    setTimeMinutes(((target % 1440) + 1440) % 1440);
-  };
-
-  const swap = () => {
-    setFrom(to);
-    setTo(from);
-    setErrors({});
-    pushToast('Origin and destination swapped');
-  };
-
-  const reset = () => {
-    setFrom(null);
-    setTo(null);
-    setErrors({});
-    setSimulatedFix(null);
-  };
-
-  const submit = () => {
-    const nextErrors: Errors = {};
-    if (!from) nextErrors.from = 'Choose a departure stop from the suggestions.';
-    if (!to) nextErrors.to = 'Choose a destination stop from the suggestions.';
-    if (from && to && from.id === to.id) nextErrors.to = 'Origin and destination must be different stops.';
-    if (date < todayIso()) nextErrors.date = 'Pick today or a future date — this prototype has no historical timetable.';
-    if (Object.keys(nextErrors).length) {
-      setErrors(nextErrors);
-      pushToast('Check the highlighted fields', 'warning');
-      return;
+  /*
+   * A `?from=`/`?to=` that arrives while this card is already on screen has to be applied.
+   *
+   * The card lives on the home route and every link that fills one of its rows is *on* the home
+   * route, so React Router keeps the component mounted and `useState(defaults.from)` — which only
+   * ever runs once — never sees the new parameter. The row stayed empty while the URL said
+   * `?from=utrecht-centraal`; the same trap as a `?stop=` that changes on a mounted board.
+   * Params are the only trigger: a stop chosen on this card does not change them, and is not
+   * clobbered by them.
+   */
+  const paramFrom = params.get('from');
+  const paramTo = params.get('to');
+  useEffect(() => {
+    if (paramFrom !== null) {
+      const stop = getStop(paramFrom);
+      if (stop) setFrom(stop);
     }
-    setErrors({});
+    if (paramTo !== null) {
+      const stop = getStop(paramTo);
+      if (stop) setTo(stop);
+    }
+  }, [paramFrom, paramTo]);
+  /*
+   * An address "use my current location" resolved to, per end. Kept beside the stop rather
+   * than inside it: the journey is planned from the stop, and the traveller named the
+   * address. Both are shown where the pair is shown, and both travel with the search.
+   */
+  const [labels, setLabels] = useState<{ from?: string; to?: string }>({
+    from: search?.query.fromLabel,
+    to: search?.query.toLabel,
+  });
+  const [errors, setErrors] = useState<{ from?: string; to?: string }>({});
+  const [sheet, setSheet] = useState<{ kind: 'pick' | 'map'; side: Side } | null>(null);
+
+  const run = (origin: Stop, destination: Stop, named: { from?: string; to?: string } = labels) => {
     const query: SearchQuery = {
-      fromStopId: from!.id,
-      toStopId: to!.id,
-      date,
-      time: timeMinutes,
-      timeMode,
+      fromStopId: origin.id,
+      toStopId: destination.id,
+      fromLabel: named.from,
+      toLabel: named.to,
+      date: when.date,
+      time: when.time,
+      timeMode: when.timeMode,
       preferences,
     };
+    /* No toast: the results screen is the answer to the question that was just asked. */
     startSearch(query);
-    pushToast('Simulated journeys generated for this search', 'success');
+    setSheet(null);
     onSearch?.();
     navigate('/results');
   };
 
-  return (
-    <div className="stack">
-      <form
-        className="stack"
-        style={{ gap: 'var(--s-3)' }}
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit();
-        }}
-      >
-        <div className="stack-2">
-          <StopCombobox
-            id="planner-from"
-            label="From"
-            value={from}
-            onSelect={(stop) => {
-              setFrom(stop);
-              setSimulatedFix(null);
-              setErrors((current) => ({ ...current, from: undefined, general: undefined }));
-            }}
-            invalid={Boolean(errors.from)}
-            describedBy={errors.from ? 'planner-from-error' : undefined}
-          />
-          {errors.from ? (
-            <p className="field__error" id="planner-from-error" role="alert">
-              <Icon name="alert" size={14} />
-              {errors.from}
-            </p>
-          ) : null}
-          <div className="row-wrap">
-            <Button icon="swap" size="sm" onClick={swap} aria-label="Reverse origin and destination">
-              Reverse journey
-            </Button>
-            <Button icon="location" size="sm" onClick={() => setLocationOpen(true)}>
-              Use my location (simulated)
-            </Button>
-            {simulatedFix ? (
-              <span className="pill">
-                <Icon name="check" size={13} />
-                {simulatedFix}
-              </span>
-            ) : null}
-          </div>
-        </div>
+  /**
+   * One end was chosen. Completing the pair is the search; two equal stops are the one
+   * answer the planner has to refuse, and there is no search button left to catch it.
+   */
+  /**
+   * One end was chosen. **Completing the pair is the search, whatever answered it.**
+   *
+   * This used to depend on where the answer came from: the list ran the search, the map did
+   * not, and the traveller was returned to the picker with a "Plan journey" button instead.
+   * That is the report this rule is written against — "sometimes the results dont always show
+   * when you put in 2 locations both from and to, sometimes pressing the plan journey button is
+   * necessary" — because a pair filled from the map left them on the picker with two stops and
+   * no journey. Two ends and no search is now impossible: the pick that supplies the second one
+   * plans, and the picker only stays open while one end is still missing, which is when there is
+   * genuinely nothing to plan yet.
+   */
+  const pick = (side: Side, stop: Stop, label?: string) => {
+    const nextFrom = side === 'from' ? stop : from;
+    const nextTo = side === 'to' ? stop : to;
+    const nextLabels = { ...labels, [side]: label };
+    setLabels(nextLabels);
+    if (nextFrom && nextTo && nextFrom.id === nextTo.id) {
+      setErrors({ to: t('Origin and destination must be different stops') });
+      pushToast('Origin and destination must be different stops', 'warning');
+      if (side === 'from') setFrom(stop);
+      else setTo(stop);
+      return;
+    }
+    if (side === 'from') setFrom(stop);
+    else setTo(stop);
+    setErrors({});
+    if (nextFrom && nextTo) run(nextFrom, nextTo, nextLabels);
+  };
 
-        <StopCombobox
-          id="planner-to"
-          label="To"
-          value={to}
-          onSelect={(stop) => {
-            setTo(stop);
-            setErrors((current) => ({ ...current, to: undefined, general: undefined }));
-          }}
-          invalid={Boolean(errors.to)}
-          describedBy={errors.to ? 'planner-to-error' : undefined}
-        />
-        {errors.to ? (
-          <p className="field__error" id="planner-to-error" role="alert">
-            <Icon name="alert" size={14} />
-            {errors.to}
-          </p>
-        ) : null}
+  const clear = (side: Side) => {
+    if (side === 'from') setFrom(null);
+    else setTo(null);
+    setLabels((current) => ({ ...current, [side]: undefined }));
+    setErrors({});
+  };
 
-        <div className="grid-3">
-          <Field label="Date" error={errors.date} id="planner-date">
-            <input
-              id="planner-date"
-              className="input"
-              type="date"
-              value={date}
-              min={todayIso()}
-              onChange={(event) => {
-                setDate(event.target.value);
-                setErrors((current) => ({ ...current, date: undefined }));
-              }}
-            />
-          </Field>
-          <Field label="Time" hint={`${timeMode === 'depart' ? 'Departure' : 'Arrival'} at ${timeValue}`} id="planner-time">
-            <input
-              id="planner-time"
-              className="input"
-              type="time"
-              value={timeValue}
-              onChange={(event) => {
-                const [h, m] = event.target.value.split(':').map(Number);
-                if (Number.isFinite(h) && Number.isFinite(m)) setTimeMinutes(h * 60 + m);
-              }}
-            />
-          </Field>
-          <Field label="Search for" id="planner-mode">
-            <Segmented
-              ariaLabel="Depart at or arrive by"
-              value={timeMode}
-              onChange={(value) => setTimeMode(value)}
-              options={[
-                { value: 'depart', label: 'Depart at' },
-                { value: 'arrive', label: 'Arrive by' },
-              ]}
-            />
-          </Field>
-        </div>
+  const reverse = () => {
+    setFrom(to);
+    setTo(from);
+    setLabels((current) => ({ from: current.to, to: current.from }));
+    setErrors({});
+  };
 
-        <div className="row-wrap">
-          <span className="field__label">Quick times</span>
-          <Chip onClick={() => setNow(0)}>Now</Chip>
-          <Chip onClick={() => setNow(30)}>+30 min</Chip>
-          <Chip onClick={() => setNow(60)}>+1 hour</Chip>
-          <Chip onClick={() => setNow(1440)}>Tomorrow</Chip>
-        </div>
-
-        <Disclosure
-          title="Travel preferences"
-          summary={`${preferences.allowedModes.length} modes · max ${preferences.maxTransfers} transfers · ${preferences.maxWalkingMinutes} min walking`}
-          id="planner-preferences"
+  const renderRow = (side: Side) => {
+    const value = side === 'from' ? from : to;
+    return (
+      <div className={`planner-row${side === 'to' ? ' planner-row--to' : ''}`}>
+        <button
+          type="button"
+          className={`planner-row__btn${value ? '' : ' planner-row__btn--empty'}`}
+          aria-haspopup="dialog"
+          onClick={() => setSheet({ kind: 'pick', side })}
         >
-          <PreferencesControls preferences={preferences} onChange={updatePreferences} />
-        </Disclosure>
+          {/*
+            The row is named by its own text when it is empty and by the stop in it when it is
+            not, so the screen-reader name is only needed in the second case — as two spans it
+            read "From From". "From: station, stop or landmark" was the field telling the
+            traveller what a stop is, in a card whose two rows are the only two things on it.
+          */}
+          {value ? <span className="sr-only">{side === 'from' ? t('From') : t('To')}</span> : null}
+          {value ? labels[side] ?? value.name : t(side === 'from' ? 'From' : 'To')}
+        </button>
+      </div>
+    );
+  };
 
-        <div className="row-wrap">
-          <Button type="submit" variant="primary" icon="search" style={{ flex: '1 1 220px' }} onClick={submit}>
-            Search journeys
-          </Button>
-          <Button variant="ghost" icon="close" onClick={reset}>
-            Clear form
-          </Button>
+  const error = errors.from ?? errors.to;
+
+  return (
+    <div className="planner">
+      <div className={`planner-card${error ? ' planner-card--invalid' : ''}`}>
+        <span className="planner-rail" aria-hidden="true">
+          <span className={`planner-rail__node planner-rail__node--from${errors.from ? ' planner-rail__node--invalid' : ''}`} />
+          <span className={`planner-rail__node planner-rail__node--to${errors.to ? ' planner-rail__node--invalid' : ''}`} />
+        </span>
+        <div className="planner-rows">
+          {renderRow('from')}
+          {renderRow('to')}
         </div>
+      </div>
 
-        {variant === 'hero' && favouriteStopIds.length > 0 ? (
-          <div className="row-wrap">
-            <span className="field__label">Favourites</span>
-            {favouriteStopIds.slice(0, 4).map((stopId) => (
-              <span key={stopId} className="row">
-                <Chip
-                  icon="arrowRight"
-                  onClick={() => {
-                    setTo(getStop(stopId) ?? null);
-                    pushToast(`Destination set to ${stopLabel(stopId)}`);
-                  }}
-                >
-                  {stopLabel(stopId)}
-                </Chip>
-                <Chip
-                  icon="location"
-                  onClick={() => {
-                    setFrom(getStop(stopId) ?? null);
-                    pushToast(`Origin set to ${stopLabel(stopId)}`);
-                  }}
-                >
-                  from here
-                </Chip>
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </form>
+      {error ? (
+        <p className="field__error" role="alert">
+          <Icon name="alert" size={14} />
+          {error}
+        </p>
+      ) : null}
 
-      <Dialog
-        open={locationOpen}
-        title="Simulated current location"
-        description="This prototype does not request your device location. Pick one of the demonstration positions instead."
-        onClose={() => setLocationOpen(false)}
-      >
-        <ul className="stack-2">
-          {SIMULATED_LOCATIONS.map((location) => (
-            <li key={location.stopId}>
-              <button
-                type="button"
-                className="list-row"
-                onClick={() => {
-                  setFrom(getStop(location.stopId) ?? null);
-                  setSimulatedFix(`Simulated location: ${location.label.replace('Near ', '')}`);
-                  setLocationOpen(false);
-                  pushToast('Origin set from simulated location', 'success');
-                }}
-              >
-                <span className="leg-row__marker">
-                  <Icon name="location" size={18} />
-                </span>
-                <span className="stack-1 grow">
-                  <span className="t-strong t-sm">{location.label}</span>
-                  <span className="t-sm t-muted">{location.description}</span>
-                </span>
-                <Icon name="chevronRight" size={18} />
-              </button>
-            </li>
-          ))}
-        </ul>
-        {variant === 'inline' ? null : (
-          <p className="t-sm t-faint" style={{ marginTop: 'var(--s-3)' }}>
-            Real device location is intentionally out of scope for this stage.
-          </p>
-        )}
-        <div className="row-wrap" style={{ marginTop: 'var(--s-3)' }}>
-          <IconButton icon="close" label="Close simulated location picker" onClick={() => setLocationOpen(false)} />
-          <span className="t-sm t-muted">Nothing is sent anywhere — the choice stays in this browser.</span>
-        </div>
-      </Dialog>
+      {sheet?.kind === 'pick' ? (
+        <StopPicker
+          side={sheet.side}
+          from={from}
+          to={to}
+          fromLabel={labels.from}
+          toLabel={labels.to}
+          error={error}
+          onPick={pick}
+          onClear={clear}
+          onReverse={reverse}
+          onOpenMap={(side) => setSheet({ kind: 'map', side })}
+          onPlan={() => {
+            if (from && to) run(from, to);
+          }}
+          onClose={() => setSheet(null)}
+        />
+      ) : null}
+
+      {sheet?.kind === 'map' ? (
+        <MapPicker
+          side={sheet.side}
+          centreOn={sheet.side === 'from' ? from : to}
+          onPick={(side, stop) => {
+            pick(side, stop);
+            /* Back to the picker, not out of it: the map answered one row, and the other row
+               (or the pin beside it) is the next thing the traveller is looking for. When that
+               row was the last one missing, `pick` has already planned the pair and this sheet
+               is gone — which is the point: two ends, a journey on screen. */
+            setSheet((current) => (current ? { kind: 'pick', side } : current));
+          }}
+          onClose={() => setSheet({ kind: 'pick', side: sheet.side })}
+        />
+      ) : null}
     </div>
   );
 }

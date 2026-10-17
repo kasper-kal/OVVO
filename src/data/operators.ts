@@ -1,6 +1,6 @@
 import type { Operator } from './types';
 
-/** DEMONSTRATION DATA — operator names reference real Dutch carriers for realism only. */
+/** Operators. The ids are the join key used by every service and stop. */
 export const OPERATORS: Operator[] = [
   { id: 'ns', name: 'Nederlandse Spoorwegen', shortName: 'NS', modes: ['train'] },
   { id: 'arriva', name: 'Arriva', shortName: 'Arriva', modes: ['train', 'bus'] },

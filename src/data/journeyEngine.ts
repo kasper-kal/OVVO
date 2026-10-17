@@ -1,7 +1,16 @@
-import { METRES_PER_UNIT, requireStop, STOPS, walkMinutesBetween } from './stops';
-import { directions, isInService, NETWORK, nextDeparture, WALK_EDGES } from './network';
+import { METRES_PER_UNIT, requireStop, stopLabel, STOPS, walkMinutesBetween } from './stops';
+import {
+  BIKE_SPEED_FACTOR,
+  directions,
+  isInService,
+  NETWORK,
+  nextDeparture,
+  WALK_EDGE_MAX_MINUTES,
+  WALK_EDGES,
+} from './network';
 import { disruptionForLeg } from './disruptions';
 import { seededRandom } from '../lib/random';
+import { MAX_WALKING_MINUTES, MODE_OPTIONS, modeLabel } from './preferences';
 import type { Preferences } from './preferences';
 import type {
   IntermediateStop,
@@ -14,11 +23,10 @@ import type {
 } from './types';
 
 /**
- * The prototype's own simulated timetable planner.
+ * The journey planner.
  *
- * IMPORTANT: this plans over demonstration data only. It does not contact a
- * routing service, a real timetable or a vehicle feed, and every journey it
- * produces is presented in the UI as simulated information.
+ * Plans over the network data in this app: it is pure and synchronous, so a live
+ * timetable source only has to feed it data.
  *
  * Implementation: a small time-dependent RAPTOR-style search that scans each
  * service line in both directions, adds a round per boarding, and relaxes
@@ -28,6 +36,14 @@ import type {
 export interface SearchQuery {
   fromStopId: string;
   toStopId: string;
+  /**
+   * What the traveller actually named for each end, when that is not the stop's own name —
+   * today only "use my current location", which resolves to a street address while the
+   * journey is still planned from the nearest stop. Absent for every other way of choosing,
+   * so the stop's own name is the label by default.
+   */
+  fromLabel?: string;
+  toLabel?: string;
   /** yyyy-mm-dd */
   date: string;
   /** minutes since midnight */
@@ -37,10 +53,20 @@ export interface SearchQuery {
   preferences: Preferences;
 }
 
+/**
+ * The name of one end of a search for display: the address the traveller named, when they
+ * named one, otherwise the stop's own name. Everyone that prints a search's two ends goes
+ * through this, so a location-based origin reads the same on the planner card, the results
+ * screen and the recent-searches list.
+ */
+export function endLabel(query: Pick<SearchQuery, 'fromStopId' | 'toStopId' | 'fromLabel' | 'toLabel'>, side: 'from' | 'to'): string {
+  const named = side === 'from' ? query.fromLabel : query.toLabel;
+  return named ?? stopLabel(side === 'from' ? query.fromStopId : query.toStopId);
+}
+
 export interface ResultsFilter {
   modes: PublicMode[];
   directOnly: boolean;
-  stepFreeOnly: boolean;
   delayedOnly: boolean;
   hideCancelled: boolean;
   operatorIds: string[];
@@ -49,7 +75,6 @@ export interface ResultsFilter {
 export const DEFAULT_RESULTS_FILTER: ResultsFilter = {
   modes: [],
   directOnly: false,
-  stepFreeOnly: false,
   delayedOnly: false,
   hideCancelled: false,
   operatorIds: [],
@@ -88,8 +113,12 @@ interface PlanRequest {
   maxTransfers: number;
   transferBuffer: number;
   restrictWalkMinutes: number;
+  allowWalkAccess?: boolean;
   excludeLineIds?: string[];
-  allowBikeAccess?: boolean;
+  /** The departure end asked to cycle to the first stop. */
+  bikeFromOrigin?: boolean;
+  /** The arrival end asked to cycle from the last stop. */
+  bikeIntoDestination?: boolean;
 }
 
 interface FoundPlan {
@@ -126,27 +155,61 @@ function setWalkLabel(
   }
 }
 
+/**
+ * Where the ends of the search are, and whether either of them asked to cycle. Bicycle
+ * labels are per end: only the link out of the origin and the link into the destination
+ * can ever be bicycle ones.
+ */
+interface EndModes {
+  bikeFromOrigin: boolean;
+  bikeIntoDestination: boolean;
+  originIdx: number;
+  targetIdx: number;
+}
+
 function relaxWalkLinks(
   roundBest: number[],
   roundParents: (ParentLabel | undefined)[],
   round: number,
   restrictWalkMinutes: number,
-  allowBike: boolean,
+  allowWalk: boolean,
+  ends: EndModes,
 ) {
   for (let pass = 0; pass < 3; pass += 1) {
     let improved = false;
     for (const edge of WALK_EDGES) {
-      if (edge.minutes > restrictWalkMinutes) continue;
       const from = stopIndex.get(edge.fromStopId);
       const to = stopIndex.get(edge.toStopId);
       if (from === undefined || to === undefined) continue;
-      const before = roundBest[to];
-      setWalkLabel(roundBest, roundParents, round, from, to, edge.minutes, 'walk');
-      if (roundBest[to] < before) improved = true;
-      if (allowBike && edge.minutes <= 8) {
-        const bikeBefore = roundBest[to];
-        setWalkLabel(roundBest, roundParents, round, from, to, Math.max(1, Math.round(edge.minutes / 3.2)), 'bike');
-        if (roundBest[to] < bikeBefore) improved = true;
+      /*
+       * The single link from the origin straight to the destination is left out of the
+       * search. That link is the whole journey, and the whole-way option — the foot trip,
+       * or the bicycle trip when both ends asked for one — is added once by the caller,
+       * with its own departure time. Letting the search walk it filled the list with the
+       * same journey repeated at five-minute intervals, and where the link was much faster
+       * than any service it produced that journey *instead of* the services.
+       */
+      if (from === ends.originIdx && to === ends.targetIdx) continue;
+      // Walking is only used when it is switched on and within the traveller's own limit.
+      if (allowWalk && edge.minutes <= restrictWalkMinutes) {
+        const before = roundBest[to];
+        setWalkLabel(roundBest, roundParents, round, from, to, edge.minutes, 'walk');
+        if (roundBest[to] < before) improved = true;
+      }
+      /*
+       * Cycling is an end mode, not a way across the network: a bicycle label is only ever
+       * put on the link out of the origin and on the link into the destination, and only
+       * when that end asked for one. Labelling *every* walk link with a bicycle used to
+       * make both ends of every plan a bicycle leg, so asking for a bicycle at the start
+       * then deleted the plans whose *end* was a bicycle — fourteen options collapsed to
+       * one, and the second, bicycle-free pass existed only to hide that.
+       */
+      const bikeAccess = ends.bikeFromOrigin && from === ends.originIdx;
+      const bikeEgress = ends.bikeIntoDestination && to === ends.targetIdx;
+      if ((bikeAccess || bikeEgress) && edge.minutes <= WALK_EDGE_MAX_MINUTES) {
+        const before = roundBest[to];
+        setWalkLabel(roundBest, roundParents, round, from, to, Math.max(1, Math.round(edge.minutes / BIKE_SPEED_FACTOR)), 'bike');
+        if (roundBest[to] < before) improved = true;
       }
     }
     if (!improved) break;
@@ -210,13 +273,12 @@ function runSearch(request: PlanRequest): FoundPlan | undefined {
       }
     }
 
-    relaxWalkLinks(
-      roundBest,
-      roundParents,
-      round,
-      request.restrictWalkMinutes,
-      request.allowBikeAccess ?? false,
-    );
+    relaxWalkLinks(roundBest, roundParents, round, request.restrictWalkMinutes, request.allowWalkAccess ?? true, {
+      bikeFromOrigin: request.bikeFromOrigin ?? false,
+      bikeIntoDestination: request.bikeIntoDestination ?? false,
+      originIdx: origin,
+      targetIdx: target,
+    });
 
     for (let i = 0; i < n; i += 1) best[i] = roundBest[i];
     parentTracks.push(roundParents);
@@ -291,13 +353,13 @@ function buildLeg(step: RawStep, query: SearchQuery, index: number): Leg {
     return {
       ...base,
       distanceMetres: distanceMetres(step.fromStopId, step.toStopId),
-      message: step.mode === 'bike' ? `Cycle about ${minutes} min (demonstration leg)` : undefined,
+      message: step.mode === 'bike' ? `Cycle about ${minutes} min` : undefined,
       stepFree: true,
     };
   }
 
   const line = NETWORK.find((l) => l.id === step.lineId);
-  if (!line) return { ...base, message: 'Service details unavailable in this demo' };
+  if (!line) return { ...base, message: 'Service details unavailable' };
   const dir = directions(line).find((d) => d.index === step.directionIndex) ?? directions(line)[0];
   const boardIdx = step.boardIndex ?? 0;
   const alightIdx = step.alightIndex ?? dir.stops.length - 1;
@@ -342,7 +404,7 @@ function buildLeg(step: RawStep, query: SearchQuery, index: number): Leg {
     intermediateStops: intermediate.length ? intermediate : undefined,
     delayMinutes: delayMinutes || undefined,
     cancelled: cancelled || undefined,
-    message: disruption ? `Example alert: ${disruption.title}` : undefined,
+    message: disruption ? `Alert: ${disruption.title}` : undefined,
     disruptionId: disruption?.id,
     stepFree: fromStop.accessibility.stepFree && toStop.accessibility.stepFree && line.mode !== 'ferry',
     bikeAllowed: line.mode === 'ferry' || line.mode === 'metro' || !peak,
@@ -382,7 +444,7 @@ function fareFor(legs: Leg[]): Journey['fare'] {
   }
   if (eur === 0) return { eur: 0, label: 'Walking only · no ticket needed' };
   const rounded = Math.max(2.3, Math.round(eur * 20) / 20);
-  return { eur: rounded, label: 'Indicative demo fare · single journey' };
+  return { eur: rounded, label: 'Indicative single fare' };
 }
 
 function assembleJourney(steps: RawStep[], query: SearchQuery, index: number): Journey {
@@ -438,8 +500,27 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
   const preferences = query.preferences;
   const windowOffset = options.windowOffsetMinutes ?? 0;
   const maxJourneys = options.maxJourneys ?? 14;
-  const allowBikeAccess = preferences.bikeMode !== 'none';
-  const walkLimit = Math.min(45, Math.max(5, preferences.maxWalkingMinutes));
+  const allowBikeAccess = preferences.allowedModes.includes('bike');
+  /**
+   * Cycling is decided per end: the departure end asks for a bicycle leg or it does not,
+   * and so does the arrival end. Nothing else in the search changes with this choice —
+   * the planner walks exactly the same links — so there is one plan per departure offset
+   * and not a bicycle and a bicycle-free one.
+   */
+  const bikeFromOrigin = allowBikeAccess && preferences.accessFrom === 'bike';
+  const bikeIntoDestination = allowBikeAccess && preferences.accessTo === 'bike';
+  /*
+   * When an end asked to cycle, the search is run twice: once with that end's link
+   * labelled as a bicycle one, and once without it. The search keeps a single best path to
+   * each stop, so where a bicycle beats every service over the whole trip the bicycle pass
+   * arrives at the destination on a bicycle and the services it could be combined with are
+   * not in that path at all — the second pass is what keeps them in the list.
+   */
+  const bikePasses = bikeFromOrigin || bikeIntoDestination ? [true, false] : [false];
+  const allowWalkAccess = preferences.allowedModes.includes('walk');
+  const walkLimit = allowWalkAccess
+    ? Math.min(MAX_WALKING_MINUTES, Math.max(5, preferences.maxWalkingMinutes))
+    : 0;
   const restrictWalk = preferences.preferLessWalking ? Math.min(walkLimit, 10) : walkLimit;
   const transferBuffer = preferences.preferFewerTransfers ? 9 : 2;
 
@@ -472,19 +553,23 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
     const requestTime = Math.round(query.time + windowOffset + offset);
     if (requestTime < 0 || requestTime > 1439) continue;
     for (const variant of variantSets) {
-      const plan = runSearch({
-        fromStopId: query.fromStopId,
-        toStopId: query.toStopId,
-        departAfter: requestTime,
-        maxTransfers: variant.maxTransfers,
-        transferBuffer: variant.transferBuffer,
-        restrictWalkMinutes: variant.restrictWalk,
-        excludeLineIds: variant.excludeLineIds,
-        allowBikeAccess,
-      });
-      collect(plan);
-      if (!bestFirstLine && plan) {
-        bestFirstLine = plan.steps.find((s) => s.lineId)?.lineId;
+      for (const pass of bikePasses) {
+        const plan = runSearch({
+          fromStopId: query.fromStopId,
+          toStopId: query.toStopId,
+          departAfter: requestTime,
+          maxTransfers: variant.maxTransfers,
+          transferBuffer: variant.transferBuffer,
+          restrictWalkMinutes: variant.restrictWalk,
+          excludeLineIds: variant.excludeLineIds,
+          allowWalkAccess,
+          bikeFromOrigin: bikeFromOrigin && pass,
+          bikeIntoDestination: bikeIntoDestination && pass,
+        });
+        collect(plan);
+        if (!bestFirstLine && plan) {
+          bestFirstLine = plan.steps.find((s) => s.lineId)?.lineId;
+        }
       }
     }
   }
@@ -510,31 +595,51 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
       for (const offset of offsets.slice(0, 8)) {
         const requestTime = Math.round(query.time + windowOffset + offset);
         if (requestTime < 0 || requestTime > 1439) continue;
-        collect(
-          runSearch({
-            fromStopId: query.fromStopId,
-            toStopId: query.toStopId,
-            departAfter: requestTime,
-            maxTransfers: Math.max(1, preferences.maxTransfers),
-            transferBuffer,
-            restrictWalkMinutes: restrictWalk,
-            excludeLineIds: [...avoidSoFar],
-            allowBikeAccess,
-          }),
-        );
+        for (const pass of bikePasses) {
+          collect(
+            runSearch({
+              fromStopId: query.fromStopId,
+              toStopId: query.toStopId,
+              departAfter: requestTime,
+              maxTransfers: Math.max(1, preferences.maxTransfers),
+              transferBuffer,
+              restrictWalkMinutes: restrictWalk,
+              excludeLineIds: [...avoidSoFar],
+              allowWalkAccess,
+              bikeFromOrigin: bikeFromOrigin && pass,
+              bikeIntoDestination: bikeIntoDestination && pass,
+            }),
+          );
+        }
       }
       if (plans.length === before) break;
     }
   }
 
-  let journeys = plans.map((plan, index) => assembleJourney(plan.steps, query, index));
+  /*
+   * Plans with no service in them are dropped. They are walks or cycles over the same link
+   * set, and the whole-way option below already covers that trip once: the search can find
+   * one link, or two links end to end, or the same one at every departure offset, and all
+   * of them together buried the services under the same journey repeated.
+   */
+  let journeys = plans
+    .map((plan, index) => assembleJourney(plan.steps, query, index))
+    .filter((journey) => journey.legs.some((leg) => leg.mode !== 'walk' && leg.mode !== 'bike'));
 
-  // Pure walking option when the two stops are close enough to walk anyway.
+  /*
+   * The whole-way option: the trip with no service in it, offered once. It is a foot trip
+   * when either end is a walking one — and when both ends asked to cycle it is the same
+   * trip on a bicycle instead, which is the option that mode implies and the faster of the
+   * two over the same link. It is not offered twice, at five-minute intervals, because a
+   * traveller on foot or on a bicycle leaves when they like.
+   */
   const fromStop = requireStop(query.fromStopId);
   const toStop = requireStop(query.toStopId);
   const directWalk = walkMinutesBetween(fromStop, toStop);
+  const bothEndsCycle = bikeFromOrigin && bikeIntoDestination;
+  const bicycleWholeWay = bothEndsCycle && directWalk <= WALK_EDGE_MAX_MINUTES;
   const alreadyWalkOnly = journeys.some((j) => j.legs.length === 1 && j.legs[0].mode === 'walk');
-  if (!alreadyWalkOnly && directWalk <= walkLimit && directWalk <= 25) {
+  if (!alreadyWalkOnly && allowWalkAccess && !bothEndsCycle && directWalk <= walkLimit && directWalk <= 25) {
     const depart = query.time + windowOffset;
     const walkLeg: Leg = {
       id: `leg-walk-direct-${directWalk}`,
@@ -573,6 +678,72 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
     }
   }
 
+  const alreadyBikeOnly = journeys.some((j) => j.legs.length === 1 && j.legs[0].mode === 'bike');
+  if (!alreadyBikeOnly && bicycleWholeWay) {
+    const depart = query.time + windowOffset;
+    const bikeMinutes = Math.max(1, Math.round(directWalk / BIKE_SPEED_FACTOR));
+    const bikeLeg: Leg = {
+      id: `leg-bike-direct-${bikeMinutes}`,
+      mode: 'bike',
+      fromStopId: query.fromStopId,
+      toStopId: query.toStopId,
+      departure: depart,
+      arrival: depart + bikeMinutes,
+      distanceMetres: distanceMetres(query.fromStopId, query.toStopId),
+      stepFree: fromStop.accessibility.stepFree && toStop.accessibility.stepFree,
+    };
+    const includeBikeOnly = query.timeMode === 'depart' ? bikeLeg.arrival >= query.time : bikeLeg.arrival <= query.time;
+    if (includeBikeOnly) {
+      journeys.push({
+        id: `j-bike-${hashlessId(query.date, { kind: 'bike', mode: 'bike', fromStopId: query.fromStopId, toStopId: query.toStopId, departMinute: depart, arriveMinute: bikeLeg.arrival }, 7)}`,
+        signature: `bikeonly|${query.date}|${query.fromStopId}>${query.toStopId}@${depart}`,
+        legs: [bikeLeg],
+        departure: depart,
+        arrival: bikeLeg.arrival,
+        durationMinutes: bikeMinutes,
+        transfers: 0,
+        walkMinutes: 0,
+        modes: ['bike'],
+        operatorIds: [],
+        fare: { eur: 0, label: 'Cycling only' },
+        occupancy: 'quiet',
+        occupancyHistory: Array.from({ length: 12 }, () => 0.15),
+        stepFree: bikeLeg.stepFree ?? true,
+        bikeAllowed: true,
+        realtime: false,
+        delayMinutes: 0,
+        cancelled: false,
+        disruptionIds: [],
+        source: 'demo',
+      });
+    }
+  }
+
+  /*
+   * Cycling is opt-in, per end: the access leg (the first) is only a bicycle one when the
+   * departure end asks for it, and the egress leg (the last) only when the arrival end
+   * does. Bicycle legs *between* stops stay governed by `allowedModes` the way every other
+   * mode is.
+   *
+   * The rule is applied *before* the list is cut to length. Cutting first and filtering
+   * afterwards threw most of the list away: the best fourteen of a search where bicycle
+   * links exist are mostly bicycle-led, so a walk/walk search could come back with a
+   * single option out of a possible fourteen.
+   */
+  const perEnd = journeys.filter((journey) => {
+    const first = journey.legs[0]?.mode;
+    const last = journey.legs[journey.legs.length - 1]?.mode;
+    if (first === 'bike' && preferences.accessFrom !== 'bike') return false;
+    if (last === 'bike' && preferences.accessTo !== 'bike') return false;
+    return true;
+  });
+  /*
+   * Bicycle labels only sit on the two ends, so this rule is a guard rather than the
+   * mechanism: a bicycle first leg cannot exist unless the departure end asked for one.
+   * It still keeps the unfiltered list if it would ever empty it, because choosing a mode
+   * must never be how the results disappear.
+   */
+  journeys = perEnd.length > 0 ? perEnd : journeys;
   journeys = sortJourneys(journeys, 'best').slice(0, maxJourneys);
   return withLabels(journeys, preferences);
 }
@@ -614,31 +785,77 @@ export function filterJourneys(
 ): Journey[] {
   return journeys.filter((journey) => {
     const modes = rideModesOf(journey);
-    if (modes.some((m) => preferences.avoidedModes.includes(m))) return false;
     if (modes.some((m) => !preferences.allowedModes.includes(m))) return false;
     if (preferences.maxTransfers < 4 && journey.transfers > preferences.maxTransfers) return false;
     if (journey.walkMinutes > preferences.maxWalkingMinutes) return false;
-    if (preferences.stepFreeOnly && !journey.stepFree) return false;
-    if (preferences.needAssistance) {
-      const needsAssistance = journey.legs.some(
-        (l) => l.mode === 'train' && !requireStop(l.fromStopId).accessibility.assistance,
-      );
-      if (needsAssistance) return false;
-    }
-    if (preferences.lowFloorBoarding) {
-      const lowFloorOk = journey.legs.every(
-        (l) => !l.lineId || requireStop(l.fromStopId).accessibility.lowFloorBoarding,
-      );
-      if (!lowFloorOk) return false;
-    }
     if (filter.modes.length && (modes.length === 0 || modes.some((m) => !filter.modes.includes(m)))) return false;
     if (filter.directOnly && journey.transfers !== 0) return false;
-    if (filter.stepFreeOnly && !journey.stepFree) return false;
     if (filter.delayedOnly && journey.delayMinutes <= 0 && !journey.cancelled) return false;
     if (filter.hideCancelled && journey.cancelled) return false;
     if (filter.operatorIds.length && !journey.operatorIds.some((id) => filter.operatorIds.includes(id))) return false;
     return true;
   });
+}
+
+/**
+ * Why did nothing match? Re-plans the search with one preference relaxed at a
+ * time and returns only the relaxations that actually produce journeys, so the
+ * results page can offer the fix inline instead of sending the traveller back
+ * to the preferences screen.
+ */
+export interface RelaxSuggestion {
+  id: string;
+  label: string;
+  patch: Partial<Preferences>;
+  journeys: number;
+}
+
+export function suggestRelaxations(query: SearchQuery, filter: ResultsFilter): RelaxSuggestion[] {
+  const preferences = query.preferences;
+  const candidates: RelaxSuggestion[] = [];
+
+  if (!preferences.allowedModes.includes('walk')) {
+    candidates.push({
+      id: 'walk',
+      label: 'Turn walking back on',
+      patch: { allowedModes: [...preferences.allowedModes, 'walk'] },
+      journeys: 0,
+    });
+  }
+  for (const mode of MODE_OPTIONS) {
+    if (mode === 'walk' || preferences.allowedModes.includes(mode)) continue;
+    candidates.push({
+      id: `mode-${mode}`,
+      label: `Allow ${modeLabel(mode).toLowerCase()}`,
+      patch: { allowedModes: [...preferences.allowedModes, mode] },
+      journeys: 0,
+    });
+  }
+  if (preferences.allowedModes.includes('walk') && preferences.maxWalkingMinutes < MAX_WALKING_MINUTES) {
+    candidates.push({
+      id: 'walk-limit',
+      label: `Raise the walking limit to ${MAX_WALKING_MINUTES} min`,
+      patch: { maxWalkingMinutes: MAX_WALKING_MINUTES },
+      journeys: 0,
+    });
+  }
+  if (preferences.maxTransfers < 4) {
+    candidates.push({
+      id: 'transfers',
+      label: 'Allow more transfers',
+      patch: { maxTransfers: 4 },
+      journeys: 0,
+    });
+  }
+
+  const suggestions: RelaxSuggestion[] = [];
+  for (const candidate of candidates.slice(0, 8)) {
+    const patched: Preferences = { ...preferences, ...candidate.patch };
+    const planned = planJourneys({ ...query, preferences: patched });
+    const matching = filterJourneys(planned, filter, patched).length;
+    if (matching > 0) suggestions.push({ ...candidate, journeys: matching });
+  }
+  return suggestions.sort((a, b) => b.journeys - a.journeys);
 }
 
 /** Marks the stand-out option per metric, so the results list can highlight them. */

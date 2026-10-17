@@ -1,205 +1,112 @@
-import type { ReactNode } from 'react';
+/**
+ * Icons are Lucide (`lucide-react`, ISC) — the library's own geometry, not ours.
+ *
+ * This is the third set in this file's history and the last, for a reason worth writing down:
+ * the first was hand-drawn path data here, which is where the gear with the off-centre hub and
+ * the sprawled walker came from; the second was Phosphor, whose filled outlines are drawn for
+ * larger sizes and read heavy at the 13–15px this app uses them at. Lucide is the idiom the
+ * rest of the interface was already built in — 24-unit grid, a 2-unit stroke, round caps — it
+ * is what the original chevrons, the magnifier, the heart and the star were copied from, and
+ * its line weight scales down without going fat or muddy.
+ *
+ * Every glyph is Lucide's now, with one exception that is deliberate: the three navigation
+ * glyphs — `home`, `board` and `menu` — are the app's own drawings, kept in `NAV_GLYPHS`
+ * below. They were the three hand-drawn icons from the first set that the traveller asked to
+ * keep, and the sweep to Lucide took them out with the rest. A sweep is not a reason to lose
+ * something that was working: those three are drawn on the same 24-unit grid with the same
+ * round caps, at the 1.75 stroke the set was drawn in, and they are the only three glyphs that
+ * sit side by side in the dock, where the difference between a Lucide house and this one is
+ * the difference the traveller actually looks at.
+ *
+ * `walk` is Lucide's `Footprints`: Tabler's mid-stride figure was legible at 24px and a
+ * scratch at the 13–15px this app uses it at.
+ *
+ * The names on the left are this app's vocabulary, so no call site changed: `station` is a
+ * building (Lucide has no station), `board` is a monitor (the live departures screen),
+ * `location` is a crosshair ("use my current location"), `metro` is the tunnel train,
+ * `ferry` is a ship, `swap` is a pair of arrows, `heartFilled` is the heart, filled.
+ *
+ * Two of them are deliberately a pair and are the only names this file owns that a library
+ * does not: `pin` is the drawing pin (the control that keeps a stop) and `mapPin` is the
+ * teardrop (a place drawn on the map). See `pin` in `GLYPHS` for why they are two glyphs.
+ */
+import type { ComponentType, ReactNode } from 'react';
+import type { LucideProps } from 'lucide-react';
+import {
+  Accessibility,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpDown,
+  Bike,
+  Bookmark,
+  Building2,
+  Bus,
+  Footprints,
+  GripVertical,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+  Crosshair,
+  Focus,
+  Funnel,
+  Heart,
+  History,
+  House,
+  Info,
+  LayoutGrid,
+  List,
+  Map,
+  Minus,
+  Monitor,
+  Pin,
+  Plus,
+  RefreshCw,
+  Route,
+  Search,
+  Settings,
+  Share2,
+  Ship,
+  SlidersHorizontal,
+  Star,
+  Ticket,
+  TrainFront,
+  TrainFrontTunnel,
+  TrainTrack,
+  TramFront,
+  Trash2,
+  TriangleAlert,
+  Users,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
 import type { TravelMode } from '../../data/types';
 
-/** Hairline line-icon set drawn in the design system's 1.75px structural stroke. */
-const PATHS: Record<string, ReactNode> = {
-  train: (
-    <>
-      <rect x="5" y="4" width="14" height="12" rx="3" />
-      <path d="M5 10h14M9.5 20l1.5-4M14.5 20L13 16" />
-      <path d="M9 14h.01M15 14h.01" />
-    </>
-  ),
-  bus: (
-    <>
-      <rect x="4" y="5" width="16" height="12" rx="3" />
-      <path d="M4 11h16M8 5V3h8v2" />
-      <circle cx="8" cy="19.5" r="1.6" />
-      <circle cx="16" cy="19.5" r="1.6" />
-    </>
-  ),
-  tram: (
-    <>
-      <rect x="6" y="4" width="12" height="13" rx="3" />
-      <path d="M6 11h12M12 4V2M9 20h.01M15 20h.01" />
-    </>
-  ),
-  metro: (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8.5 16V9l3.5 4.5L15.5 9v7" />
-    </>
-  ),
-  ferry: (
-    <>
-      <path d="M4 14.5l1.5-5h13L20 14.5" />
-      <path d="M3 15c1.8 2.8 3.6 2.8 5.4 0 1.8 2.8 3.6 2.8 5.4 0 1.8 2.8 3.6 2.8 5.4 0" />
-      <path d="M12 9.5V6M9.5 6h5" />
-    </>
-  ),
-  walk: (
-    <>
-      <circle cx="12" cy="4.5" r="2" />
-      <path d="M10.5 8L9 14h3l1 6.5M13.5 8l3 3.5" />
-    </>
-  ),
-  bike: (
-    <>
-      <circle cx="6" cy="17" r="3.2" />
-      <circle cx="18" cy="17" r="3.2" />
-      <path d="M9 17l3-8 3 8M10 9h4" />
-    </>
-  ),
-  search: (
-    <>
-      <circle cx="11" cy="11" r="6" />
-      <path d="M20 20l-4.6-4.6" />
-    </>
-  ),
-  swap: <path d="M7 4.5v15M7 19.5l-3-3M7 19.5l3-3M17 19.5v-15M17 4.5l-3 3M17 4.5l3 3" />,
-  location: (
-    <>
-      <path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z" />
-      <circle cx="12" cy="10" r="2.6" />
-    </>
-  ),
-  calendar: (
-    <>
-      <rect x="3.5" y="5" width="17" height="15" rx="4" />
-      <path d="M3.5 10h17M8 3.5v3M16 3.5v3" />
-    </>
-  ),
-  clock: (
-    <>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 7.5V12l3 2" />
-    </>
-  ),
-  star: <path d="M12 4l2.4 5 5.6.8-4 4 1 5.6L12 16.8 7 19.4l1-5.6-4-4 5.6-.8z" />,
-  bookmark: <path d="M7 4.5h10a1.5 1.5 0 011.5 1.5v14L12 16l-6.5 4V6A1.5 1.5 0 017 4.5z" />,
-  map: (
-    <>
-      <path d="M9 4.5L4 6.5v13l5-2 6 2 5-2v-13l-5 2-6-2z" />
-      <path d="M9 4.5v13M15 6.5v13" />
-    </>
-  ),
-  station: (
-    <>
-      <rect x="4.5" y="8" width="15" height="12" rx="3" />
-      <path d="M4.5 13h15M12 8V4M8 20v-3h8v3" />
-    </>
-  ),
-  board: (
-    <>
-      <rect x="4" y="5" width="16" height="14" rx="4" />
-      <path d="M8 9.5h8M8 13h5" />
-    </>
-  ),
-  alert: <path d="M12 4l8.5 15H3.5L12 4zM12 10v4M12 16.5h.01" />,
-  heart: <path d="M12 19s-6.5-4.2-6.5-8.4A4.1 4.1 0 0112 7.6a4.1 4.1 0 016.5 3C18.5 14.8 12 19 12 19z" />,
-  sliders: (
-    <>
-      <path d="M5 7h14M5 12h14M5 17h14" />
-      <circle cx="9" cy="7" r="1.8" />
-      <circle cx="15" cy="12" r="1.8" />
-      <circle cx="10" cy="17" r="1.8" />
-    </>
-  ),
-  settings: (
-    <>
-      <circle cx="12" cy="12" r="3.2" />
-      <path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7" />
-    </>
-  ),
-  chevronDown: <path d="M6 9.5l6 6 6-6" />,
-  chevronUp: <path d="M6 14.5l6-6 6 6" />,
-  chevronRight: <path d="M9.5 6l6 6-6 6" />,
-  chevronLeft: <path d="M14.5 6l-6 6 6 6" />,
-  arrowRight: <path d="M4.5 12h14M13 6.5l5.5 5.5L13 17.5" />,
-  arrowLeft: <path d="M19.5 12h-14M11 6.5L5.5 12 11 17.5" />,
-  close: <path d="M6 6l12 12M18 6L6 18" />,
-  plus: <path d="M12 5.5v13M5.5 12h13" />,
-  minus: <path d="M5.5 12h13" />,
-  check: <path d="M5 12.5l4.5 4.5L19 7" />,
-  info: (
-    <>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 11v5.5M12 7.8h.01" />
-    </>
-  ),
-  refresh: <path d="M19.5 12a7.5 7.5 0 11-2.5-5.6M19.5 4v4.5H15" />,
-  filter: <path d="M4 6.5h16M7 12h10M10 17.5h4" />,
-  trash: <path d="M5 8h14M9.5 8V5.5h5V8M7 8l1 12h8l1-12" />,
-  share: (
-    <>
-      <circle cx="17" cy="6" r="2.5" />
-      <circle cx="7" cy="12" r="2.5" />
-      <circle cx="17" cy="18" r="2.5" />
-      <path d="M9.2 10.8l5.6-3.1M9.2 13.2l5.6 3.1" />
-    </>
-  ),
-  zoomIn: (
-    <>
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="M20 20l-4.4-4.4M11 8.5v5M8.5 11h5" />
-    </>
-  ),
-  zoomOut: (
-    <>
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="M20 20l-4.4-4.4M8.5 11h5" />
-    </>
-  ),
-  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
-  home: <path d="M4 11l8-6.5 8 6.5v8a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 19v-8z" />,
-  users: (
-    <>
-      <circle cx="9" cy="9" r="3" />
-      <path d="M3.5 19.5a5.5 5.5 0 0111 0M16 6.5a3 3 0 010 5.6M17.5 14.7a5 5 0 013 4.8" />
-    </>
-  ),
-  route: (
-    <>
-      <circle cx="6" cy="18" r="2.5" />
-      <circle cx="18" cy="6" r="2.5" />
-      <path d="M8.5 18h4.5a3 3 0 000-6h-1a3 3 0 010-6h4.5" />
-    </>
-  ),
-  ticket: (
-    <>
-      <path d="M4 9.5A2.5 2.5 0 016.5 7h11A2.5 2.5 0 0120 9.5v1.2a1.8 1.8 0 000 3.6v1.2a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 15.5v-1.2a1.8 1.8 0 000-3.6z" />
-      <path d="M12 7v10" />
-    </>
-  ),
-  history: (
-    <>
-      <path d="M4.5 12a7.5 7.5 0 107.5-7.5A7.5 7.5 0 005 9" />
-      <path d="M4.5 5v4h4M12 8.5V12l2.5 1.8" />
-    </>
-  ),
-  accessibility: (
-    <>
-      <circle cx="12" cy="5" r="1.8" />
-      <path d="M7 9.5h10L14 13l1.5 7M10 13l-1.5 7M12 10v3" />
-    </>
-  ),
-};
+/**
+ * **A place on the map** — Lucide's `MapPin` teardrop, drawn as one compound path so that its
+ * hole survives the fill.
+ *
+ * Lucide's own `MapPin` is a teardrop plus a separate `<circle>`, and `fill: currentColor`
+ * fills that circle too: a marker that is filled came out as a solid blob with its hole closed
+ * up (reported, with two images). Here the circle is a second subpath of the same `d`, and the
+ * path carries `fill-rule: evenodd`, which punches it out of the teardrop. Stroked and unfilled
+ * it is Lucide's drawing to the unit.
+ *
+ * This is the **marker** half of the pair. It belongs to the map — the picker's sheet, a pin on
+ * the canvas — and it is never a control (see `pin` below for why the two were split).
+ */
+const MAP_PIN_PATH =
+  'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z' +
+  'M15 10a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z';
 
-export type IconName = keyof typeof PATHS;
-
-export function Icon({
-  name,
-  size = 20,
-  className,
-  strokeWidth = 1.75,
-}: {
-  name: IconName;
-  size?: number;
-  className?: string;
-  strokeWidth?: number;
-}) {
+function MapPinGlyph({ size = 20, strokeWidth = 2, className, ...rest }: LucideProps) {
   return (
     <svg
+      className={className}
       width={size}
       height={size}
       viewBox="0 0 24 24"
@@ -208,12 +115,185 @@ export function Icon({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...rest}
+    >
+      <path d={MAP_PIN_PATH} fillRule="evenodd" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+/** This app's icon vocabulary -> the glyph that means the same thing. */
+const GLYPHS = {
+  accessibility: Accessibility,
+  alert: TriangleAlert,
+  arrowLeft: ArrowLeft,
+  arrowRight: ArrowRight,
+  bike: Bike,
+  board: Monitor,
+  bookmark: Bookmark,
+  bus: Bus,
+  calendar: CalendarDays,
+  check: Check,
+  chevronDown: ChevronDown,
+  chevronLeft: ChevronLeft,
+  chevronRight: ChevronRight,
+  chevronUp: ChevronUp,
+  clock: Clock,
+  close: X,
+  ferry: Ship,
+  filter: Funnel,
+  /*
+   * "Fit the whole network in view" — the map picker's recentre control.
+   *
+   * It used to be drawn with `location`, the same crosshair the two *use my location* controls
+   * use, and the audit caught it: one glyph, two meanings (W3C COGA). A crosshair says "where
+   * am I", which this control never asks; it only moves the drawing.
+   */
+  focus: Focus,
+  /*
+   * **Drag a widget** — Lucide's `GripVertical`, the two columns of dots every reorderable list
+   * has used for forty years. Decorative only: on the home screen's customising mode the whole
+   * card is the handle, so this says where to take hold rather than being a target of its own.
+   */
+  grip: GripVertical,
+  heart: Heart,
+  heartFilled: Heart,
+  history: History,
+  home: House,
+  info: Info,
+  location: Crosshair,
+  /*
+   * **Arrange the home screen** — Lucide's `LayoutGrid`, the tiles themselves.
+   *
+   * "Customise home" wore `sliders` — the options/filters glyph — and the audit grouped it with
+   * *Options*, *Travel preferences* and *Manage avoidance preferences* because of the verb. Two
+   * different functions were drawing one glyph (W3C COGA, one glyph, one meaning): `sliders`
+   * filters what is in front of you, this opens the grid you are standing in and lets you add
+   * and remove blocks. The grid is what it changes, so the grid is what it draws.
+   */
+  layout: LayoutGrid,
+  map: Map,
+  menu: List,
+  metro: TrainFrontTunnel,
+  mapPin: MapPinGlyph,
+  minus: Minus,
+  /*
+   * **Keep a stop** — Lucide's `Pin`, the drawing pin, not the teardrop above it.
+   *
+   * The teardrop spent two rounds meaning two things at once: *where something is* (a marker
+   * on a map) and *this one is mine* (a button the traveller presses). A glyph that is both a
+   * label and a marker is a promise made twice (W3C COGA, "Use icons that help the user";
+   * USWDS' own example is an envelope used for both email and a mailing address), and the
+   * traveller said so: "changing the pin icon to an actual pin that fills when you click it"
+   * to make the two tell themselves apart. So:
+   *
+   *   - `mapPin` (teardrop) = **a place**, drawn on the map only;
+   *   - `pin` (drawing pin) = **the control that keeps a stop**, filled while it is kept, the
+   *     way Material Symbols' FILL axis and Apple's `pin.fill` show a held state.
+   *
+   * A drawing pin also says *held* rather than *located*, which is the action's real name:
+   * the stop is not being pointed at, it is being pinned to the traveller's own list.
+   */
+  pin: Pin,
+  /*
+   * A platform is not the departure board, and it was wearing that screen's monitor glyph
+   * (`Platform 5` in a leg's stop row). Lucide's `TrainTrack` is the platform itself.
+   */
+  platform: TrainTrack,
+  plus: Plus,
+  refresh: RefreshCw,
+  route: Route,
+  search: Search,
+  settings: Settings,
+  share: Share2,
+  sliders: SlidersHorizontal,
+  star: Star,
+  station: Building2,
+  swap: ArrowUpDown,
+  ticket: Ticket,
+  train: TrainFront,
+  tram: TramFront,
+  trash: Trash2,
+  users: Users,
+  walk: Footprints,
+  zoomIn: ZoomIn,
+  zoomOut: ZoomOut,
+} satisfies Record<string, ComponentType<LucideProps>>;
+
+export type IconName = keyof typeof GLYPHS;
+
+/**
+ * The three navigation glyphs, drawn here rather than taken from a library.
+ *
+ * These are the app's own drawings from the first icon set — the ones the traveller asked
+ * to keep when the rest were replaced. Same 24-unit grid, same round caps as the Lucide
+ * glyphs beside them, at the 1.75 unit stroke the set was drawn in, so they sit in a nav
+ * row without a seam.
+ */
+const NAV_GLYPHS: Partial<Record<IconName, ReactNode>> = {
+  /* A door with a pitched roof; the tile is the door, not the house. */
+  home: <path d="M4 11l8-6.5 8 6.5v8a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 19v-8z" />,
+  /* The departures screen: a framed board with two lines of times on it. */
+  board: (
+    <>
+      <rect x="4" y="5" width="16" height="14" rx="4" />
+      <path d="M8 9.5h8M8 13h5" />
+    </>
+  ),
+  /* All sections. */
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+};
+
+/** Glyphs that are the filled drawing by definition. */
+const FILLED = new Set<IconName>(['heartFilled']);
+
+/** The stroke the hand-drawn navigation set was drawn in, and its default. */
+const NAV_STROKE = 1.75;
+
+export function Icon({
+  name,
+  size = 20,
+  className,
+  strokeWidth,
+}: {
+  name: IconName;
+  size?: number;
+  className?: string;
+  strokeWidth?: number;
+}) {
+  const classes = className ? `icon ${className}` : 'icon';
+  const drawn = NAV_GLYPHS[name];
+  if (drawn) {
+    return (
+      <svg
+        className={classes}
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth ?? NAV_STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        data-icon={name}
+        aria-hidden="true"
+        focusable="false"
+      >
+        {drawn}
+      </svg>
+    );
+  }
+  const Glyph = GLYPHS[name];
+  return (
+    <Glyph
+      size={size}
+      strokeWidth={strokeWidth ?? 2}
+      data-icon={name}
+      className={classes}
       aria-hidden="true"
       focusable="false"
-      className={className}
-    >
-      {PATHS[name]}
-    </svg>
+      {...(FILLED.has(name) ? { fill: 'currentColor' } : {})}
+    />
   );
 }
 
@@ -229,4 +309,37 @@ export const MODE_ICON_NAME: Record<TravelMode, IconName> = {
 
 export function ModeIcon({ mode, size = 16 }: { mode: TravelMode; size?: number }) {
   return <Icon name={MODE_ICON_NAME[mode]} size={size} />;
+}
+
+/**
+ * The OVVO mark, straight from the artwork's own outline: three filled paths in a 1024
+ * unit box — the two black tiles with the V's cut out of them, and the two rings — drawn
+ * in the source file's own orientation (`translate(0 1024) scale(0.1 -0.1)`). Only the ink
+ * is stored: the white diagonals are the mark's own background, so both colours come from
+ * the palette (`--surface-raised` and `--struct-main`) instead of from a raster.
+ */
+const BRAND_INK = [
+  'M5120 7680 l0 -2560 -2560 0 -2560 0 0 -2560 0 -2560 2560 0 2560 0 0 2560 0 2560 2560 0 2560 0 0 2560 0 2560 -2560 0 -2560 0 0 -2560z m1692 1605 c10 -27 46 -120 79 -207 32 -86 68 -178 80 -205 11 -26 50 -124 86 -218 35 -93 87 -226 114 -295 146 -373 204 -524 234 -605 18 -49 60 -157 92 -240 33 -82 84 -213 113 -290 29 -77 60 -155 69 -173 l17 -33 71 188 c67 178 175 456 276 713 25 63 73 187 107 275 108 280 250 646 305 785 29 74 72 186 96 248 l43 112 401 0 c221 0 404 -3 407 -6 3 -3 -9 -40 -27 -82 -18 -42 -63 -151 -99 -242 -37 -91 -96 -235 -131 -320 -91 -222 -323 -788 -425 -1040 -80 -195 -184 -451 -385 -940 -39 -96 -118 -289 -175 -427 l-103 -253 -373 0 c-363 0 -374 1 -384 20 -6 11 -41 95 -79 187 -38 93 -110 269 -161 393 -51 124 -123 299 -160 390 -37 91 -124 303 -193 471 -69 168 -164 400 -210 515 -115 284 -246 602 -262 639 -7 17 -44 109 -83 205 -38 96 -97 241 -131 322 -33 80 -61 151 -61 157 0 8 122 10 416 9 l416 -3 20 -50z m-5105 -5252 c40 -98 130 -324 201 -503 72 -179 144 -359 160 -400 57 -140 334 -835 382 -955 83 -211 115 -285 122 -285 4 0 10 10 13 23 9 29 113 299 215 557 45 113 117 296 160 406 43 111 135 343 203 515 69 173 169 428 223 567 l99 252 393 0 c371 0 394 -1 389 -17 -3 -10 -50 -126 -105 -258 -55 -132 -139 -337 -187 -455 -48 -118 -141 -345 -207 -505 -65 -159 -136 -333 -158 -385 -21 -52 -72 -176 -113 -275 -41 -99 -102 -250 -137 -335 -35 -85 -107 -261 -160 -390 -54 -129 -139 -337 -190 -462 l-93 -228 -357 0 -358 0 -10 28 c-12 33 -143 350 -277 672 -54 129 -110 267 -125 305 -15 39 -73 180 -129 315 -107 258 -135 327 -251 610 -40 96 -112 272 -160 390 -49 118 -145 352 -214 520 -68 168 -140 342 -159 388 l-35 82 397 0 397 0 71 -177z',
+  'M2384 9380 c-255 -25 -533 -114 -737 -236 -250 -150 -485 -402 -612 -654 -172 -342 -230 -742 -165 -1126 23 -131 91 -346 148 -465 203 -421 617 -748 1093 -862 163 -39 271 -52 449 -52 468 1 875 155 1188 450 306 289 479 656 524 1114 28 287 -42 649 -176 916 -246 487 -698 811 -1256 899 -123 20 -340 27 -456 16z m424 -699 c40 -12 113 -41 161 -66 321 -160 511 -477 528 -876 22 -515 -261 -940 -700 -1053 -333 -86 -663 6 -898 251 -376 390 -380 1090 -10 1485 138 147 288 233 481 274 98 20 343 12 438 -15z',
+  'M7478 4259 c-600 -58 -1125 -419 -1374 -943 -111 -236 -152 -409 -161 -679 -11 -340 31 -553 163 -834 110 -235 315 -481 526 -634 203 -146 467 -256 723 -300 170 -29 453 -32 623 -5 631 98 1144 515 1345 1093 194 555 108 1178 -222 1620 -369 496 -964 745 -1623 682z m404 -674 c193 -40 352 -129 494 -277 122 -127 199 -270 252 -467 22 -86 25 -116 26 -276 0 -156 -3 -193 -23 -275 -91 -370 -351 -647 -697 -742 -106 -29 -382 -32 -487 -5 -222 56 -432 202 -556 385 -273 405 -242 1011 70 1358 136 151 317 257 509 298 89 20 320 20 412 1z',
+];
+
+export function BrandMark({ size = 28, className }: { size?: number; className?: string }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 1024 1024"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect className="brand-mark__tile" width="1024" height="1024" />
+      <g className="brand-mark__ink" transform="translate(0 1024) scale(0.1 -0.1)">
+        {BRAND_INK.map((d, index) => (
+          <path key={index} d={d} />
+        ))}
+      </g>
+    </svg>
+  );
 }

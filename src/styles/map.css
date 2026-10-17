@@ -15,22 +15,47 @@
   overflow: hidden;
 }
 
+/*
+ * The map follows the device.
+ *
+ * **A phone gets a square**, because that is the shape of the screen and the shape of the drawing.
+ *
+ * **Anything wider gets a plate, not a bigger square.** The plate is the canvas box: it takes the
+ * full width it is handed and a *fixed* height, and the square drawing sits in the middle of it on
+ * its own water (the `min-width: 720px` block below). It used to be sized `min(100%, 70vh)`, which
+ * is a square that grows with the **viewport height** — the same card drew a 630px map on a 900px
+ * window and a 756px one on a 1080px window, taller every time the window was, which is the exact
+ * thing that was reported: *it should get bigger horizontally only, not vertically too*. A fixed
+ * height has no viewport in it, so widening the window widens the map and stops there; the `vh`
+ * term that remains is a cap for short windows (a laptop on its side), never a size.
+ *
+ * The drawing itself cannot be stretched — one 0–100 canvas with the network fitted to 86 units
+ * and every name inside it, so `slice` would drop the outermost stops and a non-uniform scale
+ * would move them off their places. What can be wide is the surface they are drawn on.
+ */
+/*
+ * No `aspect-ratio` here: this is an `<svg viewBox="0 0 100 100">`, so the drawing's own viewBox
+ * is its intrinsic ratio and `height: auto` already makes it square at the width it is given.
+ * Declaring the square as well said the same thing twice, and it had a second cost: the wide
+ * rule below has to override it, and a stylesheet that declares an element square for one width
+ * of the window is a claim the audit reads literally (see the square check in `ui-audit`).
+ */
 .map-canvas {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  max-height: 70vh;
+  width: min(100%, 70vh);
+  margin-inline: auto;
   background: var(--l1-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-inner);
+  /* Nested inside a 28px card at a 16px inset, so r-card − pad = 12. */
+  border-radius: var(--r-nested);
   touch-action: manipulation;
 }
 
 .map-water {
-  fill: var(--tint-sage);
+  fill: var(--map-water);
 }
 
 .map-land {
-  fill: var(--surface-alt);
+  fill: var(--map-land);
   stroke: var(--border-hairline);
   stroke-width: 0.3;
 }
@@ -46,14 +71,14 @@
 }
 
 .map-stop circle {
-  fill: var(--surface-raised);
-  stroke: var(--struct-secondary);
+  fill: var(--map-stop-fill);
+  stroke: var(--map-stop-stroke);
   stroke-width: 0.4;
 }
 
 .map-stop--landmark circle {
   fill: var(--accent-secondary);
-  stroke: var(--struct-main);
+  stroke: var(--map-ink);
 }
 
 .map-stop--favourite circle {
@@ -62,7 +87,7 @@
 
 .map-stop--selected circle {
   fill: var(--accent-primary);
-  stroke: var(--struct-main);
+  stroke: var(--map-ink);
   stroke-width: 0.6;
 }
 
@@ -79,7 +104,7 @@
 
 .map-route {
   fill: none;
-  stroke: var(--struct-main);
+  stroke: var(--map-ink);
   stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -97,7 +122,7 @@
 }
 
 .map-route--ferry {
-  stroke: #8f3423;
+  stroke: var(--coral-ink);
   stroke-dasharray: 2 1.4;
 }
 
@@ -106,16 +131,16 @@
 }
 
 .map-route--tram {
-  stroke: #5a7a58;
+  stroke: var(--tint-sage-ink);
 }
 
 .map-route--metro {
-  stroke: #c9a227;
+  stroke: var(--tint-butter-ink);
 }
 
 .map-vehicle {
-  fill: var(--struct-main);
-  stroke: var(--surface-raised);
+  fill: var(--map-ink);
+  stroke: var(--map-stop-fill);
   stroke-width: 0.4;
 }
 
@@ -149,13 +174,231 @@
   width: 22px;
   height: 3px;
   border-radius: var(--r-pill);
-  background: var(--struct-main);
+  background: var(--map-ink);
+}
+
+/* Route key: the same colours .map-route--* draws in, shown beside the mode chips
+   so the map needs no separate legend. */
+.map-legend__swatch--train {
+  background: var(--map-ink);
+}
+
+.map-legend__swatch--bus {
+  background: var(--accent-primary);
+}
+
+.map-legend__swatch--tram {
+  background: var(--tint-sage-ink);
+}
+
+.map-legend__swatch--metro {
+  background: var(--tint-butter-ink);
+}
+
+.map-legend__swatch--ferry {
+  background: var(--coral-ink);
+}
+
+.map-legend__swatch--all {
+  background: linear-gradient(
+    90deg,
+    var(--map-ink) 0 20%,
+    var(--accent-primary) 20% 40%,
+    var(--tint-sage-ink) 40% 60%,
+    var(--tint-butter-ink) 60% 80%,
+    var(--coral-ink) 80% 100%
+  );
+}
+
+/* The home widget draws the whole country on the same canvas, at the size `.map-canvas` gives it
+   (it sets no size of its own — the plate is shared). The names are a shade larger than the local
+   view's: this canvas carries the whole network at once. */
+.map-canvas--widget .map-stop text {
+  font-size: 2.6px;
+}
+
+.map-canvas--widget .map-stop circle {
+  r: 1;
+}
+
+/*
+ * From a tablet up, every map is a **plate**: as wide as the card hands it, and a height that is a
+ * constant. That is the whole of the reported fix — the map widens with the room and does not
+ * grow taller with the window.
+ *
+ * The drawing inside cannot be stretched. It is one 0–100 canvas with the network fitted to 86
+ * units and every name kept inside the frame, and it is scaled to fit (`xMidYMid meet`), so the
+ * network is drawn at the plate's *height*: 500px on a widget, 600px on the map screen, the same
+ * on a 900px window and on a 1080px one. What the width buys is not a bigger drawing but a map
+ * that reaches the edges of what it sits on, on water the drawing itself is painted with,
+ * instead of a square stranded on 200px of card either side.
+ *
+ * Measured after the change, at 1440×900 and again at 1920×1080 — the same numbers both times:
+ * home widget 662×497 (it was a 630 square, then a 662 square), map screen 1018×573 (1018×630,
+ * then 1018×756), stop page 484×363 (a 484 square). Every one of those grew downwards with the
+ * window before; now the height is a property of the width, so a wider window widens the map and
+ * stops there.
+ */
+@media (min-width: 720px) {
+  .map-canvas {
+    /* The width is the room it was handed; the height follows *that*, at four-thirds, so the plate
+       is always landscape — including the stop page's map, which sits in a narrow second column
+       and would have been a 484×500 column under a fixed height. This is where the drawing's
+       intrinsic square is replaced on purpose. `max-height` is where the height stops following
+       the width: past it the plate grows sideways only, which is the requested behaviour, and the
+       vh term is a cap for short windows rather than a size. */
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: min(500px, 58vh);
+    margin-inline: 0;
+    /* The water the drawing paints its own rect with, continued across the plate, so the map is
+       one surface edge to edge rather than a square floating on the card's ground. */
+    background: var(--map-water);
+  }
+
+  /* The screen gets the wider plate (16:9, up to 600 tall): it is the place you go to look at the
+     map properly. */
+  .map-card .map-canvas {
+    aspect-ratio: 16 / 9;
+    max-height: min(600px, 70vh);
+  }
 }
 
 .map-legend__dot {
   width: 12px;
   height: 12px;
   border-radius: var(--r-circle);
-  background: var(--surface-raised);
-  border: 2px solid var(--struct-secondary);
+  background: var(--map-stop-fill);
+  border: 2px solid var(--map-stop-stroke);
+}
+
+/* ------------------------------------------------------------- the map picker */
+/* A full-screen map with a pin that never moves: the map slides under it and the stop
+   nearest the pin is the answer. Same drawing as the widget, at the size of a screen. */
+.map-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-height: 0;
+  height: 100%;
+}
+
+.map-picker__surface {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 320px;
+  overflow: hidden;
+  border-radius: var(--r-input);
+  background: var(--l1-bg);
+  /* The map must move with the finger, not the page. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-picker__surface:active {
+  cursor: grabbing;
+}
+
+.map-picker__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.map-picker__label text {
+  font-size: 2.6px;
+  font-weight: var(--fw-semibold);
+  fill: var(--ink-strong);
+  paint-order: stroke;
+  stroke: var(--l1-bg);
+  stroke-width: 0.6px;
+}
+
+/* The pin: ink ring, paper centre, a short stem — drawn over the map, never in it. */
+.map-pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.map-pin__dot {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-circle);
+  background: var(--l2-bg);
+  border: 5px solid var(--map-ink);
+}
+
+.map-pin__tail {
+  width: 2px;
+  height: 10px;
+  background: var(--map-ink);
+}
+
+.map-picker__zoom {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.map-picker__zoom .btn,
+.map-picker__recentre {
+  background: var(--l2-bg);
+  border: var(--l2-border);
+}
+
+.map-picker__sheet {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.map-picker__search {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-2) 0 var(--s-3);
+  background: var(--l1-bg);
+  border: var(--l1-border);
+  border-radius: var(--r-input);
+  color: var(--ink-muted);
+}
+
+.map-picker__search-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--target-min);
+  border: 0;
+  background: transparent;
+  font-size: var(--fs-body);
+  color: var(--ink-strong);
+}
+
+.map-picker__search-field:focus {
+  outline: none;
+}
+
+.map-picker__matches {
+  max-height: 200px;
+  overflow-y: auto;
+  border: var(--l1-border);
+  border-radius: var(--r-inner);
+  background: var(--l2-bg);
+  padding: 0 var(--s-3);
+}
+
+.map-picker__chosen {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: var(--target-min);
 }

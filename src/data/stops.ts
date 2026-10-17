@@ -1,9 +1,10 @@
 import type { Accessibility, Stop, StopType, TravelMode } from './types';
 
 /**
- * DEMONSTRATION DATA — a fictional-but-plausible network of Dutch stops.
- * Coordinates are positions on the prototype's own 0–100 illustrative canvas,
- * not real geography. Codes are example identifiers.
+ * The stop network: stations, halts and walking landmarks in the Netherlands.
+ *
+ * `coordinates` is the schematic 0–100 canvas the map draws on; `geo` is the
+ * real WGS84 position used for distances and for "near me" lookups.
  */
 
 interface StopSeed {
@@ -58,6 +59,75 @@ function platformsFor(type: StopType, index: number): string[] {
   }
 }
 
+/**
+ * Real WGS84 positions (latitude, longitude) for every stop, so the planner can
+ * measure true distances and resolve "my current location" to the nearest stop.
+ * The `x`/`y` seed values remain the schematic canvas the map draws on.
+ */
+const GEO: Record<string, { lat: number; lon: number }> = {
+  'amsterdam-centraal': { lat: 52.3789, lon: 4.9006 },
+  'amsterdam-sloterdijk': { lat: 52.389, lon: 4.8381 },
+  'amsterdam-zuid': { lat: 52.3388, lon: 4.8732 },
+  'amsterdam-bijlmer-arena': { lat: 52.3122, lon: 4.9471 },
+  'amsterdam-muiderpoort': { lat: 52.3607, lon: 4.9312 },
+  'amsterdam-amstel': { lat: 52.3465, lon: 4.9176 },
+  'amsterdam-noord': { lat: 52.4017, lon: 4.9321 },
+  'amsterdam-leidseplein': { lat: 52.364, lon: 4.8828 },
+  'amsterdam-museumplein': { lat: 52.3573, lon: 4.8815 },
+  'amsterdam-dam': { lat: 52.3731, lon: 4.8924 },
+  'amsterdam-buiksloterweg': { lat: 52.3824, lon: 4.9032 },
+  'amsterdam-raijhuis': { lat: 52.3598, lon: 4.885 },
+  'amsterdam-vondelpark': { lat: 52.3572, lon: 4.8641 },
+  'amsterdam-annefrank': { lat: 52.3752, lon: 4.8841 },
+  zaandam: { lat: 52.4382, lon: 4.8137 },
+  'zaanse-schans': { lat: 52.4751, lon: 4.818 },
+  volendam: { lat: 52.4937, lon: 5.069 },
+  haarlem: { lat: 52.3872, lon: 4.6379 },
+  hilversum: { lat: 52.2265, lon: 5.1813 },
+  'almere-centrum': { lat: 52.3753, lon: 5.2193 },
+  alkmaar: { lat: 52.6381, lon: 4.7407 },
+  hoofddorp: { lat: 52.2922, lon: 4.6988 },
+  'amstelveen-busstation': { lat: 52.3025, lon: 4.8578 },
+  'schiphol-airport': { lat: 52.3096, lon: 4.7621 },
+  'leiden-centraal': { lat: 52.1663, lon: 4.4823 },
+  'den-haag-centraal': { lat: 52.0808, lon: 4.3245 },
+  'den-haag-hs': { lat: 52.0701, lon: 4.3223 },
+  'den-haag-binnenhof': { lat: 52.0793, lon: 4.3124 },
+  delft: { lat: 52.0076, lon: 4.3581 },
+  'rotterdam-centraal': { lat: 51.9251, lon: 4.4692 },
+  'rotterdam-blaak': { lat: 51.9201, lon: 4.4891 },
+  'rotterdam-alexander': { lat: 51.9517, lon: 4.5525 },
+  'rotterdam-erasmusbrug': { lat: 51.9096, lon: 4.4855 },
+  'rotterdam-markthal': { lat: 51.9201, lon: 4.487 },
+  'schiedam-centrum': { lat: 51.922, lon: 4.4087 },
+  gouda: { lat: 52.0174, lon: 4.7062 },
+  dordrecht: { lat: 51.8075, lon: 4.6677 },
+  zoetermeer: { lat: 52.0476, lon: 4.4769 },
+  'utrecht-centraal': { lat: 52.0894, lon: 5.1098 },
+  'utrecht-vaartsche-rijn': { lat: 52.0788, lon: 5.1219 },
+  'utrecht-lunetten': { lat: 52.0664, lon: 5.1433 },
+  'utrecht-overvecht': { lat: 52.1101, lon: 5.1258 },
+  'utrecht-domtoren': { lat: 52.0907, lon: 5.1213 },
+  'amersfoort-centraal': { lat: 52.1539, lon: 5.3741 },
+  'arnhem-centraal': { lat: 51.9851, lon: 5.9 },
+  nijmegen: { lat: 51.8431, lon: 5.8531 },
+  apeldoorn: { lat: 52.209, lon: 5.9698 },
+  deventer: { lat: 52.2574, lon: 6.1596 },
+  zwolle: { lat: 52.505, lon: 6.0912 },
+  enschede: { lat: 52.2224, lon: 6.8898 },
+  'den-bosch': { lat: 51.6905, lon: 5.2937 },
+  tilburg: { lat: 51.5606, lon: 5.0838 },
+  breda: { lat: 51.5951, lon: 4.78 },
+  'eindhoven-centraal': { lat: 51.443, lon: 5.4795 },
+  'eindhoven-strijp-s': { lat: 51.4504, lon: 5.457 },
+  helmond: { lat: 51.4761, lon: 5.6612 },
+  maastricht: { lat: 50.8513, lon: 5.7042 },
+  groningen: { lat: 53.2105, lon: 6.5641 },
+  'groningen-noord': { lat: 53.2301, lon: 6.5566 },
+  leeuwarden: { lat: 53.1965, lon: 5.793 },
+  vlissingen: { lat: 51.4441, lon: 3.5957 },
+};
+
 function build(seed: StopSeed, index: number): Stop {
   const facilities = seed.facilities ?? FACILITIES_BY_TYPE[seed.type];
   const stepFree = !STEP_FREE_EXCEPTIONS.has(seed.id);
@@ -71,6 +141,7 @@ function build(seed: StopSeed, index: number): Stop {
     platforms: seed.platforms ?? platformsFor(seed.type, index),
     region: seed.region,
     coordinates: { x: seed.x, y: seed.y },
+    geo: GEO[seed.id],
     facilities,
     accessibility: {
       stepFree,
@@ -182,14 +253,107 @@ export function stopName(id: string | undefined): string {
 }
 
 /** "Amsterdam Centraal" stays as-is; "Leidseplein" becomes "Amsterdam, Leidseplein". */
+/**
+ * The traveller's own names for stops they have favourited.
+ *
+ * Kept here, beside the stop list, because every label in the app goes through `stopLabel` or
+ * `customStopName`: a rename that only reached one screen would be a different place on another.
+ * The map is replaced wholesale by the provider when it loads or changes (see `AppState`), so
+ * there is one copy and no listener to forget to call.
+ *
+ * Only stops can carry a name — the settings screen offers the list of favourites — but nothing
+ * here assumes the stop is a station: "Work" for an office address is exactly the case this was
+ * asked for.
+ */
+let customNames: Record<string, string> = {};
+
+export function setCustomStopNames(next: Record<string, string>): void {
+  customNames = next;
+}
+
+/** The traveller's name for this stop, or null when they have not given it one. */
+export function customStopName(id: string | undefined): string | null {
+  return (id && customNames[id]) || null;
+}
+
 export function stopLabel(id: string | undefined): string {
   const stop = getStop(id);
   if (!stop) return 'Unknown stop';
+  const custom = customNames[stop.id];
+  if (custom) return custom;
   return stop.name.includes(stop.city) ? stop.name : `${stop.city}, ${stop.name}`;
 }
 
 export function canvasDistance(a: Stop, b: Stop): number {
   return Math.hypot(a.coordinates.x - b.coordinates.x, a.coordinates.y - b.coordinates.y);
+}
+
+const EARTH_RADIUS_METRES = 6371008.8;
+
+/** Great-circle distance in metres between two stops, from their real positions. */
+export function geoDistanceMetres(a: Stop, b: Stop): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.geo.lat - a.geo.lat);
+  const dLon = toRad(b.geo.lon - a.geo.lon);
+  const lat1 = toRad(a.geo.lat);
+  const lat2 = toRad(b.geo.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_METRES * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+const toRadians = (deg: number) => (deg * Math.PI) / 180;
+
+/**
+ * Straight-line distance in metres from a WGS84 position to a stop.
+ *
+ * The sorting counterpart of `nearestStop`: that one answers "which stop is closest", this one
+ * answers "how far is each stop", and the stops list needs the second question answered for
+ * every row. One implementation, so the two can never drift apart.
+ */
+export function distanceFromPosition(stop: Stop, lat: number, lon: number): number {
+  const dLat = toRadians(stop.geo.lat - lat);
+  const dLon = toRadians(stop.geo.lon - lon);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(lat)) * Math.cos(toRadians(stop.geo.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_METRES * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/**
+ * A distance a person can read: metres under a kilometre, one decimal above it.
+ *
+ * A straight line, not a journey — the label says "away", not "travel time", because the two
+ * are different and pretending otherwise is how a prototype starts lying.
+ */
+export function formatDistance(metres: number): string {
+  if (!Number.isFinite(metres)) return '';
+  if (metres < 950) return `${Math.round(metres / 10) * 10} m`;
+  const km = metres / 1000;
+  return `${km < 10 ? km.toFixed(1) : Math.round(km)} km`;
+}
+
+export interface NearestStop {
+  stop: Stop;
+  /** Straight-line distance from the position to the stop, in metres. */
+  metres: number;
+}
+
+/**
+ * The stop closest to a WGS84 position — used to turn a device fix into a stop.
+ *
+ * Walking-only landmarks are skipped: they are places you walk *to*, not stops a
+ * journey can depart from, so a position next to one resolves to the nearest
+ * stop that actually has services.
+ */
+export function nearestStop(lat: number, lon: number): NearestStop | undefined {
+  let best: NearestStop | undefined;
+  for (const stop of STOPS) {
+    if (!stop.modes.some((mode) => mode !== 'walk' && mode !== 'bike')) continue;
+    const metres = distanceFromPosition(stop, lat, lon);
+    if (!best || metres < best.metres) best = { stop, metres };
+  }
+  return best;
 }
 
 /** Every stop within `radius` illustrative canvas units (used for "nearby stops"). */
@@ -210,8 +374,38 @@ export function regions(): string[] {
 }
 
 /** Stops that operate a departure board (everything except pure walking landmarks). */
+/**
+ * Whether a departure **board** can be shown for this place at all.
+ *
+ * A board lists services, so a place only has one if a service calls there: the landmarks and
+ * street addresses in this data (`Rijksmuseum`, `Utrecht, Domtoren`, `Rotterdam, Markthal`) carry
+ * `['walk', 'bike']` and no operator, and there is nothing to list at them. One rule, in one
+ * place, because two callers need the same answer — the board's own stop list here, and the
+ * board's row of favourited locations, which must not offer something it has no board for.
+ */
+export function hasBoard(stop: Stop): boolean {
+  return stop.modes.some((mode) => mode !== 'walk' && mode !== 'bike');
+}
+
 export function boardStops(): Stop[] {
-  return STOPS.filter((s) => s.modes.some((m) => m !== 'walk' && m !== 'bike'));
+  return STOPS.filter(hasBoard);
+}
+
+/**
+ * The first of a list of stop ids whose place has a board.
+ *
+ * Three screens pick a board's stop from a list of candidates — the board itself (requested stop,
+ * then the default origin, then a busy one), the home screen's next-departures widget, and an
+ * alert's own "board here" link (its first affected stop). Each of them must skip a place with no
+ * services, because that is what `hasBoard` says and a board cannot be drawn for an address. The
+ * rule is the same one the board's own stop list uses, so no candidate order can smuggle one in.
+ */
+export function firstBoardStop(ids: (string | null | undefined)[]): Stop | undefined {
+  for (const id of ids) {
+    const stop = getStop(id ?? undefined);
+    if (stop && hasBoard(stop)) return stop;
+  }
+  return undefined;
 }
 
 /**

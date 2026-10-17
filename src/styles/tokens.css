@@ -28,6 +28,10 @@
    ============================================================================= */
 
 :root {
+  /* The light theme is the document's default; the two appearances are the same token
+     architecture, so a component never asks which one is on. */
+  color-scheme: light;
+
   /* --- 2. Core colour architecture: 70% surface / 20% structure / 10% accent --- */
   --canvas-base: #fcfbfa; /* 70% warm canvas */
   --surface-alt: #f3f1ea; /* ivory neutral card surface */
@@ -36,16 +40,42 @@
   --struct-secondary: #2d3b2d; /* forest olive structure */
   --tint-sage: #e1eadf; /* sage green tint base */
   --accent-primary: #ff7e67; /* sunset coral (10% focal) */
+  /* The focal coral is a *background* colour: as ink it is 2.49:1 on white, under the 3:1
+     non-text minimum for the empty-state glyph. This is the same hue taken dark enough to be
+     read as an icon on white (4.0:1 on white, 3.4:1 on the coral tint). */
+  --accent-primary-ink: #d9533a;
   --accent-secondary: #fff5a5; /* butter accent highlight */
   --tint-coral: #ffe8e5; /* subtle coral tag */
   --border-hairline: #e8e6df;
+  /* Derived tint sets: each tint ships its own hairline border and the ink that
+     sits on it, so components never invent a shade. */
+  --tint-coral-border: #f6d3cd;
+  --tint-coral-ink: #8f3423;
+  --tint-coral-ink-strong: #7d2c1d;
+  /*
+   * Coral ink for a surface that is *not* a coral tint — the page, a card, a board row. The two
+   * tinted inks above are for sitting on `--tint-coral`, which stays a pale pink in both
+   * appearances; this one follows the surface it is drawn on, dark in the light theme and light
+   * in the dark one. Same value as `--tint-coral-ink` here, so nothing in the light appearance
+   * moved when it was introduced.
+   */
+  --coral-ink: #8f3423;
+  --tint-sage-border: #cfdcc9;
+  --tint-sage-strong: #7ba37a;
+  --tint-sage-ink: #5a7a58;
+  --tint-butter-border: #efe2a0;
+  --tint-butter-strong: #e6cf3f;
+  --tint-butter-ink: #c9a227;
+  --accent-primary-border: #e9694f;
+  --accent-primary-hover: #ff9077;
+
   --active-green: #22c55e;
 
   /* Derived, spec-consistent supporting values (ink ramp on the warm canvas) */
   --ink-strong: var(--struct-main);
   --ink: #3f3f45;
-  --ink-muted: #6f6f75;
-  --ink-faint: #94949a;
+  --ink-muted: #5f5f66;
+  --ink-faint: #66666d;
   --on-dark: #fcfbfa;
   --on-dark-muted: #b9b9be;
   --hairline-on-dark: #2d3b2d;
@@ -62,15 +92,16 @@
 
   /* --- 4. Squircle geometry & nested radii --- */
   --r-hero: 32px; /* R32 · P16 · inner R16 */
-  --r-card: 28px; /* R28 · P12 · inner R16 */
+  --r-card: 28px; /* R28 · P16 · inner R12 */
   --r-input: 20px; /* R20 · P8  · inner R12 */
   --r-inner: 16px;
+  --r-nested: 12px; /* r-card - pad-card: keeps nested corners concentric */
   --r-compact: 12px;
   --r-hair: 8px;
   --r-pill: 9999px;
   --r-circle: 50%;
   --pad-hero: 16px;
-  --pad-card: 12px;
+  --pad-card: 16px;
   --pad-input: 8px;
 
   /* --- 5. Baseline grid: strict 4px rhythm --- */
@@ -113,15 +144,48 @@
   --hover-lift: -2px;
   --ease-press: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-hover: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /*
+   * The curve for anything that is *not* a movement: colour, background, border.
+   *
+   * `--ease-hover` overshoots on purpose — that is the little jump the cards and buttons make —
+   * but an overshoot on a colour does not jump, it flashes: the Customise-home trigger settled
+   * from its `#F3F1EA` ground through **white** and back, because the curve ran the channel past
+   * the target before returning to it (measured on the live app). Anything that interpolates a
+   * paint uses this one, which decelerates into the target and stops there.
+   */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --t-press: 120ms;
   --t-hover: 240ms;
   --t-spring: 320ms;
 
+  /* --- The brand mark is a tile: a plain white ground with the artwork's obsidian ink on it,
+     and neither half turns over with the theme. The artwork is a single design (two black tiles
+     with the V's cut out, a ring in each white diagonal), so it needs its own ground to read on
+     — on the dark canvas the black tiles would otherwise disappear and take the white V's with
+     them, and a flipped ink would put a near-white glyph on a white tile. White ground,
+     obsidian ink, in both appearances; the mark's own square is the only thing painted, never
+     the row it sits in (see `.app-header__mark`). --- */
+  --brand-tile: #ffffff;
+  --brand-ink: var(--struct-main);
+
+  /* --- Map drawing palette. The schematic network is ink on land, so in dark the ink has to
+     turn over with everything else. Its own group because map.css draws with it and nothing
+     else does. --- */
+  --map-ink: var(--struct-main);
+  --map-land: var(--surface-alt);
+  --map-water: var(--tint-sage);
+  --map-stop-fill: var(--surface-raised);
+  --map-stop-stroke: var(--struct-secondary);
+
   /* Layout shell metrics */
   --shell-max: 1360px;
   --sidebar-w: 268px;
   --dock-h: 64px;
+  /* The sticky header's height: its 4px padding twice, plus a 44px row, plus the 16px the
+     mark is brought down off the top edge by. The sidebar offsets itself from this instead of
+     from a guess, so the two cannot drift apart. */
+  --header-h: 68px;
 }
 
 /* --- Settings adapter: reduced motion (honours the in-app switch) --- */
@@ -142,13 +206,96 @@
   --border-hairline: #b9b6ab;
 }
 
+/*
+ * --- Settings adapter: appearance (light / dark) -------------------------------------
+ *
+ * Dark is the same architecture with the surface ramp reversed — L0 darkest, L1 and L2 lifted
+ * off it, hairlines one step above their surface — and the ink turned over. The *structural*
+ * colours (obsidian, forest olive) do **not** flip: they are the dock and the primary button in
+ * both appearances, which is why the dock reads in dark mode without a second rule.
+ *
+ * Two families are deliberately left alone. The accents (coral, butter, the tints) are the 10%
+ * that carries meaning, and a light chip on a dark canvas is how that reads — flipping them
+ * would make a delay chip and a success chip the same darkness and lose the signal. The tints
+ * that *are* flipped are the ones painted across large areas (sage water on the map), because
+ * a light wash across a whole canvas is not a signal, it is glare.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas-base: #121211;
+  --surface-alt: #1b1a18;
+  --surface-raised: #232220;
+  --border-hairline: #333028;
+
+  --ink-strong: #f7f6f3;
+  --ink: #dedcd6;
+  --ink-muted: #b8b5ae;
+  --ink-faint: #a5a29b;
+
+  /* The dock and the obsidian tier sit one step above the canvas so their edge is legible. */
+  --l3-bg: #29282a;
+  --l3-border: 1px solid #3b3a3d;
+  --hairline-on-dark: #3b3a3d;
+
+  /* Coral is the focal accent in both appearances; as *ink* on a dark surface it needs the
+     lighter cut, the same way the light theme needed a darker one. */
+  --accent-primary-ink: #ff9c87;
+  /*
+   * And coral as ink on the theme's *own* surface needs the same lighter cut. Found by
+   * `ui-audit` in the dark appearance on the departure cards' delay figures — which are the same
+   * `.delay` the board has always drawn, so the board was failing too and the audit had simply
+   * never measured a delayed row in dark. The first version of this fix changed
+   * `--tint-coral-ink` instead, which was wrong for the half of the palette that had been
+   * right: that token is the ink for `--tint-coral`, a surface that stays pale in this theme
+   * (mode badges, coral pills, banners), so lightening it put light text on light chips and the
+   * audit caught it on the next run. The tinted inks are therefore deliberately not overridden
+   * here, and the light cut lives in its own token.
+   */
+  --coral-ink: #ff9c87;
+
+  /* `--brand-tile` / `--brand-ink` are deliberately *not* overridden here: the mark is a white
+     tile with obsidian ink in both appearances, so flipping its ink in dark would draw a
+     near-white glyph on the white ground. */
+
+  --map-ink: #f2f0ec;
+  --map-land: #1e1d1b;
+  --map-water: #1a2420;
+  --map-stop-fill: #232220;
+  --map-stop-stroke: #9fa8a0;
+}
+
+/*
+ * --- Settings adapter: raised contrast in the dark appearance ------------------------
+ *
+ * These values cannot live in the `[data-contrast='high']` block above, and that is the whole
+ * bug this block fixes: `:root[data-contrast='high']` and `:root[data-theme='dark']` have the
+ * **same specificity**, so for every property the two both declare the one that comes later in
+ * the file wins — and dark comes later. Measured with the switch on in the dark appearance,
+ * before this block existed: `--ink` `--ink-muted` `--ink-faint` and `--border-hairline` were
+ * byte-identical to the normal dark values (#dedcd6 / #b8b5ae / #a5a29b / #333028) and a
+ * settings hint line still drew in rgb(165, 162, 155) — the switch did nothing at all, exactly
+ * as reported. The selector below carries both attributes, so it wins on specificity rather
+ * than on order, and the two themes can each strengthen their own ramp: on the dark surfaces
+ * raised contrast means *lighter* ink and *lighter* hairlines, the reverse of the light theme.
+ */
+:root[data-theme='dark'][data-contrast='high'] {
+  --ink: #f2f0ec;
+  --ink-muted: #d5d2cb;
+  --ink-faint: #c6c3bc;
+  --border-hairline: #57544b;
+  --l3-border: 1px solid #54525a;
+  --hairline-on-dark: #54525a;
+}
+
 /* --- Settings adapter: compact density (still a strict 4px rhythm) --- */
 :root[data-density='compact'] {
   --pad-hero: 12px;
-  --pad-card: 8px;
+  --pad-card: 12px;
   --pad-input: 8px;
   --r-hero: 28px;
   --r-card: 24px;
+  --r-nested: 12px; /* 24 - 12: still concentric in compact density */
   --s-6: 16px;
   --s-8: 24px;
 }

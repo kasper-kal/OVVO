@@ -2,329 +2,388 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import { DepartureTable } from '../components/stops/DepartureTable';
-import { boardStops, getStop, stopLabel } from '../data/stops';
-import { boardForStop, busiestStops, filterDepartures } from '../data/departures';
+import { BoardList } from '../components/stops/BoardList';
+import { StopCombobox } from '../components/journey/StopCombobox';
+import { customStopName, getStop, hasBoard } from '../data/stops';
+import { boardForStop } from '../data/departures';
+import { STORAGE_KEYS, writeStored } from '../lib/storage';
 import { disruptionsForStop } from '../data/disruptions';
-import { nowMinutes, PT_LABEL_ORDER } from '../lib/boardHelpers';
-import type { PublicMode } from '../data/types';
-import { Button, Card, Chip, DemoBadge, EmptyState, IconButton, Panel, Stat } from '../components/ui/primitives';
+import { useMinuteNow } from '../lib/useMinuteNow';
+import { Button, Card, EmptyState, IconButton, Panel } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { useT } from '../lib/useT';
+import { useRevealOnScrollUp } from '../lib/useRevealOnScrollUp';
+import type { Stop } from '../data/types';
+
+/**
+ * Departure boards — every stop you pin, one list each.
+ *
+ * The previous version was a single board with a stop picker, and the only "keep" control on it
+ * was the pin that meant *favourite*. That pin now has its own glyph (the heart) and its own list
+ * (the stop lists and the search), and this screen uses the pin for what it always described: a
+ * stop whose board is on this page. The board holds as many of those as the traveller pins — the
+ * dialog pins several at once — because somebody who commutes through two stations wants both
+ * boards in the morning, not one and a link.
+ *
+ * The word "favourite" still appears here, in the picker, where it is useful: favourites are
+ * listed first and marked with the heart, so the two lists can be told apart where they meet.
+ */
+
+/**
+ * How often the board re-reads the clock.
+ *
+ * A constant, not a setting: the board is a live screen, and the interval it was offered with
+ * — off, 5, 15, 30 or 60 seconds — was a five-option control that wrapped into two rows
+ * inside its own capsule on a phone (the fifth shape of the same defect this app keeps
+ * growing). Nobody wants a departure board that updates slower than the departures do.
+ */
+const BOARD_REFRESH_SECONDS = 5;
 
 export function DeparturesPage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
-  const { settings, favouriteStopIds, toggleFavourite, search, startSearch, preferences, pushToast } = useApp();
+  const {
+    settings,
+    search,
+    startSearch,
+    preferences,
+    boardStopIds,
+    isOnBoard,
+    toggleBoardStop,
+    setBoardStops,
+    pushToast,
+  } = useApp();
   const format = useFormat();
+  const t = useT();
 
-  const requestedStop = params.get('stop');
-  const initialStop =
-    (requestedStop && getStop(requestedStop)?.id) ||
-    settings.defaultOriginStopId ||
-    busiestStops(1)[0] ||
-    boardStops()[0].id;
-
-  const [stopId, setStopId] = useState(initialStop);
+  /*
+   * The clock, in the browser's own time, re-read on the minute (see `useMinuteNow`).
+   *
+   * It used to be `Math.max(0, nowMinutes() - 1)`: every board on this screen started a minute
+   * in the past, so a departure that had already left was listed as upcoming and the "from"
+   * line named a minute that had gone. That subtraction is gone, and the tick is aligned to :00
+   * rather than to whenever the page happened to mount.
+   */
+  const minutes = useMinuteNow();
   const [tick, setTick] = useState(0);
-  const [modeFilter, setModeFilter] = useState<PublicMode[]>([]);
-  const [lineQuery, setLineQuery] = useState('');
-  const [destinationQuery, setDestinationQuery] = useState('');
-  const [delayedOnly, setDelayedOnly] = useState(false);
-  const [hideCancelled, setHideCancelled] = useState(false);
-  const [accessibleOnly, setAccessibleOnly] = useState(false);
-  const [countdown, setCountdown] = useState<number>(settings.boardAutoRefresh);
+  /* The board's refresh waits to be reached for: reach up for it, scroll down and it leaves. */
+  const refreshRevealed = useRevealOnScrollUp();
 
-  const stop = getStop(stopId);
-  const fromMinutes = useMemo(() => Math.max(0, nowMinutes() - 1), [tick]);
-  const rawBoard = useMemo(
-    () => boardForStop(stopId, { fromMinutes, limit: 30, tick }),
-    [stopId, fromMinutes, tick],
-  );
-
-  const board = useMemo(() => {
-    const filtered = filterDepartures(rawBoard, {
-      fromMinutes,
-      modeFilter,
-      lineQuery,
-      destinationQuery,
-    });
-    return filtered
-      .filter((departure) => (delayedOnly ? departure.delayMinutes > 0 || departure.cancelled : true))
-      .filter((departure) => (hideCancelled ? !departure.cancelled : true))
-      .filter((departure) => (accessibleOnly ? departure.accessible : true));
-  }, [rawBoard, modeFilter, lineQuery, destinationQuery, delayedOnly, hideCancelled, accessibleOnly, fromMinutes]);
+  /*
+   * A `?stop=` is the traveller asking for a stop — from an alert, a stop page, a widget's
+   * "open the full board" — so following one pins that stop to the board (it does not replace
+   * the others) and is remembered as the stop they last chose.
+   */
+  const requestedStop = params.get('stop');
+  const requested = requestedStop ? getStop(requestedStop)?.id : undefined;
 
   useEffect(() => {
-    setCountdown(settings.boardAutoRefresh);
-    if (!settings.boardAutoRefresh) return undefined;
-    const timer = window.setInterval(() => {
-      setCountdown((value) => {
-        if (value <= 1) {
-          setTick((current) => current + 1);
-          return settings.boardAutoRefresh;
-        }
-        return value - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [settings.boardAutoRefresh]);
+    if (!requested) return;
+    writeStored(STORAGE_KEYS.boardStop, requested);
+    if (!boardStopIds.includes(requested)) setBoardStops([...boardStopIds, requested]);
+  }, [requested, boardStopIds, setBoardStops]);
 
-  const alerts = disruptionsForStop(stopId);
-  const delayedCount = rawBoard.filter((departure) => departure.delayMinutes > 0).length;
-  const cancelledCount = rawBoard.filter((departure) => departure.cancelled).length;
+  /*
+   * The stops whose boards this page shows, read from the pins and filtered to the ones a board
+   * exists for: a pinned landmark or address is a walking destination, and a board cannot be
+   * drawn for a museum. The test is `hasBoard`, the same one the picker uses, so the two cannot
+   * disagree about what a board is.
+   */
+  const pinnedStops = useMemo(
+    () =>
+      boardStopIds
+        .map((id) => getStop(id))
+        .filter((candidate): candidate is Stop => candidate !== undefined && hasBoard(candidate)),
+    [boardStopIds],
+  );
 
-  const selectStop = (nextStopId: string) => {
-    setStopId(nextStopId);
-    setParams({ stop: nextStopId }, { replace: true });
+  /*
+   * With nothing pinned, the board still opens on the default origin the traveller set in
+   * Settings — that stop's board, shown once, **not** quietly added to the pins. It is the one
+   * candidate that is the traveller's own statement of where they travel from, and the card's
+   * pin control starts empty so pinning it stays one tap away. A favourite is not consulted
+   * here: hearting a place does not put a board on this page.
+   */
+  const defaultStop = useMemo(() => {
+    if (boardStopIds.length) return null;
+    const candidate = getStop(settings.defaultOriginStopId ?? undefined);
+    return candidate && hasBoard(candidate) ? candidate : null;
+  }, [boardStopIds, settings.defaultOriginStopId]);
+
+  const shownStops = pinnedStops.length ? pinnedStops : defaultStop ? [defaultStop] : [];
+
+  const boards = useMemo(
+    () =>
+      shownStops.map((stop) => {
+        const departures = boardForStop(stop.id, { fromMinutes: minutes, limit: 20, tick });
+        return {
+          stop,
+          departures,
+          alerts: disruptionsForStop(stop.id),
+          delayed: departures.filter((departure) => departure.delayMinutes > 0).length,
+        };
+      }),
+    [shownStops, minutes, tick],
+  );
+
+  /*
+   * What the field holds: the stop that was added last (or the one the URL asked for, or the
+   * default origin), so the control confirms what it just did and carries that stop's own code and
+   * modes in the hint line beneath it — the line every other picker in the app puts under a chosen
+   * stop. The field is still an **add**: choosing any stop pins it beside the others, and clearing
+   * it (×) leaves the boards alone.
+   */
+  const fieldStop = useMemo(() => {
+    const candidate = requested ?? boardStopIds[boardStopIds.length - 1];
+    return (candidate ? getStop(candidate) : defaultStop) ?? null;
+  }, [requested, boardStopIds, defaultStop]);
+
+  const changeStop = (stop: Stop) => {
+    if (!isOnBoard(stop.id)) toggleBoardStop(stop.id);
+    writeStored(STORAGE_KEYS.boardStop, stop.id);
+    setParams({}, { replace: true });
+  };
+
+  /**
+   * “Choose stops” is a signpost, not a second way to pin: it brings the search box into view and
+   * puts the caret in it, which is the one control that adds a board. Saying the same instruction
+   * once, in the place it is read first, is what stops the page from having two competing actions.
+   */
+  const focusSearch = () => {
+    const input = document.getElementById('board-stop') as HTMLInputElement | null;
+    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input?.focus({ preventScroll: true });
   };
 
   return (
-    <div className="stack" style={{ gap: 'var(--s-6)' }}>
+    <div className="stack-6">
+      {/*
+        The board's refresh, and the page's only action — the first row of the page, which the
+        page only grows a row for when it is reached for.
+
+        Hidden, it is not a reserved-empty row: it is no box and no gap, so the board sits
+        exactly where it sat before the control existed. Revealed, it is a 44px row of its own,
+        in the flow, pushing the page down by its height — the pull has nothing left to scroll,
+        so the page makes room for the thing that was asked for instead (see
+        `useRevealOnScrollUp`). It is at the top because the gesture that summons it only exists
+        at the top: mid-board, an upward scroll is just a scroll.
+
+        `inert` while it is away: the row is collapsed and clipped, and a control that cannot be
+        seen must not be reachable by tab or by a screen reader either.
+      */}
+      <div
+        className={`board-refresh${refreshRevealed ? ' board-refresh--shown' : ''}`}
+        inert={!refreshRevealed}
+      >
+        <IconButton
+          icon="refresh"
+          label={t('Refresh departures')}
+          className="board-refresh__btn"
+          onClick={() => setTick((value) => value + 1)}
+        />
+      </div>
+
       <PageHeader
-        title="Departure boards"
-        description="Simulated departure times generated from the prototype's own network data. Filters below search that local list."
-        breadcrumbs={[{ label: 'Planner', to: '/' }, { label: 'Departure boards' }]}
-        badge={<DemoBadge label="Simulated departures" />}
-        actions={
-          <>
-            <Button icon="refresh" onClick={() => { setTick((value) => value + 1); pushToast('Board re-simulated'); }}>
-              Refresh board
-            </Button>
-            {stop ? (
-              <Link to={`/stops/${stop.id}`} className="btn">
-                <Icon name="station" size={16} />
-                Stop page
-              </Link>
-            ) : null}
-          </>
-        }
+        title={t('Departure boards')}
+        description={t('Every stop you pin, one board each.')}
       />
 
-      <Card className="stack">
-        <div className="between wrap">
-          <div className="stack-1">
-            <label className="field__label" htmlFor="board-stop">
-              Choose a stop
-            </label>
-            <select
-              id="board-stop"
-              className="select"
-              value={stopId}
-              onChange={(event) => selectStop(event.target.value)}
-              style={{ minWidth: 280 }}
-            >
-              {[...boardStops()]
-                .sort((a, b) => a.city.localeCompare(b.city, 'nl') || a.name.localeCompare(b.name, 'nl'))
-                .map((entry) => (
-                  <option key={entry.id} value={entry.id}>
-                    {entry.city} — {entry.name} ({entry.code})
-                  </option>
-                ))}
-            </select>
-          </div>
-          <div className="row-wrap">
-            <span className="field__label">Busiest in this demo</span>
-            {busiestStops(4).map((id) => (
-              <Chip key={id} selected={id === stopId} onClick={() => selectStop(id)}>
-                {stopLabel(id)}
-              </Chip>
-            ))}
-          </div>
-          {favouriteStopIds.length ? (
-            <div className="row-wrap">
-              <span className="field__label">Favourites</span>
-              {favouriteStopIds.slice(0, 5).map((id) => (
-                <Chip key={id} selected={id === stopId} icon="star" onClick={() => selectStop(id)}>
-                  {stopLabel(id)}
-                </Chip>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="grid-4">
-          <Stat label="Departures shown" value={String(board.length)} hint={`of ${rawBoard.length} in this window`} />
-          <Stat label="Example delays" value={String(delayedCount)} hint="In the generated window" />
-          <Stat label="Example cancellations" value={String(cancelledCount)} hint="In the generated window" />
-          <Stat
-            label="Auto refresh"
-            value={settings.boardAutoRefresh ? `${settings.boardAutoRefresh}s` : 'Off'}
-            hint={settings.boardAutoRefresh ? `Next in ${countdown}s` : 'Change this in Settings'}
-          />
-        </div>
-
-        <div className="row-wrap">
-          <span className="field__label">Modes</span>
-          {PT_LABEL_ORDER.map((mode) => (
-            <Chip
-              key={mode}
-              selected={modeFilter.includes(mode)}
-              onClick={() =>
-                setModeFilter((current) =>
-                  current.includes(mode) ? current.filter((item) => item !== mode) : [...current, mode],
-                )
-              }
-            >
-              <ModeIcon mode={mode} size={15} />
-              {mode}
-            </Chip>
-          ))}
-          {modeFilter.length ? (
-            <Button size="sm" variant="ghost" icon="close" onClick={() => setModeFilter([])}>
-              Clear modes
-            </Button>
-          ) : null}
-        </div>
-
-        <div className="grid-2">
-          <label className="field">
-            <span className="field__label">Filter by service number or line</span>
-            <input
-              className="input"
-              value={lineQuery}
-              onChange={(event) => setLineQuery(event.target.value)}
-              placeholder="e.g. 800, tram, RS30"
-            />
-          </label>
-          <label className="field">
-            <span className="field__label">Filter by destination</span>
-            <input
-              className="input"
-              value={destinationQuery}
-              onChange={(event) => setDestinationQuery(event.target.value)}
-              placeholder="e.g. Utrecht, Schiphol"
-            />
-          </label>
-        </div>
-
-        <div className="row-wrap">
-          <Chip selected={delayedOnly} onClick={() => setDelayedOnly((value) => !value)}>
-            Only delayed or cancelled
-          </Chip>
-          <Chip selected={hideCancelled} onClick={() => setHideCancelled((value) => !value)}>
-            Hide cancelled
-          </Chip>
-          <Chip selected={accessibleOnly} onClick={() => setAccessibleOnly((value) => !value)}>
-            Accessible boarding only
-          </Chip>
-          <Button
-            size="sm"
-            variant="ghost"
-            icon="refresh"
-            onClick={() => {
-              setModeFilter([]);
-              setLineQuery('');
-              setDestinationQuery('');
-              setDelayedOnly(false);
-              setHideCancelled(false);
-              setAccessibleOnly(false);
-            }}
-          >
-            Reset all board filters
-          </Button>
-        </div>
+      {/*
+        **One** way to put a stop on this page: the search box. It is where the action belongs —
+        you name the stop, and it becomes a board — and it does it for as many stops as you like,
+        one after another, without a second control that pins a different way. “Choose stops” in the
+        empty state below is a signpost to this field, not a second picker.
+      */}
+      <Card hero className="stack">
+        {/*
+         * One heading shorter than it was, and no line that says nothing.
+         *
+         * The card used to stack a section heading, a status line and the field's label 4px
+         * apart over a control whose placeholder asks its own question. The heading said nothing
+         * the page title does not, so it is gone; the small label the field wears stays, because
+         * "add a stop to the board" is what this control *does* and the placeholder only says
+         * how to use it. The count in between now speaks only when it has something to count —
+         * with nothing pinned and no default origin the card is the label and the field, and the
+         * empty state below explains what pinning is for.
+         */}
+        {defaultStop || pinnedStops.length > 0 ? (
+          <span className="t-sm t-muted">
+            {defaultStop
+              ? t('Showing your default origin')
+              : pinnedStops.length === 1
+                ? t('{count} stop pinned to the board', { count: pinnedStops.length })
+                : t('{count} stops pinned to the board', { count: pinnedStops.length })}
+          </span>
+        ) : null}
+        <StopCombobox
+          id="board-stop"
+          label={t('Add a stop to the board')}
+          value={fieldStop}
+          onSelect={(next) => next && changeStop(next)}
+          placeholder={t('Search a station or stop')}
+          filter={hasBoard}
+          emptyHint={t('Only a station or stop has a departure board.')}
+        />
       </Card>
 
-      {stop ? (
+      {boards.length === 0 ? (
         <Card className="stack">
+          <EmptyState
+            icon="board"
+            title={t('No stops pinned to the board')}
+            description={t(
+              'Pin a stop and its departures appear here. You can pin several at once — they are the boards this page shows, not your favourites.',
+            )}
+          >
+            <Button variant="primary" icon="search" onClick={focusSearch}>
+              {t('Choose stops')}
+            </Button>
+          </EmptyState>
+        </Card>
+      ) : null}
+
+      {boards.map(({ stop, departures, alerts, delayed }) => (
+        <Card key={stop.id} className="stack">
           <div className="between wrap">
-            <div className="row-3">
-              <span className="leg-row__marker">
-                <Icon name="board" size={18} />
+            <div className="stack-1">
+              <h2 className="t-section">{customStopName(stop.id) ?? stop.name}</h2>
+              <span className="t-sm t-muted">
+                {customStopName(stop.id) ? `${stop.name} · ` : ''}
+                {stop.city} · {stop.code} ·{' '}
+                {stop.modes
+                  .filter((mode) => mode !== 'walk' && mode !== 'bike')
+                  .map((mode) => (
+                    <span key={mode} className="row row--inline">
+                      <ModeIcon mode={mode} size={13} />
+                    </span>
+                  ))}
               </span>
-              <div className="stack-1">
-                <span className="t-strong">{stop.name}</span>
-                <span className="t-sm t-muted">
-                  {stop.city} · {stop.code} · {stop.region} · board from {format.time(fromMinutes)} (current time in this
-                  browser)
-                </span>
-              </div>
             </div>
-            <div className="row-wrap">
-              {stop.modes
-                .filter((mode) => mode !== 'walk' && mode !== 'bike')
-                .map((mode) => (
-                  <span key={mode} className={`mode-badge mode-badge--${mode}`}>
-                    <ModeIcon mode={mode} size={13} />
-                    {mode}
-                  </span>
-                ))}
+            {/*
+              The pin is the trailing control of the row that names the stop — pinned boards are
+              what this page is, so the control that removes one belongs to its own heading,
+              filled while the board is here (which it always is, on this page).
+            */}
+            <div className="card-actions">
+              <Link to={`/stops/${stop.id}`} className="btn btn--sm">
+                <Icon name="station" size={15} />
+                {t('Stop page')}
+              </Link>
               <IconButton
-                icon="star"
-                label={favouriteStopIds.includes(stop.id) ? 'Remove favourite location' : 'Add favourite location'}
-                active={favouriteStopIds.includes(stop.id)}
-                variant={favouriteStopIds.includes(stop.id) ? 'butter' : 'surface'}
-                onClick={() => toggleFavourite(stop.id)}
+                icon="pin"
+                label={
+                  isOnBoard(stop.id)
+                    ? t('Unpin {stop} from the departure board', {
+                        stop: customStopName(stop.id) ?? stop.name,
+                      })
+                    : t('Pin {stop} to the departure board', {
+                        stop: customStopName(stop.id) ?? stop.name,
+                      })
+                }
+                active={isOnBoard(stop.id)}
+                className="glyph-toggle"
+                onClick={() => toggleBoardStop(stop.id)}
               />
-              <Button
-                size="sm"
-                icon="location"
-                onClick={() => {
-                  if (!search) {
-                    pushToast('Plan a journey first to use this shortcut', 'warning');
-                    return;
-                  }
-                  startSearch({ ...search.query, fromStopId: stop.id, preferences });
-                  navigate('/results');
-                }}
-              >
-                Plan from here
-              </Button>
-              <Button
-                size="sm"
-                icon="arrowRight"
-                onClick={() => {
-                  if (!search) {
-                    pushToast('Plan a journey first to use this shortcut', 'warning');
-                    return;
-                  }
-                  startSearch({ ...search.query, toStopId: stop.id, preferences });
-                  navigate('/results');
-                }}
-              >
-                Plan to here
-              </Button>
             </div>
           </div>
 
+          <div className="between wrap">
+            <span className="field__label">
+              {t('Next departures · from {time}', { time: format.time(minutes) })}
+            </span>
+            <span className="t-sm t-faint">
+              {delayed
+                ? t(delayed === 1 ? '{count} delay in this window · ' : '{count} delays in this window · ', {
+                    count: delayed,
+                  })
+                : ''}
+              {t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
+            </span>
+          </div>
+
+          <BoardList departures={departures} limit={6} />
+
           {alerts.length ? (
-            <div className="row-wrap">
-              <span className="field__label">Example alerts at this stop</span>
-              {alerts.slice(0, 3).map((alert) => (
-                <Link key={alert.id} to={`/disruptions/${alert.id}`} className="pill pill--coral">
-                  <Icon name="alert" size={13} />
-                  {alert.title}
-                </Link>
-              ))}
-              {alerts.length > 3 ? (
-                <Link to="/disruptions" className="t-sm t-muted">
-                  +{alerts.length - 3} more
-                </Link>
-              ) : null}
-            </div>
+            <Link to={`/disruptions?stop=${stop.id}`} className="row t-sm tap-target board-alerts">
+              <Icon name="alert" size={15} />
+              {t(alerts.length === 1 ? '{count} alert affects {stop}' : '{count} alerts affect {stop}', {
+                count: alerts.length,
+                stop: customStopName(stop.id) ?? stop.name,
+              })}
+              <Icon name="chevronRight" size={14} />
+            </Link>
           ) : null}
 
-          <DepartureTable departures={board} onSelectStop={(id) => navigate(`/stops/${id}`)} />
+          {/*
+            The planning shortcuts belong to the board they name: with several boards on this
+            page, "from here" has to mean a particular stop.
 
-          <p className="t-sm t-faint">
-            The board reflects the current time in your browser and is regenerated each time you refresh or the
-            auto-refresh interval elapses. Every entry is simulated demonstration data.
-          </p>
+            The 4px step above the row is not decoration. The alerts link above it is a
+            `tap-target`, whose hit area reaches 14px beyond its own box; a card's 12px gap left
+            the buttons' top 2px inside the link's overlay, so a press on the very top of "Plan from
+            here" hit the link instead (measured: the 44×44 probe at the button's top edge landed on
+            `a.row.tap-target`). One small step of separation is what makes both targets real — the
+            same fix, for the same reason, as the board's "Show N more" row.
+          */}
+          <div className="row-wrap" style={{ marginTop: 'var(--s-1)' }}>
+            <Button
+              size="sm"
+              /* `route`, not the crosshair: this plans a journey, it does not locate anyone. */
+              icon="route"
+              onClick={() => {
+                if (!search) {
+                  pushToast('Plan a journey first to use this shortcut', 'warning');
+                  return;
+                }
+                startSearch({ ...search.query, fromStopId: stop.id, preferences });
+                navigate('/results');
+              }}
+            >
+              {t('Plan from here')}
+            </Button>
+            <Button
+              size="sm"
+              /* Same glyph as "Plan from here" beside it — the pair is one action, and the
+                 words say which end of the journey this stop is. */
+              icon="route"
+              onClick={() => {
+                if (!search) {
+                  pushToast('Plan a journey first to use this shortcut', 'warning');
+                  return;
+                }
+                startSearch({ ...search.query, toStopId: stop.id, preferences });
+                navigate('/results');
+              }}
+            >
+              {t('Plan to here')}
+            </Button>
+          </div>
         </Card>
-      ) : (
-        <EmptyState icon="board" title="Choose a stop" description="Select a stop above to see its simulated departure board." />
-      )}
+      ))}
 
-      <Panel className="stack-2">
-        <span className="field__label">How this board works</span>
-        <ul className="stack-1 t-sm">
-          <li>Departures are generated from the prototype's own service lines and headways.</li>
-          <li>Delays, cancellations and platforms are deliberately invented examples so the interface can be tested.</li>
-          <li>Filters and the search fields run entirely against this local demonstration list.</li>
-          <li>Auto-refresh can be set to off, 30 or 60 seconds in Settings.</li>
-        </ul>
-      </Panel>
+      {/* “About this board” describes a board — its clock, its refresh — so a page with no board
+          does not get it. The planning shortcuts it also carries live on the stop's own page. */}
+      {boards.length ? (
+        <Panel className="stack-2">
+          <span className="field__label">{t('About this board')}</span>
+          <ul className="stack-1 t-sm">
+            <li>{t('Times are relative to the current time in your browser.')}</li>
+            <li>{t('Delays and platforms are shown for each departure.')}</li>
+            <li>
+              {t('This board refreshes itself every {seconds} seconds.', {
+                seconds: BOARD_REFRESH_SECONDS,
+              })}
+            </li>
+            <li>
+              {t(
+                'A pinned stop is a board on this page. A favourite — the heart — is a stop you like, and it leads your stop lists and your search.',
+              )}
+            </li>
+          </ul>
+        </Panel>
+      ) : null}
+
     </div>
   );
 }

@@ -1,29 +1,49 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import { DepartureTable } from '../components/stops/DepartureTable';
-import { getStop, nearbyStops, stopLabel, walkMinutesBetween } from '../data/stops';
+import { BoardList } from '../components/stops/BoardList';
+import {
+  customStopName,
+  getStop,
+  hasBoard,
+  nearbyStops,
+  stopLabel,
+  walkMinutesBetween,
+} from '../data/stops';
 import { getLine, linesAtStop } from '../data/network';
 import { operatorName } from '../data/operators';
 import { disruptionsForStop } from '../data/disruptions';
 import { boardForStop } from '../data/departures';
-import { nowMinutes } from '../lib/boardHelpers';
-import { Button, Card, DemoBadge, EmptyState, IconButton, Panel, Pill, Stat } from '../components/ui/primitives';
+import { useMinuteNow } from '../lib/useMinuteNow';
+import { Button, Card, EmptyState, IconButton, Pill } from '../components/ui/primitives';
+import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { useT } from '../lib/useT';
+import { stopTypeLabel } from '../lib/format';
+import { modeLabel } from '../data/preferences';
 
 export function StopDetailPage() {
   const { stopId } = useParams();
   const navigate = useNavigate();
-  const { favouriteStopIds, toggleFavourite, search, startSearch, preferences, pushToast } = useApp();
+  const {
+    favouriteStopIds,
+    toggleFavourite,
+    boardStopIds,
+    toggleBoardStop,
+    search,
+    startSearch,
+    preferences,
+  } = useApp();
   const format = useFormat();
+  const t = useT();
   const stop = getStop(stopId);
 
   if (!stop) {
     return (
-      <div className="stack" style={{ gap: 'var(--s-6)' }}>
-        <PageHeader title="Unknown stop" description="This stop is not part of the demonstration network." breadcrumbs={[{ label: 'Stops', to: '/stops' }]} />
+      <div className="stack-6">
+        <PageHeader title="Unknown stop" description="This stop is not in the network." />
         <EmptyState icon="station" title="Stop not found" description="Pick a stop from the full list instead.">
           <Link to="/stops" className="btn btn--primary">
             <Icon name="station" size={16} />
@@ -34,61 +54,93 @@ export function StopDetailPage() {
     );
   }
 
-  const favourite = favouriteStopIds.includes(stop.id);
+  const isFavourite = favouriteStopIds.includes(stop.id);
+  const onBoard = boardStopIds.includes(stop.id);
   const lines = linesAtStop(stop.id);
-  const fromMinutes = Math.max(0, nowMinutes() - 1);
-  const board = boardForStop(stop.id, { fromMinutes, limit: 6, tick: 0 });
-  const boardTotal = boardForStop(stop.id, { fromMinutes, limit: 30, tick: 0 });
+  /*
+   * The minute the browser is actually in, re-read on the minute (see `useMinuteNow`). It used to
+   * be `nowMinutes() - 1`, which put the board and the "showing from" line one minute behind the
+   * clock — the defect reported as "the website often has the time wrong".
+   */
+  const minutes = useMinuteNow();
+  const board = boardForStop(stop.id, { fromMinutes: minutes, limit: 6, tick: 0 });
   const alerts = disruptionsForStop(stop.id);
   const nearby = useMemo(() => nearbyStops(stop.id, 4), [stop.id]);
+  /* The head's Plan button asks the same question the stop cards do (see `PlanStopDialog`). */
+  const [planOpen, setPlanOpen] = useState(false);
 
   const planTo = (direction: 'from' | 'to') => {
     if (!search) {
-      pushToast('Plan a journey first, then use these shortcuts', 'warning');
+      /*
+       * Nothing planned yet, so there is no other end to attach this to — the same answer the
+       * stop cards give: open the planner with this stop in the row that was chosen. No toast,
+       * because the planner's filled row is the message.
+       */
       navigate(`/?${direction === 'from' ? 'from' : 'to'}=${stop.id}`);
       return;
     }
     startSearch({ ...search.query, ...(direction === 'from' ? { fromStopId: stop.id } : { toStopId: stop.id }), preferences });
-    pushToast('Simulated results updated for this stop', 'success');
     navigate('/results');
   };
 
   return (
-    <div className="stack" style={{ gap: 'var(--s-6)' }}>
+    <div className="stack-6">
       <PageHeader
-        title={stop.name}
-        description={`${stop.city} · ${stop.region} · stop code ${stop.code} (example identifier)`}
-        breadcrumbs={[{ label: 'Stations & stops', to: '/stops' }, { label: stop.name }]}
-        badge={<DemoBadge />}
+        /*
+         * The traveller's name for this stop when they gave it one, with the official name kept
+         * in the description beneath — a page that says only "Work" cannot be checked against a
+         * timetable, and a page that says only "Herengracht 12" is not the name they chose.
+         */
+        title={customStopName(stop.id) ?? stop.name}
+        description={`${customStopName(stop.id) ? `${stop.name} · ` : ''}${stop.city} · ${stop.region} · stop code ${stop.code}`}
         actions={
           <>
-            <Button
-              variant={favourite ? 'butter' : 'surface'}
-              icon="star"
+            {/*
+              Two controls, two different questions — this page is the one place both are offered,
+              so their names say which is which (the glyphs alone are a heart and a pin, which is
+              the whole point of the split):
+
+                - the **heart** is a favourite — "I use this place", which leads the stop lists
+                  and the search results;
+                - the **pin** puts this stop's board on the departure screen.
+
+              Both are trailing, after Plan, in the row that names the stop: `actions` is the
+              head's trailing group, so being last in it is being trailing (the audit measured
+              this control on the left before).
+            */}
+            <Button size="sm" icon="route" onClick={() => setPlanOpen(true)}>
+              Plan
+            </Button>
+            <IconButton
+              icon="heart"
+              label={t(
+                isFavourite
+                  ? 'Remove {stop} from favourites'
+                  : 'Add {stop} to favourites',
+                { stop: customStopName(stop.id) ?? stop.name },
+              )}
+              active={isFavourite}
+              className="glyph-toggle"
               onClick={() => toggleFavourite(stop.id)}
-              aria-pressed={favourite}
-            >
-              {favourite ? 'Favourite location' : 'Add to favourites'}
-            </Button>
-            <Button icon="location" onClick={() => planTo('from')}>
-              Plan from here
-            </Button>
-            <Button icon="arrowRight" onClick={() => planTo('to')}>
-              Plan to here
-            </Button>
+            />
+            <IconButton
+              icon="pin"
+              label={t(
+                onBoard
+                  ? 'Unpin {stop} from the departure board'
+                  : 'Pin {stop} to the departure board',
+                { stop: customStopName(stop.id) ?? stop.name },
+              )}
+              active={onBoard}
+              className="glyph-toggle"
+              onClick={() => toggleBoardStop(stop.id)}
+            />
           </>
         }
       />
 
-      <div className="grid-4">
-        <Stat label="Services" value={String(lines.length)} hint="Lines calling at this stop" />
-        <Stat label="Departures today" value={String(boardTotal.length)} hint="In the generated window" />
-        <Stat label="Example alerts" value={String(alerts.length)} hint="Simulated, never real" />
-        <Stat label="Step-free" value={stop.accessibility.stepFree ? 'Yes' : 'No'} hint={stop.accessibility.lift ? 'Lift available' : 'No lift listed'} />
-      </div>
-
       <div className="grid-2" style={{ alignItems: 'start' }}>
-        <div className="stack" style={{ gap: 'var(--s-4)' }}>
+        <div className="stack-4">
           <Card className="stack">
             <div className="between wrap">
               <h2 className="t-section">Stop information</h2>
@@ -96,14 +148,25 @@ export function StopDetailPage() {
                 {stop.modes.map((mode) => (
                   <span key={mode} className={`mode-badge mode-badge--${mode}`}>
                     <ModeIcon mode={mode} size={13} />
-                    {mode}
+                    {modeLabel(mode)}
                   </span>
                 ))}
               </div>
             </div>
+            {/*
+              The one sentence that says what the two glyphs in the head do, on the page that
+              offers both. A heart is a favourite (a place you use — it leads your lists); a pin
+              is a promise to the departures screen (its board is on that page). Neither is the
+              other, so neither is described as the other.
+            */}
+            <p className="t-sm t-faint">
+              <Icon name="heart" size={13} /> {t('Favourite stops lead your stop lists.')}{' '}
+              <Icon name="pin" size={13} />
+              {t('Pinned stops have their board on the departure board page.')}
+            </p>
             <dl className="dl">
               <dt>Type</dt>
-              <dd>{stop.type}</dd>
+              <dd>{stopTypeLabel(stop.type)}</dd>
               <dt>City</dt>
               <dd>{stop.city}</dd>
               <dt>Region</dt>
@@ -117,45 +180,65 @@ export function StopDetailPage() {
                 {stop.bikeParking ? 'Secure bicycle parking' : 'No bicycle parking listed'}
                 {stop.ovFiets ? ' · OV-fiets rental available' : ''}
               </dd>
+              {/*
+                Accessibility is a row of this table, not a second block of its own: it is one
+                more fact about the place, and it is a fact about *boarding*, so a walking
+                landmark does not claim it at all — "step-free, lift available" says nothing
+                about a museum entrance (see `hasBoard` in `data/stops`).
+              */}
+              {hasBoard(stop) ? (
+                <>
+                  <dt>Accessibility</dt>
+                  <dd className="row-wrap">
+                    <Pill tone={stop.accessibility.stepFree ? 'sage' : 'coral'}>
+                      {stop.accessibility.stepFree ? 'Step-free access' : 'Stairs only'}
+                    </Pill>
+                    <Pill tone={stop.accessibility.lift ? 'sage' : 'outline'}>
+                      {stop.accessibility.lift ? 'Lift' : 'No lift'}
+                    </Pill>
+                    <Pill tone={stop.accessibility.tactilePaving ? 'sage' : 'outline'}>
+                      {stop.accessibility.tactilePaving ? 'Tactile paving' : 'No tactile paving'}
+                    </Pill>
+                    <Pill tone={stop.accessibility.assistance ? 'sage' : 'outline'}>
+                      {stop.accessibility.assistance ? 'Staff assistance' : 'No staff assistance'}
+                    </Pill>
+                    <Pill tone={stop.accessibility.lowFloorBoarding ? 'sage' : 'outline'}>
+                      {stop.accessibility.lowFloorBoarding ? 'Low-floor boarding' : 'Not low-floor'}
+                    </Pill>
+                  </dd>
+                </>
+              ) : null}
             </dl>
-            <h3 className="t-section" style={{ marginTop: 'var(--s-2)' }}>
-              Accessibility (example data)
-            </h3>
-            <div className="row-wrap">
-              <Pill tone={stop.accessibility.stepFree ? 'sage' : 'coral'}>
-                {stop.accessibility.stepFree ? 'Step-free access' : 'Stairs only'}
-              </Pill>
-              <Pill tone={stop.accessibility.lift ? 'sage' : 'outline'}>{stop.accessibility.lift ? 'Lift' : 'No lift'}</Pill>
-              <Pill tone={stop.accessibility.tactilePaving ? 'sage' : 'outline'}>
-                {stop.accessibility.tactilePaving ? 'Tactile paving' : 'No tactile paving'}
-              </Pill>
-              <Pill tone={stop.accessibility.assistance ? 'sage' : 'outline'}>
-                {stop.accessibility.assistance ? 'Staff assistance' : 'No staff assistance'}
-              </Pill>
-              <Pill tone={stop.accessibility.lowFloorBoarding ? 'sage' : 'outline'}>
-                {stop.accessibility.lowFloorBoarding ? 'Low-floor boarding' : 'Not low-floor'}
-              </Pill>
-            </div>
           </Card>
 
+          {hasBoard(stop) ? (
           <Card className="stack">
-            <div className="between wrap">
-              <div className="stack-1">
-                <h2 className="t-section">Simulated departure board</h2>
-                <span className="t-sm t-muted">Showing from {format.time(fromMinutes)} — the current time in this browser</span>
-              </div>
+            <div className="stack-1">
+              <h2 className="t-section">Next departures</h2>
+              <span className="t-sm t-muted">Showing from {format.time(minutes)} — the current time in this browser</span>
+            </div>
+            {/*
+              The way **on** from this card, at the start of its own line under the line that names
+              the board — not in the trailing group `.card-actions` builds for the controls that
+              belong at the card's right edge (the keep-a-stop pin, a dismiss). A link that is the
+              next step reads as an action of the card, and it was reported as being on the wrong
+              side of one; it is the same words and the same glyph the home widget's copy of this
+              control uses.
+            */}
+            <div className="row-wrap">
               <Link to={`/departures?stop=${stop.id}`} className="btn btn--sm">
                 <Icon name="board" size={15} />
-                Full board & filters
+                Open the full board
               </Link>
             </div>
-            <DepartureTable departures={board} onSelectStop={(id) => navigate(`/stops/${id}`)} />
+            <BoardList departures={board} limit={5} />
           </Card>
+          ) : null}
 
           <Card className="stack">
-            <h2 className="t-section">Example alerts at this stop</h2>
+            <h2 className="t-section">Alerts at this stop</h2>
             {alerts.length === 0 ? (
-              <p className="t-sm t-muted">No simulated alerts affect this stop in the prototype dataset.</p>
+              <p className="t-sm t-muted">No alerts affect this stop right now.</p>
             ) : (
               <ul className="stack-2">
                 {alerts.map((alert) => (
@@ -174,58 +257,58 @@ export function StopDetailPage() {
                 ))}
               </ul>
             )}
-            <p className="t-sm t-faint">None of these alerts describe a real, current situation.</p>
           </Card>
         </div>
 
-        <div className="stack" style={{ gap: 'var(--s-4)' }}>
+        <div className="stack-4">
           <Card className="stack">
             <div className="between">
-              <h2 className="t-section">Position on the prototype map</h2>
-              <Link to="/map" className="btn btn--sm">
+              <h2 className="t-section">Position on the map</h2>
+              <Link to={`/map?stop=${stop.id}`} className="btn btn--sm">
                 <Icon name="map" size={15} />
                 Open map
               </Link>
             </div>
-            <svg className="map-canvas" viewBox="0 0 40 40" role="img" aria-label="Schematic local view of this stop">
-              <rect x="0" y="0" width="40" height="40" className="map-water" />
-              <path className="map-land" d="M2 2 L38 1 L38 38 L2 38 Z" />
+            {/*
+              Same 100-unit canvas and stop radius as the map module so the local
+              view is drawn at the intended scale, and labels flip to the left of a
+              stop when they would otherwise run off the canvas.
+            */}
+            <svg
+              className="map-canvas"
+              viewBox="0 0 100 100"
+              role="img"
+              aria-label={`Schematic local view of ${stop.name} and the stops around it`}
+            >
+              <rect x="0" y="0" width="100" height="100" className="map-water" />
+              <path className="map-land" d="M5 5 L95 3 L95 95 L5 95 Z" />
               {nearby.slice(0, 5).map((neighbour) => {
-                const dx = neighbour.coordinates.x - stop.coordinates.x;
-                const dy = neighbour.coordinates.y - stop.coordinates.y;
+                const nx = 50 + (neighbour.coordinates.x - stop.coordinates.x) * 5.5;
+                const ny = 50 + (neighbour.coordinates.y - stop.coordinates.y) * 5.5;
+                const anchorEnd = nx < 50;
                 return (
                   <g key={neighbour.id}>
-                    <line
-                      className="map-route--walk"
-                      x1={20}
-                      y1={20}
-                      x2={20 + dx * 2.2}
-                      y2={20 + dy * 2.2}
-                    />
+                    <line className="map-route--walk" x1={50} y1={50} x2={nx} y2={ny} />
                     <g
                       className="map-stop"
-                      transform={`translate(${20 + dx * 2.2} ${20 + dy * 2.2})`}
+                      transform={`translate(${nx} ${ny})`}
                       onClick={() => navigate(`/stops/${neighbour.id}`)}
                     >
-                      <circle r={1.4} />
-                      <text x={2} y={0.8}>
-                        {neighbour.name}
+                      <circle r={1.2} />
+                      <text x={anchorEnd ? -3 : 3} y={0.8} textAnchor={anchorEnd ? 'end' : 'start'}>
+                        {neighbour.name.replace(`${neighbour.city}, `, '')}
                       </text>
                     </g>
                   </g>
                 );
               })}
-              <g className="map-stop map-stop--selected" transform="translate(20 20)">
-                <circle r={2.2} />
-                <text x={3} y={0.8}>
-                  {stop.name}
+              <g className="map-stop map-stop--selected" transform="translate(50 50)">
+                <circle r={1.9} />
+                <text x={4} y={0.8}>
+                  {customStopName(stop.id) ?? stop.name.replace(`${stop.city}, `, '')}
                 </text>
               </g>
             </svg>
-            <p className="t-sm t-faint">
-              Schematic local view drawn on the prototype's own canvas — not geographically accurate and not based on
-              real map tiles.
-            </p>
           </Card>
 
           <Card className="stack">
@@ -267,17 +350,17 @@ export function StopDetailPage() {
           <Card className="stack">
             <h2 className="t-section">Nearby stops</h2>
             {nearby.length === 0 ? (
-              <p className="t-sm t-muted">No other stop lies within walking distance in the demonstration layout.</p>
+              <p className="t-sm t-muted">No other stop is within walking distance.</p>
             ) : (
               <ul className="stack-2">
                 {nearby.slice(0, 6).map((neighbour) => (
                   <li key={neighbour.id} className="list-row list-row--static">
                     <span className="stack-1 grow">
-                      <Link to={`/stops/${neighbour.id}`} className="t-strong t-sm">
+                      <Link to={`/stops/${neighbour.id}`} className="t-strong t-sm tap-target">
                         {neighbour.name}
                       </Link>
                       <span className="t-sm t-muted">
-                        {walkMinutesBetween(stop, neighbour)} min walk (simulated) · {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').join(', ') || 'walking only'}
+                        {walkMinutesBetween(stop, neighbour)} min walk · {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').join(', ') || 'walking only'}
                       </span>
                     </span>
                     <IconButton icon="chevronRight" label={`Open ${neighbour.name}`} onClick={() => navigate(`/stops/${neighbour.id}`)} />
@@ -287,27 +370,22 @@ export function StopDetailPage() {
             )}
           </Card>
 
-          <Panel className="stack-2">
-            <span className="field__label">Shortcuts</span>
-            <div className="row-wrap">
-              <Button size="sm" icon="route" onClick={() => planTo('from')}>
-                From this stop
-              </Button>
-              <Button size="sm" icon="route" onClick={() => planTo('to')}>
-                To this stop
-              </Button>
-              <Link to={`/departures?stop=${stop.id}`} className="btn btn--sm">
-                <Icon name="board" size={15} />
-                Departures
-              </Link>
-              <Link to="/disruptions" className="btn btn--sm">
-                <Icon name="alert" size={15} />
-                All alerts
-              </Link>
-            </div>
-          </Panel>
         </div>
       </div>
+
+      {/*
+        The head's one Plan button, asking the two-choice question the stop cards ask. What
+        used to sit here — a pair of PLAN FROM HERE / PLAN TO HERE buttons at the head, and a
+        Shortcuts panel repeating them lower down — was the same two actions, three times.
+      */}
+      <PlanStopDialog
+        stop={planOpen ? stop : null}
+        onClose={() => setPlanOpen(false)}
+        onPlan={(direction) => {
+          planTo(direction);
+          setPlanOpen(false);
+        }}
+      />
     </div>
   );
 }

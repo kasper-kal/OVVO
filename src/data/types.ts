@@ -1,9 +1,8 @@
 /**
- * Domain types for the OV Planner prototype.
+ * Domain types for OVVO.
  *
- * Everything in `src/data` is CLEARLY LABELLED DEMONSTRATION DATA. The shapes
- * below match the vocabulary a real transport-data provider would use, so the
- * mock layer can be swapped for a live service without touching the UI.
+ * The shapes match the vocabulary a transport-data provider uses, so the seed
+ * data in `src/data` can be swapped for a live service without touching the UI.
  */
 
 export type TravelMode = 'walk' | 'train' | 'bus' | 'tram' | 'metro' | 'ferry' | 'bike';
@@ -14,9 +13,16 @@ export type PublicMode = Exclude<TravelMode, 'walk' | 'bike'>;
 export type StopType = 'station' | 'busstop' | 'tramstop' | 'metrostop' | 'ferrystop' | 'airport' | 'landmark';
 
 export interface Coordinates {
-  /** Illustrative position on the prototype's own 0–100 canvas (NOT geo-accurate). */
+  /** Schematic position on the app's 0–100 canvas (NOT geo-accurate). */
   x: number;
   y: number;
+}
+
+export interface GeoPosition {
+  /** WGS84 latitude. */
+  lat: number;
+  /** WGS84 longitude. */
+  lon: number;
 }
 
 export interface Accessibility {
@@ -37,7 +43,10 @@ export interface Stop {
   modes: TravelMode[];
   platforms: string[];
   region: string;
+  /** Schematic position used by the map and the layout maths. */
   coordinates: Coordinates;
+  /** Real WGS84 position, used for distance, walking and "near me" lookups. */
+  geo: GeoPosition;
   facilities: string[];
   accessibility: Accessibility;
   bikeParking: boolean;
@@ -147,7 +156,7 @@ export interface Disruption {
   affectedLineIds: string[];
   operatorIds: string[];
   modes: PublicMode[];
-  /** Minutes since midnight for the demo day. */
+  /** Minutes since midnight. */
   startsAt: number;
   endsAt: number;
   source: 'demo';

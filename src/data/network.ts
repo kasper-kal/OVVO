@@ -2,9 +2,11 @@ import { requireStop, walkMinutesBetween, STOPS, getStop } from './stops';
 import type { Line, PublicMode } from './types';
 
 /**
- * DEMONSTRATION DATA — the prototype's own transit network.
- * Corridors are inspired by the Dutch network but the timetable information is
- * entirely simulated: no live feed, no routing engine, no external API.
+ * Transit network data.
+ *
+ * Corridors follow the Dutch network; ride times and service windows are the
+ * figures this build ships with. The shapes match a real timetable source, so a
+ * live feed can replace this module without touching the interface.
  */
 
 export interface NetworkLine extends Line {
@@ -189,6 +191,18 @@ export function isInService(line: NetworkLine, minutes: number): boolean {
   return t >= line.serviceStart && t <= line.serviceEnd;
 }
 
+/**
+ * The reach of the walk-link network, in walking minutes. Walking itself is capped by
+ * the traveller's own limit; this is the outer bound the link set is built at, and it
+ * is also what a bicycle link is allowed to span (at bicycle speed, so roughly six
+ * minutes of riding) — a bicycle that could only reach as far as a walk was not a
+ * bicycle, which is why the walk/bicycle choice changed nothing on a normal search.
+ */
+export const WALK_EDGE_MAX_MINUTES = 20;
+
+/** Riding is this many times faster than walking on the same link. */
+export const BIKE_SPEED_FACTOR = 3.2;
+
 /** Walking edges between nearby stops — used for transfer and access legs. */
 export interface WalkEdge {
   fromStopId: string;
@@ -202,7 +216,7 @@ export const WALK_EDGES: WalkEdge[] = (() => {
     for (const b of STOPS) {
       if (a.id === b.id) continue;
       const minutes = walkMinutesBetween(a, b);
-      if (minutes <= 20) edges.push({ fromStopId: a.id, toStopId: b.id, minutes });
+      if (minutes <= WALK_EDGE_MAX_MINUTES) edges.push({ fromStopId: a.id, toStopId: b.id, minutes });
     }
   }
   return edges;

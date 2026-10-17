@@ -49,11 +49,11 @@
   color: var(--on-dark-muted);
 }
 
-/* Nested radius = R_inner (16px) inside a 28px card with 12px padding. */
+/* Nested radius = R_outer - padding (28 - 16 = 12px) so corners stay concentric. */
 .panel {
   background: var(--l1-bg);
   border: var(--l1-border);
-  border-radius: var(--r-inner);
+  border-radius: var(--r-nested);
   padding: var(--s-3);
 }
 
@@ -63,17 +63,17 @@
 
 .panel--accent {
   background: var(--accent-secondary);
-  border-color: #efe2a0;
+  border-color: var(--tint-butter-border);
 }
 
 .panel--coral {
   background: var(--tint-coral);
-  border-color: #f6d3cd;
+  border-color: var(--tint-coral-border);
 }
 
 .panel--sage {
   background: var(--tint-sage);
-  border-color: #cfdcc9;
+  border-color: var(--tint-sage-border);
 }
 
 .panel--obsidian {
@@ -86,12 +86,32 @@
   border-top: 1px solid var(--border-hairline);
 }
 
+/* A row that sits inside a line of text — the mode glyphs under a stop name on the
+   departures board. An inline-flex box takes its baseline from its first item, and an
+   svg's bottom edge is its baseline, so those glyphs rode ~3px high on the line (measured:
+   train -2.59px, tram/bus/ferry -3.00px, metro -3.40px against the label's x-height centre).
+   `vertical-align: middle` puts the box on the line's optical centre — the same rule plain
+   icons already get from `svg` in base.css. */
+.row--inline {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
 /* ------------------------------------------------------------------- Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s-2);
+  /*
+   * A long label on a narrow screen wraps inside its own pill instead of pushing the page
+   * sideways. A flex item's automatic minimum is its content, so without this a button whose
+   * text is wider than its row simply runs off the screen: measured in Dutch at 320px, where
+   * "Alle opgeslagen gegevens verwijderen" drew a 312px pill in a 264px card.
+   */
+  min-width: 0;
+  max-width: 100%;
+  text-align: center;
   min-height: var(--target-min);
   padding: 0 var(--s-4);
   border-radius: var(--r-pill);
@@ -133,12 +153,12 @@
 
 .btn--accent {
   background: var(--accent-primary);
-  border-color: #e9694f;
+  border-color: var(--accent-primary-border);
   color: var(--struct-main);
 }
 
 .btn--accent:hover {
-  background: #ff9077;
+  background: var(--accent-primary-hover);
 }
 
 .btn--ghost {
@@ -154,13 +174,13 @@
 
 .btn--sage {
   background: var(--tint-sage);
-  border-color: #cfdcc9;
+  border-color: var(--tint-sage-border);
   color: var(--struct-secondary);
 }
 
 .btn--butter {
   background: var(--accent-secondary);
-  border-color: #efe2a0;
+  border-color: var(--tint-butter-border);
   color: var(--struct-main);
 }
 
@@ -173,14 +193,125 @@
 .btn--icon-circle {
   width: var(--target-min);
   height: var(--target-min);
+  /* A row that runs short must not squeeze this one axis only: measured on the stop page,
+     three of these drew 21/26/39px wide against a 44px height — ovals, not circles, and
+     targets under the mark. */
+  flex: none;
   padding: 0;
   border-radius: var(--r-circle);
+}
+
+/*
+ * A glyph toggle — a bare stateful glyph on whatever it belongs to, in two shapes:
+ *
+ *   - the **heart**, for a favourite stop (`Add {stop} to favourites`), which leads the stop
+ *     lists and the search;
+ *   - the **pin**, for a stop pinned to the departure board, whose board is on that page.
+ *
+ * One class because they behave identically: the glyph paints nothing behind itself — the
+ * `--ghost` hover background made a chip appear under the pointer, which is not a thing this
+ * control does — and **a kept state is the glyph itself, filled with ink**, not a yellow pill.
+ * The fill is on the glyph, so the padded 44px target around it stays invisible.
+ *
+ * The pin is Lucide's **drawing pin**, not the teardrop (`mapPin`), so the fill reads as a pin
+ * that has been pushed in. The teardrop meant both *where something is* and *this one is mine*
+ * — asked for by name in the audit's complaint. See `pin` and `heart` in `Icons.tsx`.
+ */
+.glyph-toggle,
+.glyph-toggle:hover,
+.glyph-toggle:focus-visible {
+  background: transparent;
+  border-color: transparent;
+}
+
+.glyph-toggle[aria-pressed='true'] {
+  color: var(--ink-strong);
+}
+
+.glyph-toggle[aria-pressed='true'] .icon {
+  fill: currentColor;
+}
+
+/*
+ * A card's own actions, held at the trailing edge.
+ *
+ * The audit caught the same control reading `right` at 390 and `left` at 320: a heading row is
+ * `between wrap`, so when the two halves stop fitting the *actions* group drops to a second line
+ * at the **left** — measured on the departure board at 320px, where the keep-a-stop pin's
+ * midpoint had crossed the card's centre and the control was reported on the other side of the
+ * card. `margin-inline-start: auto` holds the group at the trailing edge on the wrapped line too,
+ * so a control that is trailing stays trailing at every width.
+ */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+
+/*
+ * A bare icon: the glyph and its 44px target, nothing else. Hovering a `--ghost` button adds a
+ * background and a hairline, which turns an icon the traveller already understands into a chip
+ * appearing under the pointer. This one never paints.
+ */
+.btn--bare,
+.btn--bare:hover,
+.btn--bare:focus-visible {
+  background: transparent;
+  border-color: transparent;
+}
+
+/*
+ * The board's refresh, a row the page grows when it is reached for.
+ *
+ * It is summoned from the top of the page only, by the pull that has nowhere left to go (see
+ * `useRevealOnScrollUp`), and it is **in the page** rather than over it: hidden it is nothing
+ * at all — no box and no gap — so the board sits exactly where it sat before the control
+ * existed, and the moment it is revealed it takes a row of its own and pushes everything below
+ * it down by its height. The overlay version floated over the first departure row at every
+ * scroll position, which read as chrome stuck to the screen rather than a thing the page did.
+ *
+ * The row is inside a `gap` column, and a zero-height flex child still pays the gap on both
+ * sides, so the gap below it is handed straight back while the row is empty. Both halves of the
+ * swap are animated — height and that margin — so the page moves once and smoothly.
+ */
+.board-refresh {
+  display: flex;
+  justify-content: center;
+  height: 0;
+  margin-bottom: calc(-1 * var(--s-6));
+  overflow: hidden;
+  transition: height var(--t-hover) var(--ease-hover), margin-bottom var(--t-hover) var(--ease-hover);
+}
+
+.board-refresh--shown {
+  height: var(--target-min);
+  margin-bottom: 0;
+}
+
+/*
+ * No pill, no fill and no ring in any state: a bare glyph the page grew a row for, quiet until
+ * the pointer is on it. The 44px disc is still there to be tapped (`btn--icon-circle`), it is
+ * simply not painted.
+ */
+.board-refresh__btn,
+.board-refresh__btn:hover,
+.board-refresh__btn:active {
+  background: none;
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+
+.board-refresh__btn:hover,
+.board-refresh__btn:active {
+  color: var(--ink-strong);
 }
 
 .btn--sm {
   min-height: var(--target-min); /* CHK-04: smaller labels, same touch target */
   padding: 0 var(--s-3);
-  font-size: 10px;
+  font-size: var(--fs-pill); /* same label scale as every other button */
 }
 
 .btn--block {
@@ -204,7 +335,10 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-1);
-  height: 24px;
+  /* A minimum, not a fixed height: a short pill is still one 24px line, but a long
+     one (the preferences summary lists every mode) wraps inside its rounded box
+     instead of pushing the whole page into a horizontal scroll on a 320px phone. */
+  min-height: 24px;
   padding: 0 var(--s-2);
   border-radius: var(--r-pill);
   background: var(--l1-bg);
@@ -214,24 +348,34 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--track-pill);
   line-height: var(--lh-pill);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The preferences summary is the one place a tag can be long enough to wrap, and a
+   wrapped capsule needs the air that a single line gets from its own height: with none,
+   the two lines sat against the top and bottom edges and ran into the rounded ends. The
+   same tag, one step roomier, and only in that list. */
+.pill-list .pill {
+  padding: var(--s-2) var(--s-3);
+  line-height: 1.35;
 }
 
 .pill--coral {
   background: var(--tint-coral);
-  border-color: #f6d3cd;
-  color: #8f3423;
+  border-color: var(--tint-coral-border);
+  color: var(--tint-coral-ink);
 }
 
 .pill--sage {
   background: var(--tint-sage);
-  border-color: #cfdcc9;
+  border-color: var(--tint-sage-border);
   color: var(--struct-secondary);
 }
 
 .pill--butter {
   background: var(--accent-secondary);
-  border-color: #efe2a0;
+  border-color: var(--tint-butter-border);
   color: var(--struct-main);
 }
 
@@ -263,7 +407,7 @@
 }
 
 .pill__dot--butter {
-  background: #e6cf3f;
+  background: var(--tint-butter-strong);
 }
 
 .chip {
@@ -302,6 +446,16 @@
   color: var(--on-dark);
 }
 
+/* A mode chip carries the colour its routes are drawn in on the map. */
+.chip .map-legend__swatch {
+  flex: 0 0 auto;
+  width: 16px;
+}
+
+.chip[aria-pressed='true'] .map-legend__swatch {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--on-dark) 70%, transparent);
+}
+
 .chip[aria-pressed='true'] .chip__icon,
 .chip[data-selected='true'] .chip__icon {
   color: var(--accent-primary);
@@ -309,20 +463,66 @@
 
 .chip--danger[aria-pressed='true'] {
   background: var(--accent-primary);
-  border-color: #e9694f;
+  border-color: var(--accent-primary-border);
   color: var(--struct-main);
 }
 
 .chip--butter[aria-pressed='true'] {
   background: var(--accent-secondary);
-  border-color: #efe2a0;
+  border-color: var(--tint-butter-border);
   color: var(--struct-main);
 }
 
 .chip--sage[aria-pressed='true'] {
   background: var(--tint-sage);
-  border-color: #cfdcc9;
+  border-color: var(--tint-sage-border);
   color: var(--struct-secondary);
+}
+
+/* ------------------------------------------------------- chip groups on phones
+ * A group of chips with a name in front of it rags on a phone: the name shares the
+ * first row with one or two chips, so the rows come out unbalanced and the name is
+ * crammed against a chip. Below the two-column breakpoint the name takes its own
+ * line and the chips line up in even pairs. */
+@media (max-width: 720px) {
+  .chip-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chip-group > .field__label,
+  .chip-group > .t-faint,
+  .chip-group > .t-sm {
+    grid-column: 1 / -1;
+  }
+
+  .chip-group > .chip {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* A chip group whose labels are one word each (the map's mode filter) lines up in
+   three even columns at any width: a card of any size holds two tidy rows. */
+.chip-group--compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 720px) {
+  /* Phones keep every chip group on the same two-column rhythm. */
+  .chip-group--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chip-group--compact > .chip {
+  width: 100%;
+  justify-content: center;
+  /* Three columns is a narrow cell: tighter padding keeps a one-word label on one
+     line rather than wrapping inside the pill. */
+  padding: 0 var(--s-3);
+  white-space: nowrap;
 }
 
 .segmented {
@@ -333,7 +533,22 @@
   background: var(--l1-bg);
   border: 1px solid var(--border-hairline);
   border-radius: var(--r-pill);
+  /* It is also a flex item, so the `min-width: auto` default sized it to its widest
+     row and dragged the whole page with it: the six-option sort control measured
+     503px inside a 332px column, which was 142px of document overflow at 390px and
+     212px at 320px — the results page could be panned sideways. It shrinks to its
+     column now, and it wraps there: scrolling it sideways instead left two of the six
+     sort options off screen with nothing to say they existed. */
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* A field's control fills its column except where the control is a capsule of short options:
+   the stops sort is three labels (223px of them) and was drawing a 332px pill around them,
+   leaving a third of the capsule empty. */
+.field > .segmented {
+  align-self: start;
 }
 
 .segmented__btn {
@@ -359,6 +574,68 @@
   color: var(--ink-strong);
 }
 
+/* Compact inline variant — used next to the date/time control. Same 44px height as the
+ * capsule it sits beside, and its buttons fill that height: at 32px inside a 44px capsule
+ * they were the only control in the app under the 44px mark, with a band above and below
+ * that looked tappable and was not. */
+.segmented--sm {
+  /* One 4px step, not 2px: at 2px the two halves of "Depart at | Arrive by" shared an edge and
+     read as one blob of text with a fill behind half of it, which is what "buttons stuck to other
+     buttons" looks like. Still the tightest gap in the app, so the pair still reads as one
+     control — a whole 8px step would make it read as two. */
+  gap: var(--s-1);
+  padding: 0 var(--s-1);
+  min-height: var(--target-min);
+}
+
+
+/* ------------------------------------------------------------------- When */
+/* [OCR Visual Transcode - Date/Time Control]
+ * DEFAULT: 44x44 icon-only capsule, hairline border, muted ink
+ * CHANGED: expands to icon + value, ink-strong value, same 44px height */
+.when-row {
+  align-items: center;
+}
+
+.when {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--target-min);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-pill);
+  background: var(--l1-bg);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: transform var(--t-press) var(--ease-press),
+    border-color var(--t-press) var(--ease-press),
+    color var(--t-press) var(--ease-press);
+}
+
+.when--default {
+  width: var(--target-min);
+  padding: 0;
+}
+
+.when:hover {
+  border-color: var(--ink-faint);
+  color: var(--ink);
+}
+
+.when:active {
+  transform: scale(var(--press-scale));
+}
+
+.when__value {
+  color: var(--ink-strong);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
 .segmented__btn:active {
   transform: scale(var(--press-scale));
 }
@@ -370,11 +647,60 @@
   box-shadow: none;
 }
 
+/* A control's label is one line, whatever it is squeezed into: "TRAVEL PREFERENCES PAGE" used
+   to break over three lines inside its own pill and "RESET ALL FILTERS" over two, which is what
+   a pill wrapping its own label looks like. */
+.btn,
+.chip,
+.segmented__btn {
+  white-space: nowrap;
+}
+
+/* So a row breaks *between* controls instead of squeezing them: without this the pill is a
+   flex item and shrinks to the line's leftovers, which is how the labels above wrapped. */
+.row-wrap > .btn,
+.row-wrap > .chip {
+  flex: 0 0 auto;
+}
+
+/*
+ * The one row whose label is a sentence rather than a label.
+ *
+ * "Other alerts" is a pager over the fourteen alerts, so its two controls carry **titles** —
+ * "Engineering works — Rotterdam Blaak closed to trams" — and `.btn` is `nowrap` by rule. A
+ * nowrap pill is capped by `max-width: 100%` but its text is not clipped, so it ran out of its own
+ * box and off the page: measured at 320px, the link measured **270px** wide with **323px** of text
+ * inside it and the document scrolled **349** for a 320px viewport (at 360 it was 369); that is
+ * the "doesn't fit, forced to move the page" on the alert screen, and it happened in the dark
+ * appearance on a phone because the row is only wider than the titles above ~370px.
+ *
+ * So this row's labels wrap like the sentences they are, and are aligned left like text rather
+ * than centred like a label. The pill is then at most the row's own width, and the page has
+ * nothing to scroll to.
+ */
+.pager__label {
+  white-space: normal;
+  text-align: left;
+  /* A single very long word still cannot be wider than the pill it is in. */
+  overflow-wrap: anywhere;
+}
+
+.pager .btn {
+  justify-content: flex-start;
+}
+
 /* -------------------------------------------------------------------- Inputs */
+/* One label rhythm for the whole app: a control's name sits one 8px step above it,
+   whether the control is a select inside .field or a combobox. */
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--s-1);
+  gap: var(--s-2);
+}
+
+/* In a two-column field grid, a control that needs the whole line. */
+.field--wide {
+  grid-column: 1 / -1;
 }
 
 .field__label {
@@ -481,7 +807,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-1);
-  color: #8f3423;
+  color: var(--coral-ink);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
 }
@@ -492,7 +818,25 @@
 }
 
 /* Autocomplete dropdown — L2 raised container with hairline elevation. */
+/* A combobox is a labelled control plus its hint line, so it carries the same 8px
+   rhythm as .field: the name above the box, and the stop's code/modes below it
+   rather than against it. */
 .combobox {
+  position: relative;
+  display: grid;
+  gap: var(--s-2);
+}
+
+/* The dropdown hangs from the *input*, not from the labelled control.
+ *
+ * `.suggestions` is absolute, and it used to be anchored to `.combobox` — which is the input
+ * plus the hint line under it (the stop's code and its modes, `.field__hint`). So `top: 100%`
+ * meant "below both": the list opened *under* the hint, leaving "ASC · Train, Tram, Metro,
+ * Bus, Ferry, Walking, Biking" sitting above a panel that is meant to be covering it, and
+ * pushing the whole list one line further down the screen than the input it belongs to. This
+ * wrapper exists only to give the list the right box to hang from — the hint stays outside it,
+ * and is covered the moment the list opens. */
+.combobox__field {
   position: relative;
 }
 
@@ -505,8 +849,10 @@
   background: var(--l2-bg);
   border: var(--l2-border);
   border-radius: var(--r-inner);
-  padding: var(--s-1);
-  max-height: 320px;
+  padding: var(--s-2);
+  /* A picker is a thing you look at: it takes most of the screen but leaves the page visible
+     behind it, so choosing a stop reads as hovering over the board rather than as a mode. */
+  max-height: min(58vh, 460px);
   overflow-y: auto;
 }
 
@@ -515,8 +861,11 @@
   align-items: center;
   gap: var(--s-3);
   width: 100%;
-  min-height: var(--target-min);
-  padding: var(--s-1) var(--s-3);
+  /* Roomier than a list row on purpose: this is the one list in the app you read while
+     choosing, and 56px holds the two lines with air around them (44px was the minimum that
+     passed as a tap target, not a size anybody would call immersive). */
+  min-height: 56px;
+  padding: var(--s-2) var(--s-3);
   border: 0;
   border-radius: var(--r-compact);
   background: transparent;
@@ -533,6 +882,572 @@
   margin-left: auto;
   display: flex;
   gap: var(--s-1);
+}
+
+/* -------------------------------------------------------------- planner card */
+/* The planner is one small card holding two rows and a rail: a hollow ring at the
+ * departure end, a line, a filled square at the arrival end, and a hairline between the
+ * rows. Nothing else — the card asks one question and holds one answer per row.
+ *
+ * A row is a *button* on the home card (typing happens on the full-screen picker, the
+ * screen built for it) and a field inside that picker, so both share these classes and
+ * only the last element differs. The rail's two nodes are centred on the two row centres
+ * by construction: the rows are `--planner-row` each, the hairline is a 0-blur inset
+ * shadow rather than a border (a border would push the second row's centre half a pixel
+ * down), and each node is anchored `row/2` from its own edge. */
+.planner {
+  position: relative;
+  --planner-row: 52px;
+}
+
+.planner-card {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: var(--s-3);
+  background: var(--l1-bg);
+  border: var(--l1-border);
+  border-radius: var(--r-input);
+  padding: 0 var(--s-4);
+  transition: border-color var(--t-hover) var(--ease-hover);
+}
+
+/* The picker's card carries the reverse control in a third column, and the control spans both
+   rows so `align-self: center` puts it exactly on the line between them — the middle of the
+   card, belonging to neither row. It was `grid-column: 1`'s neighbour inside the From row
+   before this, below one clear button and above the other. */
+.planner-card--swap {
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+}
+
+/* Coral when an end is missing: the card is the only thing that can carry that, since the
+   field itself is not a box here. */
+.planner-card.planner-card--invalid {
+  border-color: var(--accent-primary);
+}
+
+/* The rail spans both rows; its line runs ring-centre to square-centre and both nodes
+   sit on top of it, filled with the card's own surface so the line stops at them. */
+.planner-rail {
+  position: relative;
+}
+
+.planner-rail::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(var(--planner-row) / 2);
+  bottom: calc(var(--planner-row) / 2);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink-strong);
+}
+
+.planner-rail__node {
+  position: absolute;
+  left: 50%;
+  background: var(--l1-bg);
+}
+
+.planner-rail__node--from {
+  top: calc(var(--planner-row) / 2);
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 2px solid var(--ink-strong);
+  border-radius: var(--r-circle);
+}
+
+.planner-rail__node--to {
+  bottom: calc(var(--planner-row) / 2);
+  width: 10px;
+  height: 10px;
+  margin: 0 0 -5px -5px;
+  border-radius: 2px;
+  background: var(--ink-strong);
+}
+
+/* Which end is missing is answered on the rail itself rather than by tinting the card. */
+.planner-rail__node--from.planner-rail__node--invalid {
+  border-color: var(--accent-primary);
+}
+
+.planner-rail__node--to.planner-rail__node--invalid {
+  background: var(--accent-primary);
+}
+
+.planner-rows {
+  position: relative;
+  display: grid;
+  /* `auto` sizes the track to its content, and the rows hold text that refuses to wrap
+     (`white-space: nowrap` on the button), so the track could be wider than the card — two
+     pixels wider in Dutch, which is two pixels of the whole page scrolling sideways. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.planner-row {
+  display: flex;
+  align-items: center;
+  min-height: var(--planner-row);
+}
+
+.planner-row--to {
+  box-shadow: inset 0 1px 0 var(--border-hairline);
+}
+
+/* The row ends with its own clear button, nothing else. */
+.planner-row--pad {
+  padding-right: var(--s-1);
+}
+
+/* The home card's row: a button that opens the picker. */
+.planner-row__btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: var(--planner-row);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-strong);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.planner-row__btn--empty {
+  color: var(--ink-faint);
+  font-weight: var(--fw-medium);
+}
+
+/* The picker's row: the same row, with a real field in it. */
+.planner-row__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--planner-row);
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-strong);
+}
+
+.planner-row__input::placeholder {
+  color: var(--ink-faint);
+  font-weight: var(--fw-medium);
+}
+
+.planner-row__input:focus {
+  outline: none;
+}
+
+/* The reverse control: in its own column on the card's right edge, centred vertically between
+   the two rows — the middle of the card, belonging to neither row. It carries no background of
+   its own: it is a glyph on the card, not a raised control. */
+.planner-swap {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  height: var(--target-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-circle);
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: color var(--t-hover) var(--ease-hover), transform var(--t-press) var(--ease-press);
+}
+
+.planner-swap:hover,
+.planner-swap:focus-visible {
+  color: var(--ink-strong);
+  background: none;
+}
+
+.planner-swap:active {
+  transform: scale(var(--press-scale));
+}
+
+/* ----------------------------------------------------------- full-screen screens */
+/* Take over everything — the mark, the dock, the lot — with a back arrow and a centred
+   title, which is the shape the 9292 picker has. */
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--l0-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-3) var(--s-2);
+  width: 100%;
+  max-width: var(--shell-max);
+  margin: 0 auto;
+}
+
+/*
+ * The back control, in one shape, wherever it is drawn.
+ *
+ * This was `fullscreen__back`'s paint and nothing else's, so the two full-screen pickers agreed
+ * with each other and every *page* with its own way back drew something else — a labelled ghost
+ * pill in whatever position its header row gave it. The shape is the picker's: a 44px round arrow
+ * (`btn--icon-circle`) on the raised surface with a hairline. `FullScreen` keeps its own class for
+ * the placement inside its bar; everything else gets the shape from here. The header row is the
+ * header row takes the same disc and only borrows the mark's step, so that the two of them start
+ * on one line (`.app-header__back` in `base.css`).
+ */
+.back-arrow {
+  background: var(--l2-bg);
+  border: var(--l2-border);
+}
+
+.fullscreen__back {
+  justify-self: start;
+}
+
+.fullscreen__title {
+  font-size: var(--fs-section);
+  font-weight: var(--fw-bold);
+  color: var(--ink-strong);
+  text-align: center;
+}
+
+.fullscreen__slot {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+}
+
+.fullscreen__spacer {
+  display: block;
+  width: var(--target-min);
+  height: var(--target-min);
+}
+
+.fullscreen__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--s-3) var(--s-6);
+}
+
+/* -------------------------------------------------------------- stop picker */
+.picker {
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+/* The pair is complete: the one action left is to plan it, and it sits at the foot of the
+   list rather than over it, so the rows above stay the thing under the thumb. */
+.picker__plan {
+  padding-top: var(--s-1);
+}
+
+/* Where a looked-up address is shown, its source is named — OpenStreetMap's licence asks
+   for it at the point of use, and this line only exists while such an address is on screen. */
+.picker__attribution {
+  text-align: center;
+  margin-top: calc(-1 * var(--s-3));
+}
+
+.picker__section {
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-pill);
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-top: var(--s-1);
+}
+
+.picker__list {
+  display: flex;
+  flex-direction: column;
+  margin: calc(-1 * var(--s-3)) 0 0;
+}
+
+.picker__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.picker__item + .picker__item {
+  border-top: 1px solid var(--border-hairline);
+}
+
+.picker__empty {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+  padding: var(--s-4) 0;
+}
+
+.picker-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 64px;
+  padding: var(--s-2) 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink-strong);
+}
+
+.picker-row--action {
+  color: var(--tint-sage-ink);
+}
+
+.picker-row[disabled] {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.picker-row__marker {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-circle);
+  background: var(--l1-bg);
+  color: var(--ink-muted);
+}
+
+.picker-row--action .picker-row__marker {
+  background: var(--tint-sage);
+  color: var(--tint-sage-ink);
+}
+
+.picker-row__name {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-strong);
+}
+
+.picker-row--action .picker-row__name {
+  color: var(--tint-sage-ink);
+}
+
+.picker-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+/* --------------------------------------------------------------- results chips */
+/* The journey's options, in the order the 9292 results screen puts them: how you start,
+   how you finish, when you leave, and everything else behind one chip. */
+.results-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s-2);
+}
+
+.results-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--target-min);
+  padding: 0 var(--s-3);
+  border: var(--l1-border);
+  border-radius: var(--r-pill);
+  background: var(--l1-bg);
+  color: var(--ink-strong);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  /*
+   * The same press-and-lift every other control has (`.btn`, `.chip`, `.list-row`): the hover
+   * already lifted this chip, but nothing carried the press or the return to rest, so the
+   * Options chip on Stations & stops and on the alerts list moved differently from the buttons
+   * beside it.
+   */
+  transition: transform var(--t-press) var(--ease-press),
+    background var(--t-press) var(--ease-press),
+    border-color var(--t-press) var(--ease-press);
+}
+
+.results-chip:hover,
+.results-chip:focus-visible {
+  background: var(--surface-alt);
+  border-color: var(--struct-main);
+  transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
+  transition: transform var(--t-hover) var(--ease-hover);
+}
+
+.results-chip:active {
+  transform: scale(var(--press-scale));
+  transition: transform var(--t-press) var(--ease-press);
+}
+
+.results-chip:active {
+  transform: scale(var(--press-scale));
+  transition: transform var(--t-press) var(--ease-press);
+}
+
+.results-chip__key {
+  color: var(--ink-muted);
+  font-weight: var(--fw-medium);
+}
+
+.results-chip__value {
+  color: var(--ink-strong);
+}
+
+.results-chip__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--r-pill);
+  background: var(--struct-main);
+  color: var(--on-dark);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+}
+
+/* The two access modes, as the small popup they deserve. */
+.access-option {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--s-3);
+  border: var(--l1-border);
+  border-radius: var(--r-inner);
+  /* The chosen row carries the tint and the heavier border; an unchosen row stays
+     plain white. It used to be the other way round, so the option that was *not*
+     chosen looked like the selected one. */
+  background: var(--l2-bg);
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink-strong);
+}
+
+.access-option--selected {
+  border-color: var(--struct-main);
+  background: var(--l1-bg);
+}
+
+.access-option__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* A disc that a long description can squash: as a flex item its width collapsed while its
+     height held, so the circle came out an ellipse (the same one-axis shrink that hit the
+     icons and the round buttons). */
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-circle);
+  /* Opposite of its row, so the disc reads on either state. */
+  background: var(--l1-bg);
+  color: var(--ink-strong);
+}
+
+.access-option--selected .access-option__icon {
+  background: var(--l2-bg);
+}
+
+/* A text link that is its own control (no button beside it) keeps its type size but
+   grows a 44px-tall hit area, so the target matches every button around it without
+   adding a row of height to the card. */
+.tap-target {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tap-target::after {
+  content: '';
+  position: absolute;
+  inset: -14px -4px;
+}
+
+/*
+ * An expanded hit area has to fit inside the space its row is given, and this one did not.
+ *
+ * `.tap-target::after` reaches 14px above its own box, and the card above it left a 12px gap to
+ * the board's "Show N more" button — so the bottom 2.5px of that button sat inside the *link's*
+ * hit area, and the button's own bottom edge was not tappable (measured: the link's hit area
+ * began at y=836.5 against the button's bottom at y=839.0). One 4px step of separation is what
+ * makes both targets real, which is why the fix is here and not in the audit that caught it.
+ * The lesson to keep: a pseudo-element target can only grow into space nobody else is using.
+ */
+.board-alerts {
+  margin-top: var(--s-1);
+}
+
+/* An alert's title and its "— view details" tail: the title takes the space the row has,
+   and the tail stays on one line at the end of the first line. As running text it broke
+   between the dash and the word ("— view" / "details"). */
+.alert-link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.alert-link > :last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* A mode hint: icon on the first line's baseline, text beside it. As a plain `.row`
+   the icon was centred against two lines of text and sat alone in the left margin
+   with a gap the width of nothing. */
+.mode-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+
+.mode-hint > :first-child {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* Journey card actions: an even two-column grid, so the third action on a phone
+   reads as a deliberate second row instead of ragging under two buttons of
+   different widths. An odd number of actions makes that second row one wide button
+   rather than one half-width button and a gap. */
+.journey-card__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+
+.journey-card__actions > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 /* --------------------------------------------------------------- Toggles etc */
@@ -575,12 +1490,12 @@
 
 .switch[aria-checked='true'] .switch__track {
   background: var(--accent-primary);
-  border-color: #e9694f;
+  border-color: var(--accent-primary-border);
 }
 
 .switch[aria-checked='true'] .switch__thumb {
   transform: translateX(22px);
-  border-color: #e9694f;
+  border-color: var(--accent-primary-border);
 }
 
 .switch:active .switch__thumb {
@@ -594,7 +1509,7 @@
 .switch__text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s-1);
 }
 
 .checkbox {
@@ -663,6 +1578,7 @@
   appearance: none;
   width: 26px;
   height: 26px;
+  /* optical: centres the 26px thumb on the 6px track (not a spacing value) */
   margin-top: -10px;
   border-radius: var(--r-circle);
   background: var(--accent-primary);
@@ -714,70 +1630,32 @@
 
 .mode-badge--bus {
   background: var(--tint-coral);
-  border-color: #f6d3cd;
-  color: #8f3423;
+  border-color: var(--tint-coral-border);
+  color: var(--tint-coral-ink);
 }
 
 .mode-badge--tram {
   background: var(--tint-sage);
-  border-color: #cfdcc9;
+  border-color: var(--tint-sage-border);
   color: var(--struct-secondary);
 }
 
 .mode-badge--metro {
   background: var(--accent-secondary);
-  border-color: #efe2a0;
+  border-color: var(--tint-butter-border);
   color: var(--struct-main);
 }
 
 .mode-badge--ferry {
   background: var(--tint-coral);
-  border-color: #f6d3cd;
-  color: #8f3423;
+  border-color: var(--tint-coral-border);
+  color: var(--tint-coral-ink);
 }
 
 .mode-badge--ghost {
   background: transparent;
   border-style: dashed;
   color: var(--ink-muted);
-}
-
-/* ------------------------------------------------------------- Avatar stacks */
-.avatar-stack {
-  display: inline-flex;
-  align-items: center;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-circle);
-  border: 2px solid var(--surface-raised);
-  background: var(--l1-bg);
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: var(--fw-bold);
-  color: var(--ink-strong);
-  margin-left: -8px;
-  letter-spacing: 0;
-}
-
-.avatar:first-child {
-  margin-left: 0;
-}
-
-.avatar--butter {
-  background: var(--accent-secondary);
-}
-
-.avatar--sage {
-  background: var(--tint-sage);
-}
-
-.avatar--coral {
-  background: var(--accent-primary);
-  color: var(--struct-main);
 }
 
 .status-dot {
@@ -794,35 +1672,12 @@
   background: var(--accent-primary);
 }
 
+.status-dot--sage {
+  background: var(--tint-sage-ink);
+}
+
 .status-dot--muted {
   background: var(--ink-faint);
-}
-
-/* ---------------------------------------------------------------- Sparkline */
-.sparkline {
-  display: block;
-  width: 100%;
-  height: 44px;
-}
-
-.sparkline path {
-  fill: none;
-  stroke: var(--accent-primary);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sparkline circle {
-  fill: var(--accent-secondary);
-  stroke: var(--accent-primary);
-  stroke-width: 2.5;
-}
-
-.sparkline__baseline {
-  stroke: var(--border-hairline);
-  stroke-width: 1;
-  fill: none;
 }
 
 /* ------------------------------------------------------------------ Timeline */
@@ -877,60 +1732,9 @@
 }
 
 /* --------------------------------------------------------------- Board table */
-.board {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 var(--s-1);
-}
-
-.board th {
-  text-align: left;
-  font-size: var(--fs-pill);
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--track-pill);
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  padding: 0 var(--s-2);
-}
-
-.board td {
-  background: var(--l1-bg);
-  border-top: 1px solid var(--border-hairline);
-  border-bottom: 1px solid var(--border-hairline);
-  padding: var(--s-2);
-  vertical-align: middle;
-  font-size: var(--fs-body);
-}
-
-.board tr td:first-child {
-  border-left: 1px solid var(--border-hairline);
-  border-top-left-radius: var(--r-compact);
-  border-bottom-left-radius: var(--r-compact);
-}
-
-.board tr td:last-child {
-  border-right: 1px solid var(--border-hairline);
-  border-top-right-radius: var(--r-compact);
-  border-bottom-right-radius: var(--r-compact);
-}
-
-.board tr[data-state='cancelled'] td {
-  background: var(--tint-coral);
-  opacity: 0.92;
-}
-
-.board__row-action {
-  display: flex;
-  gap: var(--s-1);
-  justify-content: flex-end;
-}
-
-.board-scroll {
-  overflow-x: auto;
-}
 
 .delay {
-  color: #8f3423;
+  color: var(--coral-ink);
   font-weight: var(--fw-bold);
 }
 
@@ -949,7 +1753,7 @@
   padding: var(--s-2) var(--s-3);
   background: var(--l1-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-inner);
+  border-radius: var(--r-nested);
   text-align: left;
   cursor: pointer;
   transition: transform var(--t-press) var(--ease-press),
@@ -975,6 +1779,41 @@
   background: var(--l1-bg);
 }
 
+/*
+ * A labelled button inside a row is a control, not a text column: the row's *text* is what
+ * gives way when the row runs short. Both were shrinking, and the button lost its padding to
+ * it — measured on the recent-searches row's "Repeat", whose pill drew 73.3px wide against
+ * 89.7px of content (icon 16 + gap 8 + label 41.7 + 12px either side), leaving the icon
+ * 3.83px from its left edge and the label 3.81px from its right one: the squeeze that was
+ * reported. Here the pill keeps its size and the grow column shrinks instead, which it can,
+ * because it wraps. A long label is still bounded by `.btn`'s own `max-width: 100%`, so the
+ * pill wraps inside the row rather than pushing the page sideways (the same protection the
+ * `.btn` block documents for Dutch at 320px).
+ */
+.list-row > .btn {
+  flex: none;
+}
+
+/*
+ * A row whose trailing control is a labelled pill cannot keep its text on the same line on a
+ * phone, and the text is the half that matters. Measured on the alert page at 320px: the stop's
+ * own column came out **43px**, narrower than the word it holds, so "Schiphol Airport" wrapped
+ * into a strip beside the "Plan to here" pill and the text ran **8px out of its own box** and into
+ * the pill; at 390px the same column was 113px with 4px of spill. It is the class of defect the
+ * audit's "nothing is wider than its own box" promise exists to catch, and it is the squeezed
+ * row in the reported screenshot. Below 720px the pill takes a line of its own, so the row grows
+ * a line instead of squeezing the name it is there to show; above it, nothing moves.
+ */
+@media (max-width: 719px) {
+  .list-row--stack {
+    flex-wrap: wrap;
+  }
+
+  .list-row--stack > .btn {
+    flex: 1 1 100%;
+  }
+}
+
 /* ------------------------------------------------------------ Journey result */
 .journey-card__times {
   display: flex;
@@ -984,7 +1823,7 @@
 }
 
 .journey-card__time {
-  font-size: 21px;
+  font-size: var(--fs-h2);
   font-weight: var(--fw-extrabold);
   letter-spacing: var(--track-heading);
   color: var(--ink-strong);
@@ -1036,7 +1875,7 @@
 
 .disclosure {
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-inner);
+  border-radius: var(--r-nested);
   background: var(--l1-bg);
   overflow: hidden;
 }
@@ -1070,6 +1909,29 @@
 
 .disclosure__trigger[aria-expanded='true'] .disclosure__chevron {
   transform: rotate(180deg);
+}
+
+/* On a phone the summary is a second line of its own rather than two ragged
+   lines wrapped around the title. */
+@media (max-width: 720px) {
+  .disclosure__trigger {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    row-gap: var(--s-1);
+  }
+
+  .disclosure__title {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+
+  .disclosure__chevron {
+    grid-area: 1 / 2 / 2 / 3;
+    margin-left: 0;
+  }
+
+  .disclosure__trigger > .t-sm {
+    grid-area: 2 / 1 / 3 / 3;
+  }
 }
 
 .disclosure__body {
@@ -1109,6 +1971,21 @@
   animation: sheet-in var(--t-spring) var(--ease-spring);
 }
 
+/*
+ * The blocks a dialog is made of are spaced, not stacked flush.
+ *
+ * Every dialog passes its body in as children, and a body of several siblings had **nothing**
+ * between them: measured in the date-and-time dialog at 390px, the date/hour/minutes grid met the
+ * depart-at row at **0px** and that row met Earlier/Later options at **0px**, so three groups of
+ * controls read as one lump (reported with a screenshot). The spaces here are the same ones the
+ * rest of the app uses between blocks of different kinds — `--s-4` — while the gap *within* a row
+ * stays the row's own `--s-2`, so a row of buttons is tight and two rows are not. The footer's own
+ * `margin-top` is the same `--s-4`, so nothing doubles.
+ */
+.modal > * + * {
+  margin-top: var(--s-4);
+}
+
 @media (min-width: 720px) {
   .modal {
     border-radius: var(--r-hero);
@@ -1144,6 +2021,9 @@
   flex-direction: column;
   gap: var(--s-2);
   width: min(520px, calc(100vw - var(--s-4)));
+  /* A message is as wide as its message: centred, so a two-word confirmation is a two-word
+     capsule instead of a full-width bar with a hole in it. */
+  align-items: center;
   pointer-events: none;
 }
 
@@ -1157,10 +2037,16 @@
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  padding: var(--s-2) var(--s-4);
+  /* The region lets clicks through to the page, and the toast inherited that: every toast's
+     dismiss button was measured with `pointer-events: none` and the click landed on whatever
+     sat behind it — the button looked live and did nothing. */
+  pointer-events: auto;
+  padding: var(--s-2) var(--s-3) var(--s-2) var(--s-4);
   background: var(--l3-bg);
   border: var(--l3-border);
-  border-radius: var(--r-pill);
+  /* The input squircle, not a capsule: a pill is a shape for one short label, and a sentence in
+     one is what made these read as chat bubbles dropped on the screen. */
+  border-radius: var(--r-input);
   color: var(--on-dark);
   animation: toast-in var(--t-spring) var(--ease-spring);
 }
@@ -1182,21 +2068,22 @@
   gap: var(--s-3);
   align-items: flex-start;
   padding: var(--s-3);
-  border-radius: var(--r-inner);
+  /* full-width inside a card: concentric with the card's corner */
+  border-radius: var(--r-nested);
   background: var(--accent-secondary);
-  border: 1px solid #efe2a0;
+  border: 1px solid var(--tint-butter-border);
   color: var(--struct-main);
 }
 
 .banner--coral {
   background: var(--tint-coral);
-  border-color: #f6d3cd;
-  color: #7d2c1d;
+  border-color: var(--tint-coral-border);
+  color: var(--tint-coral-ink-strong);
 }
 
 .banner--sage {
   background: var(--tint-sage);
-  border-color: #cfdcc9;
+  border-color: var(--tint-sage-border);
   color: var(--struct-secondary);
 }
 
@@ -1206,10 +2093,35 @@
   color: var(--ink);
 }
 
+/*
+ * A tinted banner owns the ink for the surface it is actually painted on.
+ *
+ * The tints (butter, coral, sage) keep their pale fill in **both** appearances — that is the whole
+ * point of them: a signal chip stays a light chip on a dark canvas. The page's ink ramp does turn
+ * over, though, so any text inside a banner that reaches for it lands light-on-light in the dark
+ * appearance. That is not a near miss, it is invisible: the alert page's butter "Advice" and the
+ * journey page's coral "Alerts on this journey" are both a `.t-strong` title, and in dark they
+ * measured **1.03:1** (`rgb(247,246,243)` on `rgb(255,245,165)`) and **1.08:1**
+ * (`rgb(247,246,243)` on `rgb(255,232,229)`) — against the 4.5:1 body text needs.
+ *
+ * The line is a colour, not a weight: the title keeps `.t-strong` for its weight and size and
+ * takes the banner's own ink for its colour, so it reads at the same 15.9:1 as the body beside it
+ * (and 8.0:1 on the coral tint). The `hairline` banner is the exception and keeps the ramp,
+ * because its surface *is* the page's — `--l1-bg` turns over with the theme, so eating its
+ * `--ink-strong` would flatten a heading that was right.
+ */
+.banner .t-strong {
+  color: inherit;
+}
+
+.banner--hairline .t-strong {
+  color: var(--ink-strong);
+}
+
 .stat {
   background: var(--l1-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-inner);
+  border-radius: var(--r-nested);
   padding: var(--s-3);
   display: flex;
   flex-direction: column;
@@ -1224,16 +2136,70 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * The empty state, and the two things that read wrong in its screenshot.
+ *
+ * 1. **The radius did not nest.** It sat inside a card — itself `--r-card` (28px) — while also
+ *    asking for `--r-card`, so the inner curve was as round as the outer one instead of being
+ *    that roundness *minus the card's inset*. `--r-nested` is exactly that number (12px), which
+ *    is why it exists, and using it makes the two curves concentric.
+ *
+ * 2. **The dashes were the browser's.** `border-style: dashed` gives no say in dash length (it
+ *    is short, and the spec leaves it to the renderer) and the ink was `--border-hairline`, the
+ *    faintest line in the palette. So the border is drawn instead of declared: each side is a
+ *    repeating gradient in a 1px strip — a 9px dash with a 7px gap — in a coral tint, which is
+ *    the accent this box's own icon already carries. Still one hue from the palette, just loud
+ *    enough to read as a deliberate enclosure rather than a rendering artefact.
+ */
+/*
+ * The dashed enclosure, drawn as one dashed rounded-rect stroke.
+ *
+ * It was four 1px repeating gradients — one strip per side, positioned with `background-position`
+ * — which cannot turn a corner: every curve was left bare, so the box looked unfinished at exactly
+ * the four places the eye checks first, and its dashes had to be long (9px) to read as a border at
+ * all. A stroke on a rounded rect has no corners to miss (the dash pattern runs around the arc),
+ * its dash length is the `--empty-dash` / `--empty-gap` pair rather than the renderer's, and the
+ * radius is the same `--r-nested` the box uses, so the ring and the surface it sits on nest.
+ * 6px on, 5px off: longer than the browser's own short dashes (both orders, kept), shorter than
+ * the 9px that read as a line broken into segments.
+ */
 .empty {
+  --empty-dash: 6px;
+  --empty-gap: 5px;
+  --empty-dash-ink: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--s-3);
   text-align: center;
   padding: var(--s-8) var(--s-4);
-  background: var(--l1-bg);
-  border: 1px dashed var(--border-hairline);
-  border-radius: var(--r-card);
+  background-color: var(--l1-bg);
+  border: 0;
+  border-radius: var(--r-nested);
+}
+
+.empty__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  /* Decoration: it must never take a tap meant for the box or the controls in it. */
+  pointer-events: none;
+}
+
+.empty__ring-edge {
+  /* Half a pixel in, so the stroke's outer edge sits on the box's own edge. */
+  x: 0.5px;
+  y: 0.5px;
+  width: calc(100% - 1px);
+  height: calc(100% - 1px);
+  rx: var(--r-nested);
+  fill: none;
+  stroke: var(--empty-dash-ink);
+  stroke-width: 1;
+  stroke-dasharray: var(--empty-dash) var(--empty-gap);
 }
 
 .empty__icon {
@@ -1244,7 +2210,8 @@
   border: 1px solid var(--border-hairline);
   display: grid;
   place-items: center;
-  color: var(--accent-primary);
+  /* Ink, not a fill: see --accent-primary-ink. */
+  color: var(--accent-primary-ink);
 }
 
 .tabs {
@@ -1297,11 +2264,11 @@
 }
 
 .meter__fill--sage {
-  background: #7ba37a;
+  background: var(--tint-sage-strong);
 }
 
 .meter__fill--butter {
-  background: #e6cf3f;
+  background: var(--tint-butter-strong);
 }
 
 .divider {
@@ -1328,6 +2295,66 @@
   font-weight: var(--fw-medium);
 }
 
+/*
+ * The accent list in the settings preview.
+ *
+ * The same two-column list as the format block above it, with a swatch in front of each name and
+ * a *role* where that block has a value — so the value column drops the medium weight it carries
+ * there and reads as the sentence it is instead of as a reading.
+ */
+.dl--swatch dt {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.dl--swatch dd {
+  font-weight: var(--fw-regular);
+  color: var(--ink-muted);
+}
+
+/*
+ * Each swatch is painted from the token the interface itself is drawn with, so the row cannot
+ * advertise a colour the app does not use — and the 1px ring is what makes the three pale ones
+ * (butter, sage, the coral tint) measurable against a white card rather than a white gap.
+ */
+.palette__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-hair);
+  border: 1px solid var(--border-hairline);
+  flex: none;
+}
+
+.palette__swatch--coral {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary-border);
+}
+
+.palette__swatch--butter {
+  background: var(--accent-secondary);
+  border-color: var(--tint-butter-border);
+}
+
+.palette__swatch--sage {
+  background: var(--tint-sage);
+  border-color: var(--tint-sage-border);
+}
+
+.palette__swatch--coral-tint {
+  background: var(--tint-coral);
+  border-color: var(--tint-coral-border);
+}
+
+.palette__swatch--obsidian {
+  background: var(--struct-main);
+  border-color: var(--struct-secondary);
+}
+
+.palette__swatch--green {
+  background: var(--active-green);
+}
+
 .skip-link {
   position: absolute;
   left: -9999px;
@@ -1336,6 +2363,8 @@
 .skip-link:focus {
   left: var(--s-3);
   top: var(--s-3);
+  /* It is a control the moment it is visible: 18px of text is not a target. */
+  min-height: var(--target-min);
   z-index: 200;
   padding: var(--s-2) var(--s-4);
   background: var(--accent-primary);
@@ -1354,4 +2383,592 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ------------------------------------------------------- Departure board list */
+/* [OCR Visual Transcode - Minimal Board]
+ * LIST: no card inside the card, hairline separators only
+ * ROW: 56px, TIME 15px tabular | DEST 14px | PLATFORM 12px muted | DELAY coral */
+.board-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board-list__row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 56px;
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.board-list__row:last-child {
+  border-bottom: 0;
+}
+
+.board-list__row[data-cancelled] .board-list__destination {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+}
+
+.board-list__time {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-size: var(--fs-section);
+  font-weight: var(--fw-medium);
+  color: var(--ink-strong);
+}
+
+.board-list__delta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--fs-pill);
+}
+
+.board-list__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+
+.board-list__destination {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--ink);
+  /* Two lines, not one cut off: between 700 and 1000px the platform column leaves this about
+     a hundred pixels, and "Schiphol Airport" was arriving as "Schiphol Air…". A destination
+     that needs a second line gets one; the row is already free to grow. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/*
+ * On its own line in the row's main column, so the destination's two-line clamp cannot cut it off
+ * (see `BoardList`). No left margin any more: it used to sit inline after the destination name and
+ * needed one; the column's own gap spaces it now.
+ */
+.board-list__cancelled {
+  color: var(--coral-ink);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+}
+
+.board-list__platform {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.board-list__platform-label {
+  color: var(--ink-faint);
+  font-size: var(--fs-pill);
+  letter-spacing: var(--track-pill);
+  text-transform: uppercase;
+}
+
+.board-list__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+/*
+ * 44px, because that is the target the app promises and this was the one control on a board row
+ * that was not: it drew 32x32, so the audit found it the moment the timetable held a cancellation
+ * (a cancelled row is the only row with this link). Sized rather than enlarged by a pseudo-element
+ * — the established pattern for a corner control — because this one sits in a flex row beside
+ * another 44px control, and a grown hit area there would overlap its neighbour's.
+ */
+.board-list__alert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  height: var(--target-min);
+  border-radius: var(--r-pill);
+  color: var(--coral-ink);
+}
+
+.board-list__alert:hover {
+  background: var(--l1-bg);
+}
+
+/* The row carries four cells (time, destination, platform, actions). Dropping to
+   three columns here used to push the actions onto a second grid line, so every
+   phone row was two lines tall with an orphaned icon under the time. Keep four
+   columns and buy the room back from the column widths instead: the platform
+   number keeps its meaning from the "P" prefix, which is what the number alone
+   was missing when the word "Platform" was dropped. */
+@media (max-width: 560px) {
+  .board-list__row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: var(--s-2);
+  }
+
+  .board-list__platform {
+    gap: 0;
+  }
+
+  .board-list__platform-label {
+    font-size: 0;
+  }
+
+  .board-list__platform-label::before {
+    content: 'P';
+    font-size: var(--fs-pill);
+    letter-spacing: 0;
+  }
+}
+
+/*
+ * The row decides its shape from the width the *board* got, not from the width of the window.
+ *
+ * The rule above is viewport-based and that is not the same question: at a 768px window the stop
+ * page hands this board a **330px** column, where the phone rule never fires. With four columns
+ * competing for 330px — time 74, a two-piece platform label 76, two 44px controls and their gaps
+ * — the destination column collapsed to **52px**, narrower than the word "Rotterdam", so the name
+ * was cut off mid-word in a cancelled row (found by `ui-audit` frozen at 23:50, the hour whose
+ * timetable holds a cancellation). The lesson is the same one the dashboard cards taught: a
+ * component that can be placed in a column cannot ask the window how much room it has.
+ *
+ * Same treatment as the phone rule, because it is the same answer — the platform number keeps its
+ * meaning from the "P" prefix — and duplicated rather than shared, since a media query and a
+ * container query cannot be combined in one condition list. Behaviour below 560px is unchanged:
+ * the media block still fires and these declarations agree with it.
+ */
+.board-list {
+  container-type: inline-size;
+}
+
+@container (max-width: 420px) {
+  .board-list__row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: var(--s-2);
+  }
+
+  .board-list__platform {
+    gap: 0;
+  }
+
+  .board-list__platform-label {
+    font-size: 0;
+  }
+
+  .board-list__platform-label::before {
+    content: 'P';
+    font-size: var(--fs-pill);
+    letter-spacing: 0;
+  }
+}
+
+/* ------------------------------------------------------------ Widget grid */
+/* [OCR Visual Transcode - Home Widget Grid]
+ * GRID: 12 columns, gap s-4 | SPAN: 4 / 6 / 8 / 12 | MOBILE: every widget spans 12
+ * WIDGET: L2 card, R28, padding 16 | FLASH: 2px coral ring for deep links */
+.widget-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--s-4);
+  /* Cards are as tall as what is in them. Stretching them to match a tall neighbour is how
+     the favourites card, holding one line of text, came to be a 640px empty box beside the
+     map: the same card, drawn to the height of the map's second column. The default layout
+     now pairs card heights as well as spans (map with favourites, searches with
+     preferences), so stretching has nothing left to fix. */
+  align-items: start;
+}
+
+.widget {
+  grid-column: span 12;
+  min-width: 0;
+  scroll-margin-top: 96px;
+}
+
+.widget--span-4 {
+  grid-column: span 4;
+}
+
+.widget--span-6 {
+  grid-column: span 6;
+}
+
+.widget--span-8 {
+  grid-column: span 8;
+}
+
+.widget__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.widget__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+/* The title/description block yields space; the remove button keeps its slot at
+ * the top-right of every card so customising looks the same on all widgets. */
+.widget__head > .stack-1 {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.widget__head > .btn--icon-circle {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* ------------------------------------------------ customising: move a widget */
+/*
+ * Drag-to-reorder, the way a phone's home screen does it.
+ *
+ * The grip is the way in for a finger: making the whole card a drag surface needs
+ * `touch-action: none`, and that would stop the page scrolling at all on a phone. A mouse takes
+ * hold of the card anywhere instead, which is what `cursor: grab` on the editable card says.
+ *
+ * The grid re-sorts as the hand passes the other cards — the ones in the way step aside and the
+ * slot the card has left closes up behind it, which is the slot it will drop into — and the held
+ * card is put back under the finger on every frame, so the re-flow is never seen jumping.
+ */
+.widget__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.widget__grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  height: var(--target-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-inner);
+  background: none;
+  color: var(--ink-faint);
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.widget__grip:hover,
+.widget__grip:focus-visible {
+  color: var(--ink-strong);
+}
+
+.widget__grip:active {
+  cursor: grabbing;
+}
+
+/* A drag across a card must not paint a text selection behind it. Edit mode only: the rest of
+   the time the home screen's text is still selectable. */
+.widget-grid--editing {
+  user-select: none;
+}
+
+.widget-grid--editing .widget--editable {
+  cursor: grab;
+}
+
+.widget--dragging {
+  position: relative;
+  z-index: 6;
+  will-change: transform;
+  /* Positioned by hand on every frame — a transition here would make the card trail the finger. */
+  transition: none;
+}
+
+.widget--dragging .widget__card {
+  border-color: var(--accent-primary);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* The cards being passed step back, so the hole the held card has left — the slot it will drop
+   into — is the only thing at full strength. */
+.widget-grid--dragging .widget:not(.widget--dragging) {
+  opacity: 0.5;
+}
+
+/* ------------------------------------- press and hold the screen to customise */
+/*
+ * The hold is measured on the page around and between the widgets, so a text-selection callout
+ * must not answer the press first (iOS does, at about half a second) — the one second is the
+ * gesture, and the toast says it is running.
+ */
+/* The header's empty space is part of the home screen's hold surface too (see the document
+   listener in `HomePage`), so it must not answer the press with a callout either. */
+.home-surface,
+.app-header {
+  -webkit-touch-callout: none;
+}
+
+.home-hold-hint {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--dock-h) + var(--s-4));
+  z-index: 30;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: calc(100vw - 2 * var(--s-4));
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-pill);
+  background: var(--l3-bg);
+  color: var(--on-dark);
+  font-size: var(--fs-sm);
+  pointer-events: none;
+  animation: home-hold-in 160ms var(--ease-out) both;
+}
+
+@keyframes home-hold-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* The in-app motion switch, not just the system one. */
+:root[data-motion='reduced'] .home-hold-hint {
+  animation: none;
+}
+
+/* ------------------------------------------------- quiet customising footer */
+/* [OCR Visual Transcode - Home Customise]
+ * TRIGGER: small text button, centred, 44px target | PANEL: L2, appears in place
+ * REMOVE: identical × in the top-right of every removable widget card */
+.widget-customise {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--s-2);
+}
+
+.widget-customise__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--target-min);
+  padding: 0 var(--s-3);
+  border: 0;
+  background: none;
+  border-radius: var(--r-pill);
+  color: var(--ink-faint);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  /*
+   * Colour and ground only, on the curve that does not overshoot.
+   *
+   * The hover pair was drawn with `--ease-hover`, which is a spring: it carries a value past its
+   * target before settling, and that is right for a transform and wrong for a paint. Sampled
+   * every 20ms on the live app, the ground ran transparent → 87% → **white** → `#F3F1EA` in
+   * under a quarter of a second — the flash the flicker was. `background-color` rather than the
+   * `background` shorthand so the change is one property on one layer.
+   */
+  transition: color var(--t-hover) var(--ease-out), background-color var(--t-hover) var(--ease-out);
+}
+
+.widget-customise__trigger:hover,
+.widget-customise__trigger:focus-visible {
+  color: var(--ink-strong);
+  background: var(--l1-bg);
+}
+
+/* `.panel` is a block; this instance is a row so the text can shrink and the
+ * buttons keep the right-hand end. Under 720px it stacks instead. */
+.panel.widget-customise__panel {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 720px) {
+  .panel.widget-customise__panel {
+    flex-wrap: wrap;
+  }
+}
+
+.widget--flash .widget__card {
+  border-color: var(--accent-primary);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  transition: outline-color 400ms var(--ease-press);
+}
+
+@media (max-width: 900px) {
+  .widget--span-4,
+  .widget--span-6,
+  .widget--span-8 {
+    grid-column: span 12;
+  }
+}
+
+/* ------------------------------------------------------ Stations & stops (R72) */
+
+/*
+ * The rows on this page used to carry four shouty buttons — STOP PAGE, DEPARTURES, PLAN FROM
+ * HERE, PLAN TO HERE — and the traveller was asked to decide between them before reading
+ * anything. Now the card itself opens the stop, "More" opens that stop's board, and "Plan" asks
+ * the question instead of answering it twice.
+ *
+ * `--xs` is the quiet end of that row: a short label with tighter padding. The **height stays at
+ * the 44px target**, because that is the repo's own rule and `ui-audit` measures it — "smaller"
+ * here means a smaller footprint and a lighter label, not a smaller hit area. What makes the row
+ * read calm is mainly the two buttons that are gone.
+ */
+.btn--xs {
+  min-height: var(--target-min);
+  padding: 0 var(--s-2);
+  gap: var(--s-1);
+  font-size: var(--fs-pill);
+}
+
+/*
+ * A card that is also a way in. The link inside it is the accessible route; this is the pointer.
+ *
+ * The card is a big target, so it answers the pointer the way every other one in the app does:
+ * the same lift and the same overshooting easing as `.btn`, `.chip` and `.list-row` (the base
+ * `.card` transition is the spring, which is what carries the *return* to rest), and the same
+ * press. It is one rule for both lists that draw one — the stop cards on Stations & stops and
+ * the alert cards — because `Card` marks any card given an `onClick` with this class itself.
+ */
+.card--interactive {
+  cursor: pointer;
+}
+
+.card--interactive:hover {
+  background: var(--l1-bg);
+  transform: translateY(var(--hover-lift));
+  transition: transform var(--t-hover) var(--ease-hover);
+}
+
+.card--interactive:active {
+  transform: scale(var(--press-scale));
+}
+
+/*
+ * The filter row: one question per line on a phone, one line when there is room.
+ *
+ * Wrapping a flex row placed the controls wherever they happened to land, and on the alerts page
+ * that put the pinned toggle — a bare pill — beside a labelled field with the other controls
+ * around them: the search on a line of its own, then the pill and "Sort" sharing one, then the
+ * Options chip orphaned on a third. Three controls and a search do not fit 332px (the pinned
+ * toggle alone is 198px of text, the sort 130, Options 98), so a phone is *going* to take three
+ * lines; a grid decides which three instead of discovering them. The search takes the width, the
+ * pinned toggle keeps a line of its own, and the sort and the Options chip share the last one -
+ * bottoms aligned, which is what makes the labels and the controls line up across the row.
+ */
+.stops-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--s-3);
+}
+
+.stops-filters > .field {
+  min-width: 0;
+}
+
+/* The search and the pinned toggle each ask a question of their own, so neither shares a line
+   with a control that would make it look like that control's label. The search fills the width it
+   is given; the pinned toggle is a chip and stays the size of its own label. */
+.stops-filters > .field.grow {
+  grid-column: 1 / -1;
+}
+
+.stops-filters > .chip {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* Wide enough for the row to be one line: the four controls back on a single baseline. */
+@media (min-width: 720px) {
+  .stops-filters {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  .stops-filters > .field.grow,
+  .stops-filters > .chip {
+    grid-column: auto;
+  }
+}
+
+.results-chip--filters {
+  flex: none;
+}
+
+.stops-origin {
+  margin-top: calc(-1 * var(--s-1));
+}
+
+.stops-grid {
+  align-items: stretch;
+}
+
+/* Cards in a row are the same height, so a longer board list does not make its neighbour short. */
+.stop-card {
+  height: 100%;
+}
+
+/*
+ * The three departures on a card, in the board's own language at a quieter volume: a tabular
+ * time, where it goes, and the platform — with the delay in the same coral the board uses, and
+ * the word for a cancelled service in place of the platform it will not have.
+ */
+.stop-card__board {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stop-card__departure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 6px 0;
+  font-size: var(--fs-sm);
+  border-top: 1px solid var(--border-hairline);
+}
+
+.stop-card__departure .grow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * The foot of the list, watched by the loader — on Stations & stops and on the alerts list, which
+ * grow their lists by the same rule (`lib/loadBatch.ts`). It has no look of its own.
+ */
+.list-sentinel {
+  height: 1px;
 }

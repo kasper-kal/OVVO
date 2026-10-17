@@ -6,13 +6,16 @@ import { getDisruption } from '../../data/disruptions';
 import { useFormat } from '../../lib/useFormat';
 import { Disclosure, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
+import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
 
 function PlatformTag({ platform, label }: { platform?: string; label: string }) {
   if (!platform) return null;
   return (
     <Pill>
-      <Icon name="board" size={12} />
+      {/* A platform, not the board: `board` is the departure screen's monitor and a control
+          that opens it. */}
+      <Icon name="platform" size={12} />
       {label} {platform}
     </Pill>
   );
@@ -20,6 +23,7 @@ function PlatformTag({ platform, label }: { platform?: string; label: string }) 
 
 function WalkLegRow({ leg }: { leg: Leg }) {
   const format = useFormat();
+  const t = useT();
   const minutes = leg.arrival - leg.departure;
   const metres = leg.distanceMetres ?? 0;
   return (
@@ -32,14 +36,14 @@ function WalkLegRow({ leg }: { leg: Leg }) {
         <div className="stack-1 grow">
           <div className="row-wrap">
             <span className="t-strong t-sm">
-              {leg.mode === 'bike' ? 'Cycle' : 'Walk'} {format.duration(minutes)}
+              {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} {format.duration(minutes)}
               {metres ? ` · ${metres} m` : ''}
             </span>
             <Pill tone="outline">{format.time(leg.departure)} – {format.time(leg.arrival)}</Pill>
             {leg.stepFree ? (
               <Pill tone="sage">
                 <Icon name="accessibility" size={12} />
-                Step-free
+                {t('Step-free')}
               </Pill>
             ) : null}
           </div>
@@ -55,6 +59,7 @@ function WalkLegRow({ leg }: { leg: Leg }) {
 
 function RideLegRow({ leg }: { leg: Leg }) {
   const format = useFormat();
+  const t = useT();
   const line = getLine(leg.lineId);
   const from = getStop(leg.fromStopId);
   const to = getStop(leg.toStopId);
@@ -70,7 +75,7 @@ function RideLegRow({ leg }: { leg: Leg }) {
           <div className="row-wrap">
             <span className={`mode-badge mode-badge--${leg.mode}`}>
               <ModeIcon mode={leg.mode} size={13} />
-              {leg.lineName ?? line?.name ?? 'Service'}
+              {leg.lineName ?? line?.name ?? t('Service')}
             </span>
             <span className="leg-row__time">
               {format.time(leg.departure)} <Icon name="arrowRight" size={13} /> {format.time(leg.arrival)}
@@ -78,40 +83,40 @@ function RideLegRow({ leg }: { leg: Leg }) {
             <Pill>{format.duration(leg.arrival - leg.departure)}</Pill>
             {leg.delayMinutes ? (
               <Pill tone="coral" dot dotTone="coral">
-                Example delay +{leg.delayMinutes} min
+                {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
               </Pill>
             ) : (
-              <Pill tone="sage">On time (demo)</Pill>
+              <Pill tone="sage">{t('On time')}</Pill>
             )}
-            {leg.cancelled ? <Pill tone="coral">Cancelled in this simulation</Pill> : null}
+            {leg.cancelled ? <Pill tone="coral">{t('Cancelled')}</Pill> : null}
           </div>
 
           <div className="stack-1">
             <p className="t-sm">
-              <span className="t-strong">From</span> {stopLabel(leg.fromStopId)}{' '}
+              <span className="t-strong">{t('From')}</span> {stopLabel(leg.fromStopId)}{' '}
               {from ? <span className="t-faint">· {from.code}</span> : null}
             </p>
             <p className="t-sm">
-              <span className="t-strong">To</span> {stopLabel(leg.toStopId)}{' '}
+              <span className="t-strong">{t('To')}</span> {stopLabel(leg.toStopId)}{' '}
               {to ? <span className="t-faint">· {to.code}</span> : null}
             </p>
           </div>
 
           <div className="row-wrap">
-            <PlatformTag platform={leg.platform} label="Platform" />
-            <PlatformTag platform={leg.arrivalPlatform} label="Arrival platform" />
+            <PlatformTag platform={leg.platform} label={t('Platform')} />
+            <PlatformTag platform={leg.arrivalPlatform} label={t('Arrival platform')} />
             <Pill>{operatorName(leg.operatorId)}</Pill>
-            {leg.headsign ? <Pill tone="outline">Direction {leg.headsign}</Pill> : null}
+            {leg.headsign ? <Pill tone="outline">{t('Direction {headsign}', { headsign: leg.headsign })}</Pill> : null}
             {leg.stepFree ? (
               <Pill tone="sage">
                 <Icon name="accessibility" size={12} />
-                Step-free
+                {t('Step-free')}
               </Pill>
             ) : null}
             {leg.bikeAllowed ? (
               <Pill tone="outline">
                 <Icon name="bike" size={12} />
-                Bicycle allowed
+                {t('Bicycle allowed')}
               </Pill>
             ) : null}
           </div>
@@ -124,21 +129,29 @@ function RideLegRow({ leg }: { leg: Leg }) {
           ) : null}
 
           {leg.intermediateStops?.length ? (
-            <Disclosure title={`${leg.intermediateStops.length} intermediate stops`} id={`leg-${leg.id}`}>
+            <Disclosure
+              title={t(
+                leg.intermediateStops.length === 1 ? '{count} intermediate stop' : '{count} intermediate stops',
+                { count: leg.intermediateStops.length },
+              )}
+              id={`leg-${leg.id}`}
+            >
               <ol className="stack-2">
                 {leg.intermediateStops.map((stop) => (
                   <li key={stop.stopId} className="between">
                     <span className="t-sm">{stopLabel(stop.stopId)}</span>
                     <span className="row">
                       <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
-                      {stop.platform ? <Pill tone="outline">Platform {stop.platform}</Pill> : null}
+                      {stop.platform ? (
+                        <Pill tone="outline">{t('Platform {platform}', { platform: stop.platform })}</Pill>
+                      ) : null}
                     </span>
                   </li>
                 ))}
               </ol>
             </Disclosure>
           ) : (
-            <p className="t-sm t-faint">No intermediate stops in this demonstration service.</p>
+            <p className="t-sm t-faint">{t('No intermediate stops on this service.')}</p>
           )}
         </div>
       </div>
@@ -157,6 +170,7 @@ function transferBetween(previous: Leg, next: Leg) {
 
 export function LegList({ journey }: { journey: Journey }) {
   const format = useFormat();
+  const t = useT();
   const rows: React.ReactNode[] = [];
   journey.legs.forEach((leg, index) => {
     const previous = journey.legs[index - 1];
@@ -168,11 +182,18 @@ export function LegList({ journey }: { journey: Journey }) {
             <Pill tone="butter">
               <Icon name="swap" size={13} />
               {transfer.sameStop
-                ? `Transfer · ${format.duration(Math.max(1, transfer.wait))} at ${stopLabel(previous.toStopId)}`
-                : `Transfer via walk to ${stopLabel(leg.fromStopId)}`}
+                ? t('Transfer · {duration} at {stop}', {
+                    duration: format.duration(Math.max(1, transfer.wait)),
+                    stop: stopLabel(previous.toStopId),
+                  })
+                : t('Transfer via walk to {stop}', { stop: stopLabel(leg.fromStopId) })}
             </Pill>
-            {transfer.stop?.accessibility.stepFree ? <Pill tone="sage">Step-free transfer</Pill> : null}
-            {transfer.stop?.accessibility.assistance ? <Pill tone="outline">Staff assistance available</Pill> : null}
+            {transfer.stop?.accessibility.stepFree ? (
+              <Pill tone="sage">{t('Step-free transfer')}</Pill>
+            ) : null}
+            {transfer.stop?.accessibility.assistance ? (
+              <Pill tone="outline">{t('Staff assistance available')}</Pill>
+            ) : null}
           </li>,
         );
       }

@@ -1,13 +1,12 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../state/AppState';
 import { JOURNEY_LABELS } from '../../data/journeyEngine';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
-import { stopLabel } from '../../data/stops';
 import { useFormat } from '../../lib/useFormat';
-import { AvatarStack, Card, Disclosure, Meter, Pill, Sparkline } from '../ui/primitives';
+import { Card, Meter, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
-import { LegList } from './LegList';
+import { useT } from '../../lib/useT';
 import type { Journey } from '../../data/types';
 
 const OCCUPANCY_TEXT: Record<Journey['occupancy'], string> = {
@@ -23,15 +22,34 @@ const OCCUPANCY_METER_TONE: Record<Journey['occupancy'], 'sage' | 'butter' | 'co
 };
 
 export function JourneyCard({ journey, highlight = false }: { journey: Journey; highlight?: boolean }) {
+  const navigate = useNavigate();
   const format = useFormat();
+  const t = useT();
   const { search, isJourneySaved, saveJourney } = useApp();
   const saved = isJourneySaved(journey.signature);
   const operators = [...new Set(journey.operatorIds)].map((id) => operatorName(id));
   const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
-  const legSummary = `${journey.legs.length} legs · ${journey.transfers} transfer${journey.transfers === 1 ? '' : 's'}`;
+  const to = `/journey/${journey.id}`;
 
   return (
-    <Card as="article" className="stack" style={{ borderColor: highlight ? 'var(--accent-primary)' : undefined }}>
+    /*
+     * The card is a way in, the way a stop card and an alert card are: it lifts under the pointer
+     * and pressing anywhere on it opens the journey's own page, so the biggest target on the
+     * screen is the thing the screen is about. The three controls in it — Journey details, Show
+     * on map and Favourite — stop their clicks reaching the card, so nothing navigates twice, and
+     * the first of them is a real link, which is what a keyboard and a screen reader use.
+     *
+     * The legs are not on this card any more. A result answers "which of these shall I take";
+     * the leg-by-leg itinerary, with its times, platforms and the walk between them, is what the
+     * journey's own page is for — and it was the one block here behind a disclosure, so it was the
+     * one block that had to be opened before it could be read.
+     */
+    <Card
+      as="article"
+      className="stack"
+      style={{ borderColor: highlight ? 'var(--accent-primary)' : undefined }}
+      onClick={() => navigate(to)}
+    >
       <div className="between wrap">
         <div className="journey-card__times">
           <span className="journey-card__time">{format.time(journey.departure)}</span>
@@ -40,20 +58,20 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           <span className="pill">{format.duration(journey.durationMinutes)}</span>
         </div>
         <div className="row-wrap">
-          {journey.label ? <Pill tone="butter">{JOURNEY_LABELS[journey.label]}</Pill> : null}
-          {journey.transfers === 0 ? <Pill>Direct</Pill> : null}
+          {journey.label ? <Pill tone="butter">{t(JOURNEY_LABELS[journey.label])}</Pill> : null}
+          {journey.transfers === 0 ? <Pill>{t('Direct')}</Pill> : null}
           {journey.delayMinutes > 0 ? (
             <Pill tone="coral" dot dotTone="coral">
-              Example delay +{journey.delayMinutes} min
+              {t('Delay +{minutes} min', { minutes: journey.delayMinutes })}
             </Pill>
           ) : null}
-          {journey.cancelled ? <Pill tone="coral">Cancelled in this simulation</Pill> : null}
+          {journey.cancelled ? <Pill tone="coral">{t('Cancelled')}</Pill> : null}
         </div>
       </div>
 
       <div className="journey-card__chain">
         {rideLegs.length === 0 ? (
-          <span className="pill">Walking only</span>
+          <span className="pill">{t('Walking only')}</span>
         ) : (
           rideLegs.map((leg, index) => (
             <span key={leg.id} className="row">
@@ -70,11 +88,13 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
       <div className="journey-card__meta">
         <span className="row">
           <Icon name="swap" size={14} />
-          {journey.transfers === 0 ? 'No transfers' : `${journey.transfers} transfer${journey.transfers === 1 ? '' : 's'}`}
+          {journey.transfers === 0
+            ? t('No transfers')
+            : t(journey.transfers === 1 ? '{count} transfer' : '{count} transfers', { count: journey.transfers })}
         </span>
         <span className="row">
           <Icon name="walk" size={14} />
-          {journey.walkMinutes} min walking
+          {t('{count} minute walk', { count: journey.walkMinutes })}
         </span>
         <span className="row">
           <Icon name="ticket" size={14} />
@@ -89,75 +109,64 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
         {journey.stepFree ? (
           <span className="row">
             <Icon name="accessibility" size={14} />
-            Step-free
+            {t('Step-free')}
           </span>
         ) : null}
         {journey.bikeAllowed ? (
           <span className="row">
             <Icon name="bike" size={14} />
-            Bicycle allowed
+            {t('Bicycle allowed')}
           </span>
         ) : null}
       </div>
 
-      <div className="grid-2">
-        <div className="panel stack-2">
-          <div className="between">
-            <span className="field__label">Simulated occupancy</span>
-            <Pill>{OCCUPANCY_TEXT[journey.occupancy]}</Pill>
-          </div>
-          <Meter
-            value={journey.occupancyHistory.reduce((a, b) => a + b, 0) / journey.occupancyHistory.length}
-            tone={OCCUPANCY_METER_TONE[journey.occupancy]}
-          />
-          <div className="between">
-            <AvatarStack
-              people={[
-                { initials: 'JD', tone: 'sage' },
-                { initials: 'AK', tone: 'butter' },
-                { initials: 'MR', tone: 'coral' },
-              ]}
-              extra={journey.occupancy === 'busy' ? 14 : journey.occupancy === 'moderate' ? 8 : 3}
-            />
-            <span className="t-sm t-muted">simulated travellers</span>
-          </div>
+      {/*
+        One occupancy question, answered once: the expected level and a meter for it. There were
+        two more things here and both were invented — a row of made-up travellers with initials
+        (JD, AK, MR) and a count, and a per-hour busy-ness chart drawn from a random series. They
+        were the only places in the app that showed people who do not exist and a figure nothing
+        measured, so they are gone rather than restyled; the meter is the same reading the level
+        pill names, and the departure board and the stop pages carry the real crowd signal.
+      */}
+      <div className="panel stack-2">
+        <div className="between">
+          <span className="field__label">{t('Occupancy')}</span>
+          <Pill>{t(OCCUPANCY_TEXT[journey.occupancy])}</Pill>
         </div>
-        <div className="panel stack-1">
-          <span className="field__label">Expected busy-ness by hour</span>
-          <Sparkline values={journey.occupancyHistory} label="Simulated occupancy trend across the day" />
-          <span className="t-sm t-faint">Illustrative trend, generated with the demonstration data.</span>
-        </div>
+        <Meter
+          value={journey.occupancyHistory.reduce((a, b) => a + b, 0) / journey.occupancyHistory.length}
+          tone={OCCUPANCY_METER_TONE[journey.occupancy]}
+        />
       </div>
 
-      <div className="row-wrap">
-        <Link to={`/journey/${journey.id}`} className="btn btn--primary">
+      <div className="row-wrap journey-card__actions">
+        <Link to={to} className="btn btn--primary" onClick={(event) => event.stopPropagation()}>
           <Icon name="route" size={16} />
-          Journey details
+          {t('Journey details')}
         </Link>
-        <Link to={`/map?journey=${journey.id}`} className="btn">
+        {/*
+          The map is a screen of its own now (`pages/MapPage.tsx`) rather than the home-screen
+          widget: this used to open the home screen with `?widget=map` and leave the traveller
+          there, with their journey behind a page they had to find again. The map screen's own way
+          back returns to this results list.
+        */}
+        <Link to={`/map?journey=${journey.id}`} className="btn" onClick={(event) => event.stopPropagation()}>
           <Icon name="map" size={16} />
-          Show on map
+          {t('Show on map')}
         </Link>
         <button
           type="button"
           className="btn"
           aria-pressed={saved}
-          onClick={() => search && saveJourney(journey, search.query, search.windowOffsetMinutes)}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (search) saveJourney(journey, search.query, search.windowOffsetMinutes);
+          }}
         >
           <Icon name={saved ? 'check' : 'bookmark'} size={16} />
-          {saved ? 'Saved' : 'Save journey'}
+          {saved ? t('Favourited') : t('Favourite')}
         </button>
       </div>
-
-      <Disclosure title="Journey legs" summary={legSummary} id={`journey-${journey.id}`}>
-        {rideLegs.length === 0 ? (
-          <p className="t-sm t-muted">
-            This whole journey is a {journey.walkMinutes} minute walk from {stopLabel(journey.legs[0].fromStopId)} to{' '}
-            {stopLabel(journey.legs[journey.legs.length - 1].toStopId)}. No ticket needed.
-          </p>
-        ) : null}
-        <LegList journey={journey} />
-      </Disclosure>
     </Card>
   );
 }

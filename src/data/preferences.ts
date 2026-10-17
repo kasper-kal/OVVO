@@ -1,26 +1,56 @@
-import type { TravelMode } from './types';
+import { MODE_LABELS } from '../lib/format';
+import type { PublicMode, TravelMode } from './types';
 
-/** Travel preferences — used both by the planner form and the results engine. */
+/**
+ * Travel preferences — used both by the planner form and the results engine.
+ *
+ * One list of modes: a mode is either allowed or not used at all. The separate
+ * "avoid" list was dropped because allowing and avoiding had the identical
+ * effect on the results.
+ */
 export interface Preferences {
-  /** Modes the traveller is willing to use. */
+  /** Modes the traveller is willing to use, including walking and cycling. */
   allowedModes: TravelMode[];
-  /** Modes to avoid even when they are allowed. */
-  avoidedModes: TravelMode[];
   maxWalkingMinutes: number;
   maxTransfers: number;
-  /** Accessibility */
-  stepFreeOnly: boolean;
-  needAssistance: boolean;
-  lowFloorBoarding: boolean;
   /** Trade-offs */
   preferFewerTransfers: boolean;
   preferLessWalking: boolean;
-  /** Bicycle */
-  bikeMode: 'none' | 'foldable' | 'ovFiets' | 'own';
-  allowBikeOnBoard: boolean;
+  /**
+   * How the traveller reaches the first stop and leaves the last one. Walking and cycling
+   * are the app's two access modes (see `ACCESS_MODE_HINTS`), and they are answered at the
+   * two ends of the journey rather than as another allowed/not-allowed mode — the two
+   * chips on the results screen. A journey whose access leg is a bicycle one is only
+   * offered when the departure end asks for it, and the same at the arrival end.
+   */
+  accessFrom: AccessMode;
+  accessTo: AccessMode;
 }
 
-export const PT_MODES: Exclude<TravelMode, 'walk' | 'bike'>[] = ['train', 'bus', 'tram', 'metro', 'ferry'];
+
+/** Every mode the traveller can switch on or off, in the order shown in the UI. */
+export const MODE_OPTIONS: TravelMode[] = ['train', 'bus', 'tram', 'metro', 'ferry', 'walk', 'bike'];
+
+/** Walking and cycling are access modes, so they are described differently. */
+export const ACCESS_MODE_HINTS: Partial<Record<TravelMode, string>> = {
+  walk: 'Walk to, from and between stops.',
+  bike: 'Cycle short access and egress legs where a marked bicycle path exists.',
+};
+
+export const PT_MODES: PublicMode[] = ['train', 'bus', 'tram', 'metro', 'ferry'];
+
+/** The personal modes that can reach or leave a stop. */
+export type AccessMode = 'walk' | 'bike';
+
+export const ACCESS_MODES: { value: AccessMode; label: string; hint: string }[] = [
+  { value: 'walk', label: 'Walking', hint: ACCESS_MODE_HINTS.walk ?? '' },
+  { value: 'bike', label: 'Bicycle', hint: ACCESS_MODE_HINTS.bike ?? '' },
+];
+
+/** The name shown for a mode. Kept as a function so every call site reads the same. */
+export function modeLabel(mode: TravelMode): string {
+  return MODE_LABELS[mode];
+}
 
 export const TRANSFER_OPTIONS = [
   { value: 0, label: 'No transfers' },
@@ -30,51 +60,47 @@ export const TRANSFER_OPTIONS = [
   { value: 4, label: 'No limit' },
 ];
 
-export const WALK_OPTIONS = [
-  { value: 5, label: 'Up to 5 minutes' },
-  { value: 10, label: 'Up to 10 minutes' },
-  { value: 15, label: 'Up to 15 minutes' },
-  { value: 20, label: 'Up to 20 minutes' },
-  { value: 30, label: 'Up to 30 minutes' },
-  { value: 45, label: 'No limit' },
-];
-
-export const BIKE_OPTIONS: { value: Preferences['bikeMode']; label: string; hint: string }[] = [
-  { value: 'none', label: 'No bicycle', hint: 'Walking access only.' },
-  { value: 'foldable', label: 'Folding bicycle', hint: 'A folding bicycle is taken on board free of charge.' },
-  { value: 'ovFiets', label: 'Rental bicycle (OV-fiets)', hint: 'Rent a bicycle at the station for the last part of the journey.' },
-  { value: 'own', label: 'Own bicycle', hint: 'The prototype adds a bicycle leg where a marked bicycle path exists.' },
-];
+export const MAX_WALKING_MINUTES = 45;
 
 export const DEFAULT_PREFERENCES: Preferences = {
-  allowedModes: ['train', 'bus', 'tram', 'metro', 'ferry'],
-  avoidedModes: [],
+  allowedModes: ['train', 'bus', 'tram', 'metro', 'ferry', 'walk', 'bike'],
   maxWalkingMinutes: 20,
   maxTransfers: 2,
-  stepFreeOnly: false,
-  needAssistance: false,
-  lowFloorBoarding: false,
   preferFewerTransfers: false,
   preferLessWalking: false,
-  bikeMode: 'none',
-  allowBikeOnBoard: true,
+  // Walking, unless the traveller says otherwise: the planner used to put a bicycle leg at
+  // the start or the end of a quarter of its journeys because allowing cycling implied
+  // cycling. Cycling is now opt-in, per end.
+  accessFrom: 'walk',
+  accessTo: 'walk',
 };
 
-export function describePreferences(preferences: Preferences): string[] {
+export function describePreferences(
+  preferences: Preferences,
+  /** The interface's own text lookup, injected so this stays a pure data module. */
+  say: (key: string) => string = (key) => key,
+): string[] {
   const parts: string[] = [];
   parts.push(
     preferences.allowedModes.length
-      ? `Modes: ${preferences.allowedModes.join(', ')}`
-      : 'No transport modes selected',
+      ? say('Modes: {list}').replace('{list}', preferences.allowedModes.map((mode) => say(modeLabel(mode))).join(', '))
+      : say('No transport modes selected'),
   );
-  if (preferences.avoidedModes.length) parts.push(`Avoiding: ${preferences.avoidedModes.join(', ')}`);
-  parts.push(`Walking up to ${preferences.maxWalkingMinutes} min`);
-  parts.push(preferences.maxTransfers >= 4 ? 'Unlimited transfers' : `Max ${preferences.maxTransfers} transfer(s)`);
-  if (preferences.stepFreeOnly) parts.push('Step-free route required');
-  if (preferences.needAssistance) parts.push('Assistance requested');
-  if (preferences.lowFloorBoarding) parts.push('Low-floor boarding preferred');
-  if (preferences.preferFewerTransfers) parts.push('Prefers fewer transfers');
-  if (preferences.preferLessWalking) parts.push('Prefers less walking');
-  if (preferences.bikeMode !== 'none') parts.push(`Bicycle: ${preferences.bikeMode}`);
+  if (!preferences.allowedModes.includes('walk')) parts.push(say('Walking turned off'));
+  parts.push(
+    preferences.maxWalkingMinutes >= MAX_WALKING_MINUTES
+      ? say('No walking limit')
+      : say('Walking up to {minutes} min').replace('{minutes}', String(preferences.maxWalkingMinutes)),
+  );
+  parts.push(
+    preferences.maxTransfers >= 4
+      ? say('Unlimited transfers')
+      : say(preferences.maxTransfers === 1 ? 'Max {count} transfer' : 'Max {count} transfers').replace(
+          '{count}',
+          String(preferences.maxTransfers),
+        ),
+  );
+  if (preferences.preferFewerTransfers) parts.push(say('Prefers fewer transfers'));
+  if (preferences.preferLessWalking) parts.push(say('Prefers less walking'));
   return parts;
 }

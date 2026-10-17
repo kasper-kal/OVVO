@@ -1,7 +1,15 @@
-import { useEffect, useId, useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useState,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import { Icon, ModeIcon, type IconName } from './Icons';
 import { useApp } from '../../state/AppState';
-import { MODE_LABELS } from '../../lib/format';
+import { modeLabel } from '../../data/preferences';
 import type { TravelMode } from '../../data/types';
 
 /* --------------------------------------------------------------- L1 / L2 shell */
@@ -13,6 +21,7 @@ export function Card({
   className = '',
   style,
   as: Tag = 'section',
+  onClick,
 }: {
   children: ReactNode;
   variant?: 'raised' | 'flat' | 'obsidian';
@@ -20,17 +29,30 @@ export function Card({
   className?: string;
   style?: CSSProperties;
   as?: 'section' | 'div' | 'article' | 'li' | 'form';
+  /*
+   * A card that is also a way in — the stops list, where the whole card opens the stop page.
+   * It is deliberately *not* a link element: a card can contain a pin, a link and a button, and
+   * an anchor cannot contain them without becoming invalid markup. The accessible route is the
+   * real link inside the card (the stop's name); this click is the pointer's convenience, and
+   * anything inside that means something else stops the event before it arrives.
+   */
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
 }) {
   const classes = [
     'card',
     variant === 'flat' ? 'card--flat' : '',
     variant === 'obsidian' ? 'card--obsidian' : '',
     hero ? 'card--hero' : '',
+    onClick ? 'card--interactive' : '',
     className,
   ]
     .filter(Boolean)
     .join(' ');
-  return <Tag className={classes} style={style}>{children}</Tag>;
+  return (
+    <Tag className={classes} style={style} onClick={onClick}>
+      {children}
+    </Tag>
+  );
 }
 
 export function Panel({
@@ -91,7 +113,9 @@ export function Button({
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
-  size?: 'md' | 'sm';
+  /* `xs` is the quiet end of the row: a short label, tighter padding, a smaller glyph — the
+     44px target itself is not negotiable, and never was. */
+  size?: 'md' | 'sm' | 'xs';
   block?: boolean;
   icon?: IconName;
   iconAfter?: IconName;
@@ -101,6 +125,7 @@ export function Button({
     'btn',
     variant !== 'surface' ? `btn--${variant}` : '',
     size === 'sm' ? 'btn--sm' : '',
+    size === 'xs' ? 'btn--xs' : '',
     block ? 'btn--block' : '',
     square ? 'btn--square' : '',
     className,
@@ -212,7 +237,7 @@ export function ModeBadge({
   return (
     <span className={`mode-badge mode-badge--${mode}${ghost ? ' mode-badge--ghost' : ''}`}>
       <ModeIcon mode={mode} size={14} />
-      {label ?? MODE_LABELS[mode]}
+      {label ?? modeLabel(mode)}
     </span>
   );
 }
@@ -222,14 +247,17 @@ export function Segmented<T extends string | number>({
   value,
   onChange,
   ariaLabel,
+  size = 'md',
 }: {
   options: { value: T; label: string; icon?: IconName }[];
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string;
+  /** `sm` is the compact inline variant, e.g. next to the date/time control. */
+  size?: 'md' | 'sm';
 }) {
   return (
-    <div className="segmented" role="group" aria-label={ariaLabel}>
+    <div className={['segmented', size === 'sm' ? 'segmented--sm' : ''].filter(Boolean).join(' ')} role="group" aria-label={ariaLabel}>
       {options.map((option) => (
         <button
           key={String(option.value)}
@@ -354,7 +382,7 @@ export function Disclosure({
         aria-controls={panelId}
         onClick={() => setOpen(!open)}
       >
-        <span>{title}</span>
+        <span className="disclosure__title">{title}</span>
         {summary ? (
           <span className="t-sm t-muted" style={{ textTransform: 'none', letterSpacing: 0 }}>
             {summary}
@@ -386,6 +414,18 @@ export function EmptyState({
 }) {
   return (
     <div className="empty">
+      {/*
+       * The dashed ring, drawn rather than declared: `border-style: dashed` hands the renderer
+       * the dash length (about 3px on / 3px off, the faintest hairline in the palette) and a
+       * per-side gradient cannot turn a corner at all — measured on the board page, the four
+       * straight strips stopped short of every curve, so the box's four corners were the four
+       * places the ring was missing. One rounded-rect stroke takes the corners in its stride: the
+       * dash pattern runs *around* the arc, its length is a token (`--empty-dash`), and the radius
+       * is the same `--r-nested` the box itself uses, in CSS, so the two curves cannot drift.
+       */}
+      <svg className="empty__ring" aria-hidden="true" focusable="false">
+        <rect className="empty__ring-edge" />
+      </svg>
       <span className="empty__icon">
         <Icon name={icon} size={26} />
       </span>
@@ -442,66 +482,13 @@ export function Meter({ value, tone = 'coral' }: { value: number; tone?: 'coral'
   );
 }
 
-/** SVG data sparkline: organic bezier with Sunset Coral stroke and Butter focal point. */
-export function Sparkline({ values, label }: { values: number[]; label: string }) {
-  const width = 200;
-  const height = 44;
-  const max = Math.max(...values, 0.001);
-  const step = values.length > 1 ? width / (values.length - 1) : width;
-  const points = values.map((value, index) => ({
-    x: index * step,
-    y: height - 4 - (value / max) * (height - 12),
-  }));
-  const path = points
-    .map((point, index) => {
-      if (index === 0) return `M${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
-      const prev = points[index - 1];
-      const cx = (prev.x + point.x) / 2;
-      return `C${cx.toFixed(1)} ${prev.y.toFixed(1)} ${cx.toFixed(1)} ${point.y.toFixed(1)} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
-    })
-    .join(' ');
-  const peak = points.reduce((best, point) => (point.y < best.y ? point : best), points[0]);
-  return (
-    <svg className="sparkline" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label} preserveAspectRatio="none">
-      <path className="sparkline__baseline" d={`M0 ${height - 3} H${width}`} />
-      <path d={path} />
-      <circle cx={peak.x} cy={peak.y} r={4} />
-    </svg>
-  );
-}
-
-export function AvatarStack({ people, extra }: { people: { initials: string; tone?: 'sage' | 'butter' | 'coral' }[]; extra?: number }) {
-  return (
-    <span className="avatar-stack" aria-label={`${people.length + (extra ?? 0)} travellers`}>
-      {people.map((person) => (
-        <span key={person.initials} className={`avatar${person.tone ? ` avatar--${person.tone}` : ''}`} aria-hidden="true">
-          {person.initials}
-        </span>
-      ))}
-      {extra ? <span className="avatar avatar--butter">+{extra}</span> : null}
-    </span>
-  );
-}
-
-export function DemoBadge({ label = 'Simulated data' }: { label?: string }) {
-  const { settings } = useApp();
-  if (!settings.showDemoBadges) return null;
-  return (
-    <Pill tone="butter" className="pill--outline">
-      {label}
-    </Pill>
-  );
-}
-
-export function DemoNotice({ children }: { children?: ReactNode }) {
-  const { settings } = useApp();
-  if (!settings.showDemoBadges) return null;
-  return (
-    <Banner title="Prototype with simulated data" icon="info">
-      {children ?? 'All times, delays, platforms and alerts in this app are generated demo data. Nothing here reflects the real timetable.'}
-    </Banner>
-  );
-}
+/*
+ * `Sparkline` and `AvatarStack` were deleted with their call sites. A bezier chart of the
+ * occupancy history and a row of made-up travellers with initials were the only two things in
+ * the app that drew data nobody had: the series behind the chart was random numbers per plan
+ * and the travellers were three hard-coded initials beside a count nobody counted. The level
+ * itself ("Expected fairly busy") and the meter for it are the real reading, and they stay.
+ */
 
 /* ---------------------------------------------------------------------- modal */
 
