@@ -64,6 +64,8 @@ const NL: Record<string, string> = {
   'Keep holding to customise': 'Blijf vasthouden om aan te passen',
   'Drag to move': 'Sleep om te verplaatsen',
   'Move {title}': 'Verplaats {title}',
+  'Put it back': 'Zet terug',
+  'Move undone': 'Verplaatsing teruggedraaid',
   Done: 'Klaar',
   Add: 'Toevoegen',
   Remove: 'Verwijderen',

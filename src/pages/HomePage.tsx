@@ -337,8 +337,21 @@ export function HomePage() {
   const cornerPointer = useRef({ x: 0, y: 0 });
   const cornerFrame = useRef<number | null>(null);
   const [resize, setResize] = useState<{ id: string; size: WidgetSize } | null>(null);
-  /* The phone's height control announces its own result through the same live region below. */
-  const [sizeNote, setSizeNote] = useState('');
+  /*
+   * One live region says what the layout just did, and nothing else does (see the `sr-only`
+   * status line at the foot of the page): the size a resize settled on, and whether an undo put
+   * the screen back. It is a string rather than two flags because only one thing happens at a
+   * time, and the last thing said is the thing worth saying.
+   */
+  const [note, setNote] = useState('');
+  /*
+   * **The way back (R85).** Every move that changed the layout is kept as the one thing needed to
+   * invert it — the widget, and the slot it came from — and `moveHomeWidget` is its own inverse
+   * (`remove and insert at i` undone by `remove and insert at j`), so stepping back through this
+   * list restores the order exactly, in reverse, however many moves ago it was. Last ten, which
+   * is more than a screen of arrangements has ever been worth and still a bounded list.
+   */
+  const [moves, setMoves] = useState<Array<{ id: string; from: number }>>([]);
   const resizeLive = useRef<{ id: string; size: WidgetSize } | null>(null);
 
   const drawCorner = () => {
@@ -439,6 +452,10 @@ export function HomePage() {
     [],
   );
 
+  /** How deep the band at each edge of the window is, and how fast it scrolls the page. */
+  const EDGE_PX = 96;
+  const EDGE_SPEED = 16;
+
   const captureZones = () => {
     const grid = gridRef.current;
     if (!grid) return;
@@ -481,11 +498,39 @@ export function HomePage() {
     return nearest ? nearest.index : null;
   };
 
+  /**
+   * The slot an **edge of the window** means, or null in the middle of it.
+   *
+   * This is the fix for the report that the drag worked and the way back did not: "once you drag
+   * one widget, you cant drag it back to its original place". The zones are frozen where the hand
+   * found them, in **page** coordinates, so a slot that is scrolled off the top of the window
+   * cannot be pointed at — the finger would have to be at a negative y. Dragging a card back to
+   * the top of the screen therefore did *not* mean the top of the list: the finger's page point
+   * landed in whichever slot happened to be under it, which was often the slot the card was
+   * already in, and the card was dropped back where it started. Measured at 390x844: the map —
+   * the second card, 586px of an 844px window — could only reach slot 1 by dragging the page
+   * itself up to within 250px of the top, which is not a thing a hand is doing while it drags.
+   *
+   * So the bands mean what they look like they mean: the top of the window is the **first** slot
+   * and the bottom of it is the **last**, whatever the page is scrolled to and whether or not the
+   * page has finished scrolling there. What the card is drawn over is what it will become, which
+   * is the only promise a drag makes.
+   */
+  const edgeSlot = (y: number): number | null => {
+    const found = zones.current;
+    if (found.length === 0) return null;
+    if (y < EDGE_PX) return found[0].index;
+    if (y > window.innerHeight - EDGE_PX) return found[found.length - 1].index;
+    return null;
+  };
+
   /** Put the dragged card into the slot the finger is over, if that is not where it already is. */
   const updateTarget = () => {
     const from = dragFrom.current;
     if (!from) return;
-    const target = zoneUnder(dragPointer.current.x + window.scrollX, dragPointer.current.y + window.scrollY);
+    const band = edgeSlot(dragPointer.current.y);
+    const target =
+      band ?? zoneUnder(dragPointer.current.x + window.scrollX, dragPointer.current.y + window.scrollY);
     if (target === null) return;
     const current = homeWidgets.indexOf(from.id);
     if (current < 0 || target === current) return;
@@ -510,8 +555,6 @@ export function HomePage() {
    */
   const scrollFrame = useRef<number | null>(null);
   const scrollStamp = useRef(0);
-  const EDGE_PX = 96;
-  const EDGE_SPEED = 16;
 
   const edgeScroll = (time: number) => {
     if (!dragNode.current) {
@@ -631,14 +674,53 @@ export function HomePage() {
     dragActive.current = false;
     zones.current = [];
     stopEdgeScroll();
-    /* The layout is already the dropped one; this only saves it. */
+    /*
+     * The layout is already the dropped one; this only saves it — and remembers how to unsave it.
+     *
+     * `fromIndex` is read from `homeWidgets`, which nothing writes during a drag (the preview is
+     * local state and the drop is the only writer), so it is the slot the card was taken from.
+     * A drop that changed nothing — the card let go over its own slot — leaves no move behind,
+     * which is what keeps "Put it back" from being offered for a drag that did not move anything.
+     */
     const dropped = previewRef.current;
     if (keep && dropped) {
       const index = dropped.indexOf(from.id);
-      if (index >= 0) moveHomeWidget(from.id, index);
+      const fromIndex = homeWidgets.indexOf(from.id);
+      if (index >= 0 && fromIndex >= 0 && index !== fromIndex) {
+        setMoves((list) => [...list.slice(-9), { id: from.id, from: fromIndex }]);
+        moveHomeWidget(from.id, index);
+      }
     }
     setDrag(null);
     setPreviewOrder(null);
+  };
+
+  /**
+   * **Put it back.** One tap restores the order as it was before the last move — and the tap
+   * before that the one before it, because the move being undone is removed from the list as it
+   * is applied.
+   *
+   * It lives in the customising panel rather than on the card on purpose. The card's own head is
+   * two controls because the report about it was that the controls were in the way; the way back
+   * from a wrong arrangement is a step in arranging, and the panel is where arranging is done.
+   */
+  const undoMove = () => {
+    const last = moves[moves.length - 1];
+    if (!last) return;
+    setMoves((list) => list.slice(0, -1));
+    moveHomeWidget(last.id, last.from);
+    setNote(t('Move undone'));
+  };
+
+  /* The arrangement is settled when the mode closes, so the offer to undo it goes with it. */
+  useEffect(() => {
+    if (!editing) setMoves([]);
+  }, [editing]);
+
+  /** Reset throws the whole arrangement away, so an old move can no longer describe it. */
+  const resetLayout = () => {
+    resetHomeWidgets();
+    setMoves([]);
   };
 
   /*
@@ -759,38 +841,22 @@ export function HomePage() {
                   {editing ? (
                     <div className="widget__actions">
                       {/*
-                        Three controls, not five (reported: "this looks like shit", with the row
-                        of ⌃ ⌄ ⇅ ⠿ ✕ circled). Two of the five were the same gesture drawn three
-                        times — ⌃ and ⌄ beside a ⇅ — and they were the widest thing on the card:
-                        at 390px the title and five 44px targets did not fit on one line, so the
-                        head wrapped and every card grew a second row of loose glyphs under its
-                        name. Moving is the grip's job (drag, and ↑/↓ on a keyboard through
-                        `nudge`), height is the ⇅ on a phone (F3) and the card's own corner
-                        everywhere else, and × removes — one meaning per control, all three in
-                        the card's top-right corner.
+                        **Two controls, and neither of them is a gesture drawn twice.**
+
+                        The head has been ⌃ ⌄ ⇅ ⠿ ✕ and then ⇅ ⠿ ✕, and both were wrong for the
+                        same reason: the card was carrying controls for things the hand already
+                        does. Moving is the grip's job (drag, and ↑/↓ on a keyboard through
+                        `nudge`) and removing is the ×, so the height cycler that F3 added to a
+                        phone is gone — reported as "the ugly ⇅ button" — and the head is a grip
+                        and a × at every width.
+
+                        What a phone loses with it, said plainly because it is a capability and
+                        not a glyph: the corner below is only drawn from each widget's own
+                        `resizeFrom` up (every widget is wider than 390), so on a phone a card's
+                        height can no longer be chosen at all. What it buys is a head that fits
+                        beside the name — measured at 390px: 88px of controls against 332px of
+                        card, one 44px row, nothing wrapping.
                       */}
-                      {/*
-                        The phone's resizing control (F3). The corner is hidden below each
-                        widget's own `resizeFrom` — which is every widget at 378px — because a
-                        one-column grid makes the width ladder meaningless. The height ladder is
-                        not: this cycles Compact → Standard → Tall, pins the card to 12/12 and
-                        writes the same stored size the corner writes, so the choice survives a
-                        reload and the corner picks it up on a wide screen.
-                      */}
-                      {phone ? (
-                        <IconButton
-                          icon="swap"
-                          label={t('Change the height of {title} ({height})', {
-                            title: t(widget.title),
-                            height: t(TIER_LABEL[live.h]),
-                          })}
-                          onClick={() => {
-                            const nextTier = TIERS[(TIERS.indexOf(live.h) + 1) % TIERS.length];
-                            setWidgetSize(widget.id, { w: 12 as WidgetWidth, h: nextTier });
-                            setSizeNote(`${t(widget.title)} · ${t(TIER_LABEL[nextTier])}`);
-                          }}
-                        />
-                      ) : null}
                       <button
                         type="button"
                         className="widget__grip"
@@ -880,9 +946,7 @@ export function HomePage() {
       {/* The size is never written on the card — the card *is* the size. A screen reader still
           needs to hear what the drag did, so one live region says it and nothing else does. */}
       <span className="sr-only" aria-live="polite">
-        {resize
-          ? `${resize.size.w}/12 · ${t(TIER_LABEL[resize.size.h])}`
-          : sizeNote}
+        {resize ? `${resize.size.w}/12 · ${t(TIER_LABEL[resize.size.h])}` : note}
       </span>
 
       {holding ? (
@@ -905,7 +969,16 @@ export function HomePage() {
               <Button size="sm" variant="primary" icon="plus" onClick={() => setAddOpen(true)}>
                 {t('Add widget')}
               </Button>
-              <Button size="sm" icon="refresh" onClick={resetHomeWidgets}>
+              {/* Only while there is a move to take back. A greyed "Put it back" on a screen where
+                  nothing has been moved is a control for a thing that has not happened — the same
+                  rule the catalogue follows, where an empty list is a sentence rather than a row
+                  of disabled Add buttons. */}
+              {moves.length > 0 ? (
+                <Button size="sm" onClick={undoMove}>
+                  {t('Put it back')}
+                </Button>
+              ) : null}
+              <Button size="sm" icon="refresh" onClick={resetLayout}>
                 {t('Reset layout')}
               </Button>
               <Button size="sm" variant="surface" icon="check" onClick={() => setEditing(false)}>
@@ -981,7 +1054,7 @@ export function HomePage() {
             );
           })}
           <div className="row-wrap">
-            <Button size="sm" icon="refresh" onClick={resetHomeWidgets}>
+            <Button size="sm" icon="refresh" onClick={resetLayout}>
               {t('Reset to the default layout')}
             </Button>
           </div>

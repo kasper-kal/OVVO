@@ -23,7 +23,7 @@ where they are measured, not left out.
 |---|---|---|---|
 | F1 | Home | A widget can't be moved back without leaving and re-entering customising | **done** — superseded by R84: the two move buttons were removed, the drag is the way, and the keyboard contract they shared is the grip's |
 | F2 | Home | The station picker's list can't be scrolled; scrolling the page closes it | **done** |
-| F3 | Home | A widget has no resizing control on a phone | **done** |
+| F3 | Home | A widget has no resizing control on a phone | **done** — superseded by R85: the ⇅ was deleted at the user's request, so a phone has no size control at all; the corner drag is the only one, and it is drawn from each widget's own width threshold up |
 | F4 | Results | Home flashes before the results screen appears | **done** |
 | F5 | Results | The access dialog's DONE button is unnecessary | **done** |
 | F6 | Results | Delete the Carriers section from Options | **done** |
@@ -259,10 +259,13 @@ session, `[map, favourited-journeys]` → `[planner, map]`, without touching Don
 cleared on every drop (node, transform, zones, preview order), which is why the second press lifts
 the card instead of re-using the first drag's zone map.
 
-**Superseded by R84.** The two move buttons this item added are gone: at 390px they were part of a
-row of five 44px targets that wrapped onto a second line under the card's name on 4 of the 5 cards
-(head measured **69px** against **44px** now). The drag and the grip's ↑/↓ contract are unchanged,
-which is what the measured paragraph above is about.
+**Superseded by R84, and answered properly by R85.** The two move buttons this item added are gone:
+at 390px they were part of a row of five 44px targets that wrapped onto a second line under the
+card's name on 4 of the 5 cards (head measured **69px** against **44px** now). The drag and the
+grip's ↑/↓ contract are unchanged, which is what the measured paragraph above is about — and the
+half of this item that was never really fixed (a wrong drop, and no way back from it) is R85's:
+the edges of the window now mean the first and last slots so a card can be dragged back to where
+the hand points, and **"Put it back"** in the customising panel undoes a move in one tap.
 
 ### F2 — The station picker's list cannot be scrolled
 *Mark: `2026-10-17t20-06-25-901-home-378-light.png`:*
@@ -306,6 +309,13 @@ carry the width corner. One press took the first card from `widget--h-standard` 
 `widget--h-tall`; a reload later the same control reads *Change the height of Plan a journey (Tall)*
 and the card still draws tall — the width is pinned to 12/12 and the stored size is the same
 `widgetSizes` entry the corner writes, so a wide screen picks the choice up unchanged.
+
+**Superseded by R85 — the control, not the reason.** The ⇅ was reported as "the ugly ⇅ button" and
+is deleted, so the height ladder on a phone goes with it: at 378 there are now **0** height controls
+and **0** corners, and the only way to size a card is the corner drag, which is drawn from each
+widget's own threshold up. Measured after: **every head is at most a grip and a ×**, one 44px row,
+88px of controls against 332px of card. The corner and `resizeFrom` are unchanged, and on a wide
+window the height ladder still works exactly as this item describes.
 
 ### F4 — Home flashes before the results appear
 *Mark: `2026-10-17t20-18-26-182-results-378-light.png` (placeholder image; the note is the report):*
