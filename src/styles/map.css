@@ -222,6 +222,22 @@
 }
 
 /*
+ * Height tiers for the map widget.
+ *
+ * Every other widget's tier changes how many rows it shows, because a row is a fact you can count.
+ * A map has no rows: its content is its drawing, so the tier caps the drawing instead. The `<svg>`
+ * keeps its aspect ratio and letterboxes inside the cap, which is why the water is painted on the
+ * element as well as inside the drawing — a capped plate still reads as one surface.
+ */
+.widget--h-compact .map-canvas--widget {
+  max-height: 180px;
+}
+
+.widget--h-tall .map-canvas--widget {
+  max-height: 460px;
+}
+
+/*
  * From a tablet up, every map is a **plate**: as wide as the card hands it, and a height that is a
  * constant. That is the whole of the reported fix — the map widens with the room and does not
  * grow taller with the window.

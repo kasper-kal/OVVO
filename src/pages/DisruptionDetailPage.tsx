@@ -240,25 +240,13 @@ export function DisruptionDetailPage() {
             ) : null}
           </Card>
 
-          <Panel className="stack-2">
-            <span className="field__label">Related screens</span>
-            <div className="row-wrap">
-              <Link to="/departures" className="btn btn--sm">
-                <Icon name="board" size={15} />
-                Departure boards
-              </Link>
-              <Link to="/map" className="btn btn--sm">
-                <Icon name="map" size={15} />
-                Network map
-              </Link>
-              {search ? (
-                <Link to="/results" className="btn btn--sm">
-                  <Icon name="route" size={15} />
-                  My results
-                </Link>
-              ) : null}
-            </div>
-          </Panel>
+          {/*
+            A "Related screens" panel closed this column: Departure boards, Network map, My
+            results. The first is in the sidebar; the other two are the same list of doors the
+            shell already offers on the screens that ask for them, and none of them is advice
+            about *this* alert — which is what the card above is for. Deleted rather than
+            restyled: navigation is the sidebar's job, not a card's.
+          */}
         </div>
       </div>
 

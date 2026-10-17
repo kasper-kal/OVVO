@@ -5,7 +5,8 @@ import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card, Dialog, IconButton, Panel } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
-import { WIDGETS, WIDGET_CATEGORIES, widgetById } from '../widgets/registry';
+import { WIDGETS, WIDGET_CATEGORIES, WidgetTierContext, widgetById } from '../widgets/registry';
+import type { WidgetSize, WidgetTier, WidgetWidth } from '../state/types';
 import { NETWORK } from '../data/network';
 import { DISRUPTIONS } from '../data/disruptions';
 import { STOPS } from '../data/stops';
@@ -17,6 +18,25 @@ const HOLD_MS = 1000;
 
 /** How long before the hold becomes deliberate enough to say so on screen. */
 const HOLD_HINT_MS = 350;
+
+/**
+ * The four widths, smallest first — the ladder the corner walks.
+ *
+ * Whether a card may take one of them is its own business: each widget declares a `resizeFrom`
+ * device width, and below that it is drawn full width at its default height. The stored value is
+ * never rewritten by the window, so a size chosen on a laptop is waiting when the card is next
+ * shown on one.
+ */
+const WIDTHS: WidgetWidth[] = [4, 6, 8, 12];
+
+/** Every tier, smallest first. Every widget offers all three; they differ in what a tier shows. */
+const TIERS: WidgetTier[] = ['compact', 'standard', 'tall'];
+
+/** How far the corner travels before the card shows one more row (the content threshold). */
+const TIER_STEP_PX = 56;
+
+/** The tier names, in the dictionary's own words — used only for the screen-reader announcement. */
+const TIER_LABEL: Record<WidgetTier, string> = { compact: 'Compact', standard: 'Standard', tall: 'Tall' };
 
 /** A press that moves further than this is a scroll, not a hold. */
 const HOLD_SLOP_PX = 12;
@@ -49,7 +69,8 @@ const NO_PRESS =
  * does nothing at all.
  */
 export function HomePage() {
-  const { homeWidgets, addHomeWidget, removeHomeWidget, moveHomeWidget, resetHomeWidgets } = useApp();
+  const { homeWidgets, addHomeWidget, removeHomeWidget, moveHomeWidget, resetHomeWidgets, widgetSizes, setWidgetSize } =
+    useApp();
   const t = useT();
   const [params] = useSearchParams();
   const [editing, setEditing] = useState(false);
@@ -271,6 +292,114 @@ export function HomePage() {
      behind for the second and third move of a burst, and re-running the "lift" branch with the
      card already transformed would recompute the grab point from the moved box. */
   const dragActive = useRef(false);
+
+  /* ------------------------------------------------------------------ sizing */
+  /**
+   * The device width, measured once and then followed.
+   *
+   * Each widget declares the smallest device (`resizeFrom`) at which resizing is any use to it —
+   * a departure row needs close to 700, a clock survives 480. Below that threshold a card is full
+   * width at its default height and the corner is not offered, so the control cannot make a card
+   * worse than leaving it alone.
+   */
+  const [viewport, setViewport] = useState(() => (typeof window === 'undefined' ? 1440 : window.innerWidth));
+  useEffect(() => {
+    const onResize = () => setViewport(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  /** What the traveller chose, or what the registry declares. */
+  const sizeOf = (widget: { id: string; span: WidgetWidth }): WidgetSize => {
+    const stored = widgetSizes[widget.id];
+    return {
+      w: stored?.w ?? widget.span,
+      h: stored && TIERS.includes(stored.h) ? stored.h : 'standard',
+    };
+  };
+
+  /**
+   * The size being dragged, and the frame that will draw it.
+   *
+   * Pointer moves arrive faster than frames, and each one that reaches React re-renders the whole
+   * grid — which is what made the first attempt feel like a stutter rather than a resize. So the
+   * move only records the pointer; one `requestAnimationFrame` per frame computes the size and
+   * renders it. Everything the eye sees is therefore at most one frame old, and at most once.
+   */
+  const corner = useRef<{
+    id: string;
+    pointerId: number;
+    x: number;
+    y: number;
+    size: WidgetSize;
+    heights: WidgetTier[];
+  } | null>(null);
+  const cornerPointer = useRef({ x: 0, y: 0 });
+  const cornerFrame = useRef<number | null>(null);
+  const [resize, setResize] = useState<{ id: string; size: WidgetSize } | null>(null);
+  const resizeLive = useRef<{ id: string; size: WidgetSize } | null>(null);
+
+  const drawCorner = () => {
+    cornerFrame.current = null;
+    const start = corner.current;
+    const grid = gridRef.current;
+    if (!start || !grid) return;
+    const gap = Number.parseFloat(window.getComputedStyle(grid).columnGap) || 16;
+    const column = (grid.clientWidth - gap * 11) / 12;
+    const step = column + gap;
+    const dx = cornerPointer.current.x - start.x;
+    const dy = cornerPointer.current.y - start.y;
+    const widthIndex = WIDTHS.indexOf(start.size.w) + Math.round(dx / step);
+    const w = WIDTHS[Math.max(0, Math.min(WIDTHS.length - 1, widthIndex))];
+    /* Vertically the drag asks for *more content*, not a taller box: the card grows by a tier when
+       the finger has travelled far enough, and its body shows the rows that tier allows. */
+    const tierIndex =
+      start.heights.indexOf(start.size.h) + Math.round(dy / TIER_STEP_PX);
+    const h = start.heights[Math.max(0, Math.min(start.heights.length - 1, tierIndex))];
+    const live = { id: start.id, size: { w, h } };
+    if (resizeLive.current?.size.w === w && resizeLive.current?.size.h === h) return;
+    resizeLive.current = live;
+    setResize(live);
+  };
+
+  const beginCorner = (event: ReactPointerEvent<HTMLButtonElement>, widget: (typeof WIDGETS)[number]) => {
+    if (!editing || !event.isPrimary) return;
+    /* The card itself answers pointer-down with a *move*; resizing is not moving. */
+    event.stopPropagation();
+    event.preventDefault();
+    const size = sizeOf(widget);
+    corner.current = { id: widget.id, pointerId: event.pointerId, x: event.clientX, y: event.clientY, size, heights: TIERS };
+    cornerPointer.current = { x: event.clientX, y: event.clientY };
+    resizeLive.current = { id: widget.id, size };
+    setResize({ id: widget.id, size });
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const moveCorner = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!corner.current) return;
+    event.preventDefault();
+    cornerPointer.current = { x: event.clientX, y: event.clientY };
+    if (cornerFrame.current === null) cornerFrame.current = window.requestAnimationFrame(drawCorner);
+  };
+
+  const endCorner = () => {
+    const start = corner.current;
+    if (!start) return;
+    if (cornerFrame.current !== null) {
+      window.cancelAnimationFrame(cornerFrame.current);
+      cornerFrame.current = null;
+      /* The last pointer position has not been drawn yet; draw it now so the size that is saved
+         is the size the finger was on, not the one from the frame before. */
+      drawCorner();
+    }
+    corner.current = null;
+    const live = resizeLive.current;
+    resizeLive.current = null;
+    setResize(null);
+    if (!live) return;
+    if (live.size.w === start.size.w && live.size.h === start.size.h) return;
+    setWidgetSize(start.id, live.size);
+  };
 
   /** Put the card back under the finger: its layout box (transform subtracted) to the pointer. */
   const placeCard = () => {
@@ -571,11 +700,17 @@ export function HomePage() {
 
       <div
         ref={gridRef}
-        className={`widget-grid${editing ? ' widget-grid--editing' : ''}${drag ? ' widget-grid--dragging' : ''}`}
+        className={`widget-grid${editing ? ' widget-grid--editing' : ''}${drag ? ' widget-grid--dragging' : ''}${resize ? ' widget-grid--resizing' : ''}`}
       >
         {visible.map((widget) => {
           const Body = widget.Body;
           const isDragging = drag === widget.id;
+          /* Below its own threshold a widget is drawn full width at its default height: the
+             stored choice is kept for the window that can honour it, not overwritten by this one. */
+          const canResize = viewport >= widget.resizeFrom;
+          const size = canResize ? sizeOf(widget) : { w: 12 as WidgetWidth, h: 'standard' as WidgetTier };
+          const live = resize?.id === widget.id ? resize.size : size;
+          const heights = TIERS;
           return (
             <section
               key={widget.id}
@@ -583,7 +718,9 @@ export function HomePage() {
               data-widget-id={widget.id}
               className={[
                 'widget',
-                `widget--span-${widget.span}`,
+                `widget--span-${live.w}`,
+                `widget--h-${live.h}`,
+                resize?.id === widget.id ? 'widget--resizing' : '',
                 flash === widget.id ? 'widget--flash' : '',
                 editing ? 'widget--editable' : '',
                 isDragging ? 'widget--dragging' : '',
@@ -635,12 +772,70 @@ export function HomePage() {
                     </div>
                   ) : null}
                 </div>
-                <Body />
+                <WidgetTierContext.Provider value={live.h}>
+                  <Body />
+                </WidgetTierContext.Provider>
               </Card>
+              {/*
+                The corner: a small curved mark hugging the card's bottom-right corner, inside a
+                44px target that is otherwise invisible.
+
+                It is deliberately not an icon in a circle — that reads as a button to press, and
+                this is a thing to drag. The mark is drawn by `styles/components.css`
+                (`.widget__corner::after`) so it can hug the card's own radius instead of being a
+                shape pasted near it, and it exists only while the screen is being customised.
+
+                The arrow keys are not a courtesy: WCAG 2.5.7 requires a single-pointer
+                alternative to a drag, so the same control takes ←/→ for width, ↑/↓ for one more
+                row of content, and Home to return the card to its declared size.
+              */}
+              {editing && canResize ? (
+                <button
+                  type="button"
+                  className="widget__corner"
+                  data-resize-handle
+                  aria-label={t('Resize {title}', { title: t(widget.title) })}
+                  onPointerDown={(event) => beginCorner(event, widget)}
+                  onPointerMove={moveCorner}
+                  onPointerUp={endCorner}
+                  onPointerCancel={endCorner}
+                  onKeyDown={(event) => {
+                    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                      event.preventDefault();
+                      const index = WIDTHS.indexOf(size.w) + (event.key === 'ArrowRight' ? 1 : -1);
+                      setWidgetSize(widget.id, { ...size, w: WIDTHS[Math.max(0, Math.min(WIDTHS.length - 1, index))] });
+                      return;
+                    }
+                    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                      /* Swallowed even with one tier: a focused corner must not scroll the page. */
+                      event.preventDefault();
+                      if (heights.length < 2) return;
+                      const index = heights.indexOf(size.h) + (event.key === 'ArrowUp' ? 1 : -1);
+                      setWidgetSize(widget.id, { ...size, h: heights[Math.max(0, Math.min(heights.length - 1, index))] });
+                      return;
+                    }
+                    if (event.key === 'Home') {
+                      event.preventDefault();
+                      setWidgetSize(widget.id, {
+                        w: widget.span,
+                        h: heights.includes('standard') ? 'standard' : heights[0],
+                      });
+                    }
+                  }}
+                />
+              ) : null}
             </section>
           );
         })}
       </div>
+
+      {/* The size is never written on the card — the card *is* the size. A screen reader still
+          needs to hear what the drag did, so one live region says it and nothing else does. */}
+      <span className="sr-only" aria-live="polite">
+        {resize
+          ? `${resize.size.w}/12 · ${t(TIER_LABEL[resize.size.h])}`
+          : ''}
+      </span>
 
       {holding ? (
         <div className="home-hold-hint" role="status">

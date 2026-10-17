@@ -9,7 +9,7 @@ import { boardForStop } from '../data/departures';
 import { STORAGE_KEYS, writeStored } from '../lib/storage';
 import { disruptionsForStop } from '../data/disruptions';
 import { useMinuteNow } from '../lib/useMinuteNow';
-import { Button, Card, EmptyState, IconButton, Panel } from '../components/ui/primitives';
+import { Button, Card, EmptyState, IconButton } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -362,27 +362,14 @@ export function DeparturesPage() {
         </Card>
       ))}
 
-      {/* “About this board” describes a board — its clock, its refresh — so a page with no board
-          does not get it. The planning shortcuts it also carries live on the stop's own page. */}
-      {boards.length ? (
-        <Panel className="stack-2">
-          <span className="field__label">{t('About this board')}</span>
-          <ul className="stack-1 t-sm">
-            <li>{t('Times are relative to the current time in your browser.')}</li>
-            <li>{t('Delays and platforms are shown for each departure.')}</li>
-            <li>
-              {t('This board refreshes itself every {seconds} seconds.', {
-                seconds: BOARD_REFRESH_SECONDS,
-              })}
-            </li>
-            <li>
-              {t(
-                'A pinned stop is a board on this page. A favourite — the heart — is a stop you like, and it leads your stop lists and your search.',
-              )}
-            </li>
-          </ul>
-        </Panel>
-      ) : null}
+      {/*
+        The "About this board" panel that used to close this page is gone: four lines of the
+        software describing itself (which clock the times use, that the board ticks, what a pin
+        means) on a screen whose only job is to show departures. Nothing in it was a fact about
+        a departure, and the page above it already says everything it said — the refresh cadence
+        is printed in the board's own header line, and pin-versus-favourite is asked and answered
+        in the picker that sets them.
+      */}
 
     </div>
   );

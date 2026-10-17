@@ -69,6 +69,13 @@ export const STORAGE_KEYS = {
   boardStop: 'board-stop',
   homeWidgets: 'home-widgets',
   /*
+   * The traveller's own size for each home widget, keyed by widget id. Absent means the widget's
+   * default from `widgets/registry.tsx`, so resizing one card cannot pin the other sixteen
+   * defaults into storage; `removeHomeWidget` deletes the entry, so a card that is added back
+   * starts at its declared size rather than the size it had before it left.
+   */
+  widgetSizes: 'widget-sizes',
+  /*
    * The station a home-screen widget is tied to, keyed by widget id.
    *
    * A card that watches one place has to remember which place, and asking on the card is the wrong

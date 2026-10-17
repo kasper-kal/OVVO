@@ -14,6 +14,7 @@ import { DisruptionDetailPage } from './pages/DisruptionDetailPage';
 import { PreferencesPage } from './pages/PreferencesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ReviewLayer } from './review/ReviewLayer';
 
 /**
  * OVVO — application entry point and route table.
@@ -41,6 +42,14 @@ export default function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AppShell>
+        {/*
+          The review layer — a dev-only annotation tool, deleted with `review/` and this line.
+
+          `import.meta.env.DEV` is replaced with `false` by Vite at build time, so the import is
+          tree-shaken out of the bundle: no traveller ever downloads it, and no reviewer sees it in
+          a deployed site.
+        */}
+        {import.meta.env.DEV ? <ReviewLayer /> : null}
       </HashRouter>
     </AppProvider>
   );

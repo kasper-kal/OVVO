@@ -5,10 +5,9 @@ import { PageHeader } from '../components/layout/AppShell';
 import { DISRUPTIONS, DISRUPTION_TYPE_LABELS } from '../data/disruptions';
 import { getLine } from '../data/network';
 import { distanceFromPosition, getStop, stopLabel } from '../data/stops';
-import { endLabel } from '../data/journeyEngine';
 import { PT_LABEL_ORDER } from '../lib/boardHelpers';
 import { useLoadOnScroll } from '../lib/loadBatch';
-import { Button, Card, Chip, EmptyState, Panel, Pill } from '../components/ui/primitives';
+import { Button, Card, Chip, EmptyState, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import type { Disruption, DisruptionSeverity, DisruptionType, PublicMode } from '../data/types';
@@ -36,7 +35,7 @@ export function typeLabel(type: DisruptionType) {
 
 export function DisruptionsPage() {
   const [params, setParams] = useSearchParams();
-  const { favouriteStopIds, search, startSearch, preferences, nearestOrigin } = useApp();
+  const { favouriteStopIds, nearestOrigin } = useApp();
   const lineFilter = params.get('line');
   const stopParam = params.get('stop');
 
@@ -140,17 +139,6 @@ export function DisruptionsPage() {
   useEffect(() => {
     resetBatch();
   }, [types, severities, modes, stopQuery, textQuery, favouritesOnly, sort, lineFilter, resetBatch]);
-
-  /*
-   * Which of these alerts are the traveller's own business: the ones touching a stop at one end
-   * of the search they have planned. It is the rule the results screen already applies to its
-   * alerts banner, reused rather than reinvented — and the panel below is the only place that
-   * says what makes a list of fourteen alerts narrower than fourteen things to read.
-   */
-  const journeyStopIds = search ? [search.query.fromStopId, search.query.toStopId] : [];
-  const journeyAlerts = journeyStopIds.length
-    ? results.filter((alert) => alert.affectedStopIds.some((id) => journeyStopIds.includes(id)))
-    : [];
 
   return (
     <div className="stack-6">
@@ -359,54 +347,19 @@ export function DisruptionsPage() {
             </>
           ) : null}
         </>
-      )}
-
-      {/*
-        What this panel used to be: two bullets explaining how the app uses alerts — the software
-        describing itself, which is not one fact about these fourteen alerts — and a button that
-        re-ran the search it had just run, so nothing visible changed. What a list of fourteen
-        alerts actually raises is "which of these are mine?", and the app can answer it: the
-        alerts touching a stop at either end of the search already planned, which is the rule the
-        results screen applies to its own alerts banner. With no search there is nothing to say,
-        so the panel is not drawn at all rather than explaining itself to a visitor.
+      )}      {/*
+        The list ends where a list ends. This page used to close with an "Alerts on your journey"
+        panel: how many of these alerts touched the stops at either end of the search the
+        traveller had planned in this session, two sentences explaining that rule, a link back
+        to the results and a button that re-ran the search it had just run. Deleted on the
+        traveller's instruction, and it was the right call twice over: the count is a fact about
+        a *different* screen's question — the alerts list is a network-wide list and knows
+        nothing about anybody's journey — and the search it read lives only in memory
+        (`AppState`'s `search` starts null on every load), so the panel could not be trusted to
+        mean the same thing twice.
       */}
-      {search ? (
-        <Panel className="stack-2">
-          <span className="field__label">Alerts on your journey</span>
-          <p className="t-sm">
-            {journeyAlerts.length ? (
-              <>
-                <span className="t-strong">
-                  {journeyAlerts.length} of these {results.length} alerts touch your journey
-                </span>{' '}
-                — they affect {endLabel(search.query, 'from')} or {endLabel(search.query, 'to')}, the stops at the
-                ends of your search, so the results screen shows them on your legs.
-              </>
-            ) : (
-              <>
-                None of these {results.length} alerts touch {endLabel(search.query, 'from')} or{' '}
-                {endLabel(search.query, 'to')}, the stops at the ends of your search.
-              </>
-            )}
-          </p>
-          <div className="row-wrap">
-            {/* A return link wears the return arrow, like "Back to planner" and "Back to all
-                alerts"; it wore `route` (the plan-a-journey glyph) and the audit caught it. */}
-            <Link to="/results" className="btn btn--sm">
-              <Icon name="arrowLeft" size={15} />
-              Back to results
-            </Link>
-            <Button
-              size="sm"
-              variant="ghost"
-              icon="refresh"
-              onClick={() => startSearch({ ...search.query, preferences })}
-            >
-              Re-run my search with these alerts
-            </Button>
-          </div>
-        </Panel>
-      ) : null}
+
+
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS } from './defaults';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
@@ -20,6 +20,7 @@ import { useMinuteNow } from '../lib/useMinuteNow';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import type { PublicMode, Stop, TravelMode } from '../data/types';
+import type { WidgetTier, WidgetWidth } from '../state/types';
 import { plural } from '../lib/format';
 
 /**
@@ -30,7 +31,38 @@ import { plural } from '../lib/format';
  * `defaultOn` widgets are shown on a fresh install; the rest are available from
  * "Add widget".
  */
-export type WidgetSpan = 4 | 6 | 8 | 12;
+export type WidgetSpan = WidgetWidth;
+
+/**
+ * The height tier the card around a widget body is drawn in.
+ *
+ * A body cannot measure its own section, and it must not guess from the window either — two cards
+ * in one window can be in different tiers. The home screen provides the tier per card and the
+ * widget reads it; outside the grid the tier is `standard`.
+ */
+export const WidgetTierContext = createContext<WidgetTier>('standard');
+
+function useWidgetTier(): WidgetTier {
+  return useContext(WidgetTierContext);
+}
+
+/**
+ * How many rows a tier shows — never a pixel height.
+ *
+ * The threshold is the whole idea: the card grows to whatever the corner is dragged to, and *what
+ * it shows* steps at this boundary. A short list ends early rather than leaving an empty box, and
+ * nothing is ever clipped or scrolled inside a card.
+ */
+function cap(tier: WidgetTier, compact: number, standard: number, tall = Number.POSITIVE_INFINITY): number {
+  return tier === 'compact' ? compact : tier === 'standard' ? standard : tall;
+}
+
+/** What a trimmed list is missing, said out loud rather than left to be guessed at. */
+function TrimNote({ total, shown }: { total: number; shown: number }) {
+  const t = useT();
+  if (total <= shown) return null;
+  return <span className="t-sm t-faint">{t('{count} more, not shown at this size', { count: total - shown })}</span>;
+}
 
 export const WIDGET_CATEGORIES: WidgetDefinition['category'][] = [
   'Plan',
@@ -45,6 +77,17 @@ export interface WidgetDefinition {
   description: string;
   category: 'Plan' | 'Travel information' | 'Yours' | 'About';
   span: WidgetSpan;
+  /**
+   * The smallest **device** width, in CSS pixels, at which this card may be resized at all.
+   *
+   * Every widget gets a number of its own rather than one device-wide rule, because what breaks at
+   * a narrow width is the card's content, not the screen: a clock survives 480, a stop picker does
+   * not survive 390, and a departure row with a destination, a platform and a delay needs close to
+   * 700 before it stops wrapping. Below its threshold a card is drawn full width at its default
+   * height and the corner is not offered — a control that would only make the card worse is not a
+   * control. Above it, all four widths and all three heights are available.
+   */
+  resizeFrom: number;
   /** Widgets that cannot be removed (set from `./defaults`). */
   required?: boolean;
   /** Shown on a fresh install (set from `./defaults`). */
@@ -414,14 +457,16 @@ function FavouritedJourneysWidget() {
   const format = useFormat();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const pending = savedJourneys.find((entry) => entry.id === pendingId);
+  const shown = savedJourneys.slice(0, cap(useWidgetTier(), 2, 4));
 
   return (
     <div className="stack-2">
       {savedJourneys.length === 0 ? (
         <p className="t-sm t-faint">{t('Nothing favourited yet.')}</p>
       ) : (
+        <>
         <ul className="stack-1">
-          {savedJourneys.map((entry) => (
+          {shown.map((entry) => (
             <li key={entry.id} className="list-row list-row--static">
               <span className="stack-1 grow">
                 <span className="t-strong t-sm">
@@ -456,6 +501,8 @@ function FavouritedJourneysWidget() {
             </li>
           ))}
         </ul>
+        <TrimNote total={savedJourneys.length} shown={shown.length} />
+        </>
       )}
 
       <Dialog
@@ -505,6 +552,7 @@ function RecentSearchesWidget() {
   const navigate = useNavigate();
   const format = useFormat();
   const [confirmClear, setConfirmClear] = useState(false);
+  const shown = recentSearches.slice(0, cap(useWidgetTier(), 2, 4));
 
   return (
     <div className="stack-2">
@@ -513,7 +561,7 @@ function RecentSearchesWidget() {
       ) : (
         <>
           <ul className="stack-1">
-            {recentSearches.map((entry) => (
+            {shown.map((entry) => (
               <li key={entry.id} className="list-row list-row--static">
                 <span className="stack-1 grow">
                   <span className="t-strong t-sm">
@@ -548,6 +596,7 @@ function RecentSearchesWidget() {
             </Button>
             <span className="t-sm t-faint">{recentSearches.length} stored in this browser</span>
           </div>
+          <TrimNote total={recentSearches.length} shown={shown.length} />
         </>
       )}
 
@@ -608,9 +657,10 @@ function NextDeparturesWidget() {
   const stop = bound && hasBoard(bound) ? bound : undefined;
   const stopId = stop?.id ?? null;
   const minutes = useClockMinutes();
+  const rows = cap(useWidgetTier(), 2, 4, 8);
   const board = useMemo(
-    () => (stopId ? boardForStop(stopId, { fromMinutes: minutes, limit: 4 }) : []),
-    [stopId, minutes],
+    () => (stopId ? boardForStop(stopId, { fromMinutes: minutes, limit: rows }) : []),
+    [stopId, minutes, rows],
   );
 
   if (!stopId) {
@@ -648,7 +698,7 @@ function NextDeparturesWidget() {
       <span className="t-sm t-muted">
         {t('{stop} · from {time}', { stop: stopLabel(stopId), time: format.time(minutes) })}
       </span>
-      <BoardList departures={board} limit={4} />
+      <BoardList departures={board} limit={rows} />
       {/* A control, not a line of muted text: the same action the stop page offers wears the
           same words and the same board glyph wherever it appears. */}
       <Link to={`/departures?stop=${stopId}`} className="btn btn--sm">
@@ -661,6 +711,7 @@ function NextDeparturesWidget() {
 
 function AlertsWidget() {
   const severityTone = { severe: 'coral', warning: 'butter', info: 'sage' } as const;
+  const rows = cap(useWidgetTier(), 1, 3, 6);
   const counts = {
     severe: DISRUPTIONS.filter((alert) => alert.severity === 'severe').length,
     warning: DISRUPTIONS.filter((alert) => alert.severity === 'warning').length,
@@ -674,7 +725,7 @@ function AlertsWidget() {
         <Pill tone="sage">{counts.info} information</Pill>
       </div>
       <ul className="stack-1">
-        {DISRUPTIONS.slice(0, 3).map((alert) => (
+        {DISRUPTIONS.slice(0, rows).map((alert) => (
           <li key={alert.id} className="row-3">
             <span className={`status-dot status-dot--${severityTone[alert.severity]}`} />
             <Link to={`/disruptions/${alert.id}`} className="t-sm grow">
@@ -694,9 +745,10 @@ function QuickActionsWidget() {
     { to: '/preferences', label: 'Travel preferences', icon: 'sliders' as const },
     { to: '/settings', label: 'Settings', icon: 'settings' as const },
   ];
+  const shown = links.slice(0, cap(useWidgetTier(), 2, 4));
   return (
     <div className="row-wrap">
-      {links.map((link) => (
+      {shown.map((link) => (
         <Link key={link.to} to={link.to} className="btn btn--sm">
           <Icon name={link.icon} size={15} />
           {link.label}
@@ -743,10 +795,12 @@ function RightNowWidget() {
 function PreferencesSummaryWidget() {
   const t = useT();
   const { preferences } = useApp();
+  const parts = describePreferences(preferences, t);
+  const shown = parts.slice(0, cap(useWidgetTier(), 2, parts.length));
   return (
     <div className="stack-2">
       <ul className="row-wrap pill-list">
-        {describePreferences(preferences, t).map((part) => (
+        {shown.map((part) => (
           <li key={part} className="pill">
             {part}
           </li>
@@ -778,9 +832,11 @@ function ModeActivityWidget() {
 }
 
 function OperatorsWidget() {
+  const shown = OPERATORS.slice(0, cap(useWidgetTier(), 2, 4));
   return (
+    <>
     <ul className="stack-1">
-      {OPERATORS.map((operator) => (
+      {shown.map((operator) => (
         <li key={operator.id} className="row-3">
           <span className="t-sm grow">
             <span className="t-strong">{operator.shortName}</span> · {operator.name}
@@ -793,6 +849,8 @@ function OperatorsWidget() {
         </li>
       ))}
     </ul>
+    <TrimNote total={OPERATORS.length} shown={shown.length} />
+    </>
   );
 }
 
@@ -800,6 +858,7 @@ function StopSearchWidget() {
   const navigate = useNavigate();
   const t = useT();
   const [value, setValue] = useState<Stop | null>(null);
+  const samples = busiestStops(cap(useWidgetTier(), 1, 3));
   return (
     <div className="stack-2">
       <StopCombobox
@@ -821,7 +880,7 @@ function StopSearchWidget() {
       <div className="stack-1">
         <span className="t-sm t-faint">{t('Busiest sample stops')}</span>
         <div className="row-wrap">
-          {busiestStops(3).map((id) => (
+          {samples.map((id) => (
             <Chip key={id} icon="station" onClick={() => navigate(`/stops/${id}`)}>
               {stopLabel(id)}
             </Chip>
@@ -903,6 +962,7 @@ function AboutWidget() {
 function PinnedStopsWidget() {
   const { favouriteStopIds, toggleFavourite } = useApp();
   const navigate = useNavigate();
+  const shown = favouriteStopIds.slice(0, cap(useWidgetTier(), 2, 4));
   if (favouriteStopIds.length === 0) {
     return (
       <p className="t-sm t-faint">
@@ -911,8 +971,9 @@ function PinnedStopsWidget() {
     );
   }
   return (
+    <>
     <ul className="stack-1">
-      {favouriteStopIds.slice(0, 4).map((stopId) => (
+      {shown.map((stopId) => (
         <li key={stopId} className="list-row list-row--static">
           {/**
            * This row's marker is gone on purpose. Every row in this widget is a pinned stop, so
@@ -956,13 +1017,16 @@ function PinnedStopsWidget() {
         </li>
       ))}
     </ul>
+    <TrimNote total={favouriteStopIds.length} shown={shown.length} />
+    </>
   );
 }
 
 function LinesHereWidget() {
   const t = useT();
   const busiest = busiestStops(1)[0];
-  const lines = busiest ? linesAtStop(busiest).slice(0, 6) : [];
+  const all = busiest ? linesAtStop(busiest) : [];
+  const lines = all.slice(0, cap(useWidgetTier(), 2, 4, 6));
   return (
     <div className="stack-2">
       {/*
@@ -983,6 +1047,7 @@ function LinesHereWidget() {
           </li>
         ))}
       </ul>
+      <TrimNote total={all.length} shown={lines.length} />
     </div>
   );
 }
@@ -991,22 +1056,26 @@ function AlertsAtPinsWidget() {
   const { favouriteStopIds } = useApp();
   const alerts = favouriteStopIds.flatMap((stopId) => disruptionsForStop(stopId));
   const unique = alerts.filter((alert, index, list) => list.findIndex((item) => item.id === alert.id) === index);
+  const rows = cap(useWidgetTier(), 1, 3, 6);
   if (favouriteStopIds.length === 0) {
     return <p className="t-sm t-faint">Heart a stop and any alert affecting it shows up here.</p>;
   }
   return unique.length === 0 ? (
     <p className="t-sm t-muted">No alerts affect your favourite stops right now.</p>
   ) : (
-    <ul className="stack-1">
-      {unique.slice(0, 4).map((alert) => (
-        <li key={alert.id}>
-          <Link to={`/disruptions/${alert.id}`} className="row t-sm">
-            <Icon name="alert" size={14} />
-            {alert.title}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="stack-1">
+        {unique.slice(0, rows).map((alert) => (
+          <li key={alert.id}>
+            <Link to={`/disruptions/${alert.id}`} className="row t-sm">
+              <Icon name="alert" size={14} />
+              {alert.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <TrimNote total={unique.length} shown={Math.min(unique.length, rows)} />
+    </>
   );
 }
 
@@ -1019,6 +1088,9 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Where are you going? Departing today, right now.',
     category: 'Plan',
     span: 12,
+    /* A form: two stop rows, a date and a submit. Below a tablet it is the whole point of the
+       screen, so it keeps the full width. */
+    resizeFrom: 760,
     Body: PlannerWidget,
   },
   {
@@ -1026,6 +1098,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     title: 'Network map',
     description: 'Every route, filtered by mode.',
     category: 'Plan',
+    resizeFrom: 560,
     // Eight columns: the map is capped at 480px square, so a wider card only adds empty
     // margins either side of it, and the four that are left beside it are exactly a
     // one-line card's width — the default layout fills its rows without a stretched card.
@@ -1038,6 +1111,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The journeys you saved, one tap to repeat.',
     category: 'Yours',
     span: 4,
+    /* Two stop names, a date and two controls per row. */
+    resizeFrom: 880,
     Body: FavouritedJourneysWidget,
   },
   {
@@ -1046,6 +1121,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The searches you kept, one tap to repeat.',
     category: 'Yours',
     span: 6,
+    resizeFrom: 880,
     Body: RecentSearchesWidget,
   },
   {
@@ -1054,6 +1130,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The next departures from the station this card is tied to.',
     category: 'Travel information',
     span: 6,
+    /* Time, destination and platform on one line: the row that overflowed a half card at 390. */
+    resizeFrom: 940,
     Body: NextDeparturesWidget,
   },
   {
@@ -1062,6 +1140,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'How many alerts are active, and the top three.',
     category: 'Travel information',
     span: 6,
+    resizeFrom: 760,
     Body: AlertsWidget,
   },
   {
@@ -1070,6 +1149,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Only the alerts that touch stops you hearted.',
     category: 'Travel information',
     span: 6,
+    resizeFrom: 880,
     Body: AlertsAtPinsWidget,
   },
   {
@@ -1078,6 +1158,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Jump straight to boards, stops, alerts and settings.',
     category: 'Plan',
     span: 6,
+    /* Pills that wrap: a half card on a phone turns each one into two lines. */
+    resizeFrom: 560,
     Body: QuickActionsWidget,
   },
   {
@@ -1086,6 +1168,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The current time and a one-tap re-run of your search from now.',
     category: 'Plan',
     span: 4,
+    /* A clock and one button: it survives being half of a phone. */
+    resizeFrom: 0,
     Body: RightNowWidget,
   },
   {
@@ -1094,6 +1178,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The modes and limits shaping every search.',
     category: 'Yours',
     span: 6,
+    /* The pills are full sentences about modes: half a phone turns the first one into five lines. */
+    resizeFrom: 700,
     Body: PreferencesSummaryWidget,
   },
   {
@@ -1102,6 +1188,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The stops you hearted, ready as an origin.',
     category: 'Yours',
     span: 4,
+    resizeFrom: 880,
     Body: PinnedStopsWidget,
   },
   {
@@ -1110,6 +1197,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Search every stop from here.',
     category: 'Travel information',
     span: 4,
+    /* A field with a placeholder sentence in it. */
+    resizeFrom: 600,
     Body: StopSearchWidget,
   },
   {
@@ -1118,6 +1207,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'How many services each mode has.',
     category: 'Travel information',
     span: 4,
+    /* Icon, one word and a count: the narrowest content in the catalogue. */
+    resizeFrom: 0,
     Body: ModeActivityWidget,
   },
   {
@@ -1126,6 +1217,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The services calling at the busiest stop.',
     category: 'Travel information',
     span: 4,
+    resizeFrom: 880,
     Body: LinesHereWidget,
   },
   {
@@ -1134,6 +1226,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The operators and the modes they run.',
     category: 'Travel information',
     span: 4,
+    resizeFrom: 880,
     Body: OperatorsWidget,
   },
   {
@@ -1142,6 +1235,8 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'What this browser keeps, and a way to clear it.',
     category: 'About',
     span: 4,
+    /* Four label/count pairs. */
+    resizeFrom: 0,
     Body: LocalDataWidget,
   },
   {
@@ -1150,6 +1245,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'How OVVO works.',
     category: 'About',
     span: 6,
+    resizeFrom: 600,
     Body: AboutWidget,
   },
 ];

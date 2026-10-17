@@ -83,6 +83,26 @@ export interface PlannerSearchState {
   filter: ResultsFilter;
 }
 
+/**
+ * A widget's width, in columns of the home screen's 12-column grid: 4 is a third, 6 a half, 8
+ * two-thirds, 12 the full width. Every widget offers all four, but only above its own device
+ * threshold — each widget declares the narrowest screen at which resizing helps it (see
+ * `resizeFrom` in `widgets/registry.tsx`), and below that it is drawn full width with no corner.
+ */
+export type WidgetWidth = 4 | 6 | 8 | 12;
+
+/**
+ * A widget's height, as a tier rather than a number of pixels: how much the widget **shows**.
+ * A compact card lists two rows, a standard one four, a tall one everything — the card always
+ * ends where its content ends, so nothing is clipped and nothing scrolls inside a card.
+ */
+export type WidgetTier = 'compact' | 'standard' | 'tall';
+
+export interface WidgetSize {
+  w: WidgetWidth;
+  h: WidgetTier;
+}
+
 /** Whether the traveller has answered the location prompt (asked once, on first open). */
 export type LocationConsent = 'unknown' | 'granted' | 'denied';
 

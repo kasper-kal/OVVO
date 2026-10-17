@@ -7,7 +7,7 @@ import { getStop, stopLabel } from '../data/stops';
 import { operatorName } from '../data/operators';
 import { getLine } from '../data/network';
 import { getDisruption } from '../data/disruptions';
-import { Banner, Button, Card, EmptyState, Panel, Pill } from '../components/ui/primitives';
+import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { plural } from '../lib/format';
@@ -57,8 +57,6 @@ export function JourneyDetailPage() {
     );
   }
 
-  const from = getStop(journey.legs[0].fromStopId);
-  const to = getStop(journey.legs[journey.legs.length - 1].toStopId);
   const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   const operators = [...new Set(journey.operatorIds)].map((id) => operatorName(id));
   const disruptions = journey.disruptionIds.map((id) => getDisruption(id)).filter(Boolean);
@@ -252,37 +250,15 @@ export function JourneyDetailPage() {
               </Pill>
             </div>
           </Card>
-
-          <Panel className="stack-2">
-            <span className="field__label">Continue</span>
-            {/* One way on, and the two stops as a line of links rather than two more buttons. */}
-            <div className="row-wrap">
-              {/*
-                Going back to the list of journeys, said as going back — it wore `route` (the
-                plan-a-journey glyph) and called itself "Other options", two names for what the
-                alerts screen calls "Back to results" with a left arrow.
-              */}
-              <Link to="/results" className="btn">
-                <Icon name="arrowLeft" size={16} />
-                Back to results
-              </Link>
-            </div>
-            <span className="t-sm t-muted">
-              Stops on this journey:{' '}
-              <Link to={`/stops/${journey.legs[0].fromStopId}`} className="t-strong tap-target">
-                {from?.name}
-              </Link>
-              {' · '}
-              <Link
-                to={`/stops/${journey.legs[journey.legs.length - 1].toStopId}`}
-                className="t-strong tap-target"
-              >
-                {to?.name}
-              </Link>
-            </span>
-          </Panel>
         </div>
       </div>
+
+      {/*
+        This page used to close with a "Continue" panel: a "Back to results" link and the two
+        ends of the journey as a line of links. All three are already here — the shell puts a
+        back arrow in every screen's top row, and both stops are named in the page title and
+        linked again in the leg list — so the panel was a nav row wearing a card.
+      */}
     </div>
   );
 }

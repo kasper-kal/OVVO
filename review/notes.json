@@ -1,0 +1,1877 @@
+[
+  {
+    "image": "2026-10-17t20-06-25-901-home-378-light.png",
+    "at": "2026-10-17T20:06:25.901Z",
+    "route": "#/",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "train",
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": false,
+      "preferLessWalking": false,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 46363,
+      "sentBytes": 46363,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792267594667-8pal",
+        "x": 0.013361044404251694,
+        "y": 0.47830203042753744,
+        "w": 0.9866389555957483,
+        "h": 0.5216979695724626,
+        "comment": "Its not possible to scroll through the options so you have to scroll using the page but when you scroll using the page, the pop-up goes away"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-18-26-182-results-378-light.png",
+    "at": "2026-10-17T20:18:26.182Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "train",
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": false,
+      "preferLessWalking": false,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 10170,
+      "sentBytes": 10170,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792268312075-vtv6",
+        "x": 0.026425175578001357,
+        "y": 0.03992114346606503,
+        "w": 0.9024643010953979,
+        "h": 0.9215239630161041,
+        "comment": "When your planning a journey and have put in both locations So is goes to the results but then it shows a flicker  of the home screen instead of the results screen so you think you did something wrong, what it should do instead is show the results screen just without results and a spinner in place of the results while waiting for the results."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-25-37-893-results-378-light.png",
+    "at": "2026-10-17T20:25:37.893Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "train",
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": false,
+      "preferLessWalking": false,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 35556,
+      "sentBytes": 35556,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792268742050-3hbc",
+        "x": 0.03292012771895704,
+        "y": 0.8329138179924407,
+        "w": 0.21040977593593047,
+        "h": 0.14743326152224812,
+        "comment": "Done button is unnecessary, it automatically leaves the po-up when you select one."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-26-41-748-results-378-light.png",
+    "at": "2026-10-17T20:26:41.748Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "train",
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": false,
+      "preferLessWalking": false,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 27400,
+      "sentBytes": 27400,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792268809367-x1ww",
+        "x": 0.039192393521248994,
+        "y": 0.028899541103309667,
+        "w": 0.9267502052098613,
+        "h": 0.9511975686468992,
+        "comment": "Very unnecessary to have a carriers section in options, no one gives a fuck aobut the carrier."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-27-57-673-results-378-light.png",
+    "at": "2026-10-17T20:27:57.673Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": false,
+      "preferLessWalking": false,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 37320,
+      "sentBytes": 37320,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792268883590-pmkl",
+        "x": 0.49346790326580653,
+        "y": 0.8387936942643155,
+        "w": 0.43782356400894035,
+        "h": 0.09708664456010829,
+        "comment": "Unnecessary to have here, its nice to have preferences that are automatically there, but we dont need a button to change it here."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-30-01-359-journey-j-1s6gjtz-378-light.png",
+    "at": "2026-10-17T20:30:01.359Z",
+    "route": "#/journey/j-1s6gjtz",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 105043,
+      "sentBytes": 105043,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269006668-2d4x",
+        "x": 0.05411223096984912,
+        "y": 0.7935110267303518,
+        "w": 0.44699421806095047,
+        "h": 0.08210299615766248,
+        "comment": "Looks awkwardly squeezed in, shows in 'Journey details' menu"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-31-35-512-journey-j-1s6gjtz-378-light.png",
+    "at": "2026-10-17T20:31:35.512Z",
+    "route": "#/journey/j-1s6gjtz",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 4772,
+      "sentBytes": 4772,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269101625-pc29",
+        "x": 0.04008312754960624,
+        "y": 0.17533194586897424,
+        "w": 0.9061055925361692,
+        "h": 0.6528868220759521,
+        "comment": "Change the favouriting a journey reaction to the icon filling, to fit the favouriting locations"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-33-24-442-journey-j-1s6gjtz-378-light.png",
+    "at": "2026-10-17T20:33:24.442Z",
+    "route": "#/journey/j-1s6gjtz",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 97450,
+      "sentBytes": 97450,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269212026-93p3",
+        "x": 0.05860302871542659,
+        "y": 0.5443955769041957,
+        "w": 0.8675521890879186,
+        "h": 0.22398399287282367,
+        "comment": "EXTREMLY text heavy, replace with mostly icons, similar to the 'TRAM' icon thingy already there, example: [tram icon] TRAM, [bicycle icon] BICYCLE, [coin icon] $2.30"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-35-38-985-journey-j-1s6gjtz-378-light.png",
+    "at": "2026-10-17T20:35:38.985Z",
+    "route": "#/journey/j-1s6gjtz",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 97822,
+      "sentBytes": 97822,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269352257-apsn",
+        "x": 0.019596193929050078,
+        "y": 0.16323944574790128,
+        "w": 0.9804038060709499,
+        "h": 0.43216834761815637,
+        "comment": "No clear end, there should be an arrival thing, similar to the selected thing with a square instead of a circle and like the name of the arrival place, you get it"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-36-48-918-journey-j-1s6gjtz-378-light.png",
+    "at": "2026-10-17T20:36:48.918Z",
+    "route": "#/journey/j-1s6gjtz",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 97822,
+      "sentBytes": 97822,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269415731-4qe3",
+        "x": 0.01837143605584608,
+        "y": 0.105511300898297,
+        "w": 0.928853232520827,
+        "h": 0.03988933433740621,
+        "comment": "Ugly arrow, replace with icon instead of text"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-37-41-837-results-378-light.png",
+    "at": "2026-10-17T20:37:41.837Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 82546,
+      "sentBytes": 82546,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269469922-cjdz",
+        "x": 0.011059393474040986,
+        "y": 0.5224388826255248,
+        "w": 0.9682309299352507,
+        "h": 0.3744270472857385,
+        "comment": "Move the SAVE THIS SEARCH to somewhere else, somewhere more on the top of the page and get rid of this entire footer... thing. Also make it clear for the user the difference between saving a search and saving a journey"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-40-00-172-results-378-light.png",
+    "at": "2026-10-17T20:40:00.172Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 10170,
+      "sentBytes": 10170,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269605271-in03",
+        "x": 0.035914472362610424,
+        "y": 0.054810646021194245,
+        "w": 0.9204393733639729,
+        "h": 0.8447795716402939,
+        "comment": "add a 'SAVED SEARCHES' widget, and make it clear to the user thee difference between saved journey and saved search"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-41-20-982-results-378-light.png",
+    "at": "2026-10-17T20:41:20.982Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 49484,
+      "sentBytes": 49484,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269686348-8xny",
+        "x": 0.04008312754960624,
+        "y": 0.7395894848516066,
+        "w": 0.4754328186089802,
+        "h": 0.08507123548846263,
+        "comment": "Looks weird and different from other switchers in the website"
+      },
+      {
+        "id": "1792269707512-6qex",
+        "x": 0.019295803525160644,
+        "y": 0.8337007074457614,
+        "w": 0.794428965674341,
+        "h": 0.07069326008824817,
+        "comment": "Get rid of it"
+      },
+      {
+        "id": "1792269717538-xi8i",
+        "x": 0.018439863883272806,
+        "y": 0.5045264050370022,
+        "w": 0.9465615648159165,
+        "h": 0.22890201535225496,
+        "comment": "Merge them into one thing instead of 2 seperates."
+      },
+      {
+        "id": "1792269740828-udmc",
+        "x": 0.5368912975796245,
+        "y": 0.7435912485085213,
+        "w": 0.3478505360011809,
+        "h": 0.07595646889429619,
+        "comment": "Change it to just 'NOW' but keep the icon"
+      },
+      {
+        "id": "1792269768377-96ne",
+        "x": 0.8395560673481595,
+        "y": 0.2900471396739859,
+        "w": 0.10335618134508029,
+        "h": 0.05528390934518096,
+        "comment": "Make sure it saves when the user clicks X and get rid of the DONE button cus the X button finna replace him"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-43-46-056-results-378-light.png",
+    "at": "2026-10-17T20:43:46.056Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 77906,
+      "sentBytes": 77906,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269831534-p9ya",
+        "x": 0.09564280839447194,
+        "y": 0.5139211394628316,
+        "w": 0.8312967328705378,
+        "h": 0.033540373078168484,
+        "comment": "Change the colour system of OCCUPANCY, expected quiet should be green cus its good, and the next thing should be orange, and when its really busy, red."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-45-42-014-home-378-light.png",
+    "at": "2026-10-17T20:45:42.014Z",
+    "route": "#/",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 10170,
+      "sentBytes": 10170,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792269947023-0afn",
+        "x": 0.03502113328578704,
+        "y": 0.06471375780437973,
+        "w": 0.9329865666485113,
+        "h": 0.871230363341699,
+        "comment": "When you move a widget on the home screen, its hard to move it back without pressing done and going back to customize mode, fix that."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-47-00-496-stops-378-light.png",
+    "at": "2026-10-17T20:47:00.496Z",
+    "route": "#/stops",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 10170,
+      "sentBytes": 10170,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270024427-tyss",
+        "x": 0.006163244523984251,
+        "y": 0.031219649763071858,
+        "w": 0.9538277925236106,
+        "h": 0.864348065677461,
+        "comment": "Add skeleton loading instead of just... nothing like currently, dont add still skeleton loading, they should actually like slowly animate."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-48-37-118-stops-amsterdam-dam-378-light.png",
+    "at": "2026-10-17T20:48:37.118Z",
+    "route": "#/stops/amsterdam-dam",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 84279,
+      "sentBytes": 84279,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270123172-x1n0",
+        "x": 0.46967783048482986,
+        "y": 0.12184695380158742,
+        "w": 0.5303221695151701,
+        "h": 0.07782372871584431,
+        "comment": "Why it on the right, i aint arabic."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-49-20-928-stops-amsterdam-dam-378-light.png",
+    "at": "2026-10-17T20:49:20.928Z",
+    "route": "#/stops/amsterdam-dam",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 84279,
+      "sentBytes": 84279,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270167137-xa7i",
+        "x": 0.06127523080049832,
+        "y": 0.5834547165297779,
+        "w": 0.8228701146393484,
+        "h": 0.17890394284380484,
+        "comment": "Get rid of ALL accesibility descriptions EVERYWHERE, i dont have an accesibility and this is a personal website"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-51-30-565-stops-amsterdam-buiksloterweg-378-light.png",
+    "at": "2026-10-17T20:51:30.565Z",
+    "route": "#/stops/amsterdam-buiksloterweg",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 75108,
+      "sentBytes": 75108,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270298841-l51i",
+        "x": 0.036705761497347424,
+        "y": 0.3408533147264167,
+        "w": 0.959744265336917,
+        "h": 0.22013613043394437,
+        "comment": "Add that if the user clicks one of these lines (like Ferry F3) they show the full line and its times in the departure board, if the departure board currently doesnt support lines and only stations, add support for lines"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-52-50-754-stops-amsterdam-buiksloterweg-378-light.png",
+    "at": "2026-10-17T20:52:50.754Z",
+    "route": "#/stops/amsterdam-buiksloterweg",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 72805,
+      "sentBytes": 72805,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270377232-w0id",
+        "x": 0.045806226482641814,
+        "y": 0.39135971891353216,
+        "w": 0.8948113143008644,
+        "h": 0.48278731913837436,
+        "comment": "Add on-hover jump up animation"
+      },
+      {
+        "id": "1792270395904-x239",
+        "x": 0.07437648391489039,
+        "y": 0.1634976554601825,
+        "w": 0.8809034475709758,
+        "h": 0.14136362632391022,
+        "comment": "Add on-hover jump up animation"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-53-55-794-stops-amsterdam-buiksloterweg-378-light.png",
+    "at": "2026-10-17T20:53:55.794Z",
+    "route": "#/stops/amsterdam-buiksloterweg",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 72686,
+      "sentBytes": 72686,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270443377-4x45",
+        "x": 0.06374679884848702,
+        "y": 0.39963858559793114,
+        "w": 0.8880049456052289,
+        "h": 0.469889097866451,
+        "comment": "Add support for clicks on the background, not just the >"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-54-39-918-stops-amsterdam-buiksloterweg-378-light.png",
+    "at": "2026-10-17T20:54:39.918Z",
+    "route": "#/stops/amsterdam-buiksloterweg",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 72686,
+      "sentBytes": 72686,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270486513-a0ho",
+        "x": 0.053778207125002364,
+        "y": 0.16566357163888304,
+        "w": 0.9010528405312559,
+        "h": 0.14238617456194422,
+        "comment": "Add support for on-background clicks to go to its board"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-57-06-355-disruptions-d-metro-noord-zuid-378-light.png",
+    "at": "2026-10-17T20:57:06.355Z",
+    "route": "#/disruptions/d-metro-noord-zuid",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 77331,
+      "sentBytes": 77331,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270632076-sbbg",
+        "x": 0.011059971115222608,
+        "y": 0.2946639183285843,
+        "w": 0.9889400288847774,
+        "h": 0.42664400438895456,
+        "comment": "Remove this widget."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-58-13-155-results-378-light.png",
+    "at": "2026-10-17T20:58:13.155Z",
+    "route": "#/results",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 10170,
+      "sentBytes": 10170,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270697830-j15o",
+        "x": 0.014517374450028963,
+        "y": 0.07579773497308033,
+        "w": 0.9237249057946517,
+        "h": 0.8664457554671076,
+        "comment": "When you click the PLAN TO HERE button on absolutely anything, it auto-fills the from (or the to, depedning on what you clicked exactly) make sure it doesnt do that and when you presss a button like 'PLAN TO HERE' that it only auto-inputs the 'TO' and brings you to the search menu with the 'FROM' selected instead of the results."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t21-01-32-386-settings-378-light.png",
+    "at": "2026-10-17T21:01:32.386Z",
+    "route": "#/settings",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 103141,
+      "sentBytes": 103141,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792270900427-8und",
+        "x": 0.033810861747314284,
+        "y": 0.004156527280852134,
+        "w": 0.9661891382526857,
+        "h": 0.9958434727191479,
+        "comment": "Preview with current settings is very text heavy while its quite literally supposed to be the opposite, 'the rest of the page is text so here is where we show it IRL, not in text' is what its supposed to be, yet theres more text than visuals here."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t21-03-18-483-settings-378-light.png",
+    "at": "2026-10-17T21:03:18.483Z",
+    "route": "#/settings",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 93485,
+      "sentBytes": 93485,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792271005423-ww13",
+        "x": 0.03312599450556769,
+        "y": 0.31508131514682997,
+        "w": 0.9127617178930947,
+        "h": 0.581436211507969,
+        "comment": "Physically no way of scrolling trough the stations which is HORRIBLE"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t21-05-27-980-settings-378-light.png",
+    "at": "2026-10-17T21:05:27.980Z",
+    "route": "#/settings",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 100840,
+      "sentBytes": 100840,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792271132520-jf2g",
+        "x": 0.09564280839447194,
+        "y": 0.7888855279494518,
+        "w": 0.811255528705686,
+        "h": 0.09765211854721667,
+        "comment": "Incredibly ugly."
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t21-09-41-860-disruptions-378-light.png",
+    "at": "2026-10-17T21:09:41.860Z",
+    "route": "#/disruptions",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike",
+        "train"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": true,
+      "preferLessWalking": true,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 5828,
+      "sentBytes": 5828,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792271386159-2okt",
+        "x": 0.8763731493622433,
+        "y": 0.23499971277573528,
+        "w": 0.10263537576079884,
+        "h": 0.4829604204963236,
+        "comment": "Not the same size as the number background in the header"
+      },
+      {
+        "id": "1792271418987-xckh",
+        "x": 0.07497029904959678,
+        "y": 0.3602941176470588,
+        "w": 0.06908861495961087,
+        "h": 0.3699527516084559,
+        "comment": "Not the same size as the number background of disruptions in the hamburger menu"
+      }
+    ]
+  },
+  {
+    "image": "2026-10-17t20-05-58-660-home-378-light.png",
+    "at": "2026-10-17T20:05:58.660Z",
+    "route": "#/",
+    "screen": {
+      "width": 1536,
+      "height": 864,
+      "availWidth": 1536,
+      "availHeight": 864,
+      "colorDepth": 24,
+      "orientation": "landscape-primary"
+    },
+    "viewport": {
+      "width": 378,
+      "height": 734,
+      "dpr": 1.25
+    },
+    "device": {
+      "mobile": false,
+      "touch": false,
+      "platform": "Linux x86_64",
+      "userAgent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+    },
+    "appearance": {
+      "theme": "light",
+      "contrast": "normal",
+      "density": "comfortable",
+      "language": "en"
+    },
+    "preferences": {
+      "allowedModes": [
+        "train",
+        "bus",
+        "tram",
+        "metro",
+        "ferry",
+        "walk",
+        "bike"
+      ],
+      "maxWalkingMinutes": 20,
+      "maxTransfers": 2,
+      "preferFewerTransfers": false,
+      "preferLessWalking": false,
+      "accessFrom": "walk",
+      "accessTo": "walk"
+    },
+    "capture": {
+      "sourceBytes": 20012,
+      "sentBytes": 20012,
+      "reduced": false
+    },
+    "pins": [],
+    "regions": [
+      {
+        "id": "1792267573803-hxwi",
+        "x": 0.8673915765236838,
+        "y": 0.7733741749620306,
+        "w": 0.13260842347631618,
+        "h": 0.214111873159874,
+        "comment": "No resizing button"
+      }
+    ]
+  }
+]

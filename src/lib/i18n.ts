@@ -45,6 +45,16 @@ const NL: Record<string, string> = {
     'Zet onderaan de pagina aanpassen aan om een widget toe te voegen.',
   Customising: 'Aanpassen',
   'Customising home': 'Startscherm aanpassen',
+  /*
+   * Widget sizes have no visible words: the card is the size. What is left is the corner
+   * handle's accessible name, the two tier names the settings screen does not already carry, and
+   * the line a trimmed list uses to say how much it left out. `Compact`, `Standard` and `Full`
+   * are already in this dictionary for the display settings and are the same words, so they are
+   * reused rather than duplicated.
+   */
+  Tall: 'Hoog',
+  'Resize {title}': 'Formaat van {title} aanpassen',
+  '{count} more, not shown at this size': '{count} meer, niet getoond op dit formaat',
   'Customise home': 'Startscherm aanpassen',
   'Add widget': 'Widget toevoegen',
   'Add a widget': 'Een widget toevoegen',
@@ -135,11 +145,6 @@ const NL: Record<string, string> = {
   'auto-refresh every {seconds}s': 'automatisch verversen elke {seconds} s',
   '{count} delay in this window · ': '{count} vertraging in dit venster · ',
   '{count} delays in this window · ': '{count} vertragingen in dit venster · ',
-  'About this board': 'Over dit bord',
-  'Times are relative to the current time in your browser.':
-    'Tijden zijn relatief aan de huidige tijd in je browser.',
-  'Delays and platforms are shown for each departure.':
-    'Vertragingen en sporen staan bij elke vertrekking.',
   'Plan from here': 'Vanaf hier plannen',
   'Plan to here': 'Naar hier plannen',
   'Plan a journey first to use this shortcut':
@@ -547,8 +552,6 @@ const NL: Record<string, string> = {
     'Vastgezette haltes hebben hun bord op de vertrektijdenpagina.',
   'Pin a stop and its departures appear here. You can pin several at once — they are the boards this page shows, not your favourites.':
     'Zet een halte vast en de vertrektijden verschijnen hier. Je kunt er meerdere tegelijk vastzetten — dat zijn de borden op deze pagina, niet je favorieten.',
-  'A pinned stop is a board on this page. A favourite — the heart — is a stop you like, and it leads your stop lists and your search.':
-    'Een vastgezette halte is een bord op deze pagina. Een favoriet — het hart — is een halte die je leuk vindt; die staat bovenaan je haltelijsten en je zoekresultaten.',
   'Stops on the departure board': 'Haltes op het vertrektijdenbord',
   'Pin the stops whose boards you want here. A heart is a favourite: a stop you like, which leads your lists but does not add a board.':
     'Zet de haltes vast waarvan je de borden hier wilt. Een hart is een favoriet: een halte die je leuk vindt, die bovenaan je lijsten staat maar geen bord toevoegt.',

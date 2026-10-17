@@ -29,6 +29,7 @@ import {
   type SavedJourney,
   type Settings,
   type UserLocation,
+  type WidgetSize,
 } from './types';
 
 export interface Toast {
@@ -147,6 +148,14 @@ interface AppContextValue {
   addHomeWidget: (id: string) => void;
   removeHomeWidget: (id: string) => void;
   /**
+   * The size the traveller gave each widget, keyed by id.
+   *
+   * Only resized widgets have an entry, so the registry stays the one place a default is
+   * declared. Cleared when the widget is removed: a card that comes back is a new card.
+   */
+  widgetSizes: Record<string, WidgetSize>;
+  setWidgetSize: (id: string, size: WidgetSize) => void;
+  /**
    * The station each widget is tied to, keyed by widget id — and the way it is set.
    *
    * A card that watches one station (the next-departures card) makes that choice **once**, when it
@@ -207,6 +216,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [widgetStations, setWidgetStations] = useState<Record<string, string>>(() =>
     readStored<Record<string, string>>(STORAGE_KEYS.widgetStations, {}),
+  );
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, WidgetSize>>(() =>
+    readStored<Record<string, WidgetSize>>(STORAGE_KEYS.widgetSizes, {}),
   );
   /*
    * No search is restored on a new visit.
@@ -279,6 +291,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => writeStored(STORAGE_KEYS.recentSearches, recentSearches), [recentSearches]);
   useEffect(() => writeStored(STORAGE_KEYS.homeWidgets, homeWidgets), [homeWidgets]);
   useEffect(() => writeStored(STORAGE_KEYS.widgetStations, widgetStations), [widgetStations]);
+  useEffect(() => writeStored(STORAGE_KEYS.widgetSizes, widgetSizes), [widgetSizes]);
   useEffect(() => writeStored(STORAGE_KEYS.locationConsent, locationConsent), [locationConsent]);
   useEffect(() => writeStored(STORAGE_KEYS.locationFix, userLocation), [userLocation]);
 
@@ -564,8 +577,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         delete next[id];
         return next;
       });
+      /* Same rule for the size: the card that comes back is a new card. */
+      setWidgetSizes((current) => {
+        if (!(id in current)) return current;
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
     },
     widgetStations,
+    widgetSizes,
+    setWidgetSize: (id, size) =>
+      setWidgetSizes((current) => {
+        const existing = current[id];
+        if (existing && existing.w === size.w && existing.h === size.h) return current;
+        return { ...current, [id]: size };
+      }),
     setWidgetStation: (widgetId, stopId) =>
       setWidgetStations((current) => (current[widgetId] === stopId ? current : { ...current, [widgetId]: stopId })),
     /* A move, not a swap: the widget lands in the slot it was dropped on and the ones between
@@ -592,6 +619,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
      */
     resetHomeWidgets: () => {
       setHomeWidgets(DEFAULT_HOME_WIDGETS);
+      /* "Reset layout" means the default layout *and* the default sizes, so every stored size is
+         dropped rather than filtered: a kept size would be a choice the traveller can no longer
+         see, on a card that is no longer the shape it was given. */
+      setWidgetSizes((current) => (Object.keys(current).length === 0 ? current : {}));
       setWidgetStations((current) => {
         const kept = Object.entries(current).filter(([id]) => DEFAULT_HOME_WIDGETS.includes(id));
         return kept.length === Object.keys(current).length ? current : Object.fromEntries(kept);

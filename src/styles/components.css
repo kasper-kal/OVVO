@@ -2610,6 +2610,139 @@
   grid-column: span 8;
 }
 
+/*
+ * Height tiers change two things, and they have to, or the sizes do not look like sizes.
+ *
+ * 1. **How much the card shows.** Rows are trimmed at the thresholds in `widgets/registry.tsx`,
+ *    so a taller card lists more; the card still ends where its content ends.
+ * 2. **How big what it shows is drawn.** A card with three pills has no fourth pill to add —
+ *    reported, with two photographs of the same card "2px apart" — so a taller card also draws a
+ *    larger heading and larger pills, and a shorter one closes them up. Without this, "big" on a
+ *    list of five modes means five identical rows in a slightly taller box.
+ *
+ * The scale is deliberately small (16px heading → 19px, pills 12px → 13.5px): a home screen is a
+ * set of cards that should still read as one screen, not as a poster.
+ */
+.widget--h-compact .widget__card {
+  gap: var(--s-2);
+}
+
+.widget--h-tall .widget__card {
+  gap: var(--s-4);
+}
+
+.widget--h-compact .widget__head .t-section {
+  font-size: var(--fs-section);
+}
+
+.widget--h-tall .widget__head .t-section {
+  font-size: var(--fs-h2);
+}
+
+.widget--h-tall .pill {
+  min-height: 30px;
+  padding: 0 var(--s-3);
+  font-size: var(--fs-body);
+}
+
+.widget--h-compact .pill {
+  min-height: 22px;
+  font-size: var(--fs-pill);
+}
+
+/*
+ * Customising mode only: the card is the positioning context for its corner, and the corner sits
+ * proud of the card's own radius rather than inside it.
+ */
+.widget--editable {
+  position: relative;
+}
+
+/*
+ * The corner handle.
+ *
+ * The target is 44px and invisible; the mark inside it is 22px of accent ink in the corner's own
+ * curve. That split is the whole trick: the control is comfortable to hit with a thumb, and what
+ * you see is not a button but a fold of the card. Nothing is written next to it — the card *is*
+ * the size, and a label saying "Half · Standard" is a description of the thing rather than the
+ * thing (reported, with a photograph, the first time this was attempted).
+ */
+.widget__corner {
+  position: absolute;
+  right: calc(-1 * var(--s-1));
+  bottom: calc(-1 * var(--s-1));
+  width: var(--target-min);
+  height: var(--target-min);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: nwse-resize;
+  /* A finger on the corner resizes; it must not scroll the page underneath instead. */
+  touch-action: none;
+  z-index: 2;
+}
+
+/*
+ * The mark: a 12px bracket, not a badge.
+ *
+ * A filled quarter disc was drawn here first and it read as a coral sticker glued to the card —
+ * "that shit UGLY" — because a filled shape has a colour and a colour is a thing on the page. A
+ * two-stroke bracket is the corner's own line continued round the radius: the card looks like it
+ * has a corner, not like it has a control. It is invisible until the pointer is on the target or
+ * the target has focus, so the resting card is untouched, and it is coral only while a drag is in
+ * progress (that is the one moment it is telling you something).
+ */
+.widget__corner::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-bottom-right-radius: 6px;
+  color: var(--ink-faint);
+  opacity: 0;
+  transition: opacity 160ms var(--ease-press);
+}
+
+.widget__corner:hover::after,
+.widget__corner:focus-visible::after {
+  opacity: 0.7;
+}
+
+.widget__corner:focus-visible {
+  outline: none;
+}
+
+.widget__corner:focus-visible::after {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+/*
+ * While the corner is held, the card being resized is the only sharp thing on the screen: it lifts
+ * a little and everything around it softens. Without this the live reflow is a dozen cards
+ * rewrapping at once — honest, but it reads as a glitch rather than as a resize. The blur is the
+ * depth of field a camera would give you, not a loading state.
+ */
+.widget-grid--resizing .widget:not(.widget--resizing) {
+  filter: blur(2px);
+  opacity: 0.72;
+  transition: filter 160ms var(--ease-press), opacity 160ms var(--ease-press);
+}
+
+.widget--resizing .widget__card {
+  box-shadow: 0 18px 44px rgb(0 0 0 / 0.16);
+  border-color: var(--accent-primary);
+}
+
+.widget--resizing .widget__corner::after {
+  opacity: 0.9;
+  color: var(--accent-primary);
+}
+
 .widget__card {
   display: flex;
   flex-direction: column;
@@ -2822,10 +2955,18 @@
   transition: outline-color 400ms var(--ease-press);
 }
 
-@media (max-width: 900px) {
+/*
+ * The 150px floor.
+ *
+ * Which cards may sit side by side on a phone is decided per widget in the registry
+ * (`resizeFrom`), not here — a departure row and a clock fail at different widths, and a single
+ * media query cannot express that. What the stylesheet still owns is the absolute limit: at 320px
+ * a half card is 140px, less than a 44px target and a word need, so nothing halves there whatever
+ * its threshold says.
+ */
+@media (max-width: 360px) {
   .widget--span-4,
-  .widget--span-6,
-  .widget--span-8 {
+  .widget--span-6 {
     grid-column: span 12;
   }
 }
