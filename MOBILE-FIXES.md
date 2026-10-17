@@ -21,7 +21,7 @@ where they are measured, not left out.
 
 | # | Screen | The ask, in one line | Status |
 |---|---|---|---|
-| F1 | Home | A widget can't be moved back without leaving and re-entering customising | **done** |
+| F1 | Home | A widget can't be moved back without leaving and re-entering customising | **done** — superseded by R84: the two move buttons were removed, the drag is the way, and the keyboard contract they shared is the grip's |
 | F2 | Home | The station picker's list can't be scrolled; scrolling the page closes it | **done** |
 | F3 | Home | A widget has no resizing control on a phone | **done** |
 | F4 | Results | Home flashes before the results screen appears | **done** |
@@ -258,6 +258,11 @@ one disabled move (2 disabled controls). With the pointer: drag the first card b
 session, `[map, favourited-journeys]` → `[planner, map]`, without touching Done. The drag state is
 cleared on every drop (node, transform, zones, preview order), which is why the second press lifts
 the card instead of re-using the first drag's zone map.
+
+**Superseded by R84.** The two move buttons this item added are gone: at 390px they were part of a
+row of five 44px targets that wrapped onto a second line under the card's name on 4 of the 5 cards
+(head measured **69px** against **44px** now). The drag and the grip's ↑/↓ contract are unchanged,
+which is what the measured paragraph above is about.
 
 ### F2 — The station picker's list cannot be scrolled
 *Mark: `2026-10-17t20-06-25-901-home-378-light.png`:*
@@ -721,6 +726,11 @@ to the pixel.
 **Measured.** At 378px the header's count and the navigation's badge are the same box:
 **20 × 20** both, one shared declaration, same radius, same pill type size. The "all sections"
 sheet draws the same class, so it is the third of the same box rather than a third size.
+
+**Superseded by R84 — the shape, not the equality.** One box stays the point of this item; it is no
+longer square, because a 20×20 box around two digits is a circle and the report wanted the pill the
+navigation drew before this item merged them. Same one declaration, `min-width: 24px` and
+`padding: 0 var(--s-2)`: the header, the sidebar and the sheet each measure **27.2 × 20** for `14`.
 
 ### F25 — The preview must be visual, not textual
 *Mark: `2026-10-17t21-01-32-386-settings-378-light.png`:*

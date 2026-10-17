@@ -3054,9 +3054,24 @@
 
 .widget__head {
   display: flex;
-  align-items: flex-start;
+  /*
+   * Centred on the title's line, not on the head's top edge.
+   *
+   * The controls are a 44px target and the title is a 20px line, so `flex-start` put the glyphs'
+   * middles 22px down the card while the name's middle sat at 10px — the row of icons visibly
+   * hung below the heading on every card (reported, with the row circled). Centring both on the
+   * same line is what makes the cluster read as belonging to the name.
+   */
+  align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
+}
+
+/* The title yields to the controls and wraps inside its own column; the head itself never
+   wraps, so no card grows a second row of icons under its name at any width. */
+.widget__head > .t-section {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* The title/description block yields space; the remove button keeps its slot at
@@ -3086,9 +3101,18 @@
 .widget__actions {
   display: flex;
   align-items: center;
-  gap: var(--s-1);
+  /* No gap: the 44px targets already hold the glyphs apart, and a gap as well spread three
+     controls into three separate marks. Touching targets read as one cluster. */
+  gap: 0;
   flex: 0 0 auto;
   margin-left: auto;
+}
+
+/* Equal marks: three 18px glyphs in three 44px targets, so the cluster has one rhythm whatever
+   a card's own icons are drawn at. */
+.widget__actions > .btn,
+.widget__actions > .widget__grip {
+  flex: 0 0 auto;
 }
 
 /* An up/down at the end of the list is a move that cannot happen: it is drawn dimmed rather
@@ -3096,18 +3120,6 @@
 .widget__actions .btn:disabled {
   opacity: 0.35;
   cursor: default;
-}
-
-/*
- * On a phone the head holds the title and up to four 44px controls, which is wider than the
- * card. The title gives way to its own line rather than squeezing the controls into ovals
- * (F1/F3).
- */
-@media (max-width: 640px) {
-  .widget__head {
-    flex-wrap: wrap;
-    row-gap: var(--s-1);
-  }
 }
 
 .widget__grip {

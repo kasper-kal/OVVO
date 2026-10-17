@@ -487,14 +487,20 @@ svg.map-canvas {
  * is the report ("not the same size as the number background in the header"). Declared once, so
  * they cannot drift again: the header's small mark and the nav's badge are the same element, and
  * the sheet reads the same class.
+ *
+ * Then the box became a 20px circle and that was a second report: "i liked the previous 'long'
+ * background … instead of this round thing". A count is not a dot — the pill is what the nav drew
+ * before the two were merged (24px minimum, an 8px step a side), so the minimum and the step come
+ * back here and every place that draws the count gets the pill: at 11px bold, "14" measures
+ * **27.2 × 20**, and the shape says "a number goes here" rather than "a status light".
  */
 .app-header__alert-count,
 .nav-item__badge {
   display: inline-grid;
   place-items: center;
-  min-width: 20px;
+  min-width: 24px;
   height: 20px;
-  padding: 0 var(--s-1);
+  padding: 0 var(--s-2);
   border-radius: var(--r-pill);
   background: var(--accent-primary);
   color: var(--struct-main);

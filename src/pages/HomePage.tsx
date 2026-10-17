@@ -704,7 +704,7 @@ export function HomePage() {
         ref={gridRef}
         className={`widget-grid${editing ? ' widget-grid--editing' : ''}${drag ? ' widget-grid--dragging' : ''}${resize ? ' widget-grid--resizing' : ''}`}
       >
-        {visible.map((widget, index) => {
+        {visible.map((widget) => {
           const Body = widget.Body;
           const isDragging = drag === widget.id;
           /*
@@ -759,26 +759,16 @@ export function HomePage() {
                   {editing ? (
                     <div className="widget__actions">
                       {/*
-                        Two taps, not a drag (F1): the grip's ←/→/↑/↓ contract has always existed
-                        for a keyboard, and a phone has no arrow keys. Up and down are the same
-                        `nudge` the grip listens for, so a widget can be put back where it was
-                        without lifting it — which is the half of the report that is not about
-                        the drag at all ("its hard to move it back without pressing done and going
-                        back to customize mode"). Disabled at the ends, where the move would be
-                        a no-op.
+                        Three controls, not five (reported: "this looks like shit", with the row
+                        of ⌃ ⌄ ⇅ ⠿ ✕ circled). Two of the five were the same gesture drawn three
+                        times — ⌃ and ⌄ beside a ⇅ — and they were the widest thing on the card:
+                        at 390px the title and five 44px targets did not fit on one line, so the
+                        head wrapped and every card grew a second row of loose glyphs under its
+                        name. Moving is the grip's job (drag, and ↑/↓ on a keyboard through
+                        `nudge`), height is the ⇅ on a phone (F3) and the card's own corner
+                        everywhere else, and × removes — one meaning per control, all three in
+                        the card's top-right corner.
                       */}
-                      <IconButton
-                        icon="chevronUp"
-                        label={t('Move {title} up', { title: t(widget.title) })}
-                        disabled={index === 0}
-                        onClick={() => nudge(widget.id, -1)}
-                      />
-                      <IconButton
-                        icon="chevronDown"
-                        label={t('Move {title} down', { title: t(widget.title) })}
-                        disabled={index === visible.length - 1}
-                        onClick={() => nudge(widget.id, 1)}
-                      />
                       {/*
                         The phone's resizing control (F3). The corner is hidden below each
                         widget's own `resizeFrom` — which is every widget at 378px — because a
@@ -818,7 +808,7 @@ export function HomePage() {
                           }
                         }}
                       >
-                        <Icon name="grip" size={17} />
+                        <Icon name="grip" size={18} />
                       </button>
                       {!widget.required ? (
                         <IconButton
