@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { SearchForm } from '../components/journey/SearchForm';
@@ -7,12 +7,10 @@ import { PreferencesControls } from '../components/journey/PreferencesControls';
 import { JourneyCard } from '../components/journey/JourneyCard';
 import { filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
 import { ACCESS_MODES, DEFAULT_PREFERENCES, MODE_OPTIONS, PT_MODES, modeLabel } from '../data/preferences';
-import { OPERATORS } from '../data/operators';
 import { disruptionsForStop } from '../data/disruptions';
-import { Banner, Button, Card, Chip, Dialog, EmptyState, Panel, Segmented } from '../components/ui/primitives';
+import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
-import { addDaysIso, nowMinutes, pad, roundToStep, todayIso } from '../lib/format';
-import { useChunkedList } from '../lib/loadBatch';
+import { addDaysIso, nowMinutes, roundToStep, todayIso } from '../lib/format';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import type { AccessMode } from '../data/preferences';
@@ -43,7 +41,6 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
  * list — so it keeps its place directly above the journeys.
  */
 export function ResultsPage() {
-  const navigate = useNavigate();
   const {
     search,
     journeys,
@@ -51,7 +48,6 @@ export function ResultsPage() {
     updatePreferences,
     updateSearchQuery,
     startSearch,
-    shiftWindow,
     setSortMode,
     setFilter,
     resetFilter,
@@ -72,22 +68,6 @@ export function ResultsPage() {
     return sortJourneys(filtered, search.sortMode, preferences);
   }, [search, journeys, preferences]);
 
-  /*
-   * The carrier chips load five rows deep, like every other list (see `lib/loadBatch.ts`). The
-   * row used to stop at a hard-coded eight operators out of ten with nothing to say the last two
-   * existed — a silent truncation rather than a bound, and the one place in the app where a
-   * filter could not be reached at all. Five rows is ten on a phone and all ten anywhere wider.
-   */
-  const {
-    ref: carriersRef,
-    shown: shownCarriers,
-    next: nextCarrier,
-    hasMore: moreCarriers,
-    expanded: carriersExpanded,
-    loadMore: showMoreCarriers,
-    collapse: showFewerCarriers,
-  } = useChunkedList(OPERATORS, 'button.chip');
-
   if (!search) {
     return (
       <div className="stack-6">
@@ -106,7 +86,7 @@ export function ResultsPage() {
     );
   }
 
-  const { query, filter, sortMode, windowOffsetMinutes } = search;
+  const { query, filter, sortMode } = search;
   /* Whether this exact search is already in this browser's own history — see `keepSearch`. */
   const kept = recentSearches.some((entry) => entry.id === searchEntryId(query));
   const stopAlerts = [...disruptionsForStop(query.fromStopId), ...disruptionsForStop(query.toStopId)].filter(
@@ -124,11 +104,15 @@ export function ResultsPage() {
     const next = Array.from({ length: 14 }, (_, index) => addDaysIso(start, index));
     return next.includes(query.date) ? next : [query.date, ...next];
   }, [query.date]);
-  const hourOptions = useMemo(() => Array.from({ length: 24 }, (_, hour) => hour), []);
-  const minuteOptions = useMemo(() => {
-    const steps = Array.from({ length: 12 }, (_, index) => index * 5);
-    const minute = query.time % 60;
-    return steps.includes(minute) ? steps : [...steps, minute].sort((a, b) => a - b);
+  /*
+   * One list of times for the whole day, in five-minute steps, because the dialog now asks the
+   * time in one control rather than in an hour select and a minute select — two controls for one
+   * answer, which is what the round reported ("merge them into one thing instead of 2 separates").
+   * A stored time that is not on the step is kept in the list so it can still be read and left.
+   */
+  const timeOptions = useMemo(() => {
+    const steps = Array.from({ length: 288 }, (_, index) => index * 5);
+    return steps.includes(query.time) ? steps : [...steps, query.time].sort((a, b) => a - b);
   }, [query.time]);
   const whenIsNow = query.date === todayIso() && query.time === nowRef && query.timeMode === 'depart';
   const whenLabel = whenIsNow
@@ -212,6 +196,25 @@ export function ResultsPage() {
           {t('Options')}
           {optionCount ? <span className="results-chip__count">{optionCount}</span> : null}
         </button>
+        {/*
+          Saving the search, at the top of the page with the search it saves, rather than in a
+          panel at the very bottom under every journey (the round's ask: "move the SAVE THIS
+          SEARCH to somewhere else, somewhere more on the top of the page"). The words are the
+          same act on a journey card *and* unmistakably not it: a **saved search** is this pair of
+          stops to run again, a **saved journey** is one result with its own times — see the
+          Favourite control on each card and the Saved searches widget.
+        */}
+        <button
+          type="button"
+          className="results-chip"
+          aria-pressed={kept}
+          onClick={() => (kept ? removeRecentSearch(searchEntryId(query)) : keepSearch(query))}
+        >
+          <Icon name={kept ? 'check' : 'bookmark'} size={15} />
+          <span className="results-chip__value">
+            {t(kept ? 'Saved as a search' : 'Save this search')}
+          </span>
+        </button>
       </div>
 
       {optionsOpen ? (
@@ -269,42 +272,12 @@ export function ResultsPage() {
             </Chip>
           </div>
 
-          <div ref={carriersRef} className="row-wrap chip-group">
-            <span className="field__label">{t('Carriers')}</span>
-            {shownCarriers.map((operator) => (
-              <Chip
-                key={operator.id}
-                selected={filter.operatorIds.includes(operator.id)}
-                onClick={() =>
-                  setFilter({
-                    operatorIds: filter.operatorIds.includes(operator.id)
-                      ? filter.operatorIds.filter((id) => id !== operator.id)
-                      : [...filter.operatorIds, operator.id],
-                  })
-                }
-              >
-                {operator.shortName}
-              </Chip>
-            ))}
-            {moreCarriers || carriersExpanded ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={moreCarriers ? 'chevronDown' : 'chevronUp'}
-                onClick={moreCarriers ? showMoreCarriers : showFewerCarriers}
-              >
-                {moreCarriers ? t('Show {count} more', { count: nextCarrier }) : t('Show fewer')}
-              </Button>
-            ) : null}
+          <div className="row-wrap">
             <Button size="sm" variant="ghost" icon="refresh" onClick={resetFilter}>
               {t('Reset all filters')}
             </Button>
-            <Link to="/preferences" className="btn btn--sm">
-              <Icon name="sliders" size={15} />
-              {t('Preferences')}
-            </Link>
-            </div>
-          </Card>
+          </div>
+        </Card>
         </div>
       ) : null}
 
@@ -451,55 +424,13 @@ export function ResultsPage() {
         </>
       )}
 
-      <Panel className="stack-2">
-        <div className="row">
-          <Icon name="info" size={18} />
-          <span className="t-strong t-sm">{t('About these results')}</span>
-        </div>
-        <p className="t-sm">{t('Fares, occupancy, delays and platforms are indicative.')}</p>
-        {/*
-         * Keeping the search, said out loud.
-         *
-         * A search used to be written into this browser's own history by `startSearch` — every
-         * search, including every re-plan — so the Recent searches widget and the settings
-         * manifest filled up with journeys nobody had asked to keep ("it keeps saving the journey
-         * you searched, even when you leave the results"). Now the search has to be kept, and this
-         * is where it is kept: the control sits with the search-level actions, and the button says
-         * which state it is in, the way Favourite does on a journey card.
-         */}
-        <div className="row-wrap">
-          <Button
-            size="sm"
-            icon={kept ? 'check' : 'bookmark'}
-            aria-pressed={kept}
-            onClick={() => (kept ? removeRecentSearch(searchEntryId(query)) : keepSearch(query))}
-          >
-            {t(kept ? 'Kept' : 'Keep this search')}
-          </Button>
-          <span className="t-sm t-faint">
-            {t(kept
-              ? 'This search is in your recent searches.'
-              : 'Searching does not save anything — keep it here to find it again.')}
-          </span>
-        </div>
-        <div className="row-wrap">
-          <Button size="sm" icon="arrowLeft" onClick={() => navigate('/')}>
-            {t('Back to planner')}
-          </Button>
-          <Link className="btn btn--sm" to={`/stops/${query.fromStopId}`}>
-            <Icon name="station" size={15} />
-            {t('Departure stop')}
-          </Link>
-          <Link className="btn btn--sm" to={`/stops/${query.toStopId}`}>
-            <Icon name="station" size={15} />
-            {t('Arrival stop')}
-          </Link>
-          <Link className="btn btn--sm" to="/map">
-            <Icon name="map" size={15} />
-            {t('Network map')}
-          </Link>
-        </div>
-      </Panel>
+      {/*
+        The "About these results" panel is deleted whole — disclaimer, save control and the four
+        buttons to the two stops, the planner and the map. Saving the search moved up to the
+        search's own row of chips at the top of the page (it is an act on the search, not on the
+        list below it), both stops are named and tappable in the search card, and the map is in
+        the navigation. The page now ends with the last journey.
+      */}
 
       {/* How you reach the first stop and leave the last one: two options, so a popup and
           not a screen. */}
@@ -512,11 +443,6 @@ export function ResultsPage() {
             : 'The planner will not end your journey with a bicycle leg unless you ask for one.',
         )}
         onClose={() => setAccessSide(null)}
-        footer={
-          <Button type="button" variant="surface" onClick={() => setAccessSide(null)}>
-            Done
-          </Button>
-        }
       >
         <div className="stack-2">
           {ACCESS_MODES.map((mode) => {
@@ -552,18 +478,22 @@ export function ResultsPage() {
         title={t('Date and time')}
         description={t('By default a journey is planned from today, right now.')}
         onClose={() => setWhenOpen(false)}
-        footer={
-          <Button type="button" variant="surface" onClick={() => setWhenOpen(false)}>
-            Done
-          </Button>
-        }
       >
-        <div className="grid-2">
-          <label className="field field--wide" htmlFor="results-date">
-            <span className="field__label">{t('Date')}</span>
+        {/*
+         * One question, one control. This was three stacked selects — a Date, an Hour and a
+         * Minutes — which asked one thing three times and, on a phone, filled the sheet with
+         * three dropdowns the traveller had to read as a set ("merge them into one thing instead
+         * of 2 separates"). The day and the time are now two fields inside **one** bordered group
+         * that is named once, and the time is the whole day in five-minute steps rather than an
+         * hour and a minute to add up.
+         */}
+        <label className="field field--wide" htmlFor="results-date">
+          <span className="field__label">{t('When')}</span>
+          <span className="when-field__group">
             <select
               id="results-date"
               className="select"
+              aria-label={t('Date')}
               value={query.date}
               onChange={(event) => updateSearchQuery({ date: event.target.value })}
             >
@@ -573,41 +503,28 @@ export function ResultsPage() {
                 </option>
               ))}
             </select>
-          </label>
-          <label className="field" htmlFor="results-hour">
-            <span className="field__label">{t('Hour')}</span>
             <select
-              id="results-hour"
+              id="results-time"
               className="select"
-              value={Math.floor(query.time / 60)}
-              onChange={(event) => updateSearchQuery({ time: Number(event.target.value) * 60 + (query.time % 60) })}
+              aria-label={t('Time')}
+              value={query.time}
+              onChange={(event) => updateSearchQuery({ time: Number(event.target.value) })}
             >
-              {hourOptions.map((hour) => (
-                <option key={hour} value={hour}>
-                  {format.time(hour * 60)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field" htmlFor="results-minute">
-            <span className="field__label">{t('Minutes')}</span>
-            <select
-              id="results-minute"
-              className="select"
-              value={query.time % 60}
-              onChange={(event) => updateSearchQuery({ time: Math.floor(query.time / 60) * 60 + Number(event.target.value) })}
-            >
-              {minuteOptions.map((minute) => (
+              {timeOptions.map((minute) => (
                 <option key={minute} value={minute}>
-                  {pad(minute)}
+                  {format.time(minute)}
                 </option>
               ))}
             </select>
-          </label>
-        </div>
+          </span>
+        </label>
         <div className="row-wrap">
+          {/*
+            The app's own switcher, not a small one of its own: it measured and drew differently
+            from every other segmented control on the site ("looks weird and different from other
+            switchers in the website"), so it is the shared `Segmented` at its default size.
+          */}
           <Segmented
-            size="sm"
             ariaLabel={t('Depart at or arrive by')}
             value={query.timeMode}
             onChange={(value) => updateSearchQuery({ timeMode: value })}
@@ -616,31 +533,15 @@ export function ResultsPage() {
               { value: 'arrive', label: t('Arrive by') },
             ]}
           />
+          {/* "Now" and a clock, not "Today, now": the word after the comma was the date the
+              dialog already shows above it. */}
           <Button
             type="button"
             icon="clock"
             onClick={() => updateSearchQuery({ date: todayIso(), time: roundToStep(nowMinutes(), 5), timeMode: 'depart' })}
           >
-            {t('Today, now')}
+            {t('Now')}
           </Button>
-        </div>
-        {/*
-          Earlier and later belong to this dialog, and to the Leave: chip that opens it: they
-          are a time question, asked of the time control. As their own row above the journeys
-          they were two more controls to get past before seeing one (item 8).
-        */}
-        <div className="row-wrap">
-          <Button size="sm" icon="chevronLeft" onClick={() => shiftWindow(-30)}>
-            {t('Earlier options')}
-          </Button>
-          <Button size="sm" icon="chevronRight" onClick={() => shiftWindow(30)}>
-            {t('Later options')}
-          </Button>
-          {windowOffsetMinutes !== 0 ? (
-            <Button size="sm" variant="ghost" icon="refresh" onClick={() => updateSearchQuery({})}>
-              {t('Reset to {time}', { time: format.time(query.time) })}
-            </Button>
-          ) : null}
         </div>
       </Dialog>
     </div>

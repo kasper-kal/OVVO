@@ -131,7 +131,13 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
       <div className="panel stack-2">
         <div className="between">
           <span className="field__label">{t('Occupancy')}</span>
-          <Pill>{t(OCCUPANCY_TEXT[journey.occupancy])}</Pill>
+          {/*
+            The level wears its own colour, the way the meter beside it always has: quiet is the
+            good answer and reads green, the middle one amber, and busy is red ("expected quiet
+            should be green cus its good, and the next thing should be orange, and when its really
+            busy, red"). Words stay — colour on its own is not a reading.
+          */}
+          <Pill tone={OCCUPANCY_METER_TONE[journey.occupancy]}>{t(OCCUPANCY_TEXT[journey.occupancy])}</Pill>
         </div>
         <Meter
           value={journey.occupancyHistory.reduce((a, b) => a + b, 0) / journey.occupancyHistory.length}
@@ -154,17 +160,24 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           <Icon name="map" size={16} />
           {t('Show on map')}
         </Link>
+        {/*
+          Saving one journey, and the one control that says which act this is: a **heart**, filled
+          when it is kept, exactly as a stop's heart fills — a saved journey is a favourite, a
+          saved *search* is the other control on the results bar ("change the favouriting a journey
+          reaction to the icon filling, to fit the favouriting locations"). The glyph no longer
+          swaps to a tick: the shape stays and only its fill changes, which is what the stops do.
+        */}
         <button
           type="button"
-          className="btn"
+          className="btn journey-save"
           aria-pressed={saved}
           onClick={(event) => {
             event.stopPropagation();
             if (search) saveJourney(journey, search.query, search.windowOffsetMinutes);
           }}
         >
-          <Icon name={saved ? 'check' : 'bookmark'} size={16} />
-          {saved ? t('Favourited') : t('Favourite')}
+          <Icon name="heart" size={16} />
+          {saved ? t('Favourited') : t('Favourite this journey')}
         </button>
       </div>
     </Card>

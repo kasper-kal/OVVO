@@ -411,6 +411,20 @@ const NL: Record<string, string> = {
   'Showing this stop': 'Deze halte op de kaart',
   'Keep this search': 'Deze zoekopdracht bewaren',
   Kept: 'Bewaard',
+  /*
+   * The control that saves the search, and the words that tell it apart from the control that
+   * saves one journey. A **saved search** is a pair of stops to run again; a **saved journey** is
+   * one result with its own times. The round asked for that difference to be unmistakable.
+   */
+  'Save this search': 'Deze zoekopdracht opslaan',
+  'Saved as a search': 'Opgeslagen als zoekopdracht',
+  'Save this journey': 'Deze reis opslaan',
+  'Saved journey': 'Reis opgeslagen',
+  'Saved searches': 'Opgeslagen zoekopdrachten',
+  'The searches you saved, one tap to repeat.':
+    'De zoekopdrachten die je opsloeg, met één tik opnieuw.',
+  'A saved search is a pair of stops you keep. A saved journey is one result with its own times.':
+    'Een opgeslagen zoekopdracht is een set haltes die je bewaart. Een opgeslagen reis is één resultaat met zijn eigen tijden.',
   'This search is in your recent searches.': 'Deze zoekopdracht staat bij je recente zoekopdrachten.',
   'Searching does not save anything — keep it here to find it again.':
     'Zoeken bewaart niets — bewaar het hier om het terug te vinden.',

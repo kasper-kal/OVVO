@@ -539,14 +539,19 @@ function FavouritedJourneysWidget() {
 }
 
 /**
- * The searches the traveller kept, managed inside the widget: a cross removes one, and a
+ * The searches the traveller saved, managed inside the widget: a cross removes one, and a
  * single button forgets them all after a confirmation.
  *
  * Nothing lands here on its own. Searching used to write every search — and every re-plan —
  * into this browser's history, so the widget filled with journeys nobody had asked to keep.
- * A search is kept from the results screen, where the traveller can see what they are keeping.
+ * A search is saved from the results screen, where the traveller can see what they are saving.
+ *
+ * It is called **saved searches**, not *recent* searches: nothing is here by being recent, and the
+ * word is the half of the pair that tells it apart from a favourited journey (one result, with its
+ * own times). The widget id stays `recent-searches` — it is a storage key, and renaming it would
+ * empty every layout that has this card in it.
  */
-function RecentSearchesWidget() {
+function SavedSearchesWidget() {
   const t = useT();
   const { recentSearches, removeRecentSearch, clearRecentSearches, startSearch, preferences } = useApp();
   const navigate = useNavigate();
@@ -557,7 +562,14 @@ function RecentSearchesWidget() {
   return (
     <div className="stack-2">
       {recentSearches.length === 0 ? (
-        <p className="t-sm t-faint">{t('Nothing kept yet — keep a search from its results to put it here.')}</p>
+        /*
+          The one place the difference is spelled out, and it is the place the traveller needs it:
+          they have arrived at a card called *saved searches* with nothing in it and no idea how it
+          relates to the heart they have seen on journeys.
+        */
+        <p className="t-sm t-faint">
+          {t('A saved search is a pair of stops you keep. A saved journey is one result with its own times.')}
+        </p>
       ) : (
         <>
           <ul className="stack-1">
@@ -584,7 +596,7 @@ function RecentSearchesWidget() {
                 </Button>
                 <IconButton
                   icon="close"
-                  label={`Delete ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} from recent searches`}
+                  label={`Delete ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} from your saved searches`}
                   onClick={() => removeRecentSearch(entry.id)}
                 />
               </li>
@@ -592,7 +604,7 @@ function RecentSearchesWidget() {
           </ul>
           <div className="row-wrap">
             <Button size="sm" variant="ghost" icon="trash" onClick={() => setConfirmClear(true)}>
-              Delete all recent searches
+              {t('Delete all saved searches')}
             </Button>
             <span className="t-sm t-faint">{recentSearches.length} stored in this browser</span>
           </div>
@@ -602,8 +614,8 @@ function RecentSearchesWidget() {
 
       <Dialog
         open={confirmClear}
-        title="Delete all recent searches?"
-        description="Every stored search is removed from this browser. Pins, favourited journeys and preferences stay as they are."
+        title={t('Delete all saved searches?')}
+        description={t('Every saved search is removed from this browser. Pins, favourited journeys and preferences stay as they are.')}
         onClose={() => setConfirmClear(false)}
         footer={
           <>
@@ -1117,12 +1129,12 @@ const DEFINITIONS: WidgetDefinition[] = [
   },
   {
     id: 'recent-searches',
-    title: 'Recent searches',
-    description: 'The searches you kept, one tap to repeat.',
+    title: 'Saved searches',
+    description: 'The searches you saved, one tap to repeat.',
     category: 'Yours',
     span: 6,
     resizeFrom: 880,
-    Body: RecentSearchesWidget,
+    Body: SavedSearchesWidget,
   },
   {
     id: 'next-departures',

@@ -20,18 +20,18 @@ under the item, the way `USER-FIXES.md` does it.
 | # | Screen | The ask, in one line | Status |
 |---|---|---|---|
 | F1 | Home | A widget can't be moved back without leaving and re-entering customising | open |
-| F2 | Home | The station picker's list can't be scrolled; scrolling the page closes it | open |
+| F2 | Home | The station picker's list can't be scrolled; scrolling the page closes it | **done** |
 | F3 | Home | A widget has no resizing control on a phone | open |
 | F4 | Results | Home flashes before the results screen appears | open |
-| F5 | Results | The access dialog's DONE button is unnecessary | open |
-| F6 | Results | Delete the Carriers section from Options | open |
-| F7 | Results | Delete the Preferences button from the filter panel | open |
-| F8 | Results | Move "keep this search" to the top and delete the whole About-these-results footer | open |
-| F9 | Results / Home | Add a SAVED SEARCHES widget; make saved search ≠ saved journey obvious | open |
-| F10 | Results | Rebuild the Date-and-time dialog (one control, no Earlier/Later, X saves) | open |
-| F11 | Results | Occupancy levels need a real colour system (green / orange / red) | open |
+| F5 | Results | The access dialog's DONE button is unnecessary | **done** |
+| F6 | Results | Delete the Carriers section from Options | **done** |
+| F7 | Results | Delete the Preferences button from the filter panel | **done** |
+| F8 | Results | Move "keep this search" to the top and delete the whole About-these-results footer | **done** |
+| F9 | Results / Home | Add a SAVED SEARCHES widget; make saved search ≠ saved journey obvious | **done** |
+| F10 | Results | Rebuild the Date-and-time dialog (one control, no Earlier/Later, X saves) | **done** |
+| F11 | Results | Occupancy levels need a real colour system (green / orange / red) | **done** |
 | F12 | Journey | Plan return journey + Show on map are squeezed into the summary card | open |
-| F13 | Journey | Favouriting a journey should fill the icon, like favouriting a stop | open |
+| F13 | Journey | Favouriting a journey should fill the icon, like favouriting a stop | **done** |
 | F14 | Journey | The Journey summary is text-heavy; use icons + short labels | open |
 | F15 | Journey | The journey line has no arrival end (no square, no arrival name) | open |
 | F16 | Journey | Replace the text arrow with an icon | open |
@@ -44,9 +44,89 @@ under the item, the way `USER-FIXES.md` does it.
 | F23 | Alert page | Delete the "Plan around this alert" card | open |
 | F24 | Alerts | The alert count badge is a different size in the header, nav and menu | open |
 | F25 | Settings | The preview is more text, when it is the one place meant to be visual | open |
-| F26 | Settings | The default-origin list cannot be scrolled | open |
+| F26 | Settings | The default-origin list cannot be scrolled | **done** |
 | F27 | Settings | The toast is ugly | open |
 | F28 | Cross-screen | PLAN TO HERE must fill only the TO and open the planner, not the results | open |
+
+**10 of 28 done and measured** (F2, F5, F6, F7, F8, F9, F10, F11, F13, F26). The other 18
+(F1, F3, F4, F12, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, F25, F27, F28) are
+untouched and still open — nothing about them is claimed here.
+
+---
+
+## Progress — what was measured, on the running app
+
+Every line below is a number the app printed at **378 × 734**, the width this batch was captured at,
+plus the project's own audits. The instrument is `logs/mobile-fixes-verify.cjs` (kept out of the
+repo like the rest of `.logs/`), and it is run against the live dev server.
+
+```
+29/29 checks passed
+PASS  F8 the About-these-results footer is gone                 [panel=0]
+PASS  F8 no Departure stop button left behind                    [buttons=0]
+PASS  F8 one Save-this-search control exists                     [count=1]
+PASS  F8 the save control is above the first journey             [bar y=271 card y=711]
+PASS  F8 the page ends with the journey list, not a panel        [UL.stack-4]
+PASS  F11 every level pill paints the colour of its own level    [“Expected fairly busy” rgb(255,245,165) = token]
+PASS  F11 the three levels are three different colours           [quiet rgb(225,234,223) | middle rgb(255,245,165) | busy rgb(255,232,229)]
+PASS  F6 no CARRIERS heading in Options                          [headings=0]
+PASS  F6 the filter panel still renders its own chips            [chips=8]
+PASS  F7 no Preferences link in the filter panel                 [links=0]
+PASS  F5 the access dialog has no DONE button                    [done=0]
+PASS  F5 both access options are still offered                   [options=2]
+PASS  F10 the when question is one group with two fields         [groups=1 selects=2 [results-date,results-time]]
+PASS  F10 Earlier/Later options are gone                         [buttons=0]
+PASS  F10 the reset control reads Now                            [buttons=1]
+PASS  F10 the dialog footer Done is gone                         [done=0]
+PASS  F10 the depart/arrive switcher is the app's own control    [found=1]
+PASS  F10 the change survives the close (X saves)                [before "Leave: Now" after "Leave: 03:20"]
+PASS  F13 a journey keep control exists                          [aria-pressed=true, "Favourited"]
+PASS  F13 pressing it changes the state                          [false -> true]
+PASS  F13 the heart fills when saved (not a swapped glyph)       [fill none -> rgb(24,24,27)]
+PASS  F9 the widget is named Saved searches                      [title="Saved searches"]
+PASS  F2/F26 the whole list fits on the 378px screen             [list bottom=726 viewport=734]
+PASS  F2/F26 the list contains its own scroll                    [contain]
+PASS  F2/F26 a scroll inside the list scrolls the list           [scrollTop=137, 464px of rows in a 327px box]
+PASS  F2/F26 the list is still open after that scroll            [count=1]
+PASS  F2/F26 losing the input's focus does not dismiss the list   [count=1]
+```
+
+The project's own checks, re-run after the last change to the stylesheet and the picker:
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | clean |
+| `npm run build` | clean (518.14 kB / 155.94 kB gzip) |
+| `class-audit` | all 348 styled class names accounted for |
+| `icon-audit` | clean |
+| `caps-audit` | clean |
+| `consistency-audit` | clean |
+| `ui-audit` | clean — 0 contrast, 0 target, 0 squashed, 0 clipped, 0 header band, 0 wrapped capsule, **0 picker-popover problems** |
+
+Two things found while verifying, rather than asserted:
+
+- **F11's own check was wrong first time round.** It required the results list to show more than one
+  occupancy level; every journey in one search can share a level, and here all eleven do, so the
+  check failed while the fix was correct. It now measures the mapping — each level's pill against
+  the token that level is meant to use, plus the fact that the three tokens differ — which is what
+  "quiet green, middle amber, busy red" actually asserts.
+- **The first cap on the picker broke a promise the audit measures**: an 8-row list squeezed under
+  300px at 768 and 1440, where the field sits low on a long page. The measured cap is therefore a
+  **phone** rule (`max-width: 640px`, this round's scope) and wider screens keep the old shape
+  exactly; `ui-audit` is back to 460px of list on every wide sample. The phone cap is what makes the
+  list's own bottom — and its scrollbar — land on screen: 726px of 734.
+
+### Consequences worth naming
+
+- **F10 deletes the only control that shifted the search window.** `shiftWindow` and
+  `windowOffsetMinutes` stay in the state (the offset is still stored with a saved journey), but no
+  longer has a control in the interface. That is what "get rid of it" asked for; if the ± 30-minute
+  jump is wanted back, it needs a home of its own, not a silent return to this dialog.
+- **F6 leaves the carrier filter field in the stored filter** (`operatorIds`) with no UI reading it,
+  which is deliberate: removing it from the stored shape would need a migration for a field that is
+  now simply always empty.
+- **F9 renames the widget without renaming its id** (`recent-searches`): the id is a storage key, so
+  changing it would empty the card out of every layout that has it.
 
 ---
 

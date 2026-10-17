@@ -850,10 +850,30 @@
   border: var(--l2-border);
   border-radius: var(--r-inner);
   padding: var(--s-2);
-  /* A picker is a thing you look at: it takes most of the screen but leaves the page visible
-     behind it, so choosing a stop reads as hovering over the board rather than as a mode. */
+  /*
+   * A picker is a thing you look at: it takes most of the screen but leaves the page visible
+   * behind it, so choosing a stop reads as hovering over the board rather than as a mode.
+   *
+   * The cap is a fallback. `StopCombobox` measures the room between the field and the foot of the
+   * window and writes the result as an inline `max-height`, because a fixed 58vh list on a phone
+   * drew a box whose own bottom — and therefore whose scrollbar — was off screen, which is the
+   * reported "its not possible to scroll through the options" (2026-10-17t20-06-25). Nothing below
+   * it may scroll the page either: `overscroll-behavior: contain` ends the list's scroll at the
+   * list's own end instead of chaining it to the page behind (which is what dismissed the popup).
+   */
   max-height: min(58vh, 460px);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/*
+ * The list when there is more room above the field than below it: it hangs upwards, so the rows
+ * near the field stay on screen instead of the list running off the bottom of a phone.
+ */
+.suggestions--up {
+  top: auto;
+  bottom: calc(100% + var(--s-1));
 }
 
 .suggestion {
@@ -3112,4 +3132,63 @@
  */
 .list-sentinel {
   height: 1px;
+}
+
+/*
+ * ------------------------------------------------------- the when field (results)
+ *
+ * The day and the time in **one** bordered group, rather than a Date select, an Hour select and a
+ * Minutes select stacked in a column. The round's report was that one question was being asked
+ * three times ("merge them into one thing instead of 2 separates"), so the two answers that are
+ * left share one frame: one border, one radius, one divider between them, and the group takes its
+ * own full line in the dialog. Under 400px the two fields stack rather than squeeze, because a
+ * date like "Thursday, 22 October" and a time like "22:05" cannot both be read in half a phone.
+ */
+.when-field__group {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-input);
+  background: var(--l2-bg);
+  overflow: hidden;
+}
+
+.when-field__group .select {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.when-field__group .select + .select {
+  border-left: 1px solid var(--border-hairline);
+}
+
+/* The shared `.select:focus` paints a border that this group has removed, so focus is drawn
+   inside the frame instead of on an edge that is not there. */
+.when-field__group .select:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--struct-main);
+}
+
+@media (max-width: 400px) {
+  .when-field__group {
+    grid-template-columns: 1fr;
+  }
+
+  .when-field__group .select + .select {
+    border-left: 0;
+    border-top: 1px solid var(--border-hairline);
+  }
+}
+
+/*
+ * ------------------------------------------------- the journey's own keep control
+ *
+ * A saved journey fills its heart, the way a favourite stop does — the shape stays and only the
+ * fill changes, instead of the glyph swapping for a tick (the round asked for exactly the stops'
+ * behaviour: "change the favouriting a journey reaction to the icon filling"). It is scoped to this
+ * one control rather than written as a general `[aria-pressed] .icon` rule, because chips and
+ * switches also carry `aria-pressed` and filling their glyphs is a different thing.
+ */
+.journey-save[aria-pressed='true'] .icon {
+  fill: currentColor;
 }

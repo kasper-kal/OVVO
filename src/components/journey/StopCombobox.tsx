@@ -62,6 +62,22 @@ export function StopCombobox({
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  /**
+   * How tall the suggestion list may be, measured from where the field actually sits — **on phones
+   * only**, which is the scope of the round this answers.
+   *
+   * A fixed `min(58vh, 460px)` was decided without knowing where the field is on the page, so a
+   * picker near the foot of a phone screen drew a 425px list with only the top of it on screen —
+   * the list could be scrolled, but its own scrollbar was below the viewport, which is what the
+   * round reported as "its not possible to scroll through the options so you have to scroll using
+   * the page" (2026-10-17t20-06-25). On a phone the cap is the room that is actually there, and
+   * when the room below is smaller than the room above the list hangs upwards instead of off the
+   * screen. Wider screens keep the old behaviour exactly: there, `min(58vh, 460px)` is a shape the
+   * audit measures as a promise (six or more rows may not be squeezed under 300px), and a desktop
+   * page always has room to scroll to a list that reaches past its own fold.
+   */
+  const [cap, setCap] = useState<{ max: number; up: boolean }>({ max: 460, up: false });
   /** Mirrors the selected stop so external changes (reverse, quick fill, location) update the text. */
   const selectedIdRef = useRef<string | null>(value?.id ?? null);
   /** True while the traveller is typing, so we do not overwrite what they typed. */
@@ -74,6 +90,61 @@ export function StopCombobox({
     if (nextId === null && typingRef.current) return;
     setQuery(nextId ? stopLabel(nextId) : '');
   }, [value]);
+
+  /* The room the list is allowed, re-read whenever the page moves under it. */
+  useEffect(() => {
+    if (!open) return undefined;
+    const measure = () => {
+      const field = rootRef.current?.querySelector('.combobox__field');
+      if (!field) return;
+      /* Phones only: the round is a phone round, and a wide screen has the height to spare. */
+      if (!window.matchMedia('(max-width: 640px)').matches) {
+        setCap({ max: 460, up: false });
+        return;
+      }
+      const box = field.getBoundingClientRect();
+      const below = window.innerHeight - box.bottom - 12;
+      const above = box.top - 12;
+      const up = below < 200 && above > below;
+      setCap({ max: Math.max(160, Math.min(460, up ? above : below)), up });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
+    };
+  }, [open]);
+
+  /*
+   * What closes the list: a press outside it, or focus moving to something else. **Not** a blur on
+   * its own, and never a scroll.
+   *
+   * The old rule was a 140ms timeout after the input's `blur`, and a page scroll blurs a focused
+   * input on a phone — so reaching for the list by scrolling the page dismissed it, which is the
+   * other half of the same report. A press outside is what the traveller means by leaving, and the
+   * list's own scroll never touches the input's focus at all.
+   */
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (event: PointerEvent) => {
+      const root = rootRef.current;
+      if (root && event.target instanceof Node && !root.contains(event.target)) setOpen(false);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const root = rootRef.current;
+      const next = event.relatedTarget as Node | null;
+      if (root && next && !root.contains(next)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    const root = rootRef.current;
+    root?.addEventListener('focusout', onFocusOut);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      root?.removeEventListener('focusout', onFocusOut);
+    };
+  }, [open]);
 
   const suggestions = useMemo(() => {
     const ranked = rankStops(query, favouriteStopIds);
@@ -124,7 +195,7 @@ export function StopCombobox({
   };
 
   return (
-    <div className="combobox">
+    <div className="combobox" ref={rootRef}>
       {hideLabel ? null : (
         <label className="field__label" htmlFor={id}>
           {label}
@@ -158,7 +229,6 @@ export function StopCombobox({
               if (value) onSelect(null);
             }}
             onFocus={() => setOpen(true)}
-            onBlur={() => window.setTimeout(() => setOpen(false), 140)}
             onKeyDown={onKeyDown}
           />
           {query ? (
@@ -177,7 +247,13 @@ export function StopCombobox({
         </div>
 
         {open && suggestions.length > 0 ? (
-          <ul className="suggestions" id={`${id}-listbox`} role="listbox" aria-label={`${label} suggestions`}>
+          <ul
+            className={`suggestions${cap.up ? ' suggestions--up' : ''}`}
+            id={`${id}-listbox`}
+            role="listbox"
+            aria-label={`${label} suggestions`}
+            style={{ maxHeight: `${cap.max}px` }}
+          >
             {suggestions.map((stop, index) => (
               <li key={stop.id} role="option" aria-selected={index === activeIndex}>
                 <button
@@ -212,7 +288,13 @@ export function StopCombobox({
         ) : null}
 
         {open && query && suggestions.length === 0 ? (
-          <ul className="suggestions" id={`${id}-listbox`} role="listbox" aria-label={`${label} suggestions`}>
+          <ul
+            className={`suggestions${cap.up ? ' suggestions--up' : ''}`}
+            id={`${id}-listbox`}
+            role="listbox"
+            aria-label={`${label} suggestions`}
+            style={{ maxHeight: `${cap.max}px` }}
+          >
             <li className="stack-1" style={{ padding: 'var(--s-3)' }}>
               <span className="t-strong t-body">No stops match “{query}”</span>
               <span className="t-sm t-muted">{emptyHint ?? 'Search by station, stop or landmark name.'}</span>
