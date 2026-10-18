@@ -168,6 +168,17 @@
      the row it sits in (see `.app-header__mark`). --- */
   --brand-tile: #ffffff;
   --brand-ink: var(--struct-main);
+  /*
+   * The mark's own outline, and only where it is needed.
+   *
+   * The ink above is `#18181b` — the dark canvas is `#121211`, eight levels away — so on a dark
+   * page the artwork's two black quadrants dissolve into the page and what is left is the corner
+   * clip: a few antialiased hairlines tracing the 14px radius, which is the report ("the OVVO
+   * logo in dark mode edges look weird"). Transparent here, so the light appearance paints
+   * exactly what it always did; the dark block sets it to the hairline that theme already uses
+   * for the edges of dark surfaces.
+   */
+  --brand-ring: transparent;
 
   /* --- Map drawing palette. The schematic network is ink on land, so in dark the ink has to
      turn over with everything else. Its own group because map.css draws with it and nothing
@@ -256,7 +267,11 @@
 
   /* `--brand-tile` / `--brand-ink` are deliberately *not* overridden here: the mark is a white
      tile with obsidian ink in both appearances, so flipping its ink in dark would draw a
-     near-white glyph on the white ground. */
+     near-white glyph on the white ground. What *is* overridden is the ring around it: obsidian
+     ink on a `#121211` canvas has no edge at all, so this appearance draws the mark's square in
+     the same hairline the dock and the obsidian tier use instead of leaving the silhouette to
+     the clip's antialiasing. */
+  --brand-ring: rgb(255 255 255 / 0.22);
 
   --map-ink: #f2f0ec;
   --map-land: #1e1d1b;

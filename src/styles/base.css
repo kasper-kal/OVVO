@@ -418,6 +418,12 @@ svg.map-canvas {
   overflow: hidden;
   background: var(--brand-tile);
   color: var(--brand-ink);
+  /*
+   * A ring drawn on the artwork's own edge, because in the dark appearance the ink and the page
+   * are the same colour (see `--brand-ring`): without it the mark has no silhouette, only the
+   * antialiased remains of the corner clip. Inset, so it cannot grow the 56px square or paint
+   * outside it, and transparent in the light appearance, which is untouched by this. */
+  box-shadow: inset 0 0 0 1px var(--brand-ring);
 }
 
 .brand-mark__tile {
