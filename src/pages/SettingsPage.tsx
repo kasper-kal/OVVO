@@ -5,6 +5,7 @@ import { PageHeader } from '../components/layout/AppShell';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { getStop } from '../data/stops';
 import { Banner, Button, Card, Dialog, Field, Pill, Segmented, Switch } from '../components/ui/primitives';
+import { ColourSettings } from '../components/ui/ColourSettings';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -125,6 +126,7 @@ export function SettingsPage() {
     locationConsent,
     setLocationConsent,
     requestLocation,
+    power,
   } = useApp();
   /* The stops the rename list offers, in the order they were hearted. */
   const favouriteStops = favouriteStopIds
@@ -144,7 +146,6 @@ export function SettingsPage() {
    * "flip it, it should try again, then go back to off if it fails again".
    */
   const [askingLocation, setAskingLocation] = useState(false);
-
   const sampleTime = 14 * 60 + 5;
   const sampleDate = new Date().toISOString().slice(0, 10);
 
@@ -157,6 +158,25 @@ export function SettingsPage() {
   /* The language's own name, as the control above offers it — never translated into the language
      the traveller is leaving. */
   const languageLabel = LANGUAGES.find((option) => option.value === settings.language)?.label ?? 'English';
+
+  /*
+   * What the battery watcher is doing right now, in the shortest true form.
+   *
+   * The percentage is part of it because the percentage is the reason: "Saving · 18%" says both
+   * what the app is doing and how long it will keep doing it, and a phone on a charger says so
+   * rather than naming a mode that is deliberately not in force.
+   */
+  const batteryModeLabel =
+    power.mode === 'super'
+      ? t('Super saving')
+      : power.mode === 'save'
+        ? t('Saving')
+        : power.charging
+          ? t('Charging')
+          : t('Off');
+  const batteryLabel = power.supported
+    ? `${batteryModeLabel} · ${Math.round((power.level ?? 0) * 100)}%`
+    : t('Not reported');
 
   return (
     <div className="stack-6">
@@ -243,7 +263,34 @@ export function SettingsPage() {
               label={t('Reduce motion')}
               description={t('Turns off the spring press and hover transitions.')}
             />
+            {/*
+              Battery saving is a reading, not a control, so it is drawn the way the page draws
+              every other reading: a label, a sentence, and the value on the right. There is
+              deliberately no switch — a mode that can be turned off is a mode that leaves a phone
+              on 3% drawing a map — and pressing it would only be able to lie.
+            */}
+            <div className="field">
+              {/* The label line carries the reading, the same way a control's own row does: name
+                  on the left, what it is doing on the right, and one sentence under it. No pill
+                  — a pill is a thing you can press or a tag on a list, and this is neither. */}
+              <div className="between">
+                <span className="field__label">{t('Battery saving')}</span>
+                <span className="t-strong t-sm">{batteryLabel}</span>
+              </div>
+              <p className="field__hint">
+                {power.supported
+                  ? t('Automatic: movement goes at 20%, and at 10% only what you need to catch a bus is drawn. Plugging in turns it off.')
+                  : t('This browser does not report the battery, so the full interface is always drawn.')}
+              </p>
+            </div>
           </Card>
+
+          {/*
+            **Colours, as questions that open screens.** The card names each setting and its
+            current value; the choice itself lives one level in (`ColourSettings`, and the note
+            there). Everything about the interface's colour is still in this one place.
+          */}
+          <ColourSettings />
 
           <Card className="stack">
             <h2 className="t-section">{t('Location')}</h2>
@@ -449,7 +496,28 @@ export function SettingsPage() {
                     className={`palette__swatch palette__swatch--${accent.key}`}
                     aria-hidden="true"
                   />
-                  <span className="t-sm">{t(accent.name)}</span>
+                  {/*
+                    The first swatch is painted from `--accent-primary`, so when a tint is in force
+                    it *is* the tint's accent — and calling it "Signature coral" while it draws
+                    green would be the row lying about itself.
+                  */}
+                  <span className="t-sm">
+                    {/*
+                      **Only the first swatch is the accent.** It is painted from `--accent-primary`,
+                      which follows the widgets' colour or the page's, so it is named for whichever
+                      is in force — and the other five are their own colours either way, which is
+                      why the `accent.key === 'coral'` guard has to stay on both branches. (It was
+                      dropped when this label learned about the primary colour, and every swatch in
+                      the row read "Primary colour".)
+                    */}
+                    {accent.key === 'coral'
+                      ? settings.primaryColour
+                        ? t('Primary colour')
+                        : settings.background !== 'cream'
+                          ? t('Theme colour')
+                          : t(accent.name)
+                      : t(accent.name)}
+                  </span>
                 </span>
               ))}
             </div>
@@ -482,6 +550,7 @@ export function SettingsPage() {
           {t('Remove all stored data')}
         </Button>
       </div>
+
 
       <Dialog
         open={confirmReset}

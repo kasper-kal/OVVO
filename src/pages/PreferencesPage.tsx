@@ -7,10 +7,12 @@ import { endLabel, filterJourneys, sortJourneys } from '../data/journeyEngine';
 import { Button, Card, Pill } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { useT } from '../lib/useT';
 
 export function PreferencesPage() {
   const { preferences, updatePreferences, resetPreferences, journeys, search } = useApp();
   const format = useFormat();
+  const t = useT();
 
   const preview = useMemo(() => {
     if (!search) return null;
@@ -32,14 +34,16 @@ export function PreferencesPage() {
         list now, where the thing it reverses has already been read.
       */}
       <PageHeader
-        title="Travel preferences"
-        description="These preferences shape your search results: the planner respects them, the results list filters by them and the ordering changes with them."
+        title={t('Travel preferences')}
+        description={t(
+          'These preferences shape your search results: the planner respects them, the results list filters by them and the ordering changes with them.',
+        )}
         showTitle
         actions={
           search ? (
             <Link to="/results" className="btn btn--primary">
               <Icon name="route" size={16} />
-              See the results
+              {t('See the results')}
             </Link>
           ) : (
             <Link to="/" className="btn btn--primary">
@@ -68,7 +72,7 @@ export function PreferencesPage() {
                   {format.duration(preview.best.durationMinutes)}
                 </Pill>
               ) : (
-                <Pill tone="coral">No journey matches these preferences</Pill>
+                <Pill tone="coral">{t('No journey matches these preferences')}</Pill>
               )}
             </div>
           </div>
@@ -76,7 +80,7 @@ export function PreferencesPage() {
               transfers, walking, modes — said the same three facts a second time. */}
         </Card>
       ) : (
-        <p className="t-sm t-muted">Plan a journey to preview these settings.</p>
+        <p className="t-sm t-muted">{t('Plan a journey to preview these settings.')}</p>
       )}
 
       <Card hero className="stack">

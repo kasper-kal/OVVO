@@ -269,6 +269,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const t = useT();
   const alertCount = DISRUPTIONS.length;
   const headerBack = useHeaderBack();
+  const { homeEditing, setHomeEditing, homeMenuOpen, setHomeMenuOpen } = useApp();
+  /*
+   * The home screen's editing controls, drawn in the two corners a phone's home screen uses: **+**
+   * where the way back goes, **Done** where the alerts entry sits. They exist only on the home
+   * screen and only while it is being customised, so no other screen loses its alerts entry and
+   * no screen grows a control for a mode it does not have.
+   */
+  const onHome = isActivePath(location.pathname, '/');
+  const editingHome = homeEditing && onHome;
 
   /*
    * Coming back is not arriving.
@@ -324,21 +333,76 @@ export function AppShell({ children }: { children: ReactNode }) {
             pickers fill with their own way back. A page that has one puts it here and nowhere
             else — see `useHeaderBack`.
           */}
-          <div className="app-header__back">{headerBack}</div>
-          <Link to="/" className="app-header__brand" aria-label="OVVO home">
+          <div className="app-header__back">
+            {onHome ? (
+              /*
+               * **Edit** and the `+` it becomes are **one control**, with two faces.
+               *
+               * In the corner a phone's home screen keeps it, there before the mode is on so the
+               * way in is visible rather than at the foot of a page the dock covers. Pressing it
+               * enters the mode; while editing it opens the layout menu, which hangs from this
+               * same box (`data-home-menu-trigger`).
+               *
+               * The two labels are stacked in one grid cell rather than swapped for each other
+               * (`app-header__pill--faces`), because a pill is as wide as what is in it: the `+`
+               * alone took the pill's 36px minimum and drew a **circle**, so entering the mode
+               * changed the shape of the corner. Both faces share the cell, so the word sizes the
+               * box in both states and the `+` sits centred inside Edit's own oval — same place,
+               * same size, same paint, and the only difference is the character on it.
+               */
+              <button
+                type="button"
+                className="app-header__pill app-header__pill--faces"
+                data-home-menu-trigger={editingHome ? '' : undefined}
+                aria-haspopup={editingHome ? 'dialog' : undefined}
+                aria-expanded={editingHome ? homeMenuOpen : undefined}
+                aria-label={editingHome ? t('Home layout') : undefined}
+                title={editingHome ? t('Home layout') : t('Or press and hold the home screen')}
+                onClick={() => (editingHome ? setHomeMenuOpen(!homeMenuOpen) : setHomeEditing(true))}
+              >
+                {/* Plain text, as a phone's home screen writes it: the word is the control. */}
+                <span className="app-header__pill-face" aria-hidden={editingHome || undefined}>
+                  {t('Edit')}
+                </span>
+                {/*
+                 * The glyph is the app's own **plus icon**, not a `+` character: at the pill's 12px
+                 * type size a text plus draws about 8px wide and reads as a speck inside a 49px
+                 * oval ("the + thing is much too small, replace it with an icon"). An icon is
+                 * drawn at its own size — 18px, the size the header's alerts and way-back glyphs
+                 * use — and the word still sizes the pill, so the box does not move.
+                 */}
+                <span className="app-header__pill-face" aria-hidden={!editingHome || undefined}>
+                  <Icon name="plus" size={18} />
+                </span>
+              </button>
+            ) : (
+              headerBack
+            )}
+          </div>
+          <Link to="/" className="app-header__brand" aria-label={t('OVVO home')}>
             <span className="app-header__mark">
               <BrandMark size={56} />
             </span>
           </Link>
-          <Link
-            to="/disruptions"
-            className="app-header__alerts"
-            aria-label={`${t('Disruptions')}: ${alertCount}`}
-            title={t('Disruptions')}
-          >
-            <Icon name="alert" size={18} />
-            {alertCount ? <span className="app-header__alert-count">{alertCount}</span> : null}
-          </Link>
+          {editingHome ? (
+            <button
+              type="button"
+              className="app-header__pill"
+              onClick={() => setHomeEditing(false)}
+            >
+              {t('Done')}
+            </button>
+          ) : (
+            <Link
+              to="/disruptions"
+              className="app-header__alerts"
+              aria-label={`${t('Disruptions')}: ${alertCount}`}
+              title={t('Disruptions')}
+            >
+              <Icon name="alert" size={18} />
+              {alertCount ? <span className="app-header__alert-count">{alertCount}</span> : null}
+            </Link>
+          )}
         </div>
       </header>
 

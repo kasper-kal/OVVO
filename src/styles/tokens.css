@@ -39,7 +39,19 @@
   --struct-main: #18181b; /* structural obsidian (20%) */
   --struct-secondary: #2d3b2d; /* forest olive structure */
   --tint-sage: #e1eadf; /* sage green tint base */
-  --accent-primary: #ff7e67; /* sunset coral (10% focal) */
+  /*
+   * Coral as a **name**, and coral as **the accent** — two tokens, because they are two promises.
+   *
+   * `--accent-primary` is the traveller's tint once a background colour is in force
+   * (`lib/background.ts` rewrites it), which is right for the dock, the focus ring and the accent
+   * row: there it means "the colour you chose". It is wrong for anything that promises a colour by
+   * name. The Text selection row's *Coral* chip painted `--accent-primary`, so a blue background
+   * turned a chip labelled **Coral** blue, and choosing Coral gave the tint as well (reported:
+   * "the colours are different from the name"). `--palette-coral` is the palette's own coral and
+   * the tint never writes it; the accent is *defined as* it, so there is still one literal.
+   */
+  --palette-coral: #ff7e67; /* the palette's coral, which the tint cannot rewrite */
+  --accent-primary: var(--palette-coral); /* sunset coral (10% focal) — the tint may replace this */
   /* The focal coral is a *background* colour: as ink it is 2.49:1 on white, under the 3:1
      non-text minimum for the empty-state glyph. This is the same hue taken dark enough to be
      read as an icon on white (4.0:1 on white, 3.4:1 on the coral tint). */
@@ -68,6 +80,49 @@
   --tint-butter-ink: #c9a227;
   --accent-primary-border: #e9694f;
   --accent-primary-hover: #ff9077;
+  /*
+   * **The ink on the accent, and the accent's cut for the map.**
+   *
+   * Both are declared defaults rather than values rules repeat. `--on-accent` is obsidian on the
+   * coral (7.1:1); when the traveller chooses a tint, `lib/background.ts` replaces it with the ink
+   * that wins on the *derived* accent, so a dark accent gets light text. `--map-accent` is the
+   * accent measured against the map's own land rather than a card — a colour that reads on a dark
+   * widget may vanish on pale land, and the map is drawn on the latter.
+   */
+  --on-accent: var(--struct-main);
+  --map-accent: var(--accent-primary);
+  /*
+   * The dock's active entry needs its own cut. The dock is obsidian whatever the tint is, and a
+   * dark tint's accent — a maroon on a red page, say — measures **1.28:1** against obsidian: the
+   * white glyph is legible but the pill around it is invisible, so the current section stops being
+   * marked. `lib/background.ts` measures this cut against the dock instead of the page.
+   */
+  --accent-on-dock: var(--accent-primary);
+  --on-dock-accent: var(--on-accent);
+  /*
+   * Selected text takes **the signature coral** — `--accent-primary` itself, in both appearances.
+   *
+   * For one round it was a lighter cut of it (85% coral + 15% white, `#ff917e`) after the orange
+   * was called heavy; the order now is the old coral back, everywhere (order 99), so there is one
+   * coral in this app and the selection is painted with it. Obsidian ink on it measures **7.1:1**.
+   * The two tokens stay, so the pairing is still declared in one place and no rule has to repeat
+   * the ink: `--selection-bg` is the accent itself, not a shade derived from it.
+   */
+  --selection-bg: var(--palette-coral);
+  --selection-ink: var(--struct-main);
+
+  /*
+   * The wash over a personal photo (`lib/background.ts`).
+   *
+   * A photograph is the one background this app cannot reason about: any colour, any darkness, in
+   * any place on the page. So it is never drawn on its own — the canvas colour is laid over it at
+   * just under two thirds, and what the traveller sees is the *tone* of their picture behind the
+   * cards rather than the picture fighting the type. Cards keep their own surfaces, so no text on
+   * a card is affected; this protects the page's own headings and the empty strips around them.
+   * A colour the traveller chose does not need it — that one is measured and mixed by
+   * `lib/background.ts` before it is painted.
+   */
+  --app-bg-wash: color-mix(in srgb, var(--canvas-base) 62%, transparent);
 
   --active-green: #22c55e;
 
@@ -141,7 +196,12 @@
   /* --- 8. Tactile motion engine & spring physics --- */
   --press-scale: 0.97;
   --hover-scale: 1.02;
-  --hover-lift: -2px;
+  /*
+   * 4px, not 2. A review of two stills at 2px found them almost identical — "jump up" reads as
+   * more than a nudge — and every hover in the app lifts by this one value, so the row, the card
+   * and the chip move together.
+   */
+  --hover-lift: -4px;
   --ease-press: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-hover: cubic-bezier(0.34, 1.56, 0.64, 1);
   /*
@@ -230,6 +290,10 @@
 
   --ink-strong: #f7f6f3;
   --ink: #dedcd6;
+
+  /* A photo gets a heavier wash in the dark appearance: the ink is light, and a bright photograph
+     under a light wash would leave the page's headings unreadable. */
+  --app-bg-wash: color-mix(in srgb, var(--canvas-base) 70%, transparent);
   --ink-muted: #b8b5ae;
   --ink-faint: #a5a29b;
 

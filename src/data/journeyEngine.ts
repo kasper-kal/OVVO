@@ -44,6 +44,18 @@ export interface SearchQuery {
    */
   fromLabel?: string;
   toLabel?: string;
+  /**
+   * How far that named place is from the stop the journey is planned from, in metres.
+   *
+   * "Use my current location" answers two questions at once: the address the traveller is at,
+   * and the nearest stop a journey can be planned from. Usually those are two different places
+   * and the stop is simply where the plan starts. But when the address is nearest to the very
+   * stop the *other* end names, both ends collapse to one stop id — and the trip is not
+   * nothing, it is the distance between the address and that stop. Present only for an end
+   * that is a place rather than a stop, so its absence is what says "this end is a stop".
+   */
+  fromAccessMetres?: number;
+  toAccessMetres?: number;
   /** yyyy-mm-dd */
   date: string;
   /** minutes since midnight */
@@ -458,7 +470,22 @@ function assembleJourney(steps: RawStep[], query: SearchQuery, index: number): J
   const transfers = Math.max(0, rideLegs.length - 1);
   const signature = planSignature(steps, query.date);
   const rng = seededRandom('journey', signature);
-  const occupancyHistory = Array.from({ length: 12 }, () => Math.round(rng() * 100) / 100);
+  /*
+   * Crowding follows the clock, not a coin.
+   *
+   * The level used to be the average of twelve uniform samples, which has a mean of 0.5 and a
+   * spread narrow enough that "really busy" (above 0.7) almost never happened: a review of eight
+   * searches and every option on each page found only "Expected quiet" and "Expected fairly
+   * busy", so the third level existed in the type and never on the screen. A journey in the
+   * morning or evening peak now starts from a busier base, so all three levels occur — still
+   * sampled, still the same seeded generator, and still a reading of the journey the engine
+   * built (its own departure time), not of the real world.
+   */
+  const clock = departure % 1440;
+  const peak = (clock >= 420 && clock < 570) || (clock >= 960 && clock < 1110);
+  const occupancyHistory = Array.from({ length: 12 }, () =>
+    Math.round(Math.min(1, (peak ? 0.35 : 0.05) + rng() * 0.8) * 100) / 100,
+  );
   const average = occupancyHistory.reduce((a, b) => a + b, 0) / occupancyHistory.length;
   const delayMinutes = legs.reduce((max, l) => Math.max(max, l.delayMinutes ?? 0), 0);
   const cancelled = legs.some((l) => l.cancelled);
@@ -488,6 +515,100 @@ function assembleJourney(steps: RawStep[], query: SearchQuery, index: number): J
   };
 }
 
+/* ------------------------------------------------ an address as an end */
+
+/** A steady walking pace: 80 metres a minute is 4.8 km/h. */
+const WALK_METRES_PER_MINUTE = 80;
+
+/**
+ * The trip between the two ends when they resolve to **one** stop.
+ *
+ * An address and a station are two places even when one stop answers for both. "Rijksstraatweg 9,
+ * Haarlem" resolves to Haarlem station because that is the stop nearest to it, so a search to
+ * Haarlem is not an empty search — it is the distance from the address to the station, walked or
+ * cycled. Refusing it ("origin and destination must be different stops") told the traveller their
+ * own address *was* the station; handing it to the stop-to-stop search produced a one-minute walk
+ * from Haarlem to Haarlem, because two identical stops are no distance apart.
+ *
+ * The address is carried on the leg as its own name, so the itinerary reads
+ * "Rijksstraatweg 9, Haarlem → Haarlem" rather than the stop twice, and the distance is the one
+ * the picker already measured — a straight line from the device fix to the stop, which is what
+ * "1.5 km away" in that panel means.
+ *
+ * A place at *each* end (two addresses that happen to share a nearest stop) is measured out and
+ * back through that stop: the only geometry two distances can support.
+ */
+function planAccessJourney(query: SearchQuery, windowOffset: number, preferences: Preferences): Journey[] {
+  const metresFrom = query.fromAccessMetres;
+  const metresTo = query.toAccessMetres;
+  if (metresFrom === undefined && metresTo === undefined) return [];
+  const metres = Math.max(1, Math.round((metresFrom ?? 0) + (metresTo ?? 0)));
+
+  /*
+   * The mode is the one the place end asked for: "by bicycle" at the departure end is the
+   * bicycle leg *out of the address*, which here is the whole journey. Walking is the default,
+   * and a mode the traveller switched off is never used — the results screen's own relaxations
+   * are what offer to switch it back on.
+   */
+  const askedBike =
+    (metresFrom === undefined || preferences.accessFrom === 'bike') &&
+    (metresTo === undefined || preferences.accessTo === 'bike');
+  const canWalk = preferences.allowedModes.includes('walk');
+  const canBike = preferences.allowedModes.includes('bike');
+  /* Cycling is never invented: an end that did not ask for a bicycle does not get one, the same
+     rule every other bicycle leg in this file follows. */
+  const mode: 'walk' | 'bike' | undefined = askedBike && canBike ? 'bike' : canWalk ? 'walk' : undefined;
+  if (!mode) return [];
+
+  const pace = mode === 'bike' ? WALK_METRES_PER_MINUTE * BIKE_SPEED_FACTOR : WALK_METRES_PER_MINUTE;
+  const minutes = Math.max(1, Math.round(metres / pace));
+  const wanted = query.time + windowOffset;
+  const departure = query.timeMode === 'depart' ? wanted : Math.max(0, wanted - minutes);
+  const arrival = departure + minutes;
+  /* Whichever end the address answered for keeps its own name; the other end is the stop. */
+  const fromLabel = query.fromAccessMetres !== undefined ? query.fromLabel : undefined;
+  const toLabel = query.toAccessMetres !== undefined ? query.toLabel : undefined;
+
+  const leg: Leg = {
+    id: `leg-access-${hashlessId(query.date, { kind: mode, mode, fromStopId: query.fromStopId, toStopId: query.toStopId, departMinute: departure, arriveMinute: arrival }, 3)}`,
+    mode,
+    fromStopId: query.fromStopId,
+    toStopId: query.toStopId,
+    fromLabel,
+    toLabel,
+    departure,
+    arrival,
+    distanceMetres: metres,
+    message: mode === 'bike' ? `Cycle about ${minutes} min` : undefined,
+    stepFree: true,
+  };
+
+  return [
+    {
+      id: `j-access-${hashlessId(query.date, { kind: mode, mode, fromStopId: query.fromStopId, toStopId: query.toStopId, departMinute: departure, arriveMinute: arrival }, 11)}`,
+      signature: `accessonly|${query.date}|${query.fromStopId}>${query.toStopId}@${departure}`,
+      legs: [leg],
+      departure,
+      arrival,
+      durationMinutes: minutes,
+      transfers: 0,
+      walkMinutes: mode === 'walk' ? minutes : 0,
+      modes: [mode],
+      operatorIds: [],
+      fare: { eur: 0, label: mode === 'bike' ? 'Cycling only' : 'Walking only' },
+      occupancy: 'quiet',
+      occupancyHistory: Array.from({ length: 12 }, () => 0.15),
+      stepFree: true,
+      bikeAllowed: true,
+      realtime: false,
+      delayMinutes: 0,
+      cancelled: false,
+      disruptionIds: [],
+      source: 'demo',
+    },
+  ];
+}
+
 /* ----------------------------------------------------------- plan search */
 
 export interface PlanOptions {
@@ -500,6 +621,15 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
   const preferences = query.preferences;
   const windowOffset = options.windowOffsetMinutes ?? 0;
   const maxJourneys = options.maxJourneys ?? 14;
+  /*
+   * One stop at both ends has nothing for the stop-to-stop search to plan: it would find the
+   * same place twice. When one of the ends is a **place** — an address the picker resolved to
+   * that stop — the trip does exist and is answered here. With two genuine stops sharing an id
+   * it is a search with no answer, which is not a journey.
+   */
+  if (query.fromStopId === query.toStopId) {
+    return planAccessJourney(query, windowOffset, preferences).slice(0, maxJourneys);
+  }
   const allowBikeAccess = preferences.allowedModes.includes('bike');
   /**
    * Cycling is decided per end: the departure end asks for a bicycle leg or it does not,

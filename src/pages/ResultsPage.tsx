@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -9,8 +9,9 @@ import { filterJourneys, sortJourneys, suggestRelaxations } from '../data/journe
 import { ACCESS_MODES, DEFAULT_PREFERENCES, MODE_OPTIONS, PT_MODES, modeLabel } from '../data/preferences';
 import { disruptionsForStop } from '../data/disruptions';
 import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented, Spinner } from '../components/ui/primitives';
+import { NoMatches } from '../components/ui/NoMatches';
 import { Icon, ModeIcon } from '../components/ui/Icons';
-import { addDaysIso, nowMinutes, roundToStep, todayIso } from '../lib/format';
+import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } from '../lib/format';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import type { AccessMode } from '../data/preferences';
@@ -54,7 +55,15 @@ export function ResultsPage() {
     recentSearches,
     keepSearch,
     removeRecentSearch,
+    power,
   } = useApp();
+  /*
+   * Read inside the effect through a ref: the wait belongs to the search, and a battery that
+   * crosses a threshold (or a charger going in) must not replay the spinner over a list that is
+   * already there. See the planning note below for why the wait exists at all.
+   */
+  const savingRef = useRef(power.mode !== 'off');
+  savingRef.current = power.mode !== 'off';
   const format = useFormat();
   const t = useT();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -74,15 +83,32 @@ export function ResultsPage() {
    * it is keyed to the search itself, not to a filter or a sort, which are readings of the list
    * that is already on screen.
    */
-  const [planning, setPlanning] = useState(true);
+  const [planning, setPlanning] = useState(power.mode === 'off');
+  /* The ends are named as the traveller named them, for the same reason `searchEntryId` is: an
+     address and the station it resolved to are one stop id and two different searches. */
   const searchKey = search
-    ? `${search.query.fromStopId}|${search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
+    ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
     : '';
   useEffect(() => {
+    /*
+     * Battery saving skips the held place entirely. The spinner exists to make a 260ms window
+     * legible, and both the window and the spinning cost something the last few percent of a
+     * battery should not pay: there is no work being waited on (the engine is local), so the
+     * answer is simply there on the first paint.
+     */
+    if (savingRef.current) {
+      setPlanning(false);
+      return undefined;
+    }
     setPlanning(true);
     const timer = window.setTimeout(() => setPlanning(false), 260);
     return () => window.clearTimeout(timer);
   }, [searchKey]);
+  /* The reading lands after the first render; this ends a wait that started before it was known,
+     and never starts one (so plugging in does not replay the spinner over a list that is there). */
+  useEffect(() => {
+    if (power.mode !== 'off') setPlanning(false);
+  }, [power.mode]);
 
   const visible = useMemo(() => {
     if (!search) return [];
@@ -116,26 +142,22 @@ export function ResultsPage() {
   );
   const totalJourneys = journeys.length;
   /*
-   * The date and time fields are the app's own controls, not the browser's. A native date
-   * or time input renders in the operating system's locale and format whatever the "Clock
-   * format" and "Date format" settings say, so the dialog used to show 10/13/2026 and
-   * 11:15 AM on a page whose own settings promise "Today, 13 Oct" and a 24-hour clock.
+   * The date and time are the **device's own** pickers, by request.
+   *
+   * They were two of the app's own `<select>`s: a list of fourteen days and a list of 288 five-minute steps. That could be read in the app's format, but it asked the traveller to scroll a
+   * list to answer "when", which is the one question a phone already answers with a calendar and
+   * a clock. The native `<input type="date">` and `<input type="time">` open the operating
+   * system's own pickers, and they need no JavaScript to do it.
+   *
+   * The cost is real and is stated rather than hidden: a native control draws in the device's
+   * locale and format, so it will not follow the app's **Clock format** or **Date format**
+   * settings — an American device shows 10/13/2026 and 2:05 PM. That is why the line under the
+   * two fields reads the same answer back **in the app's own format** ("Today, 18 Oct · 2:05 pm"
+   * with those settings on), so the two can never disagree without the app's version being on
+   * the screen beside it. The stored values are unchanged — an ISO date and minutes since
+   * midnight — so nothing downstream of this dialog knows which control produced them.
    */
-  const dateOptions = useMemo(() => {
-    const start = todayIso();
-    const next = Array.from({ length: 14 }, (_, index) => addDaysIso(start, index));
-    return next.includes(query.date) ? next : [query.date, ...next];
-  }, [query.date]);
-  /*
-   * One list of times for the whole day, in five-minute steps, because the dialog now asks the
-   * time in one control rather than in an hour select and a minute select — two controls for one
-   * answer, which is what the round reported ("merge them into one thing instead of 2 separates").
-   * A stored time that is not on the step is kept in the list so it can still be read and left.
-   */
-  const timeOptions = useMemo(() => {
-    const steps = Array.from({ length: 288 }, (_, index) => index * 5);
-    return steps.includes(query.time) ? steps : [...steps, query.time].sort((a, b) => a - b);
-  }, [query.time]);
+  const whenReadback = `${format.date(query.date, 'long')} · ${format.time(query.time)}`;
   const whenIsNow = query.date === todayIso() && query.time === nowRef && query.timeMode === 'depart';
   const whenLabel = whenIsNow
     ? t('Now')
@@ -147,13 +169,16 @@ export function ResultsPage() {
    */
   const offModes = MODE_OPTIONS.filter((mode) => !preferences.allowedModes.includes(mode));
   const relaxations = visible.length === 0 ? suggestRelaxations(query, filter) : [];
+  const offModeNames = offModes.map(modeLabel).join(' and ').toLowerCase();
   const emptyReason = offModes.length
     ? preferences.allowedModes.includes('walk')
-      ? `Your settings leave out ${offModes.map(modeLabel).join(' and ').toLowerCase()}, so journeys that need it are hidden.`
-      : `Walking is switched off and ${offModes.map(modeLabel).join(' and ').toLowerCase()} ${
-          offModes.length === 1 ? 'is' : 'are'
-        } left out, so the planner cannot build an access leg.`
-    : 'No mode is switched off, so the walking limit, the transfer limit or a result filter removed every option.';
+      ? t('Your settings leave out {modes}, so journeys that need it are hidden.', { modes: offModeNames })
+      : t(offModes.length === 1
+          ? 'Walking is switched off and {modes} is left out, so the planner cannot build an access leg.'
+          : 'Walking is switched off and {modes} are left out, so the planner cannot build an access leg.', { modes: offModeNames })
+    : t(
+        'No mode is switched off, so the walking limit, the transfer limit or a result filter removed every option.',
+      );
 
   const hasFilters =
     filter.modes.length > 0 ||
@@ -185,10 +210,11 @@ export function ResultsPage() {
       <PageHeader title={t('Journey results')} showTitle />
 
       {/* The card, and the two ends in it, are the search. Tapping either row opens the
-          full-screen picker over this page. */}
-      <SearchForm />
+          full-screen picker over this page. `inheritSearch`: this is the one card that is the
+          search on screen — the home screen's card is the next question and starts empty. */}
+      <SearchForm inheritSearch />
 
-      <div className="results-bar">
+      <div className="results-bar" data-filter-row>
         <button type="button" className="results-chip" onClick={() => setAccessSide('from')}>
           <span className="results-chip__key">{t('Start:')}</span>
           <Icon name={accessOf('from') === 'bike' ? 'bike' : 'walk'} size={18} />
@@ -204,19 +230,6 @@ export function ResultsPage() {
             {t(query.timeMode === 'depart' ? 'Leave:' : 'Arrive:')}
           </span>
           <span className="results-chip__value">{whenLabel}</span>
-        </button>
-        <button
-          type="button"
-          className="results-chip"
-          aria-expanded={optionsOpen}
-          aria-controls="results-options"
-          onClick={() => setOptionsOpen((value) => !value)}
-        >
-          {/* The same glyph the Options control wears on the stops and alerts screens: one
-              action, one glyph, whether it is a chip or a pill. */}
-          <Icon name="sliders" size={15} />
-          {t('Options')}
-          {optionCount ? <span className="results-chip__count">{optionCount}</span> : null}
         </button>
         {/*
           Saving the search, at the top of the page with the search it saves, rather than in a
@@ -237,6 +250,55 @@ export function ResultsPage() {
             {t(kept ? 'Saved as a search' : 'Save this search')}
           </span>
         </button>
+
+        {/*
+          The sort, in the row (MATCHING_PLAN rule 1) — not in a card of its own above the list.
+          A sort is how the list is read, so it sits with the other controls that shape this
+          screen; the four chips before it are the *search's* controls and stay where they are.
+        */}
+        <label className="field results-bar__sort" htmlFor="results-sort">
+          <span className="field__label">{t('Sort by')}</span>
+          <select
+            id="results-sort"
+            className="select"
+            value={sortMode}
+            onChange={(event) => setSortMode(event.target.value as SortMode)}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.label)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {/*
+          Options last: it is the disclosure for everything not on the row, so it closes the row
+          on every screen that has one (the stops list and the alerts list wear it in the same
+          place). The count is how many settings differ from a fresh planner.
+        */}
+        <button
+          type="button"
+          className="results-chip"
+          aria-expanded={optionsOpen}
+          aria-controls="results-options"
+          onClick={() => setOptionsOpen((value) => !value)}
+        >
+          <Icon name="sliders" size={15} />
+          {t('Options')}
+          {optionCount ? <span className="results-chip__count">{optionCount}</span> : null}
+        </button>
+
+        {/*
+          Only when it is not all of them. "7 of 7 shown" is a count of the result set by
+          itself — it says nothing until the two numbers differ, and when they do the reader
+          wants to know which are hidden, not how many.
+        */}
+        {visible.length !== totalJourneys ? (
+          <span className="t-sm t-muted">
+            {t('{shown} of {total} shown', { shown: visible.length, total: totalJourneys })}
+          </span>
+        ) : null}
       </div>
 
       {optionsOpen ? (
@@ -316,105 +378,42 @@ export function ResultsPage() {
         </Card>
       ) : (
       <>
-      <Card className="stack">
-        <div className="between wrap">
-          {/*
-            Sorting is a list of six, not a row of two or three: as a segmented control it
-            could not sit on one line on a phone, and squeezing it into rows turned the
-            control into a 150px blob (and, before that, pushed the last two options off
-            screen). It is a labelled select, the way the stops list sorts its own list.
-          */}
-          <label className="field" htmlFor="results-sort">
-            <span className="field__label">{t('Sort')}</span>
-            <select
-              id="results-sort"
-              className="select"
-              value={sortMode}
-              onChange={(event) => setSortMode(event.target.value as SortMode)}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.label)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {/*
-            Only when it is not all of them. "7 of 7 shown" is a count of the result set by
-            itself — it says nothing until the two numbers differ, and when they do the reader
-            wants to know which are hidden, not how many.
-          */}
-          {visible.length !== totalJourneys ? (
-            <span className="t-sm t-muted">
-              {t('{shown} of {total} shown', { shown: visible.length, total: totalJourneys })}
-            </span>
-          ) : null}
-        </div>
-      </Card>
-
       {visible.length === 0 ? (
-        <Card className="stack">
-          <div className="row-3">
-            <span className="leg-row__marker">
-              <Icon name="alert" size={18} />
-            </span>
-            <div className="stack-1">
-              <span className="t-strong">{t('No journeys match your settings')}</span>
-              <span className="t-sm t-muted">
-                {totalJourneys > 0
-                  ? t('{total} journeys were planned for this search, but these settings removed all of them.', {
-                      total: totalJourneys,
-                    })
-                  : t('No journey matches this search with these settings.')}
-              </span>
-              <span className="t-sm t-faint">{emptyReason}</span>
-            </div>
-          </div>
-
-          {relaxations.length ? (
-            <div className="stack-2">
-              <span className="field__label">
-                {t('Switch one of these back on and the list fills up again')}
-              </span>
-              <div className="row-wrap">
-                {relaxations.map((suggestion) => (
-                  <Chip
-                    key={suggestion.id}
-                    icon="plus"
-                    onClick={() => applyRelaxation(suggestion.label, suggestion.patch)}
-                  >
-                    {suggestion.label}
-                    <span className="t-faint"> · {suggestion.journeys}</span>
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="t-sm t-faint">
-              {t('Nothing helps for this search — try another time or another pair of stops.')}
-            </p>
-          )}
-
-          <div className="row-wrap">
-            {hasFilters ? (
-              <Button variant="primary" icon="refresh" onClick={resetFilter}>
-                {t('Reset result filters')}
-              </Button>
-            ) : null}
-            <Link to="/preferences" className="btn">
-              <Icon name="sliders" size={16} />
-              {t('Adjust travel preferences')}
-            </Link>
-            <Button
-              icon="clock"
-              onClick={() => {
-                startSearch({ ...query, time: Math.min(1439, query.time + 60), preferences });
-              }}
-            >
-              {t('Try one hour later')}
+        <NoMatches
+          title={t('No journeys match your settings')}
+          description={
+            totalJourneys > 0
+              ? t('{total} journeys were planned for this search, but these settings removed all of them.', {
+                  total: totalJourneys,
+                })
+              : t('No journey matches this search with these settings.')
+          }
+          reason={`${emptyReason}${relaxations.length ? '' : ` ${t('Nothing helps for this search — try another time or another pair of stops.')}`}`}
+          fixes={relaxations.map((suggestion) => ({
+            id: suggestion.id,
+            label: suggestion.label,
+            count: suggestion.journeys,
+            onSelect: () => applyRelaxation(suggestion.label, suggestion.patch),
+          }))}
+        >
+          {hasFilters ? (
+            <Button variant="primary" icon="refresh" onClick={resetFilter}>
+              {t('Reset result filters')}
             </Button>
-          </div>
-        </Card>
+          ) : null}
+          <Link to="/preferences" className="btn">
+            <Icon name="sliders" size={16} />
+            {t('Adjust travel preferences')}
+          </Link>
+          <Button
+            icon="clock"
+            onClick={() => {
+              startSearch({ ...query, time: Math.min(1439, query.time + 60), preferences });
+            }}
+          >
+            {t('Try one hour later')}
+          </Button>
+        </NoMatches>
       ) : (
         <>
           {/*
@@ -516,44 +515,51 @@ export function ResultsPage() {
         onClose={() => setWhenOpen(false)}
       >
         {/*
-         * One question, one control. This was three stacked selects — a Date, an Hour and a
-         * Minutes — which asked one thing three times and, on a phone, filled the sheet with
-         * three dropdowns the traveller had to read as a set ("merge them into one thing instead
-         * of 2 separates"). The day and the time are now two fields inside **one** bordered group
-         * that is named once, and the time is the whole day in five-minute steps rather than an
-         * hour and a minute to add up.
+         * One question, in **one** bordered group: the day and the time, side by side, opening the
+         * device's own calendar and clock (see `whenReadback` above for what that costs and what
+         * is done about it).
+         *
+         * The two are separate inputs rather than one label wrapping both: an implicit label over
+         * two controls names them both "When", and these two answers are not the same answer.
+         * Each carries its own `aria-label`, so a screen reader says "Date" and "Time".
          */}
-        <label className="field field--wide" htmlFor="results-date">
+        <div className="field field--wide">
           <span className="field__label">{t('When')}</span>
-          <span className="when-field__group">
-            <select
+          <div className="when-field__group">
+            <input
               id="results-date"
-              className="select"
+              className="input"
+              type="date"
               aria-label={t('Date')}
               value={query.date}
-              onChange={(event) => updateSearchQuery({ date: event.target.value })}
-            >
-              {dateOptions.map((iso) => (
-                <option key={iso} value={iso}>
-                  {format.date(iso, 'long')}
-                </option>
-              ))}
-            </select>
-            <select
+              /* A journey cannot be planned for yesterday; the engine would only ever answer with
+                 the departures that already left. */
+              min={todayIso()}
+              onChange={(event) => updateSearchQuery({ date: event.target.value || todayIso() })}
+            />
+            <input
               id="results-time"
-              className="select"
+              className="input"
+              type="time"
               aria-label={t('Time')}
-              value={query.time}
-              onChange={(event) => updateSearchQuery({ time: Number(event.target.value) })}
-            >
-              {timeOptions.map((minute) => (
-                <option key={minute} value={minute}>
-                  {format.time(minute)}
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
+              value={timeInputValue(query.time)}
+              /* Away from the field's own 1-minute default: every other time in this app is on a
+                 5-minute step, and the picker's arrows follow the same step. */
+              step={300}
+              onChange={(event) => {
+                const next = parseTimeInput(event.target.value);
+                /* Cleared (some browsers allow it): the last real time stands rather than the
+                   search silently moving to midnight. */
+                if (next !== null) updateSearchQuery({ time: next });
+              }}
+            />
+          </div>
+          {/* The same answer, in the app's own date and clock format — the settings the native
+              control above cannot honour. */}
+          <p className="field__hint" aria-live="polite">
+            {whenReadback}
+          </p>
+        </div>
         <div className="row-wrap">
           {/*
             The app's own switcher, not a small one of its own: it measured and drew differently

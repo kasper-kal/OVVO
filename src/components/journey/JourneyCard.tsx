@@ -1,10 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppState';
 import { JOURNEY_LABELS } from '../../data/journeyEngine';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
 import { useFormat } from '../../lib/useFormat';
-import { Card, Meter, Pill } from '../ui/primitives';
+import { Meter, Pill } from '../ui/primitives';
+import { ResultCard, ResultCardLink } from '../ui/ResultCard';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { useT } from '../../lib/useT';
 import type { Journey } from '../../data/types';
@@ -22,7 +23,6 @@ const OCCUPANCY_METER_TONE: Record<Journey['occupancy'], 'sage' | 'butter' | 'co
 };
 
 export function JourneyCard({ journey, highlight = false }: { journey: Journey; highlight?: boolean }) {
-  const navigate = useNavigate();
   const format = useFormat();
   const t = useT();
   const { search, isJourneySaved, saveJourney } = useApp();
@@ -33,22 +33,23 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
 
   return (
     /*
-     * The card is a way in, the way a stop card and an alert card are: it lifts under the pointer
-     * and pressing anywhere on it opens the journey's own page, so the biggest target on the
-     * screen is the thing the screen is about. The three controls in it — Journey details, Show
-     * on map and Favourite — stop their clicks reaching the card, so nothing navigates twice, and
-     * the first of them is a real link, which is what a keyboard and a screen reader use.
+     * The card is a way in, the way a stop card and an alert card are — because all three are the
+     * same component now (`components/ui/ResultCard.tsx`, MATCHING_PLAN rule 4). It lifts under
+     * the pointer and pressing anywhere on it opens the journey's own page; the three controls in
+     * it — Journey details, Show on map and Favourite — are controls, so a press on them is
+     * theirs and not the card's, and the first of them is a real link, which is what a keyboard
+     * and a screen reader use.
      *
      * The legs are not on this card any more. A result answers "which of these shall I take";
      * the leg-by-leg itinerary, with its times, platforms and the walk between them, is what the
      * journey's own page is for — and it was the one block here behind a disclosure, so it was the
      * one block that had to be opened before it could be read.
      */
-    <Card
+    <ResultCard
       as="article"
+      to={to}
       className="stack"
       style={{ borderColor: highlight ? 'var(--accent-primary)' : undefined }}
-      onClick={() => navigate(to)}
     >
       <div className="between wrap">
         <div className="journey-card__times">
@@ -140,10 +141,10 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
       </div>
 
       <div className="row-wrap journey-card__actions">
-        <Link to={to} className="btn btn--primary" onClick={(event) => event.stopPropagation()}>
+        <ResultCardLink to={to} className="btn btn--primary">
           <Icon name="route" size={16} />
           {t('Journey details')}
-        </Link>
+        </ResultCardLink>
         {/*
           The map is a screen of its own now (`pages/MapPage.tsx`) rather than the home-screen
           widget: this used to open the home screen with `?widget=map` and leave the traveller
@@ -174,6 +175,6 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           {saved ? t('Favourited') : t('Favourite this journey')}
         </button>
       </div>
-    </Card>
+    </ResultCard>
   );
 }

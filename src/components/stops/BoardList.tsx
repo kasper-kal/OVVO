@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
@@ -21,37 +21,70 @@ import { ROWS_PER_LOAD } from '../../lib/loadBatch';
  */
 export function BoardList({
   departures,
-  limit = 6,
+  limit = ROWS_PER_LOAD,
   emptyHint,
 }: {
   departures: Departure[];
+  /** Only a widget passes this: a card is not a list screen and shows the rows it has room for. */
   limit?: number;
   emptyHint?: string;
 }) {
   /*
    * The rows hold back more of the board, five at a time — a board row is one row, so the rule
    * (see `lib/loadBatch.ts`) is five departures per press, not "the rest of the board at once".
-   * `limit` is still how many rows this screen wants to open with: the board page asks for six,
-   * the stop page five, a widget four.
+   *
+   * This is the same rule the two long lists use (`useLoadOnScroll`), applied to rows instead of
+   * cards: the batch is `ROWS_PER_LOAD`, the sentinel loads the next batch once the page has been
+   * scrolled, and the button underneath is still a real button that promises the number it adds.
+   * A board used to open on a literal `6` and grow only by pressing (MATCHING_PLAN rule 3).
    */
   const [grown, setGrown] = useState(limit);
   const format = useFormat();
   const t = useT();
   const navigate = useNavigate();
 
+  const shown = departures.slice(0, grown);
+  const hidden = departures.length - shown.length;
+  const next = Math.min(ROWS_PER_LOAD, hidden);
+  const expanded = grown > limit;
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  /* The sentinel is armed by a scroll, the way the two long lists are: without it a tall window
+     can hold a batch and the sentinel at once and pull the whole board in unbidden. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mark = () => setHasScrolled(true);
+    window.addEventListener('scroll', mark, { once: true, passive: true });
+    return () => window.removeEventListener('scroll', mark);
+  }, []);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || hidden <= 0 || !hasScrolled || typeof IntersectionObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setGrown((current) => current + ROWS_PER_LOAD);
+        }
+      },
+      { rootMargin: '400px 0px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hidden, hasScrolled, shown.length]);
+
   if (departures.length === 0) {
     return (
       <EmptyState
         icon="board"
-        title="No departures right now"
-        description={emptyHint ?? 'This stop has no departures in the current window.'}
+        title={t('No departures right now')}
+        description={emptyHint ?? t('This stop has no departures in the current window.')}
       />
     );
   }
-
-  const shown = departures.slice(0, grown);
-  const hidden = departures.length - shown.length;
-  const next = Math.min(ROWS_PER_LOAD, hidden);
 
   /*
    * A row's plan action names that departure's destination and nothing else.
@@ -105,8 +138,11 @@ export function BoardList({
                 </span>
               </span>
 
-              <span className="board-list__platform" title={`Platform ${departure.platform}`}>
-                <span className="board-list__platform-label">Platform</span>
+              <span
+                className="board-list__platform"
+                title={t('Platform {platform}', { platform: departure.platform })}
+              >
+                <span className="board-list__platform-label">{t('Platform')}</span>
                 {departure.platform}
               </span>
 
@@ -115,14 +151,14 @@ export function BoardList({
                   <Link
                     className="board-list__alert"
                     to={`/disruptions/${departure.disruptionId}`}
-                    aria-label={`Alert for service ${departure.lineNumber}`}
+                    aria-label={t('Alert for service {line}', { line: departure.lineNumber })}
                   >
                     <Icon name="alert" size={15} />
                   </Link>
                 ) : null}
                 <IconButton
                   icon="route"
-                  label={`Plan a journey to ${departure.destinationLabel}`}
+                  label={t('Plan a journey to {stop}', { stop: departure.destinationLabel })}
                   variant="ghost"
                   onClick={() => planTo(departure)}
                 />
@@ -132,7 +168,9 @@ export function BoardList({
         })}
       </ul>
 
-      {hidden > 0 || grown > limit ? (
+      {hidden > 0 ? <div ref={sentinelRef} aria-hidden="true" /> : null}
+
+      {hidden > 0 || expanded ? (
         <div className="row-wrap">
           <button
             type="button"
@@ -142,10 +180,15 @@ export function BoardList({
             onClick={() => setGrown((current) => (hidden > 0 ? current + ROWS_PER_LOAD : limit))}
           >
             <Icon name={hidden > 0 ? 'chevronDown' : 'chevronUp'} size={15} />
-            {hidden > 0 ? `Show ${next} more` : 'Show only the next departures'}
+            {hidden > 0
+              ? t('Show {count} more', { count: next })
+              : t('Show only the next departures')}
           </button>
           <span className="t-sm t-faint">
-            {shown.length} of {plural(departures.length, 'departure')} in this window
+            {t('{shown} of {total} departures in this window', {
+              shown: shown.length,
+              total: plural(departures.length, 'departure'),
+            })}
           </span>
         </div>
       ) : null}
@@ -154,5 +197,5 @@ export function BoardList({
 }
 
 export function boardStopLabel(stopId: string): string {
-  return getStop(stopId)?.name ?? 'Unknown stop';
+  return getStop(stopId)?.name ?? stopId;
 }

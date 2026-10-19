@@ -23,7 +23,23 @@ type Side = 'from' | 'to';
  * Both rows are buttons, not fields: typing happens on the full-screen picker, which is
  * the screen built for it. This keeps the card readable, tappable and 106px tall.
  */
-export function SearchForm({ onSearch }: { onSearch?: () => void }) {
+export function SearchForm({
+  onSearch,
+  inheritSearch = false,
+}: {
+  onSearch?: () => void;
+  /**
+   * Whether this card **is** the search on screen, or the next question.
+   *
+   * On the results screen the card is the question the list answers, so it shows the two ends that
+   * were asked — that is `inheritSearch`. The home screen is the *next* question: it opened holding
+   * the last search's ends (and its date and time), so a journey planned once was still sitting in
+   * the planner afterwards, and a pair a refused pick had left there came back with the traveller.
+   * The home card starts empty instead: no ends, no address, and "now" — nothing the traveller
+   * searched for before is on the screen they start from.
+   */
+  inheritSearch?: boolean;
+}) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { search, startSearch, preferences, pushToast, settings } = useApp();
@@ -39,7 +55,8 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
   const handOver = pickParam === 'from' || pickParam === 'to';
 
   const defaults = useMemo(() => {
-    const base = search?.query;
+    /* Only this search's own card borrows its ends (see `inheritSearch`). */
+    const base = inheritSearch ? search?.query : undefined;
     const fallbackOrigin = settings.defaultOriginStopId ? getStop(settings.defaultOriginStopId) : undefined;
     const fromParam = getStop(params.get('from') ?? undefined);
     const toParam = getStop(params.get('to') ?? undefined);
@@ -47,22 +64,23 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
       from: fromParam ?? (handOver ? null : getStop(base?.fromStopId) ?? fallbackOrigin ?? null),
       to: toParam ?? (handOver ? null : getStop(base?.toStopId) ?? null),
     };
-  }, [params, search, settings.defaultOriginStopId, handOver]);
+  }, [params, search, settings.defaultOriginStopId, handOver, inheritSearch]);
 
   /**
-   * A new pair keeps the when of the search already on screen (changing only the
-   * destination should not silently move the departure time), unless that search is in
-   * the past, which the planner cannot serve.
+   * A new pair keeps the when of the search on screen (changing only the destination should not
+   * silently move the departure time), unless that search is in the past, which the planner cannot
+   * serve — and on a card that is not the search's own, "the search on screen" is none of them: a
+   * fresh question is asked with now.
    */
   const when = useMemo(() => {
-    const base = search?.query;
+    const base = inheritSearch ? search?.query : undefined;
     const usable = base && base.date >= todayIso() ? base : null;
     return {
       date: usable?.date ?? todayIso(),
       time: usable?.time ?? roundToStep(nowMinutes(), 5),
       timeMode: usable?.timeMode ?? settings.defaultTimeMode,
     };
-  }, [search, settings.defaultTimeMode]);
+  }, [search, settings.defaultTimeMode, inheritSearch]);
 
   const [from, setFrom] = useState<Stop | null>(defaults.from);
   const [to, setTo] = useState<Stop | null>(defaults.to);
@@ -85,8 +103,18 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
    * address. Both are shown where the pair is shown, and both travel with the search.
    */
   const [labels, setLabels] = useState<{ from?: string; to?: string }>({
-    from: search?.query.fromLabel,
-    to: search?.query.toLabel,
+    from: inheritSearch ? search?.query.fromLabel : undefined,
+    to: inheritSearch ? search?.query.toLabel : undefined,
+  });
+  /*
+   * …and how far that address is from the stop it resolved to, per end. It is what says an end
+   * is a *place* rather than a stop, which is the difference between an address and the station
+   * it happens to sit nearest: a journey has two places, not two stop ids (see
+   * `planAccessJourney`). Kept beside the label, and cleared with it.
+   */
+  const [access, setAccess] = useState<{ from?: number; to?: number }>({
+    from: inheritSearch ? search?.query.fromAccessMetres : undefined,
+    to: inheritSearch ? search?.query.toAccessMetres : undefined,
   });
   const [errors, setErrors] = useState<{ from?: string; to?: string }>({});
   const [sheet, setSheet] = useState<{ kind: 'pick' | 'map'; side: Side } | null>(null);
@@ -106,10 +134,12 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
     if (paramFrom === null) {
       setFrom(null);
       setLabels((current) => ({ ...current, from: undefined }));
+      setAccess((current) => ({ ...current, from: undefined }));
     }
     if (paramTo === null) {
       setTo(null);
       setLabels((current) => ({ ...current, to: undefined }));
+      setAccess((current) => ({ ...current, to: undefined }));
     }
     setErrors({});
   }, [paramFrom, paramTo, handOver]);
@@ -129,12 +159,19 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
     if (pickParam === 'from' || pickParam === 'to') setSheet({ kind: 'pick', side: pickParam });
   }, [pickParam]);
 
-  const run = (origin: Stop, destination: Stop, named: { from?: string; to?: string } = labels) => {
+  const run = (
+    origin: Stop,
+    destination: Stop,
+    named: { from?: string; to?: string } = labels,
+    distances: { from?: number; to?: number } = access,
+  ) => {
     const query: SearchQuery = {
       fromStopId: origin.id,
       toStopId: destination.id,
       fromLabel: named.from,
       toLabel: named.to,
+      fromAccessMetres: distances.from,
+      toAccessMetres: distances.to,
       date: when.date,
       time: when.time,
       timeMode: when.timeMode,
@@ -172,12 +209,23 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
    * plans, and the picker only stays open while one end is still missing, which is when there is
    * genuinely nothing to plan yet.
    */
-  const pick = (side: Side, stop: Stop, label?: string) => {
+  const pick = (side: Side, stop: Stop, label?: string, accessMetres?: number) => {
     const nextFrom = side === 'from' ? stop : from;
     const nextTo = side === 'to' ? stop : to;
     const nextLabels = { ...labels, [side]: label };
+    const nextAccess = { ...access, [side]: accessMetres };
     setLabels(nextLabels);
-    if (nextFrom && nextTo && nextFrom.id === nextTo.id) {
+    setAccess(nextAccess);
+    /*
+     * Two ends on one stop is refused **only when both ends are stops**. An address that
+     * resolves to the destination's own station is a route, not a duplicate: "Rijksstraatweg 9,
+     * Haarlem" → "Haarlem" is the walk (or cycle) from that address to that station, and the
+     * engine plans it from the distance the picker measured. Refusing it told the traveller
+     * their address *was* the station.
+     */
+    const sameStop = nextFrom && nextTo && nextFrom.id === nextTo.id;
+    const bothEndsAreStops = !nextLabels.from && !nextLabels.to;
+    if (sameStop && bothEndsAreStops) {
       setErrors({ to: t('Origin and destination must be different stops') });
       pushToast('Origin and destination must be different stops', 'warning');
       if (side === 'from') setFrom(stop);
@@ -187,13 +235,14 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
     if (side === 'from') setFrom(stop);
     else setTo(stop);
     setErrors({});
-    if (nextFrom && nextTo) run(nextFrom, nextTo, nextLabels);
+    if (nextFrom && nextTo) run(nextFrom, nextTo, nextLabels, nextAccess);
   };
 
   const clear = (side: Side) => {
     if (side === 'from') setFrom(null);
     else setTo(null);
     setLabels((current) => ({ ...current, [side]: undefined }));
+    setAccess((current) => ({ ...current, [side]: undefined }));
     setErrors({});
   };
 
@@ -201,6 +250,7 @@ export function SearchForm({ onSearch }: { onSearch?: () => void }) {
     setFrom(to);
     setTo(from);
     setLabels((current) => ({ from: current.to, to: current.from }));
+    setAccess((current) => ({ from: current.to, to: current.from }));
     setErrors({});
   };
 

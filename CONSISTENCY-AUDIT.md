@@ -316,3 +316,28 @@ dozen system libraries and there is no root here, so `.logs/playwright-libs.sh` 
 `.deb` packages into `$HOME/syslibs` (plus a fontconfig file, without which the browser dies on the
 first repaint) and exports `LD_LIBRARY_PATH`/`FONTCONFIG_FILE`. `source` it before any browser
 check; the audits and probes were run through it.
+
+## The gate on 2026-10-18 — red, on two grouping artefacts
+
+Measured on the current tree at both widths (`CONSISTENCY_WIDTH=390|320 node
+scripts/consistency-audit.mjs --gate`): **307 controls, 178 glyphs, 14 screens, exit 1** at each.
+The round-16 numbers in this file (308 / 184, exit 0) were measured on the code of that round; the
+two findings below are what the app reports now.
+
+* **`remove stored data` — 7 instances, 4 signatures, unexplained.** The group still holds two
+  functions that share the verb: six heart controls that *remove a favourite* and the Settings
+  button that *erases every stored byte*. This is the same verb-grouping defect round 16 fixed for
+  `dismiss`, `save something` and `options`, left unfixed for `remove` — the rule reads
+  `[/^(remove|delete)\b/, 'remove stored data']`, so the hearts land in it.
+* **`go back` (at rest) — no icon / arrowLeft.** The alert page's back control is labelled
+  *All alerts*, and the alerts widget's new *All alerts* link (the *Alerts on your journeys* card,
+  R105) carries the same words in a card body with no glyph. Two different functions — a way back
+  and a way to the whole list — are grouped by their shared label.
+
+Re-running either width here needs `bash .logs/playwright-libs.sh` first: the unpacked browser
+libraries were deleted with the rest of the transcript pile on 2026-10-18, and no source file has
+changed since these numbers were taken.
+
+Neither is app drift. Both are the audit's own documented limit (grouping by label) showing through,
+and both are fixable in `ACTION_RULES` without relaxing a rule: split *remove a favourite* from the
+destructive button, and let the container decide *go back* rather than the words alone.

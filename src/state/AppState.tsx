@@ -18,7 +18,10 @@ import {
   readFreshApproximateLocation,
   type ApproximateLocation,
 } from '../lib/approximateLocation';
-import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS } from '../widgets/defaults';
+import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
+import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
+import { applyBackground } from '../lib/background';
+import { applySelection } from '../lib/selection';
 import { translate } from '../lib/i18n';
 import {
   DEFAULT_SETTINGS,
@@ -29,7 +32,6 @@ import {
   type SavedJourney,
   type Settings,
   type UserLocation,
-  type WidgetSize,
 } from './types';
 
 export interface Toast {
@@ -58,6 +60,17 @@ interface AppContextValue {
    * answer, so a screen that reports it cannot disagree with the one on the glass.
    */
   appearance: 'light' | 'dark';
+
+  /**
+   * Battery saving as the device reports it (see `lib/power.ts`): `save` at 20%, `super` at 10%,
+   * `off` above that or while charging.
+   *
+   * In the store rather than in a hook of its own because three things read it — the document's
+   * `data-power` (which the stylesheet obeys), the home grid (which thins itself out in super),
+   * and Settings (which names the mode) — and they must agree about which mode the traveller is
+   * in. It is not a preference: nothing here is stored.
+   */
+  power: PowerState;
 
   preferences: Preferences;
   updatePreferences: (patch: Partial<Preferences>) => void;
@@ -153,8 +166,6 @@ interface AppContextValue {
    * Only resized widgets have an entry, so the registry stays the one place a default is
    * declared. Cleared when the widget is removed: a card that comes back is a new card.
    */
-  widgetSizes: Record<string, WidgetSize>;
-  setWidgetSize: (id: string, size: WidgetSize) => void;
   /**
    * The station each widget is tied to, keyed by widget id — and the way it is set.
    *
@@ -168,6 +179,18 @@ interface AppContextValue {
   /** Put one widget at a slot, shifting the rest — the drag on the home screen. */
   moveHomeWidget: (id: string, toIndex: number) => void;
   resetHomeWidgets: () => void;
+  /**
+   * Whether the home screen is being customised, and the layout menu the header opens.
+   *
+   * Both used to live inside `HomePage`, which was fine while every control for them was on the
+   * page. The Done and + controls are in the **shell's header** now — the two places an iOS home
+   * screen puts its Edit and Done — so the mode has to be readable from both screens, and one
+   * value in the store is what keeps "am I editing" from being answered twice.
+   */
+  homeEditing: boolean;
+  setHomeEditing: (editing: boolean) => void;
+  homeMenuOpen: boolean;
+  setHomeMenuOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -205,21 +228,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const remembered = readStored<string | null>(STORAGE_KEYS.boardStop, null);
     return remembered ? [remembered] : [];
   });
+  /*
+   * The battery, watched from the first render.
+   *
+   * `powerModeFor` is the whole rule and it runs in `watchBattery`; this holds the answer. The
+   * first reading arrives a microtask after mount, so a phone that opens the app at 8% draws one
+   * frame of the full interface and then settles into super saving — worth it, because asking
+   * before the first paint would mean holding the app back on an API that may never answer.
+   */
+  const [power, setPower] = useState<PowerState>(NO_BATTERY);
+  useEffect(() => watchBattery(setPower), []);
   const [savedJourneys, setSavedJourneys] = useState<SavedJourney[]>(() =>
     readStored<SavedJourney[]>(STORAGE_KEYS.savedJourneys, []),
   );
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() =>
     readStored<RecentSearch[]>(STORAGE_KEYS.recentSearches, []),
   );
+  /*
+   * A stored layout is brought forward on load: cards that were merged are folded into the card
+   * that replaced them, and a duplicate is dropped. Only the merge is done here — an id that no
+   * longer exists is left in storage and simply not drawn (`widgetById` filters it), so a card that
+   * comes back to the catalogue comes back to the layout it left.
+   */
   const [homeWidgets, setHomeWidgets] = useState<string[]>(() =>
-    readStored<string[]>(STORAGE_KEYS.homeWidgets, DEFAULT_HOME_WIDGETS),
+    migrateHomeWidgets(readStored<string[]>(STORAGE_KEYS.homeWidgets, DEFAULT_HOME_WIDGETS)),
   );
   const [widgetStations, setWidgetStations] = useState<Record<string, string>>(() =>
     readStored<Record<string, string>>(STORAGE_KEYS.widgetStations, {}),
   );
-  const [widgetSizes, setWidgetSizes] = useState<Record<string, WidgetSize>>(() =>
-    readStored<Record<string, WidgetSize>>(STORAGE_KEYS.widgetSizes, {}),
-  );
+  /*
+   * Not stored, on purpose. Customising is a mode you are in, not a preference: opening the app
+   * tomorrow should not start on a screen of − badges.
+   */
+  const [homeEditing, setHomeEditing] = useState(false);
+  const [homeMenuOpen, setHomeMenuOpen] = useState(false);
   /*
    * No search is restored on a new visit.
    *
@@ -256,6 +298,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   const [approximateLocationPending, setApproximateLocationPending] = useState(approximateLocation === null);
   useEffect(() => {
+    /*
+     * Super saving does not spend a request — nor wake the radio for one — on a convenience.
+     * The estimate only ranks "closest stops" lists; a traveller watching a 6% battery wants the
+     * departure board, not a nicer ordering of a picker. The mode is read here rather than in a
+     * dependency on the whole state so that a level change (which arrives every percent) cannot
+     * re-run a request that is already in flight; leaving super re-runs it, because `mode` is in
+     * the list.
+     */
+    if (power.mode === 'super') {
+      setApproximateLocationPending(false);
+      return undefined;
+    }
     if (approximateLocation) return undefined;
     let cancelled = false;
     void fetchApproximateLocation().then((fix) => {
@@ -266,7 +320,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [approximateLocation]);
+  }, [approximateLocation, power.mode]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const sessionJourneys = useRef(new Map<string, Journey>());
   /*
@@ -291,7 +345,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => writeStored(STORAGE_KEYS.recentSearches, recentSearches), [recentSearches]);
   useEffect(() => writeStored(STORAGE_KEYS.homeWidgets, homeWidgets), [homeWidgets]);
   useEffect(() => writeStored(STORAGE_KEYS.widgetStations, widgetStations), [widgetStations]);
-  useEffect(() => writeStored(STORAGE_KEYS.widgetSizes, widgetSizes), [widgetSizes]);
   useEffect(() => writeStored(STORAGE_KEYS.locationConsent, locationConsent), [locationConsent]);
   useEffect(() => writeStored(STORAGE_KEYS.locationFix, userLocation), [userLocation]);
 
@@ -302,6 +355,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.dataset.contrast = settings.highContrast ? 'high' : 'normal';
     root.dataset.motion = settings.reduceMotion ? 'reduced' : 'full';
   }, [settings.density, settings.highContrast, settings.reduceMotion]);
+
+  /*
+   * Battery saving is drawn by the stylesheet, so the mode is written where CSS can read it — one
+   * attribute, exactly like the motion switch above, and the whole of the reduction lives in
+   * `styles/base.css` and two rules in `components.css`. `data-motion` and this are independent on
+   * purpose: asking for less motion is a preference, a low battery is a fact, and either can be
+   * true without the other.
+   */
+  useEffect(() => {
+    document.documentElement.dataset.power = power.mode;
+  }, [power.mode]);
 
   /*
    * Appearance. `system` follows the device and keeps following it — a traveller who leaves the
@@ -331,6 +395,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.theme = appearance;
   }, [appearance]);
+
+  /*
+   * The selection colour, written where `::selection` reads it.
+   *
+   * Keyed to the appearance as well as to the setting because a named choice resolves *through
+   * its token*: coral, butter, sage and the rest are re-declared for dark, and a colour that did
+   * not follow the theme would be the one part of the page ignoring it. The theme attribute is
+   * written by the effect above, which runs first, so the tokens read here are the new ones.
+   */
+  useEffect(() => {
+    applySelection(settings.selectionColor, settings.selectionCustom);
+  }, [settings.selectionColor, settings.selectionCustom, appearance]);
+
+  /*
+   * The page's colour and the widgets' colour — two choices, each derived into a palette.
+   *
+   * Keyed to the appearance for the same reason the selection is: "readable" depends on which ink
+   * is in force, so the same navy washes the page in light and fills the cards in dark, and the
+   * ink ramp, the accent and the map's cut are all measured again. The theme attribute is written
+   * by the effect above, so the tokens read here are the new ones. Raised contrast is in the list
+   * for the same reason: it strengthens the inks the measurement is made against.
+   */
+  useEffect(() => {
+    applyBackground({
+      background: settings.background,
+      backgroundColour: settings.backgroundColour,
+      backgroundImage: settings.backgroundImage,
+      /* Where in the picture the frame sits, so a screen of another shape keeps the subject in
+         view (`lib/photoCrop.ts`, `cropFocus`). */
+      backgroundCrop: settings.backgroundCrop,
+      cardTreatment: settings.cardTreatment,
+      primaryColour: settings.primaryColour,
+    });
+  }, [
+    settings.background,
+    settings.backgroundColour,
+    settings.backgroundImage,
+    settings.backgroundCrop,
+    settings.cardTreatment,
+    settings.primaryColour,
+    appearance,
+    settings.highContrast,
+  ]);
 
   /* The document's own language, so screen readers, hyphenation and the browser's spelling all
      agree with the interface. */
@@ -441,6 +548,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateSettings: (patch) => setSettings((current) => ({ ...current, ...patch })),
     resetSettings: () => setSettings(DEFAULT_SETTINGS),
     appearance,
+    power,
 
     preferences,
     updatePreferences: (patch) => setPreferences((current) => ({ ...current, ...patch })),
@@ -577,22 +685,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         delete next[id];
         return next;
       });
-      /* Same rule for the size: the card that comes back is a new card. */
-      setWidgetSizes((current) => {
-        if (!(id in current)) return current;
-        const next = { ...current };
-        delete next[id];
-        return next;
-      });
     },
     widgetStations,
-    widgetSizes,
-    setWidgetSize: (id, size) =>
-      setWidgetSizes((current) => {
-        const existing = current[id];
-        if (existing && existing.w === size.w && existing.h === size.h) return current;
-        return { ...current, [id]: size };
-      }),
     setWidgetStation: (widgetId, stopId) =>
       setWidgetStations((current) => (current[widgetId] === stopId ? current : { ...current, [widgetId]: stopId })),
     /* A move, not a swap: the widget lands in the slot it was dropped on and the ones between
@@ -617,12 +711,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * they add later, which is exactly what this design says must be asked. (Bindings for widgets
      * that survive the reset stay: a reset is a layout, not a deletion.)
      */
+    homeEditing,
+    setHomeEditing: (editing) => {
+      setHomeEditing(editing);
+      /* Closing the mode closes anything it opened: a menu that outlives the mode it belongs to
+         would be a control for a screen that is no longer being edited. */
+      if (!editing) setHomeMenuOpen(false);
+    },
+    homeMenuOpen,
+    setHomeMenuOpen,
+
     resetHomeWidgets: () => {
       setHomeWidgets(DEFAULT_HOME_WIDGETS);
-      /* "Reset layout" means the default layout *and* the default sizes, so every stored size is
-         dropped rather than filtered: a kept size would be a choice the traveller can no longer
-         see, on a card that is no longer the shape it was given. */
-      setWidgetSizes((current) => (Object.keys(current).length === 0 ? current : {}));
       setWidgetStations((current) => {
         const kept = Object.entries(current).filter(([id]) => DEFAULT_HOME_WIDGETS.includes(id));
         return kept.length === Object.keys(current).length ? current : Object.fromEntries(kept);
@@ -667,9 +767,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
  * In one place because two screens need it to agree: the history writes it, and the results screen
  * asks whether the search it is showing is already in there — a second spelling of this string
  * would make "kept" mean nothing.
+ *
+ * A place is named by what the traveller named it, not by the stop it resolved to: an address and
+ * the station nearest to it share a stop id, so "Rijksstraatweg 9, Haarlem → Haarlem" and the
+ * return trip had the same id and one of them silently read as already saved.
  */
 export function searchEntryId(query: SearchQuery): string {
-  return `${query.fromStopId}->${query.toStopId}`;
+  return `${query.fromLabel ?? query.fromStopId}->${query.toLabel ?? query.toStopId}`;
 }
 
 export function useApp(): AppContextValue {

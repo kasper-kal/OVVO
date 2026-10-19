@@ -40,11 +40,15 @@ export function StopDetailPage() {
   if (!stop) {
     return (
       <div className="stack-6">
-        <PageHeader title="Unknown stop" description="This stop is not in the network." />
-        <EmptyState icon="station" title="Stop not found" description="Pick a stop from the full list instead.">
+        <PageHeader title={t('Unknown stop')} description={t('This stop is not in the network.')} showTitle />
+        <EmptyState
+          icon="station"
+          title={t('Stop not found')}
+          description={t('Pick a stop from the full list instead.')}
+        >
           <Link to="/stops" className="btn btn--primary">
             <Icon name="station" size={16} />
-            All stations & stops
+            {t('All stations & stops')}
           </Link>
         </EmptyState>
       </div>
@@ -140,12 +144,12 @@ export function StopDetailPage() {
         <div className="stack-4">
           <Card className="stack">
             <div className="between wrap">
-              <h2 className="t-section">Stop information</h2>
+              <h2 className="t-section">{t('Stop information')}</h2>
               <div className="row-wrap">
                 {stop.modes.map((mode) => (
                   <span key={mode} className={`mode-badge mode-badge--${mode}`}>
                     <ModeIcon mode={mode} size={13} />
-                    {modeLabel(mode)}
+                    {t(modeLabel(mode))}
                   </span>
                 ))}
               </div>
@@ -162,20 +166,20 @@ export function StopDetailPage() {
               {t('Pinned stops have their board on the departure board page.')}
             </p>
             <dl className="dl">
-              <dt>Type</dt>
-              <dd>{stopTypeLabel(stop.type)}</dd>
-              <dt>City</dt>
+              <dt>{t('Type')}</dt>
+              <dd>{t(stopTypeLabel(stop.type))}</dd>
+              <dt>{t('City')}</dt>
               <dd>{stop.city}</dd>
-              <dt>Region</dt>
+              <dt>{t('Region')}</dt>
               <dd>{stop.region}</dd>
-              <dt>Platforms / stops</dt>
+              <dt>{t('Platforms / stops')}</dt>
               <dd>{stop.platforms.join(', ')}</dd>
-              <dt>Facilities</dt>
+              <dt>{t('Facilities')}</dt>
               <dd>{stop.facilities.join(', ')}</dd>
-              <dt>Bicycle</dt>
+              <dt>{t('Bicycle')}</dt>
               <dd>
-                {stop.bikeParking ? 'Secure bicycle parking' : 'No bicycle parking listed'}
-                {stop.ovFiets ? ' · OV-fiets rental available' : ''}
+                {stop.bikeParking ? t('Secure bicycle parking') : t('No bicycle parking listed')}
+                {stop.ovFiets ? t(' · OV-fiets rental available') : ''}
               </dd>
               {/*
                 The Accessibility row is deleted, by name: "get rid of ALL accesibility
@@ -194,8 +198,10 @@ export function StopDetailPage() {
           {hasBoard(stop) ? (
           <Card className="stack">
             <div className="stack-1">
-              <h2 className="t-section">Next departures</h2>
-              <span className="t-sm t-muted">Showing from {format.time(minutes)} — the current time in this browser</span>
+              <h2 className="t-section">{t('Next departures')}</h2>
+              <span className="t-sm t-muted">
+                {t('Showing from {time} — the current time in this browser', { time: format.time(minutes) })}
+              </span>
             </div>
             {/*
               The way **on** from this card, at the start of its own line under the line that names
@@ -208,17 +214,17 @@ export function StopDetailPage() {
             <div className="row-wrap">
               <Link to={`/departures?stop=${stop.id}`} className="btn btn--sm">
                 <Icon name="board" size={15} />
-                Open the full board
+                {t('Open the full board')}
               </Link>
             </div>
-            <BoardList departures={board} limit={5} />
+            <BoardList departures={board} />
           </Card>
           ) : null}
 
           <Card className="stack">
-            <h2 className="t-section">Alerts at this stop</h2>
+            <h2 className="t-section">{t('Alerts at this stop')}</h2>
             {alerts.length === 0 ? (
-              <p className="t-sm t-muted">No alerts affect this stop right now.</p>
+              <p className="t-sm t-muted">{t('No alerts affect this stop right now.')}</p>
             ) : (
               <ul className="stack-2">
                 {alerts.map((alert) => (
@@ -231,7 +237,7 @@ export function StopDetailPage() {
                       <span className="t-sm t-muted t-clamp-2">{alert.description}</span>
                     </span>
                     <Link to={`/disruptions/${alert.id}`} className="btn btn--sm">
-                      Details
+                      {t('Details')}
                     </Link>
                   </li>
                 ))}
@@ -292,10 +298,12 @@ export function StopDetailPage() {
           </Card>
 
           <Card className="stack">
-            <h2 className="t-section">Lines calling here</h2>
+            <h2 className="t-section">{t('Lines calling here')}</h2>
             {lines.length === 0 ? (
               <p className="t-sm t-muted">
-                This is a walking landmark: it is reached on foot from the nearest stop rather than by a service.
+                {t(
+                  'This is a walking landmark: it is reached on foot from the nearest stop rather than by a service.',
+                )}
               </p>
             ) : (
               <ul className="stack-2">
@@ -310,14 +318,15 @@ export function StopDetailPage() {
                     <Link
                       to={`/departures?line=${line.id}&stop=${stop.id}`}
                       className="list-row__stretch"
-                      aria-label={`${line.name} departures at ${stop.name}`}
+                      aria-label={t('{line} departures at {stop}', { line: line.name, stop: stop.name })}
                     />
                     <span className="leg-row__marker">
                       <ModeIcon mode={line.mode} size={18} />
                     </span>
                     <span className="stack-1 grow">
                       <span className="t-strong t-sm">
-                        {line.name} <span className="t-faint">· every {line.headway} min</span>
+                        {line.name}{' '}
+                        <span className="t-faint">{t('· every {minutes} min', { minutes: line.headway })}</span>
                       </span>
                       <span className="t-sm t-muted">
                         {operatorName(line.operatorId)} ·{' '}
@@ -332,7 +341,7 @@ export function StopDetailPage() {
                     {/* `xs`: the row is a link now, so this pill is the one labelled control in it and
                         the route text needs the width more than the word does. */}
                     <Link to={`/disruptions?line=${line.id}`} className="btn btn--xs btn--ghost list-row__control">
-                      Alerts
+                      {t('Alerts')}
                     </Link>
                     <Icon name="chevronRight" size={16} className="list-row__chevron" />
                   </li>
@@ -342,9 +351,9 @@ export function StopDetailPage() {
           </Card>
 
           <Card className="stack">
-            <h2 className="t-section">Nearby stops</h2>
+            <h2 className="t-section">{t('Nearby stops')}</h2>
             {nearby.length === 0 ? (
-              <p className="t-sm t-muted">No other stop is within walking distance.</p>
+              <p className="t-sm t-muted">{t('No other stop is within walking distance.')}</p>
             ) : (
               <ul className="stack-2">
                 {nearby.slice(0, 6).map((neighbour) => (
@@ -355,12 +364,14 @@ export function StopDetailPage() {
                     <Link
                       to={`/stops/${neighbour.id}`}
                       className="list-row__stretch"
-                      aria-label={`Open ${neighbour.name}`}
+                      aria-label={t('Open {stop}', { stop: neighbour.name })}
                     />
                     <span className="stack-1 grow">
                       <span className="t-strong t-sm">{neighbour.name}</span>
                       <span className="t-sm t-muted">
-                        {walkMinutesBetween(stop, neighbour)} min walk · {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').join(', ') || 'walking only'}
+                        {t('{minutes} min walk', { minutes: walkMinutesBetween(stop, neighbour) })} ·{' '}
+                        {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').map((mode) => t(modeLabel(mode))).join(', ') ||
+                          t('walking only')}
                       </span>
                     </span>
                     <Icon name="chevronRight" size={16} className="list-row__chevron" />

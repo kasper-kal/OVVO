@@ -52,13 +52,20 @@ const JSON_OUT = join(ROOT, '.logs', 'caps-audit.json');
 const LABEL = (lang, en, nl) => new RegExp((lang?.code ?? lang) === 'nl' ? nl : en, 'i');
 const SCREENS = [
   { name: 'home (all 18 widgets, pins and history seeded)', path: '/' },
+  /*
+   * The way in is **Edit**, in the header's first corner (R92); the catalogue is behind the `+`
+   * that replaces it while editing, in the layout menu. Both labels are read from the dictionary
+   * in both languages, like every other step here.
+   */
   { name: 'home · customising turned on', path: '/', open: async (page, lang) => {
-      await page.getByRole('button', { name: LABEL(lang, 'Customise home', 'Startscherm aanpassen') }).click();
+      await page.getByRole('button', { name: LABEL(lang, '^Edit$', '^Wijzig$') }).click();
       await page.waitForTimeout(300);
     } },
-  { name: 'home · widget catalogue', path: '/', open: async (page, lang) => {
-      await page.getByRole('button', { name: LABEL(lang, 'Customise home', 'Startscherm aanpassen') }).click();
+  { name: 'home · layout menu and widget catalogue', path: '/', open: async (page, lang) => {
+      await page.getByRole('button', { name: LABEL(lang, '^Edit$', '^Wijzig$') }).click();
       await page.waitForTimeout(250);
+      await page.getByRole('button', { name: LABEL(lang, 'Home layout', 'Indeling van het startscherm') }).click();
+      await page.waitForTimeout(300);
       await page.getByRole('button', { name: LABEL(lang, 'Add widget', 'Widget toevoegen') }).click();
       await page.waitForTimeout(300);
     } },
@@ -102,9 +109,11 @@ const LANGUAGES = [{ code: 'en', label: 'English' }, { code: 'nl', label: 'Neder
  * and it is gone from `widgets/registry.tsx`. Listing it here would send the audit looking for a
  * catalogue entry that no longer exists.
  */
-const ALL_WIDGETS = ['planner', 'map', 'favourited-journeys', 'recent-searches', 'next-departures', 'alerts',
-  'alerts-at-pins', 'quick-actions', 'right-now', 'preferences-summary', 'pinned-stops', 'stop-search',
-  'mode-activity', 'lines-here', 'operators', 'local-data', 'about'];
+/* The nine widgets the catalogue holds after the widget audit (`WIDGET-AUDIT.md`). A stored id
+   that no longer has a card draws nothing, so a stale list here would quietly audit seven empty
+   slots instead of the screen. */
+const ALL_WIDGETS = ['planner', 'next-departures', 'pinned-stops', 'your-journeys', 'alerts',
+  'alerts-at-pins', 'right-now', 'stop-search', 'map'];
 const PINS = ['utrecht-centraal', 'amsterdam-leidseplein', 'rotterdam-centraal', 'eindhoven-centraal',
   'zaanse-schans', 'utrecht-domtoren'];
 const QUERY = {

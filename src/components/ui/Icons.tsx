@@ -30,6 +30,7 @@
  * does not: `pin` is the drawing pin (the control that keeps a stop) and `mapPin` is the
  * teardrop (a place drawn on the map). See `pin` in `GLYPHS` for why they are two glyphs.
  */
+import { useId } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 import type { LucideProps } from 'lucide-react';
 import {
@@ -50,6 +51,7 @@ import {
   ChevronRight,
   ChevronUp,
   Clock,
+  Crop,
   Crosshair,
   Focus,
   Funnel,
@@ -63,6 +65,7 @@ import {
   Minus,
   Monitor,
   Pin,
+  Pipette,
   Plus,
   RefreshCw,
   Route,
@@ -139,6 +142,11 @@ const GLYPHS = {
   chevronRight: ChevronRight,
   chevronUp: ChevronUp,
   clock: Clock,
+  /*
+   * **Frame a picture** — Lucide's `Crop`, the two corner brackets a cropper is drawn with. The
+   * crop screen is the only place it appears, and that is what it means there.
+   */
+  crop: Crop,
   close: X,
   ferry: Ship,
   filter: Funnel,
@@ -195,6 +203,12 @@ const GLYPHS = {
    * the stop is not being pointed at, it is being pinned to the traveller's own list.
    */
   pin: Pin,
+  /*
+   * **Take a colour out of the screen** — Lucide's `Pipette`. It was drawn with `location` (the
+   * crosshair) in the first version of the sampler, which meant "where am I" was standing in for
+   * "sample this pixel". The eyedropper draws the thing, not the intent.
+   */
+  pipette: Pipette,
   /*
    * A platform is not the departure board, and it was wearing that screen's monitor glyph
    * (`Platform 5` in a leg's stop row). Lucide's `TrainTrack` is the platform itself.
@@ -315,8 +329,8 @@ export function ModeIcon({ mode, size = 16 }: { mode: TravelMode; size?: number 
  * The OVVO mark, straight from the artwork's own outline: three filled paths in a 1024
  * unit box — the two black tiles with the V's cut out of them, and the two rings — drawn
  * in the source file's own orientation (`translate(0 1024) scale(0.1 -0.1)`). Only the ink
- * is stored: the white diagonals are the mark's own background, so both colours come from
- * the palette (`--surface-raised` and `--struct-main`) instead of from a raster.
+ * is stored as paths: the white diagonals are the mark's own background, painted beneath
+ * them from the palette (`--brand-tile` and `--brand-ink`) instead of from a raster.
  */
 const BRAND_INK = [
   'M5120 7680 l0 -2560 -2560 0 -2560 0 0 -2560 0 -2560 2560 0 2560 0 0 2560 0 2560 2560 0 2560 0 0 2560 0 2560 -2560 0 -2560 0 0 -2560z m1692 1605 c10 -27 46 -120 79 -207 32 -86 68 -178 80 -205 11 -26 50 -124 86 -218 35 -93 87 -226 114 -295 146 -373 204 -524 234 -605 18 -49 60 -157 92 -240 33 -82 84 -213 113 -290 29 -77 60 -155 69 -173 l17 -33 71 188 c67 178 175 456 276 713 25 63 73 187 107 275 108 280 250 646 305 785 29 74 72 186 96 248 l43 112 401 0 c221 0 404 -3 407 -6 3 -3 -9 -40 -27 -82 -18 -42 -63 -151 -99 -242 -37 -91 -96 -235 -131 -320 -91 -222 -323 -788 -425 -1040 -80 -195 -184 -451 -385 -940 -39 -96 -118 -289 -175 -427 l-103 -253 -373 0 c-363 0 -374 1 -384 20 -6 11 -41 95 -79 187 -38 93 -110 269 -161 393 -51 124 -123 299 -160 390 -37 91 -124 303 -193 471 -69 168 -164 400 -210 515 -115 284 -246 602 -262 639 -7 17 -44 109 -83 205 -38 96 -97 241 -131 322 -33 80 -61 151 -61 157 0 8 122 10 416 9 l416 -3 20 -50z m-5105 -5252 c40 -98 130 -324 201 -503 72 -179 144 -359 160 -400 57 -140 334 -835 382 -955 83 -211 115 -285 122 -285 4 0 10 10 13 23 9 29 113 299 215 557 45 113 117 296 160 406 43 111 135 343 203 515 69 173 169 428 223 567 l99 252 393 0 c371 0 394 -1 389 -17 -3 -10 -50 -126 -105 -258 -55 -132 -139 -337 -187 -455 -48 -118 -141 -345 -207 -505 -65 -159 -136 -333 -158 -385 -21 -52 -72 -176 -113 -275 -41 -99 -102 -250 -137 -335 -35 -85 -107 -261 -160 -390 -54 -129 -139 -337 -190 -462 l-93 -228 -357 0 -358 0 -10 28 c-12 33 -143 350 -277 672 -54 129 -110 267 -125 305 -15 39 -73 180 -129 315 -107 258 -135 327 -251 610 -40 96 -112 272 -160 390 -49 118 -145 352 -214 520 -68 168 -140 342 -159 388 l-35 82 397 0 397 0 71 -177z',
@@ -324,7 +338,28 @@ const BRAND_INK = [
   'M7478 4259 c-600 -58 -1125 -419 -1374 -943 -111 -236 -152 -409 -161 -679 -11 -340 31 -553 163 -834 110 -235 315 -481 526 -634 203 -146 467 -256 723 -300 170 -29 453 -32 623 -5 631 98 1144 515 1345 1093 194 555 108 1178 -222 1620 -369 496 -964 745 -1623 682z m404 -674 c193 -40 352 -129 494 -277 122 -127 199 -270 252 -467 22 -86 25 -116 26 -276 0 -156 -3 -193 -23 -275 -91 -370 -351 -647 -697 -742 -106 -29 -382 -32 -487 -5 -222 56 -432 202 -556 385 -273 405 -242 1011 70 1358 136 151 317 257 509 298 89 20 320 20 412 1z',
 ];
 
+/**
+ * The mark's shape is the artwork's own: a 1024-unit square rounded by 256 units — a quarter of
+ * its side, which is the 14px the mark's 56px tile used to round itself by — and it is rounded
+ * *inside* the drawing, by a mask over the whole of it, rather than by the element.
+ *
+ * That is the whole of why the corners used to carry a pale line on the top-right and bottom-left.
+ * The ink reaches the edge of the box, so a rounded corner has to cut it, and the mark's ground is
+ * white with the ink on top of it. Cut the element instead (`overflow: hidden` with a
+ * `border-radius`, or a `clip-path`) and each of the two is cut on its own: white painted to the
+ * corner's antialiasing, then ink painted onto that, so a quarter of every half-covered corner
+ * pixel stays white. Measured on the corner's arc: 80 of 255 where the ink and the page are 18 and
+ * 24 — a hairline along the two corners the ink reaches, and nothing at the two the white reaches.
+ *
+ * A mask over a group, unlike a clip, is applied to the group's finished paint, so the white and
+ * the ink composite first and the arc is cut once: the corner is then ink to page.
+ */
+const BRAND_TILE_RADIUS = 256;
+
 export function BrandMark({ size = 28, className }: { size?: number; className?: string }) {
+  /* One id per instance: the mask is referenced by url(), and the mark is not the only thing that
+     may be drawn into a page. React's own id is namespaced but not URL-safe, so it is reduced. */
+  const maskId = `brand-tile-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   return (
     <svg
       className={className}
@@ -334,11 +369,20 @@ export function BrandMark({ size = 28, className }: { size?: number; className?:
       aria-hidden="true"
       focusable="false"
     >
-      <rect className="brand-mark__tile" width="1024" height="1024" />
-      <g className="brand-mark__ink" transform="translate(0 1024) scale(0.1 -0.1)">
-        {BRAND_INK.map((d, index) => (
-          <path key={index} d={d} />
-        ))}
+      <defs>
+        <mask id={maskId}>
+          <rect width="1024" height="1024" rx={BRAND_TILE_RADIUS} fill="#fff" />
+        </mask>
+      </defs>
+      <g mask={`url(#${maskId})`}>
+        {/* The artwork's four tiles: two are ink (`BRAND_INK`), the other two are this, its own
+            ground, in the palette's `--brand-tile`. It also fills the V's cut out of the ink. */}
+        <rect className="brand-mark__tile" width="1024" height="1024" />
+        <g className="brand-mark__ink" transform="translate(0 1024) scale(0.1 -0.1)">
+          {BRAND_INK.map((d, index) => (
+            <path key={index} d={d} />
+          ))}
+        </g>
       </g>
     </svg>
   );

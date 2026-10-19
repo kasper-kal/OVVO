@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Button, Dialog } from '../ui/primitives';
 import { useT } from '../../lib/useT';
+import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import type { Stop } from '../../data/types';
 
 /**
@@ -21,6 +23,15 @@ export function PlanStopDialog({
   onPlan: (direction: 'from' | 'to') => void;
 }) {
   const t = useT();
+  /*
+   * A stop was chosen from a list that may sit under a search field, so this dialog is the answer
+   * to a choice and nothing here is typed into: the phone keyboard has to go, or it covers the two
+   * buttons that are the whole question.
+   */
+  useEffect(() => {
+    if (stop) dismissKeyboard();
+  }, [stop]);
+
   return (
     <Dialog
       open={stop !== null}

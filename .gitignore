@@ -4,3 +4,6 @@ dist/
 *.local
 .shots/
 .logs/
+
+# Working screenshots from a chat session, not deliverables.
+artifacts/

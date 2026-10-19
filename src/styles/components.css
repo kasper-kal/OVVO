@@ -49,6 +49,206 @@
   color: var(--on-dark-muted);
 }
 
+/* ---------------------------------------------------------------- The tint
+ *
+ * **One colour, every surface.** When the traveller chooses a tint (`lib/background.ts`), the whole
+ * surface ramp is replaced at the root: the page *is* the colour, a card is that colour moved 12%
+ * toward its own ink, a panel 24%. Setting the *tokens* rather than writing a background on every
+ * class is what makes "everything" cheap and complete — a card, a field, a button, an empty tile,
+ * the sidebar, a dialog and a component added tomorrow all paint themselves from `--l1-bg`,
+ * `--l2-bg` and the ink ramp, so none of them needs a rule of its own.
+ *
+ * The ink is replaced with the ramp, and that is what makes a dark choice possible: the colour is
+ * kept exactly as chosen (the widget is your colour, not a softened version), so the page and its
+ * surfaces get whichever ink clears 4.5:1 on them — and the *page's* text turns over too, which is
+ * why this is at the root and not scoped to cards. The obsidian tier is untouched: it is a
+ * statement of its own, not a surface the tint may repaint.
+ */
+:root[data-surface='tint'] {
+  --l1-bg: var(--card-surface-alt);
+  --l2-bg: var(--card-surface);
+  /*
+   * The edge is **derived**, like the ink (`--page-border`, `lib/background.ts`). It used to be the
+   * card ink at 18% alpha, which is a different contrast on every colour — measured 13.06:1 on a
+   * blue card and 2.77:1 on a green one — and it left every control that reads
+   * `--border-hairline` (chips, segmented controls, fields, buttons — about forty rules) on the
+   * cream theme's fixed `#e8e6df`, which measured 1.05:1 on a yellow page. A hairline that vanishes
+   * on some colours is not a hairline.
+   */
+  --l1-border: 1px solid var(--page-border);
+  --l2-border: 1px solid var(--page-border);
+  --ink-strong: var(--card-ink-strong);
+  --ink: var(--card-ink);
+  --ink-muted: var(--card-ink-muted);
+  --ink-faint: var(--card-ink-faint);
+}
+
+/*
+ * **The page's colour and the widgets' colour are two.** Nothing else in this file changes: the page
+ * takes *its own* ramp (`--page-*`, derived from the background colour) and every card, panel and
+ * the sidebar takes the widgets' — the rule below — so a white page with black widgets gets white
+ * page ink and light card ink in the same document, which one shared ramp could not do.
+ */
+:root[data-surface='split'] {
+  --l1-bg: var(--page-surface-alt);
+  --l2-bg: var(--page-surface);
+  --l1-border: 1px solid var(--page-border);
+  --l2-border: 1px solid var(--page-border);
+  --ink-strong: var(--page-ink-strong);
+  --ink: var(--page-ink);
+  --ink-muted: var(--page-ink-muted);
+  --ink-faint: var(--page-ink-faint);
+}
+
+/*
+ * **Over a photograph the page is the photograph**, so the ramp is scoped to the surfaces the tint
+ * actually fills — the cards, the panels and the sidebar — and the page keeps the theme's own ink.
+ * At the root it would put the tint's ink on the picture's wash instead, which measured 1.06:1 on a
+ * dark photograph in the dark appearance.
+ */
+/*
+ * **The one-colour palette's cards need the card's own edge, not the page's.** Their surfaces are
+ * already the tint (the root rule says so); what differs is the hairline control outlines read, and
+ * that has to be measured against the card they stand on. Kept apart from the block below because
+ * a tint card has no separate accent cut — that is the split palette's problem.
+ */
+:root[data-surface='tint'] .card:not(.card--obsidian),
+:root[data-surface='tint'] .panel,
+:root[data-surface='tint'] .app-sidebar {
+  --l1-border: 1px solid var(--card-border);
+  --l2-border: 1px solid var(--card-border);
+  --border-hairline: var(--card-border);
+}
+
+:root[data-surface='cards'] .card:not(.card--obsidian),
+:root[data-surface='cards'] .panel,
+:root[data-surface='cards'] .app-sidebar,
+:root[data-surface='split'] .card:not(.card--obsidian),
+:root[data-surface='split'] .panel,
+:root[data-surface='split'] .app-sidebar {
+  --l1-bg: var(--card-surface-alt);
+  --l2-bg: var(--card-surface);
+  --l1-border: 1px solid var(--card-border);
+  --l2-border: 1px solid var(--card-border);
+  /*
+   * **The one token every outlined control reads.** Chips, segmented controls, buttons, inputs and
+   * the colour preview all say `1px solid var(--border-hairline)`, so re-deriving this *inside the
+   * card* is what makes them visible on any tint without touching forty rules. It is scoped to the
+   * card rather than the root because that is the surface they sit on, and because the full-screen
+   * pickers keep the theme's own hairline on the theme's own canvas.
+   */
+  --border-hairline: var(--card-border);
+  --ink-strong: var(--card-ink-strong);
+  --ink: var(--card-ink);
+  --ink-muted: var(--card-ink-muted);
+  --ink-faint: var(--card-ink-faint);
+  /*
+   * **And the accent is cut for the surface it is drawn on.** `--accent-primary` is measured against
+   * the page (it draws the focus ring around anything standing on it); inside a widget the same
+   * accent — a switch track, a ring, a mark — is the widgets' cut, handed over as `--card-accent`.
+   * One cut for both was measured at 2.5:1 on a blue page under green widgets, under the 3:1 this
+   * app holds a ring to; two cuts clear it on both (see `lib/background.ts`).
+   */
+  --accent-primary: var(--card-accent);
+  --accent-primary-border: var(--card-accent-border);
+  --accent-primary-hover: var(--card-accent-hover);
+  --accent-primary-ink: var(--card-accent-ink);
+  --on-accent: var(--card-on-accent);
+  color: var(--card-ink);
+}
+
+/* The obsidian card is the one card the tint does not repaint; its own rule already turns its ink
+   over, and the ramp must not follow it there. */
+:root[data-surface='tint'] .card--obsidian,
+:root[data-surface='cards'] .card--obsidian,
+:root[data-surface='split'] .card--obsidian {
+  --ink-strong: var(--on-dark);
+  --ink: var(--on-dark);
+  --ink-muted: var(--on-dark-muted);
+  --ink-faint: var(--on-dark-muted);
+}
+
+/*
+ * A pale tint is still a pale tint, whatever the card around it: the semantic panels keep their own
+ * dark ink rather than inheriting a light one from a dark card. Their backgrounds stay the same in
+ * both appearances (see the note in `tokens.css`), so their ink does too.
+ */
+:root[data-surface='tint'] .panel--accent,
+:root[data-surface='tint'] .panel--coral,
+:root[data-surface='tint'] .panel--sage {
+  --ink-strong: #18181b;
+  --ink: #3f3f45;
+  --ink-muted: #5f5f66;
+  --ink-faint: #66666d;
+  color: var(--ink);
+}
+
+/*
+ * **The meanings keep their hues, but not their lightness.** A delay's coral, a "cleared" sage and a
+ * butter mark were chosen for the theme's own surface; the coral that reads on cream is 2.2:1 on a
+ * blue widget. `lib/background.ts` re-measures each one against these cards — lightness only, so the
+ * signal is still coral, sage and butter — and hands them over as `--card-*` values, which are
+ * applied here and nowhere else. The page, the map's land and the tinted chips keep the theme's own
+ * inks.
+ */
+:root[data-surface='tint'] .card:not(.card--obsidian),
+:root[data-surface='tint'] .panel,
+:root[data-surface='cards'] .card:not(.card--obsidian),
+:root[data-surface='cards'] .panel,
+:root[data-surface='split'] .card:not(.card--obsidian),
+:root[data-surface='split'] .panel {
+  --coral-ink: var(--card-coral-ink);
+  --tint-sage-ink: var(--card-sage-ink);
+  --tint-butter-ink: var(--card-butter-ink);
+}
+
+/*
+ * **Liquid Glass over a photo.** The card takes the shape of what is behind it: a translucent pane
+ * of the canvas colour, blurred and saturated, with a light hairline and a one-pixel highlight along
+ * its top edge. The page keeps the canvas wash `base.css` draws under the photo, so headings
+ * outside the cards still have a surface to sit on; the card itself is where the picture is allowed
+ * through.
+ *
+ * The ink is not scoped here: a glass card is a light pane in the light appearance and a smoke pane
+ * in the dark one, so the page's own ink is already the readable one.
+ */
+:root[data-surface='glass'] .card:not(.card--obsidian),
+:root[data-surface='glass'] .app-sidebar {
+  /*
+   * **How thick the glass is, and why it is not thinner.**
+   *
+   * Text sits on this pane, so the pane has to hold the page's ink over *any* photograph — there is
+   * no way to know what is behind it. Composited against pure black, 58% of the cream canvas draws
+   * 146,145,145, which is 5.6:1 under the app's obsidian ink; a thinner pane fails (42% measures
+   * 3.6:1, which is what the contrast sweep found on a dark wallpaper). The blur and the saturation
+   * are what keep it reading as glass rather than as a grey card.
+   */
+  background: color-mix(in srgb, var(--canvas-base) 58%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-dark) 46%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-dark) 52%, transparent);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  backdrop-filter: blur(26px) saturate(170%);
+}
+
+/*
+ * The smoke pane of the dark appearance needs more of itself: the canvas is near-black there, so
+ * 58% over a white photograph is only 4.2:1 under the light ink, and 70% is 6.8:1.
+ */
+:root[data-theme='dark'][data-surface='glass'] .card:not(.card--obsidian),
+:root[data-theme='dark'][data-surface='glass'] .app-sidebar {
+  background: color-mix(in srgb, var(--canvas-base) 70%, transparent);
+}
+
+/* Panels inside a glass card are the same pane, one step heavier — opaque enough to read a row of
+   times through, clear enough to still be glass. */
+:root[data-surface='glass'] .card .panel:not(.panel--accent):not(.panel--coral):not(.panel--sage) {
+  background: color-mix(in srgb, var(--canvas-base) 74%, transparent);
+}
+
+:root[data-theme='dark'][data-surface='glass'] .card .panel:not(.panel--accent):not(.panel--coral):not(.panel--sage) {
+  background: color-mix(in srgb, var(--canvas-base) 82%, transparent);
+}
+
 /* Nested radius = R_outer - padding (28 - 16 = 12px) so corners stay concentric. */
 .panel {
   background: var(--l1-bg);
@@ -154,7 +354,7 @@
 .btn--accent {
   background: var(--accent-primary);
   border-color: var(--accent-primary-border);
-  color: var(--struct-main);
+  color: var(--on-accent);
 }
 
 .btn--accent:hover {
@@ -464,7 +664,7 @@
 .chip--danger[aria-pressed='true'] {
   background: var(--accent-primary);
   border-color: var(--accent-primary-border);
-  color: var(--struct-main);
+  color: var(--on-accent);
 }
 
 .chip--butter[aria-pressed='true'] {
@@ -484,7 +684,7 @@
  * first row with one or two chips, so the rows come out unbalanced and the name is
  * crammed against a chip. Below the two-column breakpoint the name takes its own
  * line and the chips line up in even pairs. */
-@media (max-width: 720px) {
+@media (max-width: 719px) {
   .chip-group {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -509,7 +709,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-@media (max-width: 720px) {
+@media (max-width: 719px) {
   /* Phones keep every chip group on the same two-column rhythm. */
   .chip-group--compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -920,6 +1120,15 @@
   --planner-row: 52px;
 }
 
+/*
+ * Every card draws one shape now.
+ *
+ * These rules drew the planner at three heights — 46px rows, 52px rows, and two stretched 72px
+ * rows filling a 312px card. With the sizes gone there is one form, which is the one the base rule
+ * above has always declared: two 52px rows, and a card as tall as the form it holds.
+ */
+
+
 .planner-card {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
@@ -1116,7 +1325,16 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: var(--s-3);
-  padding: var(--s-3) var(--s-3) var(--s-2);
+  /*
+   * The same top edge a page's own way back sits on, not 8px above it.
+   *
+   * This bar used to start at `--s-3` (12) while the app header's back disc starts at 20 — the
+   * header's 4px padding plus the 16px step the mark sets — so the same arrow stood at two heights
+   * depending on whether the screen behind it was a page or one of the two full-screen pickers
+   * (measured: 12,12 against 20,12, and `round15-check` fails the run on it). `--s-4 + --s-1` is
+   * that 20, so all five back controls share one corner on screen.
+   */
+  padding: calc(var(--s-4) + var(--s-1)) var(--s-3) var(--s-2);
   width: 100%;
   max-width: var(--shell-max);
   margin: 0 auto;
@@ -1287,7 +1505,16 @@
 .results-bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  align-items: end;
   gap: var(--s-2);
+}
+
+/*
+ * The sort, in the results row (MATCHING_PLAN rule 1): a labelled field is a cell of the row it
+ * belongs to, so it sits on the chips' baseline instead of in a card of its own above the list.
+ */
+.results-bar__sort {
+  min-width: 0;
 }
 
 .results-chip {
@@ -1486,7 +1713,7 @@
   justify-content: center;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 720px) {
   .journey-actions {
     display: flex;
     flex-wrap: wrap;
@@ -1961,6 +2188,7 @@
 }
 
 /* -------------------------------------------------------------- List modules */
+
 .list-row {
   display: flex;
   align-items: center;
@@ -1995,7 +2223,7 @@
  * are lifted above it instead of being swallowed. The text and the glyphs sit above the link
  * with `pointer-events: none`, so a press on any of them lands on the link underneath.
  *
- * Its hover is the row's own hover (`.list-row:hover`, the 2px lift every card and chip uses),
+ * Its hover is the row's own hover (`.list-row:hover`, the `--hover-lift` every card and chip uses),
  * which is the F22 ask answered with the animation that already exists rather than a second one.
  */
 .list-row--link {
@@ -2179,7 +2407,7 @@
 
 /* On a phone the summary is a second line of its own rather than two ragged
    lines wrapped around the title. */
-@media (max-width: 720px) {
+@media (max-width: 719px) {
   .disclosure__trigger {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -2317,12 +2545,19 @@
      sat behind it — the button looked live and did nothing. */
   pointer-events: auto;
   padding: var(--s-2) var(--s-3) var(--s-2) var(--s-4);
-  background: var(--l3-bg);
-  border: var(--l3-border);
+  /*
+   * The app's own surface, not an obsidian slab. The toast was drawn on `--l3-bg` — the raised
+   * black level — and a review of the location warning found exactly that: a dark rectangle across
+   * whatever card it happened to sit over. A message is a card that arrives, so it takes the
+   * card's surface and ink, keeps the warning glyph in coral, and no longer covers the thing it
+   * is talking about with a hole in the page.
+   */
+  background: var(--l1-bg);
+  border: var(--l1-border);
   /* The input squircle, not a capsule: a pill is a shape for one short label, and a sentence in
      one is what made these read as chat bubbles dropped on the screen. */
   border-radius: var(--r-input);
-  color: var(--on-dark);
+  color: var(--ink-strong);
   animation: toast-in var(--t-spring) var(--ease-spring);
 }
 
@@ -2419,24 +2654,6 @@
 
 .banner--hairline .t-strong {
   color: var(--ink-strong);
-}
-
-.stat {
-  background: var(--l1-bg);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--r-nested);
-  padding: var(--s-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
-}
-
-.stat__value {
-  font-size: var(--fs-h2);
-  font-weight: var(--fw-extrabold);
-  letter-spacing: var(--track-heading);
-  color: var(--ink-strong);
-  font-variant-numeric: tabular-nums;
 }
 
 /*
@@ -2658,6 +2875,455 @@
   background: var(--active-green);
 }
 
+/* ---------------------------------------------------------- Colour screens */
+/*
+ * The three full-screen surfaces of the colour redesign (`COLOURS_PLAN.md`): the picker, the
+ * photograph sampler, and the crop. They share `FullScreen`, so their header — back arrow, title,
+ * the one thing that finishes — is the app's own; only what sits under it is new.
+ *
+ * The picker keeps the *parts* of the old sheet (grid, pad, hue, hex) because those were never the
+ * problem: the problem was a 918px form inside a 968px panel with its Done button below the fold.
+ * The sampler and the crop own the viewport (`fullscreen--flush`) because a picture that can be
+ * dragged cannot live inside a scroller — a finger would pan the page instead of the frame.
+ */
+.fullscreen--flush .fullscreen__body {
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.colour-screen {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: var(--s-3) var(--s-2) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+/*
+ * The small square beside a colour's name: what the setting is, at a glance. It is drawn only when
+ * there is something to show — the empty pill on cream was one of the defects the redesign fixed
+ * (shot: `review/colours-before/colours-cream.png`).
+ */
+.bg-preview {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-inner);
+  border: 1px solid var(--border-hairline);
+  background-color: var(--canvas-base);
+  background-size: cover;
+  background-position: center;
+}
+
+/*
+ * **A settings row: the setting on the left, what it is now on the right, and one way in.**
+ *
+ * The shape the Colours card uses, and the shape Apple's own Settings uses — a hierarchy of lists,
+ * where the row names the setting and the disclosure indicator opens the next level. It replaces
+ * eleven inline controls and their paragraphs with three rows and no prose. A 44px target, a
+ * hairline between rows and nothing else: the row is a control, so it must not need a filled pill
+ * to read as one.
+ */
+/*
+ * The three colour screens are document-shaped like the picker, not edge-to-edge like a map: on a
+ * desktop a row that runs the full 1360px is harder to read than the same row in a column, and
+ * Apple's own settings screens are a list, not a wall. The same 620px as `.colour-screen`.
+ */
+.colour-settings-screen {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--s-2) 0;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid var(--border-hairline);
+}
+
+.settings-row__label {
+  font-weight: var(--fw-semibold);
+}
+
+.settings-row__value {
+  margin-left: auto;
+  max-width: 55%;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-row:hover .settings-row__value,
+.settings-row[aria-pressed='true'] .settings-row__label {
+  color: var(--ink-strong);
+}
+
+.settings-row__swatch {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-hair);
+  background-color: var(--canvas-base);
+  background-position: center;
+  background-size: cover;
+}
+
+.settings-row .icon {
+  color: var(--ink-faint);
+}
+
+.settings-row[aria-pressed='true'] .icon {
+  color: var(--accent-primary-ink);
+}
+
+.colour-screen__ident {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+/* The swatch at the size of a thing rather than a chip: it is what is being chosen, and the only
+   place on this screen where the colour is shown in its own light. */
+.colour-screen__preview {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--r-inner);
+  border: 1px solid var(--border-hairline);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent);
+}
+
+.colour-screen__grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+
+@media (max-width: 719px) {
+  .colour-screen__grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.colour-screen__swatch {
+  aspect-ratio: 1;
+  min-height: var(--target-min);
+  border-radius: var(--r-inner);
+  border: 1px solid color-mix(in srgb, var(--struct-main) 16%, transparent);
+  cursor: pointer;
+  transition: transform var(--spring, 160ms ease);
+}
+
+.colour-screen__swatch:hover {
+  transform: scale(1.04);
+}
+
+.colour-screen__swatch.is-selected {
+  outline: 2px solid var(--ink-strong);
+  outline-offset: 2px;
+}
+
+/* The way to the photograph. A row, not a picture: the picture has its own screen now. */
+.colour-screen__photo {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+  border-radius: var(--r-inner);
+  border: 1px solid var(--border-hairline);
+  background: var(--l2-bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.colour-screen__photo-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-inner);
+  border: 1px solid var(--border-hairline);
+  background-color: var(--l1-bg);
+  background-size: cover;
+  background-position: center;
+}
+
+.colour-screen__pad {
+  position: relative;
+  height: 220px;
+  border-radius: var(--r-inner);
+  background:
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, var(--pad-hue, #f00));
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.colour-screen__pad-thumb {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-circle);
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.colour-screen__hue {
+  display: block;
+}
+
+.colour-screen__hue input {
+  width: 100%;
+  height: 26px;
+  appearance: none;
+  border-radius: var(--r-pill);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+}
+
+.colour-screen__hue input::-webkit-slider-thumb {
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-circle);
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--struct-main) 22%, transparent);
+}
+
+.colour-screen__hue input::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-circle);
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--struct-main) 22%, transparent);
+}
+
+/* ---------------------------------------------------------------- photo screen */
+.photo-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3) var(--s-4);
+}
+
+/*
+ * The stage *is* the picture's box: the image is sized by its own content inside a centred flex
+ * box, so its bounding rect is the drawn photograph. That is what makes the sampler's pointer maths
+ * a fraction of a box rather than an `object-fit: cover` geometry to undo — and what stops the
+ * picture being cropped to make the screen tidy.
+ */
+.photo-screen__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.photo-screen__picture {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--r-inner);
+  user-select: none;
+}
+
+.photo-screen__error {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+}
+
+/*
+ * The loupe: 112px of magnified pixels with a crosshair, riding **above** the pointer so a finger
+ * never covers the pixel it is choosing. `translate(-50%, -100%)` is what puts it above the point;
+ * the 18px is clearance for the finger itself.
+ */
+/*
+ * The loupe is two elements on purpose: the **disc** is what clips the magnified picture to a
+ * circle, and the wrapper is what carries the hex chip *under* it — a chip inside the clipped disc
+ * was cut in half by its own border-radius (shot: `review/colours-after/photo-screen.png`).
+ */
+.photo-screen__loupe {
+  position: absolute;
+  width: 112px;
+  height: 112px;
+  margin: 0;
+  transform: translate(-50%, calc(-100% - 18px));
+  pointer-events: none;
+}
+
+.photo-screen__loupe-disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-circle);
+  overflow: hidden;
+  border: 2px solid #fff;
+  background: #000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.photo-screen__loupe.is-hidden {
+  display: none;
+}
+
+.photo-screen__loupe canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.photo-screen__loupe-cross {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.9) calc(50% - 0.5px), rgba(255, 255, 255, 0.9) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.9) calc(50% - 0.5px), rgba(255, 255, 255, 0.9) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+  mix-blend-mode: difference;
+}
+
+.photo-screen__loupe-hex {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+}
+
+.photo-screen__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.photo-screen__swatch {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-inner);
+  border: 1px solid var(--border-hairline);
+}
+
+.photo-screen__hint {
+  text-align: center;
+  margin: 0;
+}
+
+/* ----------------------------------------------------------------- crop screen */
+.crop-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3) var(--s-4);
+}
+
+.crop-screen__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  /*
+   * The dimming outside the frame is one `box-shadow` with a 9999px spread, so it has to be clipped
+   * to the stage — unclipped it painted over the whole screen, including the frame chips and the
+   * preview, and the controls read as disabled (shot: `review/colours-after/crop-screen.png`).
+   */
+  overflow: hidden;
+}
+
+.crop-screen__canvas {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.crop-screen__picture {
+  display: block;
+  max-width: 100%;
+  max-height: 46vh;
+  width: auto;
+  height: auto;
+}
+
+/*
+ * The frame is the only thing that stays still: `box-shadow` with a 9999px spread dims everything
+ * outside it without a second element, so the picture can be dragged under the frame and the parts
+ * that will be cut away stay visible rather than disappearing.
+ */
+.crop-screen__frame {
+  position: absolute;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
+  outline: 1px solid rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.crop-screen__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.crop-screen__preview-wrap {
+  align-items: center;
+}
+
+/* The page's own drawing, at the page's own shape: the same two layers the `body` rule paints
+   (`styles/base.css`), scaled so the frame covers it. */
+.crop-screen__preview {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  border-radius: var(--r-inner);
+  border: 1px solid var(--border-hairline);
+  background-color: var(--l1-bg);
+}
+
+
 .skip-link {
   position: absolute;
   left: -9999px;
@@ -2671,7 +3337,7 @@
   z-index: 200;
   padding: var(--s-2) var(--s-4);
   background: var(--accent-primary);
-  color: var(--struct-main);
+  color: var(--on-accent);
   border-radius: var(--r-pill);
   font-weight: var(--fw-bold);
 }
@@ -2914,43 +3580,94 @@
 }
 
 /*
- * Height tiers change two things, and they have to, or the sizes do not look like sizes.
+ * Below the tablet breakpoint nothing halves: every card takes the width of the screen.
  *
- * 1. **How much the card shows.** Rows are trimmed at the thresholds in `widgets/registry.tsx`,
- *    so a taller card lists more; the card still ends where its content ends.
- * 2. **How big what it shows is drawn.** A card with three pills has no fourth pill to add —
- *    reported, with two photographs of the same card "2px apart" — so a taller card also draws a
- *    larger heading and larger pills, and a shorter one closes them up. Without this, "big" on a
- *    list of five modes means five identical rows in a slightly taller box.
+ * Six columns is right on a desktop, where a half card is ~460px. At 390px the same six columns
+ * are 175px, and that was measured as broken, not merely snug: the map's four mode chips stacked
+ * into a 300px column around a 130px drawing, and the departures card's search field — which has
+ * a 44px target and a placeholder — painted 120px past its own card's right edge, over the card
+ * beside it. Half a phone is too narrow to hold any card this home screen owns, not just the map,
+ * so the map's own one-card exception became this rule.
  *
- * The scale is deliberately small (16px heading → 19px, pills 12px → 13.5px): a home screen is a
- * set of cards that should still read as one screen, not as a poster.
+ * 360 used to be the line ("no half card under 150px"). A 390px phone — the common Android width
+ * — sat one step above it, which is exactly how the overlap above survived a phone round that
+ * only ever checked 360. The line is the tablet breakpoint now, the same one the rest of this
+ * stylesheet uses, so a width cannot fall between two rules again.
  */
-.widget--h-compact .widget__card {
-  gap: var(--s-2);
+@media (max-width: 719px) {
+  .widget--span-4,
+  .widget--span-6,
+  .widget--span-8 {
+    grid-column: span 12;
+  }
 }
 
-.widget--h-tall .widget__card {
-  gap: var(--s-4);
+/*
+ * The body takes the rest of the card, and centres what is in it.
+ *
+ * Without the first, a stretched card is a small thing at the top of a large box. Without the
+ * second, a card whose content is shorter than its tier leaves **all** of the slack under the text
+ * — one sentence on a 208px card, 90px of nothing below it, reported with two photographs and
+ * "my god all that whitespace is ugly". Centred, the same sentence has 45px above and 45px below:
+ * the card is as tall as it was asked to be and the content sits in it, which is what a widget of
+ * that size looks like. A body that does fill its card (a list of six, a map) is unaffected —
+ * centring has nothing to move.
+ */
+.widget__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.widget--h-compact .widget__head .t-section {
-  font-size: var(--fs-section);
+/*
+ * A card with nothing in it yet: a mark and a sentence, centred in the card's own box.
+ *
+ * One faint line was all an empty card had, and a tier's height made that one line look like a
+ * mistake. The 44px mark is the same object `.empty__icon` uses on the full-page empty states, a
+ * step smaller and on the card's own surface rather than a raised tile, and the sentence is centred
+ * under it and capped at 34 characters per line so a long one reads as a paragraph rather than a
+ * banner.
+ */
+.widget-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-2) 0;
+  text-align: center;
 }
 
-.widget--h-tall .widget__head .t-section {
-  font-size: var(--fs-h2);
+.widget-empty__icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-circle);
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  color: var(--ink-muted);
 }
 
-.widget--h-tall .pill {
-  min-height: 30px;
-  padding: 0 var(--s-3);
-  font-size: var(--fs-body);
+/*
+ * The empty card's sentence.
+ *
+ * Its type comes from `t-sm` on the element itself; the size overrides that used to live here were
+ * per tier and are gone with the tiers. What is left is the cap that keeps a long sentence reading
+ * as a paragraph rather than a banner — the same 34 characters per line the block has always had.
+ */
+.widget-empty__line {
+  max-width: 34ch;
 }
 
-.widget--h-compact .pill {
-  min-height: 22px;
-  font-size: var(--fs-pill);
+.widget-empty p {
+  max-width: 34ch;
+}
+
+.widget-empty__hint {
+  margin-top: calc(-1 * var(--s-1));
+  max-width: 30ch;
 }
 
 /*
@@ -2962,89 +3679,59 @@
 }
 
 /*
- * The corner handle.
+ * The − badge: delete this widget, the way a home screen deletes an app.
  *
- * The target is 44px and invisible; the mark inside it is 22px of accent ink in the corner's own
- * curve. That split is the whole trick: the control is comfortable to hit with a thumb, and what
- * you see is not a button but a fold of the card. Nothing is written next to it — the card *is*
- * the size, and a label saying "Half · Standard" is a description of the thing rather than the
- * thing (reported, with a photograph, the first time this was attempted).
+ * It replaces the row of glyphs that used to sit in the card's head (a grip and an ×). One round
+ * control on the card's top-right corner says "this card can go" without putting controls above
+ * every title, and the gesture it replaces — moving — is the card itself, which has always been
+ * draggable by its body.
+ *
+ * **30px of paint, 44px of target**, the same split the header's alerts entry uses: the disc is
+ * `::before`, inset 7px inside the button's 44px box, so what the eye sees is a small badge on the
+ * corner and what the thumb gets is the target every control in this app has. The disc sits *behind*
+ * the glyph (`z-index: -1` inside the button's own stacking context) rather than on top of it.
  */
-.widget__corner {
+.widget__remove {
   position: absolute;
+  top: calc(-1 * var(--s-2));
   right: calc(-1 * var(--s-1));
-  bottom: calc(-1 * var(--s-1));
   width: var(--target-min);
   height: var(--target-min);
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: nwse-resize;
-  /* A finger on the corner resizes; it must not scroll the page underneath instead. */
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  color: var(--ink-muted);
+  cursor: pointer;
+  z-index: 3;
   touch-action: none;
-  z-index: 2;
 }
 
-/*
- * The mark: a 12px bracket, not a badge.
- *
- * A filled quarter disc was drawn here first and it read as a coral sticker glued to the card —
- * "that shit UGLY" — because a filled shape has a colour and a colour is a thing on the page. A
- * two-stroke bracket is the corner's own line continued round the radius: the card looks like it
- * has a corner, not like it has a control. It is invisible until the pointer is on the target or
- * the target has focus, so the resting card is untouched, and it is coral only while a drag is in
- * progress (that is the one moment it is telling you something).
- */
-.widget__corner::after {
+.widget__remove::before {
   content: '';
   position: absolute;
-  right: 12px;
-  bottom: 12px;
-  width: 12px;
-  height: 12px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  border-bottom-right-radius: 6px;
-  color: var(--ink-faint);
-  opacity: 0;
-  transition: opacity 160ms var(--ease-press);
+  inset: 7px;
+  z-index: -1;
+  border-radius: var(--r-circle);
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+  transition: background var(--t-press) var(--ease-press), border-color var(--t-press) var(--ease-press);
 }
 
-.widget__corner:hover::after,
-.widget__corner:focus-visible::after {
-  opacity: 0.7;
+.widget__remove:hover {
+  color: var(--ink-strong);
 }
 
-.widget__corner:focus-visible {
-  outline: none;
+.widget__remove:hover::before {
+  background: var(--tint-coral);
+  border-color: var(--coral-ink);
 }
 
-.widget__corner:focus-visible::after {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 3px;
-}
-
-/*
- * While the corner is held, the card being resized is the only sharp thing on the screen: it lifts
- * a little and everything around it softens. Without this the live reflow is a dozen cards
- * rewrapping at once — honest, but it reads as a glitch rather than as a resize. The blur is the
- * depth of field a camera would give you, not a loading state.
- */
-.widget-grid--resizing .widget:not(.widget--resizing) {
-  filter: blur(2px);
-  opacity: 0.72;
-  transition: filter 160ms var(--ease-press), opacity 160ms var(--ease-press);
-}
-
-.widget--resizing .widget__card {
-  box-shadow: 0 18px 44px rgb(0 0 0 / 0.16);
-  border-color: var(--accent-primary);
-}
-
-.widget--resizing .widget__corner::after {
-  opacity: 0.9;
-  color: var(--accent-primary);
-}
+/* The focus ring is the app's own (2px coral on `:focus-visible`, from `styles/base.css`), drawn
+   round the 44px target rather than the 30px disc — the target is the control. */
 
 .widget__card {
   display: flex;
@@ -3090,62 +3777,15 @@
 /*
  * Drag-to-reorder, the way a phone's home screen does it.
  *
- * The grip is the way in for a finger: making the whole card a drag surface needs
- * `touch-action: none`, and that would stop the page scrolling at all on a phone. A mouse takes
- * hold of the card anywhere instead, which is what `cursor: grab` on the editable card says.
+ * There is no grip and no handle: the card is what you take hold of, for a mouse anywhere on it
+ * and for a keyboard from the card's own arrow keys. The row of glyphs that used to sit in every
+ * card's head — a grip, an up and a down — is gone with the sizes it belonged to, and so is the
+ * submenu that offered them.
  *
  * The grid re-sorts as the hand passes the other cards — the ones in the way step aside and the
  * slot the card has left closes up behind it, which is the slot it will drop into — and the held
  * card is put back under the finger on every frame, so the re-flow is never seen jumping.
  */
-.widget__actions {
-  display: flex;
-  align-items: center;
-  /* No gap: the 44px targets already hold the glyphs apart, and a gap as well spread three
-     controls into three separate marks. Touching targets read as one cluster. */
-  gap: 0;
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-
-/* Equal marks: three 18px glyphs in three 44px targets, so the cluster has one rhythm whatever
-   a card's own icons are drawn at. */
-.widget__actions > .btn,
-.widget__actions > .widget__grip {
-  flex: 0 0 auto;
-}
-
-/* An up/down at the end of the list is a move that cannot happen: it is drawn dimmed rather
-   than taken away, so the row of controls does not change width under the hand (F1). */
-.widget__actions .btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.widget__grip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--target-min);
-  height: var(--target-min);
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-inner);
-  background: none;
-  color: var(--ink-faint);
-  cursor: grab;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.widget__grip:hover,
-.widget__grip:focus-visible {
-  color: var(--ink-strong);
-}
-
-.widget__grip:active {
-  cursor: grabbing;
-}
 
 /* A drag across a card must not paint a text selection behind it. Edit mode only: the rest of
    the time the home screen's text is still selectable. */
@@ -3155,6 +3795,16 @@
 
 .widget-grid--editing .widget--editable {
   cursor: grab;
+}
+
+/*
+ * The title row is the strip a finger takes hold of (see `beginDrag`). `touch-action: none` there
+ * and only there is what lets a phone drag a card without losing the ability to scroll the page
+ * from the card's body — a whole-card claim on the gesture would make a long home screen
+ * unscrollable while it is being arranged.
+ */
+.widget-grid--editing .widget__head {
+  touch-action: none;
 }
 
 .widget--dragging {
@@ -3187,6 +3837,25 @@
    listener in `HomePage`), so it must not answer the press with a callout either. */
 .home-surface,
 .app-header {
+  -webkit-touch-callout: none;
+}
+
+/*
+ * **No selection while a press is running.** (`lockPress` in `HomePage` puts the flag on `<html>`.)
+ *
+ * A phone starts selecting text at roughly half a second of stillness, and the selection takes the
+ * press with it: the hold that opens customising never reached its second, and what a person saw
+ * was the word under their finger turning blue. The whole shell is locked rather than the page's
+ * own box, because the press may land on the header's empty band or the strip under the last
+ * widget — both of which are hold surface (`isHomeSurface`), neither of which is `.home-surface`.
+ *
+ * Locked only for the length of a press, so the page still selects normally at every other moment,
+ * and `touch-callout` is repeated here because iOS offers its menu from the selection, not from the
+ * stylesheet, when only one of the two is set.
+ */
+:root[data-home-press] .app-shell {
+  -webkit-user-select: none;
+  user-select: none;
   -webkit-touch-callout: none;
 }
 
@@ -3225,61 +3894,106 @@
   animation: none;
 }
 
-/* ------------------------------------------------- quiet customising footer */
-/* [OCR Visual Transcode - Home Customise]
- * TRIGGER: small text button, centred, 44px target | PANEL: L2, appears in place
- * REMOVE: identical × in the top-right of every removable widget card */
-.widget-customise {
+/* ------------------------------------------------------- the home layout menu */
+/*
+ * The menu the + in the header opens, drawn the way a phone's home screen draws one: a panel that
+ * hangs from the corner that opened it, over the screen blurred behind it.
+ *
+ * It was a centred dialog with its title in a bar, and that is a sheet — a thing you open, fill in
+ * and come back out of. This is a list of three actions, so it points at its trigger and is
+ * dismissed by touching the screen anywhere else. The blur is what makes the panel read as *above*
+ * the page rather than beside it: the widgets are still visible, out of focus, and nothing behind
+ * the panel competes with its rows.
+ *
+ * The panel is `fixed` and placed from the trigger's box in `HomePage` (`menuPos`): the header is
+ * shared by every screen, so this page cannot put a menu next to the + by layout. The scrim sits
+ * over the header and the dock (55 against the header's 40 and the dock's 50) — while a menu is up
+ * there is one thing on screen, and the + underneath it says `aria-expanded` rather than inviting a
+ * second press.
+ */
+/*
+ * It reaches past the viewport on every side (+1px) and 96px below it. That is not decoration:
+ * Chromium samples a backdrop filter in 64px tiles and the last partial row at the viewport's
+ * edge comes back unblurred — measured on this screen, the bottom 12px of the widget list stayed
+ * sharp under the glass. A scrim that ends where the screen ends cannot cover its own edge; one
+ * that overshoots puts the seam outside the screen where nobody can see it. It also keeps the
+ * blur covering the page under a browser bar that slides in at the bottom.
+ */
+.home-menu__scrim {
+  position: fixed;
+  inset: -1px -1px -96px;
+  z-index: 55;
+  /* A light wash of the page's own canvas, not a grey dim: the screen behind keeps its colour
+     and stays readable as "the home screen, just out of focus". It is also what covers the few
+     pixels at the viewport's edge that a backdrop filter leaves unblurred. */
+  background: color-mix(in srgb, var(--canvas-base) 28%, transparent);
+  -webkit-backdrop-filter: blur(8px) saturate(1.08);
+  backdrop-filter: blur(8px) saturate(1.08);
+  animation: home-scrim-in 180ms var(--ease-out) both;
+}
+
+.home-menu {
+  position: fixed;
+  z-index: 56;
+  /* 300px at every width a phone offers, and never wider than the screen less its 12px margins;
+     the numbers come from the same 12px the header uses, so the panel lines up with the corner. */
+  width: min(300px, calc(100vw - 2 * var(--s-3)));
+  max-height: min(70vh, 460px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
-  justify-content: center;
-  padding-top: var(--s-2);
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-2);
+  border-radius: var(--r-card);
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--l2-bg) 78%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 18px 44px rgb(24 22 20 / 0.18), 0 2px 6px rgb(24 22 20 / 0.08);
+  transform-origin: top left;
+  animation: home-menu-in 160ms var(--ease-out) both;
 }
 
-.widget-customise__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-2);
-  min-height: var(--target-min);
-  padding: 0 var(--s-3);
-  border: 0;
-  background: none;
-  border-radius: var(--r-pill);
-  color: var(--ink-faint);
-  font: inherit;
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  /*
-   * Colour and ground only, on the curve that does not overshoot.
-   *
-   * The hover pair was drawn with `--ease-hover`, which is a spring: it carries a value past its
-   * target before settling, and that is right for a transform and wrong for a paint. Sampled
-   * every 20ms on the live app, the ground ran transparent → 87% → **white** → `#F3F1EA` in
-   * under a quarter of a second — the flash the flicker was. `background-color` rather than the
-   * `background` shorthand so the change is one property on one layer.
-   */
-  transition: color var(--t-hover) var(--ease-out), background-color var(--t-hover) var(--ease-out);
-}
-
-.widget-customise__trigger:hover,
-.widget-customise__trigger:focus-visible {
-  color: var(--ink-strong);
-  background: var(--l1-bg);
-}
-
-/* `.panel` is a block; this instance is a row so the text can shrink and the
- * buttons keep the right-hand end. Under 720px it stacks instead. */
-.panel.widget-customise__panel {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  width: 100%;
-  flex-wrap: nowrap;
-}
-
-@media (max-width: 720px) {
-  .panel.widget-customise__panel {
-    flex-wrap: wrap;
+@keyframes home-scrim-in {
+  from {
+    opacity: 0;
   }
+}
+
+@keyframes home-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(-4px);
+  }
+}
+
+/*
+ * The rows are `list-row`s on a ground of their own — the panel is the surface here, so a row is
+ * a row and not a card: no fill, no border, no lift on hover, and a wash of ink instead. The
+ * shape and the 44px target stay, because those are the row, not the card around it.
+ */
+.home-menu .home-menu__row {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-strong);
+}
+
+.home-menu .home-menu__row:hover,
+.home-menu .home-menu__row:focus-visible {
+  background: color-mix(in srgb, var(--ink-strong) 7%, transparent);
+  transform: none;
+}
+
+.home-menu .home-menu__row:active {
+  background: color-mix(in srgb, var(--ink-strong) 11%, transparent);
+  transform: scale(0.985);
+}
+
+/* The in-app motion switch, not just the system one. */
+:root[data-motion='reduced'] .home-menu,
+:root[data-motion='reduced'] .home-menu__scrim {
+  animation: none;
 }
 
 .widget--flash .widget__card {
@@ -3287,22 +4001,6 @@
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
   transition: outline-color 400ms var(--ease-press);
-}
-
-/*
- * The 150px floor.
- *
- * Which cards may sit side by side on a phone is decided per widget in the registry
- * (`resizeFrom`), not here — a departure row and a clock fail at different widths, and a single
- * media query cannot express that. What the stylesheet still owns is the absolute limit: at 320px
- * a half card is 140px, less than a 44px target and a word need, so nothing halves there whatever
- * its threshold says.
- */
-@media (max-width: 360px) {
-  .widget--span-4,
-  .widget--span-6 {
-    grid-column: span 12;
-  }
 }
 
 /* ------------------------------------------------------ Stations & stops (R72) */
@@ -3467,19 +4165,37 @@
   overflow: hidden;
 }
 
-.when-field__group .select {
+.when-field__group .select,
+.when-field__group .input {
   border: 0;
   border-radius: 0;
   background-color: transparent;
 }
 
-.when-field__group .select + .select {
+/*
+ * The day and the time are the **device's own** controls now (`<input type="date">`,
+ * `<input type="time">`), so they arrive with the platform's calendar and clock glyphs. Those
+ * glyphs are the point of using them, so nothing here hides them — only the box around them is
+ * ours: no border of its own, no radius of its own, and the frame and the divider come from the
+ * group. `min-width: 0` is what keeps a native date from widening the column it was given: its
+ * intrinsic width is the locale's longest date, which is wider than half a phone.
+ */
+.when-field__group .input {
+  min-width: 0;
+  padding-right: var(--s-2);
+  /* The platform draws its own glyph against this edge; the app's padding was tuned for text. */
+  font-variant-numeric: tabular-nums;
+}
+
+.when-field__group .select + .select,
+.when-field__group .input + .input {
   border-left: 1px solid var(--border-hairline);
 }
 
 /* The shared `.select:focus` paints a border that this group has removed, so focus is drawn
    inside the frame instead of on an edge that is not there. */
-.when-field__group .select:focus-visible {
+.when-field__group .select:focus-visible,
+.when-field__group .input:focus-visible {
   box-shadow: inset 0 0 0 2px var(--struct-main);
 }
 
@@ -3488,7 +4204,8 @@
     grid-template-columns: 1fr;
   }
 
-  .when-field__group .select + .select {
+  .when-field__group .select + .select,
+  .when-field__group .input + .input {
     border-left: 0;
     border-top: 1px solid var(--border-hairline);
   }

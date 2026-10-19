@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { MAP_POINT, mapCorridors } from '../../data/map';
 import { STOPS, getStop } from '../../data/stops';
 import { rankStops } from '../../lib/stopSearch';
+import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import { useApp } from '../../state/AppState';
 import { FullScreen } from '../ui/FullScreen';
 import { Button, IconButton } from '../ui/primitives';
@@ -47,7 +48,7 @@ export function MapPicker({
   onPick: (side: 'from' | 'to', stop: Stop) => void;
   onClose: () => void;
 }) {
-  const { favouriteStopIds } = useApp();
+  const { favouriteStopIds, nearestOrigin } = useApp();
   const t = useT();
   const start = centreOn ? MAP_POINT(centreOn.id) : null;
   const [view, setView] = useState<View>({ cx: start?.x ?? 50, cy: start?.y ?? 50, size: 100 });
@@ -58,7 +59,7 @@ export function MapPicker({
   const drag = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
 
   const corridors = useMemo(() => mapCorridors('all'), []);
-  const matches = query.trim() ? rankStops(query, favouriteStopIds, 5) : [];
+  const matches = query.trim() ? rankStops(query, favouriteStopIds, { origin: nearestOrigin, limit: 5 }) : [];
 
   /** The stop under the pin: the nearest one to the centre of the view. */
   const nearest = useMemo(() => {
@@ -88,6 +89,9 @@ export function MapPicker({
     setPickedId(stop.id);
     setQuery('');
     setSearching(false);
+    /* The search answered: the field is emptied, a stop is picked, and the keyboard goes so the
+       map and the sheet below it are visible. */
+    dismissKeyboard();
   };
 
   const zoom = (factor: number) => {

@@ -41,28 +41,25 @@ const NL: Record<string, string> = {
   'Plan a journey, check the network, and pick up where you left off.':
     'Plan een reis, bekijk het netwerk en ga verder waar je gebleven was.',
   'Your home screen is empty': 'Je startscherm is leeg',
-  'Turn on customising at the foot of the page to add a widget.':
-    'Zet onderaan de pagina aanpassen aan om een widget toe te voegen.',
+  'Tap Edit at the top to add a widget.':
+    'Tik bovenaan op Wijzig om een widget toe te voegen.',
+  Edit: 'Wijzig',
   Customising: 'Aanpassen',
   'Customising home': 'Startscherm aanpassen',
   /*
-   * Widget sizes have no visible words: the card is the size. What is left is the corner
-   * handle's accessible name, the two tier names the settings screen does not already carry, and
-   * the line a trimmed list uses to say how much it left out. `Compact`, `Standard` and `Full`
-   * are already in this dictionary for the display settings and are the same words, so they are
-   * reused rather than duplicated.
+   * There are no widget sizes to name any more: the card is the width its widget declares and as
+   * tall as its content. What is left of that vocabulary is the line a capped list uses to say how
+   * much it left out, because the cards still cap their rows at a fixed number.
    */
-  Tall: 'Hoog',
-  'Resize {title}': 'Formaat van {title} aanpassen',
   '{count} more, not shown at this size': '{count} meer, niet getoond op dit formaat',
-  'Customise home': 'Startscherm aanpassen',
   'Add widget': 'Widget toevoegen',
   'Add a widget': 'Een widget toevoegen',
   'Reset layout': 'Indeling herstellen',
+  'Layout reset': 'Indeling hersteld',
+  'Home layout': 'Indeling van het startscherm',
   'Reset to the default layout': 'Terug naar de standaardindeling',
   'Or press and hold the home screen': 'Of houd het startscherm ingedrukt',
   'Keep holding to customise': 'Blijf vasthouden om aan te passen',
-  'Drag to move': 'Sleep om te verplaatsen',
   'Move {title}': 'Verplaats {title}',
   'Put it back': 'Zet terug',
   'Move undone': 'Verplaatsing teruggedraaid',
@@ -211,6 +208,164 @@ const NL: Record<string, string> = {
   'Reduce motion': 'Minder beweging',
   'Turns off the spring press and hover transitions.':
     'Zet de veer-effecten bij indrukken en aanwijzen uit.',
+  /* The widget catalogue after the widget audit (`WIDGET-AUDIT.md`): the merged card, the
+     reworked alerts and re-run cards, and the two trims. */
+  'Your journeys': 'Jouw reizen',
+  'The journeys you saved and the searches you kept, ready to run again.':
+    'De reizen die je bewaarde en de zoekopdrachten die je hield, klaar om opnieuw te gebruiken.',
+  'Saved journeys': 'Bewaarde reizen',
+  Repeat: 'Herhalen',
+  'Heart a result on the results screen, or save the search from the bar above the list.':
+    'Hart een resultaat op het resultaatscherm, of bewaar de zoekopdracht in de balk boven de lijst.',
+  'It disappears from this widget; the search itself is untouched.':
+    'Het verdwijnt uit dit blok; de zoekopdracht zelf blijft ongewijzigd.',
+  'Unfavourite this journey?': 'Deze reis uit favorieten halen?',
+  'Yes, unfavourite it': 'Ja, uit favorieten halen',
+  'Delete all saved searches': 'Alle bewaarde zoekopdrachten verwijderen',
+  'Delete all saved searches?': 'Alle bewaarde zoekopdrachten verwijderen?',
+  '{count} stored in this browser': '{count} opgeslagen in deze browser',
+  '{count} saved searches will be removed.': '{count} bewaarde zoekopdrachten worden verwijderd.',
+  'Alerts on your journeys': 'Storingen op jouw reizen',
+  'Only the alerts that touch a journey you saved.': 'Alleen de storingen die een reis raken die je bewaarde.',
+  'Heart a journey and any alert that touches it shows up here.':
+    'Hart een reis en elke storing die hem raakt verschijnt hier.',
+  'A saved journey is one result on the results screen, with its own times.':
+    'Een bewaarde reis is één resultaat op het resultaatscherm, met zijn eigen tijden.',
+  'No alerts touch the journeys you kept — all {count} are running as planned.':
+    'Geen storingen raken de reizen die je bewaarde — alle {count} rijden volgens plan.',
+  'All alerts': 'Alle storingen',
+  'Re-run from now': 'Opnieuw vanaf nu',
+  'Run the search you are looking at again, starting at this minute.':
+    'Voer de zoekopdracht die je ziet opnieuw uit, vanaf deze minuut.',
+  '{from} to {to}, starting at this minute.': '{from} naar {to}, vanaf deze minuut.',
+  'Nothing to re-run yet — plan a journey first.': 'Nog niets om opnieuw te doen — plan eerst een reis.',
+  'The stops you hearted, one tap each.': 'De haltes die je hartte, elk met één tik.',
+  'Your stops: {stops}': 'Jouw haltes: {stops}',
+  'Near you: {stops}': 'Bij jou in de buurt: {stops}',
+  'Every route, with your own stops named and picked out.':
+    'Elke lijn, met je eigen haltes benoemd en gemarkeerd.',
+  'Search {count} stations, stops and landmarks': 'Zoek in {count} stations, haltes en plekken',
+  /* The selection colour (see `lib/selection.ts`). `Butter`, `Sage` and `Obsidian` already
+     exist in the palette section below; these are the rest of the row. */
+  'Text selection': 'Tekstselectie',
+  Coral: 'Koraal',
+  Green: 'Groen',
+  Custom: 'Eigen',
+  /* The platform dialog the Custom chip opens; it has no visible label, only this one. */
+  'Custom colour': 'Eigen kleur',
+  'The colour behind selected text. The ink on it is chosen for contrast, so a dark colour gets light text.':
+    'De kleur achter geselecteerde tekst. De inkt erop wordt op contrast gekozen, dus een donkere kleur krijgt lichte tekst.',
+  /*
+   * The two colour screens (`components/ui/ColourScreen.tsx`) and the personal background
+   * (`lib/background.ts`). Three ways to say the same thing on one sheet, so the words are the
+   * short names a phone uses rather than descriptions. The text selection's own colour is asked
+   * for by the device, so it needs none of these — only the `Custom colour` label above.
+   */
+  'Background colour': 'Achtergrondkleur',
+  'Primary colour': 'Primaire kleur',
+  'Follow the background': 'Volg de achtergrond',
+  /* The accent row in the preview specimen names what the first swatch really is. */
+  'Theme colour': 'Themakleur',
+  'Pick a colour from the grid, from the spectrum, or type its value.':
+    'Kies een kleur uit het raster, uit het spectrum, of typ de waarde.',
+  Colours: 'Kleuren',
+  Spectrum: 'Spectrum',
+  'Saturation and brightness': 'Verzadiging en helderheid',
+  'Saturation {s}%, brightness {v}%': 'Verzadiging {s}%, helderheid {v}%',
+  Hue: 'Tint',
+  'Hex value': 'Hexwaarde',
+  Background: 'Achtergrond',
+  Cream: 'Crème',
+  Colour: 'Kleur',
+  Photo: 'Foto',
+  Widgets: 'Widgets',
+  Glass: 'Glas',
+  'From your wallpaper': 'Uit je achtergrond',
+  'From your photo': 'Uit je foto',
+  'Tap or drag the photo to take the widgets’ colour from it — the same colour the Primary colour block sets.':
+    'Tik of sleep op de foto om de kleur van de widgets eruit te halen — dezelfde kleur die het blok Primaire kleur instelt.',
+  'Tap or drag on your wallpaper to take its colour':
+    'Tik of sleep op je achtergrond om de kleur over te nemen',
+  'Loading your photo…': 'Je foto wordt geladen…',
+  Eyedropper: 'Pipet',
+  'The page’s own colour. The widgets keep their colour — see Primary colour below. A dark choice keeps its colour and gets light text.':
+    'De kleur van de pagina zelf. De widgets houden hun eigen kleur — zie Primaire kleur hieronder. Een donkere keuze blijft donker en krijgt lichte tekst.',
+  'The cards, the panels, the sidebar and the accent. The page keeps its own colour.':
+    'De kaarten, de panelen, de zijbalk en het accent. De pagina houdt zijn eigen kleur.',
+  'Following the background: the widgets take the page’s colour, and the app’s own surfaces and coral while the page is cream.':
+    'Volgt de achtergrond: de widgets nemen de kleur van de pagina, en de eigen oppervlakken en het koraal van de app zolang de pagina crème is.',
+  'Your photo, kept on this device under a wash of the canvas colour.':
+    'Je foto, op dit apparaat bewaard onder een waas van de canvaskleur.',
+  'Translucent cards that show the photo through, blurred and saturated.':
+    'Doorschijnende kaarten die de foto laten zien, vervaagd en verzadigd.',
+  'Solid cards in the primary colour. Use the eyedropper to take one from the photo.':
+    'Effen kaarten in de primaire kleur. Gebruik de pipet om er een uit de foto te halen.',
+  'Choose a colour': 'Kies een kleur',
+  'Choose a photo': 'Kies een foto',
+  'Replace the photo': 'Foto vervangen',
+  'Remove the photo': 'Foto verwijderen',
+  'Choose a background photo': 'Kies een achtergrondfoto',
+  'The app’s own warm canvas — the background it has always had.':
+    'Het eigen warme canvas van de app — de achtergrond die er altijd al was.',
+  /* The row-based Colours card: short values on the rows, one sentence on each screen. */
+  'Page colour': 'Kleur van de pagina',
+  'App default': 'App-standaard',
+  'The app’s own warm canvas.': 'Het eigen warme canvas van de app.',
+  'The page’s own colour. The widgets keep theirs — see Widgets.':
+    'De kleur van de pagina zelf. De widgets houden de hunne — zie Widgets.',
+  'Crop it to choose what the page shows.': 'Snijd het bij om te kiezen wat de pagina toont.',
+  'Solid cards in the widgets’ colour.': 'Effen kaarten in de kleur van de widgets.',
+  'Widgets’ colour': 'Kleur van de widgets',
+  'The widgets take the page’s colour.': 'De widgets nemen de kleur van de pagina.',
+  'A photo has no colour of its own, so this uses the app’s own surfaces and coral. Choose a colour, or take one from the photo.':
+    'Een foto heeft geen eigen kleur, dus dit gebruikt de eigen oppervlakken en het koraal van de app. Kies een kleur, of haal er een uit de foto.',
+  'The page is cream, so this uses the app’s own surfaces and coral.':
+    'De pagina is crème, dus dit gebruikt de eigen oppervlakken en het koraal van de app.',
+
+  /* The colour redesign (`COLOURS_PLAN.md`): two screens for the photograph and one for any
+     colour. The words are the controls' own, short enough for a phone. */
+  'The cards take it with {ink} ink — {ratio}:1':
+    'De kaarten nemen hem met {ink} inkt — {ratio}:1',
+  'The cards take it with {ratio}:1 ink': 'De kaarten nemen hem met {ratio}:1 inkt',
+  light: 'lichte',
+  dark: 'donkere',
+  'Take a colour out of the picture itself.': 'Haal een kleur uit de foto zelf.',
+  'Drag the picture to sample, or use the arrow keys. Done keeps the colour.':
+    'Sleep over de foto om te prikken, of gebruik de pijltjestoetsen. Klaar bewaart de kleur.',
+  'Crop': 'Bijsnijden',
+  'Crop the photo': 'Foto bijsnijden',
+  'Save': 'Bewaren',
+  'Frame': 'Kader',
+  'This screen': 'Dit scherm',
+  'Phone': 'Telefoon',
+  'Square': 'Vierkant',
+  '{share}% of the picture': '{share}% van de foto',
+  'As it will look': 'Zo komt het eruit te zien',
+  'The page background, as the crop will draw it.':
+    'De achtergrond van de pagina, zoals het kader hem tekent.',
+  'Drag to move the picture; pinch or use the wheel to zoom':
+    'Sleep om de foto te verplaatsen; knijp of gebruik het wiel om te zoomen',
+  'Your photo, kept on this device under a wash of the canvas colour. Crop it to choose what the page shows.':
+    'Je foto, op dit apparaat bewaard onder een waas van de canvaskleur. Snijd hem bij om te kiezen wat de pagina laat zien.',
+  'This browser cannot read the photo.': 'Deze browser kan de foto niet lezen.',
+  'That file is not an image.': 'Dat bestand is geen afbeelding.',
+  'That image is too large — try one under 12 MB.':
+    'Die afbeelding is te groot — probeer er een onder 12 MB.',
+  'That image could not be read.': 'Die afbeelding kon niet worden gelezen.',
+  'This browser cannot resize an image.': 'Deze browser kan geen afbeelding verkleinen.',
+  /* Battery saving, which is a reading rather than a switch (see `lib/power.ts`). */
+  'Battery saving': 'Batterijbesparing',
+  'Automatic: movement goes at 20%, and at 10% only what you need to catch a bus is drawn. Plugging in turns it off.':
+    'Automatisch: beweging valt weg bij 20%, en bij 10% wordt alleen getoond wat je nodig hebt om een bus te halen. Aan de lader gaat het uit.',
+  'This browser does not report the battery, so the full interface is always drawn.':
+    'Deze browser geeft het batterijniveau niet door, dus de volledige interface blijft altijd zichtbaar.',
+  'Super saving': 'Maximaal sparen',
+  Saving: 'Sparen',
+  Charging: 'Aan de lader',
+  'Not reported': 'Niet doorgegeven',
+  'Super energy saving is on — {cards} come back when this device is charged.':
+    'Maximale energiebesparing staat aan — {cards} komen terug zodra dit apparaat aan de lader ligt.',
+  'Only what you need to catch a bus is drawn.': 'Alleen wat je nodig hebt om een bus te halen wordt getoond.',
   Location: 'Locatie',
   'Use my location': 'Mijn locatie gebruiken',
   'Fills in the nearest stop when you plan a journey. The browser asks on your first visit.':
@@ -360,7 +515,6 @@ const NL: Record<string, string> = {
   'Reset result filters': 'Resultaatfilters wissen',
   'Adjust travel preferences': 'Reisvoorkeuren aanpassen',
   'Try one hour later': 'Probeer een uur later',
-  'About these results': 'Over deze resultaten',
   'Fares, occupancy, delays and platforms are indicative.':
     'Prijzen, drukte, vertragingen en sporen zijn indicatief.',
   'Back to planner': 'Terug naar de planner',
@@ -381,8 +535,6 @@ const NL: Record<string, string> = {
   'Today, now': 'Vandaag, nu',
 
   /* ------------------------------------------------------------ journey card */
-  'Legs': 'Etappes',
-  'Journey legs': 'Etappes van de reis',
   Direct: 'Direct',
   'Delay +{minutes} min': 'Vertraging +{minutes} min',
   Cancelled: 'Rit vervalt',
@@ -592,6 +744,8 @@ const NL: Record<string, string> = {
   '{mode} routes only': 'alleen {mode}',
   'Network map: {scope}, {count} stops': 'Netwerkkaart: {scope}, {count} haltes',
   'Nothing favourited yet.': 'Nog geen favorieten.',
+  'Heart a journey on the results screen and it waits here, with its times.':
+    'Markeer een reis op de resultatenpagina met een hart en hij staat hier, met zijn tijden.',
   'Busiest sample stops': 'Drukste voorbeelhaltes',
   'Busiest sample stop: {stop}': 'Drukste voorbeeldhalte: {stop}',
   'Nothing kept yet — keep a search from its results to put it here.':
@@ -651,6 +805,163 @@ const NL: Record<string, string> = {
   'Unpin {stop}': 'Zet {stop} los',
   '{count} alert affects {stop}': '{count} storing raakt {stop}',
   '{count} alerts affect {stop}': '{count} storingen raken {stop}',
+
+  Type: 'Type',
+  /* ------------------------------------------------- the last pass of the tree */
+  "Disruptions & service alerts": "Storingen en reisinformatie",
+  "Delays, cancellations, planned works, platform changes, crowding and weather alerts across the network.": "Vertragingen, rituitval, gepland werk, spoorwijzigingen, drukte en weerswaarschuwingen in het hele netwerk.",
+  "Search in alerts": "Zoek in storingen",
+  "For example: platform, ferry, works": "Bijvoorbeeld: perron, veerboot, werk",
+  "Severity": "Ernst",
+  "Start time": "Begintijd",
+  "Line filter: {line}": "Lijnfilter: {line}",
+  "Reset filters": "Filters wissen",
+  "Transport mode": "Vervoerswijze",
+  "Filter by affected stop": "Filter op getroffen halte",
+  "For example: Utrecht, Schiphol, Blaak": "Bijvoorbeeld: Utrecht, Schiphol, Blaak",
+  "No alerts match these filters": "Geen storingen voor deze filters",
+  "The network has alerts; these filters removed all of them.": "Er zijn storingen in het netwerk; deze filters hebben ze allemaal weggefilterd.",
+  "The line filter is on, which is the filter that cannot be cleared from Options.": "Het lijnfilter staat aan; dat filter wis je niet via Opties.",
+  "The type, severity, mode or affected-stop filter removed every alert.": "Het filter op type, ernst, vervoerswijze of getroffen halte heeft alle storingen weggefilterd.",
+  "Clear the line filter": "Lijnfilter wissen",
+  "Alert details & advice": "Details en advies",
+  "Information": "Informatie",
+  "Disruption": "Storing",
+  "Major disruption": "Grote storing",
+  "Nothing in the network matches what is switched on here.": "Niets in het netwerk voldoet aan wat hier aanstaat.",
+  "Nothing matches “{query}” with these filters.": "Niets komt overeen met “{query}” met deze filters.",
+  "The region, city, stop type, modes or favourites-only filter removed every stop.": "Het filter op regio, stad, haltetype, vervoerswijzen of alleen favorieten heeft alle haltes weggefilterd.",
+  "Search the whole network": "Zoek in het hele netwerk",
+  "Your settings leave out {modes}, so journeys that need it are hidden.": "Je instellingen laten {modes} weg, dus reizen die het nodig hebben zijn verborgen.",
+  "Walking is switched off and {modes} is left out, so the planner cannot build an access leg.": "Lopen staat uit en {modes} is weggelaten, dus de planner kan geen voor- of natransport maken.",
+  "Walking is switched off and {modes} are left out, so the planner cannot build an access leg.": "Lopen staat uit en {modes} zijn weggelaten, dus de planner kan geen voor- of natransport maken.",
+  "No mode is switched off, so the walking limit, the transfer limit or a result filter removed every option.": "Er staat geen vervoerswijze uit, dus de looplimiet, de overstaplimiet of een resultaatfilter heeft elke optie weggefilterd.",
+  "Unknown stop": "Onbekende halte",
+  "This stop is not in the network.": "Deze halte zit niet in het netwerk.",
+  "Stop not found": "Halte niet gevonden",
+  "Pick a stop from the full list instead.": "Kies een halte uit de volledige lijst.",
+  "All stations & stops": "Alle stations en haltes",
+  "Stop information": "Halte-informatie",
+  "Platforms / stops": "Perrons / haltes",
+  "Secure bicycle parking": "Beveiligde fietsenstalling",
+  "No bicycle parking listed": "Geen fietsenstalling bekend",
+  " · OV-fiets rental available": " · OV-fiets te huur",
+  "Showing from {time} — the current time in this browser": "Getoond vanaf {time} — de huidige tijd in deze browser",
+  "Open the full board": "Open het volledige bord",
+  "Alerts at this stop": "Storingen bij deze halte",
+  "No alerts affect this stop right now.": "Er zijn nu geen storingen bij deze halte.",
+  "Details": "Details",
+  "Lines calling here": "Lijnen die hier stoppen",
+  "This is a walking landmark: it is reached on foot from the nearest stop rather than by a service.": "Dit is een wandelbestemming: je bereikt haar te voet vanaf de dichtstbijzijnde halte, niet met een dienst.",
+  "{line} departures at {stop}": "Vertrekken van {line} bij {stop}",
+  "· every {minutes} min": "· elke {minutes} min",
+  "No other stop is within walking distance.": "Geen andere halte op loopafstand.",
+  "Open {stop}": "Open {stop}",
+  "{minutes} min walk": "{minutes} min lopen",
+  "walking only": "alleen lopen",
+  "Journey no longer in this session": "Reis niet meer in deze sessie",
+  "Journeys are generated per search, so this option is not available right now.": "Reizen worden per zoekopdracht gemaakt, dus deze optie is nu niet beschikbaar.",
+  "This journey could not be restored": "Deze reis kon niet worden hersteld",
+  "Re-run the search to see the options again, or open one of your favourited journeys.": "Doe de zoekopdracht opnieuw om de opties te zien, of open een van je favoriete reizen.",
+  "Re-run my last search": "Mijn laatste zoekopdracht opnieuw",
+  "Alerts on this journey": "Storingen op deze reis",
+  "— read the details and advice": "— lees de details en het advies",
+  "Complete journey": "Volledige reis",
+  "Journey summary": "Reisoverzicht",
+  "Transfers": "Overstappen",
+  "This is a direct journey — no transfers at all.": "Dit is een directe reis — zonder overstappen.",
+  "Expected occupancy": "Verwachte drukte",
+  "Transport modes": "Vervoerswijzen",
+  "Every mode starts switched on; unselected modes are left out of your journeys.": "Elke wijze staat standaard aan; uitgezette wijzen blijven buiten je reizen.",
+  "With no transport mode selected no journey can be planned.": "Zonder vervoerswijze kan er geen reis worden gepland.",
+  "Applies to access, transfer and egress walks.": "Geldt voor lopen naar, tussen en na de ritten.",
+  "Maximum walking time": "Maximale looptijd",
+  "Maximum walking minutes": "Maximale loopminuten",
+  "5 min": "5 min",
+  "{count} minutes": "{count} minuten",
+  "{count} min": "{count} min",
+  "No limit": "Geen limiet",
+  "Maximum number of transfers": "Maximaal aantal overstappen",
+  "Counts changes between services, not walking links.": "Telt wissels tussen ritten, niet loopstukken.",
+  "Trade-offs": "Afwegingen",
+  "Prefer fewer transfers": "Liever minder overstappen",
+  "Prefer less walking": "Liever minder lopen",
+  "Ranks journeys with fewer changes higher, even if slower.": "Zet reizen met minder overstappen hoger, ook als ze langzamer zijn.",
+  "Shortens walking links and ranks them lower.": "Maakt loopstukken korter en zet ze lager.",
+  "Alert not found": "Storing niet gevonden",
+  "This alert is not in the list.": "Deze storing staat niet in de lijst.",
+  "Unknown alert": "Onbekende storing",
+  "Return to the overview to browse the alerts that exist.": "Ga terug naar het overzicht om de bestaande storingen te bekijken.",
+  "What is happening": "Wat er aan de hand is",
+  "Advice": "Advies",
+  "More alerts": "Meer storingen",
+  "Other alerts": "Andere storingen",
+  "Use your location?": "Je locatie gebruiken?",
+  "OVVO uses this device's position to fill in where you are.": "OVVO gebruikt de positie van dit apparaat om in te vullen waar je bent.",
+  "Requesting…": "Bezig met vragen…",
+  "Allow location": "Locatie toestaan",
+  "Not now": "Niet nu",
+  "Sent once to OpenStreetMap to name the street. Not stored.": "Eén keer naar OpenStreetMap gestuurd om de straat te benoemen. Niet opgeslagen.",
+  "These preferences shape your search results: the planner respects them, the results list filters by them and the ordering changes with them.": "Deze voorkeuren bepalen je zoekresultaten: de planner respecteert ze, de resultatenlijst filtert erop en de volgorde verandert ermee.",
+  "See the results": "Bekijk de resultaten",
+  "No journey matches these preferences": "Geen reis voldoet aan deze voorkeuren",
+  "Plan a journey to preview these settings.": "Plan een reis om deze instellingen te bekijken.",
+  "Close": "Sluiten",
+  "Dismiss message": "Melding sluiten",
+  "OVVO home": "OVVO-startpagina",
+  "No departures right now": "Nu geen vertrekken",
+  "This stop has no departures in the current window.": "Deze halte heeft in dit venster geen vertrekken.",
+  "Alert for service {line}": "Storing voor dienst {line}",
+  "Plan a journey to {stop}": "Plan een reis naar {stop}",
+  "Show only the next departures": "Toon alleen de eerstvolgende vertrekken",
+  "{shown} of {total} departures in this window": "{shown} van {total} vertrekken in dit venster",
+  "This line has no departures left today at this stop.": "Deze lijn heeft vandaag geen vertrekken meer bij deze halte.",
+  "Route": "Route",
+  "Every saved search is removed from this browser. Pins, saved journeys and preferences stay as they are.": "Elke bewaarde zoekopdracht wordt uit deze browser verwijderd. Pinnen, bewaarde reizen en voorkeuren blijven zoals ze zijn.",
+  "Yes, delete them": "Ja, verwijder ze",
+  "Favourite this journey": "Markeer deze reis als favoriet",
+  "Departure board": "Vertrektijdenbord",
+  "Filters": "Filters",
+  "Service notice": "Dienstmededeling",
+  "Work on the line until 18:00 — add ten minutes.": "Werk aan de lijn tot 18:00 — reken tien minuten extra.",
+  "Planning your journey": "Je reis wordt gepland",
+  "When": "Wanneer",
+
+  /* -------------------------------------------------------------- the six widgets */
+  "Your commute": "Je woon-werkrit",
+  "The journey you take most, counted down: the next service and when to leave.": "De reis die je het vaakst maakt, afgeteld: de volgende rit en wanneer je weg moet.",
+  "Stops near you": "Haltes bij je in de buurt",
+  "The closest stops that have a board, how far they are, and when the next one leaves.": "De dichtstbijzijnde haltes met een bord, hoe ver ze zijn en wanneer de volgende gaat.",
+  "Facilities at your stations": "Voorzieningen op je stations",
+  "What each stop you hearted lists: facilities, bicycle parking, OV-fiets.": "Wat elke favoriete halte vermeldt: voorzieningen, fietsenstalling, OV-fiets.",
+  "What it costs": "Wat het kost",
+  "The quickest option and the cheapest one, with their fares, side by side.": "De snelste en de goedkoopste optie, met hun prijs naast elkaar.",
+  "Last service home": "Laatste rit naar huis",
+  "The last departures from the stop your saved journey starts at.": "De laatste vertrekken vanaf de halte waar je bewaarde reis begint.",
+  "A second departure board": "Een tweede vertrektijdenbord",
+  "Another station’s next departures, beside the first card.": "De volgende vertrekken van een ander station, naast de eerste kaart.",
+  "Heart the journey you take every morning and this card counts down to it.": "Markeer de reis die je elke ochtend maakt en deze kaart telt er naartoe af.",
+  "Next {time} · leave in {minutes} min": "Volgende {time} · over {minutes} min weg",
+  "Next {time} · leave now": "Volgende {time} · nu weg",
+  "No service left in this window today.": "Vandaag geen ritten meer in dit venster.",
+  "Turn on location and the stops around you appear here.": "Zet locatie aan en de haltes om je heen verschijnen hier.",
+  "Settings can turn location on; the card never invents where you are.": "In Instellingen zet je locatie aan; de kaart verzint nooit waar je bent.",
+  "Closest to your device location": "Dichtst bij je apparaatlocatie",
+  "Closest to an approximate IP location": "Dichtst bij een geschatte IP-locatie",
+  "next at {time}": "volgende om {time}",
+  "no departure in this window": "geen vertrek in dit venster",
+  "Heart a stop and its facilities are listed here.": "Markeer een halte en haar voorzieningen staan hier.",
+  "The heart on a stop card is the one that fills this card.": "Het hart op een haltekaart is wat deze kaart vult.",
+  "No facilities listed for this stop.": "Geen voorzieningen bekend voor deze halte.",
+  "Plan a journey and its fare appears here beside its time.": "Plan een reis en de prijs verschijnt hier naast de tijd.",
+  "Every result already carries a price; this card just puts the two next to each other.": "Elk resultaat heeft al een prijs; deze kaart zet ze alleen naast elkaar.",
+  "This search": "Deze zoekopdracht",
+  "Your saved journeys": "Je bewaarde reizen",
+  "Heart the journey home and this card knows its last service.": "Markeer de reis naar huis en deze kaart kent de laatste rit.",
+  "The last departures are read from the same board the departure screen draws.": "De laatste vertrekken komen van hetzelfde bord als op het vertrekscherm.",
+  "Last services from {stop}": "Laatste ritten vanaf {stop}",
+  "No late service from this stop in the data.": "Geen late rit vanaf deze halte in de gegevens.",
+  "Read at {time}, the same minute the board uses.": "Gelezen om {time}, dezelfde minuut die het bord gebruikt.",
 };
 
 const DICTIONARIES: Record<Language, Record<string, string>> = {

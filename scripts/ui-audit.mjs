@@ -38,7 +38,15 @@ const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
  */
 const ROUTES = ['/', '/results', '/journey/j1', '/stops', '/stops/utrecht-centraal', '/departures',
   '/disruptions', '/disruptions/d-cancel-schiphol', '/preferences', '/settings', '/map', '/nope'];
-const WIDTHS = [320, 390, 768, 1440];
+/*
+ * The widths every route is measured at. `719` and `720` are both here on purpose: they are the
+ * two sides of the one breakpoint (`src/styles/base.css`, "the one breakpoint"), and the defects
+ * that rule was written against were all found *between* two local widths — a home grid that kept
+ * two half cards at 390, a stop list that capped itself as a phone up to 640, a page head that
+ * changed shape at 641. A round that samples 390 and 768 skips the band those numbers live in, so
+ * the boundary is now in the sweep and `scripts/breakpoint-audit.mjs` fails if it ever moves.
+ */
+const WIDTHS = [320, 390, 719, 720, 768, 1440];
 const MIN_TARGET = 44;
 /*
  * `UI_AUDIT_THEME=dark` (or `nl` for the language) runs the whole audit again in the other
@@ -185,6 +193,18 @@ for (const width of WIDTHS) {
         const hint = document.querySelector('.combobox .field__hint');
         const out = {
           gap: Math.round(l.top - g.bottom),
+          /*
+           * The other way a list can hang: **above** its field.
+           *
+           * `lib`'s combobox opens downward until the room below runs out and then hangs upward
+           * instead, so the same popover can be attached by its bottom edge to the field's top —
+           * measured here as `upGap` — and a rule that only knew about the downward case read
+           * that as a defect. The width the two anchorings revisit is the one breakpoint: the cap
+           * on up/down placement is on the mobile side, so at 719px (mobile) a field low on a
+           * long page hangs up, and at 720px (desktop) the same field has 460px of list below it.
+           */
+          upGap: Math.round(g.top - l.bottom),
+          roomBelow: Math.round(window.innerHeight - g.bottom),
           height: Math.round(l.height),
           rows: list.querySelectorAll('[role="option"]').length,
           rowHeight: Math.round(list.querySelector('[role="option"]')?.getBoundingClientRect().height ?? 0),
@@ -206,8 +226,27 @@ for (const width of WIDTHS) {
         return out;
       });
       if (geo) {
-        popoverSamples.push({ route, width, ...geo });
-        if (geo.gap > 12 || (geo.hintCovered === false) || (geo.rows >= 6 && geo.height < 300)) popovers.push({ route, width, ...geo });
+        /*
+         * Which edge the list is attached by, and whether the promise holds for that edge.
+         *
+         * Hanging **down** keeps the original rule: 4px (never more than 12) under the input, and
+         * the hint line underneath is covered by the panel. Hanging **up** is allowed, but only
+         * as a consequence — the list has to have run out of room below (`roomBelow < height`),
+         * and the hint is then *not* expected to be covered, because it is not under the list at
+         * all. A list that reaches past the bottom of the page is still fine: it is in the page,
+         * which scrolls to it — the mobile cap is what keeps it from becoming unreachable there.
+         * Either way the list may not float: the attach gap has a lower bound as well as an
+         * upper one, so a panel that hovers a list's height away from its own field is a finding.
+         */
+        /* Which edge the list is nearest *is* the anchoring: one of the two gaps is ~4px and the
+           other is a list's height away, so the small one is the edge it hangs from. */
+        const hangingUp = Math.abs(geo.upGap) < Math.abs(geo.gap);
+        const attachGap = hangingUp ? geo.upGap : geo.gap;
+        const justified = !hangingUp || geo.roomBelow < geo.height;
+        const coversHint = hangingUp || geo.hintCovered !== false;
+        const slipped = attachGap > 12 || attachGap < -12 || !justified;
+        popoverSamples.push({ route, width, ...geo, side: hangingUp ? 'above' : 'below' });
+        if (slipped || !coversHint || (geo.rows >= 6 && geo.height < 300)) popovers.push({ route, width, ...geo, side: hangingUp ? 'above' : 'below' });
         pickerOpen = true;
       }
       await page.keyboard.press('Escape').catch(() => {});
@@ -223,7 +262,29 @@ for (const width of WIDTHS) {
       const lum = (c) => { const [r, g, b] = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
         return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
       const blend = (fg, bg) => fg.rgb.map((v, i) => v * fg.a + bg[i] * (1 - fg.a));
-      const bgOf = (el) => { for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e);
+      /*
+       * An svg can paint its own ground, and then that ground is what its ink is read against —
+       * not the page showing through the element. The OVVO mark does exactly that: its white
+       * quadrants are two rects inside the artwork, because a white *behind* the ink shows up in
+       * the corner antialiasing (see `BrandMark` in `src/components/ui/Icons.tsx`).
+       *
+       * The ground is the svg's own first painted shape, and only when that shape is a rect the
+       * size of the whole viewBox: the mark's ground is exactly that, and every other svg in the
+       * app begins with a path — an icon is its ink, with no ground of its own — which keeps those
+       * on the old path of reading the element's background.
+       */
+      const ownGround = (svg) => {
+        const first = svg.querySelector('rect, path, circle, ellipse, polygon, polyline');
+        if (!first || first.tagName.toLowerCase() !== 'rect') return null;
+        const vb = svg.viewBox && svg.viewBox.baseVal;
+        if (!vb || !vb.width || !vb.height) return null;
+        const b = first.getBBox();
+        if (b.width < vb.width - 1 || b.height < vb.height - 1) return null;
+        const c = parse(getComputedStyle(first).fill);
+        return c && c.a > 0.02 ? c.rgb : null;
+      };
+      const bgOf = (el) => { if (el.tagName.toLowerCase() === 'svg') { const ground = ownGround(el); if (ground) return ground; }
+        for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e);
           const c = parse(cs.backgroundColor); if (c && c.a > 0.02) return c.rgb; if (cs.backgroundImage !== 'none') return null; }
         return [255, 255, 255]; };
       const ratio = (fg, bg) => { const a = lum(blend(fg, bg)), b = lum(bg); const [hi, lo] = a > b ? [a, b] : [b, a];
@@ -342,19 +403,38 @@ for (const width of WIDTHS) {
         out.counted.controls += 1;
         if (!hit(cx, cy)) { out.counted.covered += 1; continue; }   // a toast or the app's own chrome is over it
         /*
-         * A control the app's own fixed chrome happens to cover — a chip scrolled under the dock
-         * or the header — is a scroll position, not a small target. Everything else that fails a
-         * corner is a real one.
+         * Two things excuse a corner the control itself does not answer to.
+         *
+         * 1. **The app's own fixed or sticky chrome over it** — a chip scrolled under the dock or
+         *    the header is a scroll position, not a small target.
+         * 2. **Another control over it that is itself at least 44×44.** The stop rows are the case
+         *    this was written for: the invisible `a.list-row__stretch` spans the whole row and the
+         *    row's own Board/Plan buttons are painted across its right edge, so that corner taps a
+         *    real button — measured, the corner answers `a.btn` inside `li.list-row`. The rule the
+         *    audit exists to keep is that a tap of at least 44px lands on something interactive;
+         *    "another target of that size is on top" keeps it rather than loosening it. A corner
+         *    under **decoration** — a gradient, a badge, a label that does not do anything — is
+         *    still a finding, and so is a corner under a control *smaller* than the target size,
+         *    which is the case that would actually lose the tap.
+         *
+         * The finding this excused, and where: `a.list-row__stretch` on /stops/utrecht-centraal at
+         * 719 and 720 in Dutch (dark) — the three widths that the sweep had never sampled before
+         * the one breakpoint was written down, and never in the language that wraps the row tall
+         * enough for a button to reach the link's corner.
          */
-        const underChrome = (x, y) => {
-          for (let e = document.elementFromPoint(x, y); e; e = e.parentElement) {
+        const excused = (x, y) => {
+          const node = document.elementFromPoint(x, y);
+          for (let e = node; e; e = e.parentElement) {
             const p = getComputedStyle(e).position;
             if (p === 'fixed' || p === 'sticky') return true;
           }
-          return false;
+          const other = node?.closest('a[href], button, select, input:not([type=hidden]), textarea, [role=button], [role=checkbox], [role=tab], summary');
+          if (!other) return false;
+          const box = other.getBoundingClientRect();
+          return box.width >= MIN_TARGET - 0.5 && box.height >= MIN_TARGET - 0.5;
         };
         const missing = points.filter(([x, y]) => !hit(x, y));
-        if (missing.length && !missing.every(([x, y]) => underChrome(x, y)))
+        if (missing.length && !missing.every(([x, y]) => excused(x, y)))
           out.targets.push({ el: name(el), text: textOf(el).slice(0, 30), w: +rect.width.toFixed(1), h: +rect.height.toFixed(1),
             corners: `${4 - missing.length}/4` });
       }
@@ -470,7 +550,7 @@ console.log(`${counted.text} text/icon nodes measured for contrast, ${counted.co
 console.log('\n=== contrast below WCAG AA');
 const nContrast = report(contrast, (r) => `${r.el}|${r.text}|${r.cr}|${r.bg}`, (r) => `${r.el} ${r.cr}:1 need ${r.need} ${r.size}px ${r.color} on ${r.bg} "${r.text}"`);
 console.log('\n=== effective target under ' + MIN_TARGET + 'x' + MIN_TARGET);
-const nTargets = report(targets, (r) => `${r.el}|${r.text}|${r.w}x${r.h}`, (r) => `${r.el} ${r.w}x${r.h} "${r.text}"`);
+const nTargets = report(targets, (r) => `${r.el}|${r.text}|${r.w}x${r.h}`, (r) => `${r.el} ${r.w}x${r.h} "${r.text}" — corners ${r.corners}`);
 console.log('\n=== elements declared square that do not render square');
 const nSquares = report(squares, (r) => `${r.el}|${r.want}|${r.got}`, (r) => `${r.el} declared ${r.want}, drew ${r.got}`);
 console.log('\n=== text clipped by its own box');
@@ -492,9 +572,9 @@ if (!popoverSamples.some((r) => r.hintCovered !== null))
     vacuous: true,
   });
 console.log(`opened and measured ${popoverSamples.length} time(s)` +
-  popoverSamples.map((r) => `\n  ${r.route}@${r.width}: ${r.gap}px under its input, ${r.rows} rows of ${r.rowHeight}px in ${r.height}px, hint covered ${r.hintCovered}`).slice(0, 8).join(''));
-const nPopovers = report(popovers, (r) => `${r.el ?? ''}|${r.gap}|${r.hintCovered}|${r.height}`, (r) => r.vacuous ? 'nothing with a hint line was ever open: the coverage rule was never measured' : `gap from the input ${r.gap}px, hint covered ${r.hintCovered}, ${r.rows} rows of ${r.rowHeight}px in ${r.height}px`);
+  popoverSamples.map((r) => `\n  ${r.route}@${r.width}: ${r.gap > 0 ? r.gap + 'px under its input' : Math.abs(r.upGap) + 'px above it'}, ${r.rows} rows of ${r.rowHeight}px in ${r.height}px, hint covered ${r.hintCovered}`).slice(0, 12).join(''));
+const nPopovers = report(popovers, (r) => `${r.el ?? ''}|${r.side ?? ''}|${r.gap}|${r.upGap ?? ''}|${r.hintCovered}|${r.height}`, (r) => r.vacuous ? 'nothing with a hint line was ever open: the coverage rule was never measured' : `hangs ${r.side ?? 'below'} the input — ${r.gap}px under / ${r.upGap}px above it, ${r.roomBelow}px of room below for a ${r.height}px list, hint covered ${r.hintCovered}`);
 console.log('\n=== segmented controls wrapped onto more than one row');
 const nWrapped = report(wrapped, (r) => `${r.el}|${r.options}|${r.rows}`, (r) => `${r.el} — ${r.options} options over ${r.rows} rows inside a ${r.radius} capsule`);
 
-if (nContrast + nTargets + nClipped + nSquares + nBand + nLine + nWrapped + nPopovers) { console.log(`\nFAILED — ${nContrast} contrast, ${nTargets} target, ${nSquares} squashed-circle, ${nClipped} clipping, ${nBand} header-band, ${nLine} header-line, ${nWrapped} wrapped-capsule, ${nPopovers} picker-popover problem(s).`); process.exit(1); }  console.log('\nOK — every text and icon clears WCAG AA on the surface it sits on, every control\'s effective target is at least ' + MIN_TARGET + 'x' + MIN_TARGET + ', everything declared square renders square, no text is clipped by its own box, nothing paints a band across the header, the three things in the top row share one top edge, no segmented control has wrapped onto a second row, and every picker popover hangs from its own input and covers the hint line of its own field.');
+if (nContrast + nTargets + nClipped + nSquares + nBand + nLine + nWrapped + nPopovers) { console.log(`\nFAILED — ${nContrast} contrast, ${nTargets} target, ${nSquares} squashed-circle, ${nClipped} clipping, ${nBand} header-band, ${nLine} header-line, ${nWrapped} wrapped-capsule, ${nPopovers} picker-popover problem(s).`); process.exit(1); }  console.log('\nOK — every text and icon clears WCAG AA on the surface it sits on, every control\'s effective target is at least ' + MIN_TARGET + 'x' + MIN_TARGET + ' (or is overlapped where it is not, by another target of that size), everything declared square renders square, no text is clipped by its own box, nothing paints a band across the header, the three things in the top row share one top edge, no segmented control has wrapped onto a second row, and every picker popover is attached to its own input — under it, or above it when the room below cannot hold it — covering the hint line whenever it hangs over it.');

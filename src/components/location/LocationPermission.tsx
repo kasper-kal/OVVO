@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../state/AppState';
 import { Button, Dialog } from '../ui/primitives';
+import { useT } from '../../lib/useT';
 
 /**
  * Asked once, on the very first open.
@@ -11,6 +12,7 @@ import { Button, Dialog } from '../ui/primitives';
  */
 export function LocationPermission() {
   const { locationConsent, setLocationConsent, requestLocation, pushToast } = useApp();
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
   if (locationConsent !== 'unknown') return null;
@@ -29,22 +31,22 @@ export function LocationPermission() {
   return (
     <Dialog
       open
-      title="Use your location?"
-      description="OVVO uses this device's position to fill in where you are."
+      title={t('Use your location?')}
+      description={t("OVVO uses this device's position to fill in where you are.")}
       onClose={() => setLocationConsent('denied')}
       footer={
         <>
           <Button variant="primary" icon="location" onClick={allow} disabled={busy}>
-            {busy ? 'Requesting…' : 'Allow location'}
+            {busy ? t('Requesting…') : t('Allow location')}
           </Button>
           <Button variant="ghost" onClick={() => setLocationConsent('denied')}>
-            Not now
+            {t('Not now')}
           </Button>
         </>
       }
     >
       {/* One line, and the two facts that have to be said: where it goes, and that it is kept nowhere. */}
-      <p className="t-sm t-muted">Sent once to OpenStreetMap to name the street. Not stored.</p>
+      <p className="t-sm t-muted">{t('Sent once to OpenStreetMap to name the street. Not stored.')}</p>
     </Dialog>
   );
 }

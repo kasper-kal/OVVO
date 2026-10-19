@@ -197,7 +197,6 @@ export function DeparturesPage() {
           </div>
           <BoardList
             departures={lineBoard}
-            limit={8}
             emptyHint={t('This line has no departures left today at this stop.')}
           />
         </Card>
@@ -255,9 +254,12 @@ export function DeparturesPage() {
         />
       </div>
 
+      {/* Every list screen draws its own name (MATCHING_PLAN rule 5): a phone has no menu on
+          screen, and the traveller arriving from a link has to be told where they are. */}
       <PageHeader
         title={t('Departure boards')}
         description={t('Every stop you pin, one board each.')}
+        showTitle
       />
 
       {/*
@@ -267,6 +269,13 @@ export function DeparturesPage() {
         empty state below is a signpost to this field, not a second picker.
       */}
       <Card hero className="stack">
+        {/*
+          The first slot of the filter row (MATCHING_PLAN rule 1): on this screen the control
+          that *is* the search is the stop field — the board's list is chosen by naming a stop.
+          It wears the same row class as the stops list and the alerts list, so the row starts in
+          the same place on every screen. There is no sort (a board is in time order by its own
+          nature) and no Options chip, because nothing here hides behind one.
+        */}
         {/*
          * One heading shorter than it was, and no line that says nothing.
          *
@@ -287,15 +296,17 @@ export function DeparturesPage() {
                 : t('{count} stops pinned to the board', { count: pinnedStops.length })}
           </span>
         ) : null}
-        <StopCombobox
-          id="board-stop"
-          label={t('Add a stop to the board')}
-          value={fieldStop}
-          onSelect={(next) => next && changeStop(next)}
-          placeholder={t('Search a station or stop')}
-          filter={hasBoard}
-          emptyHint={t('Only a station or stop has a departure board.')}
-        />
+        <div className="stops-filters" data-filter-row>
+          <StopCombobox
+            id="board-stop"
+            label={t('Add a stop to the board')}
+            value={fieldStop}
+            onSelect={(next) => next && changeStop(next)}
+            placeholder={t('Search a station or stop')}
+            filter={hasBoard}
+            emptyHint={t('Only a station or stop has a departure board.')}
+          />
+        </div>
       </Card>
 
       {boards.length === 0 ? (
@@ -373,7 +384,7 @@ export function DeparturesPage() {
             </span>
           </div>
 
-          <BoardList departures={departures} limit={6} />
+          <BoardList departures={departures} />
 
           {alerts.length ? (
             <Link to={`/disruptions?stop=${stop.id}`} className="row t-sm tap-target board-alerts">

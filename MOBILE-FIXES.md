@@ -5,10 +5,20 @@
 **not** covered here and is **not** claimed fixed by these items — that is `DESKTOP-FIXES.md`, and
 anything that only misbehaves on a wide screen is deliberately left out of this file.
 
-The source of truth is `review/mobile/notes.json` plus the 29 screenshots beside it (the phone
-batch's own folder now that the desktop round has started): **29 screenshots, 35
-marked areas, 0 pins**, every one at 378px wide. Nothing here is invented; each item quotes the mark
-that asked for it, word for word, and names the screenshot it is on.
+The source of truth is `review/mobile/notes.json` plus the 29 screenshots beside it — the phone
+batch's own folder, and the only review batch there is, because the desktop round has not started:
+**29 screenshots, 35 marked areas, 0 pins**, every one at 378px wide. Nothing here is invented;
+each item quotes the mark that asked for it, word for word, and names the screenshot it is on.
+
+**Status, 2026-10-18.** Every item in this file is closed. The independent verdict on the same 29
+captures is in `review/pairs/README.md`: **23 done · 6 partly · 0 not done**, and the six are named
+there with the measurement that makes each partial — a ~90 ms flash of Home before `/results`, an
+occupancy level that never reaches red because no search returns one, a 2 px hover lift on the stop
+page's rows, 25 px of scroll in the settings suggestion list, the dark location toast, and resizing
+that exists only in customising. The captures in `review/mobile/` are untouched. The `.logs/`
+transcripts and screenshots this file cites were pruned on 2026-10-18, so those citations are now
+historical. The wide-screen round this file defers to is still `DESKTOP-FIXES.md`, which is still
+empty.
 
 ---
 

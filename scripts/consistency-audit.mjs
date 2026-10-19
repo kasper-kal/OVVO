@@ -83,14 +83,29 @@ try {
  */
 const ACTION_RULES = [
   [/^(un)?pin\b/, 'pin a stop'],
-  [/^back\b|^all alerts$/, 'go back'],
+  /*
+   * "Go back" is the shell's arrow and the labelled return links that do the same thing. `All
+   * alerts` used to be glued to this group by name alone, which made the alerts widget's link out
+   * to the full list look like a second way of going back: it goes *forward* to a list, from a card
+   * to the screen that owns it. It is not this function, so it is left to its own name.
+   */
+  [/^back\b/, 'go back'],
   /* Two different destinations: a journey on the map, and the map itself. */
   [/^network map$/, 'show the network map'],
   [/^(show on map|show this stop|choose on the map)$/, 'show on the map'],
   [/^(plan|from here|to here)\b/, 'plan a journey'],
   [/^(more|open the full board|departure boards?|board)$/, 'open the board'],
-  /* Destructive, and its own function: five `×` controls clear something; this one erases. */
-  [/^(remove|delete)\b/, 'remove stored data'],
+  /*
+   * Destructive, and its own function: five `×` controls clear something; this one erases.
+   *
+   * The negative lookaheads are the second artefact this gate grew: `Remove {stop} from
+   * favourites` is a **heart** (it takes one stop out of a list the traveller keeps) and
+   * `Delete {from} to {to} from your saved searches` is the `×` on one saved row. Grouping either
+   * with `Remove all stored data` compared a toggle with the button that erases the app, and
+   * reported four signatures for one action. They are not destructive in that sense, so they keep
+   * their own names rather than joining a group that would libel them.
+   */
+  [/^(remove|delete)\b(?!.*\bfavourites?\b)(?!.*\bsaved searches?\b)/, 'remove stored data'],
   /*
    * Three functions, three actions. Round 16 split `dismiss` off from the destructive
    * `Remove all stored data`; this round splits what was left, because the two ends of the group
@@ -380,7 +395,7 @@ await context.addInitScript(
     window.localStorage.setItem('ov-planner:v1:favourites', JSON.stringify(pins));
     window.localStorage.setItem('ov-planner:v1:home-widgets', JSON.stringify(widgets));
   },
-  [STORAGE, ['haarlem', 'zaandam'], ['planner', 'pinned-stops', 'alerts-at-pins', 'next-departures', 'quick-actions']],
+  [STORAGE, ['haarlem', 'zaandam'], ['planner', 'pinned-stops', 'alerts-at-pins', 'next-departures', 'your-journeys']],
 );
 const page = await context.newPage();
 const errors = [];

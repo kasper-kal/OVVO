@@ -16,6 +16,7 @@ export function FullScreen({
   right,
   children,
   label,
+  flush = false,
 }: {
   title: string;
   onClose: () => void;
@@ -24,6 +25,14 @@ export function FullScreen({
   children: ReactNode;
   /** Announced name when the visible title is not enough. */
   label?: string;
+  /**
+   * The body does not scroll and carries no padding: the screen's child owns every pixel.
+   *
+   * The picture screens need this — a photograph that can be dragged and a loupe that follows a
+   * pointer cannot live inside a scroller, where a finger moving over them would pan the page
+   * instead of a picture. A plain document-shaped screen (the colour picker) keeps the default.
+   */
+  flush?: boolean;
 }) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -34,7 +43,12 @@ export function FullScreen({
   }, [onClose]);
 
   return (
-    <div className="fullscreen" role="dialog" aria-modal="true" aria-label={label ?? title}>
+    <div
+      className={`fullscreen${flush ? ' fullscreen--flush' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={label ?? title}
+    >
       <div className="fullscreen__bar">
         {/* `back-arrow` is the app's one back-control shape (see the stylesheet); this bar is
             where that shape came from, and `fullscreen__back` only places it in the grid. */}

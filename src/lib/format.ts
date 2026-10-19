@@ -7,6 +7,30 @@ export function pad(value: number): string {
 }
 
 /** "14:05" (24-hour) or "2:05 pm" (12-hour) depending on the user setting. */
+/**
+ * A minutes-since-midnight time in the one form a native `<input type="time">` accepts: 24-hour
+ * `HH:MM`, whatever the app's clock setting says.
+ *
+ * The field's *value* is a machine value; how it is *drawn* is the operating system's business
+ * (that is what choosing the device's own picker means). The app-format reading of the same
+ * answer is kept beside the field, so "14:05" and "2:05 pm" never contradict each other — see
+ * the When dialog.
+ */
+export function timeInputValue(minutes: number): string {
+  const normalised = Math.max(0, Math.min(23 * 60 + 59, Math.round(minutes)));
+  return `${pad(Math.floor(normalised / 60))}:${pad(normalised % 60)}`;
+}
+
+/** `HH:MM` from a time field back to minutes, or null when the field was cleared or is invalid. */
+export function parseTimeInput(value: string): number | null {
+  const match = value.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
 export function formatMinutes(minutes: number, hour12 = false): string {
   const normalised = ((Math.round(minutes) % 1440) + 1440) % 1440;
   const h = Math.floor(normalised / 60);

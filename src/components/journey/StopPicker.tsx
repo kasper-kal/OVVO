@@ -14,6 +14,7 @@ import {
 import { stopTypeLabel } from '../../lib/format';
 import { rankStops } from '../../lib/stopSearch';
 import { ADDRESS_ATTRIBUTION, reverseGeocode } from '../../lib/reverseGeocode';
+import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import { FullScreen } from '../ui/FullScreen';
 import { Button, IconButton } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
@@ -70,7 +71,12 @@ export function StopPicker({
   fromLabel?: string;
   toLabel?: string;
   error?: string;
-  onPick: (side: Side, stop: Stop, label?: string) => void;
+  /**
+   * `label` is what the traveller was shown for this end when that is not the stop's own name
+   * (an address), and `accessMetres` is how far that place is from the stop — the distance that
+   * makes it a place rather than the station it sits nearest (see `planAccessJourney`).
+   */
+  onPick: (side: Side, stop: Stop, label?: string, accessMetres?: number) => void;
   onClear: (side: Side) => void;
   onReverse: () => void;
   onOpenMap: (side: Side) => void;
@@ -107,7 +113,7 @@ export function StopPicker({
   }, []);
 
   const query = queries[active];
-  const suggestions = rankStops(query, favouriteStopIds);
+  const suggestions = rankStops(query, favouriteStopIds, { origin: nearestOrigin });
   /* The traveller's own favourites, in the order they hearted them. */
   const favouriteStops = useMemo(
     () => favouriteStopIds.map((stopId) => getStop(stopId)).filter((stop): stop is Stop => Boolean(stop)),
@@ -135,8 +141,6 @@ export function StopPicker({
       .sort((a, b) => a.metres - b.metres)
       .slice(0, CLOSEST_LIMIT);
   }, [nearestOrigin, favouriteStopIds]);
-  /* What the panel falls back to when it has no position at all: the familiar big stations. */
-  const popularStops = useMemo(() => rankStops('', []), []);
   /*
    * Each field starts holding the stop that is already chosen in it, so its query is not
    * empty when the screen opens — and the two action rows used to be drawn only for an
@@ -219,12 +223,22 @@ export function StopPicker({
    * One end answered. `label` is what the traveller was shown for it when that is not the
    * stop's own name — today only a device position, which reads as a street address.
    */
-  const choose = (stop: Stop, label?: string) => {
-    onPick(active, stop, label);
+  const choose = (stop: Stop, label?: string, accessMetres?: number) => {
+    onPick(active, stop, label, accessMetres);
     setQueries((current) => ({ ...current, [active]: label ?? stopLabel(stop.id) }));
     const other: Side = active === 'from' ? 'to' : 'from';
     const otherValue = other === 'from' ? from : to;
-    if (!otherValue) focusSide(other);
+    if (!otherValue) {
+      /* One end is still missing, so the field for it takes the keyboard straight away — this
+         panel stays open on purpose, and the next thing the traveller does is type. */
+      focusSide(other);
+      return;
+    }
+    /*
+     * Both ends answered: the sheet is closing and the search runs, so the keyboard has nothing
+     * left to type into. Left up, it sat over the results the pair had just asked for.
+     */
+    dismissKeyboard();
   };
 
   const clearSide = (which: Side) => {
@@ -270,8 +284,11 @@ export function StopPicker({
       const address = await reverseGeocode(fix);
       /* No toast: the row fills with the address (the traveller's own example of a message
          repeating what the control had already said). The nearest stop it was planned from is
-         the stop the results are built from, and the distance to it is on every walk leg. */
-      choose(match.stop, address ?? undefined);
+         the stop the results are built from, and the distance to it travels with the answer:
+         when that stop is also the destination, that distance *is* the journey. */
+      /* Ten-metre steps: the figure is a straight line from a GPS fix, not a route, so the metre
+         it happens to land on says more precision than the measurement has. */
+      choose(match.stop, address ?? undefined, Math.round(match.metres / 10) * 10);
     })()
       .catch((thrown: unknown) => {
         pushToast(thrown instanceof Error ? thrown.message : 'Location is unavailable right now', 'warning');
@@ -458,13 +475,13 @@ export function StopPicker({
                 </p>
               </>
             ) : approximateLocationPending ? null : (
-              <>
-                <p className="picker__section">{t('Popular stops')}</p>
-                <ul className="picker__list">
-                  {popularStops.map((stop) => stopRow(stop, searchMeta(stop)))}
-                </ul>
-                <p className="t-sm t-faint stops-origin">{t('Turn on location to see what is closest.')}</p>
-              </>
+              /*
+                No fallback list of big stations: an empty field is the traveller's own
+                favourites followed by the **closest** stops, and with no location there is
+                nothing to measure "closest" from (MATCHING_PLAN rule 2 — the hard-coded
+                shortlist is retired). The line says what is missing and how to get it.
+              */
+              <p className="t-sm t-faint stops-origin">{t('Turn on location to see what is closest.')}</p>
             )}
           </div>
         )}

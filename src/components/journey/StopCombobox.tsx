@@ -3,6 +3,7 @@ import { useApp } from '../../state/AppState';
 import { customStopName, stopLabel } from '../../data/stops';
 import { modeLabel } from '../../data/preferences';
 import { rankStops } from '../../lib/stopSearch';
+import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { Pill } from '../ui/primitives';
 import type { Stop } from '../../data/types';
@@ -57,7 +58,7 @@ export function StopCombobox({
   filter,
   emptyHint,
 }: Props) {
-  const { favouriteStopIds } = useApp();
+  const { favouriteStopIds, nearestOrigin } = useApp();
   const [query, setQuery] = useState(value ? stopLabel(value.id) : '');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -97,15 +98,31 @@ export function StopCombobox({
     const measure = () => {
       const field = rootRef.current?.querySelector('.combobox__field');
       if (!field) return;
-      /* Phones only: the round is a phone round, and a wide screen has the height to spare. */
-      if (!window.matchMedia('(max-width: 640px)').matches) {
+      /*
+       * Mobile mode only, on the stylesheet's one breakpoint (`base.css`, "the one breakpoint"):
+       * below 720 the list is capped to the room under the field, above it there is height to
+       * spare. This used to say 640, a fourth width of its own, so a 700px window got the phone
+       * list inside the desktop page — the kind of half-treated width the breakpoint rule exists
+       * to stop.
+       */
+      if (!window.matchMedia('(max-width: 719px)').matches) {
         setCap({ max: 460, up: false });
         return;
       }
       const box = field.getBoundingClientRect();
       const below = window.innerHeight - box.bottom - 12;
       const above = box.top - 12;
-      const up = below < 200 && above > below;
+      /*
+       * Hang upwards until the whole list fits, not only until the room below is small.
+       *
+       * The old test (`below < 200`) let a field with 327px beneath it draw a 327px list whose
+       * content was 352px: the list itself ran out of the viewport, and scrolling it moved 25px
+       * with the last row still out of reach (the settings screen's picker). Compare the room
+       * with the height a full list wants instead, so a list that would be cut moves above the
+       * field where the room is.
+       */
+      const wanted = 352;
+      const up = below < Math.min(460, wanted) && above > below;
       setCap({ max: Math.max(160, Math.min(460, up ? above : below)), up });
     };
     measure();
@@ -147,9 +164,9 @@ export function StopCombobox({
   }, [open]);
 
   const suggestions = useMemo(() => {
-    const ranked = rankStops(query, favouriteStopIds);
+    const ranked = rankStops(query, favouriteStopIds, { origin: nearestOrigin });
     return filter ? ranked.filter(filter) : ranked;
-  }, [query, favouriteStopIds, filter]);
+  }, [query, favouriteStopIds, filter, nearestOrigin]);
 
   /*
    * The stop whose code and modes are shown in the hint line under the field.
@@ -173,6 +190,12 @@ export function StopCombobox({
     onSelect(stop);
     setQuery(stop ? stopLabel(stop.id) : '');
     setOpen(false);
+    /*
+     * A stop has been chosen, so the field has finished its job and the phone's keyboard goes
+     * with it — otherwise it stays up over the board the stop just opened. Clearing the field
+     * (`commit(null)`, the ×) is not that moment: there the caller puts focus back to type again.
+     */
+    if (stop) dismissKeyboard();
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {

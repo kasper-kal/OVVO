@@ -7,7 +7,10 @@
 #
 #   ./scripts/dev-preview.sh pv-<id>.style.dev
 #
-# Preview hostname changes after a restore — re-run with the current one.
+# Preview hostname changes after a restore — re-run with the current one, or pin it once in
+# `.env.local` (`PREVIEW_HOST=pv-<id>.style.dev`, ignored by git) and use plain `npm run dev`:
+# `vite.config.ts` reads that file too. This script keeps working for a one-off launch without
+# touching the file, and it wins over it because the environment is checked first.
 #
 # REVIEW_BATCH=<name> chooses which folder under review/ the review dot saves into
 # (default: desktop; REVIEW_BATCH=mobile writes to the archived phone batch).

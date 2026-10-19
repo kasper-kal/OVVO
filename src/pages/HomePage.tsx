@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import { Button, Card, Dialog, IconButton, Panel } from '../components/ui/primitives';
+import { Button, Card, Dialog } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
-import { WIDGETS, WIDGET_CATEGORIES, WidgetTierContext, widgetById } from '../widgets/registry';
-import type { WidgetSize, WidgetTier, WidgetWidth } from '../state/types';
+import { WIDGETS, WIDGET_CATEGORIES, widgetById } from '../widgets/registry';
 import { NETWORK } from '../data/network';
 import { DISRUPTIONS } from '../data/disruptions';
 import { STOPS } from '../data/stops';
@@ -19,24 +18,21 @@ const HOLD_MS = 1000;
 /** How long before the hold becomes deliberate enough to say so on screen. */
 const HOLD_HINT_MS = 350;
 
-/**
- * The four widths, smallest first — the ladder the corner walks.
+/*
+ * **There is no resizing.**
  *
- * Whether a card may take one of them is its own business: each widget declares a `resizeFrom`
- * device width, and below that it is drawn full width at its default height. The stored value is
- * never rewritten by the window, so a size chosen on a laptop is waiting when the card is next
- * shown on one.
+ * A card is the width its widget declares (`span` — 4, 6, 8 or 12 columns) and as tall as its own
+ * content, at every width and in both appearances. That is how the home screen looked before the
+ * size tiers arrived, and it is the shape a home screen wants: a row is filled by the cards whose
+ * spans add up to twelve, so nothing has to be negotiated to put three cards side by side.
+ *
+ * The corner handle, the four widths, the three heights, the stored `widget-sizes` and the menu's
+ * *Match sizes* row are gone with it. On a phone the corner was the wrong thing to offer at all — a
+ * finger on a card is for dragging it — and on a wide screen a card resized out of its span was the
+ * reason a row would not fill: the map, the tallest card in the catalogue, is the one that most
+ * often left a hole beside it, because a neighbouring card could not be made to fit it. Every card
+ * now draws the middle of what it can hold, which is what it did before the sizes existed.
  */
-const WIDTHS: WidgetWidth[] = [4, 6, 8, 12];
-
-/** Every tier, smallest first. Every widget offers all three; they differ in what a tier shows. */
-const TIERS: WidgetTier[] = ['compact', 'standard', 'tall'];
-
-/** How far the corner travels before the card shows one more row (the content threshold). */
-const TIER_STEP_PX = 56;
-
-/** The tier names, in the dictionary's own words — used only for the screen-reader announcement. */
-const TIER_LABEL: Record<WidgetTier, string> = { compact: 'Compact', standard: 'Standard', tall: 'Tall' };
 
 /** A press that moves further than this is a scroll, not a hold. */
 const HOLD_SLOP_PX = 12;
@@ -44,6 +40,28 @@ const HOLD_SLOP_PX = 12;
 /** A press that moves further than this is a drag, not a tap on a widget. */
 const DRAG_SLOP_PX = 8;
 
+/** The gap between the screen's edge and the layout menu — the header's own 12px padding. */
+const MENU_STEP = 12;
+
+/**
+ * **The press lock.**
+ *
+ * On a phone, holding still with a finger down for about half a second is how a page starts a *text
+ * selection* — and on iOS that selection, its callout and its magnifier take the press away from
+ * anything the page was counting: the hold would reach a second with the pointer already cancelled
+ * (reported: "holding the home screen doesn't work on mobile, it just selects text instead").
+ *
+ * So while a press on the home screen is running, the shell cannot be selected at all: the flag is
+ * on `<html>`, the stylesheet locks `.app-shell` (see `components.css`), and a `selectstart` inside
+ * that press is refused outright. It is removed the moment the press ends — a cancelled press, a
+ * scroll, the release, or the second the mode opens — so selecting text on this page is only ever
+ * refused while a hold is in flight, never afterwards.
+ */
+function lockPress(locked: boolean) {
+  const root = document.documentElement;
+  if (locked) root.setAttribute('data-home-press', '');
+  else root.removeAttribute('data-home-press');
+}
 /**
  * What a press must *not* land on to count as "the home screen itself": controls do their own
  * thing on press, and a widget is content rather than the surface — holding a widget must not
@@ -57,24 +75,51 @@ const NO_PRESS =
  *
  * Layout is a 12-column grid — widgets declare a span of 4, 6, 8 or 12 and
  * collapse to a single column on narrow screens. Customising is deliberately
- * quiet: one small control at the foot turns on a mode in which every widget
- * shows the same remove button in the same place, the catalogue ("Add widget")
- * becomes reachable, and each widget can be **dragged into a new slot**.
+ * quiet: **Edit** in the header's first corner turns on a mode in which every
+ * widget shows the same remove button in the same place, the catalogue ("Add
+ * widget") becomes reachable from the `+` beside it, and each widget can be
+ * **dragged into a new slot**.
  *
- * There are two ways in, because a control at the foot of a 2400px page is not
- * a way in at all on a phone: press the control, or **press and hold the home
- * screen itself for one second** — the gesture a phone's home screen uses, and
- * the one that was asked for. The hold is measured on the surface (the page
- * around and between widgets), not on what is drawn on it, so holding a widget
- * does nothing at all.
+ * There are two ways in, because a phone's home screen offers both: the Edit
+ * pill, or **press and hold the home screen itself for one second** — the
+ * gesture a phone's home screen uses, and the one that was asked for. The hold
+ * starts on the page *and on the cards* (see `isHoldSurface`), because this
+ * screen is almost all cards; what it will not start on is a control, and a
+ * press that moves is a scroll or a drag rather than a hold. On touch devices
+ * the press also locks text selection while it runs, or the browser's own
+ * half-second selection would take the gesture away (`lockPress`).
  */
 export function HomePage() {
-  const { homeWidgets, addHomeWidget, removeHomeWidget, moveHomeWidget, resetHomeWidgets, widgetSizes, setWidgetSize } =
-    useApp();
+  const {
+    homeWidgets,
+    addHomeWidget,
+    removeHomeWidget,
+    moveHomeWidget,
+    resetHomeWidgets,
+    /*
+     * The mode and its menu live in the store, because their controls are in the shell's header:
+     * `+` where the way back goes and `Done` where the alerts entry is (see `AppShell`).
+     */
+    homeEditing: editing,
+    setHomeEditing: setEditing,
+    homeMenuOpen,
+    setHomeMenuOpen,
+    power,
+  } = useApp();
   const t = useT();
   const [params] = useSearchParams();
-  const [editing, setEditing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  /*
+   * Where the layout menu hangs from.
+   *
+   * The trigger lives in the shell's header (`+`, in the first corner the keep it in), so this
+   * page cannot draw the menu next to it by layout: it reads the trigger's box once, when the
+   * menu opens, and pins the panel under it — the corner it drops from is the corner it belongs
+   * to, at any width. Nothing is measured while it is closed (`menuPos` is null), and the panel
+   * is not in the page at all, so a closed menu cannot take a tap or a Tab stop.
+   */
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   /* The layout while a widget is being dragged. It is local — nothing is written to storage
      until the card is dropped — and it is what the grid renders, so the widgets step out of the
@@ -90,20 +135,55 @@ export function HomePage() {
   const requestedStop = params.get('stop');
   const requestedJourney = params.get('journey');
 
+  /**
+   * Read inside the effect below through a ref: a smooth scroll is movement, and battery saving
+   * is exactly when there should not be any — but a deep link should not be re-run, and the flash
+   * restarted, by the phone being plugged in.
+   */
+  const powerRef = useRef(power.mode);
+  powerRef.current = power.mode;
+
   /** Deep links such as "view on map" land here and point at the map widget. */
   useEffect(() => {
     if (!focusWidget) return undefined;
     setFlash(focusWidget);
     const target = document.getElementById(`widget-${focusWidget}`);
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (target) target.scrollIntoView({ behavior: powerRef.current === 'off' ? 'smooth' : 'auto', block: 'center' });
     const timer = window.setTimeout(() => setFlash(null), 2600);
     return () => window.clearTimeout(timer);
   }, [focusWidget, requestedStop, requestedJourney]);
 
-  const visible = useMemo(
-    () => order.map((id) => widgetById(id)).filter((widget): widget is NonNullable<typeof widget> => Boolean(widget)),
-    [order],
-  );
+  /*
+   * Super energy saving draws **only the cards that answer "when does the bus go"**.
+   *
+   * The home screen is the expensive screen: a map of the whole network, saved journeys, prose.
+   * At a tenth of a battery none of that is what the traveller opened the app for, and drawing it
+   * costs a repaint every minute and a slice of the GPU between. So the grid is filtered to the
+   * widgets the registry marks `essential` — the planner, the departures card and the hearted
+   * stops — and the screen says so rather than silently losing most of itself.
+   *
+   * Customising is exempt: the mode is for *drawing* less, and a card that is not on screen cannot
+   * be dragged, resized or removed. Nothing is deleted, so leaving the mode (a charger, or the
+   * battery climbing back above 12%) puts the whole layout back exactly as it was.
+   */
+  const thinning = power.mode === 'super' && !editing;
+  const visible = useMemo(() => {
+    const all = order
+      .map((id) => widgetById(id))
+      .filter((widget): widget is NonNullable<typeof widget> => Boolean(widget));
+    if (!thinning) return all;
+    const essential = all.filter((widget) => widget.essential);
+    /* The planner cannot be removed, so this is never empty in practice; keeping the first card
+       if it ever were is what stops a thinned home screen from claiming to be an empty one. */
+    return essential.length ? essential : all.slice(0, 1);
+  }, [order, thinning]);
+  /*
+   * Counted over the cards that exist, not over the stored ids: a layout can still name a widget
+   * that has been cut (the id is left alone so a returning card returns to its place), and a
+   * missing card is not a card "waiting for the charger".
+   */
+  const knownWidgets = useMemo(() => order.filter((id) => Boolean(widgetById(id))).length, [order]);
+  const hiddenBySaving = thinning ? knownWidgets - visible.length : 0;
   const available = WIDGETS.filter((widget) => !homeWidgets.includes(widget.id));
 
   /* ------------------------------------------------------------- hold to edit */
@@ -128,6 +208,7 @@ export function HomePage() {
   const cancelHold = useCallback(() => {
     clearHoldTimers();
     setHolding(false);
+    lockPress(false);
   }, [clearHoldTimers]);
 
   /*
@@ -144,7 +225,36 @@ export function HomePage() {
    * there is `.app-main`'s own padding, and the `.home-surface` box had already ended above it.
    */
   const isHomeSurface = useCallback((target: Element) => {
-    if (target.closest('.widget, .overlay, [role="dialog"], [role="menu"], .app-sidebar, .app-dock')) return false;
+    /* The layout menu and its scrim are a surface of their own: a tap on the blur is the tap that
+       dismisses the menu, and it must not also leave the mode behind it. */
+    if (
+      target.closest(
+        '.widget, .overlay, [role="dialog"], [role="menu"], .home-menu, .home-menu__scrim, .app-sidebar, .app-dock',
+      )
+    )
+      return false;
+    if (target.closest(NO_PRESS)) return false;
+    return Boolean(target.closest('.app-shell'));
+  }, []);
+
+  /**
+   * **Where a hold starts** — the surface above, plus the cards themselves.
+   *
+   * A phone puts a home screen into its edit mode from the icons as well as the wallpaper: press
+   * and hold an icon and it starts to wiggle. This screen is almost entirely cards, so a hold that
+   * only worked on the thin strip of page around them was a hold that did not work at all — and
+   * what a person got instead was the browser selecting the card's own text (reported: "holding the
+   * home screen doesn't work on mobile, it just selects text instead of going to customizing").
+   *
+   * It is deliberately **not** the tap's surface: in customising, a tap on a card is the card's own
+   * business (it is how a widget is used), and a tap outside one is how the mode is left. Widening
+   * the tap to cards would make using a widget exit the mode. Two gestures, two surfaces, and this
+   * is only the one the clock runs on. Controls inside a card are still exempt (`NO_PRESS`), so a
+   * hold on a button in a widget is that button's press and nothing else.
+   */
+  const isHoldSurface = useCallback((target: Element) => {
+    if (target.closest('.overlay, [role="dialog"], [role="menu"], .home-menu, .home-menu__scrim, .app-sidebar, .app-dock'))
+      return false;
     if (target.closest(NO_PRESS)) return false;
     return Boolean(target.closest('.app-shell'));
   }, []);
@@ -168,14 +278,16 @@ export function HomePage() {
       if (!event.isPrimary) return;
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       const target = event.target as Element | null;
-      if (!target || !isHomeSurface(target)) return;
+      if (!target || !isHoldSurface(target)) return;
 
       clearHoldTimers();
       holdPoint.current = { x: event.clientX, y: event.clientY };
+      lockPress(true);
       hintTimer.current = window.setTimeout(() => setHolding(true), HOLD_HINT_MS);
       holdTimer.current = window.setTimeout(() => {
         clearHoldTimers();
         setHolding(false);
+        lockPress(false);
         setEditing(true);
         /* A short buzz is the confirmation a held gesture needs; a browser that refuses it simply
            does not vibrate. */
@@ -193,23 +305,52 @@ export function HomePage() {
       if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > HOLD_SLOP_PX) cancelHold();
     };
 
+    /*
+     * A selection cannot begin inside a press that is already being counted. `user-select: none`
+     * (the lock above) is what stops it starting; this stops it the moment a browser tries anyway,
+     * because on iOS the callout is offered before the style is consulted.
+     */
+    const onSelectStart = (event: Event) => {
+      if (holdPoint.current) event.preventDefault();
+    };
+
+    /*
+     * A long press on the home screen **is** the gesture; the browser's own menu is not wanted.
+     *
+     * Android fires `contextmenu` at the same moment a long press is recognised, and cancelling
+     * the hold on it meant the clock stopped at ~500ms and the menu opened over a screen that was
+     * never going to enter customising. Refusing the menu while a press is live lets the second run
+     * out; with no press in flight (a long press on a link, a widget, an empty page) the browser's
+     * menu is left exactly as it was.
+     */
+    const onContextMenu = (event: Event) => {
+      if (holdPoint.current) {
+        event.preventDefault();
+        return;
+      }
+      cancelHold();
+    };
+
     document.addEventListener('pointerdown', onDown);
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', cancelHold);
     document.addEventListener('pointercancel', cancelHold);
-    document.addEventListener('contextmenu', cancelHold);
+    document.addEventListener('selectstart', onSelectStart);
+    document.addEventListener('contextmenu', onContextMenu);
     window.addEventListener('blur', cancelHold);
     return () => {
       document.removeEventListener('pointerdown', onDown);
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', cancelHold);
       document.removeEventListener('pointercancel', cancelHold);
-      document.removeEventListener('contextmenu', cancelHold);
+      document.removeEventListener('selectstart', onSelectStart);
+      document.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('blur', cancelHold);
       clearHoldTimers();
+      lockPress(false);
       setHolding(false);
     };
-  }, [editing, cancelHold, clearHoldTimers, isHomeSurface]);
+  }, [editing, cancelHold, clearHoldTimers, isHoldSurface]);
 
   /*
    * Leaving is a **tap**, not a hold: in customising, a press and release on that same surface
@@ -293,55 +434,11 @@ export function HomePage() {
      card already transformed would recompute the grab point from the moved box. */
   const dragActive = useRef(false);
 
-  /* ------------------------------------------------------------------ sizing */
-  /**
-   * The device width, measured once and then followed.
-   *
-   * Each widget declares the smallest device (`resizeFrom`) at which resizing is any use to it —
-   * a departure row needs close to 700, a clock survives 480. Below that threshold a card is full
-   * width at its default height and the corner is not offered, so the control cannot make a card
-   * worse than leaving it alone.
-   */
-  const [viewport, setViewport] = useState(() => (typeof window === 'undefined' ? 1440 : window.innerWidth));
-  useEffect(() => {
-    const onResize = () => setViewport(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  /** What the traveller chose, or what the registry declares. */
-  const sizeOf = (widget: { id: string; span: WidgetWidth }): WidgetSize => {
-    const stored = widgetSizes[widget.id];
-    return {
-      w: stored?.w ?? widget.span,
-      h: stored && TIERS.includes(stored.h) ? stored.h : 'standard',
-    };
-  };
-
-  /**
-   * The size being dragged, and the frame that will draw it.
-   *
-   * Pointer moves arrive faster than frames, and each one that reaches React re-renders the whole
-   * grid — which is what made the first attempt feel like a stutter rather than a resize. So the
-   * move only records the pointer; one `requestAnimationFrame` per frame computes the size and
-   * renders it. Everything the eye sees is therefore at most one frame old, and at most once.
-   */
-  const corner = useRef<{
-    id: string;
-    pointerId: number;
-    x: number;
-    y: number;
-    size: WidgetSize;
-    heights: WidgetTier[];
-  } | null>(null);
-  const cornerPointer = useRef({ x: 0, y: 0 });
-  const cornerFrame = useRef<number | null>(null);
-  const [resize, setResize] = useState<{ id: string; size: WidgetSize } | null>(null);
   /*
    * One live region says what the layout just did, and nothing else does (see the `sr-only`
-   * status line at the foot of the page): the size a resize settled on, and whether an undo put
-   * the screen back. It is a string rather than two flags because only one thing happens at a
-   * time, and the last thing said is the thing worth saying.
+   * status line at the foot of the page): the last arrangement change, and whether an undo put the
+   * screen back. It is a string rather than two flags because only one thing happens at a time, and
+   * the last thing said is the thing worth saying.
    */
   const [note, setNote] = useState('');
   /*
@@ -352,70 +449,6 @@ export function HomePage() {
    * is more than a screen of arrangements has ever been worth and still a bounded list.
    */
   const [moves, setMoves] = useState<Array<{ id: string; from: number }>>([]);
-  const resizeLive = useRef<{ id: string; size: WidgetSize } | null>(null);
-
-  const drawCorner = () => {
-    cornerFrame.current = null;
-    const start = corner.current;
-    const grid = gridRef.current;
-    if (!start || !grid) return;
-    const gap = Number.parseFloat(window.getComputedStyle(grid).columnGap) || 16;
-    const column = (grid.clientWidth - gap * 11) / 12;
-    const step = column + gap;
-    const dx = cornerPointer.current.x - start.x;
-    const dy = cornerPointer.current.y - start.y;
-    const widthIndex = WIDTHS.indexOf(start.size.w) + Math.round(dx / step);
-    const w = WIDTHS[Math.max(0, Math.min(WIDTHS.length - 1, widthIndex))];
-    /* Vertically the drag asks for *more content*, not a taller box: the card grows by a tier when
-       the finger has travelled far enough, and its body shows the rows that tier allows. */
-    const tierIndex =
-      start.heights.indexOf(start.size.h) + Math.round(dy / TIER_STEP_PX);
-    const h = start.heights[Math.max(0, Math.min(start.heights.length - 1, tierIndex))];
-    const live = { id: start.id, size: { w, h } };
-    if (resizeLive.current?.size.w === w && resizeLive.current?.size.h === h) return;
-    resizeLive.current = live;
-    setResize(live);
-  };
-
-  const beginCorner = (event: ReactPointerEvent<HTMLButtonElement>, widget: (typeof WIDGETS)[number]) => {
-    if (!editing || !event.isPrimary) return;
-    /* The card itself answers pointer-down with a *move*; resizing is not moving. */
-    event.stopPropagation();
-    event.preventDefault();
-    const size = sizeOf(widget);
-    corner.current = { id: widget.id, pointerId: event.pointerId, x: event.clientX, y: event.clientY, size, heights: TIERS };
-    cornerPointer.current = { x: event.clientX, y: event.clientY };
-    resizeLive.current = { id: widget.id, size };
-    setResize({ id: widget.id, size });
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const moveCorner = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!corner.current) return;
-    event.preventDefault();
-    cornerPointer.current = { x: event.clientX, y: event.clientY };
-    if (cornerFrame.current === null) cornerFrame.current = window.requestAnimationFrame(drawCorner);
-  };
-
-  const endCorner = () => {
-    const start = corner.current;
-    if (!start) return;
-    if (cornerFrame.current !== null) {
-      window.cancelAnimationFrame(cornerFrame.current);
-      cornerFrame.current = null;
-      /* The last pointer position has not been drawn yet; draw it now so the size that is saved
-         is the size the finger was on, not the one from the frame before. */
-      drawCorner();
-    }
-    corner.current = null;
-    const live = resizeLive.current;
-    resizeLive.current = null;
-    setResize(null);
-    if (!live) return;
-    if (live.size.w === start.size.w && live.size.h === start.size.h) return;
-    setWidgetSize(start.id, live.size);
-  };
-
   /** Put the card back under the finger: its layout box (transform subtracted) to the pointer. */
   const placeCard = () => {
     const node = dragNode.current;
@@ -454,6 +487,8 @@ export function HomePage() {
 
   /** How deep the band at each edge of the window is, and how fast it scrolls the page. */
   const EDGE_PX = 96;
+  /** The band that means "the first slot": the header, plus a sliver under it. */
+  const TOP_SLOT_PX = 136;
   const EDGE_SPEED = 16;
 
   const captureZones = () => {
@@ -519,24 +554,52 @@ export function HomePage() {
   const edgeSlot = (y: number): number | null => {
     const found = zones.current;
     if (found.length === 0) return null;
-    if (y < EDGE_PX) return found[0].index;
+    /*
+     * The top band is **deeper than the scroll band**, because on a phone the top of the window
+     * is the app's own header: a finger held at the very top is over the mark, not over the page,
+     * and the first slot has to be reachable from there. Making the first slot's band the header
+     * plus a thumb's width is what makes "back to the top" as easy as any other slot; the scroll
+     * band below it stays where it was, so the page does not start running away sooner.
+     */
+    if (y < TOP_SLOT_PX) return found[0].index;
     if (y > window.innerHeight - EDGE_PX) return found[found.length - 1].index;
     return null;
   };
 
-  /** Put the dragged card into the slot the finger is over, if that is not where it already is. */
+  /** The slot the finger is over right now, in the order the drag started from. */
+  const slotAtPointer = (): number | null => {
+    const band = edgeSlot(dragPointer.current.y);
+    return (
+      band ?? zoneUnder(dragPointer.current.x + window.scrollX, dragPointer.current.y + window.scrollY)
+    );
+  };
+
+  /**
+   * Put the dragged card into the slot the finger is over — **every time**, including back over the
+   * slot it came from.
+   *
+   * The preview used to be skipped when the finger returned to the card's own slot
+   * (`target === current` → return), which left the last preview standing: a card picked up, moved
+   * down and brought back over its own slot stayed drawn one slot down and was *saved* one slot
+   * down on release, because the drop committed whatever the last preview had been. A finger that
+   * comes back to where it started must look — and land — where it started, so the preview is
+   * rebuilt from the committed order on every move, and cleared when that is the answer.
+   */
   const updateTarget = () => {
     const from = dragFrom.current;
     if (!from) return;
-    const band = edgeSlot(dragPointer.current.y);
-    const target =
-      band ?? zoneUnder(dragPointer.current.x + window.scrollX, dragPointer.current.y + window.scrollY);
+    const target = slotAtPointer();
     if (target === null) return;
     const current = homeWidgets.indexOf(from.id);
-    if (current < 0 || target === current) return;
+    if (current < 0) return;
+    if (target === current) {
+      if (previewRef.current !== null) setPreviewOrder(null);
+      return;
+    }
     const next = homeWidgets.slice();
     next.splice(current, 1);
     next.splice(target, 0, from.id);
+    if (previewRef.current && previewRef.current.join('\u0000') === next.join('\u0000')) return;
     setPreviewOrder(next);
   };
 
@@ -603,9 +666,16 @@ export function HomePage() {
     if (!editing) return;
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     const target = event.target as Element;
-    /* The handle is the touch way in — a card-wide `touch-action: none` would stop the page
-       scrolling at all on a phone. A mouse can take hold anywhere on the card instead. */
-    const onHandle = Boolean(target.closest('[data-drag-handle]'));
+    /*
+     * **The head is the finger's grip**, and the body is not.
+     *
+     * A card-wide `touch-action: none` would stop the page scrolling at all on a phone, so the
+     * touch drag has to start on a strip that can claim the gesture: the title's row, which is the
+     * one part of a card that is never a control. It is not a drawn handle — nothing is added to
+     * the card — it is the line the card is named by, which is where a hand goes naturally. The
+     * body below it keeps scrolling the page. A mouse can take hold anywhere on the card.
+     */
+    const onHandle = Boolean(target.closest('[data-drag-handle], .widget__head'));
     if (!onHandle && (event.pointerType !== 'mouse' || target.closest(NO_PRESS))) return;
 
     dragFrom.current = { id, pointerId: event.pointerId, x: event.clientX, y: event.clientY };
@@ -663,6 +733,16 @@ export function HomePage() {
     /* Idempotent: the pointerup is listened for on the section and on the window, and whichever
        arrives first finishes the drag. */
     if (!from) return;
+    /*
+     * **The drop is decided by the finger, not by the last frame that painted.** The preview is
+     * state, and a release can arrive in the same frame as the move that would have changed it —
+     * so the slot is read once more, from the pointer, at the moment of release. `zones` were
+     * captured at the start of this gesture and the committed order has not changed since, so the
+     * index read here is the same index `moveHomeWidget` is about to be given. Read *before* the
+     * drag's own state is cleared, which is what empties the zones.
+     */
+    const fromIndex = homeWidgets.indexOf(from.id);
+    const pointerSlot = dragActive.current ? slotAtPointer() : null;
     if (node) {
       node.style.transform = '';
       node.style.willChange = '';
@@ -682,14 +762,15 @@ export function HomePage() {
      * A drop that changed nothing — the card let go over its own slot — leaves no move behind,
      * which is what keeps "Put it back" from being offered for a drag that did not move anything.
      */
-    const dropped = previewRef.current;
-    if (keep && dropped) {
-      const index = dropped.indexOf(from.id);
-      const fromIndex = homeWidgets.indexOf(from.id);
-      if (index >= 0 && fromIndex >= 0 && index !== fromIndex) {
-        setMoves((list) => [...list.slice(-9), { id: from.id, from: fromIndex }]);
-        moveHomeWidget(from.id, index);
-      }
+    const index =
+      keep && pointerSlot !== null
+        ? pointerSlot
+        : previewRef.current
+          ? previewRef.current.indexOf(from.id)
+          : -1;
+    if (keep && index >= 0 && fromIndex >= 0 && index !== fromIndex) {
+      setMoves((list) => [...list.slice(-9), { id: from.id, from: fromIndex }]);
+      moveHomeWidget(from.id, index);
     }
     setDrag(null);
     setPreviewOrder(null);
@@ -717,10 +798,73 @@ export function HomePage() {
     if (!editing) setMoves([]);
   }, [editing]);
 
-  /** Reset throws the whole arrangement away, so an old move can no longer describe it. */
+  /*
+   * Pin the menu under its trigger, and take focus into it once it is up.
+   *
+   * It is placed from the box the header reports, and placed again if the window changes size —
+   * a menu left hanging where the old corner used to be is a menu pointing at nothing.
+   */
+  useLayoutEffect(() => {
+    if (!homeMenuOpen) {
+      setMenuPos(null);
+      return undefined;
+    }
+    const place = () => {
+      const anchor = document.querySelector<HTMLElement>('[data-home-menu-trigger]');
+      if (!anchor) return;
+      const box = anchor.getBoundingClientRect();
+      const width = Math.min(300, window.innerWidth - 2 * MENU_STEP);
+      setMenuPos({
+        top: Math.round(box.bottom + 8),
+        left: Math.round(Math.min(Math.max(MENU_STEP, box.left), window.innerWidth - width - MENU_STEP)),
+      });
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [homeMenuOpen]);
+
+  useEffect(() => {
+    if (!menuPos) return;
+    menuRef.current?.querySelector<HTMLElement>('button')?.focus();
+  }, [menuPos]);
+
+  /**
+   * Esc closes the menu; Tab stays inside it, because the scrim makes it the only thing on screen.
+   *
+   * The rows are plain buttons rather than a `role="menu"`: this is a small sheet of actions, and
+   * a menu role would promise arrow-key navigation the sheet does not need to keep.
+   */
+  const menuKeys = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      setHomeMenuOpen(false);
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const items = [...(menuRef.current?.querySelectorAll<HTMLElement>('button') ?? [])];
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  /**
+   * Reset throws the whole arrangement away, so an old move can no longer describe it.
+   *
+   * The mode stays open: a reset is a change to the layout you are arranging, and dropping the
+   * furniture out from under the traveller is not what pressing it asked for.
+   */
   const resetLayout = () => {
     resetHomeWidgets();
     setMoves([]);
+    setNote(t('Layout reset'));
   };
 
   /*
@@ -763,7 +907,19 @@ export function HomePage() {
   const nudge = (id: string, step: 1 | -1) => {
     const from = homeWidgets.indexOf(id);
     if (from < 0) return;
-    moveHomeWidget(id, from + step);
+    const to = Math.max(0, Math.min(homeWidgets.length - 1, from + step));
+    if (to === from) return;
+    /*
+     * A press of an arrow key is the same move as a drag, so it is remembered the same way and
+     * offered back the same way ("Put it back" in the panel). It used not to be: only the drag
+     * path pushed onto `moves`, so a keyboard reorder was the one arrangement change with no
+     * way back inside the mode ("when you move a widget on the home screen, its hard to move it
+     * back without pressing done", 2026-10-17t20-45-42 — the same difficulty, reached by the
+     * keyboard). A press that would leave the card where it is records nothing, exactly as a
+     * drag dropped over its own slot does.
+     */
+    setMoves((list) => [...list.slice(-9), { id, from }]);
+    moveHomeWidget(id, to);
   };
 
   return (
@@ -775,39 +931,38 @@ export function HomePage() {
         description={`Plan a journey, check the network, and pick up where you left off. ${plural(STOPS.length, 'stop')}, ${plural(NETWORK.length, 'service')} and ${plural(DISRUPTIONS.length, 'alert')}.`}
       />
 
+      {/*
+        * A thinned home screen says so.
+        *
+        * Half the cards are not a bug to be discovered, so the screen explains itself in one line
+        * where the missing cards would have started — no card of its own, no icon, no control: a
+        * sentence on the surface, which is all that is worth drawing at a tenth of a battery.
+        * `role="status"` so a screen reader is told when the mode begins, rather than the page
+        * quietly changing under it.
+        */}
+      {thinning ? (
+        <p className="t-sm t-muted" role="status">
+          {t('Super energy saving is on — {cards} come back when this device is charged.', {
+            cards: plural(hiddenBySaving, 'card'),
+          })}{' '}
+          {t('Only what you need to catch a bus is drawn.')}
+        </p>
+      ) : null}
+
       {visible.length === 0 ? (
         <Card className="stack">
           <span className="t-strong">{t('Your home screen is empty')}</span>
-          <span className="t-sm t-muted">{t('Turn on customising at the foot of the page to add a widget.')}</span>
+          <span className="t-sm t-muted">{t('Tap Edit at the top to add a widget.')}</span>
         </Card>
       ) : null}
 
       <div
         ref={gridRef}
-        className={`widget-grid${editing ? ' widget-grid--editing' : ''}${drag ? ' widget-grid--dragging' : ''}${resize ? ' widget-grid--resizing' : ''}`}
+        className={`widget-grid${editing ? ' widget-grid--editing' : ''}${drag ? ' widget-grid--dragging' : ''}`}
       >
         {visible.map((widget) => {
           const Body = widget.Body;
           const isDragging = drag === widget.id;
-          /*
-           * Below its own threshold a widget is drawn full width: the stored width is kept for
-           * the window that can honour it, not overwritten by this one.
-           *
-           * On a phone the height is the one thing a full-width card can still choose, so the
-           * stored height is honoured there too and the card's own control cycles it (F3). Between
-           * a phone and a widget's own width threshold nothing is offered and nothing is applied,
-           * which is the shape this rule has always had.
-           */
-          const canResize = viewport >= widget.resizeFrom;
-          const phone = viewport < 641;
-          const stored = sizeOf(widget);
-          const size: WidgetSize = phone
-            ? { w: 12 as WidgetWidth, h: stored.h }
-            : canResize
-              ? stored
-              : { w: 12 as WidgetWidth, h: 'standard' as WidgetTier };
-          const live = resize?.id === widget.id ? resize.size : size;
-          const heights = TIERS;
           return (
             <section
               key={widget.id}
@@ -815,9 +970,7 @@ export function HomePage() {
               data-widget-id={widget.id}
               className={[
                 'widget',
-                `widget--span-${live.w}`,
-                `widget--h-${live.h}`,
-                resize?.id === widget.id ? 'widget--resizing' : '',
+                `widget--span-${widget.span}`,
                 flash === widget.id ? 'widget--flash' : '',
                 editing ? 'widget--editable' : '',
                 isDragging ? 'widget--dragging' : '',
@@ -832,121 +985,81 @@ export function HomePage() {
               onPointerMove={editing ? moveDrag : undefined}
               onPointerUp={editing ? endDrag : undefined}
               onPointerCancel={editing ? cancelDrag : undefined}
+              /*
+               * **The card itself is the move control** — the grip that used to say so is gone.
+               *
+               * A phone's home screen has no handle: you press and drag the icon. This card can
+               * always be dragged by its body (the grip was a *label* for the gesture, not the
+               * thing that made it work), so removing it costs the hand nothing — but it took the
+               * keyboard's only way to move a card with it. WCAG 2.5.7 wants a single-pointer
+               * alternative to a drag, so the focusable card takes ↑/↓/←/→ and moves itself, one
+               * slot a press, exactly as the grip did.
+               */
+              tabIndex={editing ? 0 : undefined}
+              role={editing ? 'group' : undefined}
+              aria-label={editing ? t('Move {title}', { title: t(widget.title) }) : undefined}
+              onKeyDown={
+                editing
+                  ? (event) => {
+                      /* Only the card itself: a button or a link inside it keeps its own keys. */
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+                        event.preventDefault();
+                        nudge(widget.id, -1);
+                      }
+                      if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+                        event.preventDefault();
+                        nudge(widget.id, 1);
+                      }
+                    }
+                  : undefined
+              }
             >
               <Card className="widget__card">
                 <div className="widget__head">
                   {/* Title only. The one-line description is the catalogue's job — on the grid
                       it was five lines of explanation above the five things they explain. */}
                   <h2 className="t-section">{t(widget.title)}</h2>
-                  {editing ? (
-                    <div className="widget__actions">
-                      {/*
-                        **Two controls, and neither of them is a gesture drawn twice.**
-
-                        The head has been ⌃ ⌄ ⇅ ⠿ ✕ and then ⇅ ⠿ ✕, and both were wrong for the
-                        same reason: the card was carrying controls for things the hand already
-                        does. Moving is the grip's job (drag, and ↑/↓ on a keyboard through
-                        `nudge`) and removing is the ×, so the height cycler that F3 added to a
-                        phone is gone — reported as "the ugly ⇅ button" — and the head is a grip
-                        and a × at every width.
-
-                        What a phone loses with it, said plainly because it is a capability and
-                        not a glyph: the corner below is only drawn from each widget's own
-                        `resizeFrom` up (every widget is wider than 390), so on a phone a card's
-                        height can no longer be chosen at all. What it buys is a head that fits
-                        beside the name — measured at 390px: 88px of controls against 332px of
-                        card, one 44px row, nothing wrapping.
-                      */}
-                      <button
-                        type="button"
-                        className="widget__grip"
-                        data-drag-handle
-                        aria-label={t('Move {title}', { title: t(widget.title) })}
-                        title={t('Drag to move')}
-                        onKeyDown={(event) => {
-                          if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
-                            event.preventDefault();
-                            nudge(widget.id, -1);
-                          }
-                          if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
-                            event.preventDefault();
-                            nudge(widget.id, 1);
-                          }
-                        }}
-                      >
-                        <Icon name="grip" size={18} />
-                      </button>
-                      {!widget.required ? (
-                        <IconButton
-                          icon="close"
-                          label={`${t('Remove')} ${t(widget.title)}`}
-                          onClick={() => removeHomeWidget(widget.id)}
-                        />
-                      ) : null}
-                    </div>
-                  ) : null}
                 </div>
-                <WidgetTierContext.Provider value={live.h}>
+                {/*
+                  One box for the body, so a short card centres its content instead of leaving the
+                  slack under it. There is no tier to read any more: every card draws the middle of
+                  what it can hold, which is what it did before the sizes existed.
+                */}
+                <div className="widget__body">
                   <Body />
-                </WidgetTierContext.Provider>
+                </div>
               </Card>
               {/*
-                The corner: a small curved mark hugging the card's bottom-right corner, inside a
-                44px target that is otherwise invisible.
+                **The − badge**, at the card's top-right, the way a home screen deletes an app.
 
-                It is deliberately not an icon in a circle — that reads as a button to press, and
-                this is a thing to drag. The mark is drawn by `styles/components.css`
-                (`.widget__corner::after`) so it can hug the card's own radius instead of being a
-                shape pasted near it, and it exists only while the screen is being customised.
-
-                The arrow keys are not a courtesy: WCAG 2.5.7 requires a single-pointer
-                alternative to a drag, so the same control takes ←/→ for width, ↑/↓ for one more
-                row of content, and Home to return the card to its declared size.
+                It replaces the × that sat in the card's head beside a grip. One round, floating
+                control on the corner reads as "this card can go" without a row of glyphs above
+                every title, and the 44px target is behind a 30px disc: the mark is what you see
+                and the circle around it is what the thumb gets. A required widget has no badge at
+                all rather than a disabled one — a control that cannot do its job is not a control.
               */}
-              {editing && canResize ? (
+              {editing && !widget.required ? (
                 <button
                   type="button"
-                  className="widget__corner"
-                  data-resize-handle
-                  aria-label={t('Resize {title}', { title: t(widget.title) })}
-                  onPointerDown={(event) => beginCorner(event, widget)}
-                  onPointerMove={moveCorner}
-                  onPointerUp={endCorner}
-                  onPointerCancel={endCorner}
-                  onKeyDown={(event) => {
-                    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-                      event.preventDefault();
-                      const index = WIDTHS.indexOf(size.w) + (event.key === 'ArrowRight' ? 1 : -1);
-                      setWidgetSize(widget.id, { ...size, w: WIDTHS[Math.max(0, Math.min(WIDTHS.length - 1, index))] });
-                      return;
-                    }
-                    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-                      /* Swallowed even with one tier: a focused corner must not scroll the page. */
-                      event.preventDefault();
-                      if (heights.length < 2) return;
-                      const index = heights.indexOf(size.h) + (event.key === 'ArrowUp' ? 1 : -1);
-                      setWidgetSize(widget.id, { ...size, h: heights[Math.max(0, Math.min(heights.length - 1, index))] });
-                      return;
-                    }
-                    if (event.key === 'Home') {
-                      event.preventDefault();
-                      setWidgetSize(widget.id, {
-                        w: widget.span,
-                        h: heights.includes('standard') ? 'standard' : heights[0],
-                      });
-                    }
-                  }}
-                />
+                  className="widget__remove"
+                  aria-label={`${t('Remove')} ${t(widget.title)}`}
+                  title={`${t('Remove')} ${t(widget.title)}`}
+                  onClick={() => removeHomeWidget(widget.id)}
+                >
+                  <Icon name="minus" size={16} />
+                </button>
               ) : null}
             </section>
           );
         })}
       </div>
 
-      {/* The size is never written on the card — the card *is* the size. A screen reader still
-          needs to hear what the drag did, so one live region says it and nothing else does. */}
+      {/* The arrangement is never written on the card — the card's own place is the arrangement. A
+          screen reader still needs to hear what a drag or an undo did, so one live region says it
+          and nothing else does. */}
       <span className="sr-only" aria-live="polite">
-        {resize ? `${resize.size.w}/12 · ${t(TIER_LABEL[resize.size.h])}` : note}
+        {note}
       </span>
 
       {holding ? (
@@ -957,50 +1070,71 @@ export function HomePage() {
       ) : null}
 
       {/*
-        At the foot, under the widgets, by request: this control was moved to the page head in the
-        OVERWHELMING_FIX round (item 9) and is back here, which is where it is least in the way of
-        the dashboard itself. Nothing else about it changed.
+        The layout menu: what the + in the header opens.
+
+        It hangs from the corner it was opened in and blurs the page behind it, the way a phone's
+        home screen raises its menu over a blurred screen: the panel points at the control it
+        belongs to, and there is no sheet across the middle of the screen to come back out of.
+        The scrim closes it — a home screen's menu is dismissed by touching anywhere else, so no
+        *Cancel* row is needed. Nothing here is a footer button any more: "get rid of the buttons
+        in the footer".
+
+        Two things, in this order — Add widget, Reset layout. *Match sizes* is gone with the sizes
+        themselves: every card is the width its widget declares and as tall as its content, so
+        there is nothing left to match. *Put it back* follows, but only when there is a move to
+        take back: it is the one row here that is not one of the two.
       */}
-      <div className="widget-customise">
-        {editing ? (
-          <Panel className="widget-customise__panel">
-            <span className="t-strong t-sm grow">{t('Customising home')}</span>
-            <div className="row-wrap">
-              <Button size="sm" variant="primary" icon="plus" onClick={() => setAddOpen(true)}>
-                {t('Add widget')}
-              </Button>
-              {/* Only while there is a move to take back. A greyed "Put it back" on a screen where
-                  nothing has been moved is a control for a thing that has not happened — the same
-                  rule the catalogue follows, where an empty list is a sentence rather than a row
-                  of disabled Add buttons. */}
-              {moves.length > 0 ? (
-                <Button size="sm" onClick={undoMove}>
-                  {t('Put it back')}
-                </Button>
-              ) : null}
-              <Button size="sm" icon="refresh" onClick={resetLayout}>
-                {t('Reset layout')}
-              </Button>
-              <Button size="sm" variant="surface" icon="check" onClick={() => setEditing(false)}>
-                {t('Done')}
-              </Button>
-            </div>
-          </Panel>
-        ) : (
-          /* `layout`, not `sliders`: `sliders` is the options/filters glyph everywhere else
-             (Options, Travel preferences, Manage avoidance preferences), and this control edits
-             the page rather than filtering it (W3C COGA, one glyph, one meaning). */
-          <button
-            type="button"
-            className="widget-customise__trigger"
-            onClick={() => setEditing(true)}
-            title={t('Or press and hold the home screen')}
+      {homeMenuOpen && menuPos ? (
+        <>
+          <div className="home-menu__scrim" aria-hidden="true" onClick={() => setHomeMenuOpen(false)} />
+          <div
+            ref={menuRef}
+            role="dialog"
+            aria-label={t('Home layout')}
+            className="home-menu"
+            style={{ top: menuPos.top, left: menuPos.left }}
+            onKeyDown={menuKeys}
           >
-            <Icon name="layout" size={15} />
-            {t('Customise home')}
-          </button>
-        )}
-      </div>
+            <button
+              type="button"
+              className="list-row home-menu__row"
+              onClick={() => {
+                setHomeMenuOpen(false);
+                setAddOpen(true);
+              }}
+            >
+              <Icon name="plus" size={18} />
+              <span className="grow">{t('Add widget')}</span>
+            </button>
+
+            <button
+              type="button"
+              className="list-row home-menu__row"
+              onClick={() => {
+                resetLayout();
+                setHomeMenuOpen(false);
+              }}
+            >
+              <Icon name="refresh" size={18} />
+              <span className="grow">{t('Reset layout')}</span>
+            </button>
+
+            {moves.length > 0 ? (
+              <button
+                type="button"
+                className="list-row home-menu__row"
+                onClick={() => {
+                  undoMove();
+                  setHomeMenuOpen(false);
+                }}
+              >
+                <Icon name="arrowLeft" size={18} />
+                <span className="grow">{t('Put it back')}</span>
+              </button>
+            ) : null}
+          </div>
+        </>
+      ) : null}
 
       <Dialog
         open={addOpen}

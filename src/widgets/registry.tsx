@@ -1,60 +1,77 @@
 import type { ComponentType } from 'react';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS } from './defaults';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { SearchForm } from '../components/journey/SearchForm';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { BoardList } from '../components/stops/BoardList';
-import { Button, Chip, Dialog, IconButton, Pill } from '../components/ui/primitives';
-import { Icon, ModeIcon } from '../components/ui/Icons';
-import { STOPS, getStop, hasBoard, stopLabel } from '../data/stops';
-import { NETWORK, linesAtStop } from '../data/network';
+import { Button, Chip, Dialog, IconButton } from '../components/ui/primitives';
+import { Icon } from '../components/ui/Icons';
+import type { IconName } from '../components/ui/Icons';
+import {
+  STOPS,
+  customStopName,
+  distanceFromPosition,
+  formatDistance,
+  getStop,
+  hasBoard,
+  stopLabel,
+} from '../data/stops';
+import { NETWORK } from '../data/network';
 import { MAP_POINT, mapCorridors } from '../data/map';
-import { OPERATORS, operatorName } from '../data/operators';
-import { DISRUPTIONS, disruptionsForStop } from '../data/disruptions';
-import { boardForStop, busiestStops } from '../data/departures';
-import { describePreferences, modeLabel } from '../data/preferences';
+import { disruptionForLeg, disruptionsForStop } from '../data/disruptions';
+import { boardForStop } from '../data/departures';
+import { modeLabel } from '../data/preferences';
 import { endLabel } from '../data/journeyEngine';
 import { useMinuteNow } from '../lib/useMinuteNow';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
-import type { PublicMode, Stop, TravelMode } from '../data/types';
-import type { WidgetTier, WidgetWidth } from '../state/types';
-import { plural } from '../lib/format';
+import type { PublicMode, Stop } from '../data/types';
+import type { WidgetWidth } from '../state/types';
 
 /**
  * Home-screen widget catalogue.
  *
  * Widgets are declared here and rendered by HomePage inside a shared frame, so
- * adding one to the home screen is a matter of listing its id. Only the four
- * `defaultOn` widgets are shown on a fresh install; the rest are available from
- * "Add widget".
+ * adding one to the home screen is a matter of listing its id. The `defaultOn`
+ * widgets (see `./defaults`) are what a fresh install shows; everything here is
+ * available from "Add widget".
+ *
+ * The catalogue was cut from seventeen cards to nine by the widget audit
+ * (`WIDGET-AUDIT.md`): a card earns its place by holding something of the
+ * traveller's or doing something for them, and seven cards did neither — a count
+ * of the sample network, a credits list, an About page, navigation on top of the
+ * navigation, and one settings echo. The two "your journeys" lists were merged
+ * (they were two default cards listing the same kind of thing), and the network
+ * news card became the alerts that touch the journeys you kept.
  */
 export type WidgetSpan = WidgetWidth;
 
 /**
- * The height tier the card around a widget body is drawn in.
+ * A widget with nothing in it yet, drawn as a block rather than a line.
  *
- * A body cannot measure its own section, and it must not guess from the window either — two cards
- * in one window can be in different tiers. The home screen provides the tier per card and the
- * widget reads it; outside the grid the tier is `standard`.
+ * These cards used to hold one faint sentence at the top of a 208px box — "my god all that
+ * whitespace is ugly", with two photographs of exactly that — because a size tier used to set the
+ * card's height and an empty card had no rows to spend it on. With the sizes gone a card is as tall
+ * as its contents, so the mark and the sentence are what it is: a card waiting for something rather
+ * than a card that failed to load. No action button: the four widgets this is used in are filled from other
+ * screens (a journey's heart, a saved search, a stop's heart), and a button here would be a
+ * second way to do what the screen it links to already does.
  */
-export const WidgetTierContext = createContext<WidgetTier>('standard');
-
-function useWidgetTier(): WidgetTier {
-  return useContext(WidgetTierContext);
-}
-
-/**
- * How many rows a tier shows — never a pixel height.
- *
- * The threshold is the whole idea: the card grows to whatever the corner is dragged to, and *what
- * it shows* steps at this boundary. A short list ends early rather than leaving an empty box, and
- * nothing is ever clipped or scrolled inside a card.
- */
-function cap(tier: WidgetTier, compact: number, standard: number, tall = Number.POSITIVE_INFINITY): number {
-  return tier === 'compact' ? compact : tier === 'standard' ? standard : tall;
+function WidgetEmpty({ icon, line, hint }: { icon: IconName; line: string; hint?: string }) {
+  return (
+    <div className="widget-empty">
+      <span className="widget-empty__icon" aria-hidden="true">
+        <Icon name={icon} size={20} />
+      </span>
+      <p className="widget-empty__line t-sm t-muted">{line}</p>
+      {/* Where the thing comes from, as a second sentence — the answer to "so how do I get one"
+          that an empty card owes the traveller, and the difference between a card that is empty
+          and a card that looks unfinished. */}
+      {hint ? <p className="widget-empty__hint t-sm t-faint">{hint}</p> : null}
+    </div>
+  );
 }
 
 /** What a trimmed list is missing, said out loud rather than left to be guessed at. */
@@ -68,26 +85,24 @@ export const WIDGET_CATEGORIES: WidgetDefinition['category'][] = [
   'Plan',
   'Travel information',
   'Yours',
-  'About',
 ];
 
 export interface WidgetDefinition {
   id: string;
   title: string;
   description: string;
-  category: 'Plan' | 'Travel information' | 'Yours' | 'About';
+  category: 'Plan' | 'Travel information' | 'Yours';
   span: WidgetSpan;
   /**
-   * The smallest **device** width, in CSS pixels, at which this card may be resized at all.
+   * Kept on the home screen in super energy saving, when everything else is not drawn.
    *
-   * Every widget gets a number of its own rather than one device-wide rule, because what breaks at
-   * a narrow width is the card's content, not the screen: a clock survives 480, a stop picker does
-   * not survive 390, and a departure row with a destination, a platform and a delay needs close to
-   * 700 before it stops wrapping. Below its threshold a card is drawn full width at its default
-   * height and the corner is not offered — a control that would only make the card worse is not a
-   * control. Above it, all four widths and all three heights are available.
+   * The test is not "is this card nice" but "can the question — *when does the bus go?* — be
+   * answered without it": the planner to name the journey, the card tied to a station that lists
+   * its departures, and the stops the traveller hearted to get to that card. Every other widget is
+   * a way of browsing, not a way of finding out, so it is not drawn at 6% battery. A card that is
+   * not marked is hidden by that mode (and comes back the moment the phone is charged).
    */
-  resizeFrom: number;
+  essential?: boolean;
   /** Widgets that cannot be removed (set from `./defaults`). */
   required?: boolean;
   /** Shown on a fresh install (set from `./defaults`). */
@@ -279,7 +294,7 @@ function boxCrossesLine(box: LabelBox, segments: Segment[]): number {
  * own screen (`pages/MapPage.tsx`). The highlighting, the corridor thinning and the label
  * placement are the same work in both, and a second copy of a map would be a second map.
  */
-export function NetworkMap() {
+export function NetworkMap({ priority = [] }: { priority?: string[] }) {
   const t = useT();
   const [params] = useSearchParams();
   const [mode, setMode] = useState<'all' | PublicMode>('all');
@@ -321,7 +336,19 @@ export function NetworkMap() {
     }
 
     const labelled: (LabelPlacement & { stopId: string })[] = [];
-    for (const [stopId] of [...calls.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) {
+    /*
+     * The labels, in the order the traveller would care about them: the stops handed in by the
+     * card (`priority` — hearted, then nearest), and only then the busiest junctions of the
+     * network. The home widget passes its traveller's stops; the map screen passes nothing and
+     * keeps the network's own order.
+     */
+    const rank = (stopId: string) => {
+      const index = priority.indexOf(stopId);
+      return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+    };
+    for (const [stopId] of [...calls.entries()].sort(
+      (a, b) => rank(a[0]) - rank(b[0]) || b[1] - a[1] || a[0].localeCompare(b[0]),
+    )) {
       const point = MAP_POINT(stopId);
       const stop = getStop(stopId);
       if (!point || !stop) continue;
@@ -349,7 +376,7 @@ export function NetworkMap() {
       if (labelled.length === MAP_LABEL_LIMIT) break;
     }
     return { stopIds: [...calls.keys()], labelled, corridors };
-  }, [lines, mode]);
+  }, [lines, mode, priority]);
 
   const journeyPath = useMemo(() => {
     if (!requestedJourney) return null;
@@ -362,7 +389,8 @@ export function NetworkMap() {
     return points.length > 1 ? points : null;
   }, [requestedJourney]);
 
-  const highlighted = new Set<string>();
+  /* A card's own stops are drawn as selected: on a home screen, "highlighted" means "yours". */
+  const highlighted = new Set<string>(priority);
   if (requestedStop) highlighted.add(requestedStop.id);
   if (requestedJourney) {
     requestedJourney.legs.forEach((leg) => {
@@ -441,145 +469,168 @@ export function NetworkMap() {
   );
 }
 
-/** The same map, in the home screen's own widget chrome. */
-function MapWidget() {
-  return <NetworkMap />;
-}
-
 /**
- * Favourited journeys, managed inside the widget: a filled heart per journey
- * un-fills and asks for confirmation before the journey is removed.
+ * The map, in the home screen's own widget chrome — and **drawing the traveller's world**.
+ *
+ * The audit measured this as the largest card in the catalogue (563px) whose five labels were the
+ * five busiest junctions in the demonstration network: Alkmaar, Zwolle, Den Haag Centraal,
+ * Rotterdam Centraal, Eindhoven Centraal. None of them was the traveller's stop, none was near
+ * them, and nothing on the drawing belonged to them — a picture of the country where the card
+ * should be a picture of their journey. So the card now hands the map **its** stops to label and
+ * highlight, in this order: the stops they hearted, then the stops nearest them (the device fix,
+ * else the network estimate), and only then whatever is left. A traveller who has chosen nothing
+ * and shared no location still gets the busiest junctions, because a map with no names is worse.
+ *
+ * The card's own size is the traveller's business (the corner offers three heights); the drawing
+ * earns its height by being theirs.
  */
-function FavouritedJourneysWidget() {
+function MapWidget() {
   const t = useT();
-  const { savedJourneys, startSearch, preferences, removeSavedJourney } = useApp();
-  const navigate = useNavigate();
-  const format = useFormat();
-  const [pendingId, setPendingId] = useState<string | null>(null);
-  const pending = savedJourneys.find((entry) => entry.id === pendingId);
-  const shown = savedJourneys.slice(0, cap(useWidgetTier(), 2, 4));
-
+  const { favouriteStopIds, nearestOrigin } = useApp();
+  const near = useMemo(
+    () =>
+      nearestOrigin
+        ? [...STOPS]
+            .map((stop) => ({ id: stop.id, metres: distanceFromPosition(stop, nearestOrigin.lat, nearestOrigin.lon) }))
+            .sort((a, b) => a.metres - b.metres)
+            .map((entry) => entry.id)
+        : [],
+    [nearestOrigin],
+  );
+  /* Five, because five is what a 390px drawing can carry without two names colliding. */
+  const priority = useMemo(
+    () => [...favouriteStopIds, ...near].filter((id, index, list) => list.indexOf(id) === index).slice(0, 5),
+    [favouriteStopIds, near],
+  );
   return (
-    <div className="stack-2">
-      {savedJourneys.length === 0 ? (
-        <p className="t-sm t-faint">{t('Nothing favourited yet.')}</p>
-      ) : (
-        <>
-        <ul className="stack-1">
-          {shown.map((entry) => (
-            <li key={entry.id} className="list-row list-row--static">
-              <span className="stack-1 grow">
-                <span className="t-strong t-sm">
-                  {endLabel(entry.query, 'from')} <Icon name="arrowRight" size={13} />{' '}
-                  {endLabel(entry.query, 'to')}
-                </span>
-                <span className="t-sm t-faint">
-                  {format.date(entry.query.date, 'dayMonth')} · {format.time(entry.query.time)}
-                </span>
-              </span>
-              <Button
-                size="sm"
-                icon="route"
-                onClick={() => {
-                  startSearch({ ...entry.query, preferences });
-                  navigate('/results');
-                }}
-              >
-                Plan
-              </Button>
-              <IconButton
-                icon={pendingId === entry.id ? 'heart' : 'heartFilled'}
-                label={
-                  pendingId === entry.id
-                    ? `${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} — waiting for confirmation`
-                    : `Unfavourite ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')}`
-                }
-                active
-                aria-pressed={pendingId !== entry.id}
-                onClick={() => setPendingId(entry.id)}
-              />
-            </li>
-          ))}
-        </ul>
-        <TrimNote total={savedJourneys.length} shown={shown.length} />
-        </>
-      )}
-
-      <Dialog
-        open={Boolean(pending)}
-        title="Unfavourite this journey?"
-        description="Are you sure you want to unfavourite this journey? It disappears from this widget; the search itself is untouched."
-        onClose={() => setPendingId(null)}
-        footer={
-          <>
-            <Button
-              variant="accent"
-              icon="heart"
-              onClick={() => {
-                if (pendingId) removeSavedJourney(pendingId);
-                setPendingId(null);
-              }}
-            >
-              Yes, unfavourite it
-            </Button>
-            <Button variant="ghost" onClick={() => setPendingId(null)}>
-              Cancel
-            </Button>
-          </>
-        }
-      >
-        <p className="t-sm">
-          {pending
-            ? `${endLabel(pending.query, 'from')} → ${endLabel(pending.query, 'to')}`
-            : ''}
+    <>
+      <NetworkMap priority={priority} />
+      {/*
+        The names, in words, under the drawing.
+        A label on the canvas is best-effort by geometry: a 29-unit-wide station name beside a
+        junction ringed with dots has no legal spot at 390px, and the two busiest stations in this
+        network — Amsterdam Centraal and Utrecht Centraal — have never carried one. So the card
+        says whose world it is drawing in text that cannot collide: the stops you hearted, or,
+        when there are none, the ones nearest you. The drawing marks them; this line names them.
+      */}
+      {favouriteStopIds.length ? (
+        <p className="t-sm t-muted">
+          {t('Your stops: {stops}', { stops: favouriteStopIds.slice(0, 3).map((id) => stopLabel(id)).join(' · ') })}
         </p>
-      </Dialog>
-    </div>
+      ) : near.length ? (
+        <p className="t-sm t-muted">{t('Near you: {stops}', { stops: near.slice(0, 3).map((id) => stopLabel(id)).join(' · ') })}</p>
+      ) : null}
+    </>
   );
 }
 
 /**
- * The searches the traveller saved, managed inside the widget: a cross removes one, and a
- * single button forgets them all after a confirmation.
+ * **Your journeys** — saved journeys and saved searches, in one card.
  *
- * Nothing lands here on its own. Searching used to write every search — and every re-plan —
- * into this browser's history, so the widget filled with journeys nobody had asked to keep.
- * A search is saved from the results screen, where the traveller can see what they are saving.
+ * They were two widgets, both on by default, both empty on a fresh browser: 83px each of
+ * *"Nothing favourited yet."* and *"Nothing kept yet — keep a search from its results…"*,
+ * explaining two halves of the same idea on the first screen. The audit's verdict was **merge**,
+ * and it is right for a reason beyond pixels — they list the same thing, journeys you have run,
+ * at two granularities:
  *
- * It is called **saved searches**, not *recent* searches: nothing is here by being recent, and the
- * word is the half of the pair that tells it apart from a favourited journey (one result, with its
- * own times). The widget id stays `recent-searches` — it is a storage key, and renaming it would
- * empty every layout that has this card in it.
+ *   • a **saved journey** is one result, with its own times and its heart on the results screen;
+ *   • a **saved search** is the pair of stops, kept from the results bar to run again any day.
+ *
+ * So one card, two headings, and each row repeats its own thing (`Plan` re-plans the journey it
+ * was saved from, `Repeat` runs the pair again). Both empty is one empty state explaining both,
+ * rather than two cards each apologising for half of it. The rows per section are capped by tier
+ * so the card stays a glance at every height, and the whole-list controls stay where they were:
+ * a heart with a confirmation for a journey, a cross per saved search and one clear-all.
+ *
+ * The widget id is **`your-journeys`**; a stored layout naming either of the two old ids is folded
+ * into it on load (`./defaults.ts`, `migrateHomeWidgets`), so nobody loses the card they had.
  */
-function SavedSearchesWidget() {
+function YourJourneysWidget() {
   const t = useT();
-  const { recentSearches, removeRecentSearch, clearRecentSearches, startSearch, preferences } = useApp();
+  const {
+    savedJourneys,
+    recentSearches,
+    removeSavedJourney,
+    removeRecentSearch,
+    clearRecentSearches,
+    startSearch,
+    preferences,
+  } = useApp();
   const navigate = useNavigate();
   const format = useFormat();
+  const [pendingId, setPendingId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
-  const shown = recentSearches.slice(0, cap(useWidgetTier(), 2, 4));
+  const pending = savedJourneys.find((entry) => entry.id === pendingId);
+  const perSection = 2;
+  const journeysShown = savedJourneys.slice(0, perSection);
+  const searchesShown = recentSearches.slice(0, perSection);
+
+  const ends = (query: Parameters<typeof endLabel>[0]) => (
+    <>
+      {endLabel(query, 'from')} <Icon name="arrowRight" size={13} /> {endLabel(query, 'to')}
+    </>
+  );
+
+  if (savedJourneys.length === 0 && recentSearches.length === 0) {
+    return (
+      <WidgetEmpty
+        icon="bookmark"
+        line={t('A saved search is a pair of stops you keep. A saved journey is one result with its own times.')}
+        hint={t('Heart a result on the results screen, or save the search from the bar above the list.')}
+      />
+    );
+  }
 
   return (
     <div className="stack-2">
-      {recentSearches.length === 0 ? (
-        /*
-          The one place the difference is spelled out, and it is the place the traveller needs it:
-          they have arrived at a card called *saved searches* with nothing in it and no idea how it
-          relates to the heart they have seen on journeys.
-        */
-        <p className="t-sm t-faint">
-          {t('A saved search is a pair of stops you keep. A saved journey is one result with its own times.')}
-        </p>
-      ) : (
-        <>
+      {savedJourneys.length ? (
+        <div className="stack-1">
+          <span className="field__label">{t('Saved journeys')}</span>
           <ul className="stack-1">
-            {shown.map((entry) => (
+            {journeysShown.map((entry) => (
               <li key={entry.id} className="list-row list-row--static">
                 <span className="stack-1 grow">
-                  <span className="t-strong t-sm">
-                    {endLabel(entry.query, 'from')} <Icon name="arrowRight" size={13} />{' '}
-                    {endLabel(entry.query, 'to')}
+                  <span className="t-strong t-sm">{ends(entry.query)}</span>
+                  <span className="t-sm t-faint">
+                    {format.date(entry.query.date, 'dayMonth')} · {format.time(entry.query.time)}
                   </span>
+                </span>
+                <Button
+                  size="sm"
+                  icon="route"
+                  onClick={() => {
+                    startSearch({ ...entry.query, preferences });
+                    navigate('/results');
+                  }}
+                >
+                  {t('Plan')}
+                </Button>
+                <IconButton
+                  icon={pendingId === entry.id ? 'heart' : 'heartFilled'}
+                  label={
+                    pendingId === entry.id
+                      ? `${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} — waiting for confirmation`
+                      : `Unfavourite ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')}`
+                  }
+                  active
+                  aria-pressed={pendingId !== entry.id}
+                  onClick={() => setPendingId(entry.id)}
+                />
+              </li>
+            ))}
+          </ul>
+          <TrimNote total={savedJourneys.length} shown={journeysShown.length} />
+        </div>
+      ) : null}
+
+      {recentSearches.length ? (
+        <div className="stack-1">
+          <span className="field__label">{t('Saved searches')}</span>
+          <ul className="stack-1">
+            {searchesShown.map((entry) => (
+              <li key={entry.id} className="list-row list-row--static">
+                <span className="stack-1 grow">
+                  <span className="t-strong t-sm">{ends(entry.query)}</span>
                   <span className="t-sm t-faint">
                     {format.date(entry.query.date, 'dayMonth')} · {format.time(entry.query.time)}
                   </span>
@@ -592,7 +643,7 @@ function SavedSearchesWidget() {
                     navigate('/results');
                   }}
                 >
-                  Repeat
+                  {t('Repeat')}
                 </Button>
                 <IconButton
                   icon="close"
@@ -606,16 +657,44 @@ function SavedSearchesWidget() {
             <Button size="sm" variant="ghost" icon="trash" onClick={() => setConfirmClear(true)}>
               {t('Delete all saved searches')}
             </Button>
-            <span className="t-sm t-faint">{recentSearches.length} stored in this browser</span>
+            <span className="t-sm t-faint">
+              {t('{count} stored in this browser', { count: recentSearches.length })}
+            </span>
           </div>
-          <TrimNote total={recentSearches.length} shown={shown.length} />
-        </>
-      )}
+          <TrimNote total={recentSearches.length} shown={searchesShown.length} />
+        </div>
+      ) : null}
+
+      <Dialog
+        open={Boolean(pending)}
+        title={t('Unfavourite this journey?')}
+        description={t('It disappears from this widget; the search itself is untouched.')}
+        onClose={() => setPendingId(null)}
+        footer={
+          <>
+            <Button
+              variant="accent"
+              icon="heart"
+              onClick={() => {
+                if (pendingId) removeSavedJourney(pendingId);
+                setPendingId(null);
+              }}
+            >
+              {t('Yes, unfavourite it')}
+            </Button>
+            <Button variant="ghost" onClick={() => setPendingId(null)}>
+              {t('Cancel')}
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">{pending ? ends(pending.query) : ''}</p>
+      </Dialog>
 
       <Dialog
         open={confirmClear}
         title={t('Delete all saved searches?')}
-        description={t('Every saved search is removed from this browser. Pins, favourited journeys and preferences stay as they are.')}
+        description={t('Every saved search is removed from this browser. Pins, saved journeys and preferences stay as they are.')}
         onClose={() => setConfirmClear(false)}
         footer={
           <>
@@ -627,49 +706,34 @@ function SavedSearchesWidget() {
                 setConfirmClear(false);
               }}
             >
-              Yes, delete them
+              {t('Yes, delete them')}
             </Button>
             <Button variant="ghost" onClick={() => setConfirmClear(false)}>
-              Cancel
+              {t('Cancel')}
             </Button>
           </>
         }
       >
-        <p className="t-sm">{recentSearches.length} recent search(es) will be removed.</p>
+        <p className="t-sm">
+          {t('{count} saved searches will be removed.', { count: recentSearches.length })}
+        </p>
       </Dialog>
     </div>
   );
 }
 
-/**
- * Next departures: **one** station, chosen once when the card is placed.
- *
- * The card used to be a stop field that stayed, and asking again every glance is the wrong shape for
- * a home screen: "no one wants to type in the departure each time if they just want a quick glance".
- * So **once it is tied to a station the card is not a control at all** — the station's name, its next
- * four departures and a way to the full board, and nothing to type in or dismiss.
- *
- * While it is *not* tied, the field is simply **there, in the card** — the same box, one line of
- * explanation above it, no button and no overlay: a button whose only job is to reveal a search box
- * is two steps where the card can offer the box itself.
- *
- * The binding lives in `widgetStations` under this widget's id, which is also what makes the
- * change path work the way the traveller described it: **remove the widget and add it again** to
- * tie a new one to a different station. `removeHomeWidget` deletes the entry, so the card that
- * comes back asks rather than quietly keeping the old answer.
- */
-function NextDeparturesWidget() {
+function NextDeparturesWidget({ binding = 'next-departures' }: { binding?: string }) {
   const { widgetStations, setWidgetStation } = useApp();
   const format = useFormat();
   const t = useT();
 
-  const bound = getStop(widgetStations['next-departures'] ?? undefined);
+  const bound = getStop(widgetStations[binding] ?? undefined);
   /* A stored id whose stop has a board, or nothing. An address bound by hand in a browser's
      storage is not a card that can be drawn, so it counts as unbound and asks again. */
   const stop = bound && hasBoard(bound) ? bound : undefined;
   const stopId = stop?.id ?? null;
   const minutes = useClockMinutes();
-  const rows = cap(useWidgetTier(), 2, 4, 8);
+  const rows = 4;
   const board = useMemo(
     () => (stopId ? boardForStop(stopId, { fromMinutes: minutes, limit: rows }) : []),
     [stopId, minutes, rows],
@@ -690,12 +754,12 @@ function NextDeparturesWidget() {
            * is for, and the field's name is not lost with it: `StopCombobox` falls back to
            * `aria-label` when `hideLabel` is set.
            */
-          id="next-departures-stop"
+          id={`${binding}-stop`}
           label={t('Station for this card')}
           hideLabel
           value={null}
           onSelect={(next) => {
-            if (next) setWidgetStation('next-departures', next.id);
+            if (next) setWidgetStation(binding, next.id);
           }}
           placeholder={t('Search a station or stop')}
           filter={hasBoard}
@@ -715,73 +779,103 @@ function NextDeparturesWidget() {
           same words and the same board glyph wherever it appears. */}
       <Link to={`/departures?stop=${stopId}`} className="btn btn--sm">
         <Icon name="board" size={15} />
-        Open the full board
+        {t('Open the full board')}
       </Link>
     </div>
   );
 }
 
-function AlertsWidget() {
-  const severityTone = { severe: 'coral', warning: 'butter', info: 'sage' } as const;
-  const rows = cap(useWidgetTier(), 1, 3, 6);
-  const counts = {
-    severe: DISRUPTIONS.filter((alert) => alert.severity === 'severe').length,
-    warning: DISRUPTIONS.filter((alert) => alert.severity === 'warning').length,
-    info: DISRUPTIONS.filter((alert) => alert.severity === 'info').length,
-  };
+/**
+ * Alerts that touch **the journeys you kept** — not the network's news.
+ *
+ * This card used to be the national picture: "2 major / 5 disruptions / 7 information" and the
+ * first three alerts in the list, which is what the Disruptions page shows in full and what the
+ * dock's own badge already counts. The audit's verdict was blunt: *keep it only as the personal
+ * version*. So it now answers the question a commuter actually has — **is my journey affected?**
+ * — by asking the engine's own rule for every leg of every saved journey
+ * (`disruptionForLeg`: this line, through these stops), which is data the app already computes and
+ * had never put on a home screen.
+ *
+ * A journey with no alert is not a journey with nothing to say, so the card also counts what is
+ * *going well*: it says how many of your journeys are clear. Nothing is invented — an alert exists
+ * only if the disruption data names the line and one of the leg's stops.
+ */
+function AlertsOnSavedWidget() {
+  const t = useT();
+  const { savedJourneys } = useApp();
+  const rows = 3;
+  const hits = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { id: string; title: string; journey: string }[] = [];
+    for (const entry of savedJourneys) {
+      const name = `${endLabel(entry.query, 'from')} → ${endLabel(entry.query, 'to')}`;
+      for (const leg of entry.journey.legs) {
+        const alert = disruptionForLeg(leg.lineId, leg.fromStopId, leg.toStopId);
+        if (!alert || seen.has(alert.id)) continue;
+        seen.add(alert.id);
+        out.push({ id: alert.id, title: alert.title, journey: name });
+      }
+    }
+    return out;
+  }, [savedJourneys]);
+
+  if (savedJourneys.length === 0) {
+    return (
+      <WidgetEmpty
+        icon="alert"
+        line={t('Heart a journey and any alert that touches it shows up here.')}
+        hint={t('A saved journey is one result on the results screen, with its own times.')}
+      />
+    );
+  }
+  if (hits.length === 0) {
+    return (
+      <p className="t-sm t-muted">
+        {t('No alerts touch the journeys you kept — all {count} are running as planned.', {
+          count: savedJourneys.length,
+        })}
+      </p>
+    );
+  }
   return (
-    <div className="stack-2">
-      <div className="row-wrap">
-        <Pill tone="coral">{counts.severe} major</Pill>
-        <Pill tone="butter">{counts.warning} disruptions</Pill>
-        <Pill tone="sage">{counts.info} information</Pill>
-      </div>
+    <>
       <ul className="stack-1">
-        {DISRUPTIONS.slice(0, rows).map((alert) => (
-          <li key={alert.id} className="row-3">
-            <span className={`status-dot status-dot--${severityTone[alert.severity]}`} />
-            <Link to={`/disruptions/${alert.id}`} className="t-sm grow">
-              {alert.title}
+        {hits.slice(0, rows).map((hit) => (
+          <li key={hit.id} className="stack-1">
+            <Link to={`/disruptions/${hit.id}`} className="row t-sm t-strong">
+              <Icon name="alert" size={14} />
+              {hit.title}
             </Link>
+            {/* Which journey of yours it is about — the half the old card could never say. */}
+            <span className="t-sm t-faint">{hit.journey}</span>
           </li>
         ))}
       </ul>
-    </div>
+      <TrimNote total={hits.length} shown={Math.min(hits.length, rows)} />
+      <Link to="/disruptions" className="t-sm t-muted tap-target">
+        {t('All alerts')}
+      </Link>
+    </>
   );
 }
 
-function QuickActionsWidget() {
-  const links = [
-    { to: '/departures', label: 'Departure boards', icon: 'board' as const },
-    { to: '/stops', label: 'Stations & stops', icon: 'station' as const },
-    { to: '/preferences', label: 'Travel preferences', icon: 'sliders' as const },
-    { to: '/settings', label: 'Settings', icon: 'settings' as const },
-  ];
-  const shown = links.slice(0, cap(useWidgetTier(), 2, 4));
-  return (
-    <div className="row-wrap">
-      {shown.map((link) => (
-        <Link key={link.to} to={link.to} className="btn btn--sm">
-          <Icon name={link.icon} size={15} />
-          {link.label}
-        </Link>
-      ))}
-    </div>
-  );
-}
-
+/**
+ * Re-run the search you have on screen, from now.
+ *
+ * It used to lead with a large clock — the operating system's own clock face, in a 188px card, at
+ * the top of the home screen — and the audit's line was that a clock is already drawn above the
+ * traveller's thumb. The clock is gone; the one thing only this app can do with the current time
+ * is kept: take the pair you are looking at and ask it again from this minute, which is what you
+ * want when a timetable has moved on under a search you left open. Nothing else is on the card, so
+ * it is small at every tier and there is nothing left to shrink.
+ */
 function RightNowWidget() {
   const t = useT();
   const minutes = useClockMinutes();
-  const format = useFormat();
-  const { settings, search, startSearch, preferences, pushToast } = useApp();
+  const { search, startSearch, preferences, pushToast } = useApp();
   const navigate = useNavigate();
   return (
     <div className="stack-2">
-      <div className="stack-1">
-        <span className="t-h2 t-mono-num">{format.time(minutes)}</span>
-        <span className="t-sm t-muted">Current time in this browser.</span>
-      </div>
       <Button
         icon="clock"
         onClick={() => {
@@ -796,299 +890,431 @@ function RightNowWidget() {
         {t('Re-run my search from now')}
       </Button>
       <span className="t-sm t-faint">
-        {settings.defaultOriginStopId
-          ? t('Default origin: {stop}', { stop: stopLabel(settings.defaultOriginStopId) })
-          : t('No default origin set — pick one in Settings.')}
+        {search
+          ? t('{from} to {to}, starting at this minute.', {
+              from: endLabel(search.query, 'from'),
+              to: endLabel(search.query, 'to'),
+            })
+          : t('Nothing to re-run yet — plan a journey first.')}
       </span>
     </div>
   );
 }
 
-function PreferencesSummaryWidget() {
-  const t = useT();
-  const { preferences } = useApp();
-  const parts = describePreferences(preferences, t);
-  const shown = parts.slice(0, cap(useWidgetTier(), 2, parts.length));
-  return (
-    <div className="stack-2">
-      <ul className="row-wrap pill-list">
-        {shown.map((part) => (
-          <li key={part} className="pill">
-            {part}
-          </li>
-        ))}
-      </ul>
-      <Link to="/preferences" className="t-sm t-muted tap-target">
-        {t('Change travel preferences')}
-      </Link>
-    </div>
-  );
-}
-
-function ModeActivityWidget() {
-  const modes: TravelMode[] = ['train', 'bus', 'tram', 'metro', 'ferry'];
-  return (
-    <ul className="stack-1">
-      {modes.map((mode) => {
-        const lines = NETWORK.filter((line) => line.mode === mode);
-        return (
-          <li key={mode} className="row-3">
-            <ModeIcon mode={mode} size={16} />
-            <span className="t-sm grow">{modeLabel(mode)}</span>
-            <span className="t-sm t-muted">{plural(lines.length, 'service')}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function OperatorsWidget() {
-  const shown = OPERATORS.slice(0, cap(useWidgetTier(), 2, 4));
-  return (
-    <>
-    <ul className="stack-1">
-      {shown.map((operator) => (
-        <li key={operator.id} className="row-3">
-          <span className="t-sm grow">
-            <span className="t-strong">{operator.shortName}</span> · {operator.name}
-          </span>
-          <span className="row">
-            {operator.modes.map((mode) => (
-              <ModeIcon key={mode} mode={mode} size={14} />
-            ))}
-          </span>
-        </li>
-      ))}
-    </ul>
-    <TrimNote total={OPERATORS.length} shown={shown.length} />
-    </>
-  );
-}
-
+/**
+ * Find a stop — the field, and nothing else.
+ *
+ * It carried three chips of the busiest stops in the demonstration network, labelled a *sample*,
+ * which the audit cut for exactly the reason the label existed: they are a fact about demo data
+ * that no traveller has a relationship with, and they contradict this project's own rule that
+ * nothing suggests a stop the traveller did not choose. The field is the widget; it opens the
+ * planner's own picker, which already knows their favourites, their recent stops and — when
+ * they allow it — where they are.
+ */
 function StopSearchWidget() {
   const navigate = useNavigate();
   const t = useT();
   const [value, setValue] = useState<Stop | null>(null);
-  const samples = busiestStops(cap(useWidgetTier(), 1, 3));
   return (
-    <div className="stack-2">
-      <StopCombobox
-        id="widget-stop-search"
-        label="Find a stop"
-        value={value}
-        onSelect={(stop) => {
-          setValue(stop);
-          if (stop) navigate(`/stops/${stop.id}`);
-        }}
-        placeholder={`Search ${STOPS.length} stations, stops and landmarks`}
-      />
-      {/*
-       * Labelled a *sample*, because it is one: these three are the busiest stops in the
-       * demonstration network, not anything the traveller chose. Unlabelled they read as a
-       * suggestion the app is making about where they are, which is how "why is it always
-       * Amsterdam Centraal" starts. `LinesHereWidget` already names its sample the same way.
-       */}
-      <div className="stack-1">
-        <span className="t-sm t-faint">{t('Busiest sample stops')}</span>
-        <div className="row-wrap">
-          {samples.map((id) => (
-            <Chip key={id} icon="station" onClick={() => navigate(`/stops/${id}`)}>
-              {stopLabel(id)}
-            </Chip>
-          ))}
-        </div>
-      </div>
-    </div>
+    <StopCombobox
+      id="widget-stop-search"
+      label={t('Find a stop')}
+      value={value}
+      onSelect={(stop) => {
+        setValue(stop);
+        if (stop) navigate(`/stops/${stop.id}`);
+      }}
+      placeholder={t('Search {count} stations, stops and landmarks', { count: STOPS.length })}
+    />
   );
 }
 
-function LocalDataWidget() {
-  const { savedJourneys, recentSearches, favouriteStopIds, boardStopIds, resetLocalData, pushToast } = useApp();
-  return (
-    <div className="stack-2">
-      <ul className="stack-1 t-sm">
-        <li className="between">
-          <span>Favourite stops</span>
-          <span className="t-strong">{favouriteStopIds.length}</span>
-        </li>
-        <li className="between">
-          <span>Stops pinned to the board</span>
-          <span className="t-strong">{boardStopIds.length}</span>
-        </li>
-        <li className="between">
-          <span>Favourited journeys</span>
-          <span className="t-strong">{savedJourneys.length}</span>
-        </li>
-        <li className="between">
-          <span>Recent searches</span>
-          <span className="t-strong">{recentSearches.length}</span>
-        </li>
-      </ul>
-      <Button
-        size="sm"
-        variant="ghost"
-        icon="trash"
-        onClick={() => {
-          resetLocalData();
-          pushToast('All locally stored data has been removed');
-        }}
-      >
-        Remove all stored data
-      </Button>
-    </div>
-  );
-}
-
-function AboutWidget() {
-  const { settings } = useApp();
-  return (
-    <div className="stack-2">
-      <p className="t-sm">
-        OVVO is an independent Dutch public transport journey planner. Search a stop, compare the options and
-        save the journeys you take often.
-      </p>
-      <ul className="stack-1 t-sm">
-        <li className="row-3">
-          <span className="status-dot" />
-          Timetables, delays, platforms and alerts run on the service data in this app.
-        </li>
-        <li className="row-3">
-          <span className="status-dot" />
-          The geographic map is the map widget on your home screen.
-        </li>
-        <li className="row-3">
-          <span className="status-dot" />
-          Favourites, board pins, favourited journeys, recent searches and preferences stay in this browser.
-        </li>
-      </ul>
-      <span className="t-sm t-muted">
-        Display: {settings.density === 'compact' ? 'compact' : 'comfortable'} ·{' '}
-        {settings.timeFormat === '24h' ? '24-hour' : '12-hour'} clock ·{' '}
-        {settings.dateFormat === 'short' ? 'dd-mm-yyyy' : 'descriptive'} dates
-      </span>
-    </div>
-  );
-}
-
+/**
+ * The stops you hearted, one link per row.
+ *
+ * Each row used to carry three controls — the name, **Plan from here** and a heart — inside a card
+ * whose whole premise is that a list of your own stops *is* the shortcut: twelve controls in 327px
+ * for a list of four names. The audit's trim: the name is the row, tapping it opens the stop, and
+ * the two actions that were repeated per row live where they always have — the stop page has the
+ * heart, and the planner is one tap away in the dock. The list is shorter, quieter, and every row
+ * is still one tap to a stop.
+ */
 function PinnedStopsWidget() {
-  const { favouriteStopIds, toggleFavourite } = useApp();
-  const navigate = useNavigate();
-  const shown = favouriteStopIds.slice(0, cap(useWidgetTier(), 2, 4));
+  const t = useT();
+  const { favouriteStopIds } = useApp();
+  const shown = favouriteStopIds.slice(0, 4);
   if (favouriteStopIds.length === 0) {
-    return (
-      <p className="t-sm t-faint">
-        Heart a stop from its page and it is listed here for one-tap planning.
-      </p>
-    );
+    return <WidgetEmpty icon="heart" line={t('Heart a stop from its page and it is listed here for one-tap planning.')} />;
   }
   return (
     <>
-    <ul className="stack-1">
-      {shown.map((stopId) => (
-        <li key={stopId} className="list-row list-row--static">
-          {/**
-           * This row's marker is gone on purpose. Every row in this widget is a pinned stop, so
-           * a pin on each of them said nothing the widget's own name had not already said — and
-           * it was the last place a `pin` was drawn as a marker rather than as the control
-           * (W3C COGA: a glyph that is both a label and a marker promises two things).
-           */}
-          <Link to={`/stops/${stopId}`} className="t-sm t-strong grow">
-            {stopLabel(stopId)}
-          </Link>
-          <Button
-            size="sm"
-            /* `route`: this plans a journey from the stop. It wore the crosshair, which is the
-               *use my location* glyph. */
-            icon="route"
-            onClick={() => {
-              /*
-               * The destination is the traveller's to choose. This used to run a search to a
-               * hard-coded `amsterdam-centraal` (and to `utrecht-centraal` when the pin *was*
-               * Amsterdam), which invented a destination nobody asked for; now it opens the
-               * planner with this stop as the origin — the same `?from=` route the stop page
-               * uses — and waits for them to say where to.
-               */
-              navigate(`/?from=${stopId}&pick=to`);
-            }}
-          >
-            Plan from here
-          </Button>
-          {/**
-           * The same control as everywhere else — the heart, trailing, filled while it is a
-           * favourite. Every row in this widget is a favourite, so it is always filled; it is
-           * here to be the way *out*, which is what the heart emptying says.
-           */}
-          <IconButton
-            icon="heart"
-            label={`Remove ${stopLabel(stopId)} from favourites`}
-            active
-            className="glyph-toggle"
-            onClick={() => toggleFavourite(stopId)}
-          />
-        </li>
-      ))}
-    </ul>
-    <TrimNote total={favouriteStopIds.length} shown={shown.length} />
-    </>
-  );
-}
-
-function LinesHereWidget() {
-  const t = useT();
-  const busiest = busiestStops(1)[0];
-  const all = busiest ? linesAtStop(busiest) : [];
-  const lines = all.slice(0, cap(useWidgetTier(), 2, 4, 6));
-  return (
-    <div className="stack-2">
-      {/*
-       * Named as a *sample*, like the shortlist below it: this stop is the busiest in the
-       * demonstration network, not anywhere the traveller is. The label goes through the
-       * translator with every other interface line, because "which stop is this about" is
-       * interface text even when the stop's own name is data.
-       */}
-      <span className="t-sm t-muted">
-        {t('Busiest sample stop: {stop}', { stop: busiest ? stopLabel(busiest) : '—' })}
-      </span>
       <ul className="stack-1">
-        {lines.map((line) => (
-          <li key={line.id} className="row-3">
-            <ModeIcon mode={line.mode} size={16} />
-            <span className="t-sm grow">{line.name}</span>
-            <span className="t-sm t-muted">{operatorName(line.operatorId)}</span>
+        {shown.map((stopId) => (
+          <li key={stopId} className="list-row list-row--static">
+            <Link to={`/stops/${stopId}`} className="t-sm t-strong grow">
+              {stopLabel(stopId)}
+            </Link>
+            <Icon name="arrowRight" size={15} className="t-faint" />
           </li>
         ))}
       </ul>
-      <TrimNote total={all.length} shown={lines.length} />
-    </div>
+      <TrimNote total={favouriteStopIds.length} shown={shown.length} />
+    </>
   );
 }
 
 function AlertsAtPinsWidget() {
+  const t = useT();
   const { favouriteStopIds } = useApp();
   const alerts = favouriteStopIds.flatMap((stopId) => disruptionsForStop(stopId));
   const unique = alerts.filter((alert, index, list) => list.findIndex((item) => item.id === alert.id) === index);
-  const rows = cap(useWidgetTier(), 1, 3, 6);
+  const rows = 3;
   if (favouriteStopIds.length === 0) {
-    return <p className="t-sm t-faint">Heart a stop and any alert affecting it shows up here.</p>;
+    return <WidgetEmpty icon="alert" line={t('Heart a stop and any alert affecting it shows up here.')} />;
   }
-  return unique.length === 0 ? (
-    <p className="t-sm t-muted">No alerts affect your favourite stops right now.</p>
-  ) : (
+  return (
     <>
+      {unique.length === 0 ? (
+        <p className="t-sm t-muted">{t('No alerts affect your favourite stops right now.')}</p>
+      ) : (
+        <>
+          <ul className="stack-1">
+            {unique.slice(0, rows).map((alert) => (
+              <li key={alert.id}>
+                <Link to={`/disruptions/${alert.id}`} className="row t-sm">
+                  <Icon name="alert" size={14} />
+                  {alert.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <TrimNote total={unique.length} shown={Math.min(unique.length, rows)} />
+        </>
+      )}
+      {/* The way out the audit asked for: a personal card must not be a dead end when the
+          traveller wants the rest of the picture. */}
+      <Link to="/disruptions" className="t-sm t-muted tap-target">
+        {t('All alerts')}
+      </Link>
+    </>
+  );
+}
+
+/* ---------------------------------------------------- the six the audit asked for */
+
+/**
+ * **Your commute** — the saved journey you take most, counted down rather than listed.
+ *
+ * Built only from what the app already computes: the journey you hearted (its query, its walk to
+ * the station) and the departure board at its origin, read at the same minute every other card
+ * reads (`useClockMinute`). The one thing this card can say that the next-departures card cannot is
+ * **when to leave** — the train's time minus the walk the planner already measured. Nothing is
+ * invented: with no saved journey the card asks for one, and with no service left in the window it
+ * says so rather than showing a time from yesterday.
+ */
+function CommuteWidget() {
+  const t = useT();
+  const format = useFormat();
+  const minutes = useClockMinutes();
+  const rows = 2;
+  const { savedJourneys, preferences, startSearch } = useApp();
+  const navigate = useNavigate();
+
+  const entries = useMemo(
+    () =>
+      savedJourneys.slice(0, rows).map((entry) => {
+        const ride = entry.journey.legs.find((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
+        const board = boardForStop(entry.query.fromStopId, { fromMinutes: minutes, limit: 40 });
+        const next = ride ? board.find((departure) => departure.lineId === ride.lineId) : board[0];
+        return { entry, next };
+      }),
+    [savedJourneys, rows, minutes],
+  );
+
+  if (savedJourneys.length === 0) {
+    return (
+      <WidgetEmpty
+        icon="route"
+        line={t('Heart the journey you take every morning and this card counts down to it.')}
+        hint={t('A saved journey is one result on the results screen, with its own times.')}
+      />
+    );
+  }
+
+  return (
+    <div className="stack-2">
       <ul className="stack-1">
-        {unique.slice(0, rows).map((alert) => (
-          <li key={alert.id}>
-            <Link to={`/disruptions/${alert.id}`} className="row t-sm">
-              <Icon name="alert" size={14} />
-              {alert.title}
-            </Link>
+        {entries.map(({ entry, next }) => {
+          const leaveIn = next ? next.expected - minutes - entry.journey.walkMinutes : null;
+          return (
+            <li key={entry.id} className="list-row list-row--static">
+              <span className="stack-1 grow">
+                <span className="t-strong t-sm">
+                  {endLabel(entry.query, 'from')} <Icon name="arrowRight" size={13} />{' '}
+                  {endLabel(entry.query, 'to')}
+                </span>
+                <span className="t-sm t-faint">
+                  {next
+                    ? leaveIn !== null && leaveIn > 0
+                      ? t('Next {time} · leave in {minutes} min', {
+                          time: format.time(next.expected),
+                          minutes: leaveIn,
+                        })
+                      : t('Next {time} · leave now', { time: format.time(next.expected) })
+                    : t('No service left in this window today.')}
+                </span>
+              </span>
+              <Button
+                size="sm"
+                icon="route"
+                onClick={() => {
+                  startSearch({ ...entry.query, preferences });
+                  navigate('/results');
+                }}
+              >
+                {t('Plan')}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+      <TrimNote total={savedJourneys.length} shown={entries.length} />
+    </div>
+  );
+}
+
+/**
+ * **Stops near you** — a few stops and when the next thing leaves each of them.
+ *
+ * The audit's honest replacement for a map of the whole country: the traveller walking to a stop
+ * wants the stop, how far it is, and the next departure — three facts the app already has
+ * (`nearestOrigin`, `distanceFromPosition`, `boardForStop`). Places without a board are left out,
+ * the same `hasBoard` rule every other surface uses, because "180 m" to a museum answers a
+ * question nobody asked at a bus stop.
+ */
+function NearbyStopsWidget() {
+  const t = useT();
+  const format = useFormat();
+  const minutes = useClockMinutes();
+  const rows = 3;
+  const { nearestOrigin } = useApp();
+
+  const near = useMemo(() => {
+    if (!nearestOrigin) return [];
+    const { lat, lon } = nearestOrigin;
+    return STOPS.map((stop) => ({ stop, metres: distanceFromPosition(stop, lat, lon) }))
+      .filter((entry) => hasBoard(entry.stop))
+      .sort((a, b) => a.metres - b.metres)
+      .slice(0, rows)
+      .map((entry) => ({
+        ...entry,
+        next: boardForStop(entry.stop.id, { fromMinutes: minutes, limit: 1 })[0],
+      }));
+  }, [nearestOrigin, rows, minutes]);
+
+  if (!nearestOrigin) {
+    return (
+      <WidgetEmpty
+        icon="location"
+        line={t('Turn on location and the stops around you appear here.')}
+        hint={t('Settings can turn location on; the card never invents where you are.')}
+      />
+    );
+  }
+
+  return (
+    <div className="stack-2">
+      <span className="field__label">
+        {t(nearestOrigin.source === 'device' ? 'Closest to your device location' : 'Closest to an approximate IP location')}
+      </span>
+      <ul className="stack-1">
+        {near.map(({ stop, metres, next }) => (
+          <li key={stop.id} className="list-row list-row--static">
+            <span className="stack-1 grow">
+              <Link to={`/stops/${stop.id}`} className="t-strong t-sm tap-target">
+                {customStopName(stop.id) ?? stop.name}
+              </Link>
+              <span className="t-sm t-faint">
+                {formatDistance(metres)} ·{' '}
+                {next ? t('next at {time}', { time: format.time(next.expected) }) : t('no departure in this window')}
+              </span>
+            </span>
           </li>
         ))}
       </ul>
-      <TrimNote total={unique.length} shown={Math.min(unique.length, rows)} />
-    </>
+    </div>
   );
+}
+
+/**
+ * **Facilities at your stations** — the audit called it *Accessibility at your stations* and built
+ * it from `stop.accessibility`.
+ *
+ * It is built from `facilities` instead, and the name says facilities, because of a later order than
+ * the audit: *"get rid of ALL accessibility descriptions EVERYWHERE"* — the step-free, lift, tactile
+ * paving and low-floor claims were removed from every surface that drew one, on the grounds that the
+ * app does not know the traveller and should not promise them a step-free journey. A widget is not
+ * exempt from an order about every surface. What is left is the fact the data really holds — the
+ * facilities a stop lists — per stop the traveller hearted.
+ */
+function FacilitiesWidget() {
+  const t = useT();
+  const rows = 3;
+  const { favouriteStopIds } = useApp();
+  const stops = favouriteStopIds
+    .map((stopId) => getStop(stopId))
+    .filter((stop): stop is Stop => Boolean(stop))
+    .slice(0, rows);
+
+  if (stops.length === 0) {
+    return (
+      <WidgetEmpty
+        icon="heart"
+        line={t('Heart a stop and its facilities are listed here.')}
+        hint={t('The heart on a stop card is the one that fills this card.')}
+      />
+    );
+  }
+
+  return (
+    <div className="stack-2">
+      <ul className="stack-1">
+        {stops.map((stop) => (
+          <li key={stop.id} className="stack-1">
+            <Link to={`/stops/${stop.id}`} className="t-strong t-sm tap-target">
+              {customStopName(stop.id) ?? stop.name}
+            </Link>
+            <span className="t-sm t-faint">
+              {stop.facilities.length ? stop.facilities.join(' · ') : t('No facilities listed for this stop.')}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <TrimNote total={favouriteStopIds.length} shown={stops.length} />
+    </div>
+  );
+}
+
+/**
+ * **What it costs** — the fare next to the time, for the search on screen or the journeys you kept.
+ *
+ * Money is the second question after time, and the engine already ranks on both (`sortJourneys` has
+ * a cheapest mode and a fastest one). The card does not re-plan anything: it reads the journeys the
+ * app is already holding and names the two ends of the trade-off — the quickest option and the
+ * cheapest one, with their own times and fares.
+ */
+function CostWidget() {
+  const t = useT();
+  const format = useFormat();
+  const { journeys, savedJourneys, search } = useApp();
+  const options = journeys.length ? journeys : savedJourneys.map((entry) => entry.journey);
+
+  const fastest = options.reduce<(typeof options)[number] | null>(
+    (best, journey) => (!best || journey.durationMinutes < best.durationMinutes ? journey : best),
+    null,
+  );
+  const cheapest = options.reduce<(typeof options)[number] | null>(
+    (best, journey) => (!best || journey.fare.eur < best.fare.eur ? journey : best),
+    null,
+  );
+
+  if (!fastest || !cheapest) {
+    return (
+      <WidgetEmpty
+        icon="ticket"
+        line={t('Plan a journey and its fare appears here beside its time.')}
+        hint={t('Every result already carries a price; this card just puts the two next to each other.')}
+      />
+    );
+  }
+
+  const row = (label: string, journey: (typeof options)[number]) => (
+    <li className="list-row list-row--static">
+      <span className="stack-1 grow">
+        <span className="t-strong t-sm">{label}</span>
+        <span className="t-sm t-faint">
+          {format.time(journey.departure)} → {format.time(journey.arrival)} ·{' '}
+          {format.duration(journey.durationMinutes)}
+        </span>
+      </span>
+      <span className="t-strong">€{journey.fare.eur.toFixed(2)}</span>
+    </li>
+  );
+
+  return (
+    <div className="stack-2">
+      {search ? <span className="field__label">{t('This search')}</span> : <span className="field__label">{t('Your saved journeys')}</span>}
+      <ul className="stack-1">
+        {row(t('Fastest'), fastest)}
+        {cheapest.id !== fastest.id ? row(t('Cheapest'), cheapest) : null}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * **Last service home** — the one timetable fact people look up late.
+ *
+ * The board generator runs deliberately past midnight (to 27:00), so "the last one" is a real
+ * answer rather than a guess: the card asks the origin stop for its late-evening board and names
+ * the last three services still running. Nothing is invented, and when the data has nothing left it
+ * says so.
+ */
+function LastServiceWidget() {
+  const t = useT();
+  const format = useFormat();
+  const minutes = useClockMinutes();
+  const rows = 3;
+  const { savedJourneys } = useApp();
+  const entry = savedJourneys[0];
+
+  const late = useMemo(() => {
+    if (!entry) return [];
+    return boardForStop(entry.query.fromStopId, { fromMinutes: 1380, limit: 60 })
+      .filter((departure) => departure.expected <= 1440 + 180)
+      .sort((a, b) => a.expected - b.expected)
+      .slice(-rows)
+      .reverse();
+  }, [entry, rows]);
+
+  if (!entry) {
+    return (
+      <WidgetEmpty
+        icon="clock"
+        line={t('Heart the journey home and this card knows its last service.')}
+        hint={t('The last departures are read from the same board the departure screen draws.')}
+      />
+    );
+  }
+
+  return (
+    <div className="stack-2">
+      <span className="field__label">
+        {t('Last services from {stop}', { stop: stopLabel(entry.query.fromStopId) })}
+      </span>
+      {late.length ? (
+        <ul className="stack-1">
+          {late.map((departure) => (
+            <li key={departure.id} className="list-row list-row--static">
+              <span className="t-strong t-sm grow">
+                {departure.destinationLabel}
+                {departure.lineNumber ? ` · ${departure.lineNumber}` : ''}
+              </span>
+              <span className="t-mono-num">{format.time(departure.expected)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="t-sm t-muted">{t('No late service from this stop in the data.')}</p>
+      )}
+      <span className="t-sm t-faint">{t('Read at {time}, the same minute the board uses.', { time: format.time(minutes) })}</span>
+    </div>
+  );
+}
+
+/** The second tied board: the same card, bound to its own station. */
+function SecondBoardWidget() {
+  return <NextDeparturesWidget binding="second-board" />;
 }
 
 /* --------------------------------------------------------------- the catalogue */
@@ -1100,41 +1326,10 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Where are you going? Departing today, right now.',
     category: 'Plan',
     span: 12,
-    /* A form: two stop rows, a date and a submit. Below a tablet it is the whole point of the
-       screen, so it keeps the full width. */
-    resizeFrom: 760,
+    essential: true,
+    /* A form: two stop rows. Below a tablet it is the whole point of the screen, so it keeps the
+       full width. */
     Body: PlannerWidget,
-  },
-  {
-    id: 'map',
-    title: 'Network map',
-    description: 'Every route, filtered by mode.',
-    category: 'Plan',
-    resizeFrom: 560,
-    // Eight columns: the map is capped at 480px square, so a wider card only adds empty
-    // margins either side of it, and the four that are left beside it are exactly a
-    // one-line card's width — the default layout fills its rows without a stretched card.
-    span: 8,
-    Body: MapWidget,
-  },
-  {
-    id: 'favourited-journeys',
-    title: 'Favourited journeys',
-    description: 'The journeys you saved, one tap to repeat.',
-    category: 'Yours',
-    span: 4,
-    /* Two stop names, a date and two controls per row. */
-    resizeFrom: 880,
-    Body: FavouritedJourneysWidget,
-  },
-  {
-    id: 'recent-searches',
-    title: 'Saved searches',
-    description: 'The searches you saved, one tap to repeat.',
-    category: 'Yours',
-    span: 6,
-    resizeFrom: 880,
-    Body: SavedSearchesWidget,
   },
   {
     id: 'next-departures',
@@ -1142,18 +1337,41 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'The next departures from the station this card is tied to.',
     category: 'Travel information',
     span: 6,
-    /* Time, destination and platform on one line: the row that overflowed a half card at 390. */
-    resizeFrom: 940,
+    essential: true,
     Body: NextDeparturesWidget,
   },
   {
+    id: 'pinned-stops',
+    title: 'Favourite stops',
+    description: 'The stops you hearted, one tap each.',
+    category: 'Yours',
+    /*
+     * Half the screen, so the default row is exactly two cards.
+     *
+     * It was four columns beside a six-column "Next departures", and 6 + 4 is ten of twelve: the
+     * row ended with two columns of empty page down the right-hand side at every desktop width,
+     * which reads as a card that failed to load rather than as a layout. A list of a few stops is
+     * happy at half the page — its rows are short — and 6 + 6 fills the row exactly.
+     */
+    span: 6,
+    essential: true,
+    Body: PinnedStopsWidget,
+  },
+  {
+    id: 'your-journeys',
+    title: 'Your journeys',
+    description: 'The journeys you saved and the searches you kept, ready to run again.',
+    category: 'Yours',
+    span: 6,
+    Body: YourJourneysWidget,
+  },
+  {
     id: 'alerts',
-    title: 'Alerts right now',
-    description: 'How many alerts are active, and the top three.',
+    title: 'Alerts on your journeys',
+    description: 'Only the alerts that touch a journey you saved.',
     category: 'Travel information',
     span: 6,
-    resizeFrom: 760,
-    Body: AlertsWidget,
+    Body: AlertsOnSavedWidget,
   },
   {
     id: 'alerts-at-pins',
@@ -1161,47 +1379,15 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Only the alerts that touch stops you hearted.',
     category: 'Travel information',
     span: 6,
-    resizeFrom: 880,
     Body: AlertsAtPinsWidget,
   },
   {
-    id: 'quick-actions',
-    title: 'Quick actions',
-    description: 'Jump straight to boards, stops, alerts and settings.',
-    category: 'Plan',
-    span: 6,
-    /* Pills that wrap: a half card on a phone turns each one into two lines. */
-    resizeFrom: 560,
-    Body: QuickActionsWidget,
-  },
-  {
     id: 'right-now',
-    title: 'Right now',
-    description: 'The current time and a one-tap re-run of your search from now.',
+    title: 'Re-run from now',
+    description: 'Run the search you are looking at again, starting at this minute.',
     category: 'Plan',
     span: 4,
-    /* A clock and one button: it survives being half of a phone. */
-    resizeFrom: 0,
     Body: RightNowWidget,
-  },
-  {
-    id: 'preferences-summary',
-    title: 'Your travel preferences',
-    description: 'The modes and limits shaping every search.',
-    category: 'Yours',
-    span: 6,
-    /* The pills are full sentences about modes: half a phone turns the first one into five lines. */
-    resizeFrom: 700,
-    Body: PreferencesSummaryWidget,
-  },
-  {
-    id: 'pinned-stops',
-    title: 'Favourite stops',
-    description: 'The stops you hearted, ready as an origin.',
-    category: 'Yours',
-    span: 4,
-    resizeFrom: 880,
-    Body: PinnedStopsWidget,
   },
   {
     id: 'stop-search',
@@ -1209,56 +1395,73 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Search every stop from here.',
     category: 'Travel information',
     span: 4,
-    /* A field with a placeholder sentence in it. */
-    resizeFrom: 600,
     Body: StopSearchWidget,
   },
   {
-    id: 'mode-activity',
-    title: 'Services per mode',
-    description: 'How many services each mode has.',
-    category: 'Travel information',
-    span: 4,
-    /* Icon, one word and a count: the narrowest content in the catalogue. */
-    resizeFrom: 0,
-    Body: ModeActivityWidget,
-  },
-  {
-    id: 'lines-here',
-    title: 'Lines at the busiest stop',
-    description: 'The services calling at the busiest stop.',
-    category: 'Travel information',
-    span: 4,
-    resizeFrom: 880,
-    Body: LinesHereWidget,
-  },
-  {
-    id: 'operators',
-    title: 'Operators',
-    description: 'The operators and the modes they run.',
-    category: 'Travel information',
-    span: 4,
-    resizeFrom: 880,
-    Body: OperatorsWidget,
-  },
-  {
-    id: 'local-data',
-    title: 'Stored on this device',
-    description: 'What this browser keeps, and a way to clear it.',
-    category: 'About',
-    span: 4,
-    /* Four label/count pairs. */
-    resizeFrom: 0,
-    Body: LocalDataWidget,
-  },
-  {
-    id: 'about',
-    title: 'About OVVO',
-    description: 'How OVVO works.',
-    category: 'About',
+    id: 'commute',
+    title: 'Your commute',
+    description: 'The journey you take most, counted down: the next service and when to leave.',
+    category: 'Yours',
     span: 6,
-    resizeFrom: 600,
-    Body: AboutWidget,
+    Body: CommuteWidget,
+  },
+  {
+    id: 'nearby-stops',
+    title: 'Stops near you',
+    description: 'The closest stops that have a board, how far they are, and when the next one leaves.',
+    category: 'Travel information',
+    span: 4,
+    Body: NearbyStopsWidget,
+  },
+  {
+    id: 'facilities',
+    title: 'Facilities at your stations',
+    description: 'What each stop you hearted lists: facilities, bicycle parking, OV-fiets.',
+    category: 'Yours',
+    span: 4,
+    Body: FacilitiesWidget,
+  },
+  {
+    id: 'cost',
+    title: 'What it costs',
+    description: 'The quickest option and the cheapest one, with their fares, side by side.',
+    category: 'Plan',
+    span: 4,
+    Body: CostWidget,
+  },
+  {
+    id: 'last-service',
+    title: 'Last service home',
+    description: 'The last departures from the stop your saved journey starts at.',
+    category: 'Travel information',
+    span: 4,
+    Body: LastServiceWidget,
+  },
+  {
+    id: 'second-board',
+    title: 'A second departure board',
+    description: 'Another station\u2019s next departures, beside the first card.',
+    category: 'Travel information',
+    span: 6,
+    Body: SecondBoardWidget,
+  },
+  {
+    id: 'map',
+    title: 'Network map',
+    description: 'Every route, with your own stops named and picked out.',
+    category: 'Plan',
+    /*
+     * Half the page — not eight columns.
+     *
+     * Eight plus six is fourteen, so the **commonest cards in the catalogue could never sit beside
+     * the map**: a half-width card dropped to the next row and left the four columns next to the
+     * map standing empty, which is the complaint that produced this. Six is the width that shares a
+     * row with another six, and the drawing is landscape on a card this size (16:9 on a wide
+     * screen), so nothing is lost by giving the map less of the page: at eight columns it was
+     * mostly water and margin.
+     */
+    span: 6,
+    Body: MapWidget,
   },
 ];
 

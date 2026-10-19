@@ -93,17 +93,23 @@ saved and kept. Two default-on cards that are empty on day one and list the same
 your stop, and your stops. Not a map of the country, not a settings echo, and not two empty lists
 explaining themselves on first run.
 
-## Widgets that should exist (suggested, **not built**)
+## Widgets that should exist (suggested; six are still unbuilt)
 
 Asked for at the same time as the audit: *"add suggested widgets to add (that dont exist yet)"*. Each
 idea below is written **only** out of data this app already computes, in keeping with the project's
-rule that nothing is drawn that nobody has (`no invented data`); none of them exists yet.
+rule that nothing is drawn that nobody has (`no invented data`); none of them existed when this was written, and one has since been built.
+
+**Status, 2026-10-18 (second pass): all seven are built.** The seventh — *alerts on the journeys
+you saved* — was R105 rebuilding the `alerts` card as exactly that; the other six are in the
+catalogue now, and each was written only out of data the app already computes, as this audit
+required. They are measured in both states — the empty state that says where its contents come
+from, and the seeded state that draws the fact — by `.logs/widgets-six.cjs` (**23/23**).
 
 | suggested widget | what it shows | built from (already in the app) | why it earns a card | rough size |
 |---|---|---|---|---|
 | **Your commute** — tied to one saved journey, exactly as the next-departures card is tied to one station | *Utrecht Centraal → Rotterdam Centraal · next at 17:30 · leave in 6 min* | `savedJourneys[].query`, the board's own departure times (`boardForStop`), and the walk leg's minutes (`journey.walkMinutes`, `walkMinutesBetween`) | the card that answers the question a commuter actually has in the morning, and the only one that can say **when to leave** rather than only when the train goes | ~380px |
 | **Stops near you** | *Amsterdam, Museumplein · 180 m · next tram 17:33*, three or four rows | `nearestOrigin` (device fix, else the approximate one), `distanceFromPosition`, `formatDistance`, `boardForStop` | the one card that is useful while walking, and the honest fix for a map widget that currently draws the whole country | ~300px |
-| **Alerts on the journeys you saved** | the alert that touches a journey you kept: *your 17:30 to Rotterdam Centraal is cancelled* | `disruptionsForLeg(lineId, fromStopId, toStopId)`, `savedJourneys` | personal, actionable, and the real replacement for the network-wide `alerts` card — a commuter cares about *their* 17:30, not that there are 7 information notices nationally | ~150px |
+| **Alerts on the journeys you saved** — **built**, as the `alerts` card (R105) | the alert that touches a journey you kept: *your 17:30 to Rotterdam Centraal is cancelled* | `disruptionsForLeg(lineId, fromStopId, toStopId)`, `savedJourneys` | personal, actionable, and the real replacement for the network-wide `alerts` card — a commuter cares about *their* 17:30, not that there are 7 information notices nationally | ~150px |
 | **Accessibility at your stations** | *Step-free: yes · lift: no · low-floor boarding: yes*, per favourite | `stop.accessibility.stepFree`, `lowFloorBoarding`, `stop.facilities` | for a traveller who needs it this is the difference between a journey and a wasted one, and the data is already there and static | ~180px |
 | **What it costs** | the fare of your saved or planned journey, and the trade-off: *fastest €9.40 · cheapest €6.20* | `journey.fare` (`fareFor`), the results' own sort modes by fare and duration | money is the second question after time, and the engine already ranks on both | ~150px |
 | **Last service home** | *Last Intercity to Rotterdam Centraal: 00:12*, plus the next two | `boardForStop` (the generator runs past midnight deliberately) and a saved journey for the direction | the one timetable fact people look up late, and nothing on the home screen answers it today | ~180px |
@@ -115,10 +121,82 @@ same for every traveller (`alerts` as it stands, `about`), or a widget that desc
 itself (`local-data`). A card earns its place by holding something of yours or doing something for
 you.
 
+## The six suggested cards, built
+
+The audit's own list of what it would build, and what each one became in the catalogue:
+
+| suggested widget | what it is now | empty | with data |
+|---|---|---|---|
+| **Your commute** | `commute` (Yours): the journey you keep most, counted down — the next service on its own line and **when to leave** (the departure minus the walk the planner measured) | *"Heart the journey you take every morning and this card counts down to it."* | `Amsterdam Centraal → Utrecht Centraal · Next 11:00 · leave in 22 min` + Plan |
+| **Stops near you** | `nearby-stops` (Travel information): the closest stops **that have a board**, how far, and the next departure — and it names which answer it is using (device fix or approximate) | *"Turn on location and the stops around you appear here."* (or the approximate-IP sentence, when that is the fix in force) | `Utrecht Centraal 20 m · next at 11:05`, `Utrecht Vaartsche Rijn 1.4 km · next at 10:52` |
+| **Accessibility at your stations** | `facilities` (Yours) — **renamed**, and the reason is an order later than this audit: *"get rid of ALL accessibility descriptions EVERYWHERE"*. A widget is not exempt from a rule about every surface, so the card lists `stop.facilities` — the fact the data really holds — per hearted stop | *"Heart a stop and its facilities are listed here."* | `Utrecht Centraal · Toilets · Kiosk · Bicycle parking · Lift · Ticket machine · Taxi rank` |
+| **What it costs** | `cost` (Plan): the quickest option and the cheapest one side by side, read from the journeys the app is already holding — it re-plans nothing | *"Plan a journey and its fare appears here beside its time."* | `Fastest 11:00 → 11:24 · 24 min · €13.20` |
+| **Last service home** | `last-service` (Travel information): the last three services from the origin of your first kept journey, and the minute it read them | *"Heart the journey home and this card knows its last service."* | `Alkmaar · 800 23:38` … `Read at 10:38, the same minute the board uses.` |
+| **A second tied board** | `second-board` (Travel information): the same card as next-departures, bound to **its own** station (`widgetStations` is keyed per widget id) | asks for its station in the card itself (`#second-board-stop`) | tied to `rotterdam-centraal`: `Rotterdam Centraal · from 10:38` + rows |
+
+The catalogue is **fifteen cards** — three on a fresh home screen, twelve addable, under *Plan /
+Travel information / Yours* — and `.logs/widget-audit-2.cjs` asserts all twelve by name, so a
+missing card is a red check rather than a silent gap.
+
+## Executed
+
+The audit was then executed, and this is the catalogue it left. Nothing in the judgements above was
+softened to make the work smaller; the one place reality differed from the estimate is called out at
+the end.
+
+**Cut seven.** `operators`, `mode-activity`, `lines-here`, `local-data`, `about`, `quick-actions` and
+`preferences-summary` are gone from `src/widgets/registry.tsx`, and their bodies with them — the
+file took **458 lines** of new code and gave up **580**, a net **122 lines** lighter. The **About** category went with them: the catalogue is grouped *Plan /
+Travel information / Yours*. A stored layout that still names a cut id is left alone in storage and
+simply draws nothing (`HomePage` renders only ids that still have a widget), so returning a card
+later would return it to its place rather than to the end.
+
+**Merge one.** `favourited-journeys` + `recent-searches` → **`your-journeys`**, one card with a
+*Saved journeys* section (Plan + heart-with-confirmation per row) and a *Saved searches* section
+(Repeat + per-row delete + delete-all), both empty states in one sentence. A stored layout naming
+either old id is folded into it on load, at the first one's position and only once
+(`migrateHomeWidgets`, `src/widgets/defaults.ts`) — measured: `planner, favourited-journeys,
+quick-actions, map, recent-searches` loads as `planner, your-journeys, quick-actions, map`.
+
+**Fix five, each as the audit asked.**
+
+| widget | what it is now | measured |
+|---|---|---|
+| `map` | draws **your** world: the five stops it marks are your hearted stops first, then the nearest to you, and only then the busiest junctions; a line under the drawing names them in words that cannot collide. Eight columns, so the drawing is capped at 480px square | seeded: `Utrecht Centraal` and `Amsterdam Centraal` are marked on the drawing and named under it (*"Your stops: Utrecht Centraal · Amsterdam Centraal"*). The two busiest stations have no legal text-label spot at 390px — which is why the word line exists — so the canvas carries the junction names and the line carries yours. A fresh browser still gets junctions, because a map with no names is worse |
+| `alerts` | **Alerts on your journeys** — `disruptionForLeg` over every leg of every saved journey, each row naming the journey it is about, plus *All alerts* | seeded: *"Signalling fault — delays around Utrecht Centraal"* / *"Amsterdam Centraal → Utrecht Centraal"*; the network counts are gone |
+| `right-now` | **Re-run from now** — the clock face is gone; one button and one line saying what will be re-run | no `\d\d:\d\d` anywhere in the card |
+| `stop-search` | the field alone; the three demo chips are gone | 0 chips, 1 input |
+| `pinned-stops` | one link per row — no per-row *Plan from here*, no per-row heart | 2 rows = 2 links, 0 buttons |
+
+**Defaults.** `planner`, `next-departures`, `pinned-stops` — the planner, the board at a station of
+your own, and your stops. The board arrives **untied** and asks for its station in the card itself
+(one sentence, one field, no button whose only job was to reveal a field, no overlay).
+
+**The numbers after.** A fresh home screen is **624px of card** (three standard-tier cards) where the
+five defaults were **1067px**; all nine cards with data are **2570px** where seventeen were
+**4115px**, on a **1930px page** that was **4621px**. The audit asked for ~1400px lighter and got
+**1545px**.
+
+**Where the estimate was wrong, said plainly.** The audit sized the untied departures card at
+**159px** and the tied one at 386px. The cards now carry R88's height floor — 132 / 208 / 312px per
+tier — so a short card is **208px** at standard whatever it holds: the untied board *is* the question,
+and it is drawn at 208px, not 159. The saving is real, but it comes from the three defaults rather
+than from squeezing this card below the app's own minimum. The audit's judgement (*make it a
+default*) was right; its pixel estimate for the empty state was not.
+
 ## Verified
 
 `.logs/widget-audit.cjs` exit 0 — 2 passes (fresh, seeded) × 17 widgets, no `pageerror` on either.
-The audit is measurement only: **no application code was changed for it.**
+The audit is measurement only: **no application code was changed for it.** The execution is measured
+by `.logs/widget-audit-2.cjs` — **30/30**, fresh / catalogue / all-nine-seeded / migration, with
+screenshots in `.logs/widget-audit-2/` — and by `.logs/widget-audit-3.cjs` — **6/6**, the two Dutch
+empty states and the journey page's saved-journeys link landing on the merged card and flashing it.
+With them: `tsc` clean, `npm run build` clean, `class-audit` **384/384**, `caps-audit` exit 0 (**18
+screens × 2 languages, 778 strings**), and `consistency-audit` exit 0 on that round's code (**308 controls, 184 glyphs,
+14 screens**; its pre-existing UNEXPLAINED *remove stored data* line and the *go back* drift were
+unchanged). **Correction, 2026-10-18:** that script now exits **1** at both 390 and 320 — 307
+controls, 178 glyphs — on the same two lines, which turn out to be grouping artefacts rather than
+drift; see the dated section at the end of `CONSISTENCY-AUDIT.md`.
 
 Two things it leans on, both of which came out of the audit itself: `next-departures` is now tied to
 **one station of the traveller's own** instead of watching a stop it was handed (`USER-FIXES.md`

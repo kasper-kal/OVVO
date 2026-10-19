@@ -9,18 +9,24 @@ import { severityTone } from './DisruptionsPage';
 import { Banner, Button, Card, EmptyState, Panel, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { useT } from '../lib/useT';
 
 export function DisruptionDetailPage() {
   const { disruptionId } = useParams();
   const navigate = useNavigate();
   const format = useFormat();
+  const t = useT();
   const alert = getDisruption(disruptionId);
 
   if (!alert) {
     return (
       <div className="stack-6">
-        <PageHeader title="Alert not found" description="This alert is not in the list." />
-        <EmptyState icon="alert" title="Unknown alert" description="Return to the overview to browse the alerts that exist.">
+        <PageHeader title={t('Alert not found')} description={t('This alert is not in the list.')} showTitle />
+        <EmptyState
+          icon="alert"
+          title={t('Unknown alert')}
+          description={t('Return to the overview to browse the alerts that exist.')}
+        >
           <Link to="/disruptions" className="btn btn--primary">
             <Icon name="alert" size={16} />
             All alerts
@@ -54,16 +60,16 @@ export function DisruptionDetailPage() {
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="stack-4">
           <Card className="stack">
-            <h2 className="t-section">What is happening</h2>
+            <h2 className="t-section">{t('What is happening')}</h2>
             <p className="t-body">{alert.description}</p>
-            <Banner tone="butter" icon="info" title="Advice">
+            <Banner tone="butter" icon="info" title={t('Advice')}>
               {alert.advice}
             </Banner>
             <div className="row-wrap">
               <Pill tone="outline">
                 {format.time(alert.startsAt)}–{format.time(alert.endsAt)}
               </Pill>
-              <Pill tone="outline">{DISRUPTION_TYPE_LABELS[alert.type]}</Pill>
+              <Pill tone="outline">{t(DISRUPTION_TYPE_LABELS[alert.type])}</Pill>
               {alert.modes.map((mode) => (
                 <span key={mode} className={`mode-badge mode-badge--${mode}`}>
                   <ModeIcon mode={mode} size={13} />
@@ -146,7 +152,7 @@ export function DisruptionDetailPage() {
                     */}
                     <Link to={`/disruptions?line=${line.id}`} className="btn btn--sm">
                       <Icon name="alert" size={16} />
-                      More alerts
+                      {t('More alerts')}
                     </Link>
                   </li>
                 ) : null,
@@ -170,7 +176,7 @@ export function DisruptionDetailPage() {
         under the alert, where you decide whether you want the next one after reading this one.
       */}
       <Panel className="stack-2 pager">
-        <span className="field__label">Other alerts</span>
+        <span className="field__label">{t('Other alerts')}</span>
         <div className="row-wrap">
           <Link to={`/disruptions/${previous.id}`} className="btn btn--sm">
             <Icon name="chevronLeft" size={15} />

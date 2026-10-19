@@ -42,7 +42,8 @@ function WalkLegRow({ leg }: { leg: Leg }) {
             <Pill tone="outline">{format.time(leg.departure)} – {format.time(leg.arrival)}</Pill>
           </div>
           <p className="t-sm t-muted">
-            {stopLabel(leg.fromStopId)} <Icon name="arrowRight" size={13} /> {stopLabel(leg.toStopId)}
+            {leg.fromLabel ?? stopLabel(leg.fromStopId)} <Icon name="arrowRight" size={13} />{' '}
+            {leg.toLabel ?? stopLabel(leg.toStopId)}
           </p>
           {leg.message ? <p className="t-sm t-faint">{leg.message}</p> : null}
         </div>
@@ -197,14 +198,16 @@ export function LegList({ journey }: { journey: Journey }) {
    * arrival — with the arrival stop named beside it and its time, so the rail finishes at a place
    * and not at a hyphen. Same 16px box as every other node, so the rail's width is unchanged.
    */
-  const arrivalId = journey.legs[journey.legs.length - 1].toStopId;
+  const lastLeg = journey.legs[journey.legs.length - 1];
+  const arrivalId = lastLeg.toStopId;
+  const arrivalName = lastLeg.toLabel ?? stopLabel(arrivalId);
   return (
     <ol className="timeline">
       {rows}
       <li className="timeline__end">
         <span className="timeline__node timeline__node--end" />
         <span className="stack-1 grow">
-          <span className="t-strong t-sm">{stopLabel(arrivalId)}</span>
+          <span className="t-strong t-sm">{arrivalName}</span>
           <span className="t-sm t-muted">
             {t('Arrive {time}', { time: format.time(journey.arrival) })}
           </span>

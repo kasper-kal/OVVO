@@ -6,6 +6,34 @@
    FLOATING_DOCK: Fill=#18181B, R=9999 capsule | ACTIVE_ICON=Fill #FF7E67
    ============================================================================= */
 
+/* ------------------------------------------------------------ the one breakpoint
+ *
+ * The site has two modes, and **one width decides between them**:
+ *
+ *   mobile    every width below 720px      `@media (max-width: 719px)`
+ *   desktop   720px and every width above  `@media (min-width: 720px)`
+ *
+ * 720px is a phone's widest landscape and a tablet's narrowest portrait: under it there is room
+ * for one column of cards and a thumb's reach, over it there is room for two columns and a
+ * pointer. A *minimum* of 720 is the desktop side, so a window is never half-treated: at 719 it
+ * is exactly the phone, at 720 exactly the desktop, and a rule cannot miss a width by one pixel
+ * because both sides are written down here rather than each made up where it was needed.
+ *
+ * **These two queries are the only ones allowed to decide a mode.** The rest of the stylesheet
+ * either uses them, or is one of three named exceptions, each about *content* fitting, not about
+ * which mode the page is in:
+ *
+ *   - `1040px` — the sidebar and the dock (base.css). The page is desktop from 720; at 1040 the
+ *     sidebar replaces the dock. A navigation tier, not a mode: from 720 to 1039 it is the same
+ *     desktop layout with the same dock a phone has.
+ *   - `560px`/`559px`, `400px`/`379px` — a departures row's four cells, the colour sheet's grid
+ *     count and the date field's split. These are *density* steps inside the mobile mode: the
+ *     same screen redrawing a cramped control, never a different layout.
+ *
+ * `scripts/breakpoint-audit.mjs` reads this file and fails when a new width appears outside those
+ * two lists, so a fourth threshold has to be argued for in prose before it can ship.
+ */
+
 *,
 *::before,
 *::after {
@@ -27,6 +55,46 @@ body {
   letter-spacing: var(--track-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/*
+ * **The canvas can be the traveller's own** (`lib/background.ts`).
+ *
+ * Two attributes and no class names, because the choice is a value, not a variant of the page: no
+ * attribute means `cream`, which is the `--l0-bg` above and needs no rule at all. A colour is that
+ * token replaced — already checked for readability against the ink in force before it was written —
+ * and a photo is the same canvas colour laid over the picture, so the type keeps the surface it was
+ * designed for either way. Cards are untouched: `.card` draws `--l2-bg` on its own, which is why a
+ * background cannot make the app unreadable a card at a time.
+ */
+:root[data-background='colour'] body {
+  background: var(--app-bg-colour, var(--l0-bg));
+}
+
+:root[data-background='photo'] body {
+  background-color: var(--l0-bg);
+  background-image: linear-gradient(var(--app-bg-wash), var(--app-bg-wash)), var(--app-bg-image);
+  background-size: cover, cover;
+  /*
+   * The crop's own centre, written by `applyBackground` from the frame the traveller chose. `cover`
+   * still re-crops on a differently-shaped screen, so the centre is what keeps the subject in view
+   * rather than the middle of the picture. Undefined — no crop — is `center`, the old behaviour.
+   */
+  background-position: var(--app-bg-position, center), var(--app-bg-position, center);
+  background-repeat: no-repeat, no-repeat;
+  /* Fixed, so scrolling the home screen moves the cards over a still picture rather than dragging
+     a 1600px image up the screen. */
+  background-attachment: fixed, fixed;
+}
+
+/*
+ * Over a photo whose cards are **glass**, the wash is lifted: the picture is the point of the mode,
+ * and the cards are what keep the type readable now (`[data-surface='glass']` in
+ * `components.css`). The lighter wash still protects the page's own headings and the strips
+ * between the cards, which have no pane of their own.
+ */
+:root[data-surface='glass'] {
+  --app-bg-wash: color-mix(in srgb, var(--canvas-base) 40%, transparent);
 }
 
 h1,
@@ -87,17 +155,19 @@ svg.map-canvas {
 }
 
 /*
- * Selected text takes the signature coral — the same `--accent-primary` the navigation dock's
- * current item is painted with, on the same obsidian ink (`--struct-main`), so the highlight and
- * the nav bar are one colour rather than two oranges in one interface. It was butter before.
+ * Selected text is **the old coral** — `--accent-primary` (#ff7e67), the one accent this app has.
  *
- * The pairing is the nav bar's own, and it is the readable one: obsidian on sunset coral measures
- * 7.1:1, against the 4.5:1 a selection has to clear to keep the text legible while it is lit.
- * Declared once, unprefixed: every engine this app targets takes `::selection` bare.
+ * A round of "slightly lighter" lived here (85% coral + 15% white, #ff917e) and the order now is
+ * the old colour back, everywhere: the selection is painted with the same coral as the dock, the
+ * rings and the buttons, in both appearances, with no lighter cut of it to keep in step.
+ *
+ * Contrast: obsidian on it is **7.1:1** — comfortably past the 4.5:1 a selection has to clear to
+ * keep its text legible while it is lit. Declared once, unprefixed: every engine this app targets
+ * takes `::selection` bare.
  */
 ::selection {
-  background: var(--accent-primary);
-  color: var(--struct-main);
+  background: var(--selection-bg);
+  color: var(--selection-ink);
 }
 
 /* ---------------------------------------------------------------- Typography */
@@ -271,7 +341,15 @@ svg.map-canvas {
 /* ----------------------------------------------------------------- App shell */
 .app-shell {
   min-height: 100vh;
-  background: var(--l0-bg);
+  /*
+   * Transparent, so the canvas is the **document's** and not a second copy of it.
+   *
+   * It used to paint `--l0-bg` itself, which was the same cream the body painted and therefore
+   * invisible — until the canvas became something the traveller can choose (`lib/background.ts`),
+   * at which point this element covered every one of those choices with the default colour. The
+   * body paints the canvas; the shell is a layout that sits on it.
+   */
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -333,8 +411,16 @@ svg.map-canvas {
 }
 
 .app-header__brand,
+/*
+ * The controls in a row that paints nothing and swallows nothing: each one takes its own events
+ * back from the transparent sticky row. `Done` (and the `Edit` pill) is here for the same reason
+ * as the other two — without it the button is visible, hittable by nothing, and a tap on it lands
+ * on the page behind (found exactly that way: the browser refused the click with "`div.app-shell`
+ * intercepts pointer events").
+ */
 .app-header .app-header__alerts,
-.app-header .app-header__back {
+.app-header .app-header__back,
+.app-header .app-header__pill {
   pointer-events: auto;
 }
 
@@ -381,6 +467,16 @@ svg.map-canvas {
   margin-left: calc(-1 * var(--s-1));
 }
 
+/*
+ * **Edit** sits in that corner, and it is a pill rather than a disc so the header is balanced: the
+ * same 36px pill as *Done*, on the other side, one line above the home screen it edits. The
+ * wrapper has already taken the 16px step off the row, so the pill takes none of its own — the
+ * margin it carries on the right is for the alerts entry's column, where nothing has stepped it.
+ */
+.app-header .app-header__back .app-header__pill {
+  margin-top: 0;
+}
+
 .app-header__brand {
   grid-column: 2;
   justify-self: center;
@@ -402,30 +498,29 @@ svg.map-canvas {
  *
  * Its corners take a 14px soften — chosen from a magnified strip of 0/4/6/8/10/12/14/18px, where
  * 6 and 10 were indistinguishable and 0 - no softening at all - was too far. 14px is a quarter of
- * the 56px tile; the 12px on the old 40px tile that read as a crop was 30%.
+ * the 56px tile; the 12px on the old 40px tile that read as a crop was 30%. That soften is now the
+ * artwork's own rounded corner — 256 of its 1024 units, which is the same 14px at 56 and stays
+ * right at every other size — drawn as one mask over the ground and the ink together, rather than
+ * as a `border-radius` here, because a radius (or a clip) cuts each of the two on its own and the
+ * white ground then shows in the corner's antialiasing.
  *
- * `color` is set to the mark's ink as well as the ground to `--brand-tile`, because the ink is
- * drawn as `fill` on the paths while the element's own colour is what an icon is read against
- * its background with — keeping the two equal is what makes the mark's contrast measurable
- * rather than assumed.
+ * So the element paints nothing and clips nothing: no background, no radius, no overflow. It is
+ * the 56px square the artwork fills, and it is still where the mark's colour is stated, so what an
+ * icon is read against its background with is what the ink is drawn with (`.brand-mark__ink`).
  */
 .app-header__mark {
   display: grid;
   place-items: center;
   width: 56px;
   height: 56px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--brand-tile);
   color: var(--brand-ink);
 }
 
 .brand-mark__tile {
-  /* The artwork's four tiles: two are ink, the other two are its own background, and the SVG
-     rect that would draw them stays unfilled so the artwork can be dropped on any ground. The
-     visible ground is the mark's tile behind it (`.app-header__mark`), which is white in both
-     appearances; the favicon file paints the same white into the artwork itself. */
-  fill: none;
+  /* The artwork's four tiles: two are ink, the other two are its own background — painted here,
+     in the palette, from the SVG (`BrandMark`), so that it is drawn before the ink and rounded
+     with it rather than sitting behind the ink as an element's background would. */
+  fill: var(--brand-tile);
 }
 
 .brand-mark__ink {
@@ -440,7 +535,21 @@ svg.map-canvas {
  * touch all three. Everything else about it is what it has always been: 36px tall with 8px of
  * padding either side of the glyph and the count, so its hover background is the pill it was.
  */
-.app-header .app-header__alerts {
+/*
+ * **Done** takes the alerts entry's place while the home screen is being edited, and **Edit** sits
+ * opposite it in the way back's corner (see `.app-header__back .app-header__pill`).
+ *
+ * One slot, two controls: the alerts entry when nothing is happening, Done while a card is being
+ * arranged. They are the same 36px pill in the same corner, so the header does not move between the
+ * two states — the only thing that changes is what the corner does. *Edit* is drawn from the same
+ * rule, so the two ends of the row are one pair of pills; the + that opens the layout menu replaces
+ * *Edit* while editing, in the first column, where its menu hangs from. Edit and that + are in fact
+ * **one control with two faces** (`.app-header__pill--faces`), so entering the mode changes the
+ * character on the pill and nothing else — including its width, which a swapped-in single character
+ * used to shrink to a circle.
+ */
+.app-header .app-header__alerts,
+.app-header .app-header__pill {
   position: relative;
   grid-column: 3;
   align-self: start;
@@ -465,6 +574,22 @@ svg.map-canvas {
   color: var(--ink-strong);
 }
 
+.app-header .app-header__pill {
+  gap: var(--s-1);
+  padding: 0 var(--s-3);
+  background: var(--l2-bg);
+  border-color: var(--border-hairline);
+  color: var(--ink-strong);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.app-header .app-header__pill:hover {
+  background: var(--l1-bg);
+}
+
 /*
  * 36px of paint, 46px of target.
  *
@@ -473,10 +598,37 @@ svg.map-canvas {
  * 44px it claimed. -6px clears the border with room to spare, and the audit — which probes the
  * four edge midpoints of a 44px square rather than reading the declaration — is what found it.
  */
-.app-header .app-header__alerts::after {
+.app-header .app-header__alerts::after,
+.app-header .app-header__pill::after {
   content: '';
   position: absolute;
   inset: -6px;
+}
+
+/*
+ * **Two faces, one box.** Edit and the `+` it turns into are the same control, so the pill must not
+ * change shape between them — and a pill is as wide as what is inside it, so swapping the word for
+ * a single character made the `+` fall back to the 36px minimum and draw a **circle** where an oval
+ * had been. Both labels therefore sit in the **same grid cell**: the word sizes the box in both
+ * states, the `+` is centred in Edit's own oval, and the face that is not showing is
+ * `aria-hidden` — the attribute is the single statement of which face is current, and this rule is
+ * what paints it (so no second class can disagree with what a screen reader is told).
+ *
+ * Grid rather than the base rule's inline-flex: the two labels must occupy one cell and not sit
+ * side by side. Everything else — height, padding, radius, hairline, hover, the 48px `::after`
+ * target — is the pill's own rule, unchanged, which is the point.
+ */
+.app-header .app-header__pill--faces {
+  display: inline-grid;
+  place-items: center;
+}
+
+.app-header .app-header__pill--faces > .app-header__pill-face {
+  grid-area: 1 / 1;
+}
+
+.app-header .app-header__pill--faces > .app-header__pill-face[aria-hidden='true'] {
+  visibility: hidden;
 }
 
 /*
@@ -503,7 +655,7 @@ svg.map-canvas {
   padding: 0 var(--s-2);
   border-radius: var(--r-pill);
   background: var(--accent-primary);
-  color: var(--struct-main);
+  color: var(--on-accent);
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
   letter-spacing: var(--track-pill);
@@ -582,8 +734,8 @@ svg.map-canvas {
 
 .app-dock__item[aria-current='page'],
 .app-dock__item[data-active='true'] {
-  background: var(--accent-primary);
-  color: var(--struct-main);
+  background: var(--accent-on-dock);
+  color: var(--on-dock-accent);
 }
 
 .app-dock__label {
@@ -723,7 +875,7 @@ svg.map-canvas {
   justify-content: flex-start;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 720px) {
   .page-head--mobile-title .page-head__title {
     display: none;
   }
@@ -733,10 +885,71 @@ svg.map-canvas {
   }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
   }
 }
+
+/* ---------------------------------------------------------------- battery saving */
+/*
+ * Two automatic modes, set on `<html data-power>` by `lib/power.ts` and by nothing else: `save`
+ * at 20% and below, `super` at 10% and below. They are facts about the device, not preferences,
+ * so they sit beside `[data-motion]` rather than inside it — a traveller can have asked for full
+ * motion and still have 4% left, and then the battery wins.
+ *
+ * The reduction is deliberately all subtraction: nothing is added to any screen, and taking the
+ * attribute away restores the interface exactly, with no state to clear.
+ *
+ * **Save** is the movement. Every transition and animation is cut to a single 1ms step, which
+ * ends at the value it would have reached — so a card still hovers, a sheet still arrives, a
+ * notice still appears; they simply do not glide there. The one thing this rules out is an
+ * infinite animation that would sit still at a random point, and both of those (the spinner and
+ * the skeleton shimmer) are given a stated still form below.
+ */
+:root[data-power='save'] *,
+:root[data-power='super'] * {
+  animation-duration: 1ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* The ring that holds the results list's place: still, and still a ring — the shape of waiting
+   without the turning (the same form the reduced-motion switch gives it). */
+:root[data-power='save'] .spinner__ring,
+:root[data-power='super'] .spinner__ring {
+  animation: none !important;
+}
+
+/* The settling list: the bars stay as boxes instead of pulsing a gradient across ten cards. */
+:root[data-power='save'] .skeleton,
+:root[data-power='super'] .skeleton {
+  animation: none !important;
+  background: var(--l2-bg) !important;
+}
+
+/*
+ * **Super** is the paint as well as the movement.
+ *
+ * A backdrop filter is the most expensive thing this interface asks of a GPU: the two frosted
+ * surfaces (the home menu and its scrim) each force the page behind them to be re-composited.
+ * Both are opaque now, which is why the scrim's wash goes up from 28% to 62% — it is doing alone
+ * what the blur used to do with it, dimming the home screen enough for the panel to read.
+ */
+:root[data-power='super'] .home-menu__scrim {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: color-mix(in srgb, var(--canvas-base) 62%, transparent);
+}
+
+:root[data-power='super'] .home-menu {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: var(--l2-bg);
+  box-shadow: none;
+}
+

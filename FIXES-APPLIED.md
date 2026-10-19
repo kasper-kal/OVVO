@@ -1,5 +1,8 @@
 # What I changed — the nine items, in one line each
 
+**Status, 2026-10-18:** all nine are still in the code. The *Going back* section at the end is the
+only part of this file that is still operational; the rest is the record of that round.
+
 All nine are done, plus the page names (item A). Nothing else was touched: no data, no routing, no
 preferences, no behaviour beyond what each line says.
 

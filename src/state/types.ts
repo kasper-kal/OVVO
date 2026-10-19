@@ -1,5 +1,13 @@
 import type { ResultsFilter, SearchQuery } from '../data/journeyEngine';
 import type { Journey, SortMode, TimeMode } from '../data/types';
+import {
+  DEFAULT_BACKGROUND_COLOUR,
+  DEFAULT_CARD_TREATMENT,
+  type BackgroundChoice,
+  type CardTreatment,
+} from '../lib/background';
+import type { SelectionChoice } from '../lib/selection';
+import type { CropRect } from '../lib/photoCrop';
 
 /** Light, dark, or whatever the device is set to. */
 export type ThemeChoice = 'system' | 'light' | 'dark';
@@ -25,13 +33,76 @@ export interface Settings {
   highContrast: boolean;
   /** Disables spring/tactile transforms. */
   reduceMotion: boolean;
+  /**
+   * The colour selected text is painted with: one of the palette's five, or `custom`.
+   *
+   * Stored here rather than in its own slot because it is a setting like any other — one object,
+   * one write, one reset. The ink is *not* stored: it is derived from this colour
+   * (`lib/selection.ts`), so a colour cannot be saved with a stale ink beside it.
+   */
+  selectionColor: SelectionChoice;
+  /** The traveller's own colour, `#rrggbb`, when `selectionColor` is `custom`; `''` otherwise. */
+  selectionCustom: string;
+  /**
+   * What the page is made of: the app's cream, the traveller's colour, or a photo.
+   *
+   * Three answers rather than one, and `cream` is a *choice* rather than the absence of one, so the
+   * canvas a traveller has looked at since the first round is still there to choose and is still
+   * what a fresh browser gets. See `lib/background.ts`.
+   *
+   * This is the **page** and nothing else since version 5: it used to decide the widgets and the
+   * accent as well, which is what made "Background" the wrong home for the colour that paints
+   * every widget on the screen. `primaryColour` is that colour now.
+   */
+  background: BackgroundChoice;
+  /** The page's own colour, `#rrggbb`. Paints the page in `colour` mode; ignored on cream. */
+  backgroundColour: string;
+  /**
+   * The **baked** photo the page draws: the traveller's crop, at most 1600px on its long edge.
+   *
+   * This is what `--app-bg-image` points at, so it is the one copy every screen has to be able to
+   * draw. It is derived from the source below and the crop below, and rewritten whenever either
+   * changes.
+   */
+  backgroundImage: string;
+  /**
+   * The **whole** picture, as the traveller gave it, downscaled to 2048px and kept as well.
+   *
+   * Kept so a crop can be redone without the quality loss of cropping a crop (asked for directly:
+   * "Original kept"). It is never drawn on the page; only the crop screen reads it. Empty for a
+   * browser that chose a photo before version 6 — there the baked image is the only copy, and the
+   * crop screen opens on it as if it were the source.
+   */
+  backgroundImageSource: string;
+  /**
+   * Which part of the source is in the baked image, as fractions of the source (`lib/photoCrop.ts`).
+   *
+   * `null` means the whole picture — what choosing a photo does, since cropping is offered rather
+   * than automatic. The crop screen restores its frame from these four numbers, so reopening it
+   * shows exactly the frame that was left.
+   */
+  backgroundCrop: CropRect | null;
+  /** Over a photo: cards that show it through glass, or cards in the tint. */
+  cardTreatment: CardTreatment;
+  /**
+   * The colour the widgets are painted with — the cards, the panels, the sidebar and the accent —
+   * so it can be a different colour from the page, which is the whole point of it being a setting
+   * of its own (`Settings → Colours → Primary colour`).
+   *
+   * `''` means **follow the background**: the widgets take the page's colour when the page has one
+   * and the app's own surfaces and coral when it does not. That is exactly the behaviour before
+   * this setting existed, which is why it is the default — a browser that never opens the control
+   * keeps the interface it already had. Over a photo, which has no page colour, `''` resolves to
+   * the stored page colour, so the solid card treatment still remembers what was chosen.
+   */
+  primaryColour: string;
   /** Which option the planner starts with. */
   defaultTimeMode: TimeMode;
   /** Prefilled origin for the planner. */
   defaultOriginStopId: string | null;
 }
 
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 6;
 
 export const DEFAULT_SETTINGS: Settings = {
   version: SETTINGS_VERSION,
@@ -42,6 +113,23 @@ export const DEFAULT_SETTINGS: Settings = {
   density: 'comfortable',
   highContrast: false,
   reduceMotion: false,
+  /* The coral the app has always selected with — the same colour the dock's active entry is
+     painted with, and the one that measured 7.1:1 in R98. */
+  selectionColor: 'coral',
+  selectionCustom: '',
+  /*
+   * The canvas the app has always drawn — `--canvas-base`, the warm cream — is the default, not a
+   * fallback: a fresh browser and a browser that has been here since the beginning get the same
+   * page until somebody chooses otherwise.
+   */
+  background: 'cream',
+  backgroundColour: DEFAULT_BACKGROUND_COLOUR,
+  backgroundImage: '',
+  backgroundImageSource: '',
+  backgroundCrop: null,
+  cardTreatment: DEFAULT_CARD_TREATMENT,
+  /* Follow the background — see the field's note: this is the interface the app already had. */
+  primaryColour: '',
   defaultTimeMode: 'depart',
   defaultOriginStopId: null,
 };
@@ -50,15 +138,36 @@ export const DEFAULT_SETTINGS: Settings = {
  * How stored settings are brought forward.
  *
  * One step per version, and the stamp that makes a changed default reach a browser that already
- * stored the old one. It has one step behind it and none in front of it now: `boardAutoRefresh`
- * was moved from its old default of `0` (off) up to `5` here, and the setting itself has since
- * been **removed** — the board is a live screen at a fixed 5 seconds, with no control to slow it
- * down (see `BOARD_REFRESH_SECONDS` in `DeparturesPage`). A stale `boardAutoRefresh` left in a
- * browser's stored settings is simply ignored.
+ * stored the old one.
+ *
+ * Version 5 gave the widgets a colour of their own. Through version 4 `backgroundColour` was the
+ * app's **tint** — one choice that painted the page, the widgets and the accent together, which
+ * made "Background" the home of the colour used everywhere. The page keeps that job and
+ * `primaryColour` takes the rest; it is absent from older objects and the merge with
+ * `DEFAULT_SETTINGS` supplies `''`, i.e. *follow the background*, so a browser that stored version
+ * 4 or earlier loads the interface it had before this setting existed. Nothing is rewritten here.
+ *
+ * Version 4 made the one colour one decision. `backgroundColour` used to paint the page only,
+ * with every card keeping its own surface; it is now the app's **tint**, so a browser that had
+ * chosen a page colour finds that same colour on its widgets, its cards and its accent when it
+ * next loads. `cardTreatment` is also absent from older objects, and is supplied the same way.
+ * Earlier,
+ * `boardAutoRefresh` was moved from its old default of `0` (off) up to `5` and has since been
+ * **removed** — the board is a live screen at a fixed 5 seconds (see `BOARD_REFRESH_SECONDS` in
+ * `DeparturesPage`) — so a stale value is simply ignored.
  */
 export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
   return { ...stored, version: SETTINGS_VERSION };
 }
+
+/*
+ * Version 6 keeps the whole photograph beside the crop (`backgroundImageSource`), and remembers the
+ * frame (`backgroundCrop`) so the crop screen can be reopened on the same part of the picture.
+ * Neither needs rewriting here: a browser that stored version 5 has no source, and the merge with
+ * `DEFAULT_SETTINGS` supplies `''` and `null` — which the crop screen reads as "the baked image is
+ * the whole picture", exactly the centre crop that browser already has. Nothing about the page it
+ * draws changes on the way in.
+ */
 
 export interface SavedJourney {
   id: string;
@@ -85,23 +194,13 @@ export interface PlannerSearchState {
 
 /**
  * A widget's width, in columns of the home screen's 12-column grid: 4 is a third, 6 a half, 8
- * two-thirds, 12 the full width. Every widget offers all four, but only above its own device
- * threshold — each widget declares the narrowest screen at which resizing helps it (see
- * `resizeFrom` in `widgets/registry.tsx`), and below that it is drawn full width with no corner.
+ * two-thirds, 12 the full width.
+ *
+ * It is the whole of a widget's size — there is nothing else to choose. A card is the width its
+ * widget declares and as tall as its own content, and the home screen draws it that way at every
+ * device width.
  */
 export type WidgetWidth = 4 | 6 | 8 | 12;
-
-/**
- * A widget's height, as a tier rather than a number of pixels: how much the widget **shows**.
- * A compact card lists two rows, a standard one four, a tall one everything — the card always
- * ends where its content ends, so nothing is clipped and nothing scrolls inside a card.
- */
-export type WidgetTier = 'compact' | 'standard' | 'tall';
-
-export interface WidgetSize {
-  w: WidgetWidth;
-  h: WidgetTier;
-}
 
 /** Whether the traveller has answered the location prompt (asked once, on first open). */
 export type LocationConsent = 'unknown' | 'granted' | 'denied';

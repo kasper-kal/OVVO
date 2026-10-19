@@ -10,6 +10,7 @@ import { getDisruption } from '../data/disruptions';
 import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { useT } from '../lib/useT';
 import { plural } from '../lib/format';
 
 export function JourneyDetailPage() {
@@ -17,6 +18,7 @@ export function JourneyDetailPage() {
   const navigate = useNavigate();
   const { findJourney, search, preferences, startSearch, isJourneySaved, saveJourney, savedJourneys } = useApp();
   const format = useFormat();
+  const t = useT();
   const journey = findJourney(journeyId);
   const saved = journey ? isJourneySaved(journey.signature) : false;
 
@@ -24,19 +26,21 @@ export function JourneyDetailPage() {
     return (
       <div className="stack-6">
         <PageHeader
-          title="Journey no longer in this session"
-          description="Journeys are generated per search, so this option is not available right now."
+          title={t('Journey no longer in this session')}
+          description={t('Journeys are generated per search, so this option is not available right now.')}
         />
         <EmptyState
           icon="route"
-          title="This journey could not be restored"
-          description="Re-run the search to see the options again, or open one of your favourited journeys."
+          title={t('This journey could not be restored')}
+          description={t(
+            'Re-run the search to see the options again, or open one of your favourited journeys.',
+          )}
         >
           <Link to="/" className="btn btn--primary">
             <Icon name="search" size={16} />
             Plan a new journey
           </Link>
-          <Link to="/?widget=favourited-journeys" className="btn">
+          <Link to="/?widget=your-journeys" className="btn">
             <Icon name="bookmark" size={16} />
             Favourited journeys ({savedJourneys.length})
           </Link>
@@ -48,7 +52,7 @@ export function JourneyDetailPage() {
                 navigate('/results');
               }}
             >
-              Re-run my last search
+              {t('Re-run my last search')}
             </Button>
           ) : null}
         </EmptyState>
@@ -76,9 +80,10 @@ export function JourneyDetailPage() {
          */
         title={
           <>
-            {stopLabel(journey.legs[0].fromStopId)}
+            {journey.legs[0].fromLabel ?? stopLabel(journey.legs[0].fromStopId)}
             <Icon name="arrowRight" size={18} className="page-head__arrow" />
-            {stopLabel(journey.legs[journey.legs.length - 1].toStopId)}
+            {journey.legs[journey.legs.length - 1].toLabel ??
+              stopLabel(journey.legs[journey.legs.length - 1].toStopId)}
           </>
         }
         description={`${format.date(search?.query.date ?? '')} · departs ${format.time(journey.departure)} · arrives ${format.time(
@@ -99,7 +104,23 @@ export function JourneyDetailPage() {
           <Button
             icon="route"
             onClick={() => {
-              startSearch({ ...search.query, fromStopId: journey.legs[journey.legs.length - 1].toStopId, toStopId: journey.legs[0].fromStopId, preferences });
+              /*
+               * The two ends swap, and so does everything that names them: an end that was an
+               * address keeps its address when it becomes the destination, and the distance
+               * between that address and the stop swaps with it. Without the labels a return
+               * from Haarlem to "Rijksstraatweg 9, Haarlem" would have arrived at "Haarlem" —
+               * a journey to the station the traveller was standing at.
+               */
+              startSearch({
+                ...search.query,
+                fromStopId: journey.legs[journey.legs.length - 1].toStopId,
+                toStopId: journey.legs[0].fromStopId,
+                fromLabel: search.query.toLabel,
+                toLabel: search.query.fromLabel,
+                fromAccessMetres: search.query.toAccessMetres,
+                toAccessMetres: search.query.fromAccessMetres,
+                preferences,
+              });
               navigate('/results');
             }}
           >
@@ -135,12 +156,12 @@ export function JourneyDetailPage() {
       */}
 
       {disruptions.length ? (
-        <Banner tone="coral" icon="alert" title="Alerts on this journey">
+        <Banner tone="coral" icon="alert" title={t('Alerts on this journey')}>
           <div className="stack-2">
             {disruptions.map((alert) =>
               alert ? (
                 <Link key={alert.id} to={`/disruptions/${alert.id}`} className="t-sm">
-                  <span className="t-strong">{alert.title}</span> — read the details and advice
+                  <span className="t-strong">{alert.title}</span> {t('— read the details and advice')}
                 </Link>
               ) : null,
             )}
@@ -151,7 +172,7 @@ export function JourneyDetailPage() {
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <Card className="stack">
           <div className="between wrap">
-            <h2 className="t-section">Complete journey</h2>
+            <h2 className="t-section">{t('Complete journey')}</h2>
             <div className="row-wrap">
               {journey.label ? <Pill tone="butter">{JOURNEY_LABELS[journey.label]}</Pill> : null}
               {journey.delayMinutes ? (
@@ -168,7 +189,7 @@ export function JourneyDetailPage() {
 
         <div className="stack-4">
           <Card className="stack">
-            <h2 className="t-section">Journey summary</h2>
+            <h2 className="t-section">{t('Journey summary')}</h2>
             {/*
               Drawn, not described: the seven-row definition list it replaces read as a
               paragraph of sentences ("EXTREMLY text heavy, replace with mostly icons",
@@ -221,9 +242,9 @@ export function JourneyDetailPage() {
           </Card>
 
           <Card className="stack">
-            <h2 className="t-section">Transfers</h2>
+            <h2 className="t-section">{t('Transfers')}</h2>
             {transfers.length === 0 ? (
-              <p className="t-sm t-muted">This is a direct journey — no transfers at all.</p>
+              <p className="t-sm t-muted">{t('This is a direct journey — no transfers at all.')}</p>
             ) : (
               <ul className="stack-2">
                 {transfers.map(({ leg }) => {
@@ -254,7 +275,7 @@ export function JourneyDetailPage() {
             deleted rather than restyled (see the same card on the results screen).
           */}
           <Card className="stack">
-            <h2 className="t-section">Expected occupancy</h2>
+            <h2 className="t-section">{t('Expected occupancy')}</h2>
             {/*
               The words, not a bar and the words. A full-width meter and the pill beside it
               drew the same fact twice, and the bar carried no scale to read it against.

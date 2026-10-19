@@ -11,6 +11,14 @@
 > `DESIGN_DECISIONS.md` now point at files that no longer exist; the numbers they name are still in
 > those documents' prose.
 
+**Historical — do not read this as the current list.** Since that deletion the tree moved again:
+`FOOTERS.md` was removed once its last footer was decided; `.logs/` was pruned a second time on
+2026-10-18 to the 14 gate scripts, the 50 cited instruments and `widget-audit-2/` — the unpacked
+browser libraries went too, and `.logs/playwright-libs.sh` re-fetches them — and two dead scripts
+were found in `scripts/` (the README and the gate never name `comprehensive-audit.mjs` or
+`simple-header-audit.mjs`). The counts below describe the tree before
+those two passes, not the 4.8 MB it is now.
+
 An inventory, not a deletion — until the note above. Every file below was where it said it was when
 this was written. This is the text-only version of the list (the earlier one also counted pictures
 and build output; those are in the appendix, since they are not text).

@@ -7,6 +7,7 @@ import {
   type Preferences,
 } from '../../data/preferences';
 import { Chip, Field, Panel, Switch } from '../ui/primitives';
+import { useT } from '../../lib/useT';
 import { Icon, ModeIcon } from '../ui/Icons';
 import type { TravelMode } from '../../data/types';
 
@@ -30,6 +31,7 @@ export function PreferencesControls({
   showModes?: boolean;
   withHints?: boolean;
 }) {
+  const t = useT();
   const toggleMode = (mode: TravelMode) => {
     onChange({
       allowedModes: preferences.allowedModes.includes(mode)
@@ -42,37 +44,40 @@ export function PreferencesControls({
     <div className="stack-4">
       {showModes ? (
       <div className="stack-2">
-        <p className="field__label">Transport modes</p>
+        <p className="field__label">{t('Transport modes')}</p>
         <div className="row-wrap chip-group">
           {MODE_OPTIONS.map((mode) => (
             <Chip key={mode} selected={preferences.allowedModes.includes(mode)} onClick={() => toggleMode(mode)}>
               <ModeIcon mode={mode} size={15} />
-              {modeLabel(mode)}
+              {t(modeLabel(mode))}
             </Chip>
           ))}
         </div>
         <p className="t-sm t-faint">
-          Every mode starts switched on; unselected modes are left out of your journeys.
+          {t('Every mode starts switched on; unselected modes are left out of your journeys.')}
         </p>
         {preferences.allowedModes.length === 0 ? (
           <Panel variant="coral">
             <span className="t-sm row">
               <Icon name="alert" size={16} />
-              With no transport mode selected no journey can be planned.
+              {t('With no transport mode selected no journey can be planned.')}
             </span>
           </Panel>
         ) : null}
         {preferences.allowedModes.includes('bike') ? (
           <p className="t-sm t-faint mode-hint">
             <ModeIcon mode="bike" size={15} />
-            <span>{ACCESS_MODE_HINTS.bike}</span>
+            <span>{ACCESS_MODE_HINTS.bike ? t(ACCESS_MODE_HINTS.bike) : null}</span>
           </p>
         ) : null}
       </div>
       ) : null}
 
       <div className="grid-2">
-        <Field label="Maximum walking time" hint={withHints ? 'Applies to access, transfer and egress walks.' : undefined}>
+        <Field
+          label={t('Maximum walking time')}
+          hint={withHints ? t('Applies to access, transfer and egress walks.') : undefined}
+        >
           <div className="range">
             <input
               type="range"
@@ -80,22 +85,25 @@ export function PreferencesControls({
               max={MAX_WALKING_MINUTES}
               step={5}
               value={preferences.maxWalkingMinutes}
-              aria-label="Maximum walking minutes"
+              aria-label={t('Maximum walking minutes')}
               onChange={(event) => onChange({ maxWalkingMinutes: Number(event.target.value) })}
             />
             <div className="between">
-              <span className="t-sm t-muted">5 min</span>
+              <span className="t-sm t-muted">{t('5 min')}</span>
               <span className="t-strong">
                 {preferences.maxWalkingMinutes >= MAX_WALKING_MINUTES
-                  ? 'No limit'
-                  : `${preferences.maxWalkingMinutes} minutes`}
+                  ? t('No limit')
+                  : t('{count} minutes', { count: preferences.maxWalkingMinutes })}
               </span>
-              <span className="t-sm t-muted">{MAX_WALKING_MINUTES} min</span>
+              <span className="t-sm t-muted">{t('{count} min', { count: MAX_WALKING_MINUTES })}</span>
             </div>
           </div>
         </Field>
 
-        <Field label="Maximum number of transfers" hint={withHints ? 'Counts changes between services, not walking links.' : undefined}>
+        <Field
+          label={t('Maximum number of transfers')}
+          hint={withHints ? t('Counts changes between services, not walking links.') : undefined}
+        >
           <select
             className="select"
             value={preferences.maxTransfers}
@@ -103,7 +111,7 @@ export function PreferencesControls({
           >
             {TRANSFER_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </option>
             ))}
           </select>
@@ -111,18 +119,18 @@ export function PreferencesControls({
       </div>
 
       <div className="stack-2">
-        <p className="field__label">Trade-offs</p>
+        <p className="field__label">{t('Trade-offs')}</p>
         <Switch
           checked={preferences.preferFewerTransfers}
           onChange={(next) => onChange({ preferFewerTransfers: next })}
-          label="Prefer fewer transfers"
-          description={withHints ? 'Ranks journeys with fewer changes higher, even if slower.' : undefined}
+          label={t('Prefer fewer transfers')}
+          description={withHints ? t('Ranks journeys with fewer changes higher, even if slower.') : undefined}
         />
         <Switch
           checked={preferences.preferLessWalking}
           onChange={(next) => onChange({ preferLessWalking: next })}
-          label="Prefer less walking"
-          description={withHints ? 'Shortens walking links and ranks them lower.' : undefined}
+          label={t('Prefer less walking')}
+          description={withHints ? t('Shortens walking links and ranks them lower.') : undefined}
         />
       </div>
 

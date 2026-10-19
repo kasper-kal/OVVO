@@ -42,16 +42,27 @@ npm run dev:preview -- pv-<workspace-id>.style.dev   # wraps scripts/dev-preview
 ```
 
 `scripts/dev-preview.sh` exports `PREVIEW_HOST` for that one hostname; `vite.config.ts`
-reads it into `server.allowedHosts` and the script starts Vite on `0.0.0.0:3000`. Plain
-`npm run dev` stays localhost-only. (Vite 8 no longer honours
-`__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS`, which is why the hostname goes through the
-config.)
+reads it into `server.allowedHosts` and the script starts Vite on `0.0.0.0:3000`. (Vite 8
+no longer honours `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS`, which is why the hostname
+goes through the config.)
+
+The same variable can instead be pinned in **`.env.local`**, which Vite loads itself and
+`.gitignore` excludes (`*.local`) — so nothing temporary lands in the repository:
+
+```bash
+# .env.local
+PREVIEW_HOST=pv-<workspace-id>.style.dev
+```
+
+With that file in place, plain `npm run dev` already allows the preview hostname; after a
+restore, replace the one value and restart. Without it the server stays localhost-only,
+which is the right default for a checkout that is not behind a preview proxy.
 
 ## Screens
 
 | Route | Screen |
 | --- | --- |
-| `/` | Home: a widget grid (planner, network map, favourited journeys, recent searches, travel preferences) |
+| `/` | Home: a widget grid (journey planner, next departures at your station, your favourite stops, the network map, and your saved journeys) |
 | `/results` | Journey results: the search card itself, with Start / End / Leave / Options, then sorting, filters and the journeys |
 | `/journey/:id` | Journey details (full leg timeline, transfers, platforms, delays, occupancy) |
 | `/stops`, `/stops/:id` | Stations & stops list and stop pages (facilities, access, board, alerts, nearby stops) |
@@ -62,21 +73,42 @@ config.)
 
 No route scrolls sideways: every screen is checked for horizontal overflow from 320px up.
 
+**One width decides which site you get: mobile under 720px, desktop from 720px.**
+`@media (max-width: 719px)` and `@media (min-width: 720px)` are the only queries that may
+decide a mode, and `scripts/breakpoint-audit.mjs` fails the build when another width
+appears outside the two named exceptions — `1040px`, where the sidebar replaces the dock
+(the page is already desktop at 720, this only changes how navigation is drawn), and the
+four density steps (`560`/`559`, `400`/`379`) that redraw a cramped control *inside* mobile
+rather than switching layout. The rule is written out in `src/styles/base.css` (“the one
+breakpoint”) and the boundary is measured: `scripts/ui-audit.mjs` runs every route at both
+**719** and **720**, because the defects this rule replaced were all found in the gap
+between two local widths — a home grid that kept two half cards at 390px, a stop picker
+that capped its list as a phone up to 640px, a page head that changed shape at 641px.
+
 Desktop uses a sidebar; mobile uses the floating obsidian dock plus an “All sections”
 sheet. Every visible control performs a real action — nothing is a decorative link.
 
-There is no full-screen page for favourited journeys or recent searches: each is managed
-inside its home-screen widget — a filled heart per journey (with an “are you sure?”
-confirmation before it is unfavourited) and a per-row cross plus a delete-all button for
-the search history.
+There is no full-screen page for favourited journeys or recent searches: both are managed
+inside the same home-screen card, **Your journeys** — a filled heart per journey (with an
+“are you sure?” confirmation before it is unfavourited) and a per-row cross plus a
+delete-all button for the search history.
 
 The home screen is a 12-column widget grid. Customising it is deliberately out of the way:
 a small, muted “Customise home” control sits at the very foot of the page. Only then does
 each removable widget show the same remove × in the same top-right slot of its card, and
-only then does the **Add widget** catalogue (18 widgets, grouped Plan / Travel information /
-Yours / About) become reachable. The planner widget is required and never shows a remove
+only then does the **Add widget** catalogue (9 widgets, grouped Plan / Travel information /
+Yours) become reachable. The planner widget is required and never shows a remove
 control; the layout lives in this browser. With customising off, none of that chrome is
 rendered at all.
+
+The catalogue is what the widget audit (`WIDGET-AUDIT.md`) left: a card has to hold
+something of the traveller’s or do something for them. Seventeen cards became nine — the
+network counts, the operator list, the About card, the settings echo, the navigation
+duplicate and the “stored on this device” card were cut, the two lists of journeys were
+merged into **Your journeys**, and the alerts card became the alerts that touch a journey
+you saved. A fresh browser opens with **Plan a journey**, **Next departures** (untied: it
+asks for one station in the card itself) and **Favourite stops** — the three cards that
+answer the question a traveller arrives with.
 
 The planner widget is the compact two-row card described under *Design invariants* below:
 From and To with a rail beside them and nothing else. Tapping either row opens the
@@ -90,8 +122,12 @@ filters which services are shown. A corridor shared by several services is drawn
 mode — forty-one services over a handful of corridors used to paint the network near-black.
 Stops open their own page, and a handful of junctions are named: a name takes the first of
 six positions (beside its dot, then above, then below, leaning inwards) whose box clears
-every dot and every name already placed. The widget is half width because the map is a
-square. Every “map” link in the app jumps to that widget and highlights what was asked for.
+every dot and every name already placed. The names are the traveller’s own where they have
+any — the stops they hearted, then the stops nearest them — and only a traveller who has
+chosen nothing and shared no location gets the busiest junctions. The card is eight columns
+because the drawing is capped at 480px square; the line under it names those stops in words
+that cannot collide. Every “map” link in the app jumps to that widget and highlights what
+was asked for.
 
 ## Location
 
@@ -388,6 +424,20 @@ node .logs/round10-check.cjs
 # server on :3000 (or CAPS_URL). Exits 1 on a lowercase label or sentence, so it gates.
 node scripts/caps-audit.mjs
 
+# the one-colour theme, as behaviour (R108): cream is the default and Reset returns to it, a tint
+# paints the page's wash, every widget card and the sidebar and flips the card's ink when it is
+# dark, glass blurs and stays translucent over a photo, the solid treatment paints the tint, the
+# eyedropper takes a pixel out of the stored wallpaper, the choice survives a reload and nothing
+# overflows a 390px phone. Exits 1 on a failure.
+node .logs/tint-check.cjs
+
+# the same theme as *contrast*, route by route: it resolves the nearest painted surface behind
+# every text node (compositing translucent layers, and over a photo against a black *and* a white
+# wallpaper, because a wallpaper is unknown) and reports any pair under 4.5:1. 5 tints × 2
+# appearances + 4 photo cases × 10 routes — the instrument that found the map's labels at 1.11:1
+# on a dark tint and iOS blue at 4.34:1 under its own ink
+node .logs/tint-contrast.cjs
+
 # the icon set as a page to look at: every name at every size it is drawn at, rendered from
 # the same components the app renders -> .shots/r57/icon-set.html
 node scripts/icon-sheet.mjs
@@ -448,6 +498,11 @@ The interface is written in **two languages** and drawn in **two appearances**, 
   second set of components. The structural obsidian and the accents are deliberately the same in
   both, because they are the dock, the primary button and the 10% of the palette that carries
   meaning.
+* **Text selection:** five colours the palette owns, or the traveller's own from the device's
+  colour picker (`Settings → Text selection`). The ink on the highlight is not chosen: `lib/selection.ts`
+  measures the colour and picks whichever of the app's two inks has more contrast, so a dark colour
+  gets light text. The pair is written to `<html>` as `--selection-bg` / `--selection-ink`, the two
+  properties `tokens.css` already declared.
 * **Language:** English (default) and Nederlands. `src/lib/i18n.ts` holds the dictionary and
   `translate()`; `src/lib/useT.ts` is the hook. Keys are the English sentence itself, so a line
   that has not been translated yet falls back to English rather than to an identifier, and the
@@ -459,10 +514,41 @@ on `/disruptions`, `/journey/:id` and the preferences controls: stop names, line
 carrier names are the timetable talking, and translating a station name would be a lie about a
 real place.
 
+### Battery
+
+The app reads the device's battery with the **Battery Status API** (`navigator.getBattery`) and
+saves power on its own, in two steps, with nothing to switch on and nothing stored:
+
+* **At 20% or less — saving.** Every transition and animation is cut to a single step (they still
+  reach their end state, they just do not travel), the spinner and the skeleton bars stand still,
+  the results screen and the stops list stop holding their place with a fake wait, and a deep
+  link scrolls instead of gliding.
+* **At 10% or less — super saving.** The above, plus: no frosted glass and no shadows, no request
+  spent on the IP location estimate, and a home screen that keeps only the cards that answer
+  *when does the bus go* — the planner, the next-departures card and the hearted stops — with one
+  line saying so. Leaving customising, or plugging the phone in, restores the whole interface.
+
+`src/lib/power.ts` holds the rule (`powerModeFor`: 20% and 10% in, two points above each out, and
+charging is always off) and `styles/base.css` is where the reduction is drawn, from one attribute
+on `<html>` — `<html data-power>` — the same shape as the motion switch. Settings shows the mode
+and the level as a reading, not a control.
+
+**The API is Chromium's.** Safari does not implement it and Firefox removed it, so there no mode
+ever starts and the full interface is what is drawn; Settings says *Not reported* rather than
+pretending a mode is on. Because the modes only ever subtract, a browser without the API loses
+nothing but the saving.
+
 ## Status
 
 The interface is feature-complete for the current design. The remaining work to make it
 production is data: pointing `src/data` at real timetable, alert and geocoding sources,
 and giving the map widget a geographic basemap (coastline and water) behind the network it
-already draws. Accounts and server-side storage are not started. The second language covers the
-interface rather than the data, and the three screens named above still carry English prose.
+already draws. Accounts and server-side storage are not started.
+
+Scheduling a journey uses the device's own date and time pickers (`<input type="date">` and
+`<input type="time">` in the results screen's *When* dialog). A native control draws in the
+device's locale, so it does not follow the app's Clock format / Date format settings; the same
+answer is printed under the fields in the app's own format, and the stored value (an ISO date and
+minutes since midnight) is unaffected either way. The second language covers the interface rather than the data; **85 interface strings are still
+English in Dutch** (`DESIGN_DECISIONS.md` P5), concentrated in the alerts list, the stop page, the
+journey page and the preference controls.

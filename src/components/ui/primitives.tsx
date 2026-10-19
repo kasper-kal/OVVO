@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Icon, ModeIcon, type IconName } from './Icons';
 import { useApp } from '../../state/AppState';
+import { useT } from '../../lib/useT';
 import { modeLabel } from '../../data/preferences';
 import type { TravelMode } from '../../data/types';
 
@@ -507,16 +508,6 @@ export function SkeletonCards({ count = 4 }: { count?: number }) {
   );
 }
 
-export function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="stat">
-      <span className="field__label">{label}</span>
-      <span className="stat__value">{value}</span>
-      {hint ? <span className="t-sm t-muted">{hint}</span> : null}
-    </div>
-  );
-}
-
 export function Meter({ value, tone = 'coral' }: { value: number; tone?: 'coral' | 'sage' | 'butter' }) {
   const pct = Math.max(0, Math.min(100, Math.round(value * 100)));
   return (
@@ -553,6 +544,7 @@ export function Dialog({
   footer?: ReactNode;
   panelClassName?: string;
 }) {
+  const t = useT();
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (event: KeyboardEvent) => {
@@ -577,7 +569,7 @@ export function Dialog({
             <h2 className="t-h2">{title}</h2>
             {description ? <p className="t-sm t-muted">{description}</p> : null}
           </div>
-          <IconButton icon="close" label="Close" onClick={onClose} />
+          <IconButton icon="close" label={t('Close')} onClick={onClose} />
         </div>
         {children}
         {footer ? <div className="row-wrap" style={{ marginTop: 'var(--s-4)' }}>{footer}</div> : null}
@@ -588,6 +580,7 @@ export function Dialog({
 
 export function Toaster() {
   const { toasts, dismissToast } = useApp();
+  const t = useT();
   return (
     <div className="toast-region" role="status" aria-live="polite">
       {/*
@@ -605,7 +598,7 @@ export function Toaster() {
           <span className="toast__message">{toast.message}</span>
           <IconButton
             icon="close"
-            label="Dismiss message"
+            label={t('Dismiss message')}
             className="toast__close"
             onClick={() => dismissToast(toast.id)}
           />

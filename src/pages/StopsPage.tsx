@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import {
@@ -22,12 +22,13 @@ import {
   Button,
   Card,
   Chip,
-  EmptyState,
   IconButton,
   Pill,
   SkeletonCards,
 } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
+import { NoMatches } from '../components/ui/NoMatches';
+import { ResultCard, ResultCardLink } from '../components/ui/ResultCard';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import type { PublicMode, Stop } from '../data/types';
@@ -37,13 +38,42 @@ type StopTypeFilter = 'any' | Stop['type'];
 
 export function StopsPage() {
   const navigate = useNavigate();
-  const { favouriteStopIds, toggleFavourite, nearestOrigin } = useApp();
+  const { favouriteStopIds, toggleFavourite, nearestOrigin, power } = useApp();
+  /*
+   * Read in the effects below through a ref: the artificial wait is keyed to the filters, and a
+   * phone being plugged in must not replay it over a list that is already on screen.
+   */
+  const savingRef = useRef(power.mode !== 'off');
+  savingRef.current = power.mode !== 'off';
   const t = useT();
   const format = useFormat();
 
   const [query, setQuery] = useState('');
+  /*
+   * Every filter that changes **which** list is on screen lives in the URL (MATCHING_PLAN rule 8):
+   * the region, the city, the stop type, the modes, the favourites-only chip and the sort. Back,
+   * refresh and a shared link then all mean the same list, on the same terms `?stop=` already has
+   * on the alerts list. What stays in component state is only about *this visit*: the typed
+   * query (a half-typed name is not a bookmark) and the batch the list has grown to.
+   */
+  const [params, setParams] = useSearchParams();
+  const writeParams = useCallback(
+    (patch: Record<string, string | null>) => {
+      setParams((current) => {
+        const next = new URLSearchParams(current);
+        for (const [key, value] of Object.entries(patch)) {
+          if (value === null || value === '' || value === 'any') next.delete(key);
+          else next.set(key, value);
+        }
+        return next;
+      });
+    },
+    [setParams],
+  );
+  const sortParam = params.get('sort');
+  const sort: StopsSort =
+    sortParam === 'city' || sortParam === 'name' || sortParam === 'connections' ? sortParam : 'nearest';
   /* Visible at once: the search, the sort and the count. Everything else lives in Options. */
-  const [sort, setSort] = useState<StopsSort>('nearest');
   /*
    * Nearest-first is the default and the point of the sort, but it needs an origin. With none —
    * no device fix and no estimate — the select falls back to the city order it used to have,
@@ -52,11 +82,40 @@ export function StopsPage() {
   const nearestSort = sort === 'nearest' && nearestOrigin !== null;
   const activeSort: Exclude<StopsSort, 'nearest'> | 'nearest' = nearestSort ? 'nearest' : sort === 'nearest' ? 'city' : sort;
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const [modes, setModes] = useState<PublicMode[]>([]);
-  const [type, setType] = useState<StopTypeFilter>('any');
-  const [region, setRegion] = useState('any');
-  const [city, setCity] = useState('any');
-  const [favouritesOnly, setFavouritesOnly] = useState(false);
+  const modesParam = params.get('modes');
+  const modes = useMemo<PublicMode[]>(() => {
+    const parsed = (modesParam ?? '')
+      .split(',')
+      .filter((mode): mode is PublicMode => (PT_LABEL_ORDER as string[]).includes(mode));
+    return PT_LABEL_ORDER.filter((mode) => parsed.includes(mode));
+  }, [modesParam]);
+  const typeParam = params.get('type');
+  const stopTypes: StopTypeFilter[] = [
+    'any',
+    'station',
+    'airport',
+    'metrostop',
+    'tramstop',
+    'busstop',
+    'ferrystop',
+    'landmark',
+  ];
+  const type: StopTypeFilter = stopTypes.includes((typeParam ?? 'any') as StopTypeFilter)
+    ? ((typeParam ?? 'any') as StopTypeFilter)
+    : 'any';
+  const region = params.get('region') ?? 'any';
+  const city = params.get('city') ?? 'any';
+  const favouritesOnly = params.get('favourites') === '1';
+  const toggleMode = (mode: PublicMode) => {
+    const next = (modes.includes(mode) ? modes.filter((m) => m !== mode) : [...modes, mode]).filter((m) =>
+      PT_LABEL_ORDER.includes(m),
+    );
+    writeParams({ modes: next.length ? PT_LABEL_ORDER.filter((m) => next.includes(m)).join(',') : null });
+  };
+  const clearFilters = () => {
+    setQuery('');
+    writeParams({ region: null, city: null, type: null, modes: null, favourites: null, sort: null });
+  };
   /* The card's Plan button opens this rather than deciding for the traveller. */
   const [planStop, setPlanStop] = useState<Stop | null>(null);
 
@@ -135,13 +194,30 @@ export function StopsPage() {
    * read as a shimmer and short enough not to be in the way; it is restarted by any change to
    * the filters, and it starts on first paint, which is the same brief wait on a cold open.
    */
-  const [settling, setSettling] = useState(true);
+  const [settling, setSettling] = useState(power.mode === 'off');
   const filterKey = `${query}|${modes.join(',')}|${type}|${region}|${city}|${favouritesOnly}|${sort}|${resetBatch}`;
   useEffect(() => {
+    /*
+     * Battery saving draws no placeholder: the shimmer is a movement and a timer for a wait that
+     * the data (which is local) never actually had. The list is simply there, which is the one
+     * thing a traveller on 8% wants from it.
+     */
+    if (savingRef.current) {
+      setSettling(false);
+      return undefined;
+    }
     setSettling(true);
     const timer = window.setTimeout(() => setSettling(false), 360);
     return () => window.clearTimeout(timer);
   }, [filterKey]);
+  /*
+   * The reading arrives a moment after the first render, so a page opened at 8% can have started
+   * its placeholder before the mode was known. This ends it on the spot — and only ever clears,
+   * never starts, so a charger going in does not replay a wait over a list already on screen.
+   */
+  useEffect(() => {
+    if (power.mode !== 'off') setSettling(false);
+  }, [power.mode]);
 
   const fromMinutes = useMinuteNow();
   const departuresFor = useCallback(
@@ -164,8 +240,6 @@ export function StopsPage() {
     navigate(`/?${direction}=${stopId}&pick=${direction === 'from' ? 'to' : 'from'}`);
   };
 
-  const openCard = (stop: Stop) => navigate(`/stops/${stop.id}`);
-
   return (
     <div className="stack-6">
       <PageHeader
@@ -173,6 +247,9 @@ export function StopsPage() {
         description={t(
           'Every stop has its own page with facilities, access information, a departure board and alerts.',
         )}
+        /* Every list screen draws its own name (MATCHING_PLAN rule 5): a phone has no menu on
+           screen, and a stop reached from a link has to be told where it is. */
+        showTitle
         actions={
           <Link to="/departures" className="btn">
             <Icon name="board" size={16} />
@@ -182,7 +259,7 @@ export function StopsPage() {
       />
 
       <Card className="stack">
-        <div className="stops-filters">
+        <div className="stops-filters" data-filter-row>
           <label className="field grow">
             <span className="field__label">{t('Search stops')}</span>
             <input
@@ -200,7 +277,7 @@ export function StopsPage() {
               id="stops-sort"
               className="select"
               value={activeSort}
-              onChange={(event) => setSort(event.target.value as StopsSort)}
+              onChange={(event) => writeParams({ sort: event.target.value === 'nearest' ? null : event.target.value })}
             >
               <option value="nearest" disabled={!nearestOrigin}>
                 {t('Nearest')}
@@ -258,7 +335,7 @@ export function StopsPage() {
             <div className="grid-2">
               <label className="field">
                 <span className="field__label">{t('Region')}</span>
-                <select className="select" value={region} onChange={(event) => setRegion(event.target.value)}>
+                <select className="select" value={region} onChange={(event) => writeParams({ region: event.target.value })}>
                   <option value="any">{t('All regions')}</option>
                   {regions().map((item) => (
                     <option key={item} value={item}>
@@ -269,7 +346,7 @@ export function StopsPage() {
               </label>
               <label className="field">
                 <span className="field__label">{t('City')}</span>
-                <select className="select" value={city} onChange={(event) => setCity(event.target.value)}>
+                <select className="select" value={city} onChange={(event) => writeParams({ city: event.target.value })}>
                   <option value="any">{t('All cities')}</option>
                   {cities().map((item) => (
                     <option key={item} value={item}>
@@ -282,8 +359,8 @@ export function StopsPage() {
 
             <div className="row-wrap chip-group">
               <span className="field__label">{t('Stop type')}</span>
-              {(['any', 'station', 'airport', 'metrostop', 'tramstop', 'busstop', 'ferrystop', 'landmark'] as const).map((value) => (
-                <Chip key={value} selected={type === value} onClick={() => setType(value)}>
+              {stopTypes.map((value) => (
+                <Chip key={value} selected={type === value} onClick={() => writeParams({ type: value })}>
                   {value === 'any' ? t('All types') : t(stopTypeLabel(value))}
                 </Chip>
               ))}
@@ -295,30 +372,24 @@ export function StopsPage() {
                 <Chip
                   key={mode}
                   selected={modes.includes(mode)}
-                  onClick={() =>
-                    setModes((current) => (current.includes(mode) ? current.filter((m) => m !== mode) : [...current, mode]))
-                  }
+                  onClick={() => toggleMode(mode)}
                 >
                   <ModeIcon mode={mode} size={15} />
                   {modeLabel(mode)}
                 </Chip>
               ))}
-              <Chip selected={favouritesOnly} icon="heart" onClick={() => setFavouritesOnly((value) => !value)}>
+              <Chip
+                selected={favouritesOnly}
+                icon="heart"
+                onClick={() => writeParams({ favourites: favouritesOnly ? null : '1' })}
+              >
                 {t('Favourites only')}
               </Chip>
               <Button
                 size="sm"
                 variant="ghost"
                 icon="refresh"
-                onClick={() => {
-                  setQuery('');
-                  setModes([]);
-                  setType('any');
-                  setRegion('any');
-                  setCity('any');
-                  setFavouritesOnly(false);
-                  setSort('nearest');
-                }}
+                onClick={clearFilters}
               >
                 {t('Clear filters')}
               </Button>
@@ -343,10 +414,22 @@ export function StopsPage() {
       {settling ? (
         <SkeletonCards count={4} />
       ) : results.length === 0 ? (
-        <EmptyState
-          icon="search"
+        <NoMatches
           title={t('No stops match these filters')}
-          description={t('Clear the filters to see the whole network again.')}
+          description={t('Nothing in the network matches what is switched on here.')}
+          reason={
+            query.trim()
+              ? t('Nothing matches “{query}” with these filters.', { query: query.trim() })
+              : t('The region, city, stop type, modes or favourites-only filter removed every stop.')
+          }
+          fixes={[
+            ...(query.trim()
+              ? [{ id: 'query', label: t('Search the whole network'), onSelect: () => setQuery('') }]
+              : []),
+            ...(hiddenFilters || sort !== 'nearest'
+              ? [{ id: 'filters', label: t('Clear filters'), onSelect: clearFilters }]
+              : []),
+          ]}
         />
       ) : (
         <>
@@ -356,28 +439,23 @@ export function StopsPage() {
               const distance = distanceTo(stop);
               const isFavourite = favouriteStopIds.includes(stop.id);
               return (
-                <Card
+                <ResultCard
                   as="li"
                   key={stop.id}
+                  to={`/stops/${stop.id}`}
                   className="stack-2 stop-card"
                   /*
-                   * The card is the way into the stop page — no STOP PAGE button in it. The name
-                   * is still a real link, so a keyboard and a screen reader have one (and a
-                   * middle-click and a "open in new tab" work); the card's own click is the
-                   * pointer's convenience on top of it. Everything inside that means something
-                   * else — the pin, More, Plan — stops the click from reaching the card.
+                   * The card is the way into the stop page — no STOP PAGE button in it, and no
+                   * fourth copy of the way-in rule either: `ResultCard` draws the press, the one
+                   * real link and the lift for the stop card, the alert card and the journey card
+                   * (MATCHING_PLAN rule 4).
                    */
-                  onClick={() => openCard(stop)}
                 >
                   <div className="between wrap">
                     <div className="stack-1">
-                      <Link
-                        to={`/stops/${stop.id}`}
-                        className="t-strong tap-target"
-                        onClick={(event) => event.stopPropagation()}
-                      >
+                      <ResultCardLink to={`/stops/${stop.id}`}>
                         {customStopName(stop.id) ?? stop.name}
-                      </Link>
+                      </ResultCardLink>
                       <span className="t-sm t-muted">
                         {customStopName(stop.id) ? `${stop.name} · ` : ''}
                         {stop.city} · {stop.code} · {stopTypeLabel(stop.type)}
@@ -487,7 +565,7 @@ export function StopsPage() {
                       {t('Plan')}
                     </Button>
                   </div>
-                </Card>
+                </ResultCard>
               );
             })}
           </ul>

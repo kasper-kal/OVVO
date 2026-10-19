@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { DISRUPTIONS, DISRUPTION_TYPE_LABELS } from '../data/disruptions';
@@ -7,9 +7,12 @@ import { getLine } from '../data/network';
 import { distanceFromPosition, getStop, stopLabel } from '../data/stops';
 import { PT_LABEL_ORDER } from '../lib/boardHelpers';
 import { useLoadOnScroll } from '../lib/loadBatch';
-import { Button, Card, Chip, EmptyState, Pill } from '../components/ui/primitives';
+import { Button, Card, Chip, Pill } from '../components/ui/primitives';
+import { NoMatches } from '../components/ui/NoMatches';
+import { ResultCard, ResultCardLink } from '../components/ui/ResultCard';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { useT } from '../lib/useT';
 import type { Disruption, DisruptionSeverity, DisruptionType, PublicMode } from '../data/types';
 import { modeLabel } from '../data/preferences';
 
@@ -34,6 +37,7 @@ export function typeLabel(type: DisruptionType) {
 }
 
 export function DisruptionsPage() {
+  const t = useT();
   const [params, setParams] = useSearchParams();
   const { favouriteStopIds, nearestOrigin } = useApp();
   const lineFilter = params.get('line');
@@ -143,8 +147,10 @@ export function DisruptionsPage() {
   return (
     <div className="stack-6">
       <PageHeader
-        title="Disruptions & service alerts"
-        description="Delays, cancellations, planned works, platform changes, crowding and weather alerts across the network."
+        title={t('Disruptions & service alerts')}
+        description={t(
+          'Delays, cancellations, planned works, platform changes, crowding and weather alerts across the network.',
+        )}
         showTitle
       />
 
@@ -158,19 +164,20 @@ export function DisruptionsPage() {
           No count line above any of it: "Filters · 14 alerts" was a label for the controls
           directly under it, and the number is what the list itself already shows.
         */}
-        <div className="stops-filters">
+        <div className="stops-filters" data-filter-row>
           {/*
             `e.g.` is never capitalised, so the example placeholder read as a lowercase start —
             the capitalisation audit's one honest exception at the time. Written as words, the
             capital is real and the rule has nothing left to except.
           */}
           <label className="field grow">
-            <span className="field__label">Search in alerts</span>
+            <span className="field__label">{t('Search in alerts')}</span>
             <input
               className="input"
               value={textQuery}
               onChange={(event) => setTextQuery(event.target.value)}
-              placeholder="For example: platform, ferry, works"
+              placeholder={t('For example: platform, ferry, works')}
+              aria-label={t('Search in alerts')}
             />
           </label>
 
@@ -179,23 +186,23 @@ export function DisruptionsPage() {
             while everything else sits inside Options.
           */}
           <Chip selected={favouritesOnly} icon="heart" onClick={() => setFavouritesOnly((value) => !value)}>
-            Affecting my favourites
+            {t('Affecting my favourites')}
           </Chip>
 
           <label className="field" htmlFor="alerts-sort">
-            <span className="field__label">Sort</span>
+            <span className="field__label">{t('Sort by')}</span>
             <select
               id="alerts-sort"
               className="select"
               value={activeSort}
               onChange={(event) => setSort(event.target.value as 'severity' | 'time' | 'type' | 'nearest')}
             >
-              <option value="severity">Severity</option>
-              <option value="time">Start time</option>
-              <option value="type">Type</option>
+              <option value="severity">{t('Severity')}</option>
+              <option value="time">{t('Start time')}</option>
+              <option value="type">{t('Type')}</option>
               {/* Offered only when there is something to measure from (see `nearestOrigin`). */}
               <option value="nearest" disabled={!nearestOrigin}>
-                Nearest
+                {t('Nearest')}
               </option>
             </select>
           </label>
@@ -210,7 +217,7 @@ export function DisruptionsPage() {
             onClick={() => setOptionsOpen((value) => !value)}
           >
             <Icon name="sliders" size={16} />
-            Options
+            {t('Options')}
             {hiddenFilters ? <span className="results-chip__count">{hiddenFilters}</span> : null}
           </button>
         </div>
@@ -218,7 +225,7 @@ export function DisruptionsPage() {
         {lineFilter ? (
           <div className="row-wrap">
             <Chip selected icon="close" onClick={() => setParams({}, { replace: true })}>
-              Line filter: {getLine(lineFilter)?.name ?? lineFilter}
+              {t('Line filter: {line}', { line: getLine(lineFilter)?.name ?? lineFilter })}
             </Chip>
           </div>
         ) : null}
@@ -230,8 +237,8 @@ export function DisruptionsPage() {
         {activeSort === 'nearest' && nearestOrigin ? (
           <p className="t-sm t-faint stops-origin">
             {nearestOrigin.source === 'device'
-              ? 'Nearest first, from your device location.'
-              : 'Nearest first, from an approximate IP location — it can be off by a lot.'}
+              ? t('Nearest first, from your device location.')
+              : t('Nearest first, from an approximate IP location — it can be off by a lot.')}
           </p>
         ) : null}
 
@@ -247,18 +254,20 @@ export function DisruptionsPage() {
             {hiddenFilters || filtered ? (
               <div className="row-wrap">
                 {hiddenFilters ? (
-                  <span className="t-sm t-muted">{hiddenFilters} changed from the defaults</span>
+                  <span className="t-sm t-muted">
+                    {t('{count} changed from the defaults', { count: hiddenFilters })}
+                  </span>
                 ) : null}
                 {filtered ? (
                   <Button size="sm" variant="ghost" icon="refresh" onClick={reset}>
-                    Reset filters
+                    {t('Reset filters')}
                   </Button>
                 ) : null}
               </div>
             ) : null}
 
             <div className="row-wrap chip-group">
-              <span className="field__label">Type</span>
+              <span className="field__label">{t('Type')}</span>
               {(Object.keys(DISRUPTION_TYPE_LABELS) as DisruptionType[]).map((type) => (
                 <Chip
                   key={type}
@@ -271,7 +280,7 @@ export function DisruptionsPage() {
             </div>
 
             <div className="row-wrap chip-group">
-              <span className="field__label">Severity</span>
+              <span className="field__label">{t('Severity')}</span>
               {(Object.keys(SEVERITY_LABEL) as DisruptionSeverity[]).map((severity) => (
                 <Chip
                   key={severity}
@@ -286,7 +295,7 @@ export function DisruptionsPage() {
             </div>
 
             <div className="row-wrap chip-group">
-              <span className="field__label">Transport mode</span>
+              <span className="field__label">{t('Transport mode')}</span>
               {PT_LABEL_ORDER.map((mode) => (
                 <Chip
                   key={mode}
@@ -300,12 +309,13 @@ export function DisruptionsPage() {
             </div>
 
             <label className="field">
-              <span className="field__label">Filter by affected stop</span>
+              <span className="field__label">{t('Filter by affected stop')}</span>
               <input
                 className="input"
                 value={stopQuery}
                 onChange={(event) => setStopQuery(event.target.value)}
-                placeholder="For example: Utrecht, Schiphol, Blaak"
+                placeholder={t('For example: Utrecht, Schiphol, Blaak')}
+                aria-label={t('Filter by affected stop')}
               />
             </label>
           </div>
@@ -314,15 +324,21 @@ export function DisruptionsPage() {
       </Card>
 
       {results.length === 0 ? (
-        <EmptyState
-          icon="alert"
-          title="No alerts match these filters"
-          description="Reset the filters to see every alert again."
-        >
-          <Button variant="primary" icon="refresh" onClick={reset}>
-            Reset filters
-          </Button>
-        </EmptyState>
+        <NoMatches
+          title={t('No alerts match these filters')}
+          description={t('The network has alerts; these filters removed all of them.')}
+          reason={
+            lineFilter
+              ? t('The line filter is on, which is the filter that cannot be cleared from Options.')
+              : t('The type, severity, mode or affected-stop filter removed every alert.')
+          }
+          fixes={[
+            { id: 'reset', label: t('Reset filters'), onSelect: reset },
+            ...(lineFilter
+              ? [{ id: 'line', label: t('Clear the line filter'), onSelect: () => setParams({}, { replace: true }) }]
+              : []),
+          ]}
+        />
       ) : (
         <>
           <ul ref={listRef} className="stack-4">
@@ -341,7 +357,7 @@ export function DisruptionsPage() {
               <div ref={sentinelRef} className="list-sentinel" aria-hidden="true" />
               <div className="row-wrap" style={{ justifyContent: 'center' }}>
                 <Button size="sm" icon="chevronDown" onClick={loadMore}>
-                  Show {next} more
+                  {t('Show {count} more', { count: next })}
                 </Button>
               </div>
             </>
@@ -365,34 +381,30 @@ export function DisruptionsPage() {
 }
 
 function AlertCard({ alert }: { alert: Disruption }) {
-  const navigate = useNavigate();
+  const t = useT();
   const format = useFormat();
   const to = `/disruptions/${alert.id}`;
   return (
     /*
-     * The card is the way into the alert, the same convenience a stop card offers: the pointer
-     * can press anywhere on it, and the one action inside — Alert details & advice — is still
-     * there and still says what it does. The title is a real link as well, so a keyboard and a
-     * screen reader have one, and that link and the button both stop their clicks from reaching
-     * the card rather than navigating twice. The same pattern, and the same lift, as a stop card
-     * on Stations & stops: `Card` marks any card given an `onClick` with `card--interactive`.
+     * The card is the way into the alert — the same component, the same lift and the same one
+     * real link as a stop card and a journey card (`components/ui/ResultCard.tsx`,
+     * MATCHING_PLAN rule 4). The title is the link; the action below it is a control, so the two
+     * cannot navigate twice.
      */
-    <Card as="li" className="stack-2" onClick={() => navigate(to)}>
+    <ResultCard as="li" to={to} className="stack-2">
       <div className="between wrap">
         <div className="row-3">
           <span className="leg-row__marker">
             <Icon name="alert" size={18} />
           </span>
           <div className="stack-1">
-            <Link to={to} className="t-strong tap-target" onClick={(event) => event.stopPropagation()}>
-              {alert.title}
-            </Link>
+            <ResultCardLink to={to}>{alert.title}</ResultCardLink>
             <span className="t-sm t-muted">
               {format.time(alert.startsAt)} – {format.time(alert.endsAt)}
             </span>
           </div>
         </div>
-        <Pill tone={SEVERITY_TONE[alert.severity]}>{SEVERITY_LABEL[alert.severity]}</Pill>
+        <Pill tone={SEVERITY_TONE[alert.severity]}>{t(SEVERITY_LABEL[alert.severity])}</Pill>
       </div>
 
       {/*
@@ -410,9 +422,9 @@ function AlertCard({ alert }: { alert: Disruption }) {
       <div className="row-wrap">
         <Link to={to} className="btn btn--primary btn--sm" onClick={(event) => event.stopPropagation()}>
           <Icon name="info" size={15} />
-          Alert details & advice
+          {t('Alert details & advice')}
         </Link>
       </div>
-    </Card>
+    </ResultCard>
   );
 }

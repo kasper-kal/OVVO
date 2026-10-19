@@ -10,7 +10,7 @@ One folder per round, so a capture is never filed with a batch it does not belon
 | Folder | What it holds | The plan written from it |
 |---|---|---|
 | `mobile/` | the finished phone batch — 29 screenshots at 378px, `notes.json` beside them | `../MOBILE-FIXES.md` |
-| `desktop/` | the round starting now — empty until the first Save | `../DESKTOP-FIXES.md`, when it exists |
+| `desktop/` | the round that has not started — empty until the first Save | `../DESKTOP-FIXES.md`, which now states that it is not started |
 
 The dot saves into **one** folder per run: `desktop/` unless the dev server was started with
 `REVIEW_BATCH=mobile`, and the panel says which one it is on ("saving to review/desktop"). The

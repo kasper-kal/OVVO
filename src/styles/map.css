@@ -50,6 +50,25 @@
   touch-action: manipulation;
 }
 
+/*
+ * **The map keeps the theme's palette inside a tinted card.**
+ *
+ * The tint scopes a card's ink, and the map is a drawing whose ink, land and water were measured
+ * against each other — not against a widget. Left alone, a dark tint's light ink landed on the
+ * map's dark water (**1.11:1**, measured on the dark appearance) and a light tint's dark ink landed
+ * on pale land (**1.19:1**). So the drawing resets the ink tokens it inherits to the ones its own
+ * palette is built on: a map is a map on any surface, the same way a photograph would be.
+ */
+:root[data-surface='tint'] .map-canvas,
+:root[data-surface='cards'] .map-canvas,
+:root[data-surface='split'] .map-canvas {
+  --ink: var(--map-ink);
+  --ink-strong: var(--map-ink);
+  --ink-muted: var(--map-ink);
+  /* The walk routes are the one place a lighter ink is wanted; kept as a stroke, not as text. */
+  --ink-faint: color-mix(in srgb, var(--map-ink) 62%, transparent);
+}
+
 .map-water {
   fill: var(--map-water);
 }
@@ -82,11 +101,11 @@
 }
 
 .map-stop--favourite circle {
-  fill: var(--accent-primary);
+  fill: var(--map-accent);
 }
 
 .map-stop--selected circle {
-  fill: var(--accent-primary);
+  fill: var(--map-accent);
   stroke: var(--map-ink);
   stroke-width: 0.6;
 }
@@ -111,7 +130,7 @@
 }
 
 .map-route--highlight {
-  stroke: var(--accent-primary);
+  stroke: var(--map-accent);
   stroke-width: 1.5;
 }
 
@@ -127,7 +146,7 @@
 }
 
 .map-route--bus {
-  stroke: var(--accent-primary);
+  stroke: var(--map-accent);
 }
 
 .map-route--tram {
@@ -184,7 +203,7 @@
 }
 
 .map-legend__swatch--bus {
-  background: var(--accent-primary);
+  background: var(--map-accent);
 }
 
 .map-legend__swatch--tram {
@@ -203,7 +222,7 @@
   background: linear-gradient(
     90deg,
     var(--map-ink) 0 20%,
-    var(--accent-primary) 20% 40%,
+    var(--map-accent) 20% 40%,
     var(--tint-sage-ink) 40% 60%,
     var(--tint-butter-ink) 60% 80%,
     var(--coral-ink) 80% 100%
@@ -221,21 +240,6 @@
   r: 1;
 }
 
-/*
- * Height tiers for the map widget.
- *
- * Every other widget's tier changes how many rows it shows, because a row is a fact you can count.
- * A map has no rows: its content is its drawing, so the tier caps the drawing instead. The `<svg>`
- * keeps its aspect ratio and letterboxes inside the cap, which is why the water is painted on the
- * element as well as inside the drawing — a capped plate still reads as one surface.
- */
-.widget--h-compact .map-canvas--widget {
-  max-height: 180px;
-}
-
-.widget--h-tall .map-canvas--widget {
-  max-height: 460px;
-}
 
 /*
  * From a tablet up, every map is a **plate**: as wide as the card hands it, and a height that is a
@@ -278,6 +282,21 @@
     aspect-ratio: 16 / 9;
     max-height: min(600px, 70vh);
   }
+}
+
+/*
+ * The home map, at one size.
+ *
+ * Three tier rules used to give it a ratio each — 16/9, 4/3 and 1/1 — up to 720px tall, which made
+ * the map the tallest thing on the screen by a wide margin and the reason a row of cards beside it
+ * could not be filled. It is one plate again: sixteen-by-nine of the card's width and never taller
+ * than 480px, which is the plate this widget drew when the drawing itself was capped at 480px
+ * square. The card is as tall as the plate, so the map is a card like any other.
+ */
+.map-canvas--widget {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: 480px;
 }
 
 .map-legend__dot {

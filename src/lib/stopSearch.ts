@@ -1,15 +1,8 @@
-import { STOPS, getStop } from '../data/stops';
+import { STOPS, distanceFromPosition, getStop, hasBoard } from '../data/stops';
 import type { Stop } from '../data/types';
 
-/** Stops offered when nothing has been typed — a stable, recognisable shortlist. */
-const POPULAR_STOP_IDS = [
-  'amsterdam-centraal',
-  'utrecht-centraal',
-  'rotterdam-centraal',
-  'schiphol-airport',
-  'den-haag-centraal',
-  'eindhoven-centraal',
-];
+/** A point to measure an empty-field shortlist from: the app's one location answer. */
+export type StopOrigin = { lat: number; lon: number } | null;
 
 function score(stop: Stop, query: string): number {
   const haystack = `${stop.name} ${stop.city} ${stop.code}`.toLowerCase();
@@ -22,24 +15,37 @@ function score(stop: Stop, query: string): number {
 
 /**
  * The one stop search: favourite stops always sit at the top of the list, whatever is typed,
- * and an empty field offers the favourites followed by the familiar big stations.
+ * and an empty field offers the favourites followed by **the closest stops to the traveller**.
  *
  * Both the inline combobox and the full-screen picker call this, so the two can never
  * disagree about what a query matches. It ranks **favourites** only: the board's pins are a
  * different list for a different purpose, and a stop pinned to the board has no claim on a
  * From/To field (see the heart/pin note in `state/AppState.tsx`).
+ *
+ * The empty-field shortlist used to be a hard-coded list of six big stations
+ * (`POPULAR_STOP_IDS`) — a sample-data fact wearing the same coat round 11 cleaned off the board
+ * page. It is now the same rule the rest of the app follows (`MATCHING_PLAN` rule 2): the
+ * favourites, then the nearest stops that have a board, measured from `origin` — the app's single
+ * location answer (a device fix, else the IP estimate, else nothing). With no origin there is no
+ * second list to show: an empty field is the traveller's own favourites and a prompt to type.
  */
-export function rankStops(query: string, favouriteStopIds: string[], limit = 8): Stop[] {
+export function rankStops(
+  query: string,
+  favouriteStopIds: string[],
+  options: { origin?: StopOrigin; limit?: number } = {},
+): Stop[] {
+  const { origin = null, limit = 8 } = options;
   const normalised = query.trim().toLowerCase();
   if (!normalised) {
     const favourites = favouriteStopIds
       .map((stopId) => getStop(stopId))
       .filter((s): s is Stop => Boolean(s));
-    const popular = POPULAR_STOP_IDS.map((stopId) => getStop(stopId)).filter((s): s is Stop => Boolean(s));
-    return [
-      ...favourites,
-      ...popular.filter((p) => !favourites.some((f) => f.id === p.id)),
-    ].slice(0, limit);
+    if (!origin) return favourites.slice(0, limit);
+    const nearest = STOPS.map((stop) => ({ stop, metres: distanceFromPosition(stop, origin.lat, origin.lon) }))
+      .filter((entry) => hasBoard(entry.stop) && !favouriteStopIds.includes(entry.stop.id))
+      .sort((a, b) => a.metres - b.metres)
+      .map((entry) => entry.stop);
+    return [...favourites, ...nearest].slice(0, limit);
   }
   const matches = STOPS.map((stop) => ({ stop, rank: score(stop, normalised) }))
     .filter((entry) => entry.rank > 0)

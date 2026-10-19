@@ -38,6 +38,29 @@ for (const [from, to, time] of CASES) {
   }
 }
 
+/*
+ * An address is a place, not the station it sits nearest.
+ *
+ * "Rijksstraatweg 9, Haarlem" resolves to Haarlem because that is the stop closest to it, so a
+ * search to Haarlem is one stop id at both ends — and the trip is the 1.5 km between them, on
+ * foot. Two genuine stops sharing an id remain a search with no answer.
+ */
+const addressQuery = {
+  fromStopId: 'haarlem',
+  toStopId: 'haarlem',
+  date: '2026-10-12',
+  time: 540,
+  timeMode: 'depart' as const,
+  preferences: DEFAULT_PREFERENCES,
+};
+const access = planJourneys({ ...addressQuery, fromLabel: 'Rijksstraatweg 9, Haarlem', fromAccessMetres: 1480 });
+const noAddress = planJourneys(addressQuery);
+console.log(
+  `\n=== address -> its own station: ${access.length} journey(s), ` +
+    `${access[0]?.legs[0].distanceMetres} m, ${access[0]?.durationMinutes} min, ` +
+    `from "${access[0]?.legs[0].fromLabel}" ; two stops with one id: ${noAddress.length}`,
+);
+
 for (const stopId of ['utrecht-centraal', 'amsterdam-leidseplein', 'groningen']) {
   const board = boardForStop(stopId, { fromMinutes: 480, limit: 5 });
   console.log(`\n=== board ${stopId}`);

@@ -90,6 +90,13 @@ export interface Leg {
   /** Stop where the leg starts / ends. */
   fromStopId: string;
   toStopId: string;
+  /**
+   * The traveller's own name for an end that is not a stop — an address a device fix resolved
+   * to — printed instead of the stop's name. Absent on every leg of a journey between stops,
+   * so the stop's own name is what a leg reads unless a place answered for it.
+   */
+  fromLabel?: string;
+  toLabel?: string;
   /** Minutes since midnight, local time. */
   departure: number;
   arrival: number;
