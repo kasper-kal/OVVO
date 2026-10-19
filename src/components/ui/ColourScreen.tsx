@@ -71,7 +71,13 @@ export function ColourScreen({
   const padRef = useRef<HTMLDivElement | null>(null);
   const dragging = useRef(false);
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value));
-  const [draft, setDraft] = useState(value);
+  /*
+   * **Hex is written upper case everywhere.** The screen showed the value twice — `#63E6E2` in the
+   * identity line and `#63e6e2` in the field — and the field is what a traveller copies. It now holds
+   * the upper-case form (typing lower case is lifted as it is entered, and the parser lower-cases
+   * internally), so one spelling exists on screen.
+   */
+  const [draft, setDraft] = useState(value.toUpperCase());
   const hexId = useId();
 
   /*
@@ -85,7 +91,7 @@ export function ColourScreen({
     if (incoming !== hsvToHex(hsv)) {
       setHsv(hexToHsv(incoming));
     }
-    setDraft(incoming);
+    setDraft(incoming.toUpperCase());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
@@ -94,7 +100,7 @@ export function ColourScreen({
   const commit = (next: Hsv) => {
     setHsv(next);
     const hex = hsvToHex(next);
-    setDraft(hex);
+    setDraft(hex.toUpperCase());
     onChange(hex);
   };
 
@@ -165,7 +171,7 @@ export function ColourScreen({
                   type="button"
                   className={`colour-screen__swatch${colour === current ? ' is-selected' : ''}`}
                   style={{ background: swatch }}
-                  aria-label={colour}
+                  aria-label={colour.toUpperCase()}
                   aria-pressed={colour === current}
                   onClick={() => commit(hexToHsv(colour))}
                 />
@@ -260,7 +266,7 @@ export function ColourScreen({
             maxLength={7}
             onChange={(event) => {
               const next = event.target.value;
-              setDraft(next);
+              setDraft(next.toUpperCase());
               const channels = readHex(next);
               if (channels) {
                 const hex =
@@ -269,7 +275,7 @@ export function ColourScreen({
                 onChange(hex);
               }
             }}
-            onBlur={() => setDraft(current)}
+            onBlur={() => setDraft(current.toUpperCase())}
           />
         </label>
       </div>

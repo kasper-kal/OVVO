@@ -58,7 +58,15 @@
   --accent-primary-ink: #d9533a;
   --accent-secondary: #fff5a5; /* butter accent highlight */
   --tint-coral: #ffe8e5; /* subtle coral tag */
-  --border-hairline: #e8e6df;
+  /*
+   * **The hairline is visible on purpose.** `#e8e6df` measured **1.25:1** on a white card and
+   * **1.11:1** on the ivory planner card, so the edges were technically drawn and practically
+   * invisible on a phone (reported: "the no borders issue", after a hard refresh). This is the same
+   * warm grey two steps darker: **1.68:1** on white, **1.49:1** on the ivory surface, still a
+   * hairline rather than an outline. The tint modes derive their own edge (1.45–1.6:1) from the
+   * chosen colour, so every mode now draws an edge with the same weight.
+   */
+  --border-hairline: #cdc7b8;
   /* Derived tint sets: each tint ships its own hairline border and the ink that
      sits on it, so components never invent a shade. */
   --tint-coral-border: #f6d3cd;
@@ -286,7 +294,8 @@
   --canvas-base: #121211;
   --surface-alt: #1b1a18;
   --surface-raised: #232220;
-  --border-hairline: #333028;
+  /* The dark cut of the same decision: 1.65:1 on the raised surface instead of 1.22:1. */
+  --border-hairline: #4a463c;
 
   --ink-strong: #f7f6f3;
   --ink: #dedcd6;

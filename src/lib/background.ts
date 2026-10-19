@@ -559,7 +559,17 @@ export function applyBackground(settings: BackgroundSettings): void {
    * cream page has no colour either, and a colour page follows itself. One meaning per mode.
    */
   const primaryChoice = chosenPrimary || pageChoice;
-  const glass = settings.background === 'photo' && settings.cardTreatment === 'glass';
+  /*
+   * **Glass needs something to be glass over.** With Photo selected but no picture chosen yet,
+   * the attribute used to be set anyway: the cards became a 58% cream pane over the cream canvas,
+   * with a white hairline on it, so the card surface *and its rounded corners* vanished and the
+   * section read as a flat list (reported: "corners must never be deleted, no matter what my
+   * settings are"). No picture means no glass — the app's own cards stand until there is one.
+   */
+  const glass =
+    settings.background === 'photo' &&
+    settings.cardTreatment === 'glass' &&
+    Boolean(settings.backgroundImage);
 
   root.dataset.background = settings.background;
   for (const property of DYNAMIC_PROPERTIES) root.style.removeProperty(property);

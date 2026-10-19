@@ -517,7 +517,16 @@ export function ColourSettings() {
         <div className="settings-group">
           <Row
             label={t('Background')}
-            value={backgroundLabel}
+            /*
+             * **The same kind of value as Widgets.** The row used to say "Colour" while the
+             * widgets' row said `#63E6E2`, so two colours that the traveller believed matched could
+             * not be compared: the page's swatch was the untouched default `#dfe8f2` and there was
+             * nothing on screen to say so (reported with a screenshot). Both rows now print the hex
+             * they hold, upper case.
+             */
+            value={
+              settings.background === 'colour' ? hexLabel(settings.backgroundColour) : backgroundLabel
+            }
             swatch={
               settings.background === 'cream'
                 ? 'var(--canvas-base)'

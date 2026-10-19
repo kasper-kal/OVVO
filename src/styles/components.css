@@ -225,7 +225,18 @@
    */
   background: color-mix(in srgb, var(--canvas-base) 58%, transparent);
   border: 1px solid color-mix(in srgb, var(--on-dark) 46%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-dark) 52%, transparent);
+  /*
+   * **Two edges, because a glass card has to survive any photograph behind it.** The light hairline
+   * is what makes the pane read on a dark picture; on a white one it is white on white, so the
+   * card's rounded corner disappeared entirely and the section looked like a flat list with square
+   * edges (reported: "corners must never be deleted, no matter what my settings are" — a photo with
+   * Glass cards was the setting). A second, dark ring outside it is invisible on a dark picture and
+   * clearly present on a light one, so the card's shape and its corners are drawn on every
+   * background. No blur: the app's zero-blur elevation rule holds, and a ring is not a shadow.
+   */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--on-dark) 52%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--struct-main) 34%, transparent);
   -webkit-backdrop-filter: blur(26px) saturate(170%);
   backdrop-filter: blur(26px) saturate(170%);
 }
@@ -2985,7 +2996,15 @@
   flex: none;
   width: 28px;
   height: 28px;
-  border: 1px solid var(--border-hairline);
+  /*
+   * **A swatch of the card's own colour still has to read as a swatch.** The border used to be the
+   * card's hairline, so a teal colour on the teal card it painted was a teal square with a teal
+   * edge: both previews looked empty, which is half of the reported "same HEX, different preview"
+   * (the other half was the page's value never printing its hex). The ring is the card's own ink at
+   * 32%, so it contrasts with the card whichever ink is in force, and the fill inside it is the
+   * colour itself, untouched.
+   */
+  border: 1px solid color-mix(in srgb, var(--ink) 32%, transparent);
   border-radius: var(--r-hair);
   background-color: var(--canvas-base);
   background-position: center;
