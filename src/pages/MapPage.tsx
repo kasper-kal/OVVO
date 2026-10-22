@@ -61,7 +61,10 @@ export function MapPage() {
         should not be sized like a glimpse of it in a grid (see `.map-card .map-canvas`).
       */}
       <Card className="stack map-card">
-        <NetworkMap />
+        {/* `variant="screen"`: the widget's 16:9 plate letterboxed a square drawing into 37% of its
+            own width on this screen, the one place the map is meant to be looked at (3.1). The
+            screen also gets the list of stops under the drawing (3.3). */}
+        <NetworkMap variant="screen" />
       </Card>
     </div>
   );

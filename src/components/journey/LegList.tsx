@@ -31,7 +31,7 @@ function WalkLegRow({ leg }: { leg: Leg }) {
       <span className="timeline__node timeline__node--muted" />
       <div className="leg-row">
         <span className="leg-row__marker">
-          <ModeIcon mode={leg.mode} size={18} />
+          <ModeIcon mode={leg.mode} size={16} />
         </span>
         <div className="stack-1 grow">
           <div className="row-wrap">
@@ -64,7 +64,7 @@ function RideLegRow({ leg }: { leg: Leg }) {
       <span className="timeline__node timeline__node--accent" />
       <div className="leg-row">
         <span className="leg-row__marker">
-          <ModeIcon mode={leg.mode} size={18} />
+          <ModeIcon mode={leg.mode} size={16} />
         </span>
         <div className="stack-2 grow">
           <div className="row-wrap">
@@ -80,10 +80,16 @@ function RideLegRow({ leg }: { leg: Leg }) {
               <Pill tone="coral" dot dotTone="coral">
                 {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
               </Pill>
-            ) : (
+            ) : null}
+            {/*
+              One status per leg, and a cancelled leg is never also "On time": the same reading
+              the journey summary above the rail makes (9.4).
+            */}
+            {leg.cancelled ? (
+              <Pill tone="coral">{t('Cancelled')}</Pill>
+            ) : leg.delayMinutes ? null : (
               <Pill tone="sage">{t('On time')}</Pill>
             )}
-            {leg.cancelled ? <Pill tone="coral">{t('Cancelled')}</Pill> : null}
           </div>
 
           <div className="stack-1">
@@ -110,8 +116,10 @@ function RideLegRow({ leg }: { leg: Leg }) {
             ) : null}
           </div>
 
+          {/* The capsule was 24px tall, the smallest target on the page (9.2); `alert-link` gives
+              it the app's 44px target and keeps the pill's shape. */}
           {disruption ? (
-            <Link to={`/disruptions/${disruption.id}`} className="pill pill--outline">
+            <Link to={`/disruptions/${disruption.id}`} className="pill pill--outline alert-link">
               <Icon name="alert" size={13} />
               {disruption.title}
             </Link>

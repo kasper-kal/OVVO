@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
 import { DISRUPTIONS } from '../../data/disruptions';
 import { LocationPermission } from '../location/LocationPermission';
+import { OfflineBar } from './OfflineBar';
 import { useT } from '../../lib/useT';
 import { translate } from '../../lib/i18n';
 import { useApp } from '../../state/AppState';
@@ -113,9 +114,66 @@ const DOCK_ITEMS: { to: string; key: string; icon: IconName }[] = [
 
 function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const t = useT();
+  /*
+   * **A double tap on Home opens the basic journey planner.**
+   *
+   * One tap is still "go home", which is what a navigation entry promises; the second tap inside
+   * the double-tap window goes one step further and opens the planner's own picker on its first
+   * question — `/?pick=from`, the From picker the planner already opens from `?pick=` — because on
+   * a phone Home *is* the planner's screen, so "open the planner" has to mean the field you type in,
+   * not the screen you are already standing on.
+   *
+   * 320ms is the window: short enough that two deliberate taps count, long enough that a thumb
+   * rolling over the same 44px target while reading does not. The first tap is never delayed, so
+   * single-tap navigation keeps its own timing — the Link does the work, and only the second tap
+   * is taken away from it.
+   */
+  /*
+   * **The dock yields while the page is being read.**
+   *
+   * It is fixed, so wherever it hangs it is over content — at 768×844 it sat on the first
+   * result's own controls (2.3), and on the map screen on sixteen stop dots (3.4). Nothing in
+   * the layout can reserve its band at every scroll position, so it stops being an obstruction
+   * the moment the reader starts moving down the page: the bar slides out on a downward scroll
+   * and comes back on an upward one, which is also the gesture that summons the departure
+   * board's refresh button. It never hides while it holds the focus, so the keyboard can always
+   * reach it, and it is present at the very top of every screen.
+   */
+  const [yielded, setYielded] = useState(false);
+  useEffect(() => {
+    let last = window.scrollY;
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const y = window.scrollY;
+        const delta = y - last;
+        if (Math.abs(delta) < 6) return;
+        last = y;
+        setYielded(delta > 0 && y > 24);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const lastHomeTap = useRef(0);
+  const onHomeClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const now = Date.now();
+    const secondTap = now - lastHomeTap.current < 320;
+    lastHomeTap.current = secondTap ? 0 : now;
+    if (!secondTap) return;
+    event.preventDefault();
+    navigate('/?pick=from');
+  };
   return (
-    <nav className="app-dock" aria-label={t('Quick navigation')}>
+    <nav className={`app-dock${yielded ? ' app-dock--yielded' : ''}`} aria-label={t('Quick navigation')}>
       {DOCK_ITEMS.map((item) => (
         <Link
           key={item.to}
@@ -124,6 +182,7 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
           aria-current={isActivePath(location.pathname, item.to) ? 'page' : undefined}
           aria-label={t(item.key)}
           title={t(item.key)}
+          onClick={item.to === '/' ? onHomeClick : undefined}
         >
           <Icon name={item.icon} size={20} />
         </Link>
@@ -231,7 +290,10 @@ export function PageHeader({
       ) : showTitle ? (
         <header className="page-head">
           <div className="row-wrap">
-            <h1 className="page-head__title t-section grow">{title}</h1>
+            {/* No `grow`: the name and the page's controls are one left-aligned group. Growing the
+                title pushed the controls to the far edge of the page, which is the right-aligned
+                band that was reported ("I'm not Arabic"). */}
+            <h1 className="page-head__title t-section">{title}</h1>
             {badge}
             {actions}
           </div>
@@ -242,13 +304,14 @@ export function PageHeader({
           {badge || actions ? (
             <header className="page-head">
               {/*
-                `page-head__actions` puts this group at the trailing edge.
+                A page's controls stand on the page's own left edge.
 
-                The audit reported the keep-a-stop pin on the stop page as being on the *left*
-                of the head while the same control sat on the right of every card: a screen the
-                navigation already names draws no title, so its controls were the only thing in
-                the row and they started at the left margin. A head's controls belong where
-                every other row in the app puts them.
+                They were moved to the trailing edge to match the rows *inside* cards, and that is
+                the wrong reading of the same rule: inside a card a control shares its line with a
+                heading, and above a card there is nothing on the left for it to answer — so a
+                lone control floated at the far right of an empty band (reported: "Why are SO MANY
+                buttons and other things located on the right side (above a widget)"). The card
+                rows keep theirs on the right; the page band starts on the left.
               */}
               <div className="row-wrap page-head__actions">
                 {badge}
@@ -264,6 +327,8 @@ export function PageHeader({
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  const [announcement, setAnnouncement] = useState('');
   const location = useLocation();
   const navigationType = useNavigationType();
   const t = useT();
@@ -291,15 +356,53 @@ export function AppShell({ children }: { children: ReactNode }) {
   const reachedAt = useRef(new Map<string, number>());
   const previousPath = useRef(location.pathname);
 
+  /*
+   * Arriving somewhere is an event, not just a paint.
+   *
+   * A hash route changes no document and fires no navigation event, so the old behaviour left the
+   * keyboard on `<body>` and said nothing at all: following a stale link replaced the whole screen
+   * in silence (12.2). Now the new screen is both announced (`role="status"`, below) and focused —
+   * `main` carries `tabIndex={-1}` so it can take the caret without becoming a tab stop — which is
+   * what a screen-reader traveller hears and what a keyboard traveller tabs on from.
+   */
   useEffect(() => {
     const moved = previousPath.current !== location.pathname;
     previousPath.current = location.pathname;
     if (navigationType === 'POP') {
       window.scrollTo({ top: reachedAt.current.get(location.key) ?? 0, behavior: 'auto' });
-      return;
+    } else if (moved) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
     }
-    if (moved) window.scrollTo({ top: 0, behavior: 'auto' });
+    if (moved) {
+      const heading = mainRef.current?.querySelector('h1');
+      setAnnouncement(heading?.textContent?.trim() ?? '');
+      mainRef.current?.focus({ preventScroll: true });
+    }
   }, [location.pathname, location.key, navigationType]);
+
+  /*
+   * The name in the tab, the history and a bookmark.
+   *
+   * Every screen used to carry the app's own title, so ten open tabs could not be told apart and a
+   * 404 looked like Home (8.6, 9.8, 12.4). The screens with a name of their own — a stop, an alert,
+   * a journey — set theirs from their data (see `lib/usePageTitle`); this is the app's own list of
+   * names for the screens that have a fixed one.
+   */
+  useEffect(() => {
+    const fixed: Record<string, string> = {
+      '/': 'Home',
+      '/results': 'Journey results',
+      '/map': 'Network map',
+      '/stops': 'Stations & stops',
+      '/departures': 'Departure boards',
+      '/disruptions': 'Disruptions',
+      '/preferences': 'Travel preferences',
+      '/settings': 'Settings',
+    };
+    const name = fixed[location.pathname];
+    if (name === undefined) return;
+    document.title = `${name} · OVVO`;
+  }, [location.pathname]);
 
   /* Remembered as it is scrolled, not on the way out: by the time the leaving effect runs the
      document is already the next screen, and its height is what `scrollY` would have answered. */
@@ -312,9 +415,34 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main">
+      {/*
+        A hash link cannot skip anything in a hash-routed app: `href="#main"` *is* a route, so
+        Enter on the first control sent the router to a page called `main` and drew the 404 over
+        the screen the traveller was reading (12.1). The skip is a focus move now — prevented from
+        changing the hash, landing on the `main` landmark, which takes the caret because it is
+        `tabIndex={-1}`.
+      */}
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(event) => {
+          event.preventDefault();
+          mainRef.current?.focus({ preventScroll: false });
+          mainRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+        }}
+      >
         {t('Skip to main content')}
       </a>
+      {/* What a screen reader hears when the screen changes (12.2). Empty at rest. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </p>
+      {/*
+        The connection, before anything else on the screen. It is sticky and above the header, so
+        "you are offline and these times are not live" is still the top line of the page after the
+        traveller has scrolled a board — see `layout/OfflineBar`.
+      */}
+      <OfflineBar />
       {/*
         No app bar: the mark is the only thing across the top and it is centred, saying the
         name on its own. The alerts entry keeps the place it has always had (top right, one
@@ -408,7 +536,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="app-body">
         <Sidebar />
-        <main className="app-main" id="main">
+        <main className="app-main" id="main" ref={mainRef} tabIndex={-1}>
           {children}
         </main>
       </div>

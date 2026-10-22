@@ -5,10 +5,11 @@ import { PageHeader } from '../components/layout/AppShell';
 import { SearchForm } from '../components/journey/SearchForm';
 import { PreferencesControls } from '../components/journey/PreferencesControls';
 import { JourneyCard } from '../components/journey/JourneyCard';
+import { ResultSkeletons } from '../components/journey/ResultSkeletons';
 import { filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
 import { ACCESS_MODES, DEFAULT_PREFERENCES, MODE_OPTIONS, PT_MODES, modeLabel } from '../data/preferences';
 import { disruptionsForStop } from '../data/disruptions';
-import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented, Spinner } from '../components/ui/primitives';
+import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented } from '../components/ui/primitives';
 import { NoMatches } from '../components/ui/NoMatches';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } from '../lib/format';
@@ -68,6 +69,9 @@ export function ResultsPage() {
   const t = useT();
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [whenOpen, setWhenOpen] = useState(false);
+  /* A day that has gone is refused in words, not just by the native control's own validation
+     bubble: the app used to store it and re-plan the list for yesterday, silently (23.2). */
+  const [dateInvalid, setDateInvalid] = useState(false);
   const [accessSide, setAccessSide] = useState<null | 'from' | 'to'>(null);
   const [nowRef] = useState(() => roundToStep(nowMinutes(), 5));
 
@@ -215,6 +219,14 @@ export function ResultsPage() {
       <SearchForm inheritSearch />
 
       <div className="results-bar" data-filter-row>
+        {/*
+          The search's four chips, in one scroller.
+          `results-bar` was an auto-fit grid, so at 320 the chips and the sort stacked into **five**
+          rows 326.8px tall and no journey was on the first screen of a small phone — the first card
+          began 196.6px below the fold (2.4). One row that scrolls sideways is the shape a phone
+          expects of chips, and the list starts a screenful earlier.
+        */}
+        <div className="results-bar__chips" role="group" aria-label={t('This search')}>
         <button type="button" className="results-chip" onClick={() => setAccessSide('from')}>
           <span className="results-chip__key">{t('Start:')}</span>
           <Icon name={accessOf('from') === 'bike' ? 'bike' : 'walk'} size={18} />
@@ -256,6 +268,7 @@ export function ResultsPage() {
           A sort is how the list is read, so it sits with the other controls that shape this
           screen; the four chips before it are the *search's* controls and stay where they are.
         */}
+        </div>
         <label className="field results-bar__sort" htmlFor="results-sort">
           <span className="field__label">{t('Sort by')}</span>
           <select
@@ -295,7 +308,8 @@ export function ResultsPage() {
           wants to know which are hidden, not how many.
         */}
         {visible.length !== totalJourneys ? (
-          <span className="t-sm t-muted">
+          /* A filter changing the list changes this number, and it was silent (2.5). */
+          <span className="t-sm t-muted" role="status" aria-live="polite">
             {t('{shown} of {total} shown', { shown: visible.length, total: totalJourneys })}
           </span>
         ) : null}
@@ -367,15 +381,27 @@ export function ResultsPage() {
 
 
       {planning ? (
-        <Card className="planning" aria-busy="true">
-          <Spinner label={t('Planning your journey')} />
+        /*
+         * The list's place is held by the list's own shape, not by a ring.
+         *
+         * A spinner in an empty card said *wait* and nothing about what was coming, so the three
+         * journeys that arrived a quarter-second later landed as a change of subject on a screen
+         * that had been blank. Three textured cards of a journey's measurements — the pair of
+         * times, the chain of services, the meta line — put the answer where the eye already is
+         * and hold its height, so nothing jumps when the real list replaces them.
+         * The sentence above them is still the plain statement of what is happening; the bars
+         * underneath are `aria-hidden` and the region is `aria-busy`, so the announcement is the
+         * sentence, spoken once.
+         */
+        <div className="stack-2" role="status" aria-live="polite" aria-busy="true">
           <p className="t-sm t-muted">
             {t('Working out the options from {from} to {to}.', {
               from: query.fromLabel ?? query.fromStopId,
               to: query.toLabel ?? query.toStopId,
             })}
           </p>
-        </Card>
+          <ResultSkeletons />
+        </div>
       ) : (
       <>
       {visible.length === 0 ? (
@@ -535,7 +561,22 @@ export function ResultsPage() {
               /* A journey cannot be planned for yesterday; the engine would only ever answer with
                  the departures that already left. */
               min={todayIso()}
-              onChange={(event) => updateSearchQuery({ date: event.target.value || todayIso() })}
+              aria-invalid={dateInvalid || undefined}
+              aria-describedby={dateInvalid ? 'results-date-error' : undefined}
+              onChange={(event) => {
+                const next = event.target.value;
+                if (!next) {
+                  setDateInvalid(false);
+                  updateSearchQuery({ date: todayIso() });
+                  return;
+                }
+                if (next < todayIso()) {
+                  setDateInvalid(true);
+                  return;
+                }
+                setDateInvalid(false);
+                updateSearchQuery({ date: next });
+              }}
             />
             <input
               id="results-time"
@@ -559,6 +600,12 @@ export function ResultsPage() {
           <p className="field__hint" aria-live="polite">
             {whenReadback}
           </p>
+          {dateInvalid ? (
+            <p className="field__error" id="results-date-error" role="alert">
+              <Icon name="alert" size={14} />
+              {t('A journey cannot be planned for a day that has already gone.')}
+            </p>
+          ) : null}
         </div>
         <div className="row-wrap">
           {/*

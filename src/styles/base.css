@@ -42,6 +42,16 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /*
+   * Space for the floating dock at the end of a scroll, and for a focused control.
+   *
+   * The dock is fixed and 64px tall, and nothing told the scrollport about it: a control focused
+   * deep in a page was scrolled to the viewport's bottom edge and then sat under the dock (11.6).
+   * `scroll-padding` is the property that governs where a focused element is brought to, so this
+   * is where the reserve belongs rather than in each page.
+   */
+  scroll-padding-bottom: calc(var(--dock-h) + var(--s-4));
+  scroll-padding-top: 96px;
 }
 
 body {
@@ -382,10 +392,6 @@ svg.map-canvas {
  * the row and `auto` on the controls, so a transparent row cannot swallow taps on the content
  * passing under it.
  *
- * The three things in this row are the mark, a page's way back and the alerts entry. The mark's
- * 56px square is the number the other two are drawn at, and all three step the same 16px down
- * off the row's own 4px padding, so they start on one line, 20px from the top of the viewport —
- * which is where the mark has always been.
  */
 /*
  * No bar: just a clear sticky row across the top. It is not painted and it must not be — R49
@@ -395,17 +401,31 @@ svg.map-canvas {
  * the row and `auto` on the controls, so a transparent row cannot swallow taps on the content
  * passing under it.
  *
- * The three things in this row are the mark, a page's way back and the alerts entry. They share
- * **one top edge** and nothing else: the mark's 56px square, the arrow's 44px disc and the alerts
- * entry's 36px pill are each their own size, and all three take the mark's 16px step off the row's
- * own 4px padding, so they start on one line, 20px from the top of the viewport — which is where
- * the mark has always been.
+ * The four things in this row are the mark, a page's way back, **Edit** and the alerts entry.
+ *
+ * **Vertically they are what they have always been.** All four share one top edge 20px from the
+ * top of the viewport, each in its own size, and the mark — its 56px square, its artwork and its
+ * centred column — is untouched: this fix does not move it.
+ *
+ * **Horizontally they sit on the page's own content rail**, and that is the only thing this rule
+ * changes. The row used to compute its edge differently from the page: a max-width box of its own,
+ * 4px of inner padding, the first slot pulled back by 4px, all inside the row's 12px padding. That
+ * arithmetic lands on the page's edge at 390px, where nothing is centred yet, and stops landing
+ * there the moment the max-width engages: measured at 1440, Edit was **12px left of the
+ * navigation column** and the alerts entry **8px right of the widgets**; at 1280 the alerts entry
+ * was **4px inside** them and at 390 it was **4px inside** as well. `.app-header__inner` is now
+ * the same border-box as `.app-body` — same max-width, same 12px gutter inside it — so the two
+ * have the same content box at every width: a button on this row starts and ends on the same two
+ * edges the cards do.
  */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 40;
-  padding: var(--s-1) var(--s-3);
+  /* No horizontal padding of its own: the 12px gutter belongs to `.app-header__inner`, inside the
+     same max-width box the page body uses (see above), so the two share one edge. Vertically the
+     4px is what it has always been. */
+  padding: var(--s-1) 0;
   background: none;
   pointer-events: none;
 }
@@ -425,18 +445,19 @@ svg.map-canvas {
 }
 
 /*
- * The row the three of them are drawn in: `min-height: var(--target-min)` with the mark's own
- * square growing it, exactly as it was. Nothing in this row is sized here — each slot says its own
- * size — and the one step that puts them on a line is stated per slot (below).
+ * The row the four of them are drawn in: `min-height: var(--target-min)` with the mark's own
+ * square growing it. Nothing in this row is sized here — each slot says its own size.
  *
- * What was wrong was a **top edge**, not a size. The three did not share one, and it was
- * structural rather than a wrong number anywhere: nothing in this row *was* the line, so every
- * item was positioned by a private correction of its own — `align-self: start` and an 8px step on
- * the way back, a 16px step on the mark, `align-self: start` and a 4px step on the alerts entry.
- * Measured at 390px: the alerts entry **top 8**, the mark **top 20**, the way back **top 12**.
- * All three now take the mark's 16px step and measure **top 20**, and their heights are their own,
- * so their middles and bottoms differ on purpose: one line drawn above the row touches all three,
- * one drawn below it does not have to. `ui-audit` fails the run if the tops stop agreeing.
+ * Its **outer box is the page's**, not a row's of its own: `max-width: var(--shell-max)` with the
+ * body's 12px gutter *inside* it (`box-sizing: border-box`), so this row's content box and
+ * `.app-body`'s content box are the same two vertical lines — 12..378 at 390, 52..1388 at 1440.
+ * Each slot is then placed from those edges: the way back and Edit at the start, the alerts entry
+ * at the end, the mark centred between them. There is no inner 4px and no negative margin left to
+ * cancel it, because that arithmetic is what put the buttons 4px inside the cards on a phone and
+ * 12px outside the columns on a desktop.
+ *
+ * Vertical placement is unchanged: every slot is `align-self: start` with the same 16px step it
+ * has always taken, so all four keep their top edge at 20px.
  */
 .app-header__inner {
   max-width: var(--shell-max);
@@ -444,7 +465,8 @@ svg.map-canvas {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 0 var(--s-1);
+  /* The body's gutter, inside the same box — this is the horizontal rule of the row. */
+  padding: 0 var(--s-3);
   min-height: var(--target-min);
 }
 
@@ -455,23 +477,26 @@ svg.map-canvas {
  * in it — the same corner of the bar the full-screen pickers put theirs in, which is the number a
  * reporter compared across screens (12,12 against 12,105; the arrow's shape was never the
  * complaint). Its size is its own (`btn--icon-circle`: 44px, the same disc the pickers' bar
- * draws, and the minimum this app measures a control against); the only thing it takes from the
- * mark is the step, so its disc starts on the mark's line. The left edge is pulled back by the
- * inner row's own padding for the reason it always was: 4 + 12 - 4 = 12.
+ * draws, and the minimum this app measures a control against). Vertically it is where it has
+ * always been — top 20, on the row's step. Horizontally its disc starts on the row's start edge,
+ * which is the page's left gutter (12 at 390, 52 at 1440) because the row shares the body's box;
+ * the negative margin that used to pull it back is gone with the inner 4px it cancelled.
  */
 .app-header__back {
   grid-column: 1;
   justify-self: start;
   align-self: start;
   margin-top: var(--s-4);
-  margin-left: calc(-1 * var(--s-1));
+  /* No negative margin any more: the row's gutter is inside its box, so the arrow's own left edge
+     is already the page's (12 at 390, 52 at 1440). */
+  margin-left: 0;
 }
 
 /*
  * **Edit** sits in that corner, and it is a pill rather than a disc so the header is balanced: the
  * same 36px pill as *Done*, on the other side, one line above the home screen it edits. The
- * wrapper has already taken the 16px step off the row, so the pill takes none of its own — the
- * margin it carries on the right is for the alerts entry's column, where nothing has stepped it.
+ * wrapper places it on the row's start edge — the page's own gutter — and it carries no step of
+ * its own, so Edit and the way back cannot disagree about where the row begins.
  */
 .app-header .app-header__back .app-header__pill {
   margin-top: 0;
@@ -484,9 +509,9 @@ svg.map-canvas {
   display: inline-flex;
   align-items: center;
   min-height: var(--target-min);
-  /* Brings the mark down off the top edge — one 16px step — and takes the row's height with
-     it, so the page below moves down rather than crowding the mark. This is the step the other
-     two take as well, which is what puts all three on one line. */
+  /* Unchanged, on purpose: the 16px step keeps the mark's top at 20px, and its centred column is
+     centred on the same content box at every width (195 at 390, 720 at 1440). This rule is not
+     part of the horizontal fix, and the logo is not to move. */
   margin-top: var(--s-4);
 }
 
@@ -528,12 +553,14 @@ svg.map-canvas {
 }
 
 /*
- * The alerts entry, in its own size, starting on the mark's line.
+ * The alerts entry, in its own size, on the row's top edge.
  *
- * The 16px step is the only thing it takes from the mark — the mark's 56px square, the arrow's
- * 44px disc and this entry's 36px pill are three sizes, and a line drawn above them is what has to
- * touch all three. Everything else about it is what it has always been: 36px tall with 8px of
- * padding either side of the glyph and the count, so its hover background is the pill it was.
+ * Vertically untouched: the mark's 56px square, the arrow's 44px disc and this entry's 36px pill
+ * are three sizes sharing one top edge (20..76, 20..64, 20..56). What moved is its **right edge**:
+ * `justify-self: end` now resolves against the page's content rail instead of the row's own
+ * 4px-inset box, so the pill ends on the line the cards end on — 378 at 390, 1388 at 1440, 1268 at
+ * 1280. Everything else about it is what it has always been: 36px tall with 8px of padding either
+ * side of the glyph and the count, so its hover background is the pill it was.
  */
 /*
  * **Done** takes the alerts entry's place while the home screen is being edited, and **Edit** sits
@@ -654,8 +681,19 @@ svg.map-canvas {
   height: 20px;
   padding: 0 var(--s-2);
   border-radius: var(--r-pill);
-  background: var(--accent-primary);
+  /* The fill behind the count, not the ring's cut: 11px text needs 4.5:1 (see `tokens.css`). */
+  background: var(--accent-fill);
   color: var(--on-accent);
+  /*
+   * **A ring in the label's own ink, because the fill is now the traveller's exact colour.**
+   *
+   * The fill used to be a cut of the accent chosen to stand off the page; it is the chosen colour
+   * itself now (a black primary stays black, see `lib/background.ts`), which means it can equal the
+   * surface it sits on — a green count on a green page drew as nothing but four white digits. The
+   * ring is one hairline of the label's ink at 32%, so the pill's shape survives whatever colour it
+   * is painted with, and no colour has to be talked out of.
+   */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 32%, transparent);
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
   letter-spacing: var(--track-pill);
@@ -667,7 +705,10 @@ svg.map-canvas {
   width: 100%;
   max-width: var(--shell-max);
   margin: 0 auto;
-  padding: var(--s-4) var(--s-3) calc(var(--s-12) + var(--s-8));
+  /* The dock's own height, reserved at the end of the page: the last card clears it at every
+     width below 1040 (the dock is hidden from there up), which is what 2.9, 4.9 and 9.9 measured
+     by hand and what every page now gets from one rule. */
+  padding: var(--s-4) var(--s-3) calc(var(--dock-h) + var(--s-6));
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--s-4);
@@ -679,6 +720,13 @@ svg.map-canvas {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+}
+
+/* `main` takes the caret when the screen changes and when the skip link is used (12.1, 12.2).
+   It is not a tab stop (`tabIndex={-1}`), and a ring around the whole page would say nothing. */
+.app-main:focus,
+.app-main:focus-visible {
+  outline: none;
 }
 
 @media (min-width: 1040px) {
@@ -695,6 +743,8 @@ svg.map-canvas {
   transform: translateX(-50%);
   bottom: max(var(--s-3), env(safe-area-inset-bottom));
   z-index: 50;
+  /* The bar slides out of the way on a downward scroll (2.3, 3.4 — see `MobileDock`). */
+  transition: transform var(--t-hover) var(--ease-out), opacity var(--t-hover) var(--ease-out);
   display: flex;
   align-items: center;
   gap: var(--s-1);
@@ -742,10 +792,100 @@ svg.map-canvas {
   display: none;
 }
 
+/* Out of the way while reading; back on the first upward scroll, and always while it is focused. */
+.app-dock--yielded {
+  transform: translate(-50%, calc(100% + var(--s-6)));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-dock--yielded:focus-within {
+  transform: translateX(-50%);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-dock {
+    transition: none;
+  }
+}
+
 @media (min-width: 1040px) {
   .app-dock {
     display: none;
   }
+}
+
+/* ------------------------------------------------------------ The connection */
+/*
+ * The offline strip (see `layout/OfflineBar`).
+ *
+ * Obsidian, the width of the window, sticky at the top **above the header** (z 60 over its 40):
+ * the one thing in the app that is deliberately not a card, because it is not part of the page —
+ * it is the state of the connection, and it stays in view while a board is scrolled. The rule
+ * under it and its glyph use `--accent-on-dock`, which is the accent already measured against
+ * obsidian for the dock's own active pill, so a traveller's colour is visible here too and a
+ * near-black one is the lightened cut rather than an invisible line.
+ */
+.offline-bar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--struct-main);
+  color: var(--on-dark);
+  border-bottom: 2px solid var(--accent-on-dock);
+  padding: var(--s-2) var(--s-3);
+}
+
+.offline-bar__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  font-size: var(--fs-body);
+  line-height: 1.4;
+}
+
+.offline-bar__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding-top: 1px;
+  color: var(--accent-on-dock);
+}
+
+.offline-bar__text strong {
+  font-weight: var(--fw-bold);
+}
+
+/* The way back: the page's own panel colour, so it reads as a message rather than as an alarm. */
+.offline-bar--back {
+  background: var(--l2-bg);
+  color: var(--ink-strong);
+  border-bottom-color: var(--tint-sage-border);
+}
+
+.offline-bar--back .offline-bar__icon {
+  color: var(--tint-sage-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .offline-bar {
+    animation: offline-bar-in 220ms var(--ease-out) both;
+  }
+}
+
+@keyframes offline-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+:root[data-motion='reduced'] .offline-bar {
+  animation: none;
 }
 
 /* ------------------------------------------------------------ Sidebar module */
@@ -849,20 +989,27 @@ svg.map-canvas {
   min-width: 0;
 }
 
-/* A head with no drawn title holds only controls, and they go to the trailing edge — the same
-   end of the row every card, panel and list in the app puts its own controls on. Measured
-   before this rule: the keep-a-stop pin read `left` on the stop page and `right` on the stops
-   list, which is the drift the audit recorded. */
+/*
+ * **A page's own controls start on the left, with the page.**
+ *
+ * They used to go to the trailing edge — the end of the row every *card* puts its own controls on.
+ * That is right inside a card and wrong above one: a page is read left to right from its margin,
+ * so a lone "Reset to defaults", "Plan a journey" or "Departure boards" pinned to the right of an
+ * otherwise empty band reads as furniture from the wrong side of the page (reported: *"Why are SO
+ * MANY buttons and other things located on the right side (above a widget) … I'm not Arabic"*).
+ * Inside a widget, a control on the right still belongs to the row it shares with a heading; above
+ * a widget there is no heading on the left for it to answer, so it takes the page's own edge.
+ */
 .page-head__actions {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 /*
  * A head whose name is drawn on a phone only (the stop page, F18): on a narrow screen the name
  * and its controls are one left-aligned block — the controls start at the margin under the name
  * instead of floating alone in the middle of an otherwise empty row ("why it on the right",
- * 2026-10-17t20-48-37). From 641px up the name is not drawn and the controls return to the
- * trailing edge, which is the head that page has always had on a wide screen.
+ * 2026-10-17t20-48-37). From 641px up the name is not drawn and the controls sit on the page's
+ * left edge like every other page's, which is the rule above.
  */
 .page-head--mobile-title .page-head__title {
   /* A column, not a row: the title's `flex: 1 1 12rem` above is a basis for sharing a line with
@@ -875,13 +1022,32 @@ svg.map-canvas {
   justify-content: flex-start;
 }
 
+/*
+ * On a wide screen the name stays — it shares the row with the controls instead of vanishing.
+ *
+ * This used to be `display: none`, and it was the only H1 on the stop page: from 720px up the
+ * document had no heading at all, and `document.title` was the generic app name on top of that
+ * (5.2). A page name is not a phone convenience. The row is the ordinary one: the name on the
+ * start edge, the controls on the trailing edge.
+ */
 @media (min-width: 720px) {
+  .page-head--mobile-title {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+  }
+
   .page-head--mobile-title .page-head__title {
-    display: none;
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .page-head--mobile-title .page-head__actions {
     justify-content: flex-end;
+    margin-inline-start: auto;
   }
 }
 
@@ -953,3 +1119,20 @@ svg.map-canvas {
   box-shadow: none;
 }
 
+
+/* ------------------------------------------------------------------ Placeholders */
+/*
+ * **A placeholder is text, and it is held to the text rule.**
+ *
+ * Thought it was not: nothing in the app styled `::placeholder`, so the browser's own grey
+ * (`#757575`) was drawn in every field. On the cream canvas that is **4.45:1** — under the 4.5:1
+ * this app holds its faintest ink to — and on a `#ff375f` page's card it is **1.47:1**, which is
+ * not a hint but a smudge. It now uses `--ink-faint`, the
+ * step the palette derives for the surface the field stands on, so a placeholder is exactly as
+ * readable as the faintest label beside it — and `opacity: 1`, because Firefox dims the token on
+ * top of the colour it was given.
+ */
+::placeholder {
+  color: var(--ink-faint);
+  opacity: 1;
+}

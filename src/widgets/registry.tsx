@@ -141,8 +141,17 @@ function PlannerWidget() {
 
 /** A handful of names: a label per stop is unreadable. */
 const MAP_LABEL_LIMIT = 5;
-/** The label type is the stylesheet's `.map-canvas--widget .map-stop text` size, in canvas units. */
-const MAP_LABEL_FONT = 2.6;
+/*
+ * The label type, in canvas units — and the **worst case**, not the desktop case.
+ *
+ * The stylesheet draws this type larger on a phone (3.4 units of a 0–100 canvas, which is the only
+ * size that is legible at 320–430) and smaller on a wide plate, where 3.4 units would be 25px of
+ * bold text. This constant is what the collision boxes below are built from, so it takes the
+ * phone size everywhere: the desktop then has more air around each name than its own type needs,
+ * which costs a name or two and never paints one on another. The audit's 3.78px phone labels and
+ * its 14 overlapping pairs (3.2, 5.3) both came from these two numbers disagreeing with the ink.
+ */
+const MAP_LABEL_FONT = 3.4;
 /** Air kept between two names and between a name and the frame edge, in canvas units. */
 const MAP_LABEL_PAD = 1;
 /**
@@ -294,7 +303,20 @@ function boxCrossesLine(box: LabelBox, segments: Segment[]): number {
  * own screen (`pages/MapPage.tsx`). The highlighting, the corridor thinning and the label
  * placement are the same work in both, and a second copy of a map would be a second map.
  */
-export function NetworkMap({ priority = [] }: { priority?: string[] }) {
+export function NetworkMap({
+  priority = [],
+  variant = 'widget',
+}: {
+  priority?: string[];
+  /*
+   * `widget` is the home card and the glimpse it draws; `screen` is `/map`, where the point is to
+   * look at the drawing properly. The two used to be one class, so the screen inherited the
+   * widget's 16:9 plate and letterboxed a square drawing into 37% of it (3.1). The screen also
+   * gains the list of stops below the canvas: a picture is not a way to reach a stop with a
+   * keyboard.
+   */
+  variant?: 'widget' | 'screen';
+}) {
   const t = useT();
   const [params] = useSearchParams();
   const [mode, setMode] = useState<'all' | PublicMode>('all');
@@ -304,6 +326,25 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
   const requestedJourney = findJourney(params.get('journey') ?? undefined);
 
   const lines = useMemo(() => NETWORK.filter((line) => mode === 'all' || line.mode === mode), [mode]);
+
+  /*
+   * A card's own stops are drawn as selected: on a home screen, "highlighted" means "yours".
+   *
+   * The same list ranks the names, so the stops the drawing is *about* — your hearted stops, the
+   * stop this screen was opened for, the two ends of the journey — are named before the network's
+   * busiest junctions. They were highlighted and unnamed (3.2).
+   */
+  const wantedStops = useMemo(() => {
+    const ids = [...priority];
+    if (requestedStop) ids.push(requestedStop.id);
+    if (requestedJourney) {
+      requestedJourney.legs.forEach((leg) => {
+        ids.push(leg.fromStopId, leg.toStopId);
+      });
+    }
+    return [...new Set(ids)].filter(Boolean);
+  }, [priority, requestedStop, requestedJourney]);
+  const highlighted = new Set<string>(wantedStops);
 
   const drawn = useMemo(() => {
     const calls = new Map<string, number>();
@@ -342,8 +383,13 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
      * network. The home widget passes its traveller's stops; the map screen passes nothing and
      * keeps the network's own order.
      */
+    /*
+     * Selected stops are ranked with the priority list: a journey's own two ends, and the stop the
+     * screen was opened for, were never named — Amsterdam and Utrecht Centraal were exactly the two
+     * names a map of *that* journey did not draw (3.2).
+     */
     const rank = (stopId: string) => {
-      const index = priority.indexOf(stopId);
+      const index = wantedStops.indexOf(stopId);
       return index === -1 ? Number.MAX_SAFE_INTEGER : index;
     };
     for (const [stopId] of [...calls.entries()].sort(
@@ -376,7 +422,7 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
       if (labelled.length === MAP_LABEL_LIMIT) break;
     }
     return { stopIds: [...calls.keys()], labelled, corridors };
-  }, [lines, mode, priority]);
+  }, [lines, mode, priority, wantedStops]);
 
   const journeyPath = useMemo(() => {
     if (!requestedJourney) return null;
@@ -388,16 +434,6 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
     if (end) points.push(end);
     return points.length > 1 ? points : null;
   }, [requestedJourney]);
-
-  /* A card's own stops are drawn as selected: on a home screen, "highlighted" means "yours". */
-  const highlighted = new Set<string>(priority);
-  if (requestedStop) highlighted.add(requestedStop.id);
-  if (requestedJourney) {
-    requestedJourney.legs.forEach((leg) => {
-      highlighted.add(leg.fromStopId);
-      highlighted.add(leg.toStopId);
-    });
-  }
 
   const toPoints = (stopIds: string[]) =>
     stopIds
@@ -418,7 +454,7 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
       </div>
 
       <svg
-        className="map-canvas map-canvas--widget"
+        className={`map-canvas${variant === 'widget' ? ' map-canvas--widget' : ' map-canvas--screen'}`}
         viewBox="0 0 100 100"
         role="img"
         aria-label={t('Network map: {scope}, {count} stops', { scope: t(mode === 'all' ? 'all routes' : '{mode} routes only', { mode: mode === 'all' ? '' : modeLabel(mode) }), count: drawn.stopIds.length })}
@@ -448,7 +484,10 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
               onClick={() => navigate(`/stops/${stopId}`)}
             >
               <title>{stop.name}</title>
-              <circle r={highlighted.has(stopId) ? 1.9 : 1.1} />
+              {/* A 44px finger cannot hit 2.9px. The dots grow to 1.6 / 2.4 canvas units and
+                  the stylesheet stops overriding the radius (3.3, 5.3); the pointer still gets a
+                  forgiving target from the wrapper's own padding below. */}
+              <circle r={highlighted.has(stopId) ? 2.4 : 1.6} />
             </g>
           );
         })}
@@ -465,6 +504,32 @@ export function NetworkMap({ priority = [] }: { priority?: string[] }) {
           );
         })}
       </svg>
+      {variant === 'screen' ? (
+        /*
+         * The drawing is one `role="img"`: its 54 dots are presentational, so a keyboard could
+         * never reach a stop and a screen reader was offered a sentence and nothing else (3.3).
+         * A list is what a map cannot be — every stop on it, in the same order the drawing names
+         * them, each one a real link. Closed by default, so the screen still opens on the map.
+         */
+        <details className="map-stops">
+          <summary className="map-stops__summary">
+            {t('All {count} stops on this map', { count: drawn.stopIds.length })}
+          </summary>
+          <ul className="map-stops__list">
+            {[...drawn.stopIds]
+              .map((id) => getStop(id))
+              .filter((stop): stop is NonNullable<typeof stop> => Boolean(stop))
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((stop) => (
+                <li key={stop.id}>
+                  <Link to={`/stops/${stop.id}`} className="map-stops__link">
+                    {stop.name}
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -688,7 +753,21 @@ function YourJourneysWidget() {
           </>
         }
       >
-        <p className="t-sm">{pending ? ends(pending.query) : ''}</p>
+        {/*
+          Which journey. Two saved journeys on the same pair of stops — today 08:30 and 18:00 — are
+          an ordinary pair, and both questions used to read exactly the same, so the sheet asked
+          the traveller to confirm removing a journey it never named (25.2). The times it was saved
+          with are the fact that tells the two rows apart.
+        */}
+        {pending ? (
+          <div className="stack-1">
+            <p className="t-sm">{ends(pending.query)}</p>
+            <p className="t-sm t-muted">
+              {format.date(pending.query.date, 'dayMonth')} · {format.time(pending.journey.departure)} →{' '}
+              {format.time(pending.journey.arrival)}
+            </p>
+          </div>
+        ) : null}
       </Dialog>
 
       <Dialog
@@ -715,7 +794,11 @@ function YourJourneysWidget() {
         }
       >
         <p className="t-sm">
-          {t('{count} saved searches will be removed.', { count: recentSearches.length })}
+          {/* One saved search is the commonest case, and "1 saved searches" was the one wording
+              in the sheet that named the number (26.2). */}
+          {recentSearches.length === 1
+            ? t('1 saved search will be removed.')
+            : t('{count} saved searches will be removed.', { count: recentSearches.length })}
         </p>
       </Dialog>
     </div>
@@ -872,23 +955,23 @@ function AlertsOnSavedWidget() {
 function RightNowWidget() {
   const t = useT();
   const minutes = useClockMinutes();
-  const { search, startSearch, preferences, pushToast } = useApp();
+  const { search, startSearch, preferences } = useApp();
   const navigate = useNavigate();
   return (
     <div className="stack-2">
-      <Button
-        icon="clock"
-        onClick={() => {
-          if (!search) {
-            pushToast('Plan a journey first — then you can re-run it from now', 'warning');
-            return;
-          }
-          startSearch({ ...search.query, date: new Date().toISOString().slice(0, 10), time: minutes, preferences });
-          navigate('/results');
-        }}
-      >
-        {t('Re-run my search from now')}
-      </Button>
+      {/* Drawn only when there is a search to re-run. On an empty home it rendered and did nothing
+          at all when pressed — no navigation, no overlay, no text change (1.2). */}
+      {search ? (
+        <Button
+          icon="clock"
+          onClick={() => {
+            startSearch({ ...search.query, date: new Date().toISOString().slice(0, 10), time: minutes, preferences });
+            navigate('/results');
+          }}
+        >
+          {t('Re-run my search from now')}
+        </Button>
+      ) : null}
       <span className="t-sm t-faint">
         {search
           ? t('{from} to {to}, starting at this minute.', {
@@ -917,7 +1000,10 @@ function StopSearchWidget() {
   const [value, setValue] = useState<Stop | null>(null);
   return (
     <StopCombobox
-      id="widget-stop-search"
+      /* Not `widget-stop-search`: that is the widget section's own id, and the duplicate made
+         `getElementById` return the section, so the label pointed at nothing and the field had no
+         name (32.4). */
+      id="widget-stop-search-field"
       label={t('Find a stop')}
       value={value}
       onSelect={(stop) => {

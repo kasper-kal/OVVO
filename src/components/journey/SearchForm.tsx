@@ -281,7 +281,11 @@ export function SearchForm({
 
   return (
     <div className="planner">
-      <div className={`planner-card${error ? ' planner-card--invalid' : ''}`}>
+      <div
+        className={`planner-card${error ? ' planner-card--invalid' : ''}${
+          from && to ? ' planner-card--swap' : ''
+        }`}
+      >
         <span className="planner-rail" aria-hidden="true">
           <span className={`planner-rail__node planner-rail__node--from${errors.from ? ' planner-rail__node--invalid' : ''}`} />
           <span className={`planner-rail__node planner-rail__node--to${errors.to ? ' planner-rail__node--invalid' : ''}`} />
@@ -290,6 +294,26 @@ export function SearchForm({
           {renderRow('from')}
           {renderRow('to')}
         </div>
+        {/*
+          **The same reverse control the picker's card carries, in the same place.**
+          A completed search could only be swapped by opening a picker and pressing it there, so
+          on the results screen — the one screen where both ends are known and one of them is
+          usually wrong — the control was two taps away inside an overlay (reported: "Add the
+          'Reverse' button to the Journey results too, on the exact same place as in the Plan
+          journey"). It is the third column of this card, centred on the line between the rows,
+          exactly where `StopPicker` draws it.
+        */}
+        {from && to ? (
+          <button
+            type="button"
+            className="planner-swap"
+            onClick={reverse}
+            aria-label={t('Reverse origin and destination')}
+            title={t('Reverse journey')}
+          >
+            <Icon name="swap" size={18} />
+          </button>
+        ) : null}
       </div>
 
       {error ? (

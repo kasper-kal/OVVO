@@ -18,6 +18,16 @@ import type { Language } from '../state/types';
 const NL: Record<string, string> = {
   /* ---------------------------------------------------------------- app shell */
   'Skip to main content': 'Ga naar de hoofdinhoud',
+  /* ---------------------------------------------------------------- connection */
+  "You're offline": 'Je bent offline',
+  'OVVO still works — your journeys, boards and saved stops are all here.':
+    'OVVO blijft werken — je reizen, borden en bewaarde haltes staan er allemaal.',
+  'Departure times are not live.': 'Vertrektijden zijn niet live.',
+  'They come from the timetable until the connection is back.':
+    'Ze komen uit de dienstregeling tot je weer online bent.',
+  'Back online — live times resume.': 'Weer online — live tijden hervatten.',
+  'Not live': 'Niet live',
+  'Scheduled times, not live updates.': 'Geplande tijden, geen live updates.',
   'Main navigation': 'Hoofdnavigatie',
   'Quick navigation': 'Snelle navigatie',
   'All sections': 'Alle onderdelen',
@@ -187,6 +197,13 @@ const NL: Record<string, string> = {
   System: 'Systeem',
   Light: 'Licht',
   Dark: 'Donker',
+  /* The Colours card's palette picker — a different question from `Appearance` above, and the
+     hint is the sentence that keeps the two from being confused for one another. */
+  'Colours for': 'Kleuren voor',
+  'This only picks which palette you are editing. It does not change the app’s appearance — use Appearance for that.':
+    'Dit kiest alleen welke kleuren je bewerkt. Het verandert de weergave van de app niet — gebruik daarvoor Weergave.',
+  'The app is {appearance} right now, so you will see these colours when it is {mode}.':
+    'De app is nu {appearance}, dus je ziet deze kleuren als hij {mode} is.',
   Language: 'Taal',
   'The language of the interface.': 'De taal van de interface.',
   Display: 'Weergave',
@@ -225,6 +242,7 @@ const NL: Record<string, string> = {
   'Delete all saved searches?': 'Alle bewaarde zoekopdrachten verwijderen?',
   '{count} stored in this browser': '{count} opgeslagen in deze browser',
   '{count} saved searches will be removed.': '{count} bewaarde zoekopdrachten worden verwijderd.',
+  '1 saved search will be removed.': '1 bewaarde zoekopdracht wordt verwijderd.',
   'Alerts on your journeys': 'Storingen op jouw reizen',
   'Only the alerts that touch a journey you saved.': 'Alleen de storingen die een reis raken die je bewaarde.',
   'Heart a journey and any alert that touches it shows up here.':
@@ -321,6 +339,48 @@ const NL: Record<string, string> = {
     'Een foto heeft geen eigen kleur, dus dit gebruikt de eigen oppervlakken en het koraal van de app. Kies een kleur, of haal er een uit de foto.',
   'The page is cream, so this uses the app’s own surfaces and coral.':
     'De pagina is crème, dus dit gebruikt de eigen oppervlakken en het koraal van de app.',
+  /*
+   * ***Default*, and the hint names the colour it paints.** The row said *Cream* while the dark
+   * appearance drew `#121211`, so the label lied in one appearance; a per-appearance label
+   * (Cream/Black) only trades that for a control that renames itself when the theme flips —
+   * including by itself at sunset under **System**. The app's own canvas is **Default** in both,
+   * the swatch shows it, and the hint below names it: cream in light, black in dark.
+   */
+  Default: 'Standaard',
+  'The app’s own cream canvas.': 'Het eigen crème canvas van de app.',
+  'The app’s own black canvas.': 'Het eigen zwarte canvas van de app.',
+  'The page is the app’s own canvas, so this uses the app’s own surfaces and coral.':
+    'De pagina is het eigen canvas van de app, dus dit gebruikt de eigen oppervlakken en het koraal.',
+  /* Match colours: one fill for every button, picked in the pop-up. */
+  'Match colours': 'Kleuren gelijkzetten',
+  'Stop matching': 'Niet meer gelijkzetten',
+  'The labels take {ink} ink — {ratio}:1': 'De labels nemen {ink} inkt — {ratio}:1',
+  'Pick your own': 'Kies je eigen kleur',
+  'Opens the colour picker of this device.': 'Opent de kleurenkiezer van dit apparaat.',
+  'Button colour': 'Knopkleur',
+  'Every button · {colour}': 'Elke knop · {colour}',
+  /* Matching is the palette's three colours now — page, primary, selected text — and it is
+     confirmed rather than applied on sight. Buttons are not among them. */
+  'One colour for the page, the primary colour and the selected text — the same HEX in all three.':
+    'Eén kleur voor de pagina, de primaire kleur en de geselecteerde tekst — dezelfde HEX in alle drie.',
+  'Match all three': 'Zet alle drie gelijk',
+  'Everything · {colour}': 'Alles · {colour}',
+  'The page, the primary colour and the selected text are the same colour.':
+    'De pagina, de primaire kleur en de geselecteerde tekst hebben dezelfde kleur.',
+  'Give the page, the primary colour and the selected text one colour, confirmed in a pop-up.':
+    'Geef de pagina, de primaire kleur en de geselecteerde tekst één kleur, bevestigd in een venster.',
+  'Reset colours': 'Kleuren herstellen',
+  'Reset the background': 'Achtergrond herstellen',
+  'Reset the primary colour': 'Primaire kleur herstellen',
+  'Reset the selected-text colour': 'Tekstselectiekleur herstellen',
+  Cards: 'Kaarten',
+  'Selected text': 'Geselecteerde tekst',
+  Page: 'Pagina',
+  Matched: 'Gelijkgezet',
+  'Not matched yet': 'Nog niet gelijkgezet',
+  'Press “Match all three” to apply it.': 'Druk op “Zet alle drie gelijk” om het toe te passen.',
+  'Enter a whole colour, like #1B4D3E.': 'Voer een volledige kleur in, zoals #1B4D3E.',
+  'The colour all three take': 'De kleur die alle drie krijgen',
 
   /* The colour redesign (`COLOURS_PLAN.md`): two screens for the photograph and one for any
      colour. The words are the controls' own, short enough for a phone. */
@@ -871,7 +931,6 @@ const NL: Record<string, string> = {
   "Transfers": "Overstappen",
   "This is a direct journey — no transfers at all.": "Dit is een directe reis — zonder overstappen.",
   "Expected occupancy": "Verwachte drukte",
-  "Transport modes": "Vervoerswijzen",
   "Every mode starts switched on; unselected modes are left out of your journeys.": "Elke wijze staat standaard aan; uitgezette wijzen blijven buiten je reizen.",
   "With no transport mode selected no journey can be planned.": "Zonder vervoerswijze kan er geen reis worden gepland.",
   "Applies to access, transfer and egress walks.": "Geldt voor lopen naar, tussen en na de ritten.",
@@ -883,7 +942,6 @@ const NL: Record<string, string> = {
   "No limit": "Geen limiet",
   "Maximum number of transfers": "Maximaal aantal overstappen",
   "Counts changes between services, not walking links.": "Telt wissels tussen ritten, niet loopstukken.",
-  "Trade-offs": "Afwegingen",
   "Prefer fewer transfers": "Liever minder overstappen",
   "Prefer less walking": "Liever minder lopen",
   "Ranks journeys with fewer changes higher, even if slower.": "Zet reizen met minder overstappen hoger, ook als ze langzamer zijn.",
@@ -962,6 +1020,59 @@ const NL: Record<string, string> = {
   "Last services from {stop}": "Laatste ritten vanaf {stop}",
   "No late service from this stop in the data.": "Geen late rit vanaf deze halte in de gegevens.",
   "Read at {time}, the same minute the board uses.": "Gelezen om {time}, dezelfde minuut die het bord gebruikt.",
+
+  /* The audit's language pass: one screen at a time, every visible and spoken string. */
+  "All {count} stops on this map": "Alle {count} haltes op deze kaart",
+  "Details of {alert}": "Details van {alert}",
+  "Schematic local view of {stop} and the stops around it": "Schematisch beeld van {stop} en de haltes eromheen",
+  "stop code {code}": "haltecode {code}",
+  "No service calls at this station right now.": "Er stopt nu geen dienst op dit station.",
+  "Search by station, stop or landmark name.": "Zoek op stations-, halte- of plaatsnaam.",
+  "Clear {label}": "Wis {label}",
+  "{label} suggestions": "Suggesties voor {label}",
+  "Plan from {stop}": "Plan vanaf {stop}",
+  "Plan to {stop}": "Plan naar {stop}",
+  "Plan a journey to {stop} at {time}": "Plan een reis naar {stop} om {time}",
+  "min walking": "min lopen",
+  "No bicycle": "Geen fiets",
+  "Change at {stop}": "Overstappen in {stop}",
+  "Delay +{count} min": "Vertraging +{count} min",
+  "Affected stops ({count})": "Getroffen haltes ({count})",
+  "Affected services ({count})": "Getroffen diensten ({count})",
+  "More alerts for {line}": "Meer storingen voor {line}",
+  "See all alerts": "Alle storingen bekijken",
+  "Alert": "Storing",
+  "every {minutes} min": "elke {minutes} min",
+  "Transport modes": "Vervoerswijzen",
+  "Trade-offs": "Afwegingen",
+  "Plan return journey": "Heen- en terugreis plannen",
+  "No results for those filters": "Geen resultaten voor deze filters",
+  "Try again with a different journey": "Probeer het met een andere reis",
+  "{matching} of {total} journeys allowed": "{matching} van {total} reizen toegestaan",
+  "Best now: {departure} → {arrival}": "Beste nu: {departure} → {arrival}",
+  "Re-run {from} → {to}": "Opnieuw zoeken: {from} → {to}",
+  "Plan a new journey": "Een nieuwe reis plannen",
+  "Favourited journeys ({count})": "Bewaarde reizen ({count})",
+  "departs {time}": "vertrekt {time}",
+  "arrives {time}": "komt aan {time}",
+  "direct": "rechtstreeks",
+  "transfer": "overstap",
+  "leg": "etappe",
+  "{count} favourite stops": "{count} favoriete haltes",
+  "{count} favourited journeys": "{count} bewaarde reizen",
+  "{count} recent searches": "{count} recente zoekopdrachten",
+  "Add {widget}": "{widget} toevoegen",
+  "{widget} added to the home screen": "{widget} toegevoegd aan het beginscherm",
+  "Put the arrangement back": "Zet de indeling terug",
+  "Arrangement restored": "Indeling teruggezet",
+  "Clear the search to see the whole network again": "Wis de zoekopdracht om het hele netwerk te zien",
+  "Show every alert again, not only the ones you kept": "Toon alle storingen, niet alleen de bewaarde",
+  "Journey details for {time}": "Reisdetails voor {time}",
+  "Show the {time} journey on the map": "Toon de reis van {time} op de kaart",
+  "Favourite the {time} journey": "Bewaar de reis van {time}",
+  "Favourite the {from} to {to} journey": "Bewaar de reis van {from} tot {to}",
+  "A journey cannot be planned for a day that has already gone.": "Een reis kan niet worden gepland voor een dag die al voorbij is.",
+
 };
 
 const DICTIONARIES: Record<Language, Record<string, string>> = {

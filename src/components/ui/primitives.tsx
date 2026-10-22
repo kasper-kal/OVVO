@@ -1,12 +1,14 @@
+import { createPortal } from 'react-dom';
 import {
-  useEffect,
   useId,
+  useRef,
   useState,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
 } from 'react';
+import { useOverlay } from '../../lib/useOverlay';
 import { Icon, ModeIcon, type IconName } from './Icons';
 import { useApp } from '../../state/AppState';
 import { useT } from '../../lib/useT';
@@ -23,6 +25,7 @@ export function Card({
   style,
   as: Tag = 'section',
   onClick,
+  ...rest
 }: {
   children: ReactNode;
   variant?: 'raised' | 'flat' | 'obsidian';
@@ -30,6 +33,15 @@ export function Card({
   className?: string;
   style?: CSSProperties;
   as?: 'section' | 'div' | 'article' | 'li' | 'form';
+  /*
+   * A card is often a live region or a busy block — "Planning your journey" is `aria-busy`, the
+   * no-match card is `role="status"`. Both were declared at the call sites and both were dropped
+   * here, because this wrapper forwarded `class`, `style` and `onClick` only: the attribute never
+   * reached the DOM (2.5, 4.4, 7.2). Everything else a section can carry now passes through.
+   */
+  [key: `aria-${string}`]: string | boolean | undefined;
+  role?: string;
+  tabIndex?: number;
   /*
    * A card that is also a way in — the stops list, where the whole card opens the stop page.
    * It is deliberately *not* a link element: a card can contain a pin, a link and a button, and
@@ -50,7 +62,7 @@ export function Card({
     .filter(Boolean)
     .join(' ');
   return (
-    <Tag className={classes} style={style} onClick={onClick}>
+    <Tag className={classes} style={style} onClick={onClick} {...rest}>
       {children}
     </Tag>
   );
@@ -60,13 +72,23 @@ export function Panel({
   children,
   variant = 'default',
   className = '',
+  role,
+  ...rest
 }: {
   children: ReactNode;
   variant?: 'default' | 'raised' | 'accent' | 'coral' | 'sage' | 'obsidian';
   className?: string;
+  /* A panel can be a live region: "no mode selected" changes a verdict in silence otherwise
+     (10.5). Same reason `Card` forwards its ARIA props. */
+  role?: string;
+  [key: `aria-${string}`]: string | boolean | undefined;
 }) {
   const classes = ['panel', variant !== 'default' ? `panel--${variant}` : '', className].filter(Boolean).join(' ');
-  return <div className={classes}>{children}</div>;
+  return (
+    <div className={classes} role={role} {...rest}>
+      {children}
+    </div>
+  );
 }
 
 export function SectionHeading({
@@ -180,15 +202,22 @@ export function Pill({
   dot = false,
   dotTone = 'green',
   className = '',
+  role,
 }: {
   children: ReactNode;
   tone?: 'default' | 'coral' | 'sage' | 'butter' | 'obsidian' | 'outline';
   dot?: boolean;
   dotTone?: 'green' | 'coral' | 'butter';
   className?: string;
+  /* A pill can be the place a verdict changes — "3 of 11 journeys allowed" — and a change
+     announced to nobody is a change for sighted travellers only (10.5). */
+  role?: string;
 }) {
   return (
-    <span className={['pill', tone !== 'default' ? `pill--${tone}` : '', className].filter(Boolean).join(' ')}>
+    <span
+      className={['pill', tone !== 'default' ? `pill--${tone}` : '', className].filter(Boolean).join(' ')}
+      role={role}
+    >
       {dot ? <span className={`pill__dot${dotTone === 'green' ? '' : ` pill__dot--${dotTone}`}`} /> : null}
       {children}
     </span>
@@ -407,12 +436,21 @@ export function EmptyState({
   description,
   icon = 'info',
   children,
+  headingLevel = 3,
 }: {
   title: string;
   description?: string;
   icon?: IconName;
   children?: ReactNode;
+  /*
+   * An empty state is a page's answer or a card's answer, and the two sit at different levels.
+   * Every empty state was an `h3`, so four "not here" screens drew an H1 straight to an H3 and
+   * the sentence under the page's name was announced as a subsection that does not exist (12.3,
+   * 5.1, 8.5, 6.10).
+   */
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = headingLevel === 2 ? 'h2' : 'h3';
   return (
     <div className="empty">
       {/*
@@ -431,7 +469,7 @@ export function EmptyState({
         <Icon name={icon} size={26} />
       </span>
       <div className="stack-1">
-        <h3 className="t-h2">{title}</h3>
+        <Heading className="t-h2">{title}</Heading>
         {description ? <p className="t-sm t-muted">{description}</p> : null}
       </div>
       {children ? <div className="row-wrap" style={{ justifyContent: 'center' }}>{children}</div> : null}
@@ -467,10 +505,12 @@ export function Banner({
 /*
  * Waiting, drawn rather than described (F4).
  *
- * The results screen holds the list's place with one of these while it plans, so the screen the
- * traveller arrives on is the results screen from the first frame. `role="status"` gives a screen
- * reader the same sentence the ring gives the eye, and the ring is `aria-hidden` — it is a
- * picture of waiting, not content.
+ * The ring is for places with no list to hold — a button's own work, a panel still being read.
+ * The results screen used to hold its list's place with one and no longer does: a ring says *wait*
+ * and nothing about what is coming, so the list arrived as a change of subject. Results are held
+ * by `journey/ResultSkeletons.tsx` now, in the shape of the journeys themselves. `role="status"`
+ * gives a screen reader the same sentence the ring gives the eye, and the ring is `aria-hidden` —
+ * it is a picture of waiting, not content.
  */
 export function Spinner({ label = 'Loading' }: { label?: string }) {
   return (
@@ -545,17 +585,25 @@ export function Dialog({
   panelClassName?: string;
 }) {
   const t = useT();
-  useEffect(() => {
-    if (!open) return undefined;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  const panel = useRef<HTMLDivElement>(null);
+  const descriptionId = useId();
+  /*
+   * Focus, the trap, Escape, focus return and the scroll lock are the shared overlay's job (see
+   * `lib/useOverlay`): every dialog in the app gets the same five facts from one place, so a new
+   * sheet cannot be written without them. The description is linked rather than left as a
+   * paragraph beside the dialog, which is what 22.1, 23.1 and 25.1 asked for.
+   */
+  useOverlay(open, panel, onClose);
 
   if (!open) return null;
-  return (
+  /*
+   * **A dialog is rendered on the document, not inside the card that opened one.** The overlay has
+   * its own surface and its own ink ramp; inside a card it inherited the card's (`--tint-*-ink`
+   * included), so a dialog opened from a dark card painted dark-card ink on the theme's cream
+   * panel — the stop picker's action rows measured **1.88:1** that way. It is also the honest
+   * stacking position for the topmost layer of the app.
+   */
+  const body = (
     <div
       className="overlay"
       role="presentation"
@@ -563,19 +611,37 @@ export function Dialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className={`modal ${panelClassName}`} role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className={`modal ${panelClassName}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        aria-describedby={description ? descriptionId : undefined}
+        tabIndex={-1}
+        ref={panel}
+      >
         <div className="modal__head">
           <div className="stack-1 grow">
             <h2 className="t-h2">{title}</h2>
-            {description ? <p className="t-sm t-muted">{description}</p> : null}
+            {description ? (
+              <p className="t-sm t-muted" id={descriptionId}>
+                {description}
+              </p>
+            ) : null}
           </div>
-          <IconButton icon="close" label={t('Close')} onClick={onClose} />
+          {/* `modal__close` gives the way out a disc and the strongest ink: as a bare ghost
+              glyph, a 1.5px × 18px cross on a panel was reported as "a weird contrast which makes
+              it close to invisible" — a mark that thin needs a surface to sit on. */}
+          <IconButton className="modal__close" icon="close" label={t('Close')} onClick={onClose} />
         </div>
         {children}
         {footer ? <div className="row-wrap" style={{ marginTop: 'var(--s-4)' }}>{footer}</div> : null}
       </div>
     </div>
   );
+  /* `scripts/render-check.ts` renders every page where there is no document, and a portal needs
+     one. On a server the same markup is returned inline; in the browser it is portalled. */
+  return typeof document === 'undefined' ? body : createPortal(body, document.body);
 }
 
 export function Toaster() {

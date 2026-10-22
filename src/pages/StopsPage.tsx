@@ -422,6 +422,11 @@ export function StopsPage() {
               ? t('Nothing matches “{query}” with these filters.', { query: query.trim() })
               : t('The region, city, stop type, modes or favourites-only filter removed every stop.')
           }
+          fixLabel={
+            query.trim() && !hiddenFilters
+              ? t('Clear the search to see the whole network again')
+              : undefined
+          }
           fixes={[
             ...(query.trim()
               ? [{ id: 'query', label: t('Search the whole network'), onSelect: () => setQuery('') }]

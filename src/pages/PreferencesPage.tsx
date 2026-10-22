@@ -8,11 +8,13 @@ import { Button, Card, Pill } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
+import { usePageTitle } from '../lib/usePageTitle';
 
 export function PreferencesPage() {
   const { preferences, updatePreferences, resetPreferences, journeys, search } = useApp();
   const format = useFormat();
   const t = useT();
+  usePageTitle(t('Travel preferences'));
 
   const preview = useMemo(() => {
     if (!search) return null;
@@ -48,7 +50,7 @@ export function PreferencesPage() {
           ) : (
             <Link to="/" className="btn btn--primary">
               <Icon name="search" size={16} />
-              Plan a journey
+              {t('Plan a journey')}
             </Link>
           )
         }
@@ -58,18 +60,26 @@ export function PreferencesPage() {
         <Card className="stack">
           <div className="between wrap">
             <div className="stack-1">
-              <h2 className="t-section">Effect on your current search</h2>
+              <h2 className="t-section">{t('Effect on your current search')}</h2>
               <span className="t-sm t-muted">
                 {endLabel(search!.query, 'from')} → {endLabel(search!.query, 'to')} ·{' '}
                 {format.date(search!.query.date)} {format.time(search!.query.time)}
               </span>
             </div>
             <div className="row-wrap">
-              <Pill tone="sage">{preview.matching} of {preview.total} journeys allowed</Pill>
+              <Pill tone="sage" role="status">
+                {t('{matching} of {total} journeys allowed', {
+                  matching: preview.matching,
+                  total: preview.total,
+                })}
+              </Pill>
               {preview.best ? (
                 <Pill tone="butter">
-                  Best now: {format.time(preview.best.departure)} → {format.time(preview.best.arrival)} ·{' '}
-                  {format.duration(preview.best.durationMinutes)}
+                  {t('Best now: {departure} → {arrival}', {
+                    departure: format.time(preview.best.departure),
+                    arrival: format.time(preview.best.arrival),
+                  })}{' '}
+                  · {format.duration(preview.best.durationMinutes)}
                 </Pill>
               ) : (
                 <Pill tone="coral">{t('No journey matches these preferences')}</Pill>
@@ -84,12 +94,12 @@ export function PreferencesPage() {
       )}
 
       <Card hero className="stack">
-        <h2 className="t-section">All preferences</h2>
+        <h2 className="t-section">{t('All preferences')}</h2>
         <PreferencesControls preferences={preferences} onChange={updatePreferences} />
         <div className="row-wrap">
           {/* No toast: every control in the panel visibly snaps back to its default. */}
           <Button icon="refresh" onClick={resetPreferences}>
-            Reset to defaults
+            {t('Reset to defaults')}
           </Button>
         </div>
       </Card>

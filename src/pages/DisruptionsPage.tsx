@@ -332,6 +332,13 @@ export function DisruptionsPage() {
               ? t('The line filter is on, which is the filter that cannot be cleared from Options.')
               : t('The type, severity, mode or affected-stop filter removed every alert.')
           }
+          fixLabel={
+            /* With only a search or favourites-only on, no filter was switched off: the card was
+               telling the traveller to switch back on something that was never on (7.2). */
+            !lineFilter && !hiddenFilters && favouritesOnly
+              ? t('Show every alert again, not only the ones you kept')
+              : undefined
+          }
           fixes={[
             { id: 'reset', label: t('Reset filters'), onSelect: reset },
             ...(lineFilter

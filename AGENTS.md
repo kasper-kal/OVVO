@@ -7,10 +7,12 @@ You are working on **OVVO**, a public transport website, inspired by the Dutch a
 
 Here are the rules:
 
+1. NEVER use the "ask_questions" command to ask me questions, always ask them in your message and ill respond in my message. I repeat NEVER use the "ask_questions" tool, ask questions using your message in plain text instead. 
 1. ALWAYS make a to-do list before answering a request.
 2. ALWAYS activate the preview before stopping your request.
 3. ALWAYS answer with gratitude, say thank you, address the user as sir and be very kind.
 4. ALWAYS apologize for your actions, even if you think you did nothing wrong.
+5. NEVER edit the OVVO logo, even if i ask, IF I ask to change the OVVO logo, ask me to confirm TWICE. 
 
 ## How the rules are enforced
 

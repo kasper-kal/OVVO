@@ -56,6 +56,15 @@ const MIN_TARGET = 44;
 const THEME = process.env.UI_AUDIT_THEME ?? '';
 const LANGUAGE = process.env.UI_AUDIT_LANGUAGE ?? '';
 /*
+ * The canvas the whole sweep is drawn on. `UI_AUDIT_BACKGROUND=colour` with
+ * `UI_AUDIT_COLOUR=#ff375f` walks every route under the traveller's own page colour, which is the
+ * state none of the contrast checks used to see: they all ran on cream, and a vivid page re-derives
+ * every ink and surface from one hex. `photo` is accepted for completeness but needs an image in
+ * storage, which this script does not seed.
+ */
+const BACKGROUND = process.env.UI_AUDIT_BACKGROUND ?? 'cream';
+const BACKGROUND_COLOUR = process.env.UI_AUDIT_COLOUR ?? '#dfe8f2';
+/*
  * `UI_AUDIT_CLOCK=2026-10-15T23:50:00Z` freezes the page's clock at an hour of the caller's
  * choosing.
  *
@@ -78,6 +87,8 @@ const SETTINGS_STORAGE = {
   density: 'comfortable',
   highContrast: false,
   reduceMotion: false,
+  background: BACKGROUND,
+  backgroundColour: BACKGROUND_COLOUR,
   defaultTimeMode: 'depart',
   /*
    * A configured state on purpose: the picker check below measures the hint line under a field
@@ -475,40 +486,64 @@ for (const width of WIDTHS) {
           out.band.push({ el: name(header), why: `scrolled 400px, the row sits at ${Math.round(stuckTop)}px instead of 0` });
       }
       /*
-       * The three things in the top row share **one top edge**, and that is a promise the CSS can
-       * only keep by accident unless it is measured: the row is a grid, each child can be centred,
-       * top-aligned or nudged with its own margin of its own size, and every arrangement looks
-       * plausible until the three are compared. It was measured after a complaint ("run one line
-       * above all buttons, it hits all of them") and the three were on **three** different top
-       * edges: alerts at 8, mark at 20, way back at 12. Nothing here could see it — all three are
-       * controls with a legal target and legal contrast, they overlap no text and nothing is
-       * clipped.
+       * The top row has **two** promises, and they are measured separately because they are kept
+       * by different declarations.
        *
-       * Only the top is asserted, and that is the requirement rather than a weakening of it: the
-       * three are deliberately different sizes (the mark's 56px square, the arrow's 44px disc, the
-       * alerts entry's 36px pill) so their heights, middles and bottoms differ by design — "one
-       * line drawn under them does not have to hit them all". Effective target size is the check
-       * above's business, and it already probes every control including this one.
+       * **One top edge.** All four things in the row start on the same line: the mark's 56px
+       * square, the arrow's 44px disc and the 36px pills. Their sizes are deliberately their own,
+       * so their heights and bottoms differ; the top is what the row states, and a per-slot margin
+       * is all it takes to stop stating it (the first complaint, "run one line above all buttons, it
+       * hits all of them", arrived with the three on three different tops).
        *
-       * A page with no way back is not a pass by absence: the two that exist still have to agree.
+       * **One rail.** The row's content box must be the page's content box: the left edge of the
+       * first control (the way back, or Edit) on the same vertical line as `.app-body`'s content
+       * left, and the alerts entry's right edge on its content right. That is the fix behind this
+       * check. Nothing here could see it before: every control had a legal target, legal contrast
+       * and nothing was clipped, while the row was 4px inside the cards at 390 and 1280 and 12px
+       * outside the columns at 1440 — measured, not guessed. Two boxes with a 12px gutter have to
+       * be the *same* box, or the numbers drift the moment a max-width engages.
+       *
+       * A page with no way back is not a pass by absence: the ones that exist still have to agree.
        */
-      const slots = [['way back', '.app-header__back'], ['the mark', '.app-header__brand'], ['alerts', '.app-header__alerts']];
+      const slots = [['way back', '.app-header__back'], ['the mark', '.app-header__brand'], ['alerts', '.app-header__alerts'], ['the pill', '.app-header__pill']];
       const boxes = [];
       for (const [label, selector] of slots) {
-        const slot = document.querySelector(selector);
-        if (!slot) continue;
-        const drawn = slot.querySelector('button, a, .btn') ?? slot;
-        const r = drawn.getBoundingClientRect();
-        /* The way back is an empty wrapper on a page that has none — a 0px box is not a row item,
-           and counting it reported every such page as a row of tops none of them shared. */
-        if (r.height < 1) continue;
-        boxes.push({ label, top: Math.round(r.top), height: Math.round(r.height) });
+        for (const slot of document.querySelectorAll(selector)) {
+          const drawn = slot.querySelector('button, a, .btn') ?? slot;
+          const r = drawn.getBoundingClientRect();
+          /* The way back is an empty wrapper on a page that has none — a 0px box is not a row item,
+             and counting it reported every such page as a row of tops none of them shared. */
+          if (r.height < 1) continue;
+          boxes.push({ label, top: Math.round(r.top), height: Math.round(r.height) });
+        }
       }
       if (boxes.length > 1 && new Set(boxes.map((b) => b.top)).size > 1)
         out.line.push({
           el: 'app-header__inner',
           why: `tops differ — ${boxes.map((b) => `${b.label} top ${b.top} (${b.height}px tall)`).join(' · ')}`,
         });
+      const bodyEl = document.querySelector('.app-body');
+      const contentEdge = (el, side) => {
+        const cs = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return Math.round(side === 'left' ? r.left + parseFloat(cs.paddingLeft) : r.right - parseFloat(cs.paddingRight));
+      };
+      if (bodyEl) {
+        const firstControl = document.querySelector('.app-header__back button, .app-header__back a') ?? document.querySelector('.app-header__pill');
+        const alerts = document.querySelector('.app-header__alerts');
+        const drift = [];
+        if (firstControl) {
+          const left = Math.round(firstControl.getBoundingClientRect().left);
+          const rail = contentEdge(bodyEl, 'left');
+          if (Math.abs(left - rail) > 1) drift.push(`the row starts at ${left}, the page's content at ${rail}`);
+        }
+        if (alerts) {
+          const right = Math.round(alerts.getBoundingClientRect().right);
+          const rail = contentEdge(bodyEl, 'right');
+          if (Math.abs(right - rail) > 1) drift.push(`the alerts entry ends at ${right}, the page's content at ${rail}`);
+        }
+        if (drift.length) out.line.push({ el: 'app-header__inner', why: drift.join(' · ') });
+      }
       /*
        * A segmented control is a capsule for two or three short options, and it has
        * `flex-wrap: wrap` so that a row of options can never drag the page sideways. Those two
@@ -545,7 +580,9 @@ const report = (list, keyOf, show) => {
   return rows.length;
 };
 
-console.log(`ui-audit — ${ROUTES.length} routes x ${WIDTHS.length} widths — theme ${THEME || 'system'}, language ${LANGUAGE || 'en'}`);
+console.log(
+  `ui-audit — ${ROUTES.length} routes x ${WIDTHS.length} widths — theme ${THEME || 'system'}, language ${LANGUAGE || 'en'}, background ${BACKGROUND}${BACKGROUND === 'colour' ? ` ${BACKGROUND_COLOUR}` : ''}`,
+);
 console.log(`${counted.text} text/icon nodes measured for contrast, ${counted.controls} controls probed for target size (${counted.covered} covered by app chrome and skipped)`);
 console.log('\n=== contrast below WCAG AA');
 const nContrast = report(contrast, (r) => `${r.el}|${r.text}|${r.cr}|${r.bg}`, (r) => `${r.el} ${r.cr}:1 need ${r.need} ${r.size}px ${r.color} on ${r.bg} "${r.text}"`);
@@ -557,7 +594,7 @@ console.log('\n=== text clipped by its own box');
 const nClipped = report(clipped, (r) => `${r.el}|${r.axis}|${r.scroll}|${r.client}`, (r) => `${r.el} ${r.axis}: ${r.scroll} in ${r.client} "${r.text}"`);
 console.log('\n=== the header band: anything painted across the top row');
 const nBand = report(band, (r) => `${r.el}|${r.why}`, (r) => `${r.el} ${r.why}`);
-console.log('\n=== the top row: the way back, the mark and the alerts entry share one top edge');
+console.log('\n=== the top row: one top edge, and the page\'s own left and right content edges');
 const nLine = report(line, (r) => `${r.el}|${r.why}`, (r) => `${r.el} ${r.why}`);
 console.log('\n=== the picker popover: where it hangs, and what it covers');
 if (!popoverSamples.some((r) => r.hintCovered !== null))
@@ -577,4 +614,4 @@ const nPopovers = report(popovers, (r) => `${r.el ?? ''}|${r.side ?? ''}|${r.gap
 console.log('\n=== segmented controls wrapped onto more than one row');
 const nWrapped = report(wrapped, (r) => `${r.el}|${r.options}|${r.rows}`, (r) => `${r.el} — ${r.options} options over ${r.rows} rows inside a ${r.radius} capsule`);
 
-if (nContrast + nTargets + nClipped + nSquares + nBand + nLine + nWrapped + nPopovers) { console.log(`\nFAILED — ${nContrast} contrast, ${nTargets} target, ${nSquares} squashed-circle, ${nClipped} clipping, ${nBand} header-band, ${nLine} header-line, ${nWrapped} wrapped-capsule, ${nPopovers} picker-popover problem(s).`); process.exit(1); }  console.log('\nOK — every text and icon clears WCAG AA on the surface it sits on, every control\'s effective target is at least ' + MIN_TARGET + 'x' + MIN_TARGET + ' (or is overlapped where it is not, by another target of that size), everything declared square renders square, no text is clipped by its own box, nothing paints a band across the header, the three things in the top row share one top edge, no segmented control has wrapped onto a second row, and every picker popover is attached to its own input — under it, or above it when the room below cannot hold it — covering the hint line whenever it hangs over it.');
+if (nContrast + nTargets + nClipped + nSquares + nBand + nLine + nWrapped + nPopovers) { console.log(`\nFAILED — ${nContrast} contrast, ${nTargets} target, ${nSquares} squashed-circle, ${nClipped} clipping, ${nBand} header-band, ${nLine} header-line, ${nWrapped} wrapped-capsule, ${nPopovers} picker-popover problem(s).`); process.exit(1); }  console.log('\nOK — every text and icon clears WCAG AA on the surface it sits on, every control\'s effective target is at least ' + MIN_TARGET + 'x' + MIN_TARGET + ' (or is overlapped where it is not, by another target of that size), everything declared square renders square, no text is clipped by its own box, nothing paints a band across the header, the top row shares one top edge and sits on the page\'s content rail, no segmented control has wrapped onto a second row, and every picker popover is attached to its own input — under it, or above it when the room below cannot hold it — covering the hint line whenever it hangs over it.');

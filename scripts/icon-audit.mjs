@@ -159,9 +159,18 @@ for (const width of WIDTHS) {
         if (!box.width) continue;
         const ink = svg.getBBox();
         const holder = textHolder(svg);
+        /*
+         * An icon-only control has no text of its own, and the label a walk upwards finds then
+         * belongs to the block around it, not to this glyph: the refresh disc on the board was
+         * reported as "101px off its label" because the nearest text was the board's own heading.
+         * Alignment is only a question when the text sits in the same control as the icon, so
+         * everything else is counted as skipped rather than judged against the wrong box.
+         */
+        const control = svg.closest('button, a[href], [role="button"]');
+        const orphan = !!control && !!holder && !control.contains(holder);
         const fromBox = holder === null;
         const where = holder ? `${holder.tagName.toLowerCase()}.${holder.className}` : (svg.parentElement ? `${svg.parentElement.tagName.toLowerCase()}.${svg.parentElement.className}` : '?');
-        const centre = holder ? textCentre(holder, svg) : textCentreInRow(svg);
+        const centre = orphan ? null : holder ? textCentre(holder, svg) : textCentreInRow(svg);
         out.push({
           name: svg.dataset.icon,
           stroke: svg.getAttribute('stroke-width'),
@@ -170,6 +179,7 @@ for (const width of WIDTHS) {
           inkCentre: +(box.top + ((ink.y + ink.height / 2) / 24) * box.height).toFixed(2),
           textCentre: centre === null ? null : +centre.toFixed(2),
           fromBox,
+          orphan,
           where,
           html: (holder ?? svg.parentElement)?.outerHTML.slice(0, 160),
           line: holder && svg.parentElement !== holder ? 'holder' : svg.parentElement === holder ? 'same' : 'nested',
@@ -206,8 +216,10 @@ for (const i of instances) {
   groups.set(key, g);
 }
 const rows = [...groups.values()].sort((a, b) => b.n - a.n);
+const orphans = instances.filter((i) => i.orphan);
 
-console.log(`${instances.length} icons read across ${ROUTES.length} routes x ${WIDTHS.length} widths; ${rows.length} name@size pairs\n`);
+console.log(`${instances.length} icons read across ${ROUTES.length} routes x ${WIDTHS.length} widths; ${rows.length} name@size pairs`);
+console.log(`${orphans.length} icon instance(s) in icon-only controls: square, whole-pixel, named and weighted, but not judged against text they do not sit beside (${[...new Set(orphans.map((o) => o.name))].join(', ') || 'none'})\n`);
 console.log('name              size  stroke   n     ink centre vs its box (24 units)    vs the text beside it');
 for (const g of rows) {
   const off = (g.offsets.reduce((s, v) => s + v, 0) / g.offsets.length).toFixed(1);

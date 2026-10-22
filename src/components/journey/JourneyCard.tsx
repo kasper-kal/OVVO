@@ -52,12 +52,18 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
       style={{ borderColor: highlight ? 'var(--accent-primary)' : undefined }}
     >
       <div className="between wrap">
-        <div className="journey-card__times">
+        {/*
+          A card's own name: eleven identical "Journey details" links in a screen reader's link
+          list, and no heading inside any result, so the list could not be skimmed by heading
+          either (2.7). The times are the name of a journey — they are what distinguishes one from
+          another — so they are the heading, and every control in the card says them too.
+        */}
+        <h2 className="journey-card__times">
           <span className="journey-card__time">{format.time(journey.departure)}</span>
           <Icon name="arrowRight" size={18} className="journey-card__arrow" />
           <span className="journey-card__time">{format.time(journey.arrival)}</span>
           <span className="pill">{format.duration(journey.durationMinutes)}</span>
-        </div>
+        </h2>
         <div className="row-wrap">
           {journey.label ? <Pill tone="butter">{t(JOURNEY_LABELS[journey.label])}</Pill> : null}
           {journey.transfers === 0 ? <Pill>{t('Direct')}</Pill> : null}
@@ -141,7 +147,11 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
       </div>
 
       <div className="row-wrap journey-card__actions">
-        <ResultCardLink to={to} className="btn btn--primary">
+        <ResultCardLink
+          to={to}
+          className="btn btn--primary"
+          aria-label={t('Journey details for {time}', { time: format.time(journey.departure) })}
+        >
           <Icon name="route" size={16} />
           {t('Journey details')}
         </ResultCardLink>
@@ -151,7 +161,12 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           there, with their journey behind a page they had to find again. The map screen's own way
           back returns to this results list.
         */}
-        <Link to={`/map?journey=${journey.id}`} className="btn" onClick={(event) => event.stopPropagation()}>
+        <Link
+          to={`/map?journey=${journey.id}`}
+          className="btn"
+          aria-label={t('Show the {time} journey on the map', { time: format.time(journey.departure) })}
+          onClick={(event) => event.stopPropagation()}
+        >
           <Icon name="map" size={16} />
           {t('Show on map')}
         </Link>
@@ -166,6 +181,13 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           type="button"
           className="btn journey-save"
           aria-pressed={saved}
+          /* Both ends of the clock, because the departure alone was not a name: three journeys
+             from one stop can leave at 10:00, and a screen reader's button list then held three
+             "Favourite the 10:00 journey" with no way to tell them apart (2.7). */
+          aria-label={t('Favourite the {from} to {to} journey', {
+            from: format.time(journey.departure),
+            to: format.time(journey.arrival),
+          })}
           onClick={(event) => {
             event.stopPropagation();
             if (search) saveJourney(journey, search.query, search.windowOffsetMinutes);

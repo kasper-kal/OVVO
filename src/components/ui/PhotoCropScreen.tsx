@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Button } from './primitives';
+import { useEffect, useRef, useState } from 'react';
+import { Button, IconButton } from './primitives';
 import { FullScreen } from './FullScreen';
 import { useT } from '../../lib/useT';
 import {
@@ -23,10 +23,16 @@ import {
  * frame, preview and page are the same drawing.
  *
  * The interaction is the one every cropper has, because it needs no explaining: the picture moves
- * under a fixed frame, a wheel or a pinch zooms, and the frame is a frame rather than a magic wand.
- * Three frames are offered — the screen you are on, a phone's 9:16, and a square — and **Save** bakes
- * the crop at full resolution before downscaling it (`lib/photoCrop.ts`), so a tight frame keeps more
- * detail than the old "downscale the upload, crop later" path could.
+ * under a frame, a wheel or a pinch zooms, and the frame is drawn as a frame — four corners, a dimmed
+ * surround — rather than as a white rectangle. Three frames are offered — the screen you are on, a
+ * phone's 9:16, and a square — and **Save** bakes the crop at full resolution before downscaling it
+ * (`lib/photoCrop.ts`), so a tight frame keeps more detail than the old "downscale the upload, crop
+ * later" path could.
+ *
+ * There is **one** picture on this screen. It used to carry a second, full-width "As it will look"
+ * panel below the frame: a duplicate of the same drawing at the page's own (portrait) shape, which on
+ * a phone filled the rest of the screen and pushed the controls out of sight — reported as "the
+ * cropping UX is just horrible". The frame *is* the crop; a second view of it says nothing new.
  */
 
 type Frame = 'screen' | 'phone' | 'square';
@@ -54,7 +60,6 @@ export function PhotoCropScreen({
 }) {
   const t = useT();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const previewRef = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinchFrom = useRef(0);
   const dragging = useRef(false);
@@ -64,7 +69,6 @@ export function PhotoCropScreen({
     typeof window === 'undefined' ? 16 / 9 : window.innerWidth / window.innerHeight,
   );
   const [rect, setRect] = useState<CropRect>(crop ?? { x: 0, y: 0, w: 1, h: 1 });
-  const [preview, setPreview] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
 
   /* The picture's own dimensions, which the frame maths and the preview both need. */
   useEffect(() => {
@@ -98,20 +102,6 @@ export function PhotoCropScreen({
     setRect(centeredCrop(pageAspect, size.w / size.h));
   }, [open, size, crop, pageAspect]);
 
-  /* The preview box is measured, because the preview is computed in pixels (see the note above). */
-  useLayoutEffect(() => {
-    const box = previewRef.current;
-    if (!box || !open) return undefined;
-    const measure = () => {
-      const next = box.getBoundingClientRect();
-      setPreview({ w: next.width, h: next.height });
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(box);
-    return () => observer.disconnect();
-  }, [open, pageAspect]);
-
   if (!open) return null;
 
   const sourceAspect = size ? size.w / size.h : 1;
@@ -131,30 +121,7 @@ export function PhotoCropScreen({
 
   const zoom = (factor: number) => setRect((current) => zoomCrop(current, factor));
 
-  /*
-   * The preview, in the page's own terms: the wash over the picture, the picture scaled so the frame
-   * covers the preview box, and the frame's centre on the box's centre. Derived from the frame and
-   * the real dimensions, so it is the same drawing the `body` rule will make.
-   */
-  const previewStyle = (() => {
-    if (!size || !preview.w || !preview.h) return {};
-    const cover = Math.max(
-      preview.w / (rect.w * size.w),
-      preview.h / (rect.h * size.h),
-    );
-    const width = size.w * cover;
-    const height = size.h * cover;
-    const offsetX = preview.w / 2 - (rect.x + rect.w / 2) * size.w * cover;
-    const offsetY = preview.h / 2 - (rect.y + rect.h / 2) * size.h * cover;
-    return {
-      backgroundImage: `linear-gradient(var(--app-bg-wash), var(--app-bg-wash)), url("${source}")`,
-      backgroundSize: `100% 100%, ${width}px ${height}px`,
-      backgroundPosition: `0 0, ${offsetX}px ${offsetY}px`,
-      backgroundRepeat: 'no-repeat, no-repeat',
-    };
-  })();
-
-  /* The crop screen's own copy of the CSS mapping, kept for the summary line under the frame. */
+  /* The mapping the saved crop will use, kept as a hidden marker for the checks that read it. */
   const ratio = cropBackground(rect);
 
   return (
@@ -248,7 +215,14 @@ export function PhotoCropScreen({
                 height: `${rect.h * 100}%`,
               }}
               aria-hidden="true"
-            />
+            >
+              {/* Four corners, because a white rectangle over a photograph is a selection and a
+                  frame has to read as one you can aim. */}
+              <span className="crop-screen__corner crop-screen__corner--tl" />
+              <span className="crop-screen__corner crop-screen__corner--tr" />
+              <span className="crop-screen__corner crop-screen__corner--bl" />
+              <span className="crop-screen__corner crop-screen__corner--br" />
+            </span>
           </div>
         </div>
 
@@ -276,13 +250,12 @@ export function PhotoCropScreen({
             </div>
           </div>
 
-          <div className="row-wrap">
-            <Button variant="ghost" size="sm" icon="zoomOut" onClick={() => zoom(1.25)}>
-              <span className="sr-only">{t('Zoom out')}</span>
-            </Button>
-            <Button variant="ghost" size="sm" icon="zoomIn" onClick={() => zoom(1 / 1.25)}>
-              <span className="sr-only">{t('Zoom in')}</span>
-            </Button>
+          <div className="crop-screen__tools">
+            <IconButton icon="zoomOut" label={t('Zoom out')} onClick={() => zoom(1.25)} />
+            <span className="t-sm t-muted crop-screen__share">{t('{share}% of the picture', {
+              share: Math.round(rect.w * rect.h * 100),
+            })}</span>
+            <IconButton icon="zoomIn" label={t('Zoom in')} onClick={() => zoom(1 / 1.25)} />
             <Button
               variant="ghost"
               size="sm"
@@ -291,23 +264,12 @@ export function PhotoCropScreen({
             >
               {t('Reset')}
             </Button>
-            <span className="t-sm t-faint grow">{t('{share}% of the picture', {
-              share: Math.round(rect.w * rect.h * 100),
-            })}</span>
           </div>
 
-          <div className="crop-screen__preview-wrap stack-2">
-            <span className="field__label">{t('As it will look')}</span>
-            <div
-              ref={previewRef}
-              className="crop-screen__preview"
-              style={{ aspectRatio: String(pageAspect), ...previewStyle }}
-              aria-hidden="true"
-            />
-            <span className="sr-only">{t('The page background, as the crop will draw it.')}</span>
-          </div>
-          {/* Kept, though the preview states it visually: a sentence for the crop's own mapping,
-              and the check the probe reads. */}
+          <p className="t-sm t-muted crop-screen__hint">
+            {t('Drag to move the picture; pinch or use the wheel to zoom')}
+          </p>
+          {/* A hidden marker for the mapping the saved crop will use; the checks read it. */}
           <span className="sr-only" data-crop-background={ratio.size} />
         </div>
       </div>

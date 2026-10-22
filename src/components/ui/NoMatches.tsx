@@ -29,6 +29,7 @@ export function NoMatches({
   reason,
   fixes = [],
   children,
+  fixLabel,
 }: {
   title: string;
   description: string;
@@ -37,24 +38,38 @@ export function NoMatches({
   fixes?: NoMatchFix[];
   /** Anything else the screen wants to offer beside the fixes (a link, a reset, a retry). */
   children?: ReactNode;
+  /**
+   * What kind of answer the fixes are. The default names a switched-off *filter*, which is wrong
+   * on a screen where the only thing on is a search — the stops list told a traveller to switch
+   * back on filters that were never on (4.4, 7.2).
+   */
+  fixLabel?: string;
 }) {
   const t = useT();
   return (
-    <Card className="stack">
+    /*
+     * The list going to nothing is a fact the traveller cannot see, and this card appearing in its
+     * place is the whole announcement. It was a `span` in a card with no role and no live region,
+     * so both were silent (2.5, 4.4, 7.2). `role="status"` reads the title and description when it
+     * appears, and the title is a heading so the card is also reachable in the outline.
+     */
+    <Card className="stack" role="status" aria-live="polite">
       <div className="row-3">
         <span className="leg-row__marker">
           <Icon name="alert" size={18} />
         </span>
         <div className="stack-1">
-          <span className="t-strong">{title}</span>
-          <span className="t-sm t-muted">{description}</span>
-          {reason ? <span className="t-sm t-faint">{reason}</span> : null}
+          <h2 className="t-strong">{title}</h2>
+          <p className="t-sm t-muted">{description}</p>
+          {reason ? <p className="t-sm t-faint">{reason}</p> : null}
         </div>
       </div>
 
       {fixes.length ? (
         <div className="stack-2">
-          <span className="field__label">{t('Switch one of these back on and the list fills up again')}</span>
+          <span className="field__label">
+            {fixLabel ?? t('Switch one of these back on and the list fills up again')}
+          </span>
           <div className="row-wrap">
             {fixes.map((fix) => (
               <Chip key={fix.id} icon="plus" onClick={fix.onSelect}>

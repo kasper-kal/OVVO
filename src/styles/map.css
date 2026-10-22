@@ -43,7 +43,14 @@
 .map-canvas {
   width: min(100%, 70vh);
   margin-inline: auto;
-  background: var(--l1-bg);
+  /*
+   * **The plate is the drawing's own ground, not the card's.** It was `--l1-bg`, so on a tinted
+   * page the frame around the drawing was the card's lighter step while the labels on it are the
+   * map's ink — measured on a navy page as 3.5:1 dark-on-#5a708f, for a drawing whose labels sit
+   * on land at 16:1. The land and the water are what the map paints with, so they are what shows
+   * wherever the plate does (the 720px rule below already continues the water across it).
+   */
+  background: var(--map-land);
   border: 1px solid var(--border-hairline);
   /* Nested inside a 28px card at a 16px inset, so r-card − pad = 12. */
   border-radius: var(--r-nested);
@@ -62,6 +69,16 @@
 :root[data-surface='tint'] .map-canvas,
 :root[data-surface='cards'] .map-canvas,
 :root[data-surface='split'] .map-canvas {
+  /*
+   * **The drawings ink, in the one property everything inherits.** Resetting the ink tokens is
+   * enough for every shape — they are painted with `fill` — but the *inherited colour* on the
+   * canvas stayed the card's, so on a dark page the drawing carried light ink in `color` while it
+   * painted dark: any child that reads `currentColor`, and every measurement taken from the
+   * rendered colour, then disagreed with what is actually on the glass (a navy page measured the
+   * stop labels at 1.19:1 although they draw at 16:1). The canvas now states its own colour, and
+   * the audit reads the same value the eye does.
+   */
+  color: var(--map-ink);
   --ink: var(--map-ink);
   --ink-strong: var(--map-ink);
   --ink-muted: var(--map-ink);
@@ -110,8 +127,10 @@
   stroke-width: 0.6;
 }
 
+/* The local view's names: 3.2 units of a 0–100 canvas, which is 10–11px on a 330px phone map.
+   At 2.1 they measured 6px at 768 — smaller than the body text beside them (5.3). */
 .map-stop text {
-  font-size: 2.1px;
+  font-size: 3.2px;
   fill: var(--ink);
   pointer-events: none;
   font-weight: 600;
@@ -232,12 +251,37 @@
 /* The home widget draws the whole country on the same canvas, at the size `.map-canvas` gives it
    (it sets no size of its own — the plate is shared). The names are a shade larger than the local
    view's: this canvas carries the whole network at once. */
+/*
+ * The whole network's names, sized for the screen they are on.
+ *
+ * One number served every width, so a 390px phone drew 4.8px type and a 1440px plate drew the same
+ * name at 14.8px (3.2). The size is in canvas units and the canvas scales with its plate, so the
+ * only way to keep the ink legible is to change it per breakpoint: 3.4 units while the drawing is
+ * small, 2.6 on a plate, 1.9 on the widest ones. The collision engine in `widgets/registry` builds
+ * its boxes from the phone size everywhere, so the smaller desktop ink can never collide.
+ */
 .map-canvas--widget .map-stop text {
-  font-size: 2.6px;
+  font-size: 3.4px;
 }
 
+/* A finger cannot hit a 2.9px dot: the radius follows the ink and is never below 1.5 units. */
 .map-canvas--widget .map-stop circle {
-  r: 1;
+  r: 1.6;
+}
+
+@media (min-width: 720px) {
+  .map-canvas--widget .map-stop text {
+    font-size: 2.6px;
+  }
+  .map-canvas--widget .map-stop circle {
+    r: 1.2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .map-canvas--widget .map-stop text {
+    font-size: 1.9px;
+  }
 }
 
 
@@ -276,11 +320,19 @@
     background: var(--map-water);
   }
 
-  /* The screen gets the wider plate (16:9, up to 600 tall): it is the place you go to look at the
-     map properly. */
+  /* The screen's plate is four-thirds, not sixteen-ninth: the drawing is square, and a 16:9 plate
+     letterboxed it into 37% of its own width with empty water either side (3.1). Four-thirds is
+     the widest plate a square still fills three-quarters of. */
   .map-card .map-canvas {
-    aspect-ratio: 16 / 9;
-    max-height: min(600px, 70vh);
+    aspect-ratio: 4 / 3;
+    /*
+     * The plate is capped by the *window*, not by a fraction of it: at 1024×900 the 70vh plate and
+     * the page's own chrome came to 1048px, so this one width grew a scrollbar where every other
+     * width fitted exactly (3.5). 440px is the measured chrome around the drawing (header, title,
+     * chips and the stop list's summary); a 240px floor keeps a short window from squeezing the
+     * map into a strip.
+     */
+    max-height: min(600px, max(240px, calc(100vh - 440px)));
   }
 }
 
@@ -436,4 +488,58 @@
   align-items: center;
   gap: var(--s-3);
   min-height: var(--target-min);
+}
+
+
+/* ------------------------------------------------------- the map screen's list */
+/*
+ * The drawing is one picture (3.3): a keyboard could not reach a single stop and a screen reader
+ * was told a sentence. This is the same map as words — every stop on it, each one a link — closed
+ * by default so the screen still opens on the drawing.
+ */
+.map-stops {
+  border-top: 1px solid var(--border-hairline);
+  padding-top: var(--s-3);
+}
+
+.map-stops__summary {
+  min-height: var(--target-min);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-strong);
+}
+
+.map-stops__list {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-1);
+}
+
+@media (min-width: 720px) {
+  .map-stops__list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.map-stops__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-compact);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+}
+
+.map-stops__link:hover {
+  background: var(--l1-bg);
+  color: var(--ink-strong);
 }

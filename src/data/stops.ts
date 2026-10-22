@@ -174,14 +174,14 @@ const SEEDS: StopSeed[] = [
   { id: 'amsterdam-raijhuis', name: 'Rijksmuseum', city: 'Amsterdam', code: 'ARM', type: 'landmark', modes: ['walk', 'bike'], region: 'Noord-Holland', x: 39, y: 26, operatorIds: [] },
   { id: 'amsterdam-vondelpark', name: 'Amsterdam, Vondelpark', city: 'Amsterdam', code: 'AVP', type: 'landmark', modes: ['walk', 'bike'], region: 'Noord-Holland', x: 38, y: 25, operatorIds: [] },
   { id: 'amsterdam-annefrank', name: 'Amsterdam, Anne Frank House', city: 'Amsterdam', code: 'AAF', type: 'landmark', modes: ['walk', 'bike'], region: 'Noord-Holland', x: 40, y: 21, operatorIds: [] },
-  { id: 'zaandam', name: 'Zaandam', city: 'Zaandam', code: 'ZDM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 39, y: 19, operatorIds: ['ns', 'ebs'] },
+  { id: 'zaandam', name: 'Zaandam Station', city: 'Zaandam', code: 'ZDM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 39, y: 19, operatorIds: ['ns', 'ebs'] },
   { id: 'zaanse-schans', name: 'Zaanse Schans', city: 'Zaandam', code: 'ZSC', type: 'busstop', modes: ['bus', 'walk', 'bike'], region: 'Noord-Holland', x: 39, y: 16, operatorIds: ['ebs'] },
   { id: 'volendam', name: 'Volendam, Centrum', city: 'Volendam', code: 'VOL', type: 'busstop', modes: ['bus', 'walk'], region: 'Noord-Holland', x: 48, y: 19, operatorIds: ['ebs'] },
-  { id: 'haarlem', name: 'Haarlem', city: 'Haarlem', code: 'HLM', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Holland', x: 35, y: 24, operatorIds: ['ns', 'connexxion'] },
-  { id: 'hilversum', name: 'Hilversum', city: 'Hilversum', code: 'HVS', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 52, y: 33, operatorIds: ['ns', 'connexxion'] },
+  { id: 'haarlem', name: 'Haarlem Station', city: 'Haarlem', code: 'HLM', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Holland', x: 35, y: 24, operatorIds: ['ns', 'connexxion'] },
+  { id: 'hilversum', name: 'Hilversum Station', city: 'Hilversum', code: 'HVS', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 52, y: 33, operatorIds: ['ns', 'connexxion'] },
   { id: 'almere-centrum', name: 'Almere Centrum', city: 'Almere', code: 'ALM', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Flevoland', x: 51, y: 22, operatorIds: ['ns', 'keolis'] },
-  { id: 'alkmaar', name: 'Alkmaar', city: 'Alkmaar', code: 'ALK', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 40, y: 14, operatorIds: ['ns', 'connexxion'] },
-  { id: 'hoofddorp', name: 'Hoofddorp', city: 'Hoofddorp', code: 'HDD', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 36, y: 27, operatorIds: ['ns'] },
+  { id: 'alkmaar', name: 'Alkmaar Station', city: 'Alkmaar', code: 'ALK', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 40, y: 14, operatorIds: ['ns', 'connexxion'] },
+  { id: 'hoofddorp', name: 'Hoofddorp Station', city: 'Hoofddorp', code: 'HDD', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Holland', x: 36, y: 27, operatorIds: ['ns'] },
   { id: 'amstelveen-busstation', name: 'Amstelveen, Busstation', city: 'Amstelveen', code: 'AVB', type: 'busstop', modes: ['bus', 'tram', 'walk'], region: 'Noord-Holland', x: 40, y: 28, operatorIds: ['gvb'] },
   { id: 'schiphol-airport', name: 'Schiphol Airport', city: 'Schiphol', code: 'SHL', type: 'airport', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Holland', x: 37, y: 29, operatorIds: ['ns', 'connexxion'] },
 
@@ -190,16 +190,16 @@ const SEEDS: StopSeed[] = [
   { id: 'den-haag-centraal', name: 'Den Haag Centraal', city: 'Den Haag', code: 'DHC', type: 'station', modes: ['train', 'tram', 'bus', 'walk', 'bike'], region: 'Zuid-Holland', x: 27, y: 38, operatorIds: ['ns', 'htm'] },
   { id: 'den-haag-hs', name: 'Den Haag HS', city: 'Den Haag', code: 'DHH', type: 'station', modes: ['train', 'tram', 'bus', 'walk'], region: 'Zuid-Holland', x: 27, y: 39.4, operatorIds: ['ns', 'htm'] },
   { id: 'den-haag-binnenhof', name: 'Den Haag, Binnenhof', city: 'Den Haag', code: 'DBH', type: 'landmark', modes: ['walk', 'bike'], region: 'Zuid-Holland', x: 26.4, y: 38.6, operatorIds: [] },
-  { id: 'delft', name: 'Delft', city: 'Delft', code: 'DLF', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Zuid-Holland', x: 29, y: 42, operatorIds: ['ns'] },
+  { id: 'delft', name: 'Delft Station', city: 'Delft', code: 'DLF', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Zuid-Holland', x: 29, y: 42, operatorIds: ['ns'] },
   { id: 'rotterdam-centraal', name: 'Rotterdam Centraal', city: 'Rotterdam', code: 'RTC', type: 'station', modes: ['train', 'metro', 'tram', 'bus', 'walk', 'bike'], region: 'Zuid-Holland', x: 33, y: 48, operatorIds: ['ns', 'ret'] },
   { id: 'rotterdam-blaak', name: 'Rotterdam Blaak', city: 'Rotterdam', code: 'RTB', type: 'station', modes: ['train', 'metro', 'tram', 'walk'], region: 'Zuid-Holland', x: 34, y: 49, operatorIds: ['ns', 'ret'] },
   { id: 'rotterdam-alexander', name: 'Rotterdam Alexander', city: 'Rotterdam', code: 'RTA', type: 'station', modes: ['train', 'metro', 'bus', 'walk'], region: 'Zuid-Holland', x: 38, y: 47, operatorIds: ['ns', 'ret'] },
   { id: 'rotterdam-erasmusbrug', name: 'Rotterdam, Erasmusbrug waterbus', city: 'Rotterdam', code: 'REB', type: 'ferrystop', modes: ['ferry', 'walk', 'bike'], region: 'Zuid-Holland', x: 32, y: 50, operatorIds: ['aquabus'] },
   { id: 'rotterdam-markthal', name: 'Rotterdam, Markthal', city: 'Rotterdam', code: 'RMK', type: 'landmark', modes: ['walk', 'bike'], region: 'Zuid-Holland', x: 33.6, y: 49.2, operatorIds: [] },
   { id: 'schiedam-centrum', name: 'Schiedam Centrum', city: 'Schiedam', code: 'SCM', type: 'station', modes: ['train', 'metro', 'tram', 'bus', 'walk'], region: 'Zuid-Holland', x: 30, y: 48, operatorIds: ['ns', 'ret'] },
-  { id: 'gouda', name: 'Gouda', city: 'Gouda', code: 'GDA', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Zuid-Holland', x: 40, y: 45, operatorIds: ['ns'] },
-  { id: 'dordrecht', name: 'Dordrecht', city: 'Dordrecht', code: 'DDZ', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Zuid-Holland', x: 33, y: 56, operatorIds: ['ns', 'qbuzz'] },
-  { id: 'zoetermeer', name: 'Zoetermeer', city: 'Zoetermeer', code: 'ZTM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Zuid-Holland', x: 30, y: 40, operatorIds: ['ns', 'htm'] },
+  { id: 'gouda', name: 'Gouda Station', city: 'Gouda', code: 'GDA', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Zuid-Holland', x: 40, y: 45, operatorIds: ['ns'] },
+  { id: 'dordrecht', name: 'Dordrecht Station', city: 'Dordrecht', code: 'DDZ', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Zuid-Holland', x: 33, y: 56, operatorIds: ['ns', 'qbuzz'] },
+  { id: 'zoetermeer', name: 'Zoetermeer Station', city: 'Zoetermeer', code: 'ZTM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Zuid-Holland', x: 30, y: 40, operatorIds: ['ns', 'htm'] },
 
   // ---- Utrecht -------------------------------------------------------------
   { id: 'utrecht-centraal', name: 'Utrecht Centraal', city: 'Utrecht', code: 'UTC', type: 'station', modes: ['train', 'tram', 'bus', 'walk', 'bike'], region: 'Utrecht', x: 50, y: 40, operatorIds: ['ns', 'qbuzz'] },
@@ -211,26 +211,26 @@ const SEEDS: StopSeed[] = [
 
   // ---- Gelderland / Overijssel --------------------------------------------
   { id: 'arnhem-centraal', name: 'Arnhem Centraal', city: 'Arnhem', code: 'ARN', type: 'station', modes: ['train', 'tram', 'bus', 'walk', 'bike'], region: 'Gelderland', x: 68, y: 52, operatorIds: ['ns', 'keolis'] },
-  { id: 'nijmegen', name: 'Nijmegen', city: 'Nijmegen', code: 'NM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Gelderland', x: 72, y: 58, operatorIds: ['ns', 'arriva'] },
-  { id: 'apeldoorn', name: 'Apeldoorn', city: 'Apeldoorn', code: 'APD', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Gelderland', x: 66, y: 44, operatorIds: ['ns', 'keolis'] },
-  { id: 'deventer', name: 'Deventer', city: 'Deventer', code: 'DVN', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Overijssel', x: 68, y: 34, operatorIds: ['ns', 'keolis'] },
-  { id: 'zwolle', name: 'Zwolle', city: 'Zwolle', code: 'ZL', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Overijssel', x: 68, y: 26, operatorIds: ['ns', 'keolis'] },
-  { id: 'enschede', name: 'Enschede', city: 'Enschede', code: 'ES', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Overijssel', x: 80, y: 46, operatorIds: ['ns', 'keolis'] },
+  { id: 'nijmegen', name: 'Nijmegen Station', city: 'Nijmegen', code: 'NM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Gelderland', x: 72, y: 58, operatorIds: ['ns', 'arriva'] },
+  { id: 'apeldoorn', name: 'Apeldoorn Station', city: 'Apeldoorn', code: 'APD', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Gelderland', x: 66, y: 44, operatorIds: ['ns', 'keolis'] },
+  { id: 'deventer', name: 'Deventer Station', city: 'Deventer', code: 'DVN', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Overijssel', x: 68, y: 34, operatorIds: ['ns', 'keolis'] },
+  { id: 'zwolle', name: 'Zwolle Station', city: 'Zwolle', code: 'ZL', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Overijssel', x: 68, y: 26, operatorIds: ['ns', 'keolis'] },
+  { id: 'enschede', name: 'Enschede Station', city: 'Enschede', code: 'ES', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Overijssel', x: 80, y: 46, operatorIds: ['ns', 'keolis'] },
 
   // ---- Noord-Brabant / Limburg --------------------------------------------
   { id: 'den-bosch', name: "'s-Hertogenbosch", city: "'s-Hertogenbosch", code: 'HT', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Brabant', x: 52, y: 62, operatorIds: ['ns', 'arriva'] },
-  { id: 'tilburg', name: 'Tilburg', city: 'Tilburg', code: 'TB', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Brabant', x: 45, y: 70, operatorIds: ['ns'] },
-  { id: 'breda', name: 'Breda', city: 'Breda', code: 'BD', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Brabant', x: 40, y: 68, operatorIds: ['ns', 'arriva'] },
+  { id: 'tilburg', name: 'Tilburg Station', city: 'Tilburg', code: 'TB', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Brabant', x: 45, y: 70, operatorIds: ['ns'] },
+  { id: 'breda', name: 'Breda Station', city: 'Breda', code: 'BD', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Brabant', x: 40, y: 68, operatorIds: ['ns', 'arriva'] },
   { id: 'eindhoven-centraal', name: 'Eindhoven Centraal', city: 'Eindhoven', code: 'EHV', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Noord-Brabant', x: 56, y: 74, operatorIds: ['ns', 'arriva'] },
   { id: 'eindhoven-strijp-s', name: 'Eindhoven Strijp-S', city: 'Eindhoven', code: 'EHS', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Brabant', x: 55, y: 72, operatorIds: ['ns'] },
-  { id: 'helmond', name: 'Helmond', city: 'Helmond', code: 'HM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Brabant', x: 60, y: 78, operatorIds: ['ns'] },
-  { id: 'maastricht', name: 'Maastricht', city: 'Maastricht', code: 'MT', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Limburg', x: 62, y: 92, operatorIds: ['ns', 'arriva'] },
+  { id: 'helmond', name: 'Helmond Station', city: 'Helmond', code: 'HM', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Noord-Brabant', x: 60, y: 78, operatorIds: ['ns'] },
+  { id: 'maastricht', name: 'Maastricht Station', city: 'Maastricht', code: 'MT', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Limburg', x: 62, y: 92, operatorIds: ['ns', 'arriva'] },
 
   // ---- Noord / Zeeland ----------------------------------------------------
-  { id: 'groningen', name: 'Groningen', city: 'Groningen', code: 'GN', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Groningen', x: 73, y: 9, operatorIds: ['ns', 'qbuzz'] },
+  { id: 'groningen', name: 'Groningen Station', city: 'Groningen', code: 'GN', type: 'station', modes: ['train', 'bus', 'walk', 'bike'], region: 'Groningen', x: 73, y: 9, operatorIds: ['ns', 'qbuzz'] },
   { id: 'groningen-noord', name: 'Groningen Noord', city: 'Groningen', code: 'GNN', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Groningen', x: 73, y: 7, operatorIds: ['arriva'] },
-  { id: 'leeuwarden', name: 'Leeuwarden', city: 'Leeuwarden', code: 'LW', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Friesland', x: 58, y: 10, operatorIds: ['ns', 'arriva'] },
-  { id: 'vlissingen', name: 'Vlissingen', city: 'Vlissingen', code: 'VS', type: 'station', modes: ['train', 'ferry', 'bus', 'walk'], region: 'Zeeland', x: 10, y: 76, operatorIds: ['ns'] },
+  { id: 'leeuwarden', name: 'Leeuwarden Station', city: 'Leeuwarden', code: 'LW', type: 'station', modes: ['train', 'bus', 'walk'], region: 'Friesland', x: 58, y: 10, operatorIds: ['ns', 'arriva'] },
+  { id: 'vlissingen', name: 'Vlissingen Station', city: 'Vlissingen', code: 'VS', type: 'station', modes: ['train', 'ferry', 'bus', 'walk'], region: 'Zeeland', x: 10, y: 76, operatorIds: ['ns'] },
 ];
 
 export const STOPS: Stop[] = SEEDS.map(build);
@@ -423,5 +423,16 @@ export const METRES_PER_UNIT = 4000;
 
 export function walkMinutesBetween(a: Stop, b: Stop): number {
   const factor = a.city === b.city ? CITY_WALK_MINUTES_PER_UNIT : INTERCITY_WALK_MINUTES_PER_UNIT;
-  return Math.max(1, Math.round(canvasDistance(a, b) * factor));
+  const fromCanvas = canvasDistance(a, b) * factor;
+  /*
+   * A walk cannot be faster than a person.
+   *
+   * The canvas factor is a drawing's scale, not a pace, and it drifted: a walking-only journey
+   * measured 8,000 m covered in 15 minutes — 32 km/h — while the leg and the summary agreed with
+   * each other, so only the arithmetic could catch it (9.6). 100 m/min (6 km/h) is the fastest a
+   * pedestrian is modelled at here, so a distance that implies more than that raises the minutes.
+   * Every walk that already passed stays exactly as it was.
+   */
+  const plausible = (canvasDistance(a, b) * METRES_PER_UNIT) / 100;
+  return Math.max(1, Math.round(Math.max(fromCanvas, plausible)));
 }

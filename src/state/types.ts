@@ -43,6 +43,14 @@ export interface Settings {
   selectionColor: SelectionChoice;
   /** The traveller's own colour, `#rrggbb`, when `selectionColor` is `custom`; `''` otherwise. */
   selectionCustom: string;
+  /*
+   * The same two answers **for the dark appearance** — see `lib/palette.ts` for why there are two
+   * sets at all. The light pair above is the one that existed first, so a stored object from before
+   * this split already carries the light choice; `migrateSettings` copies it into the dark pair, so
+   * the page nobody has customised since keeps the colour it had.
+   */
+  selectionColorDark: SelectionChoice;
+  selectionCustomDark: string;
   /**
    * What the page is made of: the app's cream, the traveller's colour, or a photo.
    *
@@ -57,6 +65,8 @@ export interface Settings {
   background: BackgroundChoice;
   /** The page's own colour, `#rrggbb`. Paints the page in `colour` mode; ignored on cream. */
   backgroundColour: string;
+  /** The page's colour **in the dark appearance** (`lib/palette.ts`). */
+  backgroundColourDark: string;
   /**
    * The **baked** photo the page draws: the traveller's crop, at most 1600px on its long edge.
    *
@@ -96,13 +106,15 @@ export interface Settings {
    * the stored page colour, so the solid card treatment still remembers what was chosen.
    */
   primaryColour: string;
+  /** The widgets' colour **in the dark appearance** (`lib/palette.ts`). */
+  primaryColourDark: string;
   /** Which option the planner starts with. */
   defaultTimeMode: TimeMode;
   /** Prefilled origin for the planner. */
   defaultOriginStopId: string | null;
 }
 
-export const SETTINGS_VERSION = 6;
+export const SETTINGS_VERSION = 8;
 
 export const DEFAULT_SETTINGS: Settings = {
   version: SETTINGS_VERSION,
@@ -117,6 +129,10 @@ export const DEFAULT_SETTINGS: Settings = {
      painted with, and the one that measured 7.1:1 in R98. */
   selectionColor: 'coral',
   selectionCustom: '',
+  /* A new browser gets the same three colours in both appearances: the palette is *available* to
+     differ, not different by default, so nothing here is a second design. */
+  selectionColorDark: 'coral',
+  selectionCustomDark: '',
   /*
    * The canvas the app has always drawn — `--canvas-base`, the warm cream — is the default, not a
    * fallback: a fresh browser and a browser that has been here since the beginning get the same
@@ -124,12 +140,14 @@ export const DEFAULT_SETTINGS: Settings = {
    */
   background: 'cream',
   backgroundColour: DEFAULT_BACKGROUND_COLOUR,
+  backgroundColourDark: DEFAULT_BACKGROUND_COLOUR,
   backgroundImage: '',
   backgroundImageSource: '',
   backgroundCrop: null,
   cardTreatment: DEFAULT_CARD_TREATMENT,
   /* Follow the background — see the field's note: this is the interface the app already had. */
   primaryColour: '',
+  primaryColourDark: '',
   defaultTimeMode: 'depart',
   defaultOriginStopId: null,
 };
@@ -157,7 +175,22 @@ export const DEFAULT_SETTINGS: Settings = {
  * `DeparturesPage`) — so a stale value is simply ignored.
  */
 export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
-  return { ...stored, version: SETTINGS_VERSION };
+  /*
+   * **Version 8 mirrors the three colours into the dark appearance.** They were one value each
+   * drawn in both appearances, so the honest translation is "the colour you chose is now the
+   * colour in *both*" — the page keeps exactly what it had, and the two palettes start equal and
+   * drift only when the traveller says so. Anything else (a dark default, an empty slot) would
+   * repaint the page of somebody who never opened Settings.
+   */
+  return {
+    ...stored,
+    backgroundColourDark:
+      stored.backgroundColourDark ?? stored.backgroundColour ?? DEFAULT_SETTINGS.backgroundColourDark,
+    primaryColourDark: stored.primaryColourDark ?? stored.primaryColour ?? DEFAULT_SETTINGS.primaryColourDark,
+    selectionColorDark: stored.selectionColorDark ?? stored.selectionColor ?? DEFAULT_SETTINGS.selectionColorDark,
+    selectionCustomDark: stored.selectionCustomDark ?? stored.selectionCustom ?? DEFAULT_SETTINGS.selectionCustomDark,
+    version: SETTINGS_VERSION,
+  };
 }
 
 /*
@@ -167,6 +200,12 @@ export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
  * `DEFAULT_SETTINGS` supplies `''` and `null` — which the crop screen reads as "the baked image is
  * the whole picture", exactly the centre crop that browser already has. Nothing about the page it
  * draws changes on the way in.
+ *
+ * Version 7 added `buttonColour` (*Match colours* painting every button), and it has been
+ * **removed** again: the control was reported as repainting buttons that had no fill of their own
+ * ("it gives button that never HAD backdrop, BACKDROP"), and what *Match colours* is for is the
+ * three colours of the palette — the page, the primary colour and the selected text. A stored
+ * `buttonColour` is simply ignored, and every button returns to its own variant.
  */
 
 export interface SavedJourney {

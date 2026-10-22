@@ -8,7 +8,6 @@ import { useT } from '../../lib/useT';
 import { EmptyState, IconButton } from '../ui/primitives';
 import { Icon } from '../ui/Icons';
 import type { Departure } from '../../data/types';
-import { plural } from '../../lib/format';
 import { ROWS_PER_LOAD } from '../../lib/loadBatch';
 
 /**
@@ -49,6 +48,15 @@ export function BoardList({
   const expanded = grown > limit;
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [hasScrolled, setHasScrolled] = useState(false);
+  /*
+   * A press of "Show 5 more" is five rows, not ten.
+   *
+   * The button and the scroll sentinel both add `ROWS_PER_LOAD`, and the press left the sentinel
+   * in view — so at 1440 the first press went 5 → 10 and the second, with the sentinel firing as
+   * well, 10 → 20 under a label that promises five (6.2). The sentinel is stood down for a moment
+   * after a press: the button answers the press, and a *scroll* is what may pull more.
+   */
+  const sentinelPausedUntil = useRef(0);
 
   /* The sentinel is armed by a scroll, the way the two long lists are: without it a tall window
      can hold a batch and the sentinel at once and pull the whole board in unbidden. */
@@ -66,7 +74,7 @@ export function BoardList({
     }
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
+        if (entries.some((entry) => entry.isIntersecting) && Date.now() > sentinelPausedUntil.current) {
           setGrown((current) => current + ROWS_PER_LOAD);
         }
       },
@@ -138,8 +146,11 @@ export function BoardList({
                 </span>
               </span>
 
+              {/* A ferry's platform is a word ("Pier 1"), and the compact rule prefixes a bare
+                  `P` for the numbers — so it rendered "PPier 1" at 320/390/768 (5.8, 6.5). A
+                  named platform takes the value alone and no prefix. */}
               <span
-                className="board-list__platform"
+                className={`board-list__platform${/^\d/.test(departure.platform) ? '' : ' board-list__platform--named'}`}
                 title={t('Platform {platform}', { platform: departure.platform })}
               >
                 <span className="board-list__platform-label">{t('Platform')}</span>
@@ -158,7 +169,12 @@ export function BoardList({
                 ) : null}
                 <IconButton
                   icon="route"
-                  label={t('Plan a journey to {stop}', { stop: departure.destinationLabel })}
+                  /* Five identical names on a ferry board told a screen reader nothing about which
+                     departure each one plans (6.9). The time is what tells them apart. */
+                  label={t('Plan a journey to {stop} at {time}', {
+                    stop: departure.destinationLabel,
+                    time: format.time(departure.expected),
+                  })}
                   variant="ghost"
                   onClick={() => planTo(departure)}
                 />
@@ -177,7 +193,12 @@ export function BoardList({
             /* Bordered, like the "Show N more" on the stops list and the alert list: one
                control that extends a list wears one shape. */
             className="btn btn--sm"
-            onClick={() => setGrown((current) => (hidden > 0 ? current + ROWS_PER_LOAD : limit))}
+            onClick={() => {
+              /* "Show only the next departures" resets without the sentinel immediately
+                 reloading the five it just hid (6.2, second half). */
+              sentinelPausedUntil.current = Date.now() + 1200;
+              setGrown((current) => (hidden > 0 ? current + ROWS_PER_LOAD : limit));
+            }}
           >
             <Icon name={hidden > 0 ? 'chevronDown' : 'chevronUp'} size={15} />
             {hidden > 0
@@ -185,9 +206,17 @@ export function BoardList({
               : t('Show only the next departures')}
           </button>
           <span className="t-sm t-faint">
+            {/*
+             * **The count, not the count's noun.** This passed `plural(…, 'departure')`, which is
+             * already the phrase "20 departures", into a sentence that supplies the word itself —
+             * so every board read *"5 of 20 departures departures in this window"* (seen on a
+             * 1440 board the audits never looked at, because no measurement in this project reads
+             * a sentence). The noun belongs to the translated string, where a language that orders
+             * or inflects it differently can own it.
+             */}
             {t('{shown} of {total} departures in this window', {
               shown: shown.length,
-              total: plural(departures.length, 'departure'),
+              total: departures.length,
             })}
           </span>
         </div>

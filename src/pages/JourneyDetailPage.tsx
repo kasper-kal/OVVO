@@ -12,6 +12,7 @@ import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { plural } from '../lib/format';
+import { usePageTitle } from '../lib/usePageTitle';
 
 export function JourneyDetailPage() {
   const { journeyId } = useParams();
@@ -21,6 +22,16 @@ export function JourneyDetailPage() {
   const t = useT();
   const journey = findJourney(journeyId);
   const saved = journey ? isJourneySaved(journey.signature) : false;
+  const { recentSearches } = useApp();
+  const lastSearch = recentSearches[0] ?? null;
+  usePageTitle(
+    journey
+      ? `${journey.legs[0].fromLabel ?? stopLabel(journey.legs[0].fromStopId)} → ${
+          journey.legs[journey.legs.length - 1].toLabel ??
+          stopLabel(journey.legs[journey.legs.length - 1].toStopId)
+        }`
+      : t('Journey no longer in this session'),
+  );
 
   if (!journey) {
     return (
@@ -38,11 +49,11 @@ export function JourneyDetailPage() {
         >
           <Link to="/" className="btn btn--primary">
             <Icon name="search" size={16} />
-            Plan a new journey
+            {t('Plan a new journey')}
           </Link>
           <Link to="/?widget=your-journeys" className="btn">
             <Icon name="bookmark" size={16} />
-            Favourited journeys ({savedJourneys.length})
+            {t('Favourited journeys ({count})', { count: savedJourneys.length })}
           </Link>
           {search ? (
             <Button
@@ -53,6 +64,25 @@ export function JourneyDetailPage() {
               }}
             >
               {t('Re-run my last search')}
+            </Button>
+          ) : lastSearch ? (
+            /*
+             * A journey link opened twice has no session search behind it — the search lives in
+             * memory and only the results list is generated from it — so the recovery the page
+             * offered never appeared (9.7). The recent-search history is the one record of that
+             * search this browser keeps, and re-running it is exactly what the traveller wants.
+             */
+            <Button
+              icon="refresh"
+              onClick={() => {
+                startSearch({ ...lastSearch.query, preferences });
+                navigate('/results');
+              }}
+            >
+              {t('Re-run {from} → {to}', {
+                from: lastSearch.query.fromLabel ?? stopLabel(lastSearch.query.fromStopId),
+                to: lastSearch.query.toLabel ?? stopLabel(lastSearch.query.toStopId),
+              })}
             </Button>
           ) : null}
         </EmptyState>
@@ -86,9 +116,9 @@ export function JourneyDetailPage() {
               stopLabel(journey.legs[journey.legs.length - 1].toStopId)}
           </>
         }
-        description={`${format.date(search?.query.date ?? '')} · departs ${format.time(journey.departure)} · arrives ${format.time(
-          journey.arrival,
-        )} · ${journey.transfers === 0 ? 'direct' : plural(journey.transfers, 'transfer')}`}
+        description={`${format.date(search?.query.date ?? '')} · ${t('departs {time}', { time: format.time(journey.departure) })} · ${t('arrives {time}', { time: format.time(journey.arrival) })} · ${
+          journey.transfers === 0 ? t('direct') : plural(journey.transfers, t('transfer'))
+        }`}
         showTitle
       />
 
@@ -124,12 +154,12 @@ export function JourneyDetailPage() {
               navigate('/results');
             }}
           >
-            Plan return journey
+            {t('Plan return journey')}
           </Button>
         ) : null}
         <Link to={`/map?journey=${journey.id}`} className="btn">
           <Icon name="map" size={16} />
-          Show on map
+          {t('Show on map')}
         </Link>
         {/*
           The same control as the one on this journey's card: a heart, filled while the journey is
@@ -144,7 +174,7 @@ export function JourneyDetailPage() {
           onClick={() => search && saveJourney(journey, search.query, search.windowOffsetMinutes)}
         >
           <Icon name="heart" size={16} />
-          {saved ? 'Favourited' : 'Favourite this journey'}
+          {saved ? t('Favourited') : t('Favourite this journey')}
         </button>
       </div>
 
@@ -160,8 +190,13 @@ export function JourneyDetailPage() {
           <div className="stack-2">
             {disruptions.map((alert) =>
               alert ? (
-                <Link key={alert.id} to={`/disruptions/${alert.id}`} className="t-sm">
-                  <span className="t-strong">{alert.title}</span> {t('— read the details and advice')}
+                <Link
+                  key={alert.id}
+                  to={`/disruptions/${alert.id}`}
+                  className="t-sm alert-link alert-link--banner"
+                >
+                  <span className="t-strong">{alert.title}</span>
+                  <span>{t('— read the details and advice')}</span>
                 </Link>
               ) : null,
             )}
@@ -174,13 +209,17 @@ export function JourneyDetailPage() {
           <div className="between wrap">
             <h2 className="t-section">{t('Complete journey')}</h2>
             <div className="row-wrap">
-              {journey.label ? <Pill tone="butter">{JOURNEY_LABELS[journey.label]}</Pill> : null}
+              {journey.label ? <Pill tone="butter">{t(JOURNEY_LABELS[journey.label])}</Pill> : null}
               {journey.delayMinutes ? (
                 <Pill tone="coral" dot dotTone="coral">
-                  Delay +{journey.delayMinutes} min
+                  {t('Delay +{count} min', { count: journey.delayMinutes })}
                 </Pill>
+              ) : journey.cancelled ? (
+                /* A cancelled service read "On time" here and on its own leg, while the results
+                   card for the same journey read "Cancelled" (9.4). */
+                <Pill tone="coral">{t('Cancelled')}</Pill>
               ) : (
-                <Pill tone="sage">On time</Pill>
+                <Pill tone="sage">{t('On time')}</Pill>
               )}
             </div>
           </div>
@@ -200,12 +239,12 @@ export function JourneyDetailPage() {
             */}
             <div className="row-wrap journey-facts">
               {rideLegs.length === 0 ? (
-                <Pill tone="outline">Walking only</Pill>
+                <Pill tone="outline">{t('Walking only')}</Pill>
               ) : (
                 rideLegs.map((leg) => (
                   <span key={leg.id} className={`mode-badge mode-badge--${leg.mode}`}>
                     <ModeIcon mode={leg.mode} size={13} />
-                    {getLine(leg.lineId)?.name ?? leg.lineName ?? 'Service'}
+                    {getLine(leg.lineId)?.name ?? leg.lineName ?? t('Service')}
                   </span>
                 ))
               )}
@@ -217,7 +256,7 @@ export function JourneyDetailPage() {
               ) : null}
               <Pill tone="outline">
                 <Icon name="ticket" size={12} />€{journey.fare.eur.toFixed(2)}{' '}
-                <span className="t-faint">{journey.fare.label}</span>
+                <span className="t-faint">{t(journey.fare.label)}</span>
               </Pill>
               <Pill>
                 <Icon name="clock" size={12} />
@@ -225,18 +264,18 @@ export function JourneyDetailPage() {
               </Pill>
               <Pill>
                 <Icon name="swap" size={12} />
-                {journey.transfers === 0 ? 'Direct' : plural(journey.transfers, 'transfer')} ·{' '}
-                {plural(journey.legs.length, 'leg')}
+                {journey.transfers === 0 ? t('Direct') : plural(journey.transfers, t('transfer'))} ·{' '}
+                {plural(journey.legs.length, t('leg'))}
               </Pill>
               <Pill tone="outline">
                 <Icon name="walk" size={12} />
-                {journey.walkMinutes} min walking
+                {journey.walkMinutes} {t('min walking')}
               </Pill>
               {/* A plain yes/no, kept short and kept: absence of the chip is what would hide the
                   answer, not the answer itself. */}
               <Pill tone={journey.bikeAllowed ? 'sage' : 'outline'}>
                 <Icon name="bike" size={12} />
-                {journey.bikeAllowed ? 'Bicycle allowed' : 'No bicycle'}
+                {journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle')}
               </Pill>
             </div>
           </Card>
@@ -260,7 +299,7 @@ export function JourneyDetailPage() {
                           other visible accessibility claim (F19). What is left is the fact that
                           belongs to a transfer: where to change.
                         */}
-                        <span className="t-strong t-sm">Change at {stop?.name}</span>
+                        <span className="t-strong t-sm">{t('Change at {stop}', { stop: stop?.name ?? '' })}</span>
                       </span>
                     </li>
                   );
@@ -283,10 +322,10 @@ export function JourneyDetailPage() {
             <div className="row-wrap">
               <Pill>
                 {journey.occupancy === 'busy'
-                  ? 'Expected busy'
+                  ? t('Expected busy')
                   : journey.occupancy === 'moderate'
-                    ? 'Expected fairly busy'
-                    : 'Expected quiet'}
+                    ? t('Expected fairly busy')
+                    : t('Expected quiet')}
               </Pill>
             </div>
           </Card>

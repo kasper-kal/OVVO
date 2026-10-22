@@ -44,8 +44,12 @@ export function PreferencesControls({
     <div className="stack-4">
       {showModes ? (
       <div className="stack-2">
-        <p className="field__label">{t('Transport modes')}</p>
-        <div className="row-wrap chip-group">
+        {/* One question, one named group: seven toggle buttons with nothing saying what they
+            belong to read as seven loose switches (10.4). */}
+        <p className="field__label" id="modes-label">
+          {t('Transport modes')}
+        </p>
+        <div className="row-wrap chip-group" role="group" aria-labelledby="modes-label">
           {MODE_OPTIONS.map((mode) => (
             <Chip key={mode} selected={preferences.allowedModes.includes(mode)} onClick={() => toggleMode(mode)}>
               <ModeIcon mode={mode} size={15} />
@@ -57,7 +61,7 @@ export function PreferencesControls({
           {t('Every mode starts switched on; unselected modes are left out of your journeys.')}
         </p>
         {preferences.allowedModes.length === 0 ? (
-          <Panel variant="coral">
+          <Panel variant="coral" role="status">
             <span className="t-sm row">
               <Icon name="alert" size={16} />
               {t('With no transport mode selected no journey can be planned.')}
@@ -85,7 +89,9 @@ export function PreferencesControls({
               max={MAX_WALKING_MINUTES}
               step={5}
               value={preferences.maxWalkingMinutes}
-              aria-label={t('Maximum walking minutes')}
+              /* The visible label's own words: "Maximum walking time" is what a speech-input user
+                 says, and the control answered to a different name (10.7). */
+              aria-label={t('Maximum walking time')}
               onChange={(event) => onChange({ maxWalkingMinutes: Number(event.target.value) })}
             />
             <div className="between">
@@ -118,7 +124,7 @@ export function PreferencesControls({
         </Field>
       </div>
 
-      <div className="stack-2">
+      <div className="stack-2" role="group" aria-label={t('Trade-offs')}>
         <p className="field__label">{t('Trade-offs')}</p>
         <Switch
           checked={preferences.preferFewerTransfers}

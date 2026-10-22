@@ -3,6 +3,7 @@ import { Button, Dialog } from '../ui/primitives';
 import { useT } from '../../lib/useT';
 import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import type { Stop } from '../../data/types';
+import { customStopName } from '../../data/stops';
 
 /**
  * The two-choice Plan dialog: "is this where you leave from, or where you are going?".
@@ -35,7 +36,9 @@ export function PlanStopDialog({
   return (
     <Dialog
       open={stop !== null}
-      title={t('Plan with {stop}', { stop: stop?.name ?? '' })}
+      /* The traveller's own name for the stop, not the official one: the card that opened this
+         read "Work" and the sheet answered "Plan with Utrecht Centraal" (13.2). */
+      title={t('Plan with {stop}', { stop: stop ? customStopName(stop.id) ?? stop.name : '' })}
       description={t('Is this where you leave from, or where you are going?')}
       onClose={onClose}
       footer={

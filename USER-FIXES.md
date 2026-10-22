@@ -807,3 +807,171 @@ two colours, repair what they mean. Full rationale: R114 in `DESIGN_DECISIONS.md
 **The real cause of the deleted corners — Glass with no picture.** Background **Photo** with no picture chosen yet still set `data-surface='glass'`, so every card was a 58% cream pane over the cream canvas with a white 46% hairline on it: the surface, the edge and the rounded corner all disappeared, and the Colours section read as a flat list with square edges — exactly the reported state. Glass now requires an image; with no picture the app's own white cards stand (**1.69:1** edge, 28px radius, measured). With a picture, the glass card keeps its light hairline *and* gains a dark outer ring at 34% (**2.16:1** on a white photo), so its shape and corners are drawn on light and dark photographs alike. `tsc` clean, build clean, colour suite 24/24.
 
 **Hex is one spelling, and a swatch is always a swatch.** The Background row printed the word *Colour* while the Widgets row printed `#63E6E2`, and the picker's identity line was upper case while its hex field was lower — so two rows could not be compared, and the page's value was hidden behind a word. Both rows now print the hex they hold, upper case; the field lifts whatever is typed; and the swatch's ring is the card's own ink at 32%, so a colour equal to the card it paints still reads as a swatch. Measured **7/7** in `.logs/hex-consistency.cjs` — field upper on open, after a swatch and after typing lower case; Background and Widgets print `#63E6E2` and preview `rgb(99, 230, 226)` when they really are equal.
+
+## State on 2026-10-19 (tenth pass) — one colour for every button, and the page colour in the pop-ups
+
+| order | asked | done, and how it was checked |
+|---|---|---|
+| **Match colours** | *"Add a 'Match colours' button where all buttons swap to the same colour, a colour you pick using a pop-up in the website."* | **Done.** A **Match colours** button under the Colours rows opens a dialog in the page: the picker's own swatch row, a *Pick your own* control that opens the device's colour picker, and a hex field applied only when it is a whole colour. Choosing one sets `data-buttons="match"` and `lib/background.ts` writes four properties — fill, hover, edge and label ink. Every `.btn` variant reads them, so primary, accent, ghost and surface buttons are one colour on every screen. The ink is **derived**, never stored: a fill with no readable label (iOS blue is 4.3:1 under black) is moved in lightness only until the label clears 4.5:1, and the pop-up prints the contrast it measured. *Stop matching* puts every variant back. |
+| **The selected background, in more places** | *"the background the user selects definitely DOES NOT get used in enough places"* | **Fixed.** The colour stopped at the page edge: dialogs, the all-sections sheet and both full-screen pickers were painted from the cream theme whatever the page was, so a chosen blue or green vanished the moment anything opened over it. `data-chrome="page"` now hands those overlays the page's own card tier and the ink ramp measured for it, and re-derives the surfaces they are built from — `--l0-bg`, `--l1-bg`, `--l2-bg`, both hairlines and the four inks. Cream and photo keep the theme's surfaces: there is no page colour to carry. |
+| **Verified** | on the running app | `.logs/match-colours-check.cjs` **23/23** — the button opens a titled pop-up with 17 swatches; picking one paints all 10 buttons `rgb(255, 214, 10)` with a worst label contrast of **12.55:1**; it survives a reload and holds on `/#/departures`, `/#/disruptions` and `/#/settings` at 390 and 1440; *Stop matching* restores every variant. With a `#2f6f4f` page, the dialog and the Background picker are `rgb(59, 91, 75)` with **7.30:1** headings and a **20.32:1** close control. `tsc` clean, build clean, `class-audit` **415/415**. |
+
+## State on 2026-10-19 (eleventh pass) — five flaws found in a self-directed review, not reported
+
+Nobody reported these. They came out of walking the app on page colours it had never been measured
+on: the audit extension below is what let the sweep run at all, and every number is from it or from
+the browser.
+
+| found | what was wrong | fixed, and how it was checked |
+|---|---|---|
+| **Cards dissolved into a vivid page** | A card was a fixed 14% mix off the page. On `#ff375f` that is `#ff5275` — **1.10:1** against the page — so the cards, the sidebar and the field rows drew as one flat pink field and the hierarchy was gone (seen on the screenshot, then measured). | The mix is the *start*: a tier is lifted toward the same direction until it is a step that can be seen — cards **1.22:1** off the page, the panel tier **1.45:1**. A colour that already reached those numbers is untouched (the dark tint still measures `rgb(56,56,58)`, pinned by `tint-check`). |
+| **Placeholders were the browser's grey** | Nothing styled `::placeholder`, so `#757575` was drawn in every field: **1.47:1** on a `#ff375f` card — a smudge where a hint should be — and **4.45:1** even on the cream canvas, under the 4.5:1 this app holds its faintest ink to. | `::placeholder` uses `--ink-faint`, the step derived for the surface the field stands on (with `opacity: 1` for Firefox). Measured after: **5.80:1** on the pink card. |
+| **The accent's ring cut was used behind text** | The accent is derived for 3:1 — it draws rings and marks — but it also fills the alert badge, the navigation count, `.btn--accent` and the danger chip. The app's own `#dfe8f2` page derived `#4e80b7`, whose best ink measured **4.3:1** on all four. | A second cut, `--accent-fill`, is the same hue moved in lightness until its label clears 4.5:1; `.btn--accent`, the alert count, the nav badge, `.chip--danger[aria-pressed]` and the skip link read it, and the ring keeps the 3:1 cut. `ui-audit` on `#dfe8f2`: **0 contrast hits** (it was 90 hits, 3 distinct). |
+| **The empty state's glyph was under the non-text floor** | `--accent-primary-ink` was measured against the *panel* tier and painted on the *card*, so a pink page measured the search glyph at **2.78:1** where a mark needs 3:1. | The accent is now cut across the page and both card tiers (`accentAcross`), the same rule the split palette already used. Measured after: **4.15:1**. |
+| **The map carried the card's colour, not its own** | In a tint the map reset its ink *tokens* but not the inherited `color`, and its plate was `--l1-bg` — the card's tier. On a navy page the drawing painted dark ink while `color` said light, and the labels measured **1.19:1** against the plate's own colour; with the colour fixed, the plate itself failed at **3.5:1**. | `.map-canvas` states `color: var(--map-ink)` and the plate is the drawing's own ground (`--map-land`, water from 720px up). Navy page: **0 hits**, 12 routes × 6 widths. |
+
+**The tool that could not have caught them.** Every contrast check in `scripts/ui-audit.mjs` ran on the
+cream canvas, so the entire palette the traveller's own colour derives had never been swept. The
+audit now takes `UI_AUDIT_BACKGROUND=colour` and `UI_AUDIT_COLOUR=#rrggbb`, and the full sweep runs
+on a colour: **cream, dark, `#dfe8f2`, `#ff375f`, `#ffd60a`, `#30d158`, `#1d3f6e`, navy in the dark
+appearance and Dutch — nine runs, all clean** (the pink run was 18 contrast hits before the fixes,
+the navy run 36, the `#dfe8f2` run 90). `tsc` clean, build clean, `class-audit` 415/415,
+`consistency-audit` exit 0.
+
+**Three stale assertions in `tint-check`, and why they were rewritten rather than relaxed.** They
+pinned the exact 14% card colour (`rgb(77,215,111)`) which this pass deliberately changed — now
+asserted as a *perceivable* step (≥1.2:1) with the hue and the sidebar equality still checked; the
+photo + Colour case asserted the pre-R114 fallback (a picture following the stored page colour) and
+now asserts the decision — the app's own cards with no widgets' colour, the tinted cards when one is
+chosen — in both directions; and the eyedropper section still clicked through the *old* Colours card
+and took "the first Done on the page", which is behind the sampler. `tint-check` is **28/28** on the
+current code.
+
+**Named and deliberately not changed.** The map keeps its light plate on a dark page — a map is a map
+on any surface, and inverting it means re-measuring its whole palette against a new ground. A home
+screen with three widgets leaves the lower half of a desktop window empty. Neither is hidden; if
+either should change, it is a decision to take on purpose.
+
+## State on 2026-10-19 (twelfth pass) — "that shit is NOT cream"
+
+A screenshot of the Colours card in the dark appearance: the Background row's swatch was near-black
+(`#121211`) and the value beside it said **Cream**. The swatch was right — it is `--canvas-base`, the
+ground the page actually paints — so the *word* was the lie, and the setting had no honest name in
+the appearance it was being drawn in.
+
+| order | asked | done |
+|---|---|---|
+| **The row must not name a colour it is not painting** | *"Just straight up lying atp 😭 that shit is NOT cream"* — a black swatch beside the word Cream | **Fixed.** The hint and the label were changed together, twice, and the second answer is the one that ships: the app's own canvas is **Default** in every appearance, and the hint below names what Default is painting *now* — "The app's own cream canvas." in light, "The app's own black canvas." in dark (`ColourSettings.tsx`, `appearance` from the store). Dutch: *Standaard*, with both sentences. |
+| **The steerer's own suggestion, taken** | *"what if we rename both to 'Default' cus they are the default that just switches when its light and dark mode"* | **Done, and it is the right call.** The two answers before it were rejected on the way: *Dark canvas* described the machinery rather than naming anything, and *Cream*/*Black* gave one setting two names — a control that renames itself when the theme flips, including by itself at sunset under **System**. *Default* is true in both appearances, the label never moves, and the list reads *Default / Colour / Photo* (the app's, yours, yours); the colour is still stated, one line down, where the swatch already showed it. |
+| **Verified** | in the browser, both appearances and both languages | `.logs/canvas-name-probe.cjs` **11/11** — the row and the segment read `Default` in light and dark, the swatch equals the painted page in both (`rgb(252,251,250)` / `rgb(18,18,17)`), the hint names the colour painted in each, and Dutch-in-the-dark at 320px keeps **Standaard · Kleur · Foto** on one row with no overflow. `ui-audit` dark, dark+Dutch and cream: **0 hits**; `tsc` clean, build clean, `class-audit` 415/415. |
+
+## State on 2026-10-19 (thirteenth pass) — the sentence no audit reads
+
+Found by looking at a populated 1440 board rather than by measuring it: **"5 of 20 departures
+departures in this window."** `BoardList` passed `plural(n, 'departure')` — already the phrase
+"20 departures" — into the translated sentence that supplies the noun itself. It now passes the
+number, and the noun belongs to the string, where a language that inflects or orders it differently
+can own it. Verified in both languages on the running app (`5 of 20 departures…` / `5 van 20
+vertrekken…`), then a sweep of every route × 390/1440 × EN/NL for repeated adjacent words returns
+**0**.
+
+Two things were looked at and deliberately **not** changed, so the record is honest about the
+difference between a defect and a judgement: cards in one row have ragged bottoms (143px beside
+111px) — `align-items: start` is a documented decision, because stretching turned a one-line
+favourites card into a 640px empty box beside the map; and the departures list repeats a heavy
+black *Alert details & advice* pill on every card. The second is a taste question, not a bug, and it
+is left for the steerer to decide.
+
+## State on 2026-10-19 (fourteenth pass) — a palette per appearance
+
+The three colours under **Settings → Colours** — the page's colour, the widgets' colour and the
+colour selected text is painted with — are now kept **twice**: once for light and once for dark
+(`lib/palette.ts`, `SETTINGS_VERSION` 8). The card opens with a LIGHT / DARK picker above the rows,
+and the rows, and every screen they open, read and write the palette it names.
+
+Why this is a correctness fix rather than a preference: `applyBackground` measures a tint against
+the appearance in force — the ink, the card surfaces, the accent and the map's cut all differ — so a
+single colour was being asked to be readable under cream ink *and* under near-black. One of the two
+appearances was always a compromise. The selection colour had the same fault: `inkFor` picks its ink
+per appearance while the colour itself was shared.
+
+**The picker is not the appearance switch, and says so.** It never writes `settings.theme`: choosing
+DARK while the app is light stores three dark colours and moves nothing on screen. The hint under it
+states that outright, and when the two disagree a second line says where the colours will be seen
+("The app is Light right now, so you will see these colours when it is Dark"). Without that line the
+control looked like one that did nothing (reported).
+
+Migration: a stored version 7 object has one value per colour, so `migrateSettings` copies it into
+the dark fields — the page keeps exactly what it had, and the palettes start equal. A fresh browser
+gets the same three colours in both.
+
+Verified with `.logs/per-mode-colours.cjs` (14 checks, all passing): a version 7 object migrates
+without repainting either appearance; choosing Dark leaves `data-theme` light and shows the hint; a
+dark page colour lands in `backgroundColourDark` while the light page keeps painting the light one;
+switching the app to dark then paints the dark palette. Checked at 1440 and 390 in both languages;
+typecheck, class audit and build pass.
+
+## State on 2026-10-19 (fifteenth pass) — the header row's one line
+
+> The screenshot: **Edit** and the alerts count level, the next widget's heading between them, and
+> the OVVO mark hanging below all three. *"Why aren't these lined up horizontally."*
+
+The row was aligned on a **top edge**, which is not alignment. Measured at 390 before this pass:
+the mark 20..76 (middle **48**), the 36px Edit and alerts pills 20..56 (middle **38**), the 44px
+way back 20..64 (middle **42**). Three items meant to read as one row had three different middles,
+and no scroll position could put the widget heading, the pills and the mark on one line at once.
+The rule that produced it is written in `base.css` as a deliberate choice — "heights are their own,
+so their middles and bottoms differ on purpose" — and that choice is the defect.
+
+Now every slot is `align-self: center` on the row's own line, and nothing carries a private step.
+The line is **42px** from the top of the viewport, the line the way back already drew (its 20..64
+box is unchanged, so the pickers' arrows still share 12,20 with a page's). The pills sit **24..60**
+and the mark **14..70**; their middles are all **42**. The 80px band and the page's 96px start are
+unchanged, so no other layout moved.
+
+`ui-audit`'s header check asserts **middles**, not tops, and now includes the Edit/Done pill as
+well as the way back, the mark and the alerts entry. Verified on the running app at 390×600 and
+1440×360 (`header-centre.cjs`, 20/20): the four share middle 42 at rest; scrolling so the first
+widget heading's middle is 42 puts Edit, mark, alerts and that heading on 42.0, 42.0, 42.0 and 42.4;
+a stop page's way back is 20..64 middle 42 with the mark and alerts. `tsc`, the build, class-audit
+(415/415), all three `ui-audit` sweeps (light/en, dark/en, dark/nl) and `round15-check` (86/86)
+pass on the final code.
+
+## State on 2026-10-19 (sixteenth pass) — the correction: horizontal, not vertical
+
+> *"The only thing you had to do is MOVING them HORIZONTALLY."* — with *"you didn't fix the line-up
+> issue on mobile"* and *"i think you made the icons bigger"*.
+
+The fifteenth pass moved the wrong axis. It changed the row's **vertical** alignment (tops → centres)
+and moved the mark 6px up to do it, while the complaint was about **left and right edges**. That pass
+is reverted in full: every slot is back on the shared top edge at **20px**, and the mark is exactly
+what it was — a **56×56** square at top 20, centred on the page (195 at 390, 720 at 1440), with no
+change to its size, paint or column. Nothing was ever enlarged: the header glyphs are still 18px, the
+pills 36px and the mark 56px.
+
+**The actual defect, measured.** The header row and `.app-body` computed the same edge differently:
+the row had its own max-width box, 4px of inner padding and a −4px margin on the first slot, inside
+the row's 12px padding. That lands on the page's edge at 390 (12..378) and drifts as soon as the
+max-width engages:
+
+| width | before: Edit left | before: alerts right | page content |
+|---|---|---|---|
+| 390 | 12 | **374** (4px inside) | 12..378 |
+| 1280 | 12 | **1264** (4px inside) | 12..1268 |
+| 1440 | **40** (12px outside) | **1396** (8px outside) | 52..1388 |
+| 1920 | **280** (12px outside) | **1636** (8px outside) | 292..1628 |
+
+**The fix is one box.** `.app-header` now has no horizontal padding of its own; `.app-header__inner`
+is the same border-box as `.app-body` — same `--shell-max`, same 12px gutter *inside* it — so the
+row's content box and the page's content box are the same two lines at every width. The way back and
+Edit start on the left one, the alerts entry ends on the right one, the mark stays centred between
+them. Vertical placement is untouched (`align-self: start`, the same 16px step).
+
+Verified with `.logs/header-rail.cjs` — **61/61**, exit 0 — at **320, 390, 768, 1024, 1280, 1440 and
+1920**: header band still 80px, page still starts at 96, the mark still 56×56 at top 20 and centred
+on the page at every width, both buttons still at top 20, Edit/back on the content left (12/12/52/292
+matching 12/12/52/292), alerts on the content right (378/1268/1388/1628 exactly). `.logs/rail-390.png`
+and `.logs/rail-1440.png` are the eyes' copy. `ui-audit` now also fails when the row's left or right
+edge leaves the page's content rail (it could not see that before); all three sweeps — light/en,
+dark/en, dark/nl — exit 0. `tsc`, build, class-audit 415/415 and `round15-check` 86/86 pass on the
+final code.

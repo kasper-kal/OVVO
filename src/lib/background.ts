@@ -101,6 +101,18 @@ export interface BackgroundSettings {
    * background (see the file's note) — the behaviour of every version before this setting existed.
    */
   primaryColour: string;
+  /** Which colour selected text is painted with, and its own hex when it is `custom`. */
+  selectionColour?: string;
+  selectionCustom?: string;
+  /**
+   * Raised contrast, which the derived ink ramp has to *know about* rather than be colouring over.
+   *
+   * The tinted palette writes `--ink`, `--ink-muted`, `--ink-faint` and the hairlines on `:root`
+   * from `styles/components.css`, and that file loads after `tokens.css` — so a static
+   * `[data-contrast='high']` block loses on source order the moment a page colour exists, and the
+   * switch stopped doing anything (reported). The ramp is therefore built at two strengths here.
+   */
+  highContrast?: boolean;
 }
 
 /** A colour that works on the cream canvas and is nobody's favourite: a soft warm blue. */
@@ -166,8 +178,32 @@ export interface TintPaint {
   border: string;
   /** The page's own edge, measured against the page rather than the card. */
   pageBorder: string;
+  /**
+   * **The navigation bar's own step off the page — smaller than a card's.**
+   *
+   * The sidebar was painted with a card's surface, which is 12% of the way to the ink and further
+   * when the page needed lifting to carry that step. Beside a page of the same colour the bar read
+   * as a *lightened* slab rather than as the bar (reported: "Make the Nav bar lightening less, just
+   * less lightening"), so the chrome gets its own tier: a third of the card's step. It is still a
+   * step — a bar with no edge would be a hole — just not a card's.
+   */
+  nav: string;
+  /** The row inside the bar, one step above it. */
+  navAlt: string;
+  /** The bar's edge, measured on the bar. */
+  navBorder: string;
   /** The accent: the tint's hue, moved in lightness until it clears 3:1 on the card. */
   accent: string;
+  /**
+   * The accent **as a fill behind text** — a badge count, an accent button, a chip.
+   *
+   * A ring or a mark needs 3:1; a label needs 4.5:1, and a hue can clear the first and miss the
+   * second (the app's own `#dfe8f2` page derived `#4e80b7`, whose best ink measured **4.3:1** on
+   * the alert badge, the nav count and *Remove all stored data*). The fill is the same hue moved
+   * in lightness until the winning ink clears 4.5:1, so the accent stays the accent and its text
+   * is readable.
+   */
+  accentFill: string;
   accentBorder: string;
   accentHover: string;
   /** The accent cut measured against the map's land, for routes and markers. */
@@ -271,7 +307,40 @@ function tintTiers(tint: Rgb): {
      * a page already near white cannot be lifted and is deepened toward the ink instead.
      */
     const towards = luminanceOf(page) > 0.82 ? inkFor(page) : light;
-    return { card: mix(page, towards, 0.14), alt: mix(page, towards, 0.28) };
+    /*
+     * **A fixed 14% is not a step on every colour.** It is a readable one on a dark or muted page,
+     * but 14% of the way from `#ff375f` to white is `#ff5275` — **1.10:1** against the page it is
+     * meant to sit on, so the cards, the sidebar and the page drew as one flat pink field and the
+     * hierarchy disappeared (seen in the round that reviewed the palette on a vivid page). The same
+     * mix is now the *start*, and the tier is lifted until it is a step that can be seen (cards
+     * **1.22:1**, the panel tier off them **1.45:1** above the page), leaving every colour that
+     * already reached those numbers exactly where it was.
+     */
+    const liftTo = (start: number, target: number) => {
+      let colour = mix(page, towards, start);
+      for (let extra = 0.02; extra <= 0.6 && contrast(page, colour) < target; extra += 0.02) {
+        colour = mix(page, towards, Math.min(1, start + extra));
+      }
+      return colour;
+    };
+    /*
+     * **A card step may not cost the ink that sits on it.**
+     *
+     * The lift is what makes a card visible off a vivid page, and it was free to run until the step
+     * was 1.22:1 — on `#1B4D3E` that landed at rgb(90,126,115), where the page's own light ink
+     * measured **4.35:1**: a card you can see and cannot read. Since the page is now painted
+     * exactly as chosen, the step is the only thing that can move, so it gives way: a smaller step
+     * that still carries the ink wins over a bigger one that does not.
+     */
+    const ink = inkFor(page);
+    const keepInk = (colour: Rgb) => {
+      let out = colour;
+      for (let back = 0; back <= 0.8 && contrast(out, ink) < 4.8; back += 0.04) {
+        out = mix(colour, page, back);
+      }
+      return out;
+    };
+    return { card: keepInk(liftTo(0.14, 1.22)), alt: keepInk(liftTo(0.28, 1.45)) };
   };
   const assess = (page: Rgb) => {
     const { card, alt } = stepsFor(page);
@@ -283,7 +352,20 @@ function tintTiers(tint: Rgb): {
     const { ink, worst, card, alt } = assess(page);
     return { page, card, alt, ink, worst, inkIsLight: contrast(page, light) > contrast(page, dark) };
   };
-  if (assess(tint).ok) return finish(tint);
+  /*
+   * **The page is the colour the traveller chose; only the cards are allowed to move.**
+   *
+   * This used to require 4.8:1 on the *worst* of the page and both card tiers, so a colour that was
+   * perfectly readable on the page but tight on a lighter card was darkened to fix the card — and
+   * `#1B4D3E`, the very hex the traveller typed into *Match colours*, came out painted as
+   * `rgb(23, 64, 52)` while the row above it said `#1B4D3E` (reported twice: "a hex that is shown
+   * but not painted is a lie"). The ink on a surface is derived from that surface
+   * (`inkRamp(worst)`), so a card tier that needs a softer ink gets one; the page has no such
+   * escape, so it is measured on its own and left exactly as chosen whenever an ink can be read on
+   * it. Only a true mid-tone — where neither of the app's inks clears the line — is moved, and then
+   * in lightness alone.
+   */
+  if (contrast(tint, inkFor(tint)) >= 4.8) return finish(tint);
   const lighten = darkInkWins(tint);
   const hsl = rgbToHsl(tint);
   for (let step = 1; step <= 24; step += 1) {
@@ -314,12 +396,37 @@ function luminanceOf([r, g, b]: Rgb): number {
  * different interface (hard grey outlines), not a repaired one. The measured value is in
  * `USER-FIXES.md`, and every tint is above the floor.
  */
-function borderFor(ink: Rgb, surface: Rgb): Rgb {
-  return soften(ink, surface, 1.5);
+function borderFor(ink: Rgb, surface: Rgb, target = 1.5): Rgb {
+  return soften(ink, surface, target);
 }
 
-/** The ink ramp for a surface: the winning ink, then its three softer steps. */
-function inkRamp(surface: Rgb): {
+/**
+ * The edge raised contrast draws, against the 1.5:1 the tint normally settles for.
+ *
+ * A hairline is the only cue that an outlined chip, field or card is a thing at all, so "raised"
+ * has to be a line you can find rather than a nudge. It is **3:1** — WCAG's non-text minimum, the
+ * same floor the app holds a ring or an icon to — because a step the traveller cannot see is the
+ * exact defect being repaired. (2.6:1 was measured and read as a nudge, which it was.)
+ */
+const RAISED_EDGE = 3;
+
+/**
+ * The ink ramp for a surface: the winning ink, then its three softer steps.
+ *
+ * **Two ramps, because raised contrast used to vanish here.** The tinted palette derives its own
+ * inks, and those properties land on `:root` from `styles/components.css`, which is imported after
+ * `tokens.css` — so `:root[data-surface='tint']` beat `:root[data-contrast='high']` on source order
+ * and the switch did nothing at all once a page colour was chosen. It was worse than nothing: the
+ * *unraised* tinted ramp went straight to the maximum-contrast ink, so a tinted page already looked
+ * like raised contrast while the switch said off. Both halves are fixed here, by deriving the ramp
+ * from the setting rather than colouring over it:
+ *
+ *   default — body ink at **10:1** (the cream theme's own `#3f3f45` measures 9.9:1), muted 5.4:1,
+ *             faint 4.8:1, hairline 1.5:1 — the calm interface;
+ *   raised  — body ink at the *maximum* the surface allows, muted 7.5:1, faint 6:1, hairline 2.6:1
+ *             — the step a traveller asks for when they ask for it.
+ */
+function inkRamp(surface: Rgb, raised = false): {
   strong: string;
   ink: string;
   muted: string;
@@ -329,11 +436,19 @@ function inkRamp(surface: Rgb): {
   const { dark, light } = inkEnds();
   const useLight = !darkInkWins(surface);
   const base = useLight ? light : dark;
-  const muted = soften(base, surface, 6);
-  const faint = soften(base, surface, 4.6);
+  /*
+   * Raised goes to the **extreme** ink, not to "a bit darker than base". The first version moved
+   * #3f3f45 to #18181b — a real change on paper and almost nothing on a screen, which is what
+   * "the raised contrast issue is NOT fixed" was about. Pure black (or pure white on a dark
+   * surface) against the calm 10:1 default is a step nobody can miss.
+   */
+  const extreme: Rgb = useLight ? [255, 255, 255] : [0, 0, 0];
+  const ink = raised ? extreme : soften(base, surface, 10);
+  const muted = soften(base, surface, raised ? 7.5 : 5.4);
+  const faint = soften(base, surface, raised ? 6 : 4.8);
   return {
-    strong: toHex(base),
-    ink: toHex(base),
+    strong: toHex(raised ? extreme : base),
+    ink: toHex(ink),
     muted: toHex(muted),
     faint: toHex(faint),
     light: useLight,
@@ -400,6 +515,20 @@ function hslToRgb({ h, s, l }: { h: number; s: number; l: number }): Rgb {
 }
 
 /**
+ * How dark a chosen colour may be and still keep the dock's active pill exactly as it was picked.
+ *
+ * The dock is obsidian in every appearance, so a colour's lightness has to be measured against
+ * near-black rather than against the page. The pill used to be *always* lifted to 3:1 on that
+ * ground, which meant a bright coral arrived as a coral nobody had chosen. The rule now is the
+ * traveller's: the exact hex, untouched, until it is too close to the dock to be seen at all —
+ * black, navy, a deep bottle green — where it is lightened only as far as the app's 3:1 non-text
+ * floor, one step at a time, keeping the hue and saturation. **2.5:1** is the threshold: above it
+ * a fill is a shape you can find on the dock (the app's own coral is 7.1:1, a mid blue 4.3:1, a
+ * deep navy 1.4:1), below it the pill would be a slightly darker black on a black bar.
+ */
+const DOCK_PILL_MIN = 2.5;
+
+/**
  * The accent for a surface: the tint's own hue, with its lightness moved until it clears 3:1.
  *
  * Mixing toward black or white would grey the colour out — a yellow tint would arrive as olive.
@@ -423,7 +552,7 @@ function accentOn(source: Rgb, against: Rgb): Rgb {
 }
 
 /** Every colour one chosen tint produces, read against the appearance in force. */
-export function paintFor(colour: string): TintPaint {
+export function paintFor(colour: string, raised = false): TintPaint {
   const tint = parseColor(colour) ?? ([223, 232, 242] as Rgb);
   const canvas = parseColor(tokenValue('--canvas-base')) ?? ([252, 251, 250] as Rgb);
   const pageInk = parseColor(tokenValue('--ink')) ?? ([63, 63, 69] as Rgb);
@@ -434,40 +563,146 @@ export function paintFor(colour: string): TintPaint {
    * measured against the panel for the same reason; the map keeps its own cut, measured against the
    * map's land.
    */
-  const { page, card, alt: cardAlt, worst, inkIsLight } = tintTiers(tint);
-  const ramp = inkRamp(worst);
+  /*
+   * **Every surface keeps its own step, matched palette or not.**
+   *
+   * The matched state used to paint the page, the cards and the panels all with the one HEX. On a
+   * real screen that is a page with no edges: a card is only a card because its fill differs from
+   * the ground, so the only thing left to draw the boundary was the hairline — measured at the
+   * 1.5:1 floor and reported as *"some colours, some edges get super ugly and way too obvious"*.
+   * Matching is three **settings**, not one flat pixel: the page is the colour exactly, and the
+   * cards and panels are the steps off it they have always been.
+   */
+  const tiers = tintTiers(tint);
+  const page = tiers.page;
+  const card = tiers.card;
+  const cardAlt = tiers.alt;
+  const worst = tiers.worst;
+  const inkIsLight = tiers.inkIsLight;
+  const ramp = inkRamp(worst, raised);
   const cardInk = parseColor(ramp.ink) ?? pageInk;
-  const accent = accentOn(tint, cardAlt);
-  const accentInk = inkRamp(accent);
+  /*
+   * **The accent has to be seen on the page and on both card tiers**, not on the panel alone.
+   *
+   * It was cut against `cardAlt`, the darkest of the three, and drawn everywhere: on the page (the
+   * focus ring), on the card (a switch, a mark, the empty state's glyph) and on a panel. A pink page
+   * measured the empty-state glyph at **2.78:1** on the card — the non-text floor is 3:1 — because
+   * the cut was measured on the tier below the one it was painted on. Asking `accentAcross` for a
+   * cut that clears all three is what the split palette already did for its two surfaces.
+   */
+  const accent = accentAcross(tint, [page, card, cardAlt]);
+  /*
+   * **The fill behind a label is the traveller's colour; the ring's cut is a different promise.**
+   *
+   * The accent is the same hue with its lightness moved until it clears 3:1, and that cut was used
+   * *behind text* — the alert count, the nav badge, an accent button. Black asked for as the
+   * primary colour has no mark that clears 3:1 on a black page, so the cut came out grey: a grey
+   * pill on a cream header where the traveller had chosen black and could see no trace of it
+   * (reported, with the screenshot of the count beside the alert triangle). A fill only has to
+   * carry its label, so it is the colour itself, moved only when nothing readable could sit on it.
+   */
+  const accentFill = buttonPaint(tint);
   const mapAccent = accentOn(tint, mapLand);
-  /* The dock is obsidian in every mode, so its active pill needs a cut measured against *that*. */
-  const dockAccent = accentOn(tint, inkEnds().dark);
+  /*
+   * The dock is obsidian in every mode, so its active pill is measured against *that* — and then
+   * left alone unless it is too dark to find (see `DOCK_PILL_MIN`).
+   */
+  const dockDark = inkEnds().dark;
+  const dockAccent = contrast(tint, dockDark) >= DOCK_PILL_MIN ? tint : accentOn(tint, dockDark);
   const dockInk = inkRamp(dockAccent);
   const coralBase = parseColor(tokenValue('--coral-ink')) ?? ([143, 52, 35] as Rgb);
   const sageBase = parseColor(tokenValue('--tint-sage-ink')) ?? ([90, 122, 88] as Rgb);
   const butterBase = parseColor(tokenValue('--tint-butter-ink')) ?? ([201, 162, 39] as Rgb);
 
+  const nav = mix(page, card, 0.34);
   return {
     page: toHex(page),
     card: toHex(card),
     cardAlt: toHex(cardAlt),
+    nav: toHex(nav),
+    navAlt: toHex(mix(nav, card, 0.5)),
+    navBorder: toHex(borderFor(cardInk, nav, raised ? RAISED_EDGE : 1.5)),
     inkStrong: ramp.strong,
     ink: ramp.ink,
     inkMuted: ramp.muted,
     inkFaint: ramp.faint,
     inkIsLight,
-    border: toHex(borderFor(cardInk, cardAlt)),
-    pageBorder: toHex(borderFor(cardInk, page)),
+    /* The hairline is drawn on the **card**, so it is measured there: with a real step between the
+       tiers, a border cut against the panel arrived at 1.26:1 on the surface it sits on. */
+    border: toHex(borderFor(cardInk, card, raised ? RAISED_EDGE : 1.5)),
+    pageBorder: toHex(borderFor(cardInk, page, raised ? RAISED_EDGE : 1.5)),
     accent: toHex(accent),
+    accentFill: accentFill.bg,
     accentBorder: toHex(mix(accent, tint, 0.18)),
     accentHover: toHex(mix(accent, cardInk, 0.12)),
     mapAccent: toHex(mapAccent),
     dockAccent: toHex(dockAccent),
     onDockAccent: dockInk.ink,
-    onAccent: accentInk.ink,
-    coralInk: toHex(semanticInk(coralBase, worst)),
-    sageInk: toHex(semanticInk(sageBase, worst)),
-    butterInk: toHex(semanticInk(butterBase, worst)),
+    onAccent: accentFill.ink,
+    coralInk: toHex(semanticInk(coralBase, worst, raised ? 6 : 4.6)),
+    sageInk: toHex(semanticInk(sageBase, worst, raised ? 6 : 4.6)),
+    butterInk: toHex(semanticInk(butterBase, worst, raised ? 6 : 4.6)),
+  };
+}
+
+/**
+ * One button colour, made readable.
+ *
+ * The traveller picks the fill; the label is *derived*, not offered — the same rule the tint
+ * palette follows. A mid-tone that has no readable ink (iOS blue is 4.3:1 under black) is moved in
+ * **lightness only**, away from the ink, until the label clears 4.5:1; a colour that already clears
+ * it is used exactly as chosen, which is what "pick one colour for every button" should mean.
+ */
+export function buttonPaintFor(colour: string): {
+  bg: string;
+  border: string;
+  hover: string;
+  ink: string;
+  /** WCAG ratio between the label and the fill, so a preview can state what it measured. */
+  ratio: number;
+  /** True when the label had to be the light cut. */
+  light: boolean;
+} {
+  return buttonPaint(parseColor(colour) ?? inkEnds().dark);
+}
+
+function buttonPaint(colour: Rgb): {
+  bg: string;
+  border: string;
+  hover: string;
+  ink: string;
+  ratio: number;
+  light: boolean;
+} {
+  const { dark, light } = inkEnds();
+  const inkFor = (surface: Rgb) => (contrast(surface, light) >= contrast(surface, dark) ? light : dark);
+  let base = colour;
+  let ink = inkFor(base);
+  if (contrast(base, ink) < 4.5) {
+    const hsl = rgbToHsl(base);
+    /* Move the fill away from the ink it is carrying: dark ink wants a lighter fill. */
+    const lift = ink === dark;
+    for (let step = 1; step <= 24; step += 1) {
+      const t = step / 24;
+      const l = lift ? Math.min(1, hsl.l + (1 - hsl.l) * t) : Math.max(0, hsl.l * (1 - t));
+      const candidate = hslToRgb({ ...hsl, l });
+      const candidateInk = inkFor(candidate);
+      if (contrast(candidate, candidateInk) >= 4.6) {
+        base = candidate;
+        ink = candidateInk;
+        break;
+      }
+    }
+  }
+  return {
+    bg: toHex(base),
+    /* The edge and the hover are steps off the fill toward its own ink, so they belong to the
+       colour rather than to a second one. */
+    border: toHex(mix(base, ink, 0.28)),
+    hover: toHex(mix(base, ink, 0.14)),
+    ink: toHex(ink),
+    ratio: contrast(base, ink),
+    light: ink === light,
   };
 }
 
@@ -477,6 +712,9 @@ const DYNAMIC_PROPERTIES = [
   '--app-bg-image',
   '--card-surface',
   '--card-surface-alt',
+  '--nav-surface',
+  '--nav-surface-alt',
+  '--nav-border',
   '--card-border',
   '--page-border',
   '--card-ink',
@@ -484,6 +722,7 @@ const DYNAMIC_PROPERTIES = [
   '--card-ink-muted',
   '--card-ink-faint',
   '--accent-primary',
+  '--accent-fill',
   '--accent-primary-border',
   '--accent-primary-hover',
   '--accent-primary-ink',
@@ -501,12 +740,25 @@ const DYNAMIC_PROPERTIES = [
   '--page-ink-strong',
   '--page-ink-muted',
   '--page-ink-faint',
-  /* The widgets' cut of the accent, which a split palette hands to the cards (see above). */
+  /* The widgets' cut of the accent and its fill, which a split palette hands to the cards. */
   '--card-accent',
+  '--card-accent-fill',
   '--card-accent-border',
   '--card-accent-hover',
   '--card-accent-ink',
   '--card-on-accent',
+  /* Match colours: every button, and the chrome the page's colour is carried into. */
+  '--btn-bg',
+  '--btn-bg-hover',
+  '--btn-border',
+  '--btn-ink',
+  '--chrome-surface',
+  '--chrome-surface-alt',
+  '--chrome-border',
+  '--chrome-ink',
+  '--chrome-ink-strong',
+  '--chrome-ink-muted',
+  '--chrome-ink-faint',
 ];
 
 /**
@@ -575,6 +827,8 @@ export function applyBackground(settings: BackgroundSettings): void {
   for (const property of DYNAMIC_PROPERTIES) root.style.removeProperty(property);
   delete root.dataset.surface;
   delete root.dataset.cardInk;
+  delete root.dataset.buttons;
+  delete root.dataset.chrome;
 
   /*
    * Glass is a property of the *page*, not of a colour. Set before the early return below so a
@@ -601,8 +855,33 @@ export function applyBackground(settings: BackgroundSettings): void {
   /* Neither colour is in force: the app's own page, surfaces and coral, untouched. */
   if (!pageChoice && !primaryChoice) return;
 
-  const pagePaint = pageChoice ? paintFor(pageChoice) : null;
-  const widgetPaint = primaryChoice ? paintFor(primaryChoice) : null;
+  const raised = Boolean(settings.highContrast);
+  /*
+   * **One exact HEX, three slots** — the state *Match colours* writes. While it holds, the palette
+   * is flat: the page, the cards, the panels and the buttons are the colour itself (no page
+   * lightening, no card step), because the traveller asked for one value and the pixel has to be
+   * that value. Any of the three drifting apart ends the flat state again.
+   */
+  const pagePaint = pageChoice ? paintFor(pageChoice, raised) : null;
+  const widgetPaint = primaryChoice ? paintFor(primaryChoice, raised) : null;
+  /*
+   * **The page's colour follows the traveller into the pop-ups.** A dialog, a sheet and the two
+   * full-screen pickers used to be painted from the cream theme on every background, so the colour
+   * somebody chose disappeared the moment anything opened over it. They now take the page's own card
+   * tier and its measured ink ramp — the same values the cards beside the page use, so every pixel
+   * of the overlay is a surface the palette already proved readable. Cream and photo keep the
+   * theme's own surfaces: there is either no colour to carry or a picture that does that job.
+   */
+  if (pagePaint) {
+    root.dataset.chrome = 'page';
+    root.style.setProperty('--chrome-surface', pagePaint.card);
+    root.style.setProperty('--chrome-surface-alt', pagePaint.cardAlt);
+    root.style.setProperty('--chrome-border', pagePaint.border);
+    root.style.setProperty('--chrome-ink', pagePaint.ink);
+    root.style.setProperty('--chrome-ink-strong', pagePaint.inkStrong);
+    root.style.setProperty('--chrome-ink-muted', pagePaint.inkMuted);
+    root.style.setProperty('--chrome-ink-faint', pagePaint.inkFaint);
+  }
   const pagePainting = pagePaint as TintPaint;
   /* One of the two always exists: `primaryChoice` follows `pageChoice` when it is not chosen. */
   const paint = widgetPaint ?? pagePainting;
@@ -648,6 +927,12 @@ export function applyBackground(settings: BackgroundSettings): void {
   const accent = splitAccent ? toHex(splitAccent) : paint.accent;
 
   root.style.setProperty('--accent-primary', accent);
+  // (the matched palette's flat surfaces are written below, with the other card properties)
+  /* A split palette fills with the widgets' colour, which is the one its cards wear. */
+  root.style.setProperty(
+    '--accent-fill',
+    splitAccent ? buttonPaint(primaryRgb).bg : paint.accentFill,
+  );
   root.style.setProperty(
     '--accent-primary-border',
     splitAccent ? toHex(mix(splitAccent, primaryRgb, 0.18)) : paint.accentBorder,
@@ -659,7 +944,7 @@ export function applyBackground(settings: BackgroundSettings): void {
       : paint.accentHover,
   );
   root.style.setProperty('--accent-primary-ink', accent);
-  root.style.setProperty('--on-accent', splitAccent ? inkRamp(splitAccent).ink : paint.onAccent);
+  root.style.setProperty('--on-accent', splitAccent ? buttonPaint(splitAccent).ink : paint.onAccent);
 
   if (splitCardAccent) {
     root.style.setProperty('--card-accent', toHex(splitCardAccent));
@@ -669,7 +954,9 @@ export function applyBackground(settings: BackgroundSettings): void {
       toHex(mix(splitCardAccent, parseColor(paint.ink) ?? primaryRgb, 0.12)),
     );
     root.style.setProperty('--card-accent-ink', toHex(splitCardAccent));
-    root.style.setProperty('--card-on-accent', inkRamp(splitCardAccent).ink);
+    /* The in-card accent has the same two cuts: the ring's and the label's. */
+    root.style.setProperty('--card-accent-fill', buttonPaint(primaryRgb).bg);
+    root.style.setProperty('--card-on-accent', buttonPaint(splitCardAccent).ink);
   }
   root.style.setProperty('--map-accent', paint.mapAccent);
   root.style.setProperty('--accent-on-dock', paint.dockAccent);
@@ -709,6 +996,9 @@ export function applyBackground(settings: BackgroundSettings): void {
   root.style.setProperty('--card-butter-ink', paint.butterInk);
   root.style.setProperty('--card-surface', paint.card);
   root.style.setProperty('--card-surface-alt', paint.cardAlt);
+  root.style.setProperty('--nav-surface', paint.nav);
+  root.style.setProperty('--nav-surface-alt', paint.navAlt);
+  root.style.setProperty('--nav-border', paint.navBorder);
   root.style.setProperty('--card-ink', paint.ink);
   root.style.setProperty('--card-ink-strong', paint.inkStrong);
   root.style.setProperty('--card-ink-muted', paint.inkMuted);

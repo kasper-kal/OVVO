@@ -267,7 +267,12 @@ export function ColourScreen({
             onChange={(event) => {
               const next = event.target.value;
               setDraft(next.toUpperCase());
-              const channels = readHex(next);
+              /*
+               * Only a whole colour applies. `readHex` accepts a three-digit shorthand, so the
+               * third keystroke of #63E6E2 painted every button #6633EE and the field rewrote what
+               * the traveller was still typing (11.5, 14.2, 19.2).
+               */
+              const channels = /^#[0-9a-f]{6}$/i.test(next) ? readHex(next) : null;
               if (channels) {
                 const hex =
                   '#' + channels.map((channel) => channel.toString(16).padStart(2, '0')).join('');

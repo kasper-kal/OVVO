@@ -22,6 +22,7 @@ import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../w
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
 import { applyBackground } from '../lib/background';
 import { applySelection } from '../lib/selection';
+import { paletteFor } from '../lib/palette';
 import { translate } from '../lib/i18n';
 import {
   DEFAULT_SETTINGS,
@@ -178,6 +179,8 @@ interface AppContextValue {
   setWidgetStation: (widgetId: string, stopId: string) => void;
   /** Put one widget at a slot, shifting the rest — the drag on the home screen. */
   moveHomeWidget: (id: string, toIndex: number) => void;
+  /* Put back an arrangement that a reset threw away — the undo the layout menu offers. */
+  restoreHomeLayout: (ids: string[]) => void;
   resetHomeWidgets: () => void;
   /**
    * Whether the home screen is being customised, and the layout menu the header opens.
@@ -404,9 +407,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * not follow the theme would be the one part of the page ignoring it. The theme attribute is
    * written by the effect above, which runs first, so the tokens read here are the new ones.
    */
+  /*
+   * Both effects below read the palette **for the appearance being drawn**, not the light one:
+   * each appearance keeps its own page, widget and selection colours (`lib/palette.ts`), and the
+   * appearance is the key that decides which half is in force.
+   */
+  const palette = paletteFor(settings, appearance);
+
   useEffect(() => {
-    applySelection(settings.selectionColor, settings.selectionCustom);
-  }, [settings.selectionColor, settings.selectionCustom, appearance]);
+    applySelection(palette.selectionColor, palette.selectionCustom);
+  }, [palette.selectionColor, palette.selectionCustom, appearance]);
 
   /*
    * The page's colour and the widgets' colour — two choices, each derived into a palette.
@@ -420,21 +430,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     applyBackground({
       background: settings.background,
-      backgroundColour: settings.backgroundColour,
+      backgroundColour: palette.backgroundColour,
       backgroundImage: settings.backgroundImage,
       /* Where in the picture the frame sits, so a screen of another shape keeps the subject in
          view (`lib/photoCrop.ts`, `cropFocus`). */
       backgroundCrop: settings.backgroundCrop,
       cardTreatment: settings.cardTreatment,
-      primaryColour: settings.primaryColour,
+      primaryColour: palette.primaryColour,
+      selectionColour: palette.selectionColor,
+      selectionCustom: palette.selectionCustom,
+      /* The ramp is derived at two strengths (see `lib/background.ts`): with a page colour in force
+         the raised-contrast tokens in `tokens.css` are beaten on source order, so the setting has to
+         reach the derivation itself or the switch does nothing. */
+      highContrast: settings.highContrast,
     });
   }, [
     settings.background,
-    settings.backgroundColour,
+    palette.backgroundColour,
     settings.backgroundImage,
     settings.backgroundCrop,
     settings.cardTreatment,
-    settings.primaryColour,
+    palette.primaryColour,
+    palette.selectionColor,
+    palette.selectionCustom,
     appearance,
     settings.highContrast,
   ]);
@@ -721,13 +739,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     homeMenuOpen,
     setHomeMenuOpen,
 
-    resetHomeWidgets: () => {
-      setHomeWidgets(DEFAULT_HOME_WIDGETS);
-      setWidgetStations((current) => {
-        const kept = Object.entries(current).filter(([id]) => DEFAULT_HOME_WIDGETS.includes(id));
-        return kept.length === Object.keys(current).length ? current : Object.fromEntries(kept);
-      });
-    },
+    restoreHomeLayout: (ids) => setHomeWidgets(ids),
+    /*
+     * The reset no longer deletes a chosen station.
+     *
+     * It did, and the audit's point was that the deletion is what made the reset unrecoverable: a
+     * station chosen for a card is the traveller's data, not a layout preference, and a card that
+     * comes back should come back as it was (31.2). Removing a card still drops its binding — that
+     * is the documented way to rebind it — but resetting the arrangement does not.
+     */
+    resetHomeWidgets: () => setHomeWidgets(DEFAULT_HOME_WIDGETS),
 
     locationConsent,
     setLocationConsent,
@@ -749,7 +770,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSavedJourneys([]);
       setRecentSearches([]);
       setSearch(null);
-      setLocationConsent('unknown');
+      /* `unknown` re-opened the first-visit location sheet in the same frame, so removing
+         everything read as the app forgetting in order to ask again (11.11). The answer was
+         already given; Settings is where it is changed. */
+      setLocationConsent('denied');
       setUserLocation(null);
       /* The estimate goes with everything else: it is this browser's data, and "remove all" is
          the one instruction that has to mean all of it. */

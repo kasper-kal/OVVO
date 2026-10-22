@@ -14,6 +14,7 @@ export function NotFoundPage() {
       <EmptyState
         icon="info"
         title={t('Nothing here')}
+        headingLevel={2}
         description={t(
           'Use the navigation for the planner, results, stops and departure boards.',
         )}

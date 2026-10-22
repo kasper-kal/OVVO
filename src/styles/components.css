@@ -77,6 +77,14 @@
    */
   --l1-border: 1px solid var(--page-border);
   --l2-border: 1px solid var(--page-border);
+  /*
+   * **The one token for a line that is not inside a card.** The layout menu hangs over the page
+   * outside any card and reads `--border-hairline`; that used to keep the cream theme's `#cdc7b8`
+   * on every tint, so a near-black menu was drawn with a bright cream outline — *"some colours,
+   * some edges get super ugly and way too obvious"* (reported, with a screenshot of this menu).
+   * It is measured on the surface those elements actually stand on: the card tier here.
+   */
+  --border-hairline: var(--card-border);
   --ink-strong: var(--card-ink-strong);
   --ink: var(--card-ink);
   --ink-muted: var(--card-ink-muted);
@@ -94,6 +102,8 @@
   --l2-bg: var(--page-surface);
   --l1-border: 1px solid var(--page-border);
   --l2-border: 1px solid var(--page-border);
+  /* A line outside any card is measured on the page here, where those elements stand. */
+  --border-hairline: var(--page-border);
   --ink-strong: var(--page-ink-strong);
   --ink: var(--page-ink);
   --ink-muted: var(--page-ink-muted);
@@ -150,11 +160,33 @@
    * app holds a ring to; two cuts clear it on both (see `lib/background.ts`).
    */
   --accent-primary: var(--card-accent);
+  /* The fill behind text, which is a second cut of the same accent (see `tokens.css`). */
+  --accent-fill: var(--card-accent-fill);
   --accent-primary-border: var(--card-accent-border);
   --accent-primary-hover: var(--card-accent-hover);
   --accent-primary-ink: var(--card-accent-ink);
   --on-accent: var(--card-on-accent);
   color: var(--card-ink);
+}
+
+/*
+ * **The navigation bar is not a card, and it no longer lightens like one.**
+ *
+ * The sidebar was painted with the cards' surface — 12% of the way to the ink, and further when the
+ * page had to be lifted so its steps could carry ink at all. Beside a page of the same colour that
+ * read as a lightened slab rather than as the bar (reported: *"Make the Nav bar lightening less,
+ * just less lightening"*). It takes the chrome tier now, a third of the card's step, derived in
+ * `lib/background.ts` and measured on the bar rather than on a card.
+ */
+:root[data-surface='tint'] .app-sidebar,
+:root[data-surface='cards'] .app-sidebar,
+:root[data-surface='split'] .app-sidebar {
+  --l1-bg: var(--nav-surface-alt);
+  --l2-bg: var(--nav-surface);
+  --l1-border: 1px solid var(--nav-border);
+  --l2-border: 1px solid var(--nav-border);
+  background: var(--nav-surface);
+  border-color: var(--nav-border);
 }
 
 /* The obsidian card is the one card the tint does not repaint; its own rule already turns its ink
@@ -260,6 +292,48 @@
   background: color-mix(in srgb, var(--canvas-base) 82%, transparent);
 }
 
+/*
+ * A link to an alert, on a journey (9.2).
+ *
+ * The two ways into an alert were a bare line of 24px text in the banner and a 32px capsule on a
+ * leg — the smallest controls on a page where every button is 44px. The target is the app's own
+ * minimum; the capsule keeps its pill and the text link keeps its line, so only the box grows.
+ */
+.alert-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 44px;
+  padding-inline: var(--s-2);
+  border-radius: var(--r-pill);
+  text-decoration-thickness: 1px;
+}
+
+/*
+ * The stop page's two columns, balanced by height rather than by source order (5.4).
+ *
+ * Two fixed stacks left the shorter column 792px short at 1440 and 877px at 768, so half a page
+ * under "Alerts" was blank. The cards flow through one two-column container instead, and each
+ * card is kept whole; the inner stacks become `display: contents` so their cards take part in
+ * that flow rather than acting as two unbreakable blocks.
+ */
+@media (min-width: 720px) {
+  .stop-columns {
+    display: block;
+    columns: 2;
+    column-gap: var(--s-4);
+  }
+
+  .stop-columns > div {
+    display: contents;
+  }
+
+  .stop-columns > div > * {
+    break-inside: avoid;
+    margin-bottom: var(--s-4);
+  }
+}
+
 /* Nested radius = R_outer - padding (28 - 16 = 12px) so corners stay concentric. */
 .panel {
   background: var(--l1-bg);
@@ -280,11 +354,31 @@
 .panel--coral {
   background: var(--tint-coral);
   border-color: var(--tint-coral-border);
+  /*
+   * **The tint stays pale in dark, so its ink must stay dark.**
+   *
+   * `--tint-coral` is the one tint that keeps its cream-pink fill in the dark appearance — a
+   * warning is a warning in either — but the 12px line inside inherited the dark theme's light ink,
+   * and the "no transport mode selected" warning measured **1.17:1** (10.2). The dark-ink rule
+   * only fired under `[data-surface='tint']`, so a page with no chosen background had nothing
+   * pinning it. The panel says which ink belongs on its own fill, whichever page it is on.
+   */
+  --ink-strong: #18181b;
+  --ink: #3f3f45;
+  --ink-muted: #5f5f66;
+  --ink-faint: #66666d;
+  color: var(--ink);
 }
 
 .panel--sage {
   background: var(--tint-sage);
   border-color: var(--tint-sage-border);
+  /* Same rule as the coral panel: a pale fill needs dark ink in both appearances. */
+  --ink-strong: #18181b;
+  --ink: #3f3f45;
+  --ink-muted: #5f5f66;
+  --ink-faint: #66666d;
+  color: var(--ink);
 }
 
 .panel--obsidian {
@@ -363,7 +457,7 @@
 }
 
 .btn--accent {
-  background: var(--accent-primary);
+  background: var(--accent-fill);
   border-color: var(--accent-primary-border);
   color: var(--on-accent);
 }
@@ -673,7 +767,7 @@
 }
 
 .chip--danger[aria-pressed='true'] {
-  background: var(--accent-primary);
+  background: var(--accent-fill);
   border-color: var(--accent-primary-border);
   color: var(--on-accent);
 }
@@ -955,11 +1049,14 @@
   border-color: var(--ink-faint);
 }
 
+/* Focus on a field is the app's own ring, not a border colour: this rule used to set
+   `outline: none` and outrank the global `:focus-visible` ring, so the search fields and every
+   select were the only controls without the shared 2px coral mark (2.6, 4.5, 6.7, 7.3, 10.1) —
+   and in dark the border it promised was darker than the card, so focus made the field less
+   visible (11.7). The ring comes from base.css like every other control. */
 .input:focus,
 .select:focus,
 .textarea:focus {
-  outline: none;
-  border-color: var(--struct-main);
   background: var(--l2-bg);
 }
 
@@ -990,8 +1087,11 @@
   min-height: 52px;
 }
 
+/* The wrapper is the control for a compound field (the board's search, the planner's origin),
+   so the wrapper draws the ring. Same 2px coral at 2px offset as every button and link. */
 .input-group:focus-within {
-  border-color: var(--struct-main);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 .input-group .input-group__field {
@@ -1128,7 +1228,6 @@
  * down), and each node is anchored `row/2` from its own edge. */
 .planner {
   position: relative;
-  --planner-row: 52px;
 }
 
 /*
@@ -1141,6 +1240,17 @@
 
 
 .planner-card {
+  /*
+   * **The row height lives on the card, not on the home screen's wrapper.**
+   *
+   * The picker's card is a `.planner-card` that is not inside a `.planner`, so every
+   * `var(--planner-row)` here and in the rail's geometry resolved to *nothing* on that screen:
+   * the rows collapsed to their text height (measured 22px instead of 52px), both rail nodes
+   * stacked in the card's top-left corner and the divider ran through the To row. An undefined
+   * custom property is invisible — it is not a warning, it is `auto`. Declaring it on the card
+   * covers both screens, because both draw the same card.
+   */
+  --planner-row: 52px;
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
   column-gap: var(--s-3);
@@ -1190,18 +1300,18 @@
 
 .planner-rail__node--from {
   top: calc(var(--planner-row) / 2);
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
+  width: var(--rail-node);
+  height: var(--rail-node);
+  margin: calc(var(--rail-node) / -2) 0 0 calc(var(--rail-node) / -2);
   border: 2px solid var(--ink-strong);
   border-radius: var(--r-circle);
 }
 
 .planner-rail__node--to {
   bottom: calc(var(--planner-row) / 2);
-  width: 10px;
-  height: 10px;
-  margin: 0 0 -5px -5px;
+  width: var(--rail-square);
+  height: var(--rail-square);
+  margin: 0 0 calc(var(--rail-square) / -2) calc(var(--rail-square) / -2);
   border-radius: 2px;
   background: var(--ink-strong);
 }
@@ -1498,8 +1608,18 @@
   color: var(--ink-strong);
 }
 
+/*
+ * **The action row's name is text first, and sage second.**
+ *
+ * It was painted with `--tint-sage-ink`, a fixed #5A7A58 chosen against the cream theme's surface.
+ * On the picker's own tinted panel that measured **4.19:1** on a yellow page, **4.45:1** on a pale
+ * blue one and **1.58:1** on navy — a step under the 4.5:1 this app holds its body text to, on the
+ * two rows a traveller presses first. A semantic ink is a signal; the words in it still have to be
+ * read, so the *name* takes the surface's own strongest ink, which is derived for it, and the sage
+ * stays on the marker beside it, where a mark needs 3:1 rather than 4.5:1.
+ */
 .picker-row--action .picker-row__name {
-  color: var(--tint-sage-ink);
+  color: var(--ink-strong);
 }
 
 .picker-row__meta {
@@ -1513,11 +1633,35 @@
 /* --------------------------------------------------------------- results chips */
 /* The journey's options, in the order the 9292 results screen puts them: how you start,
    how you finish, when you leave, and everything else behind one chip. */
+/*
+ * The results bar is one row of chips and one sort, not a grid of five rows.
+ *
+ * `auto-fit minmax(150px, 1fr)` turned into a single column at 320 — five rows, 326.8px, and the
+ * first journey 196.6px below a 568px fold (2.4). The chips now scroll sideways in their own row
+ * and the sort follows on the next line, which is the same information in about a third of the
+ * height at the narrowest width.
+ */
 .results-bar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   align-items: end;
   gap: var(--s-2);
+}
+
+.results-bar__chips {
+  display: flex;
+  gap: var(--s-2);
+  flex: 1 1 100%;
+  min-width: 0;
+  overflow-x: auto;
+  /* A scroller inside a page must not chain its gesture to the page. */
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.results-bar__chips::-webkit-scrollbar {
+  display: none;
 }
 
 /*
@@ -1526,6 +1670,16 @@
  */
 .results-bar__sort {
   min-width: 0;
+  flex: 1 1 150px;
+  max-width: 220px;
+}
+
+@media (max-width: 430px) {
+  /* The sort keeps its label and takes the second line; the chips never wrap. */
+  .results-bar__sort {
+    flex: 1 1 100%;
+    max-width: none;
+  }
 }
 
 .results-chip {
@@ -1673,11 +1827,63 @@
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
+  /*
+   * The 44px target from the `.alert-link` block above is stated again here, and it has to be:
+   * `.pill`'s own `min-height: 24px` is written **after** that block, so on a leg's capsule the
+   * 24px line won and the pill measured 24-27px — the smallest control on a page of 44px buttons
+   * (9.2). Two rules of equal weight, so the later one decides; the target belongs to the later one.
+   */
+  min-height: var(--target-min);
+  align-items: center;
 }
 
 .alert-link > :last-child {
   flex: none;
   white-space: nowrap;
+}
+
+/*
+ * **A banner's alert link is two lines, not two columns.**
+ *
+ * The rule above makes the last element child non-wrapping, which is right for a leg's capsule
+ * (a title, then "— view details" at its end) and wrong in a banner, where the link is a pair of
+ * sentences in a narrow column: the title was held on one line while the tail — a bare text node,
+ * so the `:last-child` rule did not even reach it — was squeezed to one word per line, measured
+ * 335px of content inside a 310px box, and spilled past the card's edge. Stacked, both read.
+ */
+.alert-link.alert-link--banner {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  width: 100%;
+  padding-block: var(--s-2);
+}
+
+.alert-link.alert-link--banner > span {
+  flex: none;
+  white-space: normal;
+}
+
+.alert-link.alert-link--banner > span:last-child {
+  color: var(--ink-muted);
+}
+
+/*
+ * **Two alert links in one banner, and the reach cannot grow into the 8px between them.**
+ *
+ * `.tap-target::after` reaches 14px above and below its own box while the two links in the
+ * results banner are one 8px step apart, so the second link's hit area began 6px inside the
+ * first: a press on the bottom of alert one opened alert two (2.2). A pseudo-element can only
+ * grow into space nobody else is using — so here the link takes the target as its own height
+ * (44px) instead of borrowing it, and the expansion is switched off.
+ */
+.alert-link.tap-target {
+  min-height: var(--target-min);
+  align-items: center;
+}
+
+.alert-link.tap-target::after {
+  inset: 0;
 }
 
 /* A mode hint: icon on the first line's baseline, text beside it. As a plain `.row`
@@ -1994,10 +2200,20 @@
 .timeline__rail::before {
   content: '';
   position: absolute;
-  left: 7px;
-  top: 10px;
-  bottom: 10px;
-  width: 2px;
+  /* The line's centre sits on the node's centre — one number, so a node cannot drift off its rail. */
+  left: calc(var(--rail-node) / 2 - var(--rail-line) / 2);
+  top: 9px;
+  /*
+   * Into the gap, not short of it.
+   *
+   * The rail is drawn per row, and the rows are 12px apart — so every transfer drew a 12px break
+   * in one journey's line with nothing bridging it (9.5): the line under the first leg stopped 10px
+   * above the row, the transfer pill sat in a row of its own, and the next leg's line began 10px
+   * below its own top. The segment now runs the gap as well, and the node's own filled disc covers
+   * where it passes behind it.
+   */
+  bottom: calc(var(--s-3) * -1);
+  width: var(--rail-line);
   background: var(--border-hairline);
 }
 
@@ -2012,9 +2228,9 @@
 .timeline__node {
   position: absolute;
   left: 0;
-  top: 8px;
-  width: 16px;
-  height: 16px;
+  top: 9px;
+  width: var(--rail-node);
+  height: var(--rail-node);
   border-radius: var(--r-circle);
   background: var(--l2-bg);
   border: 2px solid var(--struct-main);
@@ -2047,17 +2263,23 @@
 .timeline__end::before {
   content: '';
   position: absolute;
-  left: 7px;
+  left: calc(var(--rail-node) / 2 - var(--rail-line) / 2);
   top: calc(var(--s-3) * -1);
   height: calc(var(--s-3) + 8px);
-  width: 2px;
+  width: var(--rail-line);
   background: var(--border-hairline);
 }
 
+/* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
+   here and 10px in the From/To card, so one journey's two ends were drawn at two weights. */
 .timeline__node--end {
-  top: 6px;
+  top: 11px;
+  left: calc((var(--rail-node) - var(--rail-square)) / 2);
+  width: var(--rail-square);
+  height: var(--rail-square);
   border-radius: 2px;
-  border-color: var(--struct-main);
+  /* No ring: at 10px a 2px border is a fifth of the square, a frame rather than a mark. */
+  border: 0;
   background: var(--struct-main);
 }
 
@@ -2098,13 +2320,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.planning {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-2);
-  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2159,6 +2374,12 @@
 
 .skeleton--row {
   width: 100%;
+}
+
+/* A bar standing in for a pill or a mode badge keeps the pill's own corner, so the chain of
+   services on a held result reads as the chain of services and not as three rectangles. */
+.skeleton--round {
+  border-radius: var(--r-pill);
 }
 
 @keyframes skeleton-shimmer {
@@ -2325,6 +2546,13 @@
   align-items: center;
   gap: var(--s-2);
   font-variant-numeric: tabular-nums;
+  /* It is an `h2` now — the card's own name (2.7) — so it takes the card's type, not the
+     document's heading defaults. */
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
 }
 
 .journey-card__time {
@@ -2363,9 +2591,11 @@
 
 .leg-row__marker {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-inner);
+  /* 32px, not 40: the chip out-weighed the leg it labels and forced the two lines of text into a
+     column beside it (reported as the card looking awkward). Holds a 16px glyph. */
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-nested);
   background: var(--l1-bg);
   border: 1px solid var(--border-hairline);
   display: grid;
@@ -2455,6 +2685,9 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0;
+  /* A gesture that starts on the scrim belongs to the scrim, not the page behind it. */
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 @media (min-width: 720px) {
@@ -2467,12 +2700,17 @@
 .modal {
   width: 100%;
   max-width: 560px;
-  max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: manipulation;
   background: var(--l2-bg);
   border: var(--l2-border);
   border-radius: var(--r-hero) var(--r-hero) 0 0;
   padding: var(--pad-hero);
+  /* A sheet flush with the floor put its last answer inside the home indicator. The dock has
+     read this inset all along; the sheets did not (4.6, 13.3, 20.3, 21.5, 22.5, 23.4, 25.6). */
+  padding-bottom: max(var(--pad-hero), calc(var(--pad-hero) + env(safe-area-inset-bottom)));
   animation: sheet-in var(--t-spring) var(--ease-spring);
 }
 
@@ -2508,11 +2746,42 @@
   }
 }
 
+/*
+ * **The way out of a pop-up is a control, not a hairline.**
+ *
+ * The close cross was a ghost button — no fill, no border, `--ink` — so on a translucent or tinted
+ * panel it read as a faint mark, and at 1.5px stroke it was reported as "close to invisible". It
+ * takes the app's circular-control shape and the surface's strongest ink, like every other disc.
+ */
+.modal__close {
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  color: var(--ink-strong);
+}
+
+.modal__close:hover {
+  background: var(--l2-bg);
+  border-color: var(--border-hairline);
+  color: var(--ink-strong);
+}
+
 .modal__head {
   display: flex;
   align-items: flex-start;
   gap: var(--s-3);
   margin-bottom: var(--s-3);
+  /*
+   * The sheet scrolls, so its own head travels with the list: on the Add-a-widget sheet the title
+   * and its 44px close were 894px of scroll away from the first fold, and at the bottom the only
+   * visible thing above the rows was a category label (24.2). Pinned, the name and the way out are
+   * on screen wherever the list has been scrolled to.
+   */
+  position: sticky;
+  top: calc(-1 * var(--pad-hero));
+  z-index: 2;
+  margin-top: calc(-1 * var(--pad-hero));
+  padding: var(--pad-hero) 0 var(--s-3);
+  background: var(--l2-bg);
 }
 
 /* ------------------------------------------------------------------- Toasts */
@@ -2596,8 +2865,15 @@
 .toast__close:active {
   background: none;
   border-color: transparent;
-  color: var(--on-dark);
+  /* The toast's own ink, not `--on-dark`: on its cream surface a light glyph measured 1.02:1 and
+     the way out was there but invisible (reported three times). */
+  color: var(--ink-muted);
   margin: calc(var(--s-1) * -1) calc(var(--s-1) * -1) calc(var(--s-1) * -1) 0;
+}
+
+.toast__close:hover,
+.toast__close:focus-visible {
+  color: var(--ink-strong);
 }
 
 @keyframes toast-in {
@@ -3120,7 +3396,9 @@
 
 .colour-screen__hue input {
   width: 100%;
-  height: 26px;
+  /* The strip is the only control that sets hue by touch; at 26px it was less than half the app's
+     44px mark (19.3). The thumb stays its own size — the target is the strip. */
+  height: 44px;
   appearance: none;
   border-radius: var(--r-pill);
   background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
@@ -3275,8 +3553,19 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* One picture and its controls, centred as a pair: a stage forced to fill the screen left the
+     photograph floating between 360px of empty cream above it and the same below. */
+  justify-content: center;
   gap: var(--s-3);
   padding: var(--s-2) var(--s-3) var(--s-4);
+  /*
+   * One column, centred, with the width of a picture rather than of a monitor. On a 1440px window
+   * the frame chips sat at the far left and the zoom pair and Reset at the far right, 1,400px apart
+   * around a 624px photograph — four controls that answer one question, scattered across a desk.
+   */
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
 }
 
 .crop-screen__stage {
@@ -3284,12 +3573,6 @@
   align-items: center;
   justify-content: center;
   min-height: 0;
-  /*
-   * The dimming outside the frame is one `box-shadow` with a 9999px spread, so it has to be clipped
-   * to the stage — unclipped it painted over the whole screen, including the frame chips and the
-   * preview, and the controls read as disabled (shot: `review/colours-after/crop-screen.png`).
-   */
-  overflow: hidden;
 }
 
 .crop-screen__canvas {
@@ -3299,12 +3582,21 @@
   touch-action: none;
   cursor: grab;
   user-select: none;
+  /*
+   * The dimming outside the frame is one `box-shadow` with a 9999px spread, so it has to be clipped
+   * — but to the **picture**, not to the stage. Clipped to the stage, a picture shorter than the
+   * space it was given turned the whole stage into a grey slab (measured: 364px of grey above and
+   * below a 275px photograph). The picture's own box is the only thing the shadow should darken.
+   */
+  overflow: hidden;
 }
 
 .crop-screen__picture {
   display: block;
   max-width: 100%;
-  max-height: 46vh;
+  /* The frame is the preview now (the duplicate one is deleted), so the picture takes the room
+     the screen has for it rather than half of a screen that no longer carries two drawings. */
+  max-height: 52vh;
   width: auto;
   height: auto;
 }
@@ -3322,24 +3614,67 @@
   pointer-events: none;
 }
 
+/* Four corners on the frame: three pixels of white where the frame's own border is two, so the
+   shape reads as something you aim rather than a picture with a hole in it. */
+.crop-screen__corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.crop-screen__corner--tl {
+  left: -3px;
+  top: -3px;
+  border-left: 3px solid #fff;
+  border-top: 3px solid #fff;
+}
+
+.crop-screen__corner--tr {
+  right: -3px;
+  top: -3px;
+  border-right: 3px solid #fff;
+  border-top: 3px solid #fff;
+}
+
+.crop-screen__corner--bl {
+  left: -3px;
+  bottom: -3px;
+  border-left: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+}
+
+.crop-screen__corner--br {
+  right: -3px;
+  bottom: -3px;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+}
+
 .crop-screen__controls {
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
 }
 
-.crop-screen__preview-wrap {
+/* The tools: two zoom discs, the share of the picture the frame keeps, and Reset — one row,
+   because they are one question ("is the frame right?") and a stacked column of them read as
+   four unrelated settings. */
+.crop-screen__tools {
+  display: flex;
   align-items: center;
+  gap: var(--s-2);
 }
 
-/* The page's own drawing, at the page's own shape: the same two layers the `body` rule paints
-   (`styles/base.css`), scaled so the frame covers it. */
-.crop-screen__preview {
-  width: min(100%, 420px);
-  margin-inline: auto;
-  border-radius: var(--r-inner);
-  border: 1px solid var(--border-hairline);
-  background-color: var(--l1-bg);
+.crop-screen__share {
+  flex: 1 1 auto;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.crop-screen__hint {
+  margin: 0;
+  text-align: center;
 }
 
 
@@ -3355,7 +3690,7 @@
   min-height: var(--target-min);
   z-index: 200;
   padding: var(--s-2) var(--s-4);
-  background: var(--accent-primary);
+  background: var(--accent-fill);
   color: var(--on-accent);
   border-radius: var(--r-pill);
   font-weight: var(--fw-bold);
@@ -3521,6 +3856,11 @@
     font-size: var(--fs-pill);
     letter-spacing: 0;
   }
+
+  /* "Pier 1" already names itself: the P prefix is for a bare number. */
+  .board-list__platform--named .board-list__platform-label {
+    display: none;
+  }
 }
 
 /*
@@ -3571,6 +3911,16 @@
 .widget-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  /*
+   * **A card goes where there is room, not only where the row happened to end.**
+   *
+   * Spans are 4, 6, 8 and 12, so a 6 beside a 4 leaves two columns empty and the next card — often a
+   * full-width one — started a new row instead of filling them. On a phone every card is full width
+   * and the question never came up; on a desktop it read as "most widgets can't be moved
+   * everywhere" (reported). Dense flow backfills the gap with the next card that fits, so any card
+   * can follow any other.
+   */
+  grid-auto-flow: row dense;
   gap: var(--s-4);
   /* Cards are as tall as what is in them. Stretching them to match a tall neighbour is how
      the favourites card, holding one line of text, came to be a 640px empty box beside the
@@ -4241,4 +4591,32 @@
  */
 .journey-save[aria-pressed='true'] .icon {
   fill: currentColor;
+}
+
+/* ------------------------------------------- The page's colour, inside the pop-ups */
+/*
+ * **The page's colour follows the traveller into the pop-ups.**
+ *
+ * The overlays are the one place a chosen background used to vanish: a modal, the all-sections
+ * sheet and both full-screen pickers were painted from the cream theme whatever the page was, so
+ * opening anything over a blue or green page put a white-oat panel on top of it. They now take the
+ * page's own card tier and the ink ramp measured for it (`lib/background.ts`), with the surfaces a
+ * dialog is built from — its panels, fields, buttons and back disc — re-derived from those values
+ * rather than left on the theme's. Cream and photo are unaffected: they have no page colour to
+ * carry.
+ */
+:root[data-chrome='page'] .modal,
+:root[data-chrome='page'] .fullscreen {
+  background: var(--chrome-surface);
+  color: var(--chrome-ink);
+  --l0-bg: var(--chrome-surface);
+  --l1-bg: var(--chrome-surface-alt);
+  --l2-bg: var(--chrome-surface);
+  --l1-border: 1px solid var(--chrome-border);
+  --l2-border: 1px solid var(--chrome-border);
+  --border-hairline: var(--chrome-border);
+  --ink-strong: var(--chrome-ink-strong);
+  --ink: var(--chrome-ink);
+  --ink-muted: var(--chrome-ink-muted);
+  --ink-faint: var(--chrome-ink-faint);
 }

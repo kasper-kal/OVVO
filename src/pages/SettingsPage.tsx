@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -7,6 +7,7 @@ import { getStop } from '../data/stops';
 import { Banner, Button, Card, Dialog, Field, Pill, Segmented, Switch } from '../components/ui/primitives';
 import { ColourSettings } from '../components/ui/ColourSettings';
 import { Icon, ModeIcon } from '../components/ui/Icons';
+import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { LANGUAGES } from '../lib/i18n';
@@ -64,7 +65,19 @@ function StopNameRow({ stop }: { stop: Stop }) {
   const t = useT();
   const stored = customStopNames[stop.id] ?? '';
   const [draft, setDraft] = useState(stored);
+  /*
+   * Escape discards the draft — and blur must not then write it.
+   *
+   * The handler set the draft back and blurred, and blur is what commits; but the commit still read
+   * the old draft, so the abandoned name went to storage and won on the next load (11.3). The flag
+   * is the difference between "left the field" and "left the field on purpose".
+   */
+  const abandoning = useRef(false);
   const commit = () => {
+    if (abandoning.current) {
+      abandoning.current = false;
+      return;
+    }
     if (draft.trim() !== stored) renameStop(stop.id, draft);
   };
   return (
@@ -83,6 +96,7 @@ function StopNameRow({ stop }: { stop: Stop }) {
           onKeyDown={(event) => {
             if (event.key === 'Enter') event.currentTarget.blur();
             if (event.key === 'Escape') {
+              abandoning.current = true;
               setDraft(stored);
               event.currentTarget.blur();
             }
@@ -134,6 +148,9 @@ export function SettingsPage() {
     .filter((stop): stop is Stop => Boolean(stop));
   const format = useFormat();
   const t = useT();
+  /* The colours **in force** here — each appearance keeps its own (`lib/palette.ts`), so the
+     "currently in effect" labels below must read the half that is being drawn. */
+  const palette = paletteFor(settings, appearance);
   const [confirmReset, setConfirmReset] = useState(false);
   const [origin, setOrigin] = useState<Stop | null>(getStop(settings.defaultOriginStopId ?? undefined) ?? null);
   /*
@@ -185,6 +202,9 @@ export function SettingsPage() {
         description={t(
           'Appearance, defaults and locally stored data. Every change applies immediately and is stored in this browser.',
         )}
+        /* The H1 was a 1×1 sr-only box at every width, so the page opened on RESET TO DEFAULTS
+           with nothing above it saying where the traveller was (11.4). */
+        showTitle
         actions={
           <Button icon="refresh" onClick={resetSettings}>
             {t('Reset to defaults')}
@@ -231,7 +251,7 @@ export function SettingsPage() {
             </Field>
             <Field label={t('Date format')} hint={t('Dates render as {sample}', { sample: format.date(sampleDate) })}>
               <Segmented
-                ariaLabel="Date format"
+                ariaLabel={t('Date format')}
                 value={settings.dateFormat}
                 onChange={(value) => updateSettings({ dateFormat: value })}
                 options={[
@@ -477,11 +497,18 @@ export function SettingsPage() {
               </ul>
             </div>
 
-            <div className="row-wrap">
-              <Button variant="primary" icon="route">
+            {/* The specimen is a picture of the app's controls, not the controls: these two were
+                real buttons in the tab order that did nothing when pressed (11.9). They keep the
+                paint and lose the semantics. */}
+            <div className="row-wrap" aria-hidden="true">
+              <span className="btn btn--primary">
+                <Icon name="route" size={16} />
                 {t('Plan journey')}
-              </Button>
-              <Button icon="sliders">{t('Filters')}</Button>
+              </span>
+              <span className="btn">
+                <Icon name="sliders" size={16} />
+                {t('Filters')}
+              </span>
             </div>
 
             <Banner tone="butter" icon="info" title={t('Service notice')}>
@@ -511,7 +538,7 @@ export function SettingsPage() {
                       the row read "Primary colour".)
                     */}
                     {accent.key === 'coral'
-                      ? settings.primaryColour
+                      ? palette.primaryColour
                         ? t('Primary colour')
                         : settings.background !== 'cream'
                           ? t('Theme colour')
@@ -582,10 +609,12 @@ export function SettingsPage() {
           {t(
             '{favourites}, {board}, {journeys} and {searches} will be deleted. The app then starts fresh.',
             {
-              favourites: `${favouriteStopIds.length} ${t('favourite stops')}`,
-              board: `${boardStopIds.length} ${t('stops pinned to the board')}`,
-              journeys: `${savedJourneys.length} ${t('favourited journeys')}`,
-              searches: `${recentSearches.length} ${t('recent searches')}`,
+              /* One of a thing is not the plural's sentence: the sheet printed "1 stops" and
+                 "1 favoriete reizen" because the count and the noun were concatenated (11.10). */
+              favourites: t('{count} favourite stops', { count: favouriteStopIds.length }),
+              board: t('{count} stops pinned to the board', { count: boardStopIds.length }),
+              journeys: t('{count} favourited journeys', { count: savedJourneys.length }),
+              searches: t('{count} recent searches', { count: recentSearches.length }),
             },
           )}
         </p>

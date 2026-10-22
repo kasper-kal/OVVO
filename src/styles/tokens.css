@@ -98,6 +98,14 @@
    * widget may vanish on pale land, and the map is drawn on the latter.
    */
   --on-accent: var(--struct-main);
+  /*
+   * **The accent as a fill behind text.** A ring or a mark answers to 3:1; a label on the accent
+   * answers to 4.5:1, and one hue can clear the first and miss the second — the app's own
+   * `#dfe8f2` page derived `#4e80b7`, whose best ink measured **4.3:1** on the alert badge, the
+   * navigation count and the accent button. `lib/background.ts` moves that fill in lightness until
+   * its label reads; on the untinted coral the two are the same colour, so nothing changes.
+   */
+  --accent-fill: var(--accent-primary);
   --map-accent: var(--accent-primary);
   /*
    * The dock's active entry needs its own cut. The dock is obsidian whatever the tint is, and a
@@ -159,6 +167,17 @@
   --r-input: 20px; /* R20 · P8  · inner R12 */
   --r-inner: 16px;
   --r-nested: 12px; /* r-card - pad-card: keeps nested corners concentric */
+
+  /*
+   * The journey rail: a circle for the departure, a square for the arrival, and the line between
+   * them. Three numbers in one place because the same rail is drawn in the planner's From/To card
+   * and in the journey's own leg list, and they had drifted apart (14px/10px against 16px/16px),
+   * so one journey's two ends were drawn at two weights. The square is the smaller of the two on
+   * purpose: it is a terminus, not a block.
+   */
+  --rail-node: 14px;
+  --rail-square: 10px;
+  --rail-line: 2px;
   --r-compact: 12px;
   --r-hair: 8px;
   --r-pill: 9999px;
@@ -266,12 +285,39 @@
   --t-spring: 0ms;
 }
 
-/* --- Settings adapter: raised contrast (ink + hairline strengthening) --- */
-:root[data-contrast='high'] {
-  --ink: #1f1f23;
-  --ink-muted: #4a4a51;
-  --ink-faint: #5f5f66;
-  --border-hairline: #b9b6ab;
+/*
+ * --- Settings adapter: raised contrast (ink + hairline strengthening) ---
+ *
+ * **This block has to be a step you can see, not a nudge.** It was written when the base ramp was
+ * lighter (`--ink` `#52525a`, hairline `#e8e6df`); the hairline then had to be darkened to
+ * `#cdc7b8` so edges survived on a phone, and the old raised hairline (`#b9b6ab`) ended up a
+ * shade off the new normal one — so switching raised contrast on moved four tokens by a few
+ * numbers each and looked like nothing had happened. The ramp below is rebuilt against the
+ * current base: every ink is at least four contrast steps away from its normal value, and the
+ * edge goes from **1.69:1** to **3.02:1** on a white card, which is a line you can see.
+ */
+/*
+ * **Scoped away from the tinted palette — the second half of the same bug.**
+ *
+ * `:root[data-contrast='high']` sets the inks *on the root*, and once a page colour is chosen the
+ * tint's own ramp is also declared on the root (`--ink: var(--card-ink)` in
+ * `styles/components.css`). Equal specificity, so one of the two always lost: in the light
+ * appearance the tint won and the switch died; in the dark appearance this block's later sibling
+ * carries three attribute selectors and won instead, painting **white ink on a pale blue card
+ * (1.12:1)** while the derived ramp underneath was correct.
+ *
+ * Neither is a fight worth having, because the derived ramp is now *built at two strengths*
+ * (`lib/background.ts` reads the switch). So the static ramp applies only where there is no derived
+ * one: cream, glass and photo. A tint, a split palette or a tinted card set brings its own.
+ */
+:root[data-contrast='high']:not([data-surface='tint']):not([data-surface='cards']):not([data-surface='split']) {
+  /* The whole ramp moves, including `--ink-strong`: headings used to stay at `#18181b` in both
+     states, so the most prominent text on a page was the one thing the switch never touched. */
+  --ink-strong: #000000;
+  --ink: #0d0d10;
+  --ink-muted: #2b2b31;
+  --ink-faint: #3d3d44;
+  --border-hairline: #8b8575;
 }
 
 /*
@@ -353,12 +399,18 @@
  * raised contrast means *lighter* ink and *lighter* hairlines, the reverse of the light theme.
  */
 :root[data-theme='dark'][data-contrast='high'] {
-  --ink: #f2f0ec;
-  --ink-muted: #d5d2cb;
-  --ink-faint: #c6c3bc;
-  --border-hairline: #57544b;
-  --l3-border: 1px solid #54525a;
-  --hairline-on-dark: #54525a;
+  /* The dock, the obsidian tier and its hairlines are not derived from a tint, so they strengthen
+     in every mode. */
+  --l3-border: 1px solid #6e6a72;
+  --hairline-on-dark: #6e6a72;
+}
+
+:root[data-theme='dark'][data-contrast='high']:not([data-surface='tint']):not([data-surface='cards']):not([data-surface='split']) {
+  --ink-strong: #ffffff;
+  --ink: #ffffff;
+  --ink-muted: #ece9e3;
+  --ink-faint: #dcd8d0;
+  --border-hairline: #837e6f;
 }
 
 /* --- Settings adapter: compact density (still a strict 4px rhythm) --- */

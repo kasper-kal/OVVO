@@ -45,8 +45,10 @@ const ALLOWED = new Map([
   [1040, { kind: 'tier', why: 'the sidebar replaces the dock; the page is desktop from 720' }],
   [560, { kind: 'density', why: 'departures row: four cells at their narrowest' }],
   [559, { kind: 'density', why: 'colour sheet: six columns rather than eight' }],
+  [430, { kind: 'density', why: 'results bar: the sort takes the second line rather than squeezing the chips' }],
   [400, { kind: 'density', why: 'date field: the two selects stack' }],
   [379, { kind: 'density', why: 'colour sheet at 320: four columns keep the 44px target' }],
+  [1024, { kind: 'density', why: 'map widget: stop names step down to 1.9 units where the plate is widest' }],
 ]);
 
 /* `@media (max-width: 719px)` and `@media screen and (min-width: 720px)` alike: read the width

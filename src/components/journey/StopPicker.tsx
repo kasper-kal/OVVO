@@ -101,6 +101,15 @@ export function StopPicker({
     to: toLabel ?? (to ? stopLabel(to.id) : ''),
   });
   const [locating, setLocating] = useState(false);
+  /*
+   * Which suggestion the arrows are on (27.2).
+   *
+   * The field said `role="combobox"` over a plain list of buttons: no listbox, no options and no
+   * `aria-activedescendant`, so a screen reader was told there was a combobox with nothing under
+   * it, and the arrows did nothing at all. The list is a listbox now and this is the row the
+   * arrows, the highlight and `aria-activedescendant` share.
+   */
+  const [activeIndex, setActiveIndex] = useState(0);
   const inputs: Record<Side, React.RefObject<HTMLInputElement | null>> = {
     from: useRef<HTMLInputElement>(null),
     to: useRef<HTMLInputElement>(null),
@@ -114,6 +123,11 @@ export function StopPicker({
 
   const query = queries[active];
   const suggestions = rankStops(query, favouriteStopIds, { origin: nearestOrigin });
+
+  /* A new query starts the highlight on the row that ranks first. */
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query, active]);
   /* The traveller's own favourites, in the order they hearted them. */
   const favouriteStops = useMemo(
     () => favouriteStopIds.map((stopId) => getStop(stopId)).filter((stop): stop is Stop => Boolean(stop)),
@@ -172,9 +186,23 @@ export function StopPicker({
    * Pinning is about which boards the departures screen shows, which is not a question this
    * panel asks.
    */
-  const stopRow = (stop: Stop, meta: ReactNode) => (
-    <li key={stop.id} className="picker__item">
-      <button type="button" className="picker-row" onClick={() => choose(stop)}>
+  const stopRow = (stop: Stop, meta: ReactNode, option?: { index: number }) => (
+    <li
+      key={stop.id}
+      className="picker__item"
+      id={option ? `picker-option-${option.index}` : undefined}
+      role={option ? 'option' : undefined}
+      aria-selected={option ? option.index === activeIndex : undefined}
+    >
+      <button
+        type="button"
+        className="picker-row"
+        /* An option is chosen with the arrows and Enter; the rows are not eight extra tab stops
+           between the field and the rest of the screen (27.2). */
+        tabIndex={option ? -1 : undefined}
+        onMouseEnter={option ? () => setActiveIndex(option.index) : undefined}
+        onClick={() => choose(stop)}
+      >
         <span className="picker-row__marker">
           {stop.modes.filter((mode) => mode !== 'walk' && mode !== 'bike').length ? (
             <ModeIcon mode={stop.modes.filter((mode) => mode !== 'walk' && mode !== 'bike')[0]} size={18} />
@@ -308,9 +336,25 @@ export function StopPicker({
         type="text"
         autoComplete="off"
         role="combobox"
-        aria-expanded
+        aria-expanded={typing}
         aria-controls="picker-list"
         aria-autocomplete="list"
+        aria-activedescendant={typing && suggestions.length ? `picker-option-${activeIndex}` : undefined}
+        onKeyDown={(event) => {
+          if (!typing || suggestions.length === 0) return;
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setActiveIndex((index) => Math.max(index - 1, 0));
+          } else if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+            const stop = suggestions[activeIndex];
+            if (!stop) return;
+            event.preventDefault();
+            choose(stop);
+          }
+        }}
         /*  The same two words the planner card's rows carry: one name for one question, on the
             card and in the field that answers it. */
         placeholder={t(which === 'from' ? 'From' : 'To')}
@@ -382,8 +426,8 @@ export function StopPicker({
           action rows were drawn, so the search behaviour below `suggestions` is untouched.
         */}
         {typing ? (
-          <ul className="picker__list" id="picker-list">
-            {suggestions.map((stop) => stopRow(stop, searchMeta(stop)))}
+          <ul className="picker__list" id="picker-list" role="listbox" aria-label={t('Suggestions')}>
+            {suggestions.map((stop, index) => stopRow(stop, searchMeta(stop), { index }))}
 
             {query.trim() && suggestions.length === 0 ? (
               <li className="picker__item picker__empty">

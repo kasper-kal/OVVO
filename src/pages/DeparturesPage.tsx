@@ -11,11 +11,12 @@ import { operatorName } from '../data/operators';
 import { STORAGE_KEYS, writeStored } from '../lib/storage';
 import { disruptionsForStop } from '../data/disruptions';
 import { useMinuteNow } from '../lib/useMinuteNow';
-import { Button, Card, EmptyState, IconButton } from '../components/ui/primitives';
+import { Button, Card, EmptyState, IconButton, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { useRevealOnScrollUp } from '../lib/useRevealOnScrollUp';
+import { useOnline } from '../lib/useOnline';
 import type { Stop } from '../data/types';
 
 /**
@@ -64,9 +65,24 @@ export function DeparturesPage() {
    * rather than to whenever the page happened to mount.
    */
   const minutes = useMinuteNow();
+  /* A board that cannot hear about a delay is a timetable, and it says so rather than pretending. */
+  const online = useOnline();
   const [tick, setTick] = useState(0);
   /* The board's refresh waits to be reached for: reach up for it, scroll down and it leaves. */
   const refreshRevealed = useRevealOnScrollUp();
+
+  /*
+   * **The board refreshed itself once a minute at best, while saying every 5 seconds.**
+   *
+   * `tick` existed but nothing incremented it on a timer, so the only thing that moved the rows was
+   * `useMinuteNow`, and a twelve-second measurement produced zero mutations under a line that
+   * promised five (6.1). The interval is the same constant the label prints, so the sentence and
+   * the behaviour cannot drift apart again.
+   */
+  useEffect(() => {
+    const timer = window.setInterval(() => setTick((value) => value + 1), BOARD_REFRESH_SECONDS * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   /*
    * A `?stop=` is the traveller asking for a stop — from an alert, a stop page, a widget's
@@ -189,11 +205,15 @@ export function DeparturesPage() {
                 {t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
               </span>
             </div>
-            {/* The way back to where the line was pressed — the stop's own page, not a dead end. */}
-            <Link to={`/stops/${lineStop.id}`} className="btn btn--sm">
-              <Icon name="arrowLeft" size={15} />
-              {t('Stop page')}
-            </Link>
+            <div className="row-wrap">
+              {/* 6.1: the line board never had the refresh the stop board hid. */}
+              <IconButton icon="refresh" label={t('Refresh departures')} onClick={() => setTick((value) => value + 1)} />
+              {/* The way back to where the line was pressed — the stop's own page, not a dead end. */}
+              <Link to={`/stops/${lineStop.id}`} className="btn btn--sm">
+                <Icon name="arrowLeft" size={15} />
+                {t('Stop page')}
+              </Link>
+            </div>
           </div>
           <BoardList
             departures={lineBoard}
@@ -242,10 +262,14 @@ export function DeparturesPage() {
         `inert` while it is away: the row is collapsed and clipped, and a control that cannot be
         seen must not be reachable by tab or by a screen reader either.
       */}
-      <div
-        className={`board-refresh${refreshRevealed ? ' board-refresh--shown' : ''}`}
-        inert={!refreshRevealed}
-      >
+      {/*
+        The manual refresh is **visible and reachable at load**.
+
+        It was a 0px-high row that appeared only after a 40px upward wheel at the top of the page,
+        and only on the stop board — inert until then, absent on the line board (6.1). A control
+        that exists only after a gesture nobody knows about is not a control.
+      */}
+      <div className={`board-refresh board-refresh--shown${refreshRevealed ? ' board-refresh--shown' : ''}`}>
         <IconButton
           icon="refresh"
           label={t('Refresh departures')}
@@ -311,12 +335,29 @@ export function DeparturesPage() {
 
       {boards.length === 0 ? (
         <Card className="stack">
+          {/*
+            An address or a landmark has no board, and `?stop=` pins it all the same — so the page
+            said "No stops pinned to the board" over a field holding "Utrecht, Domtoren" (6.4).
+            The two are different facts: nothing is pinned, or the thing you asked for cannot have
+            a board. This is the second one, and it names it.
+          */}
           <EmptyState
             icon="board"
-            title={t('No stops pinned to the board')}
-            description={t(
-              'Pin a stop and its departures appear here. You can pin several at once — they are the boards this page shows, not your favourites.',
-            )}
+            headingLevel={2}
+            title={
+              requested && getStop(requested) && !hasBoard(getStop(requested)!)
+                ? t('No board here')
+                : t('No stops pinned to the board')
+            }
+            description={
+              requested && getStop(requested) && !hasBoard(getStop(requested)!)
+                ? t('{stop} is a walking destination: no bus, tram, metro, train or ferry calls there, so there are no departures to list. Pick a station or stop above.', {
+                    stop: getStop(requested)!.name,
+                  })
+                : t(
+                    'Pin a stop and its departures appear here. You can pin several at once — they are the boards this page shows, not your favourites.',
+                  )
+            }
           >
             <Button variant="primary" icon="search" onClick={focusSearch}>
               {t('Choose stops')}
@@ -371,9 +412,18 @@ export function DeparturesPage() {
           </div>
 
           <div className="between wrap">
-            <span className="field__label">
-              {t('Next departures · from {time}', { time: format.time(minutes) })}
-            </span>
+            <div className="row-wrap">
+              <span className="field__label">
+                {t('Next departures · from {time}', { time: format.time(minutes) })}
+              </span>
+              {/* Offline, the board is the timetable — it says so where the times are, not only in
+                  the strip at the top of the page. */}
+              {online ? null : (
+                <Pill tone="coral" dot dotTone="coral">
+                  {t('Not live')}
+                </Pill>
+              )}
+            </div>
             <span className="t-sm t-faint">
               {delayed
                 ? t(delayed === 1 ? '{count} delay in this window · ' : '{count} delays in this window · ', {
@@ -418,6 +468,7 @@ export function DeparturesPage() {
               size="sm"
               /* `route`, not the crosshair: this plans a journey, it does not locate anyone. */
               icon="route"
+              aria-label={t('Plan from {stop}', { stop: customStopName(stop.id) ?? stop.name })}
               onClick={() => navigate(`/?from=${stop.id}&pick=to`)}
             >
               {t('Plan from here')}
@@ -427,6 +478,7 @@ export function DeparturesPage() {
               /* Same glyph as "Plan from here" beside it — the pair is one action, and the
                  words say which end of the journey this stop is. */
               icon="route"
+              aria-label={t('Plan to {stop}', { stop: customStopName(stop.id) ?? stop.name })}
               onClick={() => navigate(`/?to=${stop.id}&pick=from`)}
             >
               {t('Plan to here')}

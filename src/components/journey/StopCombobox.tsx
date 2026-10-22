@@ -5,6 +5,8 @@ import { modeLabel } from '../../data/preferences';
 import { rankStops } from '../../lib/stopSearch';
 import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import { Icon, ModeIcon } from '../ui/Icons';
+import { stopTypeLabel } from '../../lib/format';
+import { useT } from '../../lib/useT';
 import { Pill } from '../ui/primitives';
 import type { Stop } from '../../data/types';
 
@@ -59,6 +61,7 @@ export function StopCombobox({
   emptyHint,
 }: Props) {
   const { favouriteStopIds, nearestOrigin } = useApp();
+  const t = useT();
   const [query, setQuery] = useState(value ? stopLabel(value.id) : '');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -105,10 +108,6 @@ export function StopCombobox({
        * list inside the desktop page — the kind of half-treated width the breakpoint rule exists
        * to stop.
        */
-      if (!window.matchMedia('(max-width: 719px)').matches) {
-        setCap({ max: 460, up: false });
-        return;
-      }
       const box = field.getBoundingClientRect();
       const below = window.innerHeight - box.bottom - 12;
       const above = box.top - 12;
@@ -201,8 +200,19 @@ export function StopCombobox({
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setOpen(true);
-      setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
+      /*
+       * The first press opens the list *on* its first row; the second moves down.
+       *
+       * It used to open and increment in one gesture, so the top-ranked suggestion was
+       * unreachable with the arrows: on an empty field one press went from Leeuwarden to Alkmaar
+       * and Enter wrote the second result (32.2).
+       */
+      if (!open) {
+        setOpen(true);
+        setActiveIndex(0);
+      } else {
+        setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
+      }
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       setActiveIndex((index) => Math.max(index - 1, 0));
@@ -235,9 +245,12 @@ export function StopCombobox({
                an accessible name, and it disappears the moment the field is typed in. */
             aria-label={hideLabel ? label : undefined}
             role="combobox"
-            aria-expanded={open}
+            aria-expanded={open && suggestions.length > 0}
             aria-controls={`${id}-listbox`}
             aria-autocomplete="list"
+            /* The option the arrows are on, by id: without this a screen reader heard the list's
+               count and never which row Enter would take (1.3, 6.6, 32.3). */
+            aria-activedescendant={open && suggestions.length > 0 ? `${id}-option-${activeIndex}` : undefined}
             aria-invalid={invalid || undefined}
             aria-describedby={describedBy}
             autoComplete="off"
@@ -258,7 +271,7 @@ export function StopCombobox({
             <button
               type="button"
               className="btn btn--ghost btn--icon-circle"
-              aria-label={`Clear ${label.toLowerCase()}`}
+              aria-label={t('Clear {label}', { label: label.toLowerCase() })}
               onClick={() => {
                 commit(null);
                 inputRef.current?.focus();
@@ -274,15 +287,28 @@ export function StopCombobox({
             className={`suggestions${cap.up ? ' suggestions--up' : ''}`}
             id={`${id}-listbox`}
             role="listbox"
-            aria-label={`${label} suggestions`}
+            aria-label={t('{label} suggestions', { label })}
             style={{ maxHeight: `${cap.max}px` }}
           >
             {suggestions.map((stop, index) => (
-              <li key={stop.id} role="option" aria-selected={index === activeIndex}>
+              <li
+                key={stop.id}
+                id={`${id}-option-${index}`}
+                role="option"
+                aria-selected={index === activeIndex}
+              >
                 <button
                   type="button"
                   className="suggestion"
                   data-active={index === activeIndex}
+                  /*
+                   * `-1`, not a tab stop. Eight suggestion buttons used to sit between the field and
+                   * the next control on the page — eight presses through a list whose rows are
+                   * chosen with the arrows, and Escape stopped working the moment the keyboard was
+                   * inside one (11.8, 32.3). The arrows and Enter are the list's keyboard route;
+                   * a press still works for a pointer.
+                   */
+                  tabIndex={-1}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => commit(stop)}
@@ -293,7 +319,8 @@ export function StopCombobox({
                     {customStopName(stop.id) ?? stop.name}
                   </span>
                   <span className="t-sm t-muted">
-                    {stop.city} · {stop.code} · {stop.type}
+                    {/* The raw type ("station") was printed at a Dutch traveller (6.8). */}
+                    {stop.city} · {stop.code} · {t(stopTypeLabel(stop.type))}
                   </span>
                 </span>
                   <span className="suggestion__modes">
@@ -311,18 +338,26 @@ export function StopCombobox({
         ) : null}
 
         {open && query && suggestions.length === 0 ? (
-          <ul
+          /*
+           * No matches is a **message**, not a listbox with no options: a listbox role announced
+           * an empty list and the sentence inside it belonged to no option (32.5). `role="status"`
+           * says it once, and the field stops claiming its list is open.
+           */
+          <div
             className={`suggestions${cap.up ? ' suggestions--up' : ''}`}
-            id={`${id}-listbox`}
-            role="listbox"
-            aria-label={`${label} suggestions`}
+            role="status"
+            aria-label={t('{label} suggestions', { label })}
             style={{ maxHeight: `${cap.max}px` }}
           >
-            <li className="stack-1" style={{ padding: 'var(--s-3)' }}>
-              <span className="t-strong t-body">No stops match “{query}”</span>
-              <span className="t-sm t-muted">{emptyHint ?? 'Search by station, stop or landmark name.'}</span>
-            </li>
-          </ul>
+            <p className="stack-1" style={{ padding: 'var(--s-3)', margin: 0 }}>
+              <span className="t-strong t-body">
+                {t('No stops match “{query}”', { query })}
+              </span>
+              <span className="t-sm t-muted">
+                {emptyHint ?? t('Search by station, stop or landmark name.')}
+              </span>
+            </p>
+          </div>
         ) : null}
 
       </div>

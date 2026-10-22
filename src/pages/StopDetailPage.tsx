@@ -20,6 +20,7 @@ import { Button, Card, EmptyState, IconButton } from '../components/ui/primitive
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
+import { usePageTitle } from '../lib/usePageTitle';
 import { useT } from '../lib/useT';
 import { stopTypeLabel } from '../lib/format';
 import { modeLabel } from '../data/preferences';
@@ -36,13 +37,37 @@ export function StopDetailPage() {
   const format = useFormat();
   const t = useT();
   const stop = getStop(stopId);
+  usePageTitle(stop ? customStopName(stop.id) ?? stop.name : t('Unknown stop'));
+
+  /*
+   * **Every hook runs before the unknown-stop branch.**
+   *
+   * This page returned its fallback before `useMinuteNow`/`useMemo`/`useState` had run, so a hash
+   * change from a real stop to an unknown one rendered fewer hooks than the previous render and
+   * unmounted the app ("Rendered fewer hooks than expected", 5.1) — and back again threw the
+   * mirror error. The guard is data, not control flow: the values below are computed for a stop
+   * that may not exist, and the fallback is drawn after them.
+   */
+  const minutes = useMinuteNow();
+  const nearby = useMemo(() => (stop ? nearbyStops(stop.id, 4) : []), [stop?.id]);
+  const board = useMemo(
+    () => (stop ? boardForStop(stop.id, { fromMinutes: minutes, limit: 6, tick: 0 }) : []),
+    [stop?.id, minutes],
+  );
+  const alerts = stop ? disruptionsForStop(stop.id) : [];
+  const lines = stop ? linesAtStop(stop.id) : [];
+  /* The head's Plan button asks the same question the stop cards do (see `PlanStopDialog`). */
+  const [planOpen, setPlanOpen] = useState(false);
 
   if (!stop) {
     return (
       <div className="stack-6">
         <PageHeader title={t('Unknown stop')} description={t('This stop is not in the network.')} showTitle />
+        {/* The fallback is a page's answer, so it is a level below the H1 — it was an `h3` under
+            an `h1` with no `h2` between them (5.1, 12.3). */}
         <EmptyState
           icon="station"
+          headingLevel={2}
           title={t('Stop not found')}
           description={t('Pick a stop from the full list instead.')}
         >
@@ -57,18 +82,6 @@ export function StopDetailPage() {
 
   const isFavourite = favouriteStopIds.includes(stop.id);
   const onBoard = boardStopIds.includes(stop.id);
-  const lines = linesAtStop(stop.id);
-  /*
-   * The minute the browser is actually in, re-read on the minute (see `useMinuteNow`). It used to
-   * be `nowMinutes() - 1`, which put the board and the "showing from" line one minute behind the
-   * clock — the defect reported as "the website often has the time wrong".
-   */
-  const minutes = useMinuteNow();
-  const board = boardForStop(stop.id, { fromMinutes: minutes, limit: 6, tick: 0 });
-  const alerts = disruptionsForStop(stop.id);
-  const nearby = useMemo(() => nearbyStops(stop.id, 4), [stop.id]);
-  /* The head's Plan button asks the same question the stop cards do (see `PlanStopDialog`). */
-  const [planOpen, setPlanOpen] = useState(false);
 
   /*
    * One end, then the other. This used to reuse whatever search was in the session when there was
@@ -110,7 +123,7 @@ export function StopDetailPage() {
               this control on the left before).
             */}
             <Button size="sm" icon="route" onClick={() => setPlanOpen(true)}>
-              Plan
+              {t('Plan')}
             </Button>
             <IconButton
               icon="heart"
@@ -140,7 +153,21 @@ export function StopDetailPage() {
         }
       />
 
-      <div className="grid-2" style={{ alignItems: 'start' }}>
+      {/*
+        A nickname is the traveller's name for the place, not a replacement for what the place is
+        called: the official name and stop code used to survive only as a 1×1 sr-only line, so a
+        page headed "Work" never said which station it was (5.2).
+      */}
+      {customStopName(stop.id) ? (
+        <p className="t-sm t-muted">
+          {stop.name} · {stop.city} · {t('stop code {code}', { code: stop.code })}
+        </p>
+      ) : null}
+
+      {/* `stop-columns`: at two columns the page used to be two fixed stacks, and the shorter one
+          ended 792px above the longer at 1440 — a blank half-page under Alerts (5.4). A balanced
+          flow fills both columns by height, and each card stays whole. */}
+      <div className="grid-2 stop-columns" style={{ alignItems: 'start' }}>
         <div className="stack-4">
           <Card className="stack">
             <div className="between wrap">
@@ -236,7 +263,13 @@ export function StopDetailPage() {
                       <span className="t-strong t-sm">{alert.title}</span>
                       <span className="t-sm t-muted t-clamp-2">{alert.description}</span>
                     </span>
-                    <Link to={`/disruptions/${alert.id}`} className="btn btn--sm">
+                    {/* Five links called "Details" told a screen reader nothing about which alert
+                        each one opens (5.9). */}
+                    <Link
+                      to={`/disruptions/${alert.id}`}
+                      className="btn btn--sm"
+                      aria-label={t('Details of {alert}', { alert: alert.title })}
+                    >
                       {t('Details')}
                     </Link>
                   </li>
@@ -249,10 +282,10 @@ export function StopDetailPage() {
         <div className="stack-4">
           <Card className="stack">
             <div className="between">
-              <h2 className="t-section">Position on the map</h2>
+              <h2 className="t-section">{t('Position on the map')}</h2>
               <Link to={`/map?stop=${stop.id}`} className="btn btn--sm">
                 <Icon name="map" size={15} />
-                Open map
+                {t('Open map')}
               </Link>
             </div>
             {/*
@@ -264,7 +297,7 @@ export function StopDetailPage() {
               className="map-canvas"
               viewBox="0 0 100 100"
               role="img"
-              aria-label={`Schematic local view of ${stop.name} and the stops around it`}
+              aria-label={t('Schematic local view of {stop} and the stops around it', { stop: stop.name })}
             >
               <rect x="0" y="0" width="100" height="100" className="map-water" />
               <path className="map-land" d="M5 5 L95 3 L95 95 L5 95 Z" />
@@ -299,11 +332,19 @@ export function StopDetailPage() {
 
           <Card className="stack">
             <h2 className="t-section">{t('Lines calling here')}</h2>
+            {/*
+              The branch was on `lines.length === 0`, so the two served stations with no through
+              service — Enschede and Eindhoven Strijp-S — were both described as walking landmarks
+              (5.7). A station is a station: it says it has no lines right now, and only a landmark
+              gets the landmark's sentence.
+            */}
             {lines.length === 0 ? (
               <p className="t-sm t-muted">
-                {t(
-                  'This is a walking landmark: it is reached on foot from the nearest stop rather than by a service.',
-                )}
+                {stop.type === 'landmark'
+                  ? t(
+                      'This is a walking landmark: it is reached on foot from the nearest stop rather than by a service.',
+                    )
+                  : t('No service calls at this station right now.')}
               </p>
             ) : (
               <ul className="stack-2">

@@ -96,6 +96,7 @@ export function HomePage() {
     removeHomeWidget,
     moveHomeWidget,
     resetHomeWidgets,
+    restoreHomeLayout,
     /*
      * The mode and its menu live in the store, because their controls are in the shell's header:
      * `+` where the way back goes and `Done` where the alerts entry is (see `AppShell`).
@@ -824,10 +825,26 @@ export function HomePage() {
     return () => window.removeEventListener('resize', place);
   }, [homeMenuOpen]);
 
+  /*
+   * Focus enters once, and leaves to the control that opened the menu.
+   *
+   * The effect was keyed on the placed position, so it re-ran on every re-place — a resize put the
+   * caret back on the first row (31.3) — and every exit (Escape, the scrim, a row) dropped focus on
+   * `<body>` (31.1). Now the first placement focuses the first row, a later one does not, and a
+   * close hands the keyboard back to the header's + while it is still on screen.
+   */
+  const menuFocused = useRef(false);
   useEffect(() => {
-    if (!menuPos) return;
+    if (!homeMenuOpen) {
+      menuFocused.current = false;
+      const trigger = document.querySelector<HTMLElement>('[data-home-menu-trigger]');
+      trigger?.focus({ preventScroll: true });
+      return;
+    }
+    if (menuFocused.current) return;
     menuRef.current?.querySelector<HTMLElement>('button')?.focus();
-  }, [menuPos]);
+    menuFocused.current = true;
+  }, [homeMenuOpen, menuPos]);
 
   /**
    * Esc closes the menu; Tab stays inside it, because the scrim makes it the only thing on screen.
@@ -861,7 +878,10 @@ export function HomePage() {
    * The mode stays open: a reset is a change to the layout you are arranging, and dropping the
    * furniture out from under the traveller is not what pressing it asked for.
    */
+  const [preReset, setPreReset] = useState<string[] | null>(null);
   const resetLayout = () => {
+    /* The arrangement is kept before it goes, so the menu can offer it back (31.2). */
+    setPreReset(homeWidgets);
     resetHomeWidgets();
     setMoves([]);
     setNote(t('Layout reset'));
@@ -1132,6 +1152,25 @@ export function HomePage() {
                 <span className="grow">{t('Put it back')}</span>
               </button>
             ) : null}
+
+            {/* The reset was the one arrangement change with no way back: it cleared the move
+                history in the same instant, so the "Put it back" a row lower was gone with the
+                layout it described (31.2). */}
+            {preReset ? (
+              <button
+                type="button"
+                className="list-row home-menu__row"
+                onClick={() => {
+                  restoreHomeLayout(preReset);
+                  setPreReset(null);
+                  setHomeMenuOpen(false);
+                  setNote(t('Arrangement restored'));
+                }}
+              >
+                <Icon name="arrowLeft" size={18} />
+                <span className="grow">{t('Put the arrangement back')}</span>
+              </button>
+            ) : null}
           </div>
         </>
       ) : null}
@@ -1178,7 +1217,28 @@ export function HomePage() {
                         <span className="t-strong t-sm">{t(widget.title)}</span>
                         <span className="t-sm t-faint">{t(widget.description)}</span>
                       </span>
-                      <Button size="sm" icon="plus" onClick={() => addHomeWidget(widget.id)}>
+                      <Button
+                        size="sm"
+                        icon="plus"
+                        aria-label={t('Add {widget}', { widget: t(widget.title) })}
+                        onClick={() => {
+                          /*
+                           * The list must not move under the finger (24.3). Removing the row above
+                           * where the traveller pressed pulled everything up by a row's height, so
+                           * a second press landed on a different widget's Add. The sheet's scroll
+                           * offset is kept, so the pressed row leaves and nothing else moves.
+                           */
+                          const sheet = document.querySelector<HTMLElement>('.modal');
+                          const scrolled = sheet?.scrollTop ?? 0;
+                          addHomeWidget(widget.id);
+                          requestAnimationFrame(() => {
+                            if (sheet) sheet.scrollTop = scrolled;
+                          });
+                          /* Adding was silent: the count simply dropped 12 → 11 and the row left
+                             the list (24.4). The live region above says what happened. */
+                          setNote(t('{widget} added to the home screen', { widget: t(widget.title) }));
+                        }}
+                      >
                         {t('Add')}
                       </Button>
                     </li>
