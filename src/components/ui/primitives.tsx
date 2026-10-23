@@ -569,7 +569,12 @@ export function Dialog({
    * sheet cannot be written without them. The description is linked rather than left as a
    * paragraph beside the dialog, which is what 22.1, 23.1 and 25.1 asked for.
    */
-  useOverlay(open, panel, onClose);
+  /*
+   * The ×, the scrim and Escape close through the overlay's own close so a field that still has
+   * the caret is blurred before the sheet leaves — otherwise a phone keyboard outlives the screen
+   * it belonged to (see `lib/useOverlay`).
+   */
+  const requestClose = useOverlay(open, panel, onClose);
 
   if (!open) return null;
   /*
@@ -584,7 +589,7 @@ export function Dialog({
       className="overlay"
       role="presentation"
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) requestClose();
       }}
     >
       <div
@@ -608,7 +613,7 @@ export function Dialog({
           {/* `modal__close` gives the way out a disc and the strongest ink: as a bare ghost
               glyph, a 1.5px × 18px cross on a panel was reported as "a weird contrast which makes
               it close to invisible" — a mark that thin needs a surface to sit on. */}
-          <IconButton className="modal__close" icon="close" label={t('Close')} onClick={onClose} />
+          <IconButton className="modal__close" icon="close" label={t('Close')} onClick={requestClose} />
         </div>
         {children}
         {footer ? <div className="row-wrap" style={{ marginTop: 'var(--s-4)' }}>{footer}</div> : null}

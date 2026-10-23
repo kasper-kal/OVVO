@@ -1,4 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react';
+import { dismissKeyboard } from './dismissKeyboard';
 
 /*
  * One behaviour for every overlay in the app.
@@ -82,11 +83,14 @@ function unlockDocument(): void {
   window.scrollTo({ top: savedScrollY, behavior: 'auto' });
 }
 
+/* What a phone's keyboard belongs to: the same list `dismissKeyboard` blurs. */
+const FIELD = 'input, textarea, select, [contenteditable="true"], [contenteditable=""]';
+
 export function useOverlay(
   open: boolean,
   panelRef: RefObject<HTMLElement | null>,
   onClose: () => void,
-): void {
+): () => void {
   /*
    * The close handler is held in a ref so the effect depends on `open` alone. Call sites pass
    * an inline arrow, which is a new function every render; depending on it would tear the
@@ -94,11 +98,39 @@ export function useOverlay(
    */
   const close = useRef(onClose);
   close.current = onClose;
+  /*
+   * The control that will get the focus back when this overlay closes — read by `requestClose`
+   * below, which is called from a button press rather than from inside the effect.
+   */
+  const restoreRef = useRef<HTMLElement | null>(null);
+
+  /*
+   * **A sheet closing is not a typing moment.**
+   *
+   * Closing a screen while its field still has the caret used to leave the field focused and the
+   * screen was simply taken out of the page — no blur, ever. A phone's keyboard belongs to that
+   * field, so it stayed up over whatever the screen had been covering: the full-screen stop picker
+   * is opened *over* the results, so cancelling it left the keyboard sitting on "Journey results"
+   * (reported as "sometimes the keyboard stays when you're already in journey results"). Measured
+   * with taps dispatched without a focus change, the way a thumb behaves: on the picker's back
+   * arrow **no blur was raised by the app at all**, and the field went away still focused. The
+   * browser moves focus afterwards, which is clean-up and not an answer.
+   *
+   * The one case that keeps the keyboard on purpose is the caret going **back into a field** — a
+   * sheet opened over a search box returns to that box, and blurring it would close the keyboard
+   * only to reopen it a frame later. `restoreRef` is how that is known before the focus moves.
+   */
+  const requestClose = () => {
+    const trigger = restoreRef.current;
+    if (!trigger || !trigger.matches(FIELD)) dismissKeyboard();
+    close.current();
+  };
 
   useEffect(() => {
     if (!open) return undefined;
     const panel = panelRef.current;
     const restoreTo = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    restoreRef.current = restoreTo;
 
     lockDocument();
     openStack.push(panel ?? document.body);
@@ -129,6 +161,8 @@ export function useOverlay(
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
+        /* The same act as the close button (see `requestClose`). */
+        if (!restoreTo || !restoreTo.matches(FIELD)) dismissKeyboard();
         close.current();
         return;
       }
@@ -198,4 +232,7 @@ export function useOverlay(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  /* The containers' × , back arrow and scrim close through this (see `requestClose`). */
+  return requestClose;
 }

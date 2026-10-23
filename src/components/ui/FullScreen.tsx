@@ -45,7 +45,13 @@ export function FullScreen({
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const t = useT();
-  useOverlay(true, panel, onClose);
+  /*
+   * The arrow closes **through the overlay's own close**, not straight to `onClose`: that is the
+   * call that puts the keyboard away when a field on this screen still has the caret (see
+   * `lib/useOverlay`). Straight to `onClose`, cancelling the stop picker left the keyboard up over
+   * the results it had been covering.
+   */
+  const requestClose = useOverlay(true, panel, onClose);
 
   /*
    * **A full-screen screen is rendered at the top of the document, not inside the card that opened
@@ -74,7 +80,7 @@ export function FullScreen({
             The name is translated here, once, because this bar is shared by four screens: a
             literal "Back" left the one control on the Dutch stop picker, the photo sampler and
             the crop in English (28.6, 29.7, 30.7). */}
-        <IconButton icon="arrowLeft" label={t('Back')} onClick={onClose} className="back-arrow fullscreen__back" />
+        <IconButton icon="arrowLeft" label={t('Back')} onClick={requestClose} className="back-arrow fullscreen__back" />
         <h2 className="fullscreen__title">{title}</h2>
         <div className="fullscreen__slot">{right ?? <span className="fullscreen__spacer" aria-hidden="true" />}</div>
       </div>

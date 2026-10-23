@@ -324,7 +324,16 @@ export function MapPicker({
               block
               disabled={!chosen}
               onClick={() => {
-                if (chosen) onPick(side, chosen);
+                if (!chosen) return;
+                /*
+                 * The same act as `centreOnStop` above, for the button that answers the screen:
+                 * this map is closing and the pair is complete, so the keyboard goes before the
+                 * hand-off. A finger on this button does not blur the search field by itself —
+                 * a phone does not focus buttons — so without this the caret stayed in the field
+                 * that was about to be unmounted, and the keyboard came out over the results.
+                 */
+                dismissKeyboard();
+                onPick(side, chosen);
               }}
             >
               {t('Select this stop')}
