@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../../state/AppState';
 import { getStop } from '../../data/stops';
 import { StopPicker } from './StopPicker';
@@ -41,6 +41,7 @@ export function SearchForm({
   inheritSearch?: boolean;
 }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [params] = useSearchParams();
   const { search, startSearch, preferences, pushToast, settings } = useApp();
   const t = useT();
@@ -186,9 +187,21 @@ export function SearchForm({
      * the next screen paints under the closing overlay, where it has always been.
      *
      * No toast: the results screen is the answer to the question that was just asked.
+     *
+     * **A search asked from the results screen replaces that entry; it does not add one.**
+     *
+     * The card on the results screen is editable, so a second search can be run without leaving
+     * it — correct the departure row, or answer it again. That used to push a *second* `/results`
+     * entry, and the screen's own back arrow asks the history where it came from (see
+     * `useHeaderBack`): one press popped to the other results entry, which is the same screen, so
+     * Back did nothing at all (reported as: *"I put in my adress → Haarlem Station, saw the
+     * results, pressed back, now it goes... Here."* — "here" being the results again). Replacing
+     * the entry the traveller is already on is the honest shape of what happened: the search on
+     * this screen changed, the screen did not. Back goes on returning to the screen the results
+     * were opened from, which is the one thing the arrow promises.
      */
     startSearch(query);
-    navigate('/results');
+    navigate('/results', { replace: pathname === '/results' });
     setSheet(null);
     onSearch?.();
   };
