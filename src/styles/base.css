@@ -32,12 +32,33 @@
  *
  * `scripts/breakpoint-audit.mjs` reads this file and fails when a new width appears outside those
  * two lists, so a fourth threshold has to be argued for in prose before it can ship.
- */
-
-*,
+ */ *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/*
+ * **No grey flash on a tap.**
+ *
+ * A touch browser paints its own highlight over whatever is pressed — a grey box on Chrome for
+ * Android, a blue one on older iOS — and it is drawn on the *element*, not the control inside it, so
+ * a tap on a card's heart flashed the whole card. The app answers a press itself, with the press
+ * scale every control carries (see `--press-scale`), so the flash was a second, square answer to the
+ * same tap: it landed after the round shape it was drawn behind, and on a rounded card it read as a
+ * rectangle blinking out of the corner.
+ *
+ * It is set on the universal selector rather than on `button, a, input` because this app's tappable
+ * things are not all of those: rows are buttons, cards are articles with a press state of their own,
+ * and the dock's tabs are links. `-webkit-tap-highlight-color` is inherited, so one declaration
+ * reaches everything the browser might paint, and there is nothing left to remember for a control
+ * added later.
+ *
+ * This is the *platform's* highlight only. Every focus ring, press state and selected colour in the
+ * app is drawn by the app and is untouched — a keyboard user still sees where the caret is.
+ */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
