@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
+import { StopLink } from '../components/stops/StopLink';
 import { JOURNEY_LABELS } from '../data/journeyEngine';
 import { getStop, stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
@@ -107,10 +108,14 @@ export function JourneyDetailPage() {
          */
         title={
           <>
-            {journey.legs[0].fromLabel ?? stopLabel(journey.legs[0].fromStopId)}
+            {/* The two ends of the trip, each a way to its station's page — the most prominent
+                station names on the screen, and the first thing anyone reads. An address end keeps
+                its words and gets no link. */}
+            {journey.legs[0].fromLabel ?? <StopLink stopId={journey.legs[0].fromStopId} />}
             <Icon name="arrowRight" size={18} className="page-head__arrow" />
-            {journey.legs[journey.legs.length - 1].toLabel ??
-              stopLabel(journey.legs[journey.legs.length - 1].toStopId)}
+            {journey.legs[journey.legs.length - 1].toLabel ?? (
+              <StopLink stopId={journey.legs[journey.legs.length - 1].toStopId} />
+            )}
           </>
         }
         description={`${format.date(search?.query.date ?? '')} · ${t('departs {time}', { time: format.time(journey.departure) })} · ${t('arrives {time}', { time: format.time(journey.arrival) })} · ${

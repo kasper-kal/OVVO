@@ -10,6 +10,7 @@ import { useLoadOnScroll } from '../lib/loadBatch';
 import { Button, Card, Chip, Pill } from '../components/ui/primitives';
 import { NoMatches } from '../components/ui/NoMatches';
 import { ResultCard, ResultCardLink } from '../components/ui/ResultCard';
+import { StopLink } from '../components/stops/StopLink';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -425,6 +426,33 @@ function AlertCard({ alert }: { alert: Disruption }) {
         do about this?"
       */}
       <p className="t-sm t-clamp-2">{alert.advice}</p>
+
+      {/*
+        Which stops this alert touches, and each one a way to its page.
+
+        The card used to draw a chip per affected stop, and the chips were cut for making a row
+        answer nine questions at once. This is the same fact in one line of words, which is what it
+        always was: the stops are named because an alert that does not say where it is *is* not an
+        answer to "does this affect my journey?". The line is the count the alert's own page prints
+        ("Affected stops (2)") followed by the names, so the two screens cannot drift apart.
+
+        A stop's name here is the only thing on the card that leaves for somewhere other than the
+        alert; the card's own press handles that for every control inside it already
+        (`components/ui/ResultCard.tsx`), so a tap on a name goes to the stop and nowhere else.
+      */}
+      {alert.affectedStopIds.length ? (
+        <p className="t-sm t-muted">
+          <span className="t-faint">
+            {t('Affected stops ({count})', { count: alert.affectedStopIds.length })}:{' '}
+          </span>
+          {alert.affectedStopIds.map((stopId, index) => (
+            <span key={stopId}>
+              {index > 0 ? ' · ' : ''}
+              <StopLink stopId={stopId} />
+            </span>
+          ))}
+        </p>
+      ) : null}
 
       {/*
         One action per card. The board for an affected stop is one tap away on the alert's own

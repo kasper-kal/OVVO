@@ -5578,6 +5578,18 @@
   text-decoration: line-through;
 }
 
+/*
+ * **On a cancelled row the destination's two lines step apart.**
+ *
+ * The strike through the words is the row's meaning and the underline under them is the link's, and
+ * at the app's 3px underline offset the two drew as one smudged rule a pixel apart — seen on the
+ * board at 390 with a cancelled service. Two pixels lower and each line says its own thing: this
+ * one is off, and this one can still be looked up.
+ */
+.board-list__row[data-cancelled] .stop-link {
+  text-underline-offset: 5px;
+}
+
 .board-list__time {
   display: flex;
   flex-direction: column;

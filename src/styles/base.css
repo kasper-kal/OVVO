@@ -157,6 +157,36 @@ a {
   text-decoration: none;
 }
 
+/*
+ * **A station's name, underlined, because it is now a link.**
+ *
+ * Every other way into a screen in this app is a pill, a row or a chevron — a shape. This is a word
+ * inside a sentence ("Walk 19 min · Rijksstraatweg 9, Haarlem → Haarlem Station"), and a word has
+ * nothing but its own ink to say "you can touch me". So the line goes under the name, always and
+ * not only on hover: **a phone has no hover**, and a link nobody can see is worse than no link.
+ *
+ * The line is one pixel, three pixels below the type and half the ink's strength, so a row does not
+ * turn into stripes and the underline is not a second, heavier text. It comes to full strength when
+ * the word is pointed at or focused, which is the state the reader is about to act in.
+ *
+ * **No padding, and deliberately no 44px target.** This is a word inside a line — a heading, a
+ * sentence, a board row — so it is sized by that line. A thumb-sized box around it would push the
+ * line apart and lay an invisible square over the words beside it, and a miss would land on
+ * nothing. `AGENTS.md` rule 8 records that; `scripts/ui-audit.mjs` names `.stop-link` and skips its
+ * target probe for the same reason.
+ */
+.stop-link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.stop-link:hover,
+.stop-link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
 /* Icons flow inline by default so arrows sit inside a sentence; containers that
    lay icons out (buttons, marker tiles, the map) use flex or grid and are unaffected. */
 svg {

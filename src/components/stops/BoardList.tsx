@@ -6,6 +6,7 @@ import { getStop } from '../../data/stops';
 import { useFormat } from '../../lib/useFormat';
 import { useT } from '../../lib/useT';
 import { EmptyState, IconButton } from '../ui/primitives';
+import { StopLink } from './StopLink';
 import { Icon } from '../ui/Icons';
 import type { Departure } from '../../data/types';
 import { ROWS_PER_LOAD } from '../../lib/loadBatch';
@@ -125,7 +126,14 @@ export function BoardList({
               </span>
 
               <span className="board-list__main">
-                <span className="board-list__destination">{departure.destinationLabel}</span>
+                {/*
+                  Where this service goes, as a way to that station's page. It is the one word on
+                  the row that names a place — the time, the platform and the line are facts about
+                  *this* stop — so it is the row's link, and the row keeps its own plan button.
+                */}
+                <span className="board-list__destination">
+                  <StopLink stopId={departure.destinationStopId} label={departure.destinationLabel} />
+                </span>
                 {/*
                   The same word the journey card and the leg list use, from the same entry: it was
                   a literal here, so a cancelled departure read `cancelled` — lowercase and English

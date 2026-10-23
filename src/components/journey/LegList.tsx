@@ -3,6 +3,7 @@ import { getLine } from '../../data/network';
 import { useFormat } from '../../lib/useFormat';
 import { Disclosure, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
+import { StopLink } from '../stops/StopLink';
 import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
 
@@ -38,9 +39,14 @@ function WalkLegRow({ leg }: { leg: Leg }) {
             </span>
             <Pill tone="outline">{format.time(leg.departure)} – {format.time(leg.arrival)}</Pill>
           </div>
+          {/*
+            A walk's two ends are stations too, so they are links like every other named stop on
+            this page. An end that is an address keeps its words and gets no link: there is no page
+            for a street, and a walk from a doorstep is named by the address, not by a station.
+          */}
           <p className="t-sm t-muted">
-            {leg.fromLabel ?? stopLabel(leg.fromStopId)} <Icon name="arrowRight" size={13} />{' '}
-            {leg.toLabel ?? stopLabel(leg.toStopId)}
+            {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />} <Icon name="arrowRight" size={13} />{' '}
+            {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
           </p>
           {leg.message ? <p className="t-sm t-faint">{leg.message}</p> : null}
         </div>
@@ -63,7 +69,9 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
           twice, put both ends of the journey inside one service's block, and left the departure
           unnamed at the top of the journey where it belongs.
         */}
-        <span className="timeline__station">{leg.fromLabel ?? stopLabel(leg.fromStopId)}</span>
+        <span className="timeline__station">
+          {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
+        </span>
 
         <div className="row-wrap">
           <span className={`mode-badge mode-badge--${leg.mode}`}>
@@ -118,7 +126,11 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
             <ol className="stack-2">
               {leg.intermediateStops.map((stop) => (
                 <li key={stop.stopId} className="between">
-                  <span className="t-sm">{stopLabel(stop.stopId)}</span>
+                  {/* The stops passed through are places with pages too — this is the list a
+                      traveller reads when they wonder whether a stop is the one they want. */}
+                  <span className="t-sm">
+                    <StopLink stopId={stop.stopId} />
+                  </span>
                   <span className="row">
                     <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
                     {stop.platform ? (
@@ -189,7 +201,6 @@ export function LegList({ journey }: { journey: Journey }) {
    */
   const lastLeg = journey.legs[journey.legs.length - 1];
   const arrivalId = lastLeg.toStopId;
-  const arrivalName = lastLeg.toLabel ?? stopLabel(arrivalId);
   /*
    * The connector into the arrival square is the last leg's mode, the same as the row above it,
    * so a journey with no service in it is one dashed line from the departure circle to the square.
@@ -208,7 +219,9 @@ export function LegList({ journey }: { journey: Journey }) {
               journey ends at the service itself: after a final walk, the platform belongs to the
               stop the walk left from, not to the door it reaches. */}
           <span className="row-wrap">
-            <span className="timeline__station">{arrivalName}</span>
+            <span className="timeline__station">
+              {lastLeg.toLabel ?? <StopLink stopId={arrivalId} />}
+            </span>
             {lastRide === lastLeg ? (
               <PlatformTag platform={lastLeg.arrivalPlatform} label={t('Arrival platform')} />
             ) : null}

@@ -14,6 +14,7 @@ Here are the rules:
 5. ALWAYS apologize for your actions, even if you think you did nothing wrong.
 6. NEVER edit the OVVO logo, even if i ask, IF I ask to change the OVVO logo, ask me to confirm TWICE. 
 7. ALWAYS explain things simply. Say the answer first, then the reason, in plain everyday words and short sentences. No tables of numbers, file names or internals unless they change what the user has to decide. If something can be said in one sentence, do not use five — a wall of measurements is not an explanation, it is a hiding place. A rule of thumb: the explanation should make sense to someone who does not write code.
+8. NEVER give a 44px padding, a tall hit area or an invisible box to a link that is a word inside a line of text — a station name in a journey leg, on a board row, in an alert. It is sized by the line it sits in, and it IS underlined so it reads as a link. The target-size audit is told to skip these (`.stop-link` in `scripts/ui-audit.mjs`), and if any audit still flags one, it is to be IGNORED, not fixed. The reason: padding pushes the line apart and lays a square over the words beside the link, so a near miss lands on nothing at all.
 
 ## How the rules are enforced
 

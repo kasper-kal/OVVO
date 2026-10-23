@@ -394,9 +394,29 @@ for (const width of WIDTHS) {
         }
 
         if (!el.matches('a[href], button, select, input:not([type=hidden]), textarea, [role=button], [role=checkbox], [role=tab], summary')) continue;
-        // a link that is only a word inside a sentence is sized by the sentence, not by us
-        const inProse = el.tagName === 'A' && cs.display.startsWith('inline') && el.matches('p a, li a') && !el.className.toString().includes('tap-target');
-        if (inProse) continue;
+        /*
+         * **A word inside a line of text is sized by the line, not by us.**
+         *
+         * Two kinds of link skip the 44×44 probe, and they skip it for the same reason:
+         *
+         *   • **`.stop-link`** — a station's name printed inside a journey leg, a departure row or
+         *     an alert. The name is one word among other words, and it is *deliberately* given no
+         *     padding (`AGENTS.md` rule 8, and `.stop-link` in `styles/base.css`). A thumb-sized
+         *     box around a word in a sentence pushes that sentence apart and lays an invisible
+         *     square over the words beside it, where a near miss then lands on nothing. The thin
+         *     underline is what says "this is a link", which is the whole of its affordance.
+         *   • **an inline link inside a `<p>` or `<li>`** that is not marked `tap-target`, which is
+         *     what this check has always allowed for a link that is merely a word in a sentence.
+         *
+         * So this is not a loosened check, it is the correct rule for this kind of link: the probe
+         * would fail every time, forever, and the finding would have to be ignored by hand on each
+         * run — which is why it is written here instead, once. Anything that *can* be padded still
+         * is measured: a link that grows a `tap-target` class is back in the probe below.
+         */
+        const stopLink = el.tagName === 'A' && el.classList.contains('stop-link');
+        const proseLink =
+          el.tagName === 'A' && cs.display.startsWith('inline') && el.matches('p a, li a') && !el.className.toString().includes('tap-target');
+        if (stopLink || proseLink) continue;
         const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
         // Only controls whose whole probed square is on screen: the viewport edge, or a control
         // scrolled under a sticky bar, cannot be measured and is not a defect.
