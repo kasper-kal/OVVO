@@ -134,6 +134,12 @@ const GLYPHS = {
   bike: Bike,
   board: Monitor,
   bookmark: Bookmark,
+  /*
+   * **A saved search, switched on.** Lucide's bookmark is one closed path, so the solid form is
+   * the same drawing filled — the outline with its inside painted, the way a kept heart and a
+   * kept pin are. One glyph, two states, and the state is the fill.
+   */
+  bookmarkFilled: Bookmark,
   bus: Bus,
   calendar: CalendarDays,
   check: Check,
@@ -203,6 +209,8 @@ const GLYPHS = {
    * the stop is not being pointed at, it is being pinned to the traveller's own list.
    */
   pin: Pin,
+  /* The same drawing, kept: a pin whose board is on the departure screen. */
+  pinFilled: Pin,
   /*
    * **Take a colour out of the screen** — Lucide's `Pipette`. It was drawn with `location` (the
    * crosshair) in the first version of the sampler, which meant "where am I" was standing in for
@@ -259,7 +267,31 @@ const NAV_GLYPHS: Partial<Record<IconName, ReactNode>> = {
 };
 
 /** Glyphs that are the filled drawing by definition. */
-const FILLED = new Set<IconName>(['heartFilled']);
+const FILLED = new Set<IconName>(['heartFilled', 'bookmarkFilled', 'pinFilled']);
+
+/**
+ * **A toggle that is on, drawn solid.**
+ *
+ * Every control in the app that keeps something — a favourite stop, a journey, a pinned board, a
+ * saved search — says so by **filling its glyph**, not by swapping it for a tick or by changing
+ * its colour alone. That rule is written once, here, so a control cannot be added with the
+ * outline showing in both states: an `IconButton` or a save chip that has a filled twin gets it
+ * for free.
+ *
+ * `.glyph-toggle[aria-pressed='true']` fills whatever glyph is inside it as well, so a control
+ * that carries that class is covered twice over; this map is what covers the controls that do
+ * not (a chip, a card's bare heart), and it is why the fill survives a class being renamed.
+ */
+const FILLED_VARIANT: Partial<Record<IconName, IconName>> = {
+  heart: 'heartFilled',
+  bookmark: 'bookmarkFilled',
+  pin: 'pinFilled',
+};
+
+/** The same control switched on: the solid glyph when there is one, otherwise the glyph itself. */
+export function pressedIcon(name: IconName): IconName {
+  return FILLED_VARIANT[name] ?? name;
+}
 
 /** The stroke the hand-drawn navigation set was drawn in, and its default. */
 const NAV_STROKE = 1.75;

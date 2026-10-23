@@ -1,15 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { SearchForm } from '../components/journey/SearchForm';
 import { PreferencesControls } from '../components/journey/PreferencesControls';
 import { JourneyCard } from '../components/journey/JourneyCard';
-import { ResultSkeletons } from '../components/journey/ResultSkeletons';
-import { filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
+import { DEFAULT_RESULTS_FILTER, filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
 import { ACCESS_MODES, DEFAULT_PREFERENCES, MODE_OPTIONS, PT_MODES, modeLabel } from '../data/preferences';
 import { disruptionsForStop } from '../data/disruptions';
-import { Banner, Button, Card, Chip, Dialog, EmptyState, Segmented } from '../components/ui/primitives';
+import { Button, Card, Chip, Dialog, EmptyState, Segmented } from '../components/ui/primitives';
 import { NoMatches } from '../components/ui/NoMatches';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } from '../lib/format';
@@ -17,6 +16,16 @@ import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
+
+/**
+ * How far one press of "Earlier" or "Later" moves the window, and how far it may go.
+ *
+ * Thirty minutes is the step the removed control used and the step the timetable is built on; four
+ * hours each way is the clamp the state has always applied (`shiftWindow`). Past the clamp the
+ * control is disabled rather than pressed into nothing.
+ */
+const WINDOW_STEP_MINUTES = 30;
+const WINDOW_LIMIT_MINUTES = 240;
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: 'best', label: 'Best' },
@@ -53,18 +62,11 @@ export function ResultsPage() {
     setSortMode,
     setFilter,
     resetFilter,
+    shiftWindow,
     recentSearches,
     keepSearch,
     removeRecentSearch,
-    power,
   } = useApp();
-  /*
-   * Read inside the effect through a ref: the wait belongs to the search, and a battery that
-   * crosses a threshold (or a charger going in) must not replay the spinner over a list that is
-   * already there. See the planning note below for why the wait exists at all.
-   */
-  const savingRef = useRef(power.mode !== 'off');
-  savingRef.current = power.mode !== 'off';
   const format = useFormat();
   const t = useT();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -76,43 +78,18 @@ export function ResultsPage() {
   const [nowRef] = useState(() => roundToStep(nowMinutes(), 5));
 
   /*
-   * The results screen opens in a **planning** state (F4).
+   * **No held place on this screen — the answer is already here.**
    *
-   * The report is about what is on screen while the answer is being worked out: "it goes to the
-   * results but then it shows a flicker of the home screen instead of the results screen ... what
-   * it should do instead is show the results screen just without results and a spinner in place of
-   * the results while waiting". So the page paints its own head and its own search card at once,
-   * and the list's place is held by a spinner until the journeys are there. The window is short
-   * because the engine is local — long enough to be seen, never long enough to be waited on — and
-   * it is keyed to the search itself, not to a filter or a sort, which are readings of the list
-   * that is already on screen.
+   * The list used to open in a "planning" state for 260ms: three skeleton cards and a sentence
+   * over an empty answer, because the report that asked for it was about a *flicker* of the home
+   * screen before the results. The planner is local and synchronous (6–25ms measured across the
+   * network), so that hold was a delay invented to make a placeholder visible, paid on every
+   * search and every time the window was paged. A skeleton belongs over work that is happening;
+   * when the work is a memo that has already returned, it is a lie with a timer on it.
+   *
+   * So the page paints its head, its search card and the journeys in one frame. `ui/Skeletons.tsx`
+   * is still the app's held shape for the screens whose data is genuinely pending.
    */
-  const [planning, setPlanning] = useState(power.mode === 'off');
-  /* The ends are named as the traveller named them, for the same reason `searchEntryId` is: an
-     address and the station it resolved to are one stop id and two different searches. */
-  const searchKey = search
-    ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
-    : '';
-  useEffect(() => {
-    /*
-     * Battery saving skips the held place entirely. The spinner exists to make a 260ms window
-     * legible, and both the window and the spinning cost something the last few percent of a
-     * battery should not pay: there is no work being waited on (the engine is local), so the
-     * answer is simply there on the first paint.
-     */
-    if (savingRef.current) {
-      setPlanning(false);
-      return undefined;
-    }
-    setPlanning(true);
-    const timer = window.setTimeout(() => setPlanning(false), 260);
-    return () => window.clearTimeout(timer);
-  }, [searchKey]);
-  /* The reading lands after the first render; this ends a wait that started before it was known,
-     and never starts one (so plugging in does not replay the spinner over a list that is there). */
-  useEffect(() => {
-    if (power.mode !== 'off') setPlanning(false);
-  }, [power.mode]);
 
   const visible = useMemo(() => {
     if (!search) return [];
@@ -184,11 +161,16 @@ export function ResultsPage() {
         'No mode is switched off, so the walking limit, the transfer limit or a result filter removed every option.',
       );
 
+  /*
+   * Measured against the defaults, not against "off": hiding cancelled journeys is the default now,
+   * and counting it as a filter made every fresh search announce an option before the traveller had
+   * touched one.
+   */
   const hasFilters =
     filter.modes.length > 0 ||
     filter.directOnly ||
     filter.delayedOnly ||
-    filter.hideCancelled ||
+    filter.hideCancelled !== DEFAULT_RESULTS_FILTER.hideCancelled ||
     filter.operatorIds.length > 0;
 
   /** How many options differ from a fresh planner — the count on the Options chip. */
@@ -220,23 +202,21 @@ export function ResultsPage() {
 
       <div className="results-bar" data-filter-row>
         {/*
-          The search's four chips, in one scroller.
+          Every control that shapes this screen, on one line.
           `results-bar` was an auto-fit grid, so at 320 the chips and the sort stacked into **five**
           rows 326.8px tall and no journey was on the first screen of a small phone — the first card
-          began 196.6px below the fold (2.4). One row that scrolls sideways is the shape a phone
-          expects of chips, and the list starts a screenful earlier.
+          began 196.6px below the fold (2.4). Then the chips scrolled in a row of their own and the
+          sort took the next row, which was two bands where one will do: there are two chips, so
+          nothing has to scroll, and the sort is a chip like them.
         */}
-        <div className="results-bar__chips" role="group" aria-label={t('This search')}>
-        <button type="button" className="results-chip" onClick={() => setAccessSide('from')}>
-          <span className="results-chip__key">{t('Start:')}</span>
-          <Icon name={accessOf('from') === 'bike' ? 'bike' : 'walk'} size={18} />
-          <span className="sr-only">{t(accessOf('from') === 'bike' ? 'Bicycle' : 'Walking')}</span>
-        </button>
-        <button type="button" className="results-chip" onClick={() => setAccessSide('to')}>
-          <span className="results-chip__key">{t('End:')}</span>
-          <Icon name={accessOf('to') === 'bike' ? 'bike' : 'walk'} size={18} />
-          <span className="sr-only">{t(accessOf('to') === 'bike' ? 'Bicycle' : 'Walking')}</span>
-        </button>
+        <div className="results-bar__row" role="group" aria-label={t('This search')}>
+        {/*
+          The two access chips moved to Options. They are settings *of the search* rather than the
+          search itself (Start: walking, End: walking), and at 390 they pushed the row past its own
+          width — which is why the last chip was drawn cut in half at the screen's edge. What is
+          left here is the search's identity, the act that saves it, and the way into everything
+          else.
+        */}
         <button type="button" className="results-chip" onClick={() => setWhenOpen(true)}>
           <span className="results-chip__key">
             {t(query.timeMode === 'depart' ? 'Leave:' : 'Arrive:')}
@@ -255,25 +235,53 @@ export function ResultsPage() {
           type="button"
           className="results-chip"
           aria-pressed={kept}
+          aria-label={t(kept ? 'Saved as a search' : 'Save this search')}
+          title={t(kept ? 'Saved as a search' : 'Save this search')}
           onClick={() => (kept ? removeRecentSearch(searchEntryId(query)) : keepSearch(query))}
         >
-          <Icon name={kept ? 'check' : 'bookmark'} size={15} />
-          <span className="results-chip__value">
-            {t(kept ? 'Saved as a search' : 'Save this search')}
-          </span>
+          {/*
+            The word, not just the mark. On its own the bookmark was a 44px circle sitting beside a
+            full-width pill, which read as a stray button belonging to no column; with "Save" on it
+            it is the same shape as Options underneath and says what it does without a hover title.
+          */}
+          {/*
+            **The bookmark fills when the search is saved.**
+
+            It was a tick when saved — a second, different drawing for the same control, and one
+            that says "done" rather than "this is now mine". Every other keeping control in the
+            app (a favourite stop's heart, a journey's heart, a pinned board) keeps its own glyph
+            and fills it, so this one does too: outline while the search is not kept, solid book
+            while it is. The word beside it still reads `Save` / `Saved`, so the state is said in
+            words as well.
+          */}
+          <Icon name={kept ? 'bookmarkFilled' : 'bookmark'} size={15} />
+          {t(kept ? 'Saved' : 'Save')}
         </button>
 
+        {/**
+          * How to read the list, as one group: the sort and the disclosure.
+          *
+          * They are the two controls that are not the search, and on a phone they share the second
+          * band — which is why they are wrapped rather than left as two loose items in the row: a
+          * growing sort took the space on the chips' line and left Options alone on the next one.
+          */}
+        <div className="results-bar__read">
         {/*
           The sort, in the row (MATCHING_PLAN rule 1) — not in a card of its own above the list.
           A sort is how the list is read, so it sits with the other controls that shape this
-          screen; the four chips before it are the *search's* controls and stay where they are.
+          screen, and it is the fourth chip — its visible label is the answer ("Best"), and the words
+          the row used to spend on "SORT BY" are the control's accessible name instead.
         */}
-        </div>
-        <label className="field results-bar__sort" htmlFor="results-sort">
-          <span className="field__label">{t('Sort by')}</span>
+        <label className="results-chip results-chip--sort" htmlFor="results-sort">
+          {/*
+            The name is on the control, not on a `<span>` inside the label: a label's text is every
+            text node under it, and this one wraps the select itself — so the span alone would give
+            the control the name "Sort by Best Fastest Fewest transfers Least walking…".
+          */}
           <select
             id="results-sort"
-            className="select"
+            className="results-chip__select"
+            aria-label={t('Sort by')}
             value={sortMode}
             onChange={(event) => setSortMode(event.target.value as SortMode)}
           >
@@ -301,6 +309,7 @@ export function ResultsPage() {
           {t('Options')}
           {optionCount ? <span className="results-chip__count">{optionCount}</span> : null}
         </button>
+        </div>
 
         {/*
           Only when it is not all of them. "7 of 7 shown" is a count of the result set by
@@ -313,6 +322,7 @@ export function ResultsPage() {
             {t('{shown} of {total} shown', { shown: visible.length, total: totalJourneys })}
           </span>
         ) : null}
+        </div>
       </div>
 
       {optionsOpen ? (
@@ -328,6 +338,20 @@ export function ResultsPage() {
           {optionCount ? (
             <span className="t-sm t-muted">{t('{count} changed from the defaults', { count: optionCount })}</span>
           ) : null}
+
+          {/* The two access chips, with room here for the answer as well as the question. */}
+          <div className="row-wrap">
+            <button type="button" className="results-chip" onClick={() => setAccessSide('from')}>
+              <span className="results-chip__key">{t('Start:')}</span>
+              <Icon name={accessOf('from') === 'bike' ? 'bike' : 'walk'} size={15} />
+              {t(accessOf('from') === 'bike' ? 'Bicycle' : 'Walking')}
+            </button>
+            <button type="button" className="results-chip" onClick={() => setAccessSide('to')}>
+              <span className="results-chip__key">{t('End:')}</span>
+              <Icon name={accessOf('to') === 'bike' ? 'bike' : 'walk'} size={15} />
+              {t(accessOf('to') === 'bike' ? 'Bicycle' : 'Walking')}
+            </button>
+          </div>
 
           {/* Without its hint lines: on this screen the controls are a panel of switches,
               each already named, and the explanations belong to the preferences page. */}
@@ -380,30 +404,6 @@ export function ResultsPage() {
       ) : null}
 
 
-      {planning ? (
-        /*
-         * The list's place is held by the list's own shape, not by a ring.
-         *
-         * A spinner in an empty card said *wait* and nothing about what was coming, so the three
-         * journeys that arrived a quarter-second later landed as a change of subject on a screen
-         * that had been blank. Three textured cards of a journey's measurements — the pair of
-         * times, the chain of services, the meta line — put the answer where the eye already is
-         * and hold its height, so nothing jumps when the real list replaces them.
-         * The sentence above them is still the plain statement of what is happening; the bars
-         * underneath are `aria-hidden` and the region is `aria-busy`, so the announcement is the
-         * sentence, spoken once.
-         */
-        <div className="stack-2" role="status" aria-live="polite" aria-busy="true">
-          <p className="t-sm t-muted">
-            {t('Working out the options from {from} to {to}.', {
-              from: query.fromLabel ?? query.fromStopId,
-              to: query.toLabel ?? query.toStopId,
-            })}
-          </p>
-          <ResultSkeletons />
-        </div>
-      ) : (
-      <>
       {visible.length === 0 ? (
         <NoMatches
           title={t('No journeys match your settings')}
@@ -451,17 +451,56 @@ export function ResultsPage() {
            * so it now opens the list, and the card that follows is read in the light of it.
            */}
           {stopAlerts.length > 0 ? (
-            <Banner tone="hairline" icon="alert" title={t('Alerts affect this search')}>
-              <div className="stack-2">
-                {stopAlerts.slice(0, 2).map((alert) => (
-                  <Link key={alert.id} to={`/disruptions/${alert.id}`} className="t-sm tap-target alert-link">
-                    <span className="t-strong">{alert.title}</span>
-                    <span className="t-muted">{t('— view details')}</span>
-                  </Link>
-                ))}
-              </div>
-            </Banner>
+            /*
+              One line, not a banner.
+
+              It was a `hairline` banner: an icon, the heading "Alerts affect this search" on a line
+              of its own, and then the alert's title indented beneath it — 96px, three quarters of it
+              empty, to say one thing. The heading said what the warning icon and the words "Cancelled
+              services" already said, so the alert's own title is the row, and a second alert is a
+              quiet "+1" at its end rather than another indented line under a headline.
+            */
+            <Link
+              to={`/disruptions/${stopAlerts[0].id}`}
+              className="search-alert"
+              aria-label={
+                stopAlerts.length === 1
+                  ? t('1 alert affects this search: {title}', { title: stopAlerts[0].title })
+                  : t('{count} alerts affect this search: {title}', {
+                      count: stopAlerts.length,
+                      title: stopAlerts[0].title,
+                    })
+              }
+            >
+              <Icon name="alert" size={16} className="search-alert__icon" />
+              <span className="search-alert__text">
+                {stopAlerts[0].title}
+                {stopAlerts.length > 1 ? <span className="t-muted"> +{stopAlerts.length - 1}</span> : null}
+              </span>
+              <Icon name="chevronRight" size={14} className="t-faint" />
+            </Link>
           ) : null}
+
+          {/*
+            Earlier, between the warning and the first journey.
+
+            The list is a window of departures from the time in the search; these two controls walk
+            that window without touching the search itself — "Leave: Now" stays exactly as it was, a
+            whole thirty minutes per press, the way paging through a timetable reads. They sit at the
+            list's ends because that is where the reader is looking for more: the top of the list is
+            where "too late" is, and the bottom is where "nothing after this" is. The control that
+            used to do this was removed from the date/time sheet on request; this is the home it was
+            said to need.
+          */}
+          <button
+            type="button"
+            className="window-step"
+            disabled={search.windowOffsetMinutes <= -WINDOW_LIMIT_MINUTES}
+            onClick={() => shiftWindow(-WINDOW_STEP_MINUTES)}
+          >
+            <Icon name="chevronUp" size={12} />
+            {t('Earlier')}
+          </button>
 
           <ul className="stack-4">
             {visible.slice(0, 1).map((journey) => (
@@ -480,9 +519,18 @@ export function ResultsPage() {
               ))}
             </ul>
           ) : null}
+
+          {/* The other end of the same window: later departures, and the search untouched. */}
+          <button
+            type="button"
+            className="window-step"
+            disabled={search.windowOffsetMinutes >= WINDOW_LIMIT_MINUTES}
+            onClick={() => shiftWindow(WINDOW_STEP_MINUTES)}
+          >
+            <Icon name="chevronDown" size={12} />
+            {t('Later')}
+          </button>
         </>
-      )}
-      </>
       )}
 
       {/*
@@ -609,11 +657,16 @@ export function ResultsPage() {
         </div>
         <div className="row-wrap">
           {/*
-            The app's own switcher, not a small one of its own: it measured and drew differently
-            from every other segmented control on the site ("looks weird and different from other
-            switchers in the website"), so it is the shared `Segmented` at its default size.
+            The app's own switcher, in its compact variant.
+
+            It is the shared `Segmented` — same font, same pill, same 4px gutter — drawn at the
+            height of the chip beside it: at its default size the capsule was 54px against the Now
+            chip's 44, so the two controls on one line were two different sizes (and the chosen
+            half drew a second ring inside the capsule's). The compact variant is the one built for
+            this line; it measures 44 to the chip's 44.
           */}
           <Segmented
+            size="sm"
             ariaLabel={t('Depart at or arrive by')}
             value={query.timeMode}
             onChange={(value) => updateSearchQuery({ timeMode: value })}

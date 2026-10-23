@@ -161,6 +161,21 @@
   --l3-bg: var(--struct-main);
   --l3-border: 1px solid var(--struct-secondary);
 
+  /*
+   * Waiting, drawn (F17).
+   *
+   * One flat grey, the screen's own layout in the shape of what is coming — a circle where a glyph
+   * goes, a line where a line goes (see `.skeleton` in `styles/components.css`). It is the ink
+   * itself at 10% over the card's raised surface, which is a neutral grey the traveller reads as
+   * "not here yet" rather than a tint of the cream they might mistake for a painted block.
+   *
+   * The second token is the light that crosses a held block: the same grey, lifted towards the
+   * surface it sits on, so the band reads as light moving over a shape rather than as a second
+   * colour. It is what the sweep (`.skeleton::after`) is painted with.
+   */
+  --skeleton-fill: color-mix(in srgb, var(--ink) 13%, var(--l2-bg));
+  --skeleton-sheen: color-mix(in srgb, var(--ink) 4%, var(--l2-bg));
+
   /* --- 4. Squircle geometry & nested radii --- */
   --r-hero: 32px; /* R32 · P16 · inner R16 */
   --r-card: 28px; /* R28 · P16 · inner R12 */
@@ -241,6 +256,17 @@
    * paint uses this one, which decelerates into the target and stops there.
    */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /*
+   * The curve for a control that **settles back into a rest it started from** — the dock's tab
+   * after its press.
+   *
+   * `--ease-out` is the wrong shape for it, and measurably so: over the dock's 320ms settle the
+   * 4px drop did **2.76px in the first 66ms** and then crawled the last 1.24px for 200ms, which
+   * is read as a snap followed by a drift rather than one movement. A curve that leaves and
+   * arrives at rest puts the same 4px across the whole 320ms: gentle at both ends, quickest in
+   * the middle, no frame carrying most of the drop.
+   */
+  --ease-settle: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --t-press: 120ms;
   --t-hover: 240ms;
@@ -356,6 +382,12 @@
   --l3-bg: #29282a;
   --l3-border: 1px solid #3b3a3d;
   --hairline-on-dark: #3b3a3d;
+
+  /* The same reading in the dark cut: the block is lighter than the card it sits on, so it reads
+     as absence rather than as a hole. */
+  --skeleton-fill: color-mix(in srgb, #fff 9%, var(--l2-bg));
+  /* The same lift in the dark cut: further from the card, towards white. */
+  --skeleton-sheen: color-mix(in srgb, #fff 22%, var(--l2-bg));
 
   /* Coral is the focal accent in both appearances; as *ink* on a dark surface it needs the
      lighter cut, the same way the light theme needed a darker one. */

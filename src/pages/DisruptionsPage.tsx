@@ -361,8 +361,12 @@ export function DisruptionsPage() {
           */}
           {hasMore ? (
             <>
-              <div ref={sentinelRef} className="list-sentinel" aria-hidden="true" />
-              <div className="row-wrap" style={{ justifyContent: 'center' }}>
+              <div className="row-wrap list-foot" style={{ justifyContent: 'center' }}>
+                {/* The marker sits in the row, absolutely, so it is neither a flex item of the
+                    column (which cost a second gap: 24px between the list and its button where
+                    the stack asked for 12) nor an item of the row (which would push the centred
+                    button off centre by half a gap). */}
+                <div ref={sentinelRef} className="list-sentinel" aria-hidden="true" />
                 <Button size="sm" icon="chevronDown" onClick={loadMore}>
                   {t('Show {count} more', { count: next })}
                 </Button>

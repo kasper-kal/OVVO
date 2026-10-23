@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
-import { PageHeader } from '../components/layout/AppShell';
+import { HeaderButton, PageHeader, useHeaderControl } from '../components/layout/AppShell';
 import { BoardList } from '../components/stops/BoardList';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { customStopName, getStop, hasBoard, stopLabel } from '../data/stops';
@@ -15,7 +15,6 @@ import { Button, Card, EmptyState, IconButton, Pill } from '../components/ui/pri
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
-import { useRevealOnScrollUp } from '../lib/useRevealOnScrollUp';
 import { useOnline } from '../lib/useOnline';
 import type { Stop } from '../data/types';
 
@@ -68,8 +67,6 @@ export function DeparturesPage() {
   /* A board that cannot hear about a delay is a timetable, and it says so rather than pretending. */
   const online = useOnline();
   const [tick, setTick] = useState(0);
-  /* The board's refresh waits to be reached for: reach up for it, scroll down and it leaves. */
-  const refreshRevealed = useRevealOnScrollUp();
 
   /*
    * **The board refreshed itself once a minute at best, while saying every 5 seconds.**
@@ -83,6 +80,31 @@ export function DeparturesPage() {
     const timer = window.setInterval(() => setTick((value) => value + 1), BOARD_REFRESH_SECONDS * 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  /*
+   * **One refresh, in the corner a detail screen puts its way back.**
+   *
+   * It was one glyph per board, parked at the end of the sentence that says the board refreshes
+   * itself — so a screen with three boards carried three copies of one page-level action, and the
+   * corner where every other screen keeps its own control was empty. Asked for by name: "move the
+   * Refresh button to the place of the back button on other pages".
+   *
+   * The page registers it with the shell (see `useHeaderControl`) and takes it away when it
+   * unmounts, so the corner belongs to the bar and the button keeps the bar's own 44px disc and its
+   * 20px step. It refreshes every board on the screen, which is what it always did — the line
+   * board's own copy went with it.
+   */
+  const setHeaderControl = useHeaderControl();
+  useEffect(() => {
+    setHeaderControl(
+      <HeaderButton
+        icon="refresh"
+        label={t('Refresh departures')}
+        onClick={() => setTick((value) => value + 1)}
+      />,
+    );
+    return () => setHeaderControl(null);
+  }, [setHeaderControl, t]);
 
   /*
    * A `?stop=` is the traveller asking for a stop — from an alert, a stop page, a widget's
@@ -142,16 +164,18 @@ export function DeparturesPage() {
   );
 
   /*
-   * What the field holds: the stop that was added last (or the one the URL asked for, or the
-   * default origin), so the control confirms what it just did and carries that stop's own code and
-   * modes in the hint line beneath it — the line every other picker in the app puts under a chosen
-   * stop. The field is still an **add**: choosing any stop pins it beside the others, and clearing
-   * it (×) leaves the boards alone.
+   * **The field holds nothing, ever.**
+   *
+   * It used to be filled with the stop that had just been added — or the one a `?stop=` link named,
+   * or the default origin — so that "the control confirms what it just did" and its hint line could
+   * carry that stop's code and modes. That confirmation is the wrong shape for an *add* control: the
+   * stop is already on the page as the board underneath, so the screen said the same station twice
+   * and the filled box sat under the words *Add a stop to the board*, reading as a search that had
+   * been left behind (reported: "why does the old station stay in the search box when its already
+   * pinned"). The board a `?stop=` link names is pinned and drawn; the field has nothing left to
+   * say. Choosing a stop still pins it beside the others, and the × that a typed word brings still
+   * only clears the field — it never unpins anything.
    */
-  const fieldStop = useMemo(() => {
-    const candidate = requested ?? boardStopIds[boardStopIds.length - 1];
-    return (candidate ? getStop(candidate) : defaultStop) ?? null;
-  }, [requested, boardStopIds, defaultStop]);
 
   const changeStop = (stop: Stop) => {
     if (!isOnBoard(stop.id)) toggleBoardStop(stop.id);
@@ -206,8 +230,8 @@ export function DeparturesPage() {
               </span>
             </div>
             <div className="row-wrap">
-              {/* 6.1: the line board never had the refresh the stop board hid. */}
-              <IconButton icon="refresh" label={t('Refresh departures')} onClick={() => setTick((value) => value + 1)} />
+              {/* The refresh is the screen's now, in the bar's start corner — one control for every
+                  board on it, the line board included. */}
               {/* The way back to where the line was pressed — the stop's own page, not a dead end. */}
               <Link to={`/stops/${lineStop.id}`} className="btn btn--sm">
                 <Icon name="arrowLeft" size={15} />
@@ -249,34 +273,16 @@ export function DeparturesPage() {
   return (
     <div className="stack-6">
       {/*
-        The board's refresh, and the page's only action — the first row of the page, which the
-        page only grows a row for when it is reached for.
+        No refresh at the top of the page.
 
-        Hidden, it is not a reserved-empty row: it is no box and no gap, so the board sits
-        exactly where it sat before the control existed. Revealed, it is a 44px row of its own,
-        in the flow, pushing the page down by its height — the pull has nothing left to scroll,
-        so the page makes room for the thing that was asked for instead (see
-        `useRevealOnScrollUp`). It is at the top because the gesture that summons it only exists
-        at the top: mid-board, an upward scroll is just a scroll.
-
-        `inert` while it is away: the row is collapsed and clipped, and a control that cannot be
-        seen must not be reachable by tab or by a screen reader either.
+        There was one, and it was always there: a lone glyph on a row of its own between the app's
+        header and the page's name, refreshing *a page of boards* while every card under it already
+        said "auto-refresh every 5 seconds". It had started as a 0px row revealed by an upward
+        wheel at the top, and the fix for that being undiscoverable was to show it permanently — the
+        ask was for it to be found, not for a control that never has nothing to do. A refresh
+        belongs to the board it refreshes, so it sits in each board's own head, beside that
+        sentence (see the stop card's header, and the line board's, which already had it).
       */}
-      {/*
-        The manual refresh is **visible and reachable at load**.
-
-        It was a 0px-high row that appeared only after a 40px upward wheel at the top of the page,
-        and only on the stop board — inert until then, absent on the line board (6.1). A control
-        that exists only after a gesture nobody knows about is not a control.
-      */}
-      <div className={`board-refresh board-refresh--shown${refreshRevealed ? ' board-refresh--shown' : ''}`}>
-        <IconButton
-          icon="refresh"
-          label={t('Refresh departures')}
-          className="board-refresh__btn"
-          onClick={() => setTick((value) => value + 1)}
-        />
-      </div>
 
       {/* Every list screen draws its own name (MATCHING_PLAN rule 5): a phone has no menu on
           screen, and the traveller arriving from a link has to be told where they are. */}
@@ -324,7 +330,10 @@ export function DeparturesPage() {
           <StopCombobox
             id="board-stop"
             label={t('Add a stop to the board')}
-            value={fieldStop}
+            /* Nothing is ever chosen here: the choice becomes a board, and the box goes back to
+               asking. `clearAfterPick` is what stops the pick writing its own name into it. */
+            value={null}
+            clearAfterPick
             onSelect={(next) => next && changeStop(next)}
             placeholder={t('Search a station or stop')}
             filter={hasBoard}
@@ -368,7 +377,9 @@ export function DeparturesPage() {
 
       {boards.map(({ stop, departures, alerts, delayed }) => (
         <Card key={stop.id} className="stack">
-          <div className="between wrap">
+          {/* `board-head` is what lets the actions row spread when it wraps on a phone — see
+              `.board-head .card-actions` in `components.css`. */}
+          <div className="between wrap board-head">
             <div className="stack-1">
               <h2 className="t-section">{customStopName(stop.id) ?? stop.name}</h2>
               <span className="t-sm t-muted">
@@ -384,9 +395,16 @@ export function DeparturesPage() {
               </span>
             </div>
             {/*
-              The pin is the trailing control of the row that names the stop — pinned boards are
-              what this page is, so the control that removes one belongs to its own heading,
-              filled while the board is here (which it always is, on this page).
+              **The pin, trailing the row that names the stop — and this page is where it lives.**
+
+              A board *is* a pinned stop, so the control is filled for as long as its board is here,
+              and pressing it is what takes the board off the page again.
+
+              It was replaced for a round by a bare minus glyph, reading the rule "no pin button
+              anywhere except the departure boards tab" as "this card does not need one" — which
+              took the pin off the one screen it was meant to survive on. The rule stands and this
+              is the place it points at: a pin on the stop page is gone (see `StopDetailPage`), the
+              pin here stays.
             */}
             <div className="card-actions">
               <Link to={`/stops/${stop.id}`} className="btn btn--sm">
@@ -424,6 +442,9 @@ export function DeparturesPage() {
                 </Pill>
               )}
             </div>
+            {/* The sentence on its own now: the glyph that used to sit at the end of it is the
+                screen's one refresh, in the bar's start corner (see the `useHeaderControl` note at
+                the top of this file). */}
             <span className="t-sm t-faint">
               {delayed
                 ? t(delayed === 1 ? '{count} delay in this window · ' : '{count} delays in this window · ', {

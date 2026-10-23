@@ -36,6 +36,27 @@ const previewHostFromEnv = (mode: string) =>
   process.env.PREVIEW_HOST || loadEnv(mode, process.cwd(), '').PREVIEW_HOST;
 
 /*
+ * The addresses this app is *served* from, which Vite must also allow.
+ *
+ * `vite preview` runs the built app on Render, and it validates the Host header exactly as the
+ * dev server does — so the live site answered **"Blocked request. This host is not allowed"**
+ * until its own address was named. That address is stable (the Render service's name sets it),
+ * so unlike the private preview hostname it can be written here.
+ *
+ * `RENDER_EXTERNAL_HOSTNAME` is set by Render itself, so a preview deploy of a pull request —
+ * served from `ovvo-pr-<n>.onrender.com` — needs no edit to this file. `ALLOWED_HOSTS` takes a
+ * comma-separated list for anywhere else. Nothing here weakens the check: each host is named, and
+ * the allow-list is never `true`, which would accept any Host header a stranger sends.
+ */
+const hostAllowlist = ['ovvo.onrender.com'];
+
+const hostsFromList = (value: string | undefined): string[] =>
+  (value ?? '')
+    .split(',')
+    .map((host) => host.trim())
+    .filter((host) => host.length > 0);
+
+/*
  * Which batch the review layer saves into.
  *
  * The phone round is finished and archived in `review/mobile/`; the desktop round starts in
@@ -51,7 +72,15 @@ const reviewBatch = reviewBatchName();
 
 export default defineConfig(({ mode }) => {
   const previewHost = previewHostFromEnv(mode);
-  const allowedHosts = previewHost ? [previewHost] : undefined;
+  const allowedHosts = [
+    previewHost,
+    process.env.RENDER_EXTERNAL_HOSTNAME,
+    ...hostsFromList(process.env.ALLOWED_HOSTS),
+    ...hostAllowlist,
+  ].filter((host): host is string => Boolean(host));
+
+  /* `undefined` leaves Vite's own rule in place (localhost and IP addresses only). */
+  const allowlist = allowedHosts.length > 0 ? allowedHosts : undefined;
 
   return {
     define: {
@@ -62,12 +91,12 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: 3000,
       strictPort: false,
-      allowedHosts,
+      allowedHosts: allowlist,
     },
     preview: {
       host: '0.0.0.0',
       port: 3000,
-      allowedHosts,
+      allowedHosts: allowlist,
     },
   };
 });

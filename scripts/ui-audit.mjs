@@ -472,6 +472,24 @@ for (const width of WIDTHS) {
           out.band.push({ el: name(header), why: `position ${hcs.position}: the row scrolls away with the page` });
         if (hcs.backgroundColor !== 'rgba(0, 0, 0, 0)' || hcs.backgroundImage !== 'none' || hcs.boxShadow !== 'none')
           out.band.push({ el: name(header), why: `paints ${hcs.backgroundColor} / ${hcs.backgroundImage} / ${hcs.boxShadow.slice(0, 30)}` });
+        /*
+         * **And the fade, which is the other half of the same promise.**
+         *
+         * The row itself stays clear, so a card travelling under it is drawn *through* the mark —
+         * measured on the stop page as "Stop information" cut by the 56px tile. The fix is a fade
+         * of the canvas in `::before` that is only there once the page has moved; because it is a
+         * pseudo-element, the reads above cannot see it, and a check that only reads the row would
+         * pass while the row painted a solid bar through `::before`. So it is measured twice: it
+         * must paint **nothing** at rest, and once stuck it must be a **gradient that ends in
+         * transparency** — a fill of any kind, or a fade that stops short of zero, is the band.
+         */
+        const restFade = getComputedStyle(header, '::before');
+        /* Only where the page really is at its top: this walk scrolls around a screen, and a page
+           left scrolled is *supposed* to have the fade on. */
+        /* 1% rather than 0: the fade leaves over 240ms, and a measurement taken in the same frame as
+           a scroll back to the top catches it at 0.0008 opacity — invisible, and not a paint. */
+        if (window.scrollY <= 4 && Number(restFade.opacity) > 0.01 && restFade.backgroundImage !== 'none')
+          out.band.push({ el: name(header), why: `paints a fade at the top of the page (opacity ${restFade.opacity})` });
         const restTop = header.getBoundingClientRect().top;
         if (restTop > 8) out.band.push({ el: name(header), why: `starts ${Math.round(restTop)}px down, not at the top of the page` });
         // A layout read after a scroll forces a synchronous style+layout pass, so the stuck
@@ -479,6 +497,12 @@ for (const width of WIDTHS) {
         const before = window.scrollY;
         window.scrollTo(0, 400);
         const stuckTop = header.getBoundingClientRect().top;
+        const stuckFade = getComputedStyle(header, '::before');
+        if (Number(stuckFade.opacity) > 0) {
+          const image = stuckFade.backgroundImage;
+          if (!/rgba\(0, 0, 0, 0\) 100%\)$/.test(image.trim()))
+            out.band.push({ el: name(header), why: `the fade ends in ${image.slice(-70)}, not transparency — that is a bar` });
+        }
         window.scrollTo(0, before);
         // Only where the page is long enough to scroll past the row: on a short page it cannot
         // be pushed off the top, so there is nothing to prove.

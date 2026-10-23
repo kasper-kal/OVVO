@@ -1,8 +1,5 @@
-import { Link } from 'react-router-dom';
 import { getStop, stopLabel, nearbyStops } from '../../data/stops';
 import { getLine } from '../../data/network';
-import { operatorName } from '../../data/operators';
-import { getDisruption } from '../../data/disruptions';
 import { useFormat } from '../../lib/useFormat';
 import { Disclosure, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
@@ -52,105 +49,87 @@ function WalkLegRow({ leg }: { leg: Leg }) {
   );
 }
 
-function RideLegRow({ leg }: { leg: Leg }) {
+function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
   const format = useFormat();
   const t = useT();
   const line = getLine(leg.lineId);
-  const from = getStop(leg.fromStopId);
-  const to = getStop(leg.toStopId);
-  const disruption = getDisruption(leg.disruptionId);
   return (
     <li className={`timeline__rail${leg.cancelled ? ' font-bold' : ''}`}>
       <span className="timeline__node timeline__node--accent" />
-      <div className="leg-row">
-        <span className="leg-row__marker">
-          <ModeIcon mode={leg.mode} size={16} />
-        </span>
-        <div className="stack-2 grow">
-          <div className="row-wrap">
-            <span className={`mode-badge mode-badge--${leg.mode}`}>
-              <ModeIcon mode={leg.mode} size={13} />
-              {leg.lineName ?? line?.name ?? t('Service')}
-            </span>
-            <span className="leg-row__time">
-              {format.time(leg.departure)} <Icon name="arrowRight" size={13} /> {format.time(leg.arrival)}
-            </span>
-            <Pill>{format.duration(leg.arrival - leg.departure)}</Pill>
-            {leg.delayMinutes ? (
-              <Pill tone="coral" dot dotTone="coral">
-                {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
-              </Pill>
-            ) : null}
-            {/*
-              One status per leg, and a cancelled leg is never also "On time": the same reading
-              the journey summary above the rail makes (9.4).
-            */}
-            {leg.cancelled ? (
-              <Pill tone="coral">{t('Cancelled')}</Pill>
-            ) : leg.delayMinutes ? null : (
-              <Pill tone="sage">{t('On time')}</Pill>
-            )}
-          </div>
+      <div className="stack-2">
+        {/*
+          Where this service is boarded — the same words, weight and rail the arrival end uses.
+          The "From Haarlem Station · HLM / To Hoofddorp Station · HDD" pair said the same thing
+          twice, put both ends of the journey inside one service's block, and left the departure
+          unnamed at the top of the journey where it belongs.
+        */}
+        <span className="timeline__station">{leg.fromLabel ?? stopLabel(leg.fromStopId)}</span>
 
-          <div className="stack-1">
-            <p className="t-sm">
-              <span className="t-strong">{t('From')}</span> {stopLabel(leg.fromStopId)}{' '}
-              {from ? <span className="t-faint">· {from.code}</span> : null}
-            </p>
-            <p className="t-sm">
-              <span className="t-strong">{t('To')}</span> {stopLabel(leg.toStopId)}{' '}
-              {to ? <span className="t-faint">· {to.code}</span> : null}
-            </p>
-          </div>
-
-          <div className="row-wrap">
-            <PlatformTag platform={leg.platform} label={t('Platform')} />
-            <PlatformTag platform={leg.arrivalPlatform} label={t('Arrival platform')} />
-            <Pill>{operatorName(leg.operatorId)}</Pill>
-            {leg.headsign ? <Pill tone="outline">{t('Direction {headsign}', { headsign: leg.headsign })}</Pill> : null}
-            {leg.bikeAllowed ? (
-              <Pill tone="outline">
-                <Icon name="bike" size={12} />
-                {t('Bicycle allowed')}
-              </Pill>
-            ) : null}
-          </div>
-
-          {/* The capsule was 24px tall, the smallest target on the page (9.2); `alert-link` gives
-              it the app's 44px target and keeps the pill's shape. */}
-          {disruption ? (
-            <Link to={`/disruptions/${disruption.id}`} className="pill pill--outline alert-link">
-              <Icon name="alert" size={13} />
-              {disruption.title}
-            </Link>
+        <div className="row-wrap">
+          <span className={`mode-badge mode-badge--${leg.mode}`}>
+            <ModeIcon mode={leg.mode} size={13} />
+            {leg.lineName ?? line?.name ?? t('Service')}
+          </span>
+          <span className="leg-row__time">
+            {format.time(leg.departure)} <Icon name="arrowRight" size={13} /> {format.time(leg.arrival)}
+          </span>
+          <Pill>{format.duration(leg.arrival - leg.departure)}</Pill>
+          {leg.delayMinutes ? (
+            <Pill tone="coral" dot dotTone="coral">
+              {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
+            </Pill>
           ) : null}
-
-          {leg.intermediateStops?.length ? (
-            <Disclosure
-              title={t(
-                leg.intermediateStops.length === 1 ? '{count} intermediate stop' : '{count} intermediate stops',
-                { count: leg.intermediateStops.length },
-              )}
-              id={`leg-${leg.id}`}
-            >
-              <ol className="stack-2">
-                {leg.intermediateStops.map((stop) => (
-                  <li key={stop.stopId} className="between">
-                    <span className="t-sm">{stopLabel(stop.stopId)}</span>
-                    <span className="row">
-                      <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
-                      {stop.platform ? (
-                        <Pill tone="outline">{t('Platform {platform}', { platform: stop.platform })}</Pill>
-                      ) : null}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </Disclosure>
-          ) : (
-            <p className="t-sm t-faint">{t('No intermediate stops on this service.')}</p>
-          )}
+          {/*
+            One status per leg, and a cancelled leg is never also "On time": the same reading
+            the journey summary above the rail makes (9.4). "On time" itself is not printed per
+            leg — the card's own head already says it once, and a line of green beside every
+            service is the noise that made the screen feel busy.
+          */}
+          {leg.cancelled ? <Pill tone="coral">{t('Cancelled')}</Pill> : null}
         </div>
+
+        {/*
+          The departure platform is this service's. The arrival platform is the fact of the place
+          this leg ends at: on the last ride it is printed beside the arrival name below, and at an
+          interchange it stays here, because the stop a traveller changes at is where they need it.
+        */}
+        <div className="row-wrap">
+          <PlatformTag platform={leg.platform} label={t('Platform')} />
+          {isLastRide ? null : <PlatformTag platform={leg.arrivalPlatform} label={t('Arrival platform')} />}
+          {/* The operator is on the journey's summary and on the stop's own board; a chip per leg
+              here only repeated the line's name in a third place. */}
+          {leg.headsign ? <Pill tone="outline">{t('Direction {headsign}', { headsign: leg.headsign })}</Pill> : null}
+          {leg.bikeAllowed ? (
+            <Pill tone="outline">
+              <Icon name="bike" size={12} />
+              {t('Bicycle allowed')}
+            </Pill>
+          ) : null}
+        </div>
+
+        {leg.intermediateStops?.length ? (
+          <Disclosure
+            title={t(
+              leg.intermediateStops.length === 1 ? '{count} intermediate stop' : '{count} intermediate stops',
+              { count: leg.intermediateStops.length },
+            )}
+            id={`leg-${leg.id}`}
+          >
+            <ol className="stack-2">
+              {leg.intermediateStops.map((stop) => (
+                <li key={stop.stopId} className="between">
+                  <span className="t-sm">{stopLabel(stop.stopId)}</span>
+                  <span className="row">
+                    <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
+                    {stop.platform ? (
+                      <Pill tone="outline">{t('Platform {platform}', { platform: stop.platform })}</Pill>
+                    ) : null}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Disclosure>
+        ) : null}
       </div>
     </li>
   );
@@ -169,6 +148,8 @@ export function LegList({ journey }: { journey: Journey }) {
   const format = useFormat();
   const t = useT();
   const rows: React.ReactNode[] = [];
+  const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
+  const lastRideId = lastRide?.id;
   journey.legs.forEach((leg, index) => {
     const previous = journey.legs[index - 1];
     if (previous) {
@@ -193,7 +174,7 @@ export function LegList({ journey }: { journey: Journey }) {
       leg.mode === 'walk' || leg.mode === 'bike' ? (
         <WalkLegRow key={leg.id} leg={leg} />
       ) : (
-        <RideLegRow key={leg.id} leg={leg} />
+        <RideLegRow key={leg.id} leg={leg} isLastRide={leg.id === lastRideId} />
       ),
     );
   });
@@ -209,13 +190,29 @@ export function LegList({ journey }: { journey: Journey }) {
   const lastLeg = journey.legs[journey.legs.length - 1];
   const arrivalId = lastLeg.toStopId;
   const arrivalName = lastLeg.toLabel ?? stopLabel(arrivalId);
+  /*
+   * The connector into the arrival square is the last leg's mode, the same as the row above it,
+   * so a journey with no service in it is one dashed line from the departure circle to the square.
+   * It was solid whatever came above it, which left a walking-only plan dashed and then finished
+   * with a solid stub under the square — a line that broke and resumed for no reason.
+   */
+  const endsOnFoot = lastLeg.mode === 'walk' || lastLeg.mode === 'bike';
   return (
-    <ol className="timeline">
+    <ol className={`timeline${endsOnFoot ? ' timeline--dashed-end' : ''}`}>
       {rows}
       <li className="timeline__end">
         <span className="timeline__node timeline__node--end" />
         <span className="stack-1 grow">
-          <span className="t-strong t-sm">{arrivalName}</span>
+          {/* The platform a traveller steps onto is the arrival end's own fact, so it sits beside
+              the arrival name — not in the boarding service's chip row, 400px earlier. Only when the
+              journey ends at the service itself: after a final walk, the platform belongs to the
+              stop the walk left from, not to the door it reaches. */}
+          <span className="row-wrap">
+            <span className="timeline__station">{arrivalName}</span>
+            {lastRide === lastLeg ? (
+              <PlatformTag platform={lastLeg.arrivalPlatform} label={t('Arrival platform')} />
+            ) : null}
+          </span>
           <span className="t-sm t-muted">
             {t('Arrive {time}', { time: format.time(journey.arrival) })}
           </span>

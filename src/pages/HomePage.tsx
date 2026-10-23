@@ -40,6 +40,17 @@ const HOLD_SLOP_PX = 12;
 /** A press that moves further than this is a drag, not a tap on a widget. */
 const DRAG_SLOP_PX = 8;
 
+/**
+ * **How long a card's body has to be held before a finger can pick it up.**
+ *
+ * The head is an immediate grip because it carries `touch-action: none`. The body cannot: a card-wide
+ * claim on the gesture would make a long home screen unscrollable in the one mode where the page
+ * still has to be scrolled. So the body arms after this long with the finger still inside
+ * `DRAG_SLOP_PX` — by then a press that was going to be a scroll has moved and scrolled, and one
+ * that was going to be a drag has not. It is short enough to feel like taking hold, not waiting.
+ */
+const ARM_MS = 180;
+
 /** The gap between the screen's edge and the layout menu — the header's own 12px padding. */
 const MENU_STEP = 12;
 
@@ -434,6 +445,16 @@ export function HomePage() {
      behind for the second and third move of a burst, and re-running the "lift" branch with the
      card already transformed would recompute the grab point from the moved box. */
   const dragActive = useRef(false);
+  /* The press that may become a drag, and the clock that decides it (see `beginDrag`). */
+  const armFrom = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const armTimer = useRef<number | null>(null);
+  /**
+   * Whether an armed press is currently holding the page still.
+   *
+   * A ref, because it is read from a `touchmove` listener that is attached once for the whole mode
+   * and must see the value at the moment of the move.
+   */
+  const armHeld = useRef(false);
 
   /*
    * One live region says what the layout just did, and nothing else does (see the `sr-only`
@@ -663,25 +684,63 @@ export function HomePage() {
     scrollStamp.current = 0;
   };
 
+  /* --------------------------------------------------- arming a press on a card's body */
+  const clearArm = () => {
+    armFrom.current = null;
+    if (armTimer.current !== null) {
+      window.clearTimeout(armTimer.current);
+      armTimer.current = null;
+    }
+  };
+
+
   const beginDrag = (event: ReactPointerEvent<HTMLElement>, id: string) => {
     if (!editing) return;
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     const target = event.target as Element;
     /*
-     * **The head is the finger's grip**, and the body is not.
+     * **The whole card is the grip — the head is only the fast one.**
      *
-     * A card-wide `touch-action: none` would stop the page scrolling at all on a phone, so the
-     * touch drag has to start on a strip that can claim the gesture: the title's row, which is the
-     * one part of a card that is never a control. It is not a drawn handle — nothing is added to
-     * the card — it is the line the card is named by, which is where a hand goes naturally. The
-     * body below it keeps scrolling the page. A mouse can take hold anywhere on the card.
+     * The head is an immediate hold because it can claim the gesture outright (`touch-action: none`
+     * in the stylesheet). The body cannot claim it, but it must still be draggable: reported as
+     * *"why cant you move widgets on mobile when you touch it on the lower side"*, and that was
+     * exactly the rule — a finger below the title's row never started a drag at all, so a card could
+     * only be picked up by the strip it is named by. Now a press anywhere on a card arms after
+     * `ARM_MS` of stillness (see `armTimer`), which is long enough for a scroll to have declared
+     * itself and short enough to feel like taking hold. A mouse still takes hold anywhere at once,
+     * and a control inside a card keeps its own press in every case.
      */
     const onHandle = Boolean(target.closest('[data-drag-handle], .widget__head'));
-    if (!onHandle && (event.pointerType !== 'mouse' || target.closest(NO_PRESS))) return;
+    const onControl = Boolean(target.closest(NO_PRESS));
+    if (onControl) return;
 
-    dragFrom.current = { id, pointerId: event.pointerId, x: event.clientX, y: event.clientY };
-    dragPendingNode.current = event.currentTarget;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    clearArm();
+    if (onHandle || event.pointerType === 'mouse') {
+      dragFrom.current = { id, pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+      dragPendingNode.current = event.currentTarget;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
+
+    /*
+     * A finger on the body: the press becomes a candidate, and only stillness arms it.
+     *
+     * The origin is kept in `armFrom` so the first move of a swipe can cancel it — a scroll that
+     * began 20ms ago must not be armed into a drag halfway down the page. The mode's `touchmove` is what
+     * makes the armed press hold (see the mode effect below): `touch-action` is read when a gesture begins
+     * and cannot be changed
+     * for one already running, so the pan is refused by the `touchmove` for this gesture instead.
+     */
+    const node = event.currentTarget;
+    armFrom.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    armTimer.current = window.setTimeout(() => {
+      armTimer.current = null;
+      if (!armFrom.current) return;
+      armFrom.current = null;
+      dragFrom.current = { id, pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+      dragPendingNode.current = node;
+      armHeld.current = true;
+    }, ARM_MS);
   };
 
   /**
@@ -725,6 +784,12 @@ export function HomePage() {
 
   const moveDrag = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.cancelable) event.preventDefault();
+    /* A finger that moves before the body has armed was scrolling, not picking a card up — the
+       clock is stopped here rather than left to fire mid-swipe and lift a card out of a scroll. */
+    const arm = armFrom.current;
+    if (arm && arm.pointerId === event.pointerId) {
+      if (Math.hypot(event.clientX - arm.x, event.clientY - arm.y) > DRAG_SLOP_PX) clearArm();
+    }
     handlePointer(event.pointerId, event.clientX, event.clientY);
   };
 
@@ -755,6 +820,8 @@ export function HomePage() {
     dragActive.current = false;
     zones.current = [];
     stopEdgeScroll();
+    clearArm();
+    armHeld.current = false;
     /*
      * The layout is already the dropped one; this only saves it — and remembers how to unsave it.
      *
@@ -912,13 +979,57 @@ export function HomePage() {
     };
   }, [drag]);
 
+  /*
+   * A press that ends anywhere clears the clock.
+   *
+   * The release of a tap on a card's body lands on the card, and `endDrag` clears it — but a press
+   * that turns into a scroll is released over the page, where the card's own listeners never hear
+   * the up. A timer left armed with no hand on it is a card that lifts by itself the next time the
+   * screen is touched, and a `touchmove` refusal left in place is a page that will not scroll. Both
+   * are dropped here, on the document, whatever the press turned out to be.
+   */
+  useEffect(() => {
+    if (!editing) return undefined;
+    const reset = () => {
+      clearArm();
+      armHeld.current = false;
+    };
+    /*
+     * **The listener is attached for the whole mode, not when a card arms.**
+     *
+     * Chromium decides whether a touch sequence may be cancelled when the sequence *starts*, from
+     * the listeners already on the document — so a `touchmove` added 180ms later arrives too late,
+     * the pan has been handed to the compositor, and the pointer is cancelled under the card
+     * (measured: `pointercancel` on the third move, card never lifted, order unchanged). Attached
+     * at the top of the mode it is there in time, and it refuses a move **only while a press is
+     * armed** — a swipe on a card, which never arms, scrolls the page exactly as before.
+     */
+    const refuse = (event: TouchEvent) => {
+      if (armHeld.current && event.cancelable) event.preventDefault();
+    };
+    document.addEventListener('touchmove', refuse, { passive: false });
+    document.addEventListener('pointerup', reset);
+    document.addEventListener('pointercancel', reset);
+    return () => {
+      document.removeEventListener('touchmove', refuse);
+      document.removeEventListener('pointerup', reset);
+      document.removeEventListener('pointercancel', reset);
+      reset();
+    };
+  }, [editing]);
+
   const endDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    /* The clock is cleared even when nothing was armed: a tap on a card's body releases before
+       `ARM_MS`, and a timer left running would arm a card whose finger has already gone. */
+    clearArm();
     const from = dragFrom.current;
     if (!from || from.pointerId !== event.pointerId) return;
     finishDrag(true);
   };
 
   const cancelDrag = () => {
+    clearArm();
+    armHeld.current = false;
     if (!dragFrom.current) return;
     finishDrag(false);
   };

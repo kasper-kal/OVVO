@@ -159,18 +159,28 @@ export function PhotoScreen({
     }
   };
 
-  /** Move the sample by whole source pixels — the keyboard's way round this screen. */
+  /**
+   * Move the sample by **screen** pixels — the keyboard's way round this screen.
+   *
+   * One arrow press used to move one *source* pixel. The working canvas is the photograph at up to
+   * 2048px wide drawn into a stage a few hundred pixels wide, so the arrow moved the sample less
+   * than a pixel on screen: the keyboard appeared to do nothing at all (29.4). A press is now a
+   * pixel of the picture the traveller can see, converted into the canvas's own pixels.
+   */
   const step = (dx: number, dy: number) => {
     const canvas = sourceRef.current;
     const picture = imageRef.current;
     if (!canvas || !picture) return;
+    const rect = picture.getBoundingClientRect();
+    const perScreenPixel = rect.width > 0 ? canvas.width / rect.width : 1;
     const from = lastRef.current ?? {
       x: Math.round(canvas.width / 2),
       y: Math.round(canvas.height / 2),
     };
+    dx *= perScreenPixel;
+    dy *= perScreenPixel;
     const x = Math.min(canvas.width - 1, Math.max(0, from.x + dx));
     const y = Math.min(canvas.height - 1, Math.max(0, from.y + dy));
-    const rect = picture.getBoundingClientRect();
     sample({
       clientX: rect.left + ((x + 0.5) / canvas.width) * rect.width,
       clientY: rect.top + ((y + 0.5) / canvas.height) * rect.height,
@@ -239,7 +249,18 @@ export function PhotoScreen({
             draggable={false}
           />
           {error ? <p className="photo-screen__error">{t(error)}</p> : null}
-          {!ready && !error ? <p className="t-sm t-faint">{t('Loading your photo…')}</p> : null}
+          {/*
+            The photo's own place, held in the app's one skeleton style (`ui/Skeletons.tsx`) while
+            the picture decodes: a block where the picture will be, rather than a sentence over
+            the empty space. The words stay, for a screen reader, because the picture is drawn
+            `alt=""` — it is a surface to sample, not a thing to describe.
+          */}
+          {!ready && !error ? (
+            <>
+              <span className="skeleton-card photo-screen__skeleton" aria-hidden="true" />
+              <span className="sr-only">{t('Loading your photo…')}</span>
+            </>
+          ) : null}
           {/*
             The loupe is always mounted and merely hidden until the pointer arrives: mounting it on
             the first move would give the draw call a canvas that was not in the document yet, so the

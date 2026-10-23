@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MAP_POINT, mapCorridors } from '../../data/map';
 import { STOPS, getStop } from '../../data/stops';
 import { rankStops } from '../../lib/stopSearch';
@@ -57,6 +57,29 @@ export function MapPicker({
   const [pickedId, setPickedId] = useState<string | null>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
+  /*
+   * The confirm control, so a pick made in the search field can hand the keyboard to it instead
+   * of dropping it on `<body>` (28.5).
+   */
+  const selectRef = useRef<HTMLDivElement>(null);
+  /*
+   * The surface's own size, kept current: the drawing's label is sized in canvas units, and the
+   * number of screen pixels a unit is worth is `max(width, height) / view.size` (28.4). Without
+   * this the name of the chosen stop was 7.7px on a 320px phone and 36.8px on a desktop.
+   */
+  const [surface, setSurface] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const node = surfaceRef.current;
+    if (!node) return undefined;
+    const read = () => {
+      const rect = node.getBoundingClientRect();
+      setSurface({ width: rect.width, height: rect.height });
+    };
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const corridors = useMemo(() => mapCorridors('all'), []);
   const matches = query.trim() ? rankStops(query, favouriteStopIds, { origin: nearestOrigin, limit: 5 }) : [];
@@ -89,9 +112,16 @@ export function MapPicker({
     setPickedId(stop.id);
     setQuery('');
     setSearching(false);
-    /* The search answered: the field is emptied, a stop is picked, and the keyboard goes so the
-       map and the sheet below it are visible. */
+    /*
+     * The search answered: the field is emptied and a stop is picked. The keyboard closes — the map
+     * and the sheet below it are what the traveller is looking at — but the focus the phone would
+     * have dropped goes to the control that confirms the pick, so a keyboard user continues from
+     * inside the screen instead of tabbing back in from the top of the app (28.5).
+     */
     dismissKeyboard();
+    window.requestAnimationFrame(() =>
+      selectRef.current?.querySelector('button')?.focus({ preventScroll: true }),
+    );
   };
 
   const zoom = (factor: number) => {
@@ -119,6 +149,13 @@ export function MapPicker({
           className="map-picker__surface"
           ref={surfaceRef}
           onPointerDown={(event) => {
+            /*
+             * The zoom pair sits inside the draggable surface, and the surface captured the pointer
+             * on `pointerdown` — so the `pointerup` went to the surface, the button never received
+             * a `click`, and the only way to zoom out of a too-close map was the keyboard (28.2).
+             * A press that starts on a control is that control's, not the map's.
+             */
+            if ((event.target as HTMLElement).closest('.map-picker__zoom')) return;
             event.currentTarget.setPointerCapture(event.pointerId);
             drag.current = { x: event.clientX, y: event.clientY, cx: view.cx, cy: view.cy };
           }}
@@ -182,7 +219,24 @@ export function MapPicker({
             })}
             {chosen && point ? (
               <g className="map-stop map-picker__label" transform={`translate(${point.x.toFixed(2)} ${point.y.toFixed(2)})`}>
-                <text x={2.6} y={0} textAnchor="start" dominantBaseline="middle">
+                <text
+                  x={2.6}
+                  y={0}
+                  textAnchor="start"
+                  dominantBaseline="middle"
+                  /*
+                    12px on screen at any width and any zoom, converted into canvas units. A
+                    style, not the SVG presentation attribute: the stylesheet's own
+                    `font-size: 2.6px` outranked the attribute and left the name at 7.7px on a
+                    phone and 36.8px on a desktop (28.4).
+                  */
+                  style={{
+                    fontSize:
+                      surface.width && surface.height
+                        ? 12 / (Math.max(surface.width, surface.height) / view.size)
+                        : undefined,
+                  }}
+                >
                   {chosen.name.replace(`${chosen.city}, `, '')}
                 </text>
               </g>
@@ -208,6 +262,8 @@ export function MapPicker({
               type="text"
               autoComplete="off"
               placeholder={t('Search for a stop')}
+              /* A placeholder is not a name: it vanishes the moment anything is typed (28.5). */
+              aria-label={t('Search for a stop')}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -261,16 +317,19 @@ export function MapPicker({
             <p className="picker-row__meta">{t('No stop is placed on the map.')}</p>
           )}
 
-          <Button
-            variant="surface"
-            icon="check"
-            disabled={!chosen}
-            onClick={() => {
-              if (chosen) onPick(side, chosen);
-            }}
-          >
-            {t('Select this stop')}
-          </Button>
+          <div ref={selectRef} className="map-picker__confirm">
+            <Button
+              variant="surface"
+              icon="check"
+              block
+              disabled={!chosen}
+              onClick={() => {
+                if (chosen) onPick(side, chosen);
+              }}
+            >
+              {t('Select this stop')}
+            </Button>
+          </div>
         </div>
       </div>
     </FullScreen>

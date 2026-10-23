@@ -1,34 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import {
-  STOPS,
-  cities,
-  customStopName,
-  distanceFromPosition,
-  formatDistance,
-  hasBoard,
-  regions,
-} from '../data/stops';
+import { STOPS, cities, distanceFromPosition, hasBoard, regions } from '../data/stops';
 import { boardForStop } from '../data/departures';
 import { PT_LABEL_ORDER } from '../lib/boardHelpers';
 import { useMinuteNow } from '../lib/useMinuteNow';
 import { useLoadOnScroll } from '../lib/loadBatch';
 import { stopTypeLabel } from '../lib/format';
-import { useFormat } from '../lib/useFormat';
 import { modeLabel } from '../data/preferences';
-import {
-  Button,
-  Card,
-  Chip,
-  IconButton,
-  Pill,
-  SkeletonCards,
-} from '../components/ui/primitives';
+import { Button, Card, Chip } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { NoMatches } from '../components/ui/NoMatches';
-import { ResultCard, ResultCardLink } from '../components/ui/ResultCard';
+import { StopCard } from '../components/stops/StopCard';
+import { StopCardSkeletons } from '../components/ui/Skeletons';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import type { PublicMode, Stop } from '../data/types';
@@ -38,15 +23,8 @@ type StopTypeFilter = 'any' | Stop['type'];
 
 export function StopsPage() {
   const navigate = useNavigate();
-  const { favouriteStopIds, toggleFavourite, nearestOrigin, power } = useApp();
-  /*
-   * Read in the effects below through a ref: the artificial wait is keyed to the filters, and a
-   * phone being plugged in must not replay it over a list that is already on screen.
-   */
-  const savingRef = useRef(power.mode !== 'off');
-  savingRef.current = power.mode !== 'off';
+  const { favouriteStopIds, toggleFavourite, nearestOrigin, approximateLocationPending } = useApp();
   const t = useT();
-  const format = useFormat();
 
   const [query, setQuery] = useState('');
   /*
@@ -75,11 +53,24 @@ export function StopsPage() {
     sortParam === 'city' || sortParam === 'name' || sortParam === 'connections' ? sortParam : 'nearest';
   /* Visible at once: the search, the sort and the count. Everything else lives in Options. */
   /*
-   * Nearest-first is the default and the point of the sort, but it needs an origin. With none —
-   * no device fix and no estimate — the select falls back to the city order it used to have,
-   * rather than showing a selected option that cannot be honoured.
+   * **The one real wait on this screen: where you are.**
+   *
+   * Nearest-first is the default order, and it cannot be computed before a position exists — the
+   * device's own fix may have been refused, and the approximate estimate is a request. While that
+   * request is in flight the list used to fall back to city order and then re-order itself under
+   * the traveller's thumb, which reads as the list moving by itself. So the cards are held instead,
+   * in the grid they will land in, and the line under the filters says what the wait is for. It is
+   * a hold over real work, and it lasts exactly as long as that work does.
    */
-  const nearestSort = sort === 'nearest' && nearestOrigin !== null;
+  const positionPending = sort === 'nearest' && nearestOrigin === null && approximateLocationPending;
+  /*
+   * Nearest-first needs an origin, but *asking for one* is not the same as not having one: while
+   * the answer is on its way the select stays on Nearest rather than showing City for the length
+   * of the request and changing itself afterwards. With no estimate coming at all — refused,
+   * unavailable, or not asked for — it falls back to the city order it used to have, rather than
+   * showing a selected option that cannot be honoured.
+   */
+  const nearestSort = sort === 'nearest' && (nearestOrigin !== null || positionPending);
   const activeSort: Exclude<StopsSort, 'nearest'> | 'nearest' = nearestSort ? 'nearest' : sort === 'nearest' ? 'city' : sort;
   const [optionsOpen, setOptionsOpen] = useState(false);
   const modesParam = params.get('modes');
@@ -188,36 +179,14 @@ export function StopsPage() {
    * boards had). It re-reads on the minute with everything else.
    */
   /*
-   * The list's settling state (F17). The data is local, so a filter change is instant and there
-   * was never anything on screen to say work was happening — the ask is for an animated
-   * placeholder, and a placeholder needs a moment to be a placeholder. 360ms is long enough to
-   * read as a shimmer and short enough not to be in the way; it is restarted by any change to
-   * the filters, and it starts on first paint, which is the same brief wait on a cold open.
+   * **No hold over the search or the filters — only over the position.**
+   *
+   * There used to be a 360ms "settling" state here, restarted by every filter change *and by every
+   * keystroke in the search field*, so typing a stop name blanked the results and held four
+   * placeholder cards in their place for a third of a second per letter. Nothing was loading: the
+   * search is a filter over an array in memory. That one is gone and the list answers immediately;
+   * the only hold left on this screen is `positionPending` above, over a request that is running.
    */
-  const [settling, setSettling] = useState(power.mode === 'off');
-  const filterKey = `${query}|${modes.join(',')}|${type}|${region}|${city}|${favouritesOnly}|${sort}|${resetBatch}`;
-  useEffect(() => {
-    /*
-     * Battery saving draws no placeholder: the shimmer is a movement and a timer for a wait that
-     * the data (which is local) never actually had. The list is simply there, which is the one
-     * thing a traveller on 8% wants from it.
-     */
-    if (savingRef.current) {
-      setSettling(false);
-      return undefined;
-    }
-    setSettling(true);
-    const timer = window.setTimeout(() => setSettling(false), 360);
-    return () => window.clearTimeout(timer);
-  }, [filterKey]);
-  /*
-   * The reading arrives a moment after the first render, so a page opened at 8% can have started
-   * its placeholder before the mode was known. This ends it on the spot — and only ever clears,
-   * never starts, so a charger going in does not replay a wait over a list already on screen.
-   */
-  useEffect(() => {
-    if (power.mode !== 'off') setSettling(false);
-  }, [power.mode]);
 
   const fromMinutes = useMinuteNow();
   const departuresFor = useCallback(
@@ -250,12 +219,11 @@ export function StopsPage() {
         /* Every list screen draws its own name (MATCHING_PLAN rule 5): a phone has no menu on
            screen, and a stop reached from a link has to be told where it is. */
         showTitle
-        actions={
-          <Link to="/departures" className="btn">
-            <Icon name="board" size={16} />
-            {t('Departure boards')}
-          </Link>
-        }
+        /* No action beside the name. There was one — a `Departure boards` button in the head —
+           and it was a second way to a screen the navigation and the home screen already offer,
+           sitting where the eye is looking for the page's own name (reported with it crossed out).
+           A list's head names the list; the boards are reached from the navigation, the dock's
+           board entry, and each stop's own *Board* row. */
       />
 
       <Card className="stack">
@@ -279,7 +247,7 @@ export function StopsPage() {
               value={activeSort}
               onChange={(event) => writeParams({ sort: event.target.value === 'nearest' ? null : event.target.value })}
             >
-              <option value="nearest" disabled={!nearestOrigin}>
+              <option value="nearest" disabled={!nearestOrigin && !positionPending}>
                 {t('Nearest')}
               </option>
               <option value="city">{t('City')}</option>
@@ -309,7 +277,9 @@ export function StopsPage() {
           location at all, the line says what the list is doing instead.
         */}
         <p className="t-sm t-faint stops-origin">
-          {activeSort !== 'nearest' || !nearestOrigin
+          {positionPending
+            ? t('Finding where you are, so the list can be nearest-first…')
+            : activeSort !== 'nearest' || !nearestOrigin
             ? t('Sorted by {sort}. Turn on location for nearest-first.', {
                 sort: t(
                   activeSort === 'name' ? 'Name' : activeSort === 'connections' ? 'Connections' : 'City',
@@ -398,22 +368,14 @@ export function StopsPage() {
         ) : null}
       </Card>
 
-      {/* The count is a reading of a list that exists, so it appears with the list, not over the
-          placeholders. */}
-      {settling ? null : (
-        <div className="between wrap">
-          <span className="t-sm t-muted">
-            {t('{shown} of {total} stops', { shown: shown.length, total: results.length })}
-          </span>
-        </div>
-      )}
+      <div className="between wrap">
+        <span className="t-sm t-muted">
+          {t('{shown} of {total} stops', { shown: shown.length, total: results.length })}
+        </span>
+      </div>
 
-      {/* One `aria-busy` region around whichever of the three states is up, so a screen reader is
-          told the list is working rather than read a placeholder that is hidden on purpose. */}
-      <div className="stack-4" aria-busy={settling || undefined}>
-      {settling ? (
-        <SkeletonCards count={4} />
-      ) : results.length === 0 ? (
+      <div className="stack-4">
+      {results.length === 0 ? (
         <NoMatches
           title={t('No stops match these filters')}
           description={t('Nothing in the network matches what is switched on here.')}
@@ -436,6 +398,15 @@ export function StopsPage() {
               : []),
           ]}
         />
+      ) : positionPending ? (
+        /*
+          The hold, in the grid the cards will land in, as many as one batch puts there — and
+          each one drawn to the shape of the stop it stands in for, so the cards do not change
+          height when the position arrives.
+        */
+        <StopCardSkeletons
+          cards={shown.map((stop) => ({ stop, departures: departuresFor(stop) }))}
+        />
       ) : (
         <>
           <ul ref={gridRef} className="grid-2 stops-grid">
@@ -444,141 +415,27 @@ export function StopsPage() {
               const distance = distanceTo(stop);
               const isFavourite = favouriteStopIds.includes(stop.id);
               return (
-                <ResultCard
-                  as="li"
+                <StopCard
                   key={stop.id}
-                  to={`/stops/${stop.id}`}
-                  className="stack-2 stop-card"
-                  /*
-                   * The card is the way into the stop page — no STOP PAGE button in it, and no
-                   * fourth copy of the way-in rule either: `ResultCard` draws the press, the one
-                   * real link and the lift for the stop card, the alert card and the journey card
-                   * (MATCHING_PLAN rule 4).
-                   */
-                >
-                  <div className="between wrap">
-                    <div className="stack-1">
-                      <ResultCardLink to={`/stops/${stop.id}`}>
-                        {customStopName(stop.id) ?? stop.name}
-                      </ResultCardLink>
-                      <span className="t-sm t-muted">
-                        {customStopName(stop.id) ? `${stop.name} · ` : ''}
-                        {stop.city} · {stop.code} · {stopTypeLabel(stop.type)}
-                        {/* A straight line, not a travel time, and only when we have a position. */}
-                        {distance !== null ? ` · ${formatDistance(distance)}` : ''}
-                      </span>
-                    </div>
-                    {/* `card-actions` so this control is held at the trailing edge at 320 too —
-                        the same group the departure board's card head uses. */}
-                    <div className="card-actions">
-                      <IconButton
-                        icon="heart"
-                        label={t(
-                          isFavourite
-                            ? 'Remove {stop} from favourites'
-                            : 'Add {stop} to favourites',
-                          { stop: customStopName(stop.id) ?? stop.name },
-                        )}
-                        active={isFavourite}
-                        className="glyph-toggle"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          toggleFavourite(stop.id);
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="row-wrap">
-                    {stop.modes
-                      .filter((mode) => mode !== 'walk' && mode !== 'bike')
-                      .map((mode) => (
-                        <span key={mode} className={`mode-badge mode-badge--${mode}`}>
-                          <ModeIcon mode={mode} size={13} />
-                          {modeLabel(mode)}
-                        </span>
-                      ))}
-                    {/* The Step-free / Stairs-only pill is deleted with every other visible
-                        accessibility claim (F19). */}
-                    {stop.ovFiets ? <Pill tone="outline">OV-fiets</Pill> : null}
-                  </div>
-
-                  {departures.length ? (
-                    <ul className="stop-card__board">
-                      {departures.map((departure) => (
-                        <li key={departure.id} className="stop-card__departure">
-                          <span className={`t-mono-num${departure.cancelled ? ' strike' : ''}`}>
-                            {format.time(departure.cancelled ? departure.planned : departure.expected)}
-                          </span>
-                          <span className="grow">{departure.destinationLabel}</span>
-                          {departure.delayMinutes > 0 && !departure.cancelled ? (
-                            <span className="delay">+{departure.delayMinutes}</span>
-                          ) : null}
-                          {departure.cancelled ? (
-                            <span className="delay">{t('Cancelled')}</span>
-                          ) : (
-                            /*
-                              `P6`, not a bare `6`: a lone digit at the end of a row reads as a
-                              stray number. The board spells the word out; a card has room for a
-                              letter, and a title for anyone who wants the word.
-                            */
-                            <span className="t-sm t-faint" title={`${t('Platform')} ${departure.platform}`}>
-                              P{departure.platform}
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
-                  <div className="row-wrap">
-                    {/*
-                      Two actions, both smaller than the buttons this row used to carry: More is
-                      the way to that stop's own board, and Plan asks which end of the journey
-                      this stop is instead of offering two buttons that assume the answer.
-
-                      Both are text-only — no pill, no border — because the card already draws a
-                      surface and two white capsules inside it read as the card's furniture
-                      rather than as the two things you can do with the stop.
-                    */}
-                    {hasBoard(stop) ? (
-                      <Link
-                        to={`/departures?stop=${stop.id}`}
-                        className="btn btn--xs btn--ghost"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <Icon name="board" size={14} />
-                        {/*
-                         * "More" named nothing. The action is *open this stop's departure
-                         * board*, so it says the thing it opens — the same words the stop page
-                         * uses for the same destination. Short, because the card's foot is the
-                         * narrowest row in the app; the audit groups it with "Open the full
-                         * board" either way, on the glyph and the destination.
-                         */}
-                        {t('Board')}
-                      </Link>
-                    ) : null}
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      icon="route"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setPlanStop(stop);
-                      }}
-                    >
-                      {t('Plan')}
-                    </Button>
-                  </div>
-                </ResultCard>
+                  stop={stop}
+                  departures={departures}
+                  distance={distance}
+                  isFavourite={isFavourite}
+                  onToggleFavourite={() => toggleFavourite(stop.id)}
+                  onPlan={() => setPlanStop(stop)}
+                />
               );
             })}
           </ul>
 
           {hasMore ? (
             <>
-              <div ref={sentinelRef} className="list-sentinel" aria-hidden="true" />
-              <div className="row-wrap" style={{ justifyContent: 'center' }}>
+              <div className="row-wrap list-foot" style={{ justifyContent: 'center' }}>
+                {/* The marker sits in the row, absolutely, so it is neither a flex item of the
+                    column (which cost a second gap: 24px between the list and its button where
+                    the stack asked for 12) nor an item of the row (which would push the centred
+                    button off centre by half a gap). */}
+                <div ref={sentinelRef} className="list-sentinel" aria-hidden="true" />
                 <Button size="sm" icon="chevronDown" onClick={loadMore}>
                   {t('Show {count} more', { count: next })}
                 </Button>

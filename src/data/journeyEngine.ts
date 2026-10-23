@@ -88,7 +88,15 @@ export const DEFAULT_RESULTS_FILTER: ResultsFilter = {
   modes: [],
   directOnly: false,
   delayedOnly: false,
-  hideCancelled: false,
+  /*
+   * **A cancelled journey is not an option, so it is not in the list.**
+   *
+   * It was shown by default, with a filter to hide it — so the first thing a traveller read was an
+   * itinerary that cannot be made ("if this stops the journey from being possible IT SHOULDNT even
+   * be on the list"). The switch stays, because a traveller may want to see what is cancelled; the
+   * default is the answer, not the question.
+   */
+  hideCancelled: true,
   operatorIds: [],
 };
 
@@ -609,6 +617,102 @@ function planAccessJourney(query: SearchQuery, windowOffset: number, preferences
   ];
 }
 
+/**
+ * **The walk from the address to the stop it is planned from.**
+ *
+ * An address is not its nearest station, and until this existed the planner treated it as one: a
+ * search from "Rijksstraatweg 7, Haarlem" (1.5 km from Haarlem Station) to Hoofddorp produced a
+ * bus that left Haarlem Station at the requested minute, with the address printed above it and no
+ * walk anywhere — reported with a screenshot: *"it also treats adresses like the closest station"*.
+ *
+ * So the access leg is real now. It is the first leg of the journey (and the last, for an address
+ * at the arrival end), with the address as its own name and its own distance, and the search runs
+ * from the time the traveller can actually be at the stop: leave at 21:30 from home, be at the
+ * station at 21:49, catch the 21:54. Arriving by 22:00 at an address means the service has to be
+ * at the stop by 21:41, so that search runs earlier by the same amount.
+ *
+ * Its mode is the one that end asked for — walking unless the traveller chose a bicycle — and a
+ * mode that is switched off in preferences is never invented.
+ */
+interface AccessLeg {
+  mode: 'walk' | 'bike';
+  metres: number;
+  minutes: number;
+}
+
+function accessLegFor(metres: number | undefined, mode: 'walk' | 'bike'): AccessLeg | undefined {
+  if (metres === undefined || !Number.isFinite(metres) || metres <= 0) return undefined;
+  const pace = mode === 'bike' ? WALK_METRES_PER_MINUTE * BIKE_SPEED_FACTOR : WALK_METRES_PER_MINUTE;
+  return { mode, metres, minutes: Math.max(1, Math.round(metres / pace)) };
+}
+
+/**
+ * The journey with its two access legs attached, and its span widened by them.
+ *
+ * The first leg ends exactly when the service at the stop leaves, and the last begins when the
+ * last service arrives — the walk is not padding, it is the part of the trip the traveller does
+ * themselves. Walking minutes and the mode list are recomputed because everything downstream reads
+ * them: the card's chain, the walking budget in the filters, and the sort.
+ */
+function withAccessLegs(
+  journey: Journey,
+  query: SearchQuery,
+  access: { from?: AccessLeg; to?: AccessLeg },
+): Journey {
+  if (!access.from && !access.to) return journey;
+  const legs: Leg[] = [...journey.legs];
+
+  if (access.from) {
+    const stop = legs[0];
+    legs.unshift({
+      id: `leg-access-from-${journey.id}`,
+      mode: access.from.mode,
+      fromStopId: query.fromStopId,
+      toStopId: query.fromStopId,
+      /* The address is where this leg starts, so it is the leg's own departure name. */
+      fromLabel: query.fromLabel,
+      departure: stop.departure - access.from.minutes,
+      arrival: stop.departure,
+      distanceMetres: access.from.metres,
+      message: access.from.mode === 'bike' ? `Cycle about ${access.from.minutes} min` : undefined,
+      stepFree: true,
+    });
+  }
+
+  if (access.to) {
+    const stop = legs[legs.length - 1];
+    legs.push({
+      id: `leg-access-to-${journey.id}`,
+      mode: access.to.mode,
+      fromStopId: query.toStopId,
+      toStopId: query.toStopId,
+      toLabel: query.toLabel,
+      departure: stop.arrival,
+      arrival: stop.arrival + access.to.minutes,
+      distanceMetres: access.to.metres,
+      message: access.to.mode === 'bike' ? `Cycle about ${access.to.minutes} min` : undefined,
+      stepFree: true,
+    });
+  }
+
+  const departure = legs[0].departure;
+  const arrival = legs.reduce((max, leg) => Math.max(max, leg.arrival), departure);
+  return {
+    ...journey,
+    legs,
+    departure,
+    arrival,
+    durationMinutes: Math.max(1, arrival - departure),
+    walkMinutes: legs
+      .filter((leg) => leg.mode === 'walk')
+      .reduce((sum, leg) => sum + (leg.arrival - leg.departure), 0),
+    modes: [...new Set(legs.map((leg) => leg.mode))],
+    /* The same two stops with and without a walk from an address are two different journeys, and
+       a saved one must not answer for the other. */
+    signature: `${journey.signature}|${access.from ? `af${access.from.metres}` : ''}${access.to ? `at${access.to.metres}` : ''}`,
+  };
+}
+
 /* ----------------------------------------------------------- plan search */
 
 export interface PlanOptions {
@@ -654,6 +758,20 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
   const restrictWalk = preferences.preferLessWalking ? Math.min(walkLimit, 10) : walkLimit;
   const transferBuffer = preferences.preferFewerTransfers ? 9 : 2;
 
+  /*
+   * The walk (or cycle) from each address end to the stop it resolved to, and how far the search
+   * window moves because of it. A departure from home at 21:30 cannot catch a 21:30 train, and an
+   * arrival at an address by 22:00 has to be off the train before the walk.
+   */
+  const accessModeFrom: 'walk' | 'bike' | undefined =
+    preferences.accessFrom === 'bike' && allowBikeAccess ? 'bike' : allowWalkAccess ? 'walk' : undefined;
+  const accessModeTo: 'walk' | 'bike' | undefined =
+    preferences.accessTo === 'bike' && allowBikeAccess ? 'bike' : allowWalkAccess ? 'walk' : undefined;
+  const accessFrom = accessModeFrom ? accessLegFor(query.fromAccessMetres, accessModeFrom) : undefined;
+  const accessTo = accessModeTo ? accessLegFor(query.toAccessMetres, accessModeTo) : undefined;
+  const accessShift =
+    query.timeMode === 'depart' ? (accessFrom?.minutes ?? 0) : -(accessTo?.minutes ?? 0);
+
   // A one-hour window of departure offsets, so the list shows several real
   // service instances rather than one repeated option.
   const offsets = query.timeMode === 'depart'
@@ -680,7 +798,7 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
   let bestFirstLine: string | undefined;
 
   for (const offset of offsets) {
-    const requestTime = Math.round(query.time + windowOffset + offset);
+    const requestTime = Math.round(query.time + windowOffset + offset + accessShift);
     if (requestTime < 0 || requestTime > 1439) continue;
     for (const variant of variantSets) {
       for (const pass of bikePasses) {
@@ -723,7 +841,7 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
       if (avoidSoFar.size === 0) break;
       const before = plans.length;
       for (const offset of offsets.slice(0, 8)) {
-        const requestTime = Math.round(query.time + windowOffset + offset);
+        const requestTime = Math.round(query.time + windowOffset + offset + accessShift);
         if (requestTime < 0 || requestTime > 1439) continue;
         for (const pass of bikePasses) {
           collect(
@@ -860,6 +978,15 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
    * links exist are mostly bicycle-led, so a walk/walk search could come back with a
    * single option out of a possible fourteen.
    */
+  /*
+   * Both ends now carry their own walk, so everything below — the bicycle-per-end rule, the sort,
+   * the walking budget, the card's chain — reads a journey that starts at the address it was
+   * asked from.
+   */
+  if (accessFrom || accessTo) {
+    journeys = journeys.map((journey) => withAccessLegs(journey, query, { from: accessFrom, to: accessTo }));
+  }
+
   const perEnd = journeys.filter((journey) => {
     const first = journey.legs[0]?.mode;
     const last = journey.legs[journey.legs.length - 1]?.mode;

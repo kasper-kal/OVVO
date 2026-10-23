@@ -58,6 +58,13 @@ With that file in place, plain `npm run dev` already allows the preview hostname
 restore, replace the one value and restart. Without it the server stays localhost-only,
 which is the right default for a checkout that is not behind a preview proxy.
 
+The live site is served from Render by `npm run preview`, which checks the same header and
+refused it until its own address was named. `vite.config.ts` therefore also allows
+`ovvo.onrender.com` and whatever `RENDER_EXTERNAL_HOSTNAME` holds (Render sets that per
+service, so a pull-request preview on `ovvo-pr-<n>.onrender.com` needs no edit), plus a
+comma-separated `ALLOWED_HOSTS` for anywhere else. Each host is named individually: the
+allow-list is never `true`, so an unknown `Host` still gets a 403.
+
 ## Screens
 
 | Route | Screen |
@@ -373,8 +380,9 @@ npx esbuild scripts/render-check.ts --bundle --format=cjs --platform=node \
 node scripts/class-audit.mjs
 
 # every icon, on every route and width, read out of a real browser: square, a whole pixel,
-# named, weighted, and sitting on the optical centre of the text beside it. Needs a browser:
-#   npm i -D playwright && npx playwright install chromium
+# named, weighted, and sitting on the optical centre of the text beside it. Needs a browser
+# (Playwright is a dev dependency; one command fetches the Chromium it drives):
+#   npx playwright install chromium
 # and a dev server on :3000 (or pass an origin). In a restored sandbox Playwright's Chromium
 # exits 127 for a dozen missing system libraries and there is no root to install them, so
 # `source .logs/playwright-libs.sh` first: it fetches them as .deb packages into $HOME/syslibs,
@@ -444,11 +452,14 @@ node scripts/icon-sheet.mjs
 ```
 
 The first three run outside the app bundle and need nothing beyond esbuild (already present
-through Vite). The three browser audits (`icon-audit`, `ui-audit`, `caps-audit`) need
-Playwright, which is deliberately *not* a dependency of the app — they are checks, not
-something that ships. They also need the Chromium Playwright installed for this VM, which is
-not the default location: run them with `PLAYWRIGHT_BROWSERS_PATH` pointing at it, and
-`PW_MODULE` at the `playwright` entry point when the module is not resolvable from the repo.
+through Vite). The browser audits (`icon-audit`, `ui-audit`, `caps-audit`, `precision-audit`)
+need Playwright. It is a **dev dependency** now, so `npm ci` brings it and one command brings
+the browser it drives:
+
+    npx playwright install chromium
+
+It is still not part of the app: nothing in `src/` imports it, and it is not in the bundle.
+The browser audits are checks, not something that ships.
 
 The browser audits are the ones that earn their keep: everything fixed in R55, R56, R57 and R58 was
 found by one of them and by nothing else, and `caps-audit` (R70) was built for the one question
@@ -471,8 +482,8 @@ control and its box,
 and the map's names — which must keep
 real air from every stop dot, a pad apart from each other and clear of the corridors they
 sit among (measured in the canvas' own 0–100 units, from screen rectangles: `getBBox()` is
-relative to a name's own `<g transform>` and cannot tell whether two names collide). Playwright is deliberately **not** a project
-dependency, so those runs stay a local tool. Three things about the environment: the VM needs
+relative to a name's own `<g transform>` and cannot tell whether two names collide). Playwright is a dev dependency, so those
+runs need `npm ci` and `npx playwright install chromium`, but they stay out of the app bundle. Three things about the environment: the VM needs
 system fonts (`/usr/share/fonts` plus a fontconfig) — without them Chromium's renderer
 crashes on any nested form field — and it needs the usual Chromium shared libraries.
 

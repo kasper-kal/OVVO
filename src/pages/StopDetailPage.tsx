@@ -28,12 +28,7 @@ import { modeLabel } from '../data/preferences';
 export function StopDetailPage() {
   const { stopId } = useParams();
   const navigate = useNavigate();
-  const {
-    favouriteStopIds,
-    toggleFavourite,
-    boardStopIds,
-    toggleBoardStop,
-  } = useApp();
+  const { favouriteStopIds, toggleFavourite } = useApp();
   const format = useFormat();
   const t = useT();
   const stop = getStop(stopId);
@@ -81,7 +76,6 @@ export function StopDetailPage() {
   }
 
   const isFavourite = favouriteStopIds.includes(stop.id);
-  const onBoard = boardStopIds.includes(stop.id);
 
   /*
    * One end, then the other. This used to reuse whatever search was in the session when there was
@@ -110,17 +104,14 @@ export function StopDetailPage() {
         actions={
           <>
             {/*
-              Two controls, two different questions — this page is the one place both are offered,
-              so their names say which is which (the glyphs alone are a heart and a pin, which is
-              the whole point of the split):
+              **The heart is the only keep-control on this page.** Marking a place is a favourite —
+              "I use this place", which leads the stop lists and the search results — and it is
+              trailing, after Plan, in the row that names the stop.
 
-                - the **heart** is a favourite — "I use this place", which leads the stop lists
-                  and the search results;
-                - the **pin** puts this stop's board on the departure screen.
-
-              Both are trailing, after Plan, in the row that names the stop: `actions` is the
-              head's trailing group, so being last in it is being trailing (the audit measured
-              this control on the left before).
+              The **pin** that used to sit beside it is gone: putting a stop's board on the
+              departure screen is done on that screen and nowhere else (reported: "there shouldnt be
+              a pin button ANYWHERE except the Departure boards tab"). A stop page is a place to
+              read a timetable and plan from, not a second place to manage boards.
             */}
             <Button size="sm" icon="route" onClick={() => setPlanOpen(true)}>
               {t('Plan')}
@@ -136,18 +127,6 @@ export function StopDetailPage() {
               active={isFavourite}
               className="glyph-toggle"
               onClick={() => toggleFavourite(stop.id)}
-            />
-            <IconButton
-              icon="pin"
-              label={t(
-                onBoard
-                  ? 'Unpin {stop} from the departure board'
-                  : 'Pin {stop} to the departure board',
-                { stop: customStopName(stop.id) ?? stop.name },
-              )}
-              active={onBoard}
-              className="glyph-toggle"
-              onClick={() => toggleBoardStop(stop.id)}
             />
           </>
         }

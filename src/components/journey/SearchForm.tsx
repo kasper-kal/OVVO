@@ -348,11 +348,21 @@ export function SearchForm({
           centreOn={sheet.side === 'from' ? from : to}
           onPick={(side, stop) => {
             pick(side, stop);
-            /* Back to the picker, not out of it: the map answered one row, and the other row
-               (or the pin beside it) is the next thing the traveller is looking for. When that
-               row was the last one missing, `pick` has already planned the pair and this sheet
-               is gone — which is the point: two ends, a journey on screen. */
-            setSheet((current) => (current ? { kind: 'pick', side } : current));
+            /*
+             * Back to the picker, on the end that is **still missing**.
+             *
+             * It used to come back on the end the map had just answered: the From row was filled
+             * with the stop, the caret was in it, and the screen still said "Where are you leaving
+             * from?" — an answer being asked for again. A stop picked from the list below never did
+             * that (`StopPicker.choose` hands the keyboard to the other row), so the map was the one
+             * way in that left the traveller re-reading the field they had just filled.
+             *
+             * When this was the second end, `pick` has already planned the pair and closed the
+             * sheet — `current` is null and the results are what comes next.
+             */
+            setSheet((current) =>
+              current ? { kind: 'pick', side: side === 'from' ? 'to' : 'from' } : current,
+            );
           }}
           onClose={() => setSheet({ kind: 'pick', side: sheet.side })}
         />

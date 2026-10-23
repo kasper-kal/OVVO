@@ -37,6 +37,17 @@ interface Props {
   filter?: (stop: Stop) => boolean;
   /** The line under “No stops match” — say why nothing matched when a filter is in play. */
   emptyHint?: string;
+  /**
+   * **Empty the field once a stop is picked**, instead of writing the choice into it.
+   *
+   * A field that *chooses an end* (the planner's, Settings' default origin) keeps the name so the
+   * control can be read back. A field that **adds** something — the departure board's *Add a stop to
+   * the board* — must not: the stop it just added is already on the page as a board of its own, so
+   * leaving the name in the box says the same thing twice and leaves a filled field under an
+   * instruction to add another one. Reported on the board: *"why does the old station stay in the
+   * search box when its already pinned"* — and it stayed because `commit` wrote it there.
+   */
+  clearAfterPick?: boolean;
 }
 
 /**
@@ -57,6 +68,7 @@ export function StopCombobox({
   describedBy,
   showHint = true,
   hideLabel = false,
+  clearAfterPick = false,
   filter,
   emptyHint,
 }: Props) {
@@ -110,7 +122,18 @@ export function StopCombobox({
        */
       const box = field.getBoundingClientRect();
       const below = window.innerHeight - box.bottom - 12;
-      const above = box.top - 12;
+      /*
+       * **The bar's band is not room.**
+       *
+       * The header is sticky with a higher stacking order than the list, so a list hung upward
+       * through it is drawn *behind* the mark and the two corner controls — reported from a phone
+       * with a keyboard up, where the rows ran under the logo and the alerts badge and the list
+       * looked like it was passing through the header. Measured from the bar's own bottom edge, the
+       * room above a field is what is actually visible.
+       */
+      const bar = document.querySelector('.app-header__inner');
+      const barBottom = bar ? bar.getBoundingClientRect().bottom : 0;
+      const above = box.top - Math.max(12, barBottom + 8);
       /*
        * Hang upwards until the whole list fits, not only until the room below is small.
        *
@@ -122,7 +145,21 @@ export function StopCombobox({
        */
       const wanted = 352;
       const up = below < Math.min(460, wanted) && above > below;
-      setCap({ max: Math.max(160, Math.min(460, up ? above : below)), up });
+      /*
+       * **A list is whole rows.**
+       *
+       * The cap used to be the exact number of pixels of room, so the last row in the panel was
+       * cut across its second line and the first one was cut at the top — a panel that reads as
+       * broken even though it scrolls (reported with that screenshot). The height is now a whole
+       * number of the rows this list actually draws (measured, since a long name can make a row
+       * taller than 56px) plus the panel's own padding and borders.
+       */
+      const rowHeight =
+        rootRef.current?.querySelector<HTMLElement>('.suggestion')?.getBoundingClientRect().height || 56;
+      const panelChrome = 18;
+      const room = Math.max(1, Math.min(460, up ? above : below));
+      const rows = Math.max(1, Math.floor((room - panelChrome) / rowHeight));
+      setCap({ max: rows * rowHeight + panelChrome, up });
     };
     measure();
     window.addEventListener('resize', measure);
@@ -185,9 +222,9 @@ export function StopCombobox({
   const commit = (stop: Stop | null) => {
     typingRef.current = false;
     selectedIdRef.current = stop?.id ?? null;
-    if (!stop) setHeld(null);
+    if (!stop || clearAfterPick) setHeld(null);
     onSelect(stop);
-    setQuery(stop ? stopLabel(stop.id) : '');
+    setQuery(stop && !clearAfterPick ? stopLabel(stop.id) : '');
     setOpen(false);
     /*
      * A stop has been chosen, so the field has finished its job and the phone's keyboard goes
@@ -315,7 +352,9 @@ export function StopCombobox({
                 >
                 <span className="stack-1 grow">
                   <span className="t-strong t-body row">
-                    {favouriteStopIds.includes(stop.id) ? <Icon name="heart" size={13} /> : null}
+                    {/* Solid, because a favourite is on: the same filled heart the control that
+                        set it wears (see `pressedIcon` in `components/ui/Icons`). */}
+                    {favouriteStopIds.includes(stop.id) ? <Icon name="heartFilled" size={13} /> : null}
                     {customStopName(stop.id) ?? stop.name}
                   </span>
                   <span className="t-sm t-muted">

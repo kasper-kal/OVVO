@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
@@ -131,37 +131,47 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
    * is taken away from it.
    */
   /*
-   * **The dock yields while the page is being read.**
+   * **The dock is always there.**
    *
-   * It is fixed, so wherever it hangs it is over content — at 768×844 it sat on the first
-   * result's own controls (2.3), and on the map screen on sixteen stop dots (3.4). Nothing in
-   * the layout can reserve its band at every scroll position, so it stops being an obstruction
-   * the moment the reader starts moving down the page: the bar slides out on a downward scroll
-   * and comes back on an upward one, which is also the gesture that summons the departure
-   * board's refresh button. It never hides while it holds the focus, so the keyboard can always
-   * reach it, and it is present at the very top of every screen.
+   * It used to slide away on a downward scroll and come back on an upward one, because a fixed bar
+   * sits over the content wherever it hangs (2.3, 3.4). A navigation that hides while you read is
+   * the wrong trade: it moves under the thumb and it is missing exactly when the page is long
+   * enough to want it. The page reserves its band at the end instead (`.app-body`'s bottom padding
+   * is `--dock-h`), so nothing is ever buried under it, and the bar stays put at every scroll
+   * position — asked for by name: "I want the bottom nav there ALWAYS".
    */
-  const [yielded, setYielded] = useState(false);
-  useEffect(() => {
-    let last = window.scrollY;
-    let frame = 0;
-    const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const y = window.scrollY;
-        const delta = y - last;
-        if (Math.abs(delta) < 6) return;
-        last = y;
-        setYielded(delta > 0 && y > 24);
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, []);
+
+  /*
+   * **The pressed tab lifts, and puts itself back down.**
+   *
+   * A phone has no hover, but `:hover` is applied on a tap and kept until the next touch — the
+   * reason the pressed tab used to stay 4px up (and 2% larger) for as long as the screen was open,
+   * which on the coral active tab looks like the disc straining out of the bar (see
+   * `.app-dock__item.is-lifted` in `base.css`; the hover rule is now behind `hover: hover`). This
+   * is the deliberate version: the tab answers the press with the same little jump, and is back in
+   * its seat **1s** later whether or not anything else is touched — and the way down is a
+   * `settle` phase of its own (`.is-settling`, 320ms) instead of the item's 120ms press curve, so
+   * it glides back rather than snapping.
+   */
+  const [dial, setDial] = useState<{ id: string; settling: boolean } | null>(null);
+  const liftTimer = useRef(0);
+  const settleTimer = useRef(0);
+  const lift = (id: string) => {
+    window.clearTimeout(liftTimer.current);
+    window.clearTimeout(settleTimer.current);
+    setDial({ id, settling: false });
+    liftTimer.current = window.setTimeout(() => {
+      setDial({ id, settling: true });
+      settleTimer.current = window.setTimeout(() => setDial(null), 320);
+    }, 1000);
+  };
+  useEffect(
+    () => () => {
+      window.clearTimeout(liftTimer.current);
+      window.clearTimeout(settleTimer.current);
+    },
+    [],
+  );
 
   const lastHomeTap = useRef(0);
   const onHomeClick = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -173,15 +183,16 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
     navigate('/?pick=from');
   };
   return (
-    <nav className={`app-dock${yielded ? ' app-dock--yielded' : ''}`} aria-label={t('Quick navigation')}>
+    <nav className="app-dock" aria-label={t('Quick navigation')}>
       {DOCK_ITEMS.map((item) => (
         <Link
           key={item.to}
           to={item.to}
-          className="app-dock__item"
+          className={`app-dock__item${dial?.id === item.to ? (dial.settling ? ' is-settling' : ' is-lifted') : ''}`}
           aria-current={isActivePath(location.pathname, item.to) ? 'page' : undefined}
           aria-label={t(item.key)}
           title={t(item.key)}
+          onPointerDown={() => lift(item.to)}
           onClick={item.to === '/' ? onHomeClick : undefined}
         >
           <Icon name={item.icon} size={20} />
@@ -189,9 +200,10 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
       ))}
       <button
         type="button"
-        className="app-dock__item"
+        className={`app-dock__item${dial?.id === 'menu' ? (dial.settling ? ' is-settling' : ' is-lifted') : ''}`}
         aria-label={t('All sections')}
         title={t('All sections')}
+        onPointerDown={() => lift('menu')}
         onClick={onOpenMenu}
       >
         <Icon name="menu" size={20} />
@@ -205,11 +217,12 @@ function MenuDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const location = useLocation();
   const t = useT();
   return (
-    <Dialog open={open} title={t('All sections')} onClose={onClose}>
+    /* `menu-sheet` is the rhythm of a list, not of a page: see the comment in `components.css`. */
+    <Dialog open={open} title={t('All sections')} onClose={onClose} panelClassName="menu-sheet">
       <div className="stack">
         {groups.map((group) => (
           <div key={group.title}>
-            <p className="field__label" style={{ marginBottom: 'var(--s-2)' }}>
+            <p className="field__label" style={{ marginBottom: 'var(--s-1)' }}>
               {group.title}
             </p>
             <ul className="nav-list">
@@ -325,10 +338,42 @@ export function PageHeader({
   );
 }
 
+/**
+ * **The bar's start corner, for the one page control that belongs there.**
+ *
+ * The slot at the start of the bar belongs to the shell (`useHeaderBack`), so a screen cannot put
+ * anything in it — which was the point of moving the way back there. The boards screen is the one
+ * exception: its refresh sat inside every board card, beside the sentence that says the board
+ * refreshes itself, and it belongs where a phone user already looks for a screen's own control —
+ * the corner the way back occupies on every other screen (asked for by name: "move the Refresh
+ * button to the place of the back button on other pages").
+ *
+ * So a page *registers* a control instead of drawing it: the shell draws it in that corner, and
+ * the page takes it away on unmount. A page that has a way back keeps the arrow — a control of its
+ * own never displaces the navigation — so this is only used where the slot is otherwise empty.
+ */
+const HeaderControlContext = createContext<(control: ReactNode) => void>(() => {});
+
+export function useHeaderControl() {
+  return useContext(HeaderControlContext);
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  /* The page's own control in the bar's start corner, if it registered one. */
+  const [headerControl, setHeaderControl] = useState<ReactNode>(null);
   const mainRef = useRef<HTMLElement>(null);
-  const [announcement, setAnnouncement] = useState('');
+  /*
+   * The live region is written to directly, never through state.
+   *
+   * It was `useState` — and because the shell's state change re-renders its children, every
+   * navigation rendered the destination page a second time (and a third, when the title effect
+   * followed) just to put one sentence in a hidden paragraph. Measured on a phone-speed CPU that
+   * was the difference between a screen that appears in one frame and one that holds the previous
+   * screen for a fifth of a second: the page was being built three times, the first two thrown
+   * away. A live region only needs its text to change, so the text is set on the node.
+   */
+  const announcementRef = useRef<HTMLParagraphElement>(null);
   const location = useLocation();
   const navigationType = useNavigationType();
   const t = useT();
@@ -343,6 +388,24 @@ export function AppShell({ children }: { children: ReactNode }) {
    */
   const onHome = isActivePath(location.pathname, '/');
   const editingHome = homeEditing && onHome;
+
+  /*
+   * **Customising is a mode of the home screen, so leaving it leaves the mode.**
+   *
+   * The flag lives in the app's state, which is what makes the mode outlive a re-render — and what
+   * made it outlive the screen: arranging the cards, tapping *Departure boards* in the dock and
+   * coming home again put you straight back into customising, cards showing their remove buttons
+   * and the header reading **Done**, for a mode you had walked away from (reported: "Home tab
+   * shouldnt stay in Customize mode after youve left it to go to another tab"). Nothing on another
+   * tab can arrange a home screen, and the layout menu hangs from a control that is not drawn
+   * there either, so both are closed the moment the route is not Home. Arriving home does not
+   * reopen them.
+   */
+  useEffect(() => {
+    if (onHome || (!homeEditing && !homeMenuOpen)) return;
+    setHomeEditing(false);
+    setHomeMenuOpen(false);
+  }, [onHome, homeEditing, homeMenuOpen, setHomeEditing, setHomeMenuOpen]);
 
   /*
    * Coming back is not arriving.
@@ -375,7 +438,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     if (moved) {
       const heading = mainRef.current?.querySelector('h1');
-      setAnnouncement(heading?.textContent?.trim() ?? '');
+      if (announcementRef.current) announcementRef.current.textContent = heading?.textContent?.trim() ?? '';
       mainRef.current?.focus({ preventScroll: true });
     }
   }, [location.pathname, location.key, navigationType]);
@@ -413,139 +476,152 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('scroll', remember);
   }, [location.key]);
 
+  /*
+   * **Nothing watches the scroll position for the header any more.**
+   *
+   * It used to set `data-scrolled`, which faded the canvas in under the row once the page moved —
+   * a compromise for the card that travels under the mark. The row is clear again, with nothing
+   * painted behind it at any scroll position (see `.app-header` in `styles/base.css`), so the flag,
+   * the state and the frame-scheduled listener all went with the paint.
+   */
+
   return (
-    <div className="app-shell">
-      {/*
-        A hash link cannot skip anything in a hash-routed app: `href="#main"` *is* a route, so
-        Enter on the first control sent the router to a page called `main` and drew the 404 over
-        the screen the traveller was reading (12.1). The skip is a focus move now — prevented from
-        changing the hash, landing on the `main` landmark, which takes the caret because it is
-        `tabIndex={-1}`.
-      */}
-      <a
-        className="skip-link"
-        href="#main"
-        onClick={(event) => {
-          event.preventDefault();
-          mainRef.current?.focus({ preventScroll: false });
-          mainRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
-        }}
-      >
-        {t('Skip to main content')}
-      </a>
-      {/* What a screen reader hears when the screen changes (12.2). Empty at rest. */}
-      <p className="sr-only" role="status" aria-live="polite">
-        {announcement}
-      </p>
-      {/*
-        The connection, before anything else on the screen. It is sticky and above the header, so
-        "you are offline and these times are not live" is still the top line of the page after the
-        traveller has scrolled a board — see `layout/OfflineBar`.
-      */}
-      <OfflineBar />
-      {/*
-        No app bar: the mark is the only thing across the top and it is centred, saying the
-        name on its own. The alerts entry keeps the place it has always had (top right, one
-        tap from anywhere) with nothing painted behind it but the page. Both live in a
-        three-column row — a name in the middle column is centred by the grid, not by
-        matching paddings, and all three of its children share one top edge — their sizes are
-        their own, and only the line they start on is common — and the row scrolls away with
-        the page like everything else, because anything that stays put has to be painted over
-        the content passing under it, and that paint is the bar (see `.app-header` and
-        `.app-header__inner` in `styles/base.css`).
-      */}
-      <header className="app-header">
-        <div className="app-header__inner">
-          {/*
-            The bar's left column, which the centered mark leaves empty and the full-screen
-            pickers fill with their own way back. A page that has one puts it here and nowhere
-            else — see `useHeaderBack`.
-          */}
-          <div className="app-header__back">
-            {onHome ? (
-              /*
-               * **Edit** and the `+` it becomes are **one control**, with two faces.
-               *
-               * In the corner a phone's home screen keeps it, there before the mode is on so the
-               * way in is visible rather than at the foot of a page the dock covers. Pressing it
-               * enters the mode; while editing it opens the layout menu, which hangs from this
-               * same box (`data-home-menu-trigger`).
-               *
-               * The two labels are stacked in one grid cell rather than swapped for each other
-               * (`app-header__pill--faces`), because a pill is as wide as what is in it: the `+`
-               * alone took the pill's 36px minimum and drew a **circle**, so entering the mode
-               * changed the shape of the corner. Both faces share the cell, so the word sizes the
-               * box in both states and the `+` sits centred inside Edit's own oval — same place,
-               * same size, same paint, and the only difference is the character on it.
-               */
+    <HeaderControlContext.Provider value={setHeaderControl}>
+      <div className="app-shell">
+        {/*
+          A hash link cannot skip anything in a hash-routed app: `href="#main"` *is* a route, so
+          Enter on the first control sent the router to a page called `main` and drew the 404 over
+          the screen the traveller was reading (12.1). The skip is a focus move now — prevented from
+          changing the hash, landing on the `main` landmark, which takes the caret because it is
+          `tabIndex={-1}`.
+        */}
+        <a
+          className="skip-link"
+          href="#main"
+          onClick={(event) => {
+            event.preventDefault();
+            mainRef.current?.focus({ preventScroll: false });
+            mainRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+          }}
+        >
+          {t('Skip to main content')}
+        </a>
+        {/* What a screen reader hears when the screen changes (12.2). Empty at rest, and filled
+            from the effect above rather than by a re-render — see `announcementRef`. */}
+        <p className="sr-only" role="status" aria-live="polite" ref={announcementRef} />
+        {/*
+          The connection, before anything else on the screen. It is sticky and above the header, so
+          "you are offline and these times are not live" is still the top line of the page after the
+          traveller has scrolled a board — see `layout/OfflineBar`.
+        */}
+        <OfflineBar />
+        {/*
+          No app bar: the mark is the only thing across the top and it is centred, saying the
+          name on its own. The alerts entry keeps the place it has always had (top right, one
+          tap from anywhere) with nothing painted behind it but the page. Both live in a
+          three-column row — a name in the middle column is centred by the grid, not by
+          matching paddings, and all three of its children share one top edge — their sizes are
+          their own, and only the line they start on is common — and the row scrolls away with
+          the page like everything else, because anything that stays put has to be painted over
+          the content passing under it, and that paint is the bar (see `.app-header` and
+          `.app-header__inner` in `styles/base.css`).
+        */}
+        <header className="app-header">
+          <div className="app-header__inner">
+            {/*
+              The bar's left column, which the centered mark leaves empty and the full-screen
+              pickers fill with their own way back. A page that has one puts it here and nowhere
+              else — see `useHeaderBack`.
+            */}
+            <div className="app-header__back">
+              {onHome ? (
+                /*
+                 * **Edit** and the `+` it becomes are **one control**, with two faces.
+                 *
+                 * In the corner a phone's home screen keeps it, there before the mode is on so the
+                 * way in is visible rather than at the foot of a page the dock covers. Pressing it
+                 * enters the mode; while editing it opens the layout menu, which hangs from this
+                 * same box (`data-home-menu-trigger`).
+                 *
+                 * The two labels are stacked in one grid cell rather than swapped for each other
+                 * (`app-header__pill--faces`), because a pill is as wide as what is in it: the `+`
+                 * alone took the pill's 36px minimum and drew a **circle**, so entering the mode
+                 * changed the shape of the corner. Both faces share the cell, so the word sizes the
+                 * box in both states and the `+` sits centred inside Edit's own oval — same place,
+                 * same size, same paint, and the only difference is the character on it.
+                 */
+                <button
+                  type="button"
+                  className="app-header__pill app-header__pill--faces"
+                  data-home-menu-trigger={editingHome ? '' : undefined}
+                  aria-haspopup={editingHome ? 'dialog' : undefined}
+                  aria-expanded={editingHome ? homeMenuOpen : undefined}
+                  aria-label={editingHome ? t('Home layout') : undefined}
+                  title={editingHome ? t('Home layout') : t('Or press and hold the home screen')}
+                  onClick={() => (editingHome ? setHomeMenuOpen(!homeMenuOpen) : setHomeEditing(true))}
+                >
+                  {/* Plain text, as a phone's home screen writes it: the word is the control. */}
+                  <span className="app-header__pill-face" aria-hidden={editingHome || undefined}>
+                    {t('Edit')}
+                  </span>
+                  {/*
+                   * The glyph is the app's own **plus icon**, not a `+` character: at the pill's 12px
+                   * type size a text plus draws about 8px wide and reads as a speck inside a 49px
+                   * oval ("the + thing is much too small, replace it with an icon"). An icon is
+                   * drawn at its own size — 18px, the size the header's alerts and way-back glyphs
+                   * use — and the word still sizes the pill, so the box does not move.
+                   */}
+                  <span className="app-header__pill-face" aria-hidden={!editingHome || undefined}>
+                    <Icon name="plus" size={18} />
+                  </span>
+                </button>
+              ) : (
+                /* The page's own control (today only the boards' refresh) if it registered one —
+                   otherwise the way back. A page with a way back keeps the arrow: navigation is not
+                   displaced by a page control. */
+                headerControl ?? headerBack
+              )}
+            </div>
+            <Link to="/" className="app-header__brand" aria-label={t('OVVO home')}>
+              <span className="app-header__mark">
+                <BrandMark size={56} />
+              </span>
+            </Link>
+            {editingHome ? (
               <button
                 type="button"
-                className="app-header__pill app-header__pill--faces"
-                data-home-menu-trigger={editingHome ? '' : undefined}
-                aria-haspopup={editingHome ? 'dialog' : undefined}
-                aria-expanded={editingHome ? homeMenuOpen : undefined}
-                aria-label={editingHome ? t('Home layout') : undefined}
-                title={editingHome ? t('Home layout') : t('Or press and hold the home screen')}
-                onClick={() => (editingHome ? setHomeMenuOpen(!homeMenuOpen) : setHomeEditing(true))}
+                className="app-header__pill"
+                onClick={() => setHomeEditing(false)}
               >
-                {/* Plain text, as a phone's home screen writes it: the word is the control. */}
-                <span className="app-header__pill-face" aria-hidden={editingHome || undefined}>
-                  {t('Edit')}
-                </span>
-                {/*
-                 * The glyph is the app's own **plus icon**, not a `+` character: at the pill's 12px
-                 * type size a text plus draws about 8px wide and reads as a speck inside a 49px
-                 * oval ("the + thing is much too small, replace it with an icon"). An icon is
-                 * drawn at its own size — 18px, the size the header's alerts and way-back glyphs
-                 * use — and the word still sizes the pill, so the box does not move.
-                 */}
-                <span className="app-header__pill-face" aria-hidden={!editingHome || undefined}>
-                  <Icon name="plus" size={18} />
-                </span>
+                {t('Done')}
               </button>
             ) : (
-              headerBack
+              <Link
+                to="/disruptions"
+                className="app-header__alerts"
+                aria-label={`${t('Disruptions')}: ${alertCount}`}
+                title={t('Disruptions')}
+              >
+                <Icon name="alert" size={18} />
+                {alertCount ? <span className="app-header__alert-count">{alertCount}</span> : null}
+              </Link>
             )}
           </div>
-          <Link to="/" className="app-header__brand" aria-label={t('OVVO home')}>
-            <span className="app-header__mark">
-              <BrandMark size={56} />
-            </span>
-          </Link>
-          {editingHome ? (
-            <button
-              type="button"
-              className="app-header__pill"
-              onClick={() => setHomeEditing(false)}
-            >
-              {t('Done')}
-            </button>
-          ) : (
-            <Link
-              to="/disruptions"
-              className="app-header__alerts"
-              aria-label={`${t('Disruptions')}: ${alertCount}`}
-              title={t('Disruptions')}
-            >
-              <Icon name="alert" size={18} />
-              {alertCount ? <span className="app-header__alert-count">{alertCount}</span> : null}
-            </Link>
-          )}
+        </header>
+
+        <div className="app-body">
+          <Sidebar />
+          <main className="app-main" id="main" ref={mainRef} tabIndex={-1}>
+            {children}
+          </main>
         </div>
-      </header>
 
-      <div className="app-body">
-        <Sidebar />
-        <main className="app-main" id="main" ref={mainRef} tabIndex={-1}>
-          {children}
-        </main>
+        <MobileDock onOpenMenu={() => setMenuOpen(true)} />
+        <MenuDialog open={menuOpen} onClose={() => setMenuOpen(false)} />
+        <Toaster />
+        <LocationPermission />
       </div>
-
-      <MobileDock onOpenMenu={() => setMenuOpen(true)} />
-      <MenuDialog open={menuOpen} onClose={() => setMenuOpen(false)} />
-      <Toaster />
-      <LocationPermission />
-    </div>
+    </HeaderControlContext.Provider>
   );
 }
 
@@ -564,24 +640,34 @@ export function AppShell({ children }: { children: ReactNode }) {
  */
 const BACK_ARROW = 'btn btn--icon-circle back-arrow';
 
-export function BackButton({ to, label = 'Back' }: { to: string; label?: string }) {
-  const t = useT();
+/**
+ * A page's own control in the bar's start corner, in the way back's own shape.
+ *
+ * Today that is the departure boards' refresh, registered with `useHeaderControl`. It is drawn
+ * here rather than by the page so the corner cannot grow a second look: the arrow and this share
+ * `BACK_ARROW` — the same 44px disc, the same surface, the same size of glyph — and the only thing
+ * that differs is the icon and what pressing it does.
+ */
+export function HeaderButton({ icon, label, onClick }: { icon: IconName; label: string; onClick: () => void }) {
   return (
-    <Link to={to} className={BACK_ARROW} aria-label={t(label)} title={t(label)}>
-      <Icon name="arrowLeft" size={18} />
-    </Link>
+    <button type="button" className={BACK_ARROW} aria-label={label} title={label} onClick={onClick}>
+      <Icon name={icon} size={18} />
+    </button>
   );
 }
 
 /**
  * The way back to where you were.
  *
- * `BackButton` is a link to a fixed place, which is right when a screen has one obvious parent
- * ("All alerts") and wrong when it has four ways in. A map opened from a journey, from a stop,
- * from the results screen or from the alert you are reading is one screen with four doors, and a
- * link can only name one of them; the traveller who came through a different door is then sent
- * somewhere they have never been. So this asks the history instead: React Router writes an index
- * into every entry it pushes, and an index above zero means there is a screen behind this one.
+ * There used to be a second one of these, `BackButton`: a link to a fixed place, for the screens
+ * that were said to have one obvious parent — an alert and the alerts list. No screen has one. A
+ * map opened from a journey, from a stop, from the results screen or from the alert you are reading
+ * is one screen with four doors; an alert opened from the journey results, from a stop's board or
+ * from the alerts list is the same. A fixed link can only name one of those doors, so the traveller
+ * who came through a different one is sent somewhere they have never been — reported as results →
+ * warning → back, and back landing on Disruptions. So every screen asks the history instead: React
+ * Router writes an index into each entry it pushes, and an index above zero means there is a screen
+ * behind this one.
  *
  * What it says when there is nothing behind — the first screen of a fresh tab, or a link pasted
  * into the address bar — is the `fallback`, rather than a button that does nothing.
@@ -631,10 +717,11 @@ export function HistoryBackButton({ fallback = '/', label = 'Back' }: { fallback
  * screen (a banner on the ends of the earth — a typo'd link, a stale bookmark — where a way back
  * is the only useful control on the screen).
  *
- * Where it goes is decided here and not by the screen, in this order: a detail screen with a
- * certain parent names that parent (`/disruptions/:id` → the alerts list), and everything else
- * asks the history first, so the arrow returns to the screen you actually came from, falling back
- * to the tab it was opened from when there is nothing to ask — the case a pasted link opens in.
+ * Where it goes is decided here and not by the screen: everything asks the history first, so the
+ * arrow returns to the screen you actually came from, and falls back — to the alerts list from an
+ * alert, to the stops list from a stop, to the results from a journey, to the tab otherwise — only
+ * when there is nothing behind it to ask, which is the case a pasted link opens in. No screen gets
+ * a fixed parent: an alert reached from the journey results has four ways out of it, not one.
  */
 function useHeaderBack(): ReactNode {
   const { pathname } = useLocation();
@@ -646,10 +733,24 @@ function useHeaderBack(): ReactNode {
   const isTab = navigation.some((group) => group.items.some((item) => item.to === pathname));
   if (isTab) return null;
 
-  /* The alert you are reading sits under the list of alerts — the one place on the screen that
-     says what it is, which the arrow's name takes over from the old word "All alerts". */
+  /*
+   * **An alert asks the history too, and the alerts list is only its fallback.**
+   *
+   * It was a fixed link to `/disruptions`, on the reasoning that the list is where an alert lives.
+   * That is true of the list and false of every other door into an alert: the banner on the journey
+   * results, the alert beside a stop's board, a saved journey's warning — and a traveller who opened
+   * one from the results was sent to the alerts list, losing the search they had just run (reported
+   * with exactly that path: results → warning → back, and back landed on Disruptions). So the arrow
+   * returns to the screen the alert was opened from, and names — and goes to — the alerts list only
+   * when there is nothing behind it to ask, which is the pasted-link case.
+   *
+   * Its name is **Back**, not `All alerts`: a name that promises a destination the arrow no longer
+   * always goes to is worse than a plain one — opened from the results it said "All alerts" and
+   * went to the search. Where the other screens' arrows are named is `HistoryBackButton`'s own
+   * default, and that is where this one stays.
+   */
   if (/^\/disruptions\/[^/]+$/.test(pathname)) {
-    return <BackButton to="/disruptions" label="All alerts" />;
+    return <HistoryBackButton fallback="/disruptions" />;
   }
 
   /* A stop's page is under the list of stops, and it is reached from there, from the planner's

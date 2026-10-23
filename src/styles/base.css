@@ -430,6 +430,20 @@ svg.map-canvas {
   pointer-events: none;
 }
 
+/*
+ * **The row is clear, and nothing is painted behind it.**
+ *
+ * That is not a preference here, it is the settled answer: a bar — or a fade filling the same
+ * shape — is a surface the page has to end against, and every version of it (a tone, a strip, a
+ * gradient tall enough to hide a card's edge) has been sent back as a band across the top of the
+ * screen. So the header paints nothing at all: no background, no fade, no frost over a photograph.
+ * The mark and its two corners float on whatever the page is, and the content that travels under
+ * them is the page's own business.
+ *
+ * The row still refuses pointer events (`pointer-events: none`, above) so a transparent sticky row
+ * cannot swallow taps on the content passing under it, and each of its four controls takes its own
+ * events back.
+ */
 .app-header__brand,
 /*
  * The controls in a row that paints nothing and swallows nothing: each one takes its own events
@@ -743,8 +757,6 @@ svg.map-canvas {
   transform: translateX(-50%);
   bottom: max(var(--s-3), env(safe-area-inset-bottom));
   z-index: 50;
-  /* The bar slides out of the way on a downward scroll (2.3, 3.4 — see `MobileDock`). */
-  transition: transform var(--t-hover) var(--ease-out), opacity var(--t-hover) var(--ease-out);
   display: flex;
   align-items: center;
   gap: var(--s-1);
@@ -771,10 +783,54 @@ svg.map-canvas {
     background var(--t-press) var(--ease-press);
 }
 
-.app-dock__item:hover {
-  color: var(--on-dark);
+/*
+ * **The lift belongs to a pointer that hovers, and to nothing else.**
+ *
+ * A touch screen has no hover, but a phone browser still applies `:hover` on a tap and leaves it
+ * on the touched element until the next touch somewhere else. So the tab that was pressed stayed
+ * **lifted** — 4px up and 2% larger — for as long as the traveller stayed on the page, and on the
+ * coral tab that is the disc straining out of the top of the bar (reported as "it should go back
+ * down after 0.4 second instead of on-tap"). Hover decoration now sits behind `hover: hover` and
+ * a fine pointer; the finger gets `is-lifted` below, which lets go by itself.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .app-dock__item:hover {
+    color: var(--on-dark);
+    transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
+    transition: transform var(--t-hover) var(--ease-hover);
+  }
+}
+
+/*
+ * **A tab lifts under the thumb and settles back down on its own.**
+ *
+ * `is-lifted` is put on the pressed tab for **1s** (see `MobileDock` in `AppShell.tsx`): the press
+ * is acknowledged with the same little jump a pointer hover gives, and the disc then returns to
+ * its seat in the bar a second later instead of waiting for a tap somewhere else.
+ * Declared **before** `:active`, so a finger that is still down shows the press and the lift only
+ * begins when it comes off. The tokens are the movement switch — reduced motion and the `off`
+ * power mode flatten both the lift and the scale, so nothing moves at all.
+ */
+.app-dock__item.is-lifted {
   transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
   transition: transform var(--t-hover) var(--ease-hover);
+}
+
+/*
+ * **The way down gets its own, slower curve.**
+ *
+ * Taking the lift class off dropped the tab back on the item's *press* transition — 120ms on a
+ * curve that starts at full speed — so the disc appeared to snap down with no movement at all
+ * (reported: "it doesnt move down smoothly, it moves down… Ugly, 0 animation"). While it settles,
+ * the transform carries the spring's 320ms on `--ease-settle`, a curve that leaves and arrives at
+ * rest, so the tab glides into its seat instead of dropping into it. `--t-spring` is the motion
+ * switch's own token, so reduced motion and the off power mode still settle instantly.
+ */
+.app-dock__item.is-settling {
+  /* `--ease-settle`, not `--ease-out`: see the curve's own note in `tokens.css` — this is a
+     control returning to the seat it left, so it has to leave and arrive at rest instead of
+     spending its first fifth of the drop and then drifting. */
+  transition: transform var(--t-spring) var(--ease-settle);
 }
 
 .app-dock__item:active {
@@ -790,19 +846,6 @@ svg.map-canvas {
 
 .app-dock__label {
   display: none;
-}
-
-/* Out of the way while reading; back on the first upward scroll, and always while it is focused. */
-.app-dock--yielded {
-  transform: translate(-50%, calc(100% + var(--s-6)));
-  opacity: 0;
-  pointer-events: none;
-}
-
-.app-dock--yielded:focus-within {
-  transform: translateX(-50%);
-  opacity: 1;
-  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1091,11 +1134,24 @@ svg.map-canvas {
   animation: none !important;
 }
 
-/* The settling list: the bars stay as boxes instead of pulsing a gradient across ten cards. */
+/*
+ * The held cards: the marks stay, flat — no breath and no band of light crossing ten cards at once.
+ *
+ * Their fill is `--skeleton-fill`, not the card's surface. It used to be the surface, which is the
+ * same colour as the card the marks sit on: on a phone at 20% or below the grey of a held card
+ * disappeared entirely and the screen was three empty frames (reported from a phone at 18%). Saving
+ * is the movement going, never the shape: a placeholder that is not there tells a traveller the
+ * page is broken, which is a worse trade than the animation.
+ */
 :root[data-power='save'] .skeleton,
 :root[data-power='super'] .skeleton {
   animation: none !important;
-  background: var(--l2-bg) !important;
+  background: var(--skeleton-fill) !important;
+}
+
+:root[data-power='save'] .skeleton::after,
+:root[data-power='super'] .skeleton::after {
+  content: none !important;
 }
 
 /*

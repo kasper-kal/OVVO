@@ -151,3 +151,259 @@ this working tree exactly as it stood, including the untracked `.logs/` measurem
 documents. `revert.sh` restores every archived file and removes the files the round added, working
 from that file list rather than from a blanket "delete untracked files", because `.logs/` and the
 planning documents are untracked *and* are part of the state being restored.
+
+## The AUDIT-PLAN pass (2026-10-22)
+
+`AUDIT-PLAN.md` carries **131 findings marked FAIL**. Audits find and do not fix, so that file is a
+*pre-fix* record: most of these were closed in the rounds above (the shared `lib/useOverlay` for every
+overlay's focus, trap, return and scroll lock; the shared 2px coral focus ring on `.input`,
+`.select` and `.input-group`; the translation of every page's chrome). What follow are the ones that
+were still open on 2026-10-22, how each was found, and what was measured after.
+
+| # | What was still wrong | What changed | Measured after |
+|---|---|---|---|
+| **27.3** | The stop already answering the other end was refused in words and **kept**, so both rows named Utrecht Centraal, `Plan journey` appeared, and the results screen found nothing and blamed the walking limit | `StopPicker.choose()` refuses the pick itself and says why, the way the search form does | picking the other row's stop: rows stay `From Utrecht Centraal / To`, no plan bar, toast `Origin and destination must be different stops` |
+| **27.4** | One Backspace in a field emptied the stop already chosen **behind the screen** | typing corrects the field only; the pick survives until another stop is chosen or the field's own × is pressed | after Backspace: `From Utrecht Centraal` still on the card |
+| **28.2** | The map picker's zoom pair did nothing to a press: the surface captured the pointer on `pointerdown`, so the button never got its `click` | a press that starts on the zoom controls is left to them | real mouse press: viewBox `0 0 100 100` → `-15 -15 130 130` |
+| **28.3** | The pin named one place and pointed 51–162px away: it was centred (`translate(-50%,-50%)`) so its 16px tail hung below the measured point | anchored by its tip (`translate(-50%,-100%)`) | pin tip `195,359` = surface centre `195,359` |
+| **28.4** | From 768 the picker's canvas was capped at 500px inside a 630px surface (130px of dead ground), and the chosen stop's name was 7.7px on a phone and 36.8px on a desktop | the picker's canvas fills its surface; the label is sized in canvas units from the measured surface so it renders at 12px at any width and zoom | canvas `366×574` in surface `366×574`; label renders **12px** |
+| **28.5** | The map picker's search field had no name (placeholder only), and a pick dropped the keyboard on `<body>` | `aria-label` on the field; a pick hands focus to the confirm control | field name `Search for a stop`; focus after a pick on `BUTTON "Select this stop"`, inside the screen |
+| **32.1** | Suggestion lists painted **under** the cards that follow: a glass card is its own stacking context, so the list's `z-index: 30` could not leave it (on Departures at 320 none of four rows was on top) | the card holding an open list is lifted above its siblings (`.card:has(.suggestions)`) | 8 of 8 suggestion rows are the topmost thing at their own centre |
+| **29.4** | One arrow press moved the photo sampler by one **source** pixel (sub-pixel on screen), so the keyboard appeared dead | a press moves one pixel of the picture as drawn, converted into canvas pixels | fixed in `PhotoScreen.step()` |
+| **9.3** | The Dutch journey page kept English: `Arrive 16:15` and `Indicative single fare` | both keys added to the Dutch dictionary | NL journey text: `Aankomst 16:15`, `€2.90 Indicatief enkel ticket`; no English left |
+
+**Verified:** `tsc` clean, `build` clean, `class-audit` **438**, `caps-audit` clean, `breakpoint-audit`
+clean, `ui-audit` clean (0 contrast, 0 target, 0 clipped, 0 band, 0 top-edge), `consistency-audit`
+exit 0, `render-check` all pages, the engine smoke. The pass's own instruments:
+`.logs/audit-open-fixes.cjs` **16/16** and `.logs/journey-simplify-check.cjs` **19/19**.
+
+**Still open, recorded rather than claimed:** the photo sampler's framing (29.2 the picture is capped
+by its own pixels rather than the screen), its loupe leaving the stage at three edges (29.3) and its
+empty-colour Done (29.6), the sampler's dead-end error state (29.9), the crop screen's saved-frame
+chip (30.4) and its corrupt-image path (30.5), and the dock covering a control at first paint on
+some sizes (2.3, 3.4, 4.2, 5.5, 6.3, 7.1, 8.1, 9.1, 10.6). The dock was measured again at
+390×900 and 768×700: it covers one switch on Travel preferences and one alert card on Disruptions,
+nothing on Departures or Stations. Hiding the bar whenever it covers something was implemented and
+**withdrawn the same day** — it made the app's main navigation disappear on two screens at first
+paint, which is a worse trade than a control the page can scroll to.
+
+## The results screen, again — 22 Oct (density round)
+
+The report was that the results page still read as overwhelming beside 9292's, with four specific
+examples: the sort control on a line of its own, the alert banner, and the result card. Measured at
+390×844 before and after, with a real Haarlem → Hoofddorp search on the live preview.
+
+| # | What was still wrong | What changed | Measured after |
+|---|---|---|---|
+| **33.1** | The sort was a labelled field — "SORT BY" in small caps, then a bordered select the width of the page — on a row under the chips, so the phone opened with **three stacked bands of controls** before a journey | the sort is the fourth chip: its own text is the answer ("Best"), its label is the select's accessible name, and its chevron is two 5px gradients in `currentColor` so it turns over in dark | all four controls on **one 44px row**, 4 items at 390 and 360, `scrollWidth = clientWidth` (no sideways overflow) |
+| **33.2** | The alert was a `hairline` banner: icon, the heading "Alerts affect this search", then the alert's title indented beneath — **96px, three quarters of it empty** | the alert's own title is the row, with the warning icon and a "+1" when there is more than one | **44px**, one line, still a 44px target and still the first thing above the list |
+| **33.3** | A result card carried **five rows** — times + three pills, the service badges, a meta line of four items, then the occupancy on a second meta line — 250px for four facts | three rows: the times with the label and the heart, the services with the fare and the crowding on one line | **116px** per card (was ~250), no wrapping at 390 in en or nl; the operator name left the card for the journey page (it made the line wrap, and it does not help choose between two options) |
+| **33.4** | The held place did not match the card it stood in for (four rows, `--s-2` gaps), so the list still jumped when the journeys arrived | the skeleton wears the card's own head/tags/meta and its gaps | skeleton **114px** vs card **116px** |
+
+**Verified:** `tsc` clean, `build` clean, `class-audit` **447**, `caps-audit` clean,
+`breakpoint-audit` clean, `render-check` all pages, `icon-audit` clean, `consistency-audit` exit 0,
+`ui-audit` 0 contrast / 0 target / 0 header problems in light-en and dark-nl.
+
+**Still open, recorded rather than claimed:** `ui-audit` reports **one** clipping at 320 on
+`/settings` — `span.settings-row__value` holding "App default" at 70px inside a 68px box. It is a
+`text-overflow: ellipsis` row on another screen and nothing in this round touches it; measured
+directly on a settled page the same element is **67px in 67px**, so the 2px is the audit's own pass
+landing before the web font swapped. Not fixed here, and not claimed as clean.
+
+## The map's answer, and the loading skeleton — 22 Oct
+
+| # | What was wrong | What changed | Measured after |
+|---|---|---|---|
+| **34.1** | Choosing a stop **on the map** returned to the picker on the end it had just answered: the From row held the stop, the caret was in it, and the screen still asked "Where are you leaving from?" — a stop picked from the list never did this | `SearchForm`'s map hand-over flips to the end that is still missing, the same way `StopPicker.choose` does; when the map supplied the second end, `pick` has already planned and closed the sheet | fresh planner → From on the map → dialog reads **"Where do you want to go?"**, `document.activeElement` is `picker-to`, From holds the picked stop, To is empty |
+| **34.2** | The loading skeleton was three cards of thick moving slabs: the whole 26px of a time, 24px of each pill and 44px of the heart button filled with a gradient running across it continuously | the slot keeps its height, the ink is an **8px line** down the middle of it, and one narrow band of 110° stripes crosses the line and is gone by 72% of a 3.6s cycle | `::before` is 8px tall; `::after` is one 45%-wide striped band animating `skeleton-stripes 3.6s infinite`; the card still stands **114px** tall against the real card's 116, so the list does not jump |
+
+**Verified:** `tsc` clean, `build` clean, `class-audit` 447, `caps-audit` clean, `breakpoint-audit`
+clean, `render-check` all pages, `icon-audit` clean, `consistency-audit` exit 0, `ui-audit`
+**0 contrast** problems in light-en and dark-nl (the pale line is not flagged). The one clipping
+finding at 320 on `/settings` is the same pre-existing one recorded above, and still open.
+
+## The When dialog's two controls — 22 Oct
+
+| # | What was wrong | What changed | Measured after |
+|---|---|---|---|
+| **35.1** | "Depart at / Arrive by" stood **54px** tall beside a **44px** "Now" chip: a 44px thumb inside 4px of padding plus the capsule's own 1px ring — 10px taller, and the chosen half drew a *second* hairline 4px inside the capsule's, which is what made it look thicker as well as taller | the dialog uses the compact `Segmented` (`size="sm"`), which is now exactly `--target-min`: 38px thumb, 2px padding, 1px ring, and the chosen half is marked by its surface rather than by a border of its own. The 38px thumb's effective target is grown to 46 by an `::after`, the same trick `.tap-target` uses | capsule **44 × 181.2**, Now **44 × 87.1**, identical top and bottom (783 → 827) in light-en and dark-nl; the 44px probe hits each thumb from all four sides at 390 |
+
+**Verified:** `tsc` clean, `build` clean, `class-audit` 447, `caps-audit` clean, `breakpoint-audit`
+clean, `render-check` all pages, `icon-audit` clean, `consistency-audit` exit 0, `ui-audit` 0 contrast
+and **0 target** problems in light-en and dark-nl. The one clipping finding at 320 on `/settings`
+is the same pre-existing one, still open.
+
+## The skeleton, third attempt — 22 Oct
+
+| # | What was wrong | What changed | Measured after |
+|---|---|---|---|
+| **36.1** | The "thin lines" were not a skeleton: an 8px hairline drawn down the middle of a 26px or 44px slot, with a striped band on each bar — five pale dashes drifting in a card, aligned to nothing, and the stripes were more texture than shape | the bars fill their slots again — a skeleton is read as the *shape* of what is coming — but the fill is the hairline **mixed into the card's surface** (never the hairline itself, which is the grey slab the first version was), and the motion is one soft band crossing the whole card, clipped by it, one pass every 2.4s with most of the cycle still | bars **26 / 24 / 12** in their own rows, card **114px** against the real card's 116; fill `rgb(232, 229, 222)` light and `rgb(51, 48, 43)` dark; the band is `skeleton-sweep 2.4s` travelling from −55px to +400px across a 366px card |
+| **36.2** | The held place for the heart was a 44px **disc**, which reads as an avatar on a card that has none | the bar in that slot is a rounded square, like the button it stands in for | same 44 × 44 slot, `border-radius: 8px` |
+
+Both readings are tokens now (`--skeleton-fill`, `--skeleton-sweep`) because the light that reads on a
+pale bar is not the light that reads on a dark one: 90% white in light, 10% in dark.
+
+**Verified:** `tsc` clean, `build` clean, and the gate below (class-audit 447, caps, breakpoint, icon,
+render all clean, consistency exit 0, `ui-audit` 0 contrast / 0 target). The one clipping finding at
+320 on `/settings` is still the same pre-existing one.
+
+## The results bar, corrected — 22 Oct
+
+The report was that the sort "could easily fit on the same row **on wide displays**". It was built
+as one row at *every* width, which is a phone row with four controls crushed into it. 33.1 above is
+corrected here rather than rewritten: the sort becoming a chip is what stands, the single row is not.
+
+| # | What was wrong | What changed | Measured after |
+|---|---|---|---|
+| **37.1** | Four controls on one 390px line, which is what "squashed" looked like | the sort and Options travel as one group, so a phone has two bands — the two search chips, then the sort and Options beneath them — and the merge to one row happens from **720** up, the breakpoint this app already calls desktop | 390: **2 bands**, items at their own widths (99 / 44 / 139 / 96); 430: 1 row, natural widths; 720 and 1440: **1 row**, same four widths; no sideways overflow at any of the four |
+
+Nothing stretches now: the sort sits at its own 139px instead of filling the band, so it is the same
+size of chip as the two beside it. `tsc` clean, `build` clean, gate green apart from the pre-existing
+320 `/settings` clipping recorded above.
+
+## Earlier and Later — 22 Oct
+
+| # | What was asked | What was built | Measured |
+|---|---|---|---|
+| **38.1** | An **Earlier** button above the top result and a **Later** button under the last one, which page the *window* of departures without touching the search's "Leave at" | the two controls call the state's own `shiftWindow(±30)`, which the state has always clamped to ±240; they are full-width ghost rows with a chevron, so they read as the ends of the list rather than as another card. Position: alert row → **Earlier** → first card … last card → **Later** | alert at **391**, Earlier **459**, first card **527**, last card **1119**, Later **1259**; chip still reads **"Leave: Now"** after every press |
+| **38.2** | — | the labels are translated (`Eerder` / `Later`) and the disabled state is the state's own limit, not a dead press | 8 presses of Earlier: 18:45 → **17:15** → **15:45** → **14:45**, then disabled; 8 of Later: 20:15 → 21:45 → 22:45, then disabled; the list keeps five cards at both ends |
+
+Both directions were pressed in the browser at 390 and 1440, in light-en and dark-nl. `tsc` clean,
+`build` clean, class-audit 448, caps, breakpoint, icon, render and consistency all clean, `ui-audit`
+0 contrast / 0 target. The 320 `/settings` clipping is the same pre-existing finding.
+
+## A typo in the From field — 22 Oct
+
+Reported with `Rijkss` typed into the full-screen From picker and "No stops match" under it, although
+the panel's own line promises "station, stop, street address or landmark".
+
+| # | What was wrong | What changed | Measured after |
+|---|---|---|---|
+| **39.1** | `rankStops` compared substrings only, so one extra letter at the end of a word ended the search — the exact state a field is in while it is being typed into | when nothing matches as written, the same search runs once more allowing **one typo** (two from eight letters on): a letter added, dropped or typed as its neighbour, whole-word or on the beginning of a word. The pass is last, never a competitor to the query that was typed, and a query under four letters is not corrected at all | `Rijkss` → **Rijksmuseum**; `Rijksmusem` → **Rijksmuseum**; `Amsterdm` → 8 Amsterdam stops, Centraal first; `Utrech Centraal` → **Utrecht Centraal**; `zzzzzz` still says no stops match; `ri` still returns what contains "ri" |
+
+Both callers learn it at once (`StopCombobox` on the board, `StopPicker`, and the map picker), because
+there is one search: `Rijkss` in the board's field is filtered by that field's own rule (a board needs
+a stop that can be boarded, and `Rijksmuseum` is a landmark), while `Amsterdm` there returns the same
+seven stations.
+
+`tsc` clean, `build` clean, `render-check` all pages, and `.logs/typo-probe.cjs` (the eight queries
+above, read out of the running app at 390) plus `.logs/typo-combobox.cjs` for the inline field.
+
+## The address row's second line — 22 Oct
+
+Sent back as "Unnecessary…" with the grey line under each address suggestion circled.
+
+| # | What was there | What changed | Measured after |
+|---|---|---|---|
+| **39.2** | `Address · 320 m from Amsterdam, Museumplein` under every address row — one line saying that a place is a place (the teardrop already says it), repeating the town the row's own name carries, and offering the walk to the stop as something to weigh while choosing an end | the line is gone; an address row is its name and the teardrop, on the same 64px row as everything else. The distance still travels with the pick (`accessMetres`), which is what the journey needs it for | `Rijks` → three rows, each **64px**: `Rijksmuseum / Amsterdam · ARM · Landmark`, `Museumstraat 2, Amsterdam`, `Rijksweg, Helvoirt`; choosing `Museumstraat 2` fills From, opens To, and the walk distance is still on the pick |
+
+The dictionary entry that line used is removed with it. `tsc` clean, `build` clean, `render-check`
+all pages, `i18n-scan` unchanged (the same three known literals and five known keys), and
+`.logs/address-row.cjs` for the measurement above.
+
+## The board's pin, put back — 22 Oct
+
+| # | What I broke | What changed | Measured after |
+|---|---|---|---|
+| **40.1** | The pin on each board card was replaced by a bare minus in the round that applied "no pin button anywhere except the departure boards tab" — read as "this card does not need one", which took the pin off the **one** screen the rule was keeping it for | the pin is the card's trailing control again: `pin`, filled and `aria-pressed` while the board is here, labelled **Unpin {stop} from the departure board**, and pressing it is what takes the board off the page. The minus glyph and its dictionary entry are gone | two boards pinned → two pins, both `aria-pressed="true"`; pressing the first leaves **1 stop pinned to the board** and the second card; `board-stops` loses only that id. The stop page still has **no** pin control, which is what the rule asked for |
+
+`tsc` clean, `build` clean, `render-check` all pages, `.logs/board-pin3.cjs` for the readings above.
+
+## The button beside the list's name — 22 Oct
+
+| # | What was there | What changed | Measured after |
+|---|---|---|---|
+| **41.1** | A `Departure boards` button in the Stations & stops head — a second way to a screen the navigation, the dock and every stop card's *Board* row already offer, drawn where the eye looks for the page's own name (sent back crossed out) | the head is the name and nothing else; the `actions` slot is empty on `/stops` | head links **0**, head text `Stations & stops` at **21px**, first card at **141**; the board is still one tap away — dock `Boards`, sidebar `Departure boards`, and each card's `Board` — and `/departures` renders its own name unchanged |
+
+`tsc` clean, `build` clean, `render-check` all pages, `.logs/stops-head2.cjs` for the readings above.
+
+## The refresh, into the bar's corner — 22 Oct
+
+| # | Where it was | What changed | Measured after |
+|---|---|---|---|
+| **42.1** | One refresh glyph inside every board card, at the end of the sentence "auto-refresh every 5s" (plus its own copy on the line board) — so three boards carried three copies of one page-level action, and the corner every other screen keeps its own control in stood empty | the screen registers **one** refresh with the shell (`useHeaderControl`), which draws it in the start corner of the bar — the place the way back occupies on every other screen — in the arrow's own 44px disc (`HeaderButton`, sharing `BACK_ARROW`). The in-card glyphs are gone, and the sentences stay | corner control `Refresh departures`, **44 × 44 at (12, 20)**, one per screen; **0** refresh buttons inside `main` on the boards page and on the line board; a press changes the board (the delay line and rows change); a stop page still shows its **Back** arrow, so a page control never displaces the navigation |
+
+`tsc` clean, `build` clean, `render-check` all pages, and `.logs/refresh-slot2.cjs` / `.logs/refresh-line.cjs`
+for the readings above.
+
+## The header paints nothing again — 22 Oct
+
+| # | What I had put there | What changed | Measured after |
+|---|---|---|---|
+| **43.1** | A canvas fade behind the sticky header (`::before`, switched on by a `data-scrolled` flag the shell set after 4px of scrolling, made of frost over a photograph) — a compromise for the card travelling under the mark, and a band across the top of the screen, which is exactly what the header is not allowed to be | the paint is gone: no `::before`, no `data-scrolled`, no frost, no state or scroll listener in the shell. The row is clear at every scroll position and over every background, as it was asked to be | computed header at the top, at **600px** of scroll, and with `data-background="photo"`: `background rgba(0,0,0,0)`, `background-image none`, `::before content none`, `backdrop-filter none`, no `data-scrolled` attribute — the cards and their `BOARD · PLAN` rows pass under the mark untouched |
+
+The trade-off is the one that produced the fade: content does travel under the mark and the alerts
+badge now, because nothing is behind them. That is the clear header that was asked for, and the
+choice is recorded here rather than silently re-made.
+
+`tsc` clean, `build` clean, `render-check` all pages, and `.logs/header-clear.cjs` /
+`.logs/header-scroll2.cjs` for the readings above.
+
+## No price on a journey that costs nothing — 22 Oct
+
+| # | What was drawn | What changed | Measured after |
+|---|---|---|---|
+| **44.1** | A ticket glyph and `€0.00` after `Walking only` on the result card, and the same fare pill on the journey's own page — a price tag for a walk, the one number that can only be zero (sent back with that line circled) | both lines are drawn only when the fare is above zero; a free journey says how you travel and nothing about money | the walk `Amsterdam, Museumplein → Rijksmuseum` card reads **`08:00 → 08:01 · 1 min · Fastest · Walking only`** with **no `€`** anywhere on the card, and its journey page's facts read `Walking only · 1 min · Direct · 1 leg · 1 min walking · Expected quiet · Bicycle allowed` — no `€`. Paid journeys are untouched: `€2.30` on the tram card and `€2.30 · Indicative single fare` on its page |
+
+`tsc` clean, `build` clean, `render-check` all pages, and `.logs/fare-zero2.cjs` / `.logs/fare-zero3.cjs`
+for the readings above. The home screen's "what it costs" widget still prints the fare of the cheapest
+journey it finds; that one is a price display by definition and was left alone.
+
+## The alert's way back asks the history — 22 Oct
+
+| # | What it did | What changed | Measured after |
+|---|---|---|---|
+| **45.1** | An alert's page had a **fixed** back link to `/disruptions`, so the arrow went to the alerts list whatever door you came through — reported as results → warning → back, and back landing on Disruptions instead of the search | the alert page asks the history like every other detail screen (`HistoryBackButton fallback="/disruptions"`), so the arrow returns to the screen the alert was opened from; the alerts list is only the fallback for a pasted link. Its name is **Back**, because "All alerts" promised a destination it no longer always goes to. `BackButton` — the fixed-link variant, whose only user this was — is deleted | results → `d-signal-utrecht` → back: **`/#/results`**; alerts list → `d-cancel-schiphol` → back: **`/#/disruptions`**; a pasted alert link in a fresh tab → back: **`/#/disruptions`**, arrow named `Back` in all three |
+
+`tsc` clean, `build` clean, `render-check` all pages, `.logs/alert-back.cjs` for the three paths.
+
+## The suggestion list, out of the header and whole — 22 Oct
+
+| # | What was wrong | What changed | Measured after |
+|---|---|---|---|
+| **46.1** | With a phone keyboard up, the inline stop field's list hung **upward through the sticky header**: the bar's own stacking order is above the list's, so the rows ran under the mark, the Edit pill and the alerts badge. Its height was the exact pixels of room, so the last row was cut across its second line and the first at the top — a panel that reads as broken though it scrolls (sent back with that screenshot) | the room above is measured from the **bar's bottom edge**, not the viewport's top, so the list never enters the band it would be drawn behind; and the cap is a **whole number of the rows this list draws** (the row height is measured, since a long name makes it taller) plus the panel's own 18px of padding and borders — no half rows at either end | 390×430 (keyboard): list **below** the field, top 253 against input bottom 249, height 130 = **2 whole rows**, bar bottom 76 untouched. 390×520: list **above**, top 129 against bar bottom 76, height 242 = **4 whole rows**. 390×844: below, 354 = **6 whole rows**. No overlap with the field at any of the three (−4px gap) |
+
+`tsc` clean, `build` clean, `render-check` all pages, `.logs/combobox-up.cjs` for the three readings.
+
+## The bottom navigation stays — 22 Oct
+
+| # | What it did | What changed | Measured after |
+|---|---|---|---|
+| **47.1** | The dock slid out of the way on a downward scroll and came back on an upward one (the fix for it sitting over a result's controls), so the navigation moved under the thumb and was missing on exactly the long screens that want it | the hide is gone: no scroll listener, no `app-dock--yielded` class or rule, no slide transition. The bar is fixed in place at every scroll position, and the page still reserves its band (`.app-body` bottom padding is `--dock-h`), so nothing is buried under it | dock at **top 778 / bottom 832** of an 844 viewport at the top of the page, after scrolling **1108px** down, and after a scroll back up — `opacity 1`, `pointer-events auto`, no modifier class. At the end of `/stops`, `/disruptions` and `/departures` the last content ends at 756 / 573 / 756 against the dock's 778: clear of it by 22px or more |
+
+`tsc` clean, `build` clean, `render-check` all pages, `.logs/dock-always.cjs` and `.logs/dock-clear.cjs`
+for the readings above.
+
+## The hold hint on one line — 22 Oct
+
+| # | What it looked like | What changed | Measured after |
+|---|---|---|---|
+| **48.1** | The "Keep holding to customise" pill broke after three words, with the grid glyph stranded beside two lines of text and the capsule stopping dead at half the screen — a fixed box centred with `left: 50%` and no `right` is sized against the room from that offset to the edge, which is 50vw (sent back as "Looks weird…") | the pill asks for its sentence's own width (`width: max-content`) and keeps `max-width` as the guard, so it is one line on every phone and only wraps if a translation genuinely exceeds the screen | English at 390: pill **200 × 32**, text **153px on one line**; Dutch at 390: **240 × 32**, one line; Dutch at **320**: **240 × 32**, one line inside a 288px allowance — and it sits clear above the dock at every width |
+
+`tsc` clean, `build` clean, `render-check` all pages, `.logs/hold-hint.cjs` and `.logs/hold-debug.cjs`
+for the readings.
+
+## The dock's coral tab settles back down — 22 Oct
+
+| # | What it looked like | What changed | Measured after |
+|---|---|---|---|
+| **49.1** | The coral disc marking the current dock tab stayed **up** — 4px above its seat and 2% larger, poking out of the bar's top edge — for as long as the screen was open, and it came back only when something else was touched. It was the `:hover` lift: a phone has no hover, but the browser applies `:hover` on a tap and keeps it on the element until the next touch (sent back as the coral thing "should go back down after 0.4 second instead of on-tap", then "turn that 0.4 into 1.5", then "change that 1.5 to 1") | the hover lift is behind `@media (hover: hover) and (pointer: fine)`, so a finger can never leave it stuck on, and the tab now lifts **deliberately** for **1s** (`.app-dock__item.is-lifted`, put on by `MobileDock` on `pointerdown` and cleared by a timer that is also cleared on unmount): the press is answered with the same little jump, and the disc is back in its seat a second later whether or not anything else is touched. Declared before `:active`, so a finger still down shows the press and the lift begins when it comes off; the existing motion tokens flatten it all under reduced motion | at rest the transform is **`none`** on every tab; after a tap the pressed tab reads `matrix(1.02, …, -4)` and is **still lifted at 0.9s**, then **`none`** at **1.4s** with the coral `rgb(255, 126, 103)` still on the current tab and the bar unshaken at **y 778**; the menu tab lifts and settles the same way and its sheet still opens |
+
+| **49.2** | The way **down** had no motion at all: taking the lift off handed the transform back to the item's press transition — 120ms on a curve that starts at full speed — so the disc snapped back (sent back as "it doesnt move down smoothly, it moves down… Ugly, 0 animation") | the lift now ends in a **`settling` phase of its own**: `MobileDock` swaps `is-lifted` for `is-settling` at the 1s mark, and that class carries `transform var(--t-spring) var(--ease-out)` — 320ms, easing out of the lift — before the class is cleared, so the tab glides to its seat instead of falling into it. `--t-spring` is the motion switch's own token, so reduced motion and the off power mode still come straight down | sampled every 40ms through the settle: **-4.00 → -1.72 → -0.88 → -0.29 → -0.13 → -0.03 → -0.01 → 0.00**, computed transition `transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)`, and the tab ends at rest with no class on it |
+
+`tsc` clean, `build` clean, class-audit **447** clean, `.logs/dock-settle.cjs` and
+`.logs/dock-settle-glide.cjs` for the readings.
+
+## The traveller's canvas, in the overlays — 23 Oct
+
+Sent back with two screenshots circled: the From/To card sitting as a cream lozenge inside a glass
+plan card, and "Where are you leaving from?" drawn on flat cream with no sign of the photograph the
+traveller had chosen — *"Pull the background and the colour to MORE places, like here."*
+
+| # | What it looked like | What changed | Measured after |
+|---|---|---|---|
+| **50.1** | The two full-screen pickers were painted `--l0-bg`, so the one place the app stopped being the traveller's was the place they were looking at: a photograph behind the home screen became flat cream the moment a stop field was opened, and a page colour became the theme's canvas | `.fullscreen` now carries the same two canvas declarations `<body>` does — the page colour in colour mode, and the photograph under the canvas wash in photo mode, with the crop's own centre and `background-attachment: fixed` so the picture stays still while the picker's list scrolls over it, exactly as it does behind a page | photo + glass at 390: `.fullscreen` computes `linear-gradient(wash), url("data:image/jpeg…")`, attachment **fixed, fixed**; colour mode: **rgb(207, 224, 255)** — the page's own colour, not the cream |
+| **50.2** | The From/To card (`--l1-bg`) was never repainted by the glass rules, which only knew `.card` and `.panel`: inside the home plan card it was the cream lozenge in the screenshot, and in the picker it would have been the same lozenge on the photograph. On a page whose widgets had a colour of their own it kept the *page's* tier, so the picker's only form was the one thing that did not take the traveller's colour | the card takes the glass recipe where cards are glass — 58% canvas, blurred and saturated, both edges, 74% where it is a pane inside a glass card, the heavier smoke fill in dark — and it is now part of the widget-colour groups (`cards`, `split`, `tint`), so it is a card wherever it is drawn. The coral invalid edge still outranks the glass hairline | glass: card **`color(… 0.98 … / 0.58)`** with **`blur(26px) saturate(1.7)`**, and **0.74** inside the plan card; dark: **/ 0.70** with ink **rgb(222, 220, 214)**; page colour + widgets colour: picker card **rgb(60, 111, 188)** — identical to the home plan card's |
+
+`tsc` clean, `build` clean, class-audit **448** clean, `.logs/canvas-picker.cjs`,
+`.logs/colour-screen-canvas.cjs` and `.logs/canvas-picker-photo-dark.png` for the readings.

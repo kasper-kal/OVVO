@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useOverlay } from '../../lib/useOverlay';
-import { Icon, ModeIcon, type IconName } from './Icons';
+import { Icon, ModeIcon, pressedIcon, type IconName } from './Icons';
 import { useApp } from '../../state/AppState';
 import { useT } from '../../lib/useT';
 import { modeLabel } from '../../data/preferences';
@@ -189,7 +189,10 @@ export function IconButton({
       aria-pressed={active || undefined}
       {...rest}
     >
-      <Icon name={icon} size={18} />
+      {/* A toggle that is on is drawn solid (`pressedIcon` in `Icons`): a heart that is kept, a
+          stop whose board is pinned. The words and `aria-pressed` say it too, for a screen
+          reader; the fill is what says it on the screen. */}
+      <Icon name={active ? pressedIcon(icon) : icon} size={18} />
     </button>
   );
 }
@@ -507,8 +510,8 @@ export function Banner({
  *
  * The ring is for places with no list to hold — a button's own work, a panel still being read.
  * The results screen used to hold its list's place with one and no longer does: a ring says *wait*
- * and nothing about what is coming, so the list arrived as a change of subject. Results are held
- * by `journey/ResultSkeletons.tsx` now, in the shape of the journeys themselves. `role="status"`
+ * and nothing about what is coming, so the list arrived as a change of subject. Every held list is
+ * drawn by `ui/Skeletons.tsx` now, in the shape of the cards that are coming. `role="status"`
  * gives a screen reader the same sentence the ring gives the eye, and the ring is `aria-hidden` —
  * it is a picture of waiting, not content.
  */
@@ -518,33 +521,6 @@ export function Spinner({ label = 'Loading' }: { label?: string }) {
       <span className="spinner__ring" aria-hidden="true" />
       <span className="sr-only">{label}</span>
     </div>
-  );
-}
-
-/*
- * A list that is still settling (F17).
- *
- * The stops list filters on local data, so there was never a moment between pressing a filter
- * and having the list — it simply changed, with nothing to say it had ("add skeleton loading
- * instead of just... nothing like currently, dont add still skeleton loading, they should
- * actually like slowly animate"). The placeholder is the stop card's own shape — a name line, a
- * meta line and three departure lines — drawn in muted bars, so the list that arrives lands in
- * the same boxes the bars filled. `aria-hidden`, and the body around it is `aria-busy` while it
- * is up: a skeleton is a picture of the list, not a list.
- */
-export function SkeletonCards({ count = 4 }: { count?: number }) {
-  return (
-    <ul className="grid-2 stops-grid skeleton-grid" aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <li key={index} className="card skeleton-card">
-          <span className="skeleton skeleton--title" />
-          <span className="skeleton skeleton--meta" />
-          <span className="skeleton skeleton--row" />
-          <span className="skeleton skeleton--row" />
-          <span className="skeleton skeleton--row" />
-        </li>
-      ))}
-    </ul>
   );
 }
 

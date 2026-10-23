@@ -14,15 +14,26 @@ import {
 import { stopTypeLabel } from '../../lib/format';
 import { rankStops } from '../../lib/stopSearch';
 import { ADDRESS_ATTRIBUTION, reverseGeocode } from '../../lib/reverseGeocode';
+import { ADDRESS_MIN_LENGTH, searchAddresses, type AddressHit } from '../../lib/addressSearch';
 import { dismissKeyboard } from '../../lib/dismissKeyboard';
 import { FullScreen } from '../ui/FullScreen';
 import { Button, IconButton } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
+import { PickerRowSkeletons } from '../ui/Skeletons';
 import { useT } from '../../lib/useT';
 import type { Stop } from '../../data/types';
 import type { UserLocation } from '../../state/types';
 
 type Side = 'from' | 'to';
+
+/**
+ * One row in the suggestions list: a place the map database found (paired with the stop it will be
+ * planned from) or a stop. They are one list because they are one question — "which end is this" —
+ * and the arrows and Enter treat them alike.
+ */
+type PickerOption =
+  | { kind: 'address'; hit: AddressHit; stop: Stop; metres: number }
+  | { kind: 'stop'; stop: Stop };
 
 /**
  * How many of the closest stops the panel offers before anything is typed.
@@ -32,6 +43,17 @@ type Side = 'from' | 'to';
  * also what a phone shows in about a screen and a half, so the list below it stays reachable.
  */
 const CLOSEST_LIMIT = 10;
+
+/**
+ * How long after the last keystroke the address lookup is asked.
+ *
+ * Nominatim is a shared, rate-limited service — one request a second, by its own policy — and one
+ * request per keypress would be a request per letter. A quarter of a second is about the gap
+ * between two words typed at speed, so a whole address is one or two requests rather than one per
+ * letter, and `searchAddresses` keeps what it has already answered, so going back over the same
+ * text costs nothing at all.
+ */
+const ADDRESS_DEBOUNCE_MS = 250;
 
 /**
  * The full-screen stop picker.
@@ -110,6 +132,9 @@ export function StopPicker({
    * arrows, the highlight and `aria-activedescendant` share.
    */
   const [activeIndex, setActiveIndex] = useState(0);
+  /* What the map database answered for the query being typed, and whether it is still asking. */
+  const [addresses, setAddresses] = useState<AddressHit[]>([]);
+  const [addressPending, setAddressPending] = useState(false);
   const inputs: Record<Side, React.RefObject<HTMLInputElement | null>> = {
     from: useRef<HTMLInputElement>(null),
     to: useRef<HTMLInputElement>(null),
@@ -124,10 +149,10 @@ export function StopPicker({
   const query = queries[active];
   const suggestions = rankStops(query, favouriteStopIds, { origin: nearestOrigin });
 
-  /* A new query starts the highlight on the row that ranks first. */
+  /* A new query — or a new set of addresses — starts the highlight on the row that ranks first. */
   useEffect(() => {
     setActiveIndex(0);
-  }, [query, active]);
+  }, [query, active, addresses]);
   /* The traveller's own favourites, in the order they hearted them. */
   const favouriteStops = useMemo(
     () => favouriteStopIds.map((stopId) => getStop(stopId)).filter((stop): stop is Stop => Boolean(stop)),
@@ -174,6 +199,81 @@ export function StopPicker({
   const showActions = !query.trim() || query.trim() === openedLabel;
   /* Typing is the one thing that replaces the sections below; see the file's own note. */
   const typing = !showActions;
+
+  /*
+   * **An address is a place, so it can be an end — typed, not only measured.**
+   *
+   * The field searched the stop file and nothing else, so `rijksstraatweg 7` answered "No stops
+   * match" while the very same address resolved fine from "Use my current location". The map
+   * database is now asked for what has been typed — one request per settled query, never per
+   * keystroke — and each hit is paired with the nearest stop that can actually be boarded, because
+   * a journey needs a platform at one end and the address is the walk to it (`planAccessJourney`).
+   *
+   * Silent on failure, like the reverse lookup: no network, no results, and the stop list below is
+   * exactly what it was before this existed.
+   */
+  useEffect(() => {
+    if (!typing || query.trim().length < ADDRESS_MIN_LENGTH) {
+      setAddresses([]);
+      setAddressPending(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setAddressPending(true);
+    const timer = window.setTimeout(() => {
+      searchAddresses(query).then((hits) => {
+        if (cancelled) return;
+        setAddresses(hits);
+        setAddressPending(false);
+      });
+    }, ADDRESS_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [query, typing]);
+
+  /*
+   * One list, one highlight: the addresses the map database returned, then the stops. An address
+   * row and a stop row are the same kind of thing to the arrows and to Enter, so a typed address is
+   * chosen the way a stop is rather than by reaching for the mouse.
+   */
+  const options: PickerOption[] = useMemo(() => {
+    const places: Extract<PickerOption, { kind: 'address' }>[] = [];
+    for (const hit of addresses) {
+      const match = nearestStop(hit.lat, hit.lon);
+      if (!match) continue;
+      /* Ten-metre steps: a straight line to a geocoded point, not a route. */
+      places.push({ kind: 'address', hit, stop: match.stop, metres: Math.round(match.metres / 10) * 10 });
+    }
+    /*
+     * **The nearest one first.** "Rijksstraatweg 7" exists in a dozen Dutch towns, and the map
+     * database answers in its own order — the first hit for the reported query was Utrecht, 40 km
+     * from the station the traveller had already named. A planner's shortlist is ordered by where
+     * the journey is: the other end of the pair when one is chosen, otherwise the traveller's own
+     * position. With neither, the database's order stands.
+     */
+    const here = active === 'from' ? to : from;
+    if (here) {
+      places.sort(
+        (a, b) =>
+          distanceFromPosition(here, a.hit.lat, a.hit.lon) - distanceFromPosition(here, b.hit.lat, b.hit.lon),
+      );
+    } else if (nearestOrigin) {
+      const { lat, lon } = nearestOrigin;
+      places.sort((a, b) => distanceFromPosition(a.stop, lat, lon) - distanceFromPosition(b.stop, lat, lon));
+    }
+    const stops = suggestions.map((stop): PickerOption => ({ kind: 'stop', stop }));
+    /*
+     * **Which list leads.** A house number is what makes a query an address, so a query with a
+     * digit in it leads with the addresses; without one it is a name — a station, a stop, a
+     * landmark — and the stop search leads, with any addresses that matched underneath. Typing
+     * "Utrecht Centraal" and being offered a street first would be the field answering a
+     * question nobody asked.
+     */
+    const looksLikeAddress = /\d/.test(query);
+    return looksLikeAddress ? [...places, ...stops] : [...stops, ...places];
+  }, [addresses, suggestions, active, from, to, nearestOrigin, query]);
 
   /**
    * One stop row, the same shape everywhere in this panel: the mode it serves, its name, one line
@@ -230,6 +330,44 @@ export function StopPicker({
     </li>
   );
 
+  /**
+   * One address row, the same shape as a stop row but without the heart: a street address is not
+   * something to favourite, so the control that would sit there is absent rather than disabled.
+   *
+   * **One line, and the name is all of it.** The row used to carry a second line under the name —
+   * `Address · 320 m from Amsterdam, Museumplein` — and it said three things that were either
+   * already on the row or not the traveller's question: the teardrop *is* the word "address", the
+   * name carries the street and its town, and how far the stop is from the doorstep is where the
+   * journey starts calculating, not a fact to weigh while choosing an end. Reported as
+   * "Unnecessary…" with that line circled on both address rows. What it was measuring is not
+   * lost: the distance still travels with the pick (`accessMetres`), because it is the walk.
+   */
+  const addressRow = (option: { hit: AddressHit; stop: Stop; metres: number }, index: number) => (
+    <li
+      key={`address-${option.hit.label}-${index}`}
+      className="picker__item"
+      id={`picker-option-${index}`}
+      role="option"
+      aria-selected={index === activeIndex}
+    >
+      <button
+        type="button"
+        className="picker-row"
+        tabIndex={-1}
+        onMouseEnter={() => setActiveIndex(index)}
+        onClick={() => choose(option.stop, option.hit.label, option.metres)}
+      >
+        <span className="picker-row__marker">
+          {/* The teardrop: a *place* on the map, never a control (`mapPin`). */}
+          <Icon name="mapPin" size={18} />
+        </span>
+        <span className="stack-1 grow">
+          <span className="picker-row__name">{option.hit.label}</span>
+        </span>
+      </button>
+    </li>
+  );
+
   /*
    * A search result says what the place is; a closest stop says how far it is — the fact that put
    * it in the list. A renamed favourite says both: the name the traveller gave it is the row's
@@ -252,9 +390,28 @@ export function StopPicker({
    * stop's own name — today only a device position, which reads as a street address.
    */
   const choose = (stop: Stop, label?: string, accessMetres?: number) => {
+    const other: Side = active === 'from' ? 'to' : 'from';
+    const otherStop = other === 'from' ? from : to;
+    /*
+     * **Two plain stops on one stop is a duplicate; a place at either end makes it a route.**
+     *
+     * Refused in words *and kept* once (27.3), so the refusal is still here — but it has to look
+     * at **both** ends. An address and the station it sits nearest are two places even when one
+     * stop answers for both: "Rijksstraatweg 7, Haarlem → Haarlem Station" is the walk between
+     * them. This guard only asked whether the pick *being made* was a named place, so once the
+     * address was in the From row, choosing its own station as the destination was refused with
+     * "origin and destination must be different stops" — for two things that are obviously not
+     * the same. The rule is now the one `SearchForm.pick` already applies: both ends have to be
+     * stops for it to be a duplicate.
+     */
+    const namedPlace = Boolean(label) && typeof accessMetres === 'number';
+    const otherIsPlace = Boolean(other === 'from' ? fromLabel : toLabel);
+    if (otherStop && otherStop.id === stop.id && !namedPlace && !otherIsPlace) {
+      pushToast(t('Origin and destination must be different stops'), 'warning');
+      return;
+    }
     onPick(active, stop, label, accessMetres);
     setQueries((current) => ({ ...current, [active]: label ?? stopLabel(stop.id) }));
-    const other: Side = active === 'from' ? 'to' : 'from';
     const otherValue = other === 'from' ? from : to;
     if (!otherValue) {
       /* One end is still missing, so the field for it takes the keyboard straight away — this
@@ -267,6 +424,12 @@ export function StopPicker({
      * left to type into. Left up, it sat over the results the pair had just asked for.
      */
     dismissKeyboard();
+  };
+
+  /** A row was taken — a stop, or an address and the stop it is planned from. */
+  const chooseOption = (option: PickerOption) => {
+    if (option.kind === 'stop') choose(option.stop);
+    else choose(option.stop, option.hit.label, option.metres);
   };
 
   const clearSide = (which: Side) => {
@@ -339,20 +502,20 @@ export function StopPicker({
         aria-expanded={typing}
         aria-controls="picker-list"
         aria-autocomplete="list"
-        aria-activedescendant={typing && suggestions.length ? `picker-option-${activeIndex}` : undefined}
+        aria-activedescendant={typing && options.length ? `picker-option-${activeIndex}` : undefined}
         onKeyDown={(event) => {
-          if (!typing || suggestions.length === 0) return;
+          if (!typing || options.length === 0) return;
           if (event.key === 'ArrowDown') {
             event.preventDefault();
-            setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
+            setActiveIndex((index) => Math.min(index + 1, options.length - 1));
           } else if (event.key === 'ArrowUp') {
             event.preventDefault();
             setActiveIndex((index) => Math.max(index - 1, 0));
           } else if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-            const stop = suggestions[activeIndex];
-            if (!stop) return;
+            const option = options[activeIndex];
+            if (!option) return;
             event.preventDefault();
-            choose(stop);
+            chooseOption(option);
           }
         }}
         /*  The same two words the planner card's rows carry: one name for one question, on the
@@ -362,8 +525,15 @@ export function StopPicker({
         onFocus={() => setActive(which)}
         onChange={(event) => {
           setActive(which);
+          /*
+           * **Typing corrects the field; it does not throw the chosen stop away.** One Backspace
+           * in a field whose end was already chosen used to empty the planner's stop *behind the
+           * screen*, with no message — the ordinary way to fix a typo cost the whole pick (27.4).
+           * The stop stays until another is chosen, or until the field's own clear button is
+           * pressed; the row behind the sheet cannot disagree, because the screen reopens from
+           * the planner's own value.
+           */
           setQueries((current) => ({ ...current, [which]: event.target.value }));
-          if ((which === 'from' ? from : to) !== null) onClear(which);
         }}
       />
       {queries[which] ? (
@@ -427,13 +597,37 @@ export function StopPicker({
         */}
         {typing ? (
           <ul className="picker__list" id="picker-list" role="listbox" aria-label={t('Suggestions')}>
-            {suggestions.map((stop, index) => stopRow(stop, searchMeta(stop), { index }))}
+            {options.map((option, index) =>
+              option.kind === 'address'
+                ? addressRow(option, index)
+                : stopRow(option.stop, searchMeta(option.stop), { index }),
+            )}
 
-            {query.trim() && suggestions.length === 0 ? (
+            {/*
+              **The one list in this app that really waits.**
+
+              A query that is an address is answered by a map database over the network, so there
+              is a genuine moment when the rows do not exist yet. That moment is held with the
+              rows themselves — the marker's disc, the name, the meta line, in one flat grey —
+              rather than with a sentence over an empty list. Three of them, `aria-hidden`, with
+              the sentence spoken once for a screen reader in the status line under the list.
+            */}
+            {addressPending && options.length === 0 ? (
+              <>
+                <PickerRowSkeletons />
+                {/* The words, for a screen reader only: the grey rows are a picture of the list,
+                    and a picture is not an announcement. */}
+                <li className="sr-only" role="status">
+                  {t('Looking for that address…')}
+                </li>
+              </>
+            ) : null}
+
+            {query.trim() && options.length === 0 && !addressPending ? (
               <li className="picker__item picker__empty">
                 <span className="picker-row__name">{t('No stops match “{query}”', { query })}</span>
                 <span className="picker-row__meta">
-                  {t('Search by station, stop or landmark name, or use your location.')}
+                  {t('Search by station, stop, street address or landmark, or use your location.')}
                 </span>
               </li>
             ) : null}
@@ -518,7 +712,27 @@ export function StopPicker({
                     : t('From an approximate IP location — it can be off by a lot.')}
                 </p>
               </>
-            ) : approximateLocationPending ? null : (
+            ) : approximateLocationPending ? (
+              /*
+                The one section that is *empty* while it waits.
+
+                The IP estimate is a network request, so for a moment there is no position to
+                measure "closest" from — and this section used to render nothing at all, so the
+                picker opened with its favourites and a blank space where five rows were about to
+                appear. It now holds the rows themselves: the same three marks the address lookup
+                uses (`PickerRowSkeletons`), because it is the same list in the same place, and a
+                second shape for the same wait would be a second rule.
+              */
+              <>
+                <p className="picker__section">{t('Closest stops')}</p>
+                <ul className="picker__list">
+                  <PickerRowSkeletons count={3} />
+                  <li className="sr-only" role="status">
+                    {t('Finding the stops closest to you…')}
+                  </li>
+                </ul>
+              </>
+            ) : (
               /*
                 No fallback list of big stations: an empty field is the traveller's own
                 favourites followed by the **closest** stops, and with no location there is
@@ -540,7 +754,9 @@ export function StopPicker({
 
         {/* Only while a looked-up address is actually on screen: the licence asks for it
             where the data is shown, not in a footer nobody reads. */}
-        {fromLabel || toLabel ? <p className="picker__attribution t-sm t-faint">{ADDRESS_ATTRIBUTION}</p> : null}
+        {fromLabel || toLabel || addresses.length ? (
+          <p className="picker__attribution t-sm t-faint">{ADDRESS_ATTRIBUTION}</p>
+        ) : null}
       </div>
     </FullScreen>
   );

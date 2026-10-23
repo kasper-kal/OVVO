@@ -62,7 +62,11 @@ export const DISRUPTIONS: Disruption[] = [
       'Two Sprinter services between Schiphol Airport and Haarlem are cancelled because of a shortage of rolling stock.',
     advice: 'Take bus 347 from Schiphol Airport to Haarlem, or the Intercity to Amsterdam Sloterdijk and travel back.',
     affectedStopIds: ['schiphol-airport', 'haarlem', 'hoofddorp'],
-    affectedLineIds: ['sp-4000', 'b347'],
+    /* Bus 347 is this alert's *advice*, not its victim: the Sprinter is cancelled and the bus is
+       the way round it. Listing the bus here marked the replacement as cancelled too, which put a
+       "Cancelled services" pill on a Haarlem → Hoofddorp bus journey whose own advice was to take
+       that bus. */
+    affectedLineIds: ['sp-4000'],
     operatorIds: ['ns', 'connexxion'],
     modes: ['train', 'bus'],
     startsAt: 480,

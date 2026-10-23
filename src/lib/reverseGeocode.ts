@@ -24,7 +24,7 @@ const TIMEOUT_MS = 6000;
 
 const ENDPOINT = 'https://nominatim.openstreetmap.org/reverse';
 
-interface AddressParts {
+export interface AddressParts {
   house_number?: string;
   road?: string;
   pedestrian?: string;
@@ -50,7 +50,7 @@ interface AddressParts {
  * is composed here; a point that resolves to a neighbourhood or a park (no street in its
  * address) keeps the first two parts of the display name instead.
  */
-function compose(parts: AddressParts): string | null {
+export function composeAddress(parts: AddressParts): string | null {
   const street = parts.house_number ? `${parts.road ?? parts.pedestrian ?? ''} ${parts.house_number}`.trim() : parts.road ?? parts.pedestrian ?? parts.footway ?? parts.path ?? parts.square;
   const city = parts.city ?? parts.town ?? parts.village ?? parts.municipality ?? parts.suburb ?? parts.neighbourhood;
 
@@ -101,7 +101,7 @@ async function lookup(position: { lat: number; lon: number }): Promise<string | 
     if (!response.ok) return null;
     const body = (await response.json()) as { address?: AddressParts; display_name?: string; error?: string };
     if (body.error) return null;
-    return compose({ ...body.address, display_name: body.display_name });
+    return composeAddress({ ...body.address, display_name: body.display_name });
   } catch {
     return null;
   } finally {

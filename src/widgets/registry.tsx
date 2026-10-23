@@ -677,7 +677,9 @@ function YourJourneysWidget() {
                       ? `${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} — waiting for confirmation`
                       : `Unfavourite ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')}`
                   }
-                  active
+                  /* No `active`: this control chooses its own glyph — solid while the journey is
+                     kept, outline while a removal is waiting for confirmation — and `active` would
+                     send the outline one back through `pressedIcon` as a filled heart. */
                   aria-pressed={pendingId !== entry.id}
                   onClick={() => setPendingId(entry.id)}
                 />

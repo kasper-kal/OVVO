@@ -386,10 +386,24 @@
   cursor: grabbing;
 }
 
+/*
+ * The picker's canvas fills the surface it is given, at every width.
+ *
+ * From 720 the shared `.map-canvas` rule gives the plate a 4:3 aspect and caps its height at
+ * min(500px, 58vh) — right for the card on the map screen, wrong here: the picker's surface was
+ * 630 tall beside a 500-tall drawing, so 130px of empty ground sat under the map and above the
+ * sheet, and the square viewBox was sliced into a landscape box (28.4). The drawing is the screen
+ * on this one, so it takes the whole box and lets the viewBox do the cropping.
+ */
 .map-picker__canvas {
   display: block;
   width: 100%;
   height: 100%;
+  aspect-ratio: auto;
+  max-height: none;
+  margin-inline: 0;
+  border: 0;
+  border-radius: 0;
 }
 
 .map-picker__label text {
@@ -401,12 +415,19 @@
   stroke-width: 0.6px;
 }
 
-/* The pin: ink ring, paper centre, a short stem — drawn over the map, never in it. */
+/*
+ * The pin: ink ring, paper centre, a short stem — drawn over the map, never in it.
+ *
+ * **The tip is the point, not the middle of the pin.** Centred on the surface with
+ * `translate(-50%, -50%)`, the 16px stem hung *below* the measured point, so the pin named one
+ * place and pointed at another — 51px away at 390 and 162px at 1440 (28.3). Anchored by its
+ * bottom, the tail ends exactly where the nearest stop is measured from.
+ */
 .map-pin {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -440,6 +461,12 @@
 .map-picker__recentre {
   background: var(--l2-bg);
   border: var(--l2-border);
+}
+
+/* The confirm control's wrapper, so the screen can hand it the keyboard after a pick made in the
+   search field (28.5). It is the block the button already was; the class exists for the ref. */
+.map-picker__confirm {
+  display: flex;
 }
 
 .map-picker__sheet {

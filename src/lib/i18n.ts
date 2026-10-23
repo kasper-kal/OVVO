@@ -106,8 +106,9 @@ const NL: Record<string, string> = {
   'Slide the map until the pin sits on the stop you want.':
     'Schuif de kaart tot de pin op de halte staat die je wilt.',
   'No stops match “{query}”': 'Geen haltes voor “{query}”',
-  'Search by station, stop or landmark name, or use your location.':
-    'Zoek op station, halte of herkenningspunt, of gebruik je locatie.',
+  'Search by station, stop, street address or landmark, or use your location.':
+    'Zoek op station, halte, straatnaam of herkenningspunt, of gebruik je locatie.',
+  'Looking for that address…': 'Dat adres wordt gezocht…',
   'Plan journey': 'Reis plannen',
   'Choose a stop on the map': 'Kies een halte op de kaart',
   'Centre the network': 'Netwerk centreren',
@@ -555,6 +556,8 @@ const NL: Record<string, string> = {
   '— view details': '— bekijk details',
   'Earlier options': 'Eerdere opties',
   'Later options': 'Latere opties',
+  Earlier: 'Eerder',
+  Later: 'Later',
   'Reset to {time}': 'Terug naar {time}',
   Best: 'Beste',
   Fastest: 'Snelste',
@@ -716,6 +719,9 @@ const NL: Record<string, string> = {
     'Dichtstbijzijnde eerst, vanaf een benaderde IP-locatie — die kan er flink naast zitten.',
   'Sorted by {sort}. Turn on location for nearest-first.':
     'Gesorteerd op {sort}. Zet locatie aan voor dichtstbijzijnde eerst.',
+  /* Said while the position is still being found, in place of the line about the order. */
+  'Finding where you are, so the list can be nearest-first…':
+    'Even kijken waar je bent, zodat de lijst dichtstbijzijnde eerst kan zijn…',
   'Is this where you leave from, or where you are going?':
     'Is dit waar je vertrekt, of waar je naartoe gaat?',
   'Plan with {stop}': 'Plannen met {stop}',
@@ -1072,8 +1078,18 @@ const NL: Record<string, string> = {
   "Favourite the {time} journey": "Bewaar de reis van {time}",
   "Favourite the {from} to {to} journey": "Bewaar de reis van {from} tot {to}",
   "A journey cannot be planned for a day that has already gone.": "Een reis kan niet worden gepland voor een dag die al voorbij is.",
-
+  /* The two lines the journey page still spoke in English: the walking end of the rail and the
+     fare's own label beside the price (9.3). */
+  "Arrive {time}": "Aankomst {time}",
+  /* The journey page's three action labels, shortened to one word each (their accessible names
+     keep the full sentence). */
+  "Return": "Terug",
+  "Map": "Kaart",
+  "Saved": "Bewaard",
+  "Indicative single fare": "Indicatief enkel ticket",
+  "Walking only · no ticket needed": "Alleen lopen · geen ticket nodig",
 };
+
 
 const DICTIONARIES: Record<Language, Record<string, string>> = {
   en: {},

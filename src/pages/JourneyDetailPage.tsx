@@ -4,11 +4,9 @@ import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
 import { JOURNEY_LABELS } from '../data/journeyEngine';
 import { getStop, stopLabel } from '../data/stops';
-import { operatorName } from '../data/operators';
-import { getLine } from '../data/network';
 import { getDisruption } from '../data/disruptions';
 import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
-import { Icon, ModeIcon } from '../components/ui/Icons';
+import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { plural } from '../lib/format';
@@ -91,7 +89,6 @@ export function JourneyDetailPage() {
   }
 
   const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
-  const operators = [...new Set(journey.operatorIds)].map((id) => operatorName(id));
   const disruptions = journey.disruptionIds.map((id) => getDisruption(id)).filter(Boolean);
   const transfers = journey.legs
     .filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike')
@@ -129,10 +126,17 @@ export function JourneyDetailPage() {
         on a wide screen the row is a wrapping line of pills again, exactly where it was in the
         card. Nothing else on this page repeats them.
       */}
+      {/*
+        **One row, three short words.** This was three full-width pills stacked down the phone,
+        ~170px of the first screen given to actions before the journey itself — part of why the
+        page read as overwhelming next to 9292, whose journey screen is a header of icons. The
+        full sentence is still each control's accessible name; what is printed is the verb.
+      */}
       <div className="journey-actions">
         {search ? (
           <Button
             icon="route"
+            aria-label={t('Plan return journey')}
             onClick={() => {
               /*
                * The two ends swap, and so does everything that names them: an end that was an
@@ -154,12 +158,12 @@ export function JourneyDetailPage() {
               navigate('/results');
             }}
           >
-            {t('Plan return journey')}
+            {t('Return')}
           </Button>
         ) : null}
-        <Link to={`/map?journey=${journey.id}`} className="btn">
+        <Link to={`/map?journey=${journey.id}`} className="btn" aria-label={t('Show on map')}>
           <Icon name="map" size={16} />
-          {t('Show on map')}
+          {t('Map')}
         </Link>
         {/*
           The same control as the one on this journey's card: a heart, filled while the journey is
@@ -171,10 +175,12 @@ export function JourneyDetailPage() {
           type="button"
           className="btn journey-save"
           aria-pressed={saved}
+          aria-label={saved ? t('Favourited') : t('Favourite this journey')}
           onClick={() => search && saveJourney(journey, search.query, search.windowOffsetMinutes)}
         >
-          <Icon name="heart" size={16} />
-          {saved ? t('Favourited') : t('Favourite this journey')}
+          {/* The fill is the state, exactly as it is on the card this page was opened from. */}
+          <Icon name={saved ? 'heartFilled' : 'heart'} size={16} />
+          {saved ? t('Saved') : t('Save')}
         </button>
       </div>
 
@@ -237,27 +243,24 @@ export function JourneyDetailPage() {
               glyphs the card's own meta row uses (`ticket`, `walk`, `swap`, `station`). Nothing
               reads as a sentence any more, and each chip is one line at 378px.
             */}
+            {/*
+              No line badge and no operator chip: both are printed, at full size, in the journey
+              above this card — the same two facts twice on one screen was half of what made it
+              feel crowded. What is left is what the journey *is*: its price, its length, how many
+              changes, how much walking, how full, and whether a bicycle may come.
+            */}
             <div className="row-wrap journey-facts">
               {rideLegs.length === 0 ? (
                 <Pill tone="outline">{t('Walking only')}</Pill>
-              ) : (
-                rideLegs.map((leg) => (
-                  <span key={leg.id} className={`mode-badge mode-badge--${leg.mode}`}>
-                    <ModeIcon mode={leg.mode} size={13} />
-                    {getLine(leg.lineId)?.name ?? leg.lineName ?? t('Service')}
-                  </span>
-                ))
-              )}
-              {operators.length ? (
+              ) : null}
+              {/* A fare of nothing is not a fact about the trip — see the fare row on the journey
+                  card, which drops the same line for the same reason. */}
+              {journey.fare.eur > 0 ? (
                 <Pill tone="outline">
-                  <Icon name="station" size={12} />
-                  {operators.join(' · ')}
+                  <Icon name="ticket" size={12} />€{journey.fare.eur.toFixed(2)}{' '}
+                  <span className="t-faint">{t(journey.fare.label)}</span>
                 </Pill>
               ) : null}
-              <Pill tone="outline">
-                <Icon name="ticket" size={12} />€{journey.fare.eur.toFixed(2)}{' '}
-                <span className="t-faint">{t(journey.fare.label)}</span>
-              </Pill>
               <Pill>
                 <Icon name="clock" size={12} />
                 {format.duration(journey.durationMinutes)}
@@ -267,9 +270,23 @@ export function JourneyDetailPage() {
                 {journey.transfers === 0 ? t('Direct') : plural(journey.transfers, t('transfer'))} ·{' '}
                 {plural(journey.legs.length, t('leg'))}
               </Pill>
-              <Pill tone="outline">
-                <Icon name="walk" size={12} />
-                {journey.walkMinutes} {t('min walking')}
+              {/* A walk chip that says "0 min walking" answers a question nobody asked, and reads
+                  as a promise the journey does not make. No walk, no chip. */}
+              {journey.walkMinutes > 0 ? (
+                <Pill tone="outline">
+                  <Icon name="walk" size={12} />
+                  {journey.walkMinutes} {t('min walking')}
+                </Pill>
+              ) : null}
+              {/* The expected level, where the rest of the journey's facts live — it had a card of
+                  its own with a heading and one pill in it. */}
+              <Pill>
+                <Icon name="users" size={12} />
+                {journey.occupancy === 'busy'
+                  ? t('Expected busy')
+                  : journey.occupancy === 'moderate'
+                    ? t('Expected fairly busy')
+                    : t('Expected quiet')}
               </Pill>
               {/* A plain yes/no, kept short and kept: absence of the chip is what would hide the
                   answer, not the answer itself. */}
@@ -280,11 +297,16 @@ export function JourneyDetailPage() {
             </div>
           </Card>
 
+          {/*
+            **No transfers, no transfers card.** A whole card with a heading and one sentence
+            saying nothing happens is the clearest example of the page describing itself — the
+            summary already says “Direct · 1 leg”. The card exists only when there is a change to
+            name.
+          */}
+          {transfers.length ? (
           <Card className="stack">
             <h2 className="t-section">{t('Transfers')}</h2>
-            {transfers.length === 0 ? (
-              <p className="t-sm t-muted">{t('This is a direct journey — no transfers at all.')}</p>
-            ) : (
+            {
               <ul className="stack-2">
                 {transfers.map(({ leg }) => {
                   const stop = getStop(leg.toStopId);
@@ -305,30 +327,10 @@ export function JourneyDetailPage() {
                   );
                 })}
               </ul>
-            )}
+            }
           </Card>
+          ) : null}
 
-          {/*
-            The expected level and a meter for it, and nothing else. A row of invented travellers
-            and a per-hour busy-ness chart sat under this; neither measured anything, so both are
-            deleted rather than restyled (see the same card on the results screen).
-          */}
-          <Card className="stack">
-            <h2 className="t-section">{t('Expected occupancy')}</h2>
-            {/*
-              The words, not a bar and the words. A full-width meter and the pill beside it
-              drew the same fact twice, and the bar carried no scale to read it against.
-            */}
-            <div className="row-wrap">
-              <Pill>
-                {journey.occupancy === 'busy'
-                  ? t('Expected busy')
-                  : journey.occupancy === 'moderate'
-                    ? t('Expected fairly busy')
-                    : t('Expected quiet')}
-              </Pill>
-            </div>
-          </Card>
         </div>
       </div>
 

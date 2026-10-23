@@ -184,10 +184,12 @@ export function BoardList({
         })}
       </ul>
 
-      {hidden > 0 ? <div ref={sentinelRef} aria-hidden="true" /> : null}
-
       {hidden > 0 || expanded ? (
-        <div className="row-wrap">
+        <div className="row-wrap list-foot">
+          {/* The loader's marker lives *inside* this row, absolutely. As a child of the column it
+              was a flex item of its own and cost a second gap: the list and the button sat 24px
+              apart when there was more to load and 12px apart when there was not. */}
+          {hidden > 0 ? <div ref={sentinelRef} aria-hidden="true" /> : null}
           <button
             type="button"
             /* Bordered, like the "Show N more" on the stops list and the alert list: one
