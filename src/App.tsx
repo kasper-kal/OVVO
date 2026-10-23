@@ -1,5 +1,5 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { AppProvider } from './state/AppState';
+import { AppProvider, useApp } from './state/AppState';
 import { AppShell } from './components/layout/AppShell';
 import { HomePage } from './pages/HomePage';
 import { ResultsPage } from './pages/ResultsPage';
@@ -16,6 +16,24 @@ import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SkeletonDemoPage } from './pages/SkeletonDemoPage';
 import { ReviewLayer } from './review/ReviewLayer';
+
+/**
+ * **Settings is closed at 10% or below.**
+ *
+ * Super energy saving leaves the app answering one question — when does the bus go — and
+ * Settings is the screen that costs the most to draw and answers that question least. It is also
+ * missing from the navigation (`AppShell`'s `useNavigation`), so this route is the second half of
+ * the same rule rather than a separate one: a link that is not drawn and a URL that still works
+ * would mean the screen is only hidden, not closed. Anything typed or bookmarked lands here, so
+ * it goes home, where the note at the top of the screen says why the app is thin and that a
+ * charger brings it all back. Nothing is lost, because nothing here is stored: the mode is a
+ * subtraction from the interface and leaving it restores the screen exactly.
+ */
+function SettingsRoute() {
+  const { power } = useApp();
+  if (power.mode === 'super') return <Navigate to="/" replace />;
+  return <SettingsPage />;
+}
 
 /**
  * OVVO — application entry point and route table.
@@ -55,7 +73,7 @@ export default function App() {
                   <Route path="/disruptions" element={<DisruptionsPage />} />
                   <Route path="/disruptions/:disruptionId" element={<DisruptionDetailPage />} />
                   <Route path="/preferences" element={<PreferencesPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/settings" element={<SettingsRoute />} />
                   <Route path="/planner" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

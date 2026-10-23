@@ -426,7 +426,8 @@ const NL: Record<string, string> = {
   'Not reported': 'Niet doorgegeven',
   'Super energy saving is on — {cards} come back when this device is charged.':
     'Maximale energiebesparing staat aan — {cards} komen terug zodra dit apparaat aan de lader ligt.',
-  'Only what you need to catch a bus is drawn.': 'Alleen wat je nodig hebt om een bus te halen wordt getoond.',
+  'Only what you need to catch a bus is drawn, and Settings come back with the rest.':
+    'Alleen wat je nodig hebt om een bus te halen wordt getoond, en Instellingen komen terug met de rest.',
   Location: 'Locatie',
   'Use my location': 'Mijn locatie gebruiken',
   'Fills in the nearest stop when you plan a journey. The browser asks on your first visit.':

@@ -1076,7 +1076,12 @@ export function HomePage() {
           {t('Super energy saving is on — {cards} come back when this device is charged.', {
             cards: plural(hiddenBySaving, 'card'),
           })}{' '}
-          {t('Only what you need to catch a bus is drawn.')}
+          {/*
+            * The second half of the sentence is the Settings screen: super saving takes it off the
+            * navigation and closes its URL (`AppShell`, `App.tsx`), so this line is the only place
+            * the traveller is told that it went with the cards rather than out of the app.
+            */}
+          {t('Only what you need to catch a bus is drawn, and Settings come back with the rest.')}
         </p>
       ) : null}
 

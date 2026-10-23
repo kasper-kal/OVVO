@@ -534,15 +534,21 @@ saves power on its own, in two steps, with nothing to switch on and nothing stor
   reach their end state, they just do not travel), the spinner and the skeleton bars stand still,
   the results screen and the stops list stop holding their place with a fake wait, and a deep
   link scrolls instead of gliding.
-* **At 10% or less — super saving.** The above, plus: no frosted glass and no shadows, no request
-  spent on the IP location estimate, and a home screen that keeps only the cards that answer
-  *when does the bus go* — the planner, the next-departures card and the hearted stops — with one
-  line saying so. Leaving customising, or plugging the phone in, restores the whole interface.
+* **At 10% or less — super saving.** The above, and the stillness is total: no transition, no
+  animation and no press spring anywhere — the bottom navigation included, which does not lift or
+  squeeze at all — plus no shadows and no frosted glass on any surface, no request spent on the IP
+  location estimate, and a home screen that keeps only the cards that answer *when does the bus
+  go* — the planner, the next-departures card and the hearted stops — with one line saying so.
+  **Settings is closed** while this mode is on: it is left out of the navigation and `#/settings`
+  goes home, because it is the most expensive screen in the app and the least about catching a
+  bus. Leaving customising, or plugging the phone in, restores the whole interface and Settings
+  with it.
 
 `src/lib/power.ts` holds the rule (`powerModeFor`: 20% and 10% in, two points above each out, and
-charging is always off) and `styles/base.css` is where the reduction is drawn, from one attribute
-on `<html>` — `<html data-power>` — the same shape as the motion switch. Settings shows the mode
-and the level as a reading, not a control.
+charging is always off); `styles/base.css` and the battery adapter in `styles/tokens.css` are
+where the reduction is drawn, from one attribute on `<html>` — `<html data-power>` — the same
+shape as the motion switch; and `useNavigation`/`App.tsx` are where Settings closes. Settings
+shows the mode and the level as a reading, not a control.
 
 **The API is Chromium's.** Safari does not implement it and Firefox removed it, so there no mode
 ever starts and the full interface is what is drawn; Settings says *Not reported* rather than

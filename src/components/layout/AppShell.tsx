@@ -32,9 +32,9 @@ interface NavGroup {
 
 /** The navigation, in the language the traveller chose. */
 export function useNavigation(): NavGroup[] {
-  const { settings } = useApp();
+  const { settings, power } = useApp();
   const t = (key: string) => translate(settings.language, key);
-  return [
+  const groups: NavGroup[] = [
     {
       title: t('Home'),
       items: [
@@ -69,6 +69,22 @@ export function useNavigation(): NavGroup[] {
       ],
     },
   ];
+
+  /*
+   * **At 10% or below, Settings is not on the way to anything.**
+   *
+   * Super energy saving exists to answer "when does the bus go" on a battery that is nearly out,
+   * and Settings is the one screen in the app that is not that question: colour pickers, a photo
+   * behind the canvas, live previews, four storage panels. It is left out of the navigation here,
+   * and `/settings` itself redirects home while the mode is on (see `App.tsx`), so the screen is
+   * genuinely unreachable rather than merely unlinked. A group is dropped when it has nothing
+   * left in it — otherwise "Yours" would be a heading over an empty list. A charger puts it back,
+   * because nothing is stored: the mode is a subtraction, never a change.
+   */
+  if (power.mode !== 'super') return groups;
+  return groups
+    .map((group) => ({ ...group, items: group.items.filter((item) => item.to !== '/settings') }))
+    .filter((group) => group.items.length > 0);
 }
 
 function isActivePath(current: string, to: string): boolean {
@@ -116,6 +132,7 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const t = useT();
+  const { power } = useApp();
   /*
    * **A double tap on Home opens the basic journey planner.**
    *
@@ -157,6 +174,15 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
   const liftTimer = useRef(0);
   const settleTimer = useRef(0);
   const lift = (id: string) => {
+    /*
+     * **Not in super energy saving — not even here.**
+     *
+     * The flattened tokens already stop the tab from moving, but the lift is driven by two timers
+     * and a re-render one second after the tap, and a second re-render when it settles. At a tenth
+     * of a battery a bar that answers a press by doing nothing is the point, so the timers are not
+     * started at all: the tab is pressed, the screen changes, nothing else happens.
+     */
+    if (power.mode === 'super') return;
     window.clearTimeout(liftTimer.current);
     window.clearTimeout(settleTimer.current);
     setDial({ id, settling: false });

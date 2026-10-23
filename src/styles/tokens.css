@@ -312,6 +312,27 @@
 }
 
 /*
+ * --- Battery adapter: super energy saving (10% or less) ---
+ *
+ * The same flattening the motion switch asks for, applied because the device is nearly out rather
+ * than because the traveller asked. Zeroing the tokens is what removes the **spring** itself: a
+ * cut duration only makes the shrink-to-97% happen in no time, so the control still visibly jumps
+ * under the thumb; with the scale and the lift at rest values there is no movement to cut at all.
+ * `base.css` then takes the rest — no transition, no animation, no shadow, no blur.
+ *
+ * Save mode is deliberately left out: at 20% the interface is stilled, but it is still an
+ * interface, and the 1ms step it gets in `base.css` is enough.
+ */
+:root[data-power='super'] {
+  --press-scale: 1;
+  --hover-scale: 1;
+  --hover-lift: 0px;
+  --t-press: 0ms;
+  --t-hover: 0ms;
+  --t-spring: 0ms;
+}
+
+/*
  * --- Settings adapter: raised contrast (ink + hairline strengthening) ---
  *
  * **This block has to be a step you can see, not a nudge.** It was written when the base ramp was

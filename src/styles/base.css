@@ -1118,13 +1118,62 @@ svg.map-canvas {
  * the skeleton shimmer) are given a stated still form below.
  */
 :root[data-power='save'] *,
-:root[data-power='super'] * {
+:root[data-power='save'] *::before,
+:root[data-power='save'] *::after {
   animation-duration: 1ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 1ms !important;
   transition-delay: 0ms !important;
   scroll-behavior: auto !important;
+}
+
+/*
+ * **Super is not "save, with the paint turned down" — it is the interface standing still.**
+ *
+ * A 1ms step still *moves*: the control reaches its pressed size, the sheet reaches its place, the
+ * tab reaches its lift, all in one frame. At a tenth of a battery that is a frame spent on
+ * movement that nobody asked to see. So nothing travels at all now — no transition, no animation,
+ * no fill-mode state — and the spring is gone with it, twice over: the tokens are at rest values
+ * (`tokens.css`, the battery adapter) and the transform it would have driven has nowhere to be
+ * animated from, so a press is a state, not a movement.
+ *
+ * The paint goes the same way. Every shadow is dropped and every backdrop filter removed — not
+ * only the two frosted surfaces named below — because a shadow is a blur the compositor rebuilds
+ * on every repaint and a backdrop filter forces the page behind it to be re-composited. The one
+ * exception is the keyboard's own ring: the date and time fields draw theirs with an **inset**
+ * box-shadow (see `.when-field__group` in `components.css`), and an interface with no visible
+ * focus is not a saving, it is a wall. `*:not(:focus-visible)` keeps exactly that one.
+ */
+:root[data-power='super'] *,
+:root[data-power='super'] *::before,
+:root[data-power='super'] *::after {
+  animation: none !important;
+  animation-delay: 0ms !important;
+  transition: none !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+  text-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Shadows, with that one focus ring left alone — and nothing else, so a focused control is as
+   still as every other one. */
+:root[data-power='super'] *:not(:focus-visible),
+:root[data-power='super'] *::before,
+:root[data-power='super'] *::after {
+  box-shadow: none !important;
+}
+
+/*
+ * Two controls that scale with a number of their own rather than a token — the home menu's rows
+ * and the colour swatches — so flattening the tokens does not reach them. Named here so that
+ * "no movement" in super is a fact about every control and not about the well-behaved ones.
+ */
+:root[data-power='super'] .home-menu .home-menu__row:active,
+:root[data-power='super'] .colour-screen__swatch:hover {
+  transform: none;
 }
 
 /* The ring that holds the results list's place: still, and still a ring — the shape of waiting
@@ -1155,12 +1204,14 @@ svg.map-canvas {
 }
 
 /*
- * **Super** is the paint as well as the movement.
+ * **What is left is the colour, not the glass.**
  *
- * A backdrop filter is the most expensive thing this interface asks of a GPU: the two frosted
- * surfaces (the home menu and its scrim) each force the page behind them to be re-composited.
- * Both are opaque now, which is why the scrim's wash goes up from 28% to 62% — it is doing alone
- * what the blur used to do with it, dimming the home screen enough for the panel to read.
+ * The two surfaces the blanket rule above has already unblurred still have to *read*: the menu was
+ * a 78% wash of the card colour over the page it was blurring, so without the blur the page shows
+ * through it, and the scrim leaned on its blur for most of the dimming. Both are opaque now, which
+ * is why the scrim's wash goes up from 28% to 62% — it is doing alone what the blur used to do
+ * with it, dimming the home screen enough for the panel to read. Everything else the blanket rule
+ * covers; these two are only here for the colour.
  */
 :root[data-power='super'] .home-menu__scrim {
   -webkit-backdrop-filter: none !important;
