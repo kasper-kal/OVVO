@@ -34,7 +34,9 @@ export default function App() {
             * without a header, a dock or a real search around it (`pages/SkeletonDemoPage.tsx`).
             * It sits *outside* the shell because that is the point: the placeholder is the whole
             * screen. `import.meta.env.DEV` is `false` in a build, so this route never ships, and
-            * a dev preview opens on it because `main.tsx` sets that hash when there is none.
+            * it is reached by the hash alone — a bare visit opens the home screen, as it should.
+            * It used to be the other way round: `main.tsx` sent any hashless visit here, which
+            * meant the preview opened on a lab rather than on the app.
             */}
           {import.meta.env.DEV ? <Route path="/skeleton" element={<SkeletonDemoPage />} /> : null}
 
