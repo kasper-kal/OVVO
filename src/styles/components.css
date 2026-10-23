@@ -4168,14 +4168,21 @@
  * later button MUCH AND MUCH smaller, 0 backdrop and only on the left side").
  *
  * A window step is now a small label at the start of the list's own column — the smallest type on
- * the app's scale, no box, no fill, no background on hover, and a chevron to say which way the
- * window moves. `align-self` is what keeps it on the left: the page is a column, so the step takes
- * its own width instead of the column's.
+ * the app's scale, and a chevron to say which way the window moves. `align-self` is what keeps it
+ * on the left: the page is a column, so the step takes its own width instead of the column's.
+ *
+ * **The label keeps a pane of its own, and that is a correction.** It was bare ink on the page —
+ * "no box, no fill" — which is right on a plain ground and wrong on a photograph: with a picture
+ * behind the results, the grey word sat on foliage and could not be read at all (reported with a
+ * screenshot). A control the traveller has to hunt for is not a quieter control, it is a missing
+ * one. It now wears the smallest surface the app has, the same solid tint and hairline a `.pill`
+ * wears, so it reads over any picture in either appearance and still weighs less than the journeys
+ * it sits between.
  *
  * The 44px target is real, but it is the pseudo-element's rather than the label's — the same trick
- * `.tap-target` uses — so the eye gets a word and the thumb still gets a target. The expansion is
- * 16px above and below the 12px label, inside the 24px page gap, so it cannot reach the alert above
- * it or the first card below.
+ * `.tap-target` uses — so the eye gets a word and the thumb still gets a target. The expansion
+ * stays inside the 24px page gap above and below, so it cannot reach the alert above it or the
+ * first card below.
  */
 .window-step {
   position: relative;
@@ -4183,11 +4190,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-1);
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink-muted);
+  min-height: 24px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-pill);
+  background: var(--l1-bg);
+  color: var(--ink);
   font-family: inherit;
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
@@ -4200,12 +4208,13 @@
 .window-step::after {
   content: '';
   position: absolute;
-  inset: -16px -10px;
+  inset: -14px -8px;
 }
 
-/* No fill, ever: the step is a word, not a control with a surface. The colour says what happened. */
+/* The colour says what happened; the edge answers the pointer. */
 .window-step:hover:not(:disabled) {
   color: var(--ink-strong);
+  border-color: var(--struct-main);
 }
 
 .window-step:disabled {
