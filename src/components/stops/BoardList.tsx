@@ -6,9 +6,10 @@ import { getStop } from '../../data/stops';
 import { useFormat } from '../../lib/useFormat';
 import { useT } from '../../lib/useT';
 import { EmptyState, IconButton } from '../ui/primitives';
+import { PlanStopDialog } from './PlanStopDialog';
 import { StopLink } from './StopLink';
 import { Icon } from '../ui/Icons';
-import type { Departure } from '../../data/types';
+import type { Departure, Stop } from '../../data/types';
 import { ROWS_PER_LOAD } from '../../lib/loadBatch';
 
 /**
@@ -96,15 +97,25 @@ export function BoardList({
   }
 
   /*
-   * A row's plan action names that departure's destination and nothing else.
+   * **A row's plan action asks the same question every other Plan in the app asks.**
    *
-   * It used to run a search on the spot — carrying the session's other end with it when there
-   * was one, and inventing a departure time from the row when there was not — so the traveller
-   * was dropped on results for a journey they never described (F28). Now the row fills the TO
-   * and opens the planner on the FROM.
+   * It used to jump straight into the planner with that departure's destination filled in and the
+   * picker already open on the other end — no question, and no way to say "actually I am going
+   * *from* there". A route glyph that plans now opens the two-choice dialog the station page and
+   * the stop cards open (`PlanStopDialog`), about the station this departure goes to, and the two
+   * answers do what they do everywhere else: fill that end and open the picker for the other one.
+   *
+   * The row itself still knows nothing about journeys — the dialog is the app's one owner of that
+   * question, so a board cannot grow a second, quieter way to plan.
    */
-  const planTo = (departure: Departure) => {
-    navigate(`/?to=${departure.destinationStopId}&pick=from`);
+  const [planStop, setPlanStop] = useState<Stop | null>(null);
+  const askToPlan = (departure: Departure) => {
+    setPlanStop(getStop(departure.destinationStopId) ?? null);
+  };
+  const chooseEnd = (direction: 'from' | 'to') => {
+    if (!planStop) return;
+    navigate(`/?${direction}=${planStop.id}&pick=${direction === 'from' ? 'to' : 'from'}`);
+    setPlanStop(null);
   };
 
   return (
@@ -178,19 +189,18 @@ export function BoardList({
                 <IconButton
                   icon="route"
                   /* Five identical names on a ferry board told a screen reader nothing about which
-                     departure each one plans (6.9). The time is what tells them apart. */
-                  label={t('Plan a journey to {stop} at {time}', {
-                    stop: departure.destinationLabel,
-                    time: format.time(departure.expected),
-                  })}
+                     departure each one plans (6.9). The destination is what tells them apart. */
+                  label={t('Plan a journey with {stop}', { stop: departure.destinationLabel })}
                   variant="ghost"
-                  onClick={() => planTo(departure)}
+                  onClick={() => askToPlan(departure)}
                 />
               </span>
             </li>
           );
         })}
       </ul>
+
+      <PlanStopDialog stop={planStop} onClose={() => setPlanStop(null)} onPlan={chooseEnd} />
 
       {hidden > 0 || expanded ? (
         <div className="row-wrap list-foot">
