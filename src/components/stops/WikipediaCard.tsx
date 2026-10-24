@@ -68,7 +68,8 @@ export function WikipediaCard({ stopId }: { stopId: string }) {
       <p className="t-sm">{summary.extract}</p>
       <div className="row-wrap">
         <a className="btn btn--sm" href={summary.url} target="_blank" rel="noreferrer noopener">
-          <Icon name="share" size={15} />
+          {/* "Opens another page", not "send this to someone": see `external` in `ui/Icons`. */}
+          <Icon name="external" size={15} />
           {t('Read the whole article')}
         </a>
       </div>

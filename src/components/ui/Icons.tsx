@@ -53,6 +53,7 @@ import {
   Clock,
   Crop,
   Crosshair,
+  ExternalLink,
   Focus,
   Funnel,
   Heart,
@@ -71,7 +72,6 @@ import {
   Route,
   Search,
   Settings,
-  Share2,
   Ship,
   SlidersHorizontal,
   Star,
@@ -154,6 +154,16 @@ const GLYPHS = {
    */
   crop: Crop,
   close: X,
+  /*
+   * **Read it somewhere else** — Lucide's `ExternalLink`: a box with its arrow leaving the
+   * corner, the glyph the web has used for "this opens a different page" for as long as it has
+   * had links at all.
+   *
+   * It replaced `share` on the Wikipedia card's "Read the whole article": a share glyph means
+   * "send this to someone", which that control never does — it opens the article in a new tab.
+   * One glyph, one meaning (W3C COGA), and the meaning here is direction, not distribution.
+   */
+  external: ExternalLink,
   ferry: Ship,
   filter: Funnel,
   /*
@@ -227,7 +237,6 @@ const GLYPHS = {
   route: Route,
   search: Search,
   settings: Settings,
-  share: Share2,
   sliders: SlidersHorizontal,
   star: Star,
   station: Building2,
