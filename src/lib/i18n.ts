@@ -1031,7 +1031,11 @@ const NL: Record<string, string> = {
   /* The audit's language pass: one screen at a time, every visible and spoken string. */
   "All {count} stops on this map": "Alle {count} haltes op deze kaart",
   "Details of {alert}": "Details van {alert}",
-  "Schematic local view of {stop} and the stops around it": "Schematisch beeld van {stop} en de haltes eromheen",
+  "Local map of {stop}: the next stop on each line that calls here": "Kaart van {stop}: de volgende halte op elke lijn die er stopt",
+  "Each arm is the next stop on a line that calls here, in that mode’s colour.": "Elke arm is de volgende halte op een lijn die hier stopt, in de kleur van die vervoerswijze.",
+  "No line calls here right now, so this shows the stops within walking distance.": "Er stopt hier nu geen lijn, dus dit toont de haltes op loopafstand.",
+  "From Wikipedia": "Van Wikipedia",
+  "Read the whole article": "Lees het hele artikel",
   "stop code {code}": "haltecode {code}",
   "No service calls at this station right now.": "Er stopt nu geen dienst op dit station.",
   "Search by station, stop or landmark name.": "Zoek op stations-, halte- of plaatsnaam.",

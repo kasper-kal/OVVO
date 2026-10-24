@@ -18,6 +18,7 @@ import { boardForStop } from '../data/departures';
 import { useMinuteNow } from '../lib/useMinuteNow';
 import { Button, Card, EmptyState, IconButton } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
+import { WikipediaCard } from '../components/stops/WikipediaCard';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { usePageTitle } from '../lib/usePageTitle';
@@ -45,8 +46,14 @@ export function StopDetailPage() {
    */
   const minutes = useMinuteNow();
   const nearby = useMemo(() => (stop ? nearbyStops(stop.id, 4) : []), [stop?.id]);
+  /*
+   * The card shows **five** departures — the next five things that leave from here — and the list
+   * underneath grows five at a time (`BoardList`), so the generated board is longer than the card
+   * first draws. It used to generate six for a list that showed five, which left the "show more"
+   * row promising a single row.
+   */
   const board = useMemo(
-    () => (stop ? boardForStop(stop.id, { fromMinutes: minutes, limit: 6, tick: 0 }) : []),
+    () => (stop ? boardForStop(stop.id, { fromMinutes: minutes, limit: 20, tick: 0 }) : []),
     [stop?.id, minutes],
   );
   const alerts = stop ? disruptionsForStop(stop.id) : [];
@@ -86,6 +93,105 @@ export function StopDetailPage() {
   const planTo = (direction: 'from' | 'to') => {
     navigate(`/?${direction}=${stop.id}&pick=${direction === 'from' ? 'to' : 'from'}`);
   };
+
+  /*
+   * **The local map, worked out before it is drawn.**
+   *
+   * The drawing is the app's own 0–100 canvas, zoomed 5.5× around this stop so it reaches the
+   * stops next door rather than the whole country — the zoom this card always used for its dots.
+   *
+   * What it draws now is **one arm per line that calls here**, from this stop to the next stop on
+   * that line, in the line's own mode colour. Drawing each line's *whole* run — which is what the
+   * first version of this card did — turned the canvas into a starburst of corridors crossing each
+   * other with every name printed over its neighbour's; an arm is the one fact a map of a station
+   * has to answer — which way do I leave from here, and what is the next stop doing it.
+   *
+   * An arm per *stop*, not per line: four services that all head for Amsterdam Amstel leave in the
+   * same direction, and four lines drawn on top of each other is one line drawn four times.
+   */
+  const LOCAL_SCALE = 5.5;
+  const toLocal = (point: { x: number; y: number }) => ({
+    x: 50 + (point.x - stop.coordinates.x) * LOCAL_SCALE,
+    y: 50 + (point.y - stop.coordinates.y) * LOCAL_SCALE,
+  });
+
+  /*
+   * An arm whose next stop is further away than the frame reaches is drawn **to the edge** and
+   * given neither dot nor name: the line leaving the picture is the honest drawing of "this way,
+   * and on out of sight", while a dot parked on the border would read as a stop on the border.
+   */
+  const clipToFrame = (point: { x: number; y: number }) => {
+    const dx = point.x - 50;
+    const dy = point.y - 50;
+    const limits: number[] = [];
+    if (dx > 0) limits.push(46 / dx);
+    else if (dx < 0) limits.push(-46 / dx);
+    if (dy > 0) limits.push(46 / dy);
+    else if (dy < 0) limits.push(-46 / dy);
+    const t = Math.min(...limits);
+    return t >= 1 ? { ...point, inside: true } : { x: 50 + dx * t, y: 50 + dy * t, inside: false };
+  };
+
+  const arms = new Map<
+    string,
+    {
+      place: NonNullable<ReturnType<typeof getStop>>;
+      point: { x: number; y: number; inside: boolean };
+      modes: string[];
+    }
+  >();
+  for (const line of lines) {
+    const index = line.stops.indexOf(stop.id);
+    if (index < 0) continue;
+    for (const neighbourId of [line.stops[index - 1], line.stops[index + 1]]) {
+      const place = getStop(neighbourId);
+      if (!place) continue;
+      const arm = arms.get(place.id) ?? { place, point: clipToFrame(toLocal(place.coordinates)), modes: [] };
+      if (!arm.modes.includes(line.mode)) arm.modes.push(line.mode);
+      arms.set(place.id, arm);
+    }
+  }
+
+  /*
+   * A station with no service — two of them in this network — would otherwise draw an empty sea
+   * and a dot. For those the card falls back to what it used to show: the stops within walking
+   * distance, joined by the walk dashes, so the card is never a blank map.
+   */
+  const hasLines = arms.size > 0;
+  if (!hasLines) {
+    for (const neighbour of nearby) {
+      arms.set(neighbour.id, {
+        place: neighbour,
+        point: clipToFrame(toLocal(neighbour.coordinates)),
+        modes: ['walk'],
+      });
+    }
+  }
+
+  /*
+   * Which arms get a name. The nearest first, in a box the size the name will actually paint, and
+   * a name that would land on one already placed is left off — an unlabelled dot is read as "a
+   * stop", and two names printed on top of each other are read as neither.
+   */
+  const nameWidth = (text: string) => text.length * 1.7;
+  const stationName = customStopName(stop.id) ?? stop.name.replace(`${stop.city}, `, '');
+  const placedBoxes: { left: number; right: number; top: number; bottom: number }[] = [
+    { left: 54, right: 54 + nameWidth(stationName), top: 47, bottom: 53 },
+  ];
+  const overlaps = (a: typeof placedBoxes[number], b: typeof placedBoxes[number]) =>
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  const labelledArms = [...arms.values()]
+    .filter((arm) => arm.point.inside)
+    .sort((a, b) => Math.hypot(a.point.x - 50, a.point.y - 50) - Math.hypot(b.point.x - 50, b.point.y - 50))
+    .filter((arm) => {
+      const label = arm.place.name.replace(`${arm.place.city}, `, '');
+      const left = arm.point.x >= 50 ? arm.point.x + 3 : arm.point.x - 3 - nameWidth(label);
+      const box = { left, right: left + nameWidth(label), top: arm.point.y - 2.2, bottom: arm.point.y + 2.2 };
+      if (box.left < 1 || box.right > 99) return false;
+      if (placedBoxes.some((other) => overlaps(box, other))) return false;
+      placedBoxes.push(box);
+      return true;
+    });
 
   return (
     <div className="stack-6">
@@ -223,7 +329,7 @@ export function StopDetailPage() {
                 {t('Open the full board')}
               </Link>
             </div>
-            <BoardList departures={board} />
+            <BoardList departures={board} limit={5} />
           </Card>
           ) : null}
 
@@ -259,6 +365,9 @@ export function StopDetailPage() {
         </div>
 
         <div className="stack-4">
+          {/* No arms and nothing within walking distance is an empty plate: the card is not drawn
+              rather than drawn as a sea with one dot in it. */}
+          {arms.size ? (
           <Card className="stack">
             <div className="between">
               <h2 className="t-section">{t('Position on the map')}</h2>
@@ -268,46 +377,84 @@ export function StopDetailPage() {
               </Link>
             </div>
             {/*
-              Same 100-unit canvas and stop radius as the map module so the local
-              view is drawn at the intended scale, and labels flip to the left of a
-              stop when they would otherwise run off the canvas.
+              **The station's own corner of the network.**
+
+              This card used to draw the stops around the station and the walk between them — a
+              picture of the streets' absence. It now draws what a map of a station is for: every
+              line that calls here, leaving towards the next stop it calls at, in that mode's own
+              colour.
+
+              The alternative was a live street-map frame (OpenStreetMap's embed). It was built and
+              looked at, and then taken out: the frame brought its own chrome — a two-line credit,
+              a donate link and zoom buttons — into the middle of a card, it left an empty plate
+              offline, and its tiles kept the page's network busy long after the page had drawn,
+              which the repo's `ui-audit` waits for on every route. The app's own drawing answers
+              the question, works with the connection off, and does not need a licence credit.
             */}
             <svg
               className="map-canvas"
               viewBox="0 0 100 100"
               role="img"
-              aria-label={t('Schematic local view of {stop} and the stops around it', { stop: stop.name })}
+              aria-label={t('Local map of {stop}: the next stop on each line that calls here', {
+                stop: stop.name,
+              })}
             >
               <rect x="0" y="0" width="100" height="100" className="map-water" />
               <path className="map-land" d="M5 5 L95 3 L95 95 L5 95 Z" />
-              {nearby.slice(0, 5).map((neighbour) => {
-                const nx = 50 + (neighbour.coordinates.x - stop.coordinates.x) * 5.5;
-                const ny = 50 + (neighbour.coordinates.y - stop.coordinates.y) * 5.5;
-                const anchorEnd = nx < 50;
+              {[...arms.values()].map((arm) => (
+                <line
+                  key={`arm-${arm.place.id}`}
+                  className={`map-route map-route--${arm.modes[0]}`}
+                  x1={50}
+                  y1={50}
+                  x2={arm.point.x}
+                  y2={arm.point.y}
+                />
+              ))}
+              {[...arms.values()]
+                .filter((arm) => arm.point.inside)
+                .map((arm) => (
+                  <g
+                    key={arm.place.id}
+                    className="map-stop"
+                    transform={`translate(${arm.point.x.toFixed(1)} ${arm.point.y.toFixed(1)})`}
+                    onClick={() => navigate(`/stops/${arm.place.id}`)}
+                  >
+                    <circle r={1.2} />
+                  </g>
+                ))}
+              {labelledArms.map((arm) => {
+                const label = arm.place.name.replace(`${arm.place.city}, `, '');
+                const anchorEnd = arm.point.x < 50;
                 return (
-                  <g key={neighbour.id}>
-                    <line className="map-route--walk" x1={50} y1={50} x2={nx} y2={ny} />
-                    <g
-                      className="map-stop"
-                      transform={`translate(${nx} ${ny})`}
-                      onClick={() => navigate(`/stops/${neighbour.id}`)}
-                    >
-                      <circle r={1.2} />
-                      <text x={anchorEnd ? -3 : 3} y={0.8} textAnchor={anchorEnd ? 'end' : 'start'}>
-                        {neighbour.name.replace(`${neighbour.city}, `, '')}
-                      </text>
-                    </g>
+                  <g
+                    key={`label-${arm.place.id}`}
+                    className="map-stop"
+                    transform={`translate(${arm.point.x.toFixed(1)} ${arm.point.y.toFixed(1)})`}
+                    onClick={() => navigate(`/stops/${arm.place.id}`)}
+                  >
+                    <text x={anchorEnd ? -3 : 3} y={0.8} textAnchor={anchorEnd ? 'end' : 'start'}>
+                      {label}
+                    </text>
                   </g>
                 );
               })}
               <g className="map-stop map-stop--selected" transform="translate(50 50)">
                 <circle r={1.9} />
                 <text x={4} y={0.8}>
-                  {customStopName(stop.id) ?? stop.name.replace(`${stop.city}, `, '')}
+                  {stationName}
                 </text>
               </g>
             </svg>
+            <p className="t-sm t-faint">
+              {hasLines
+                ? t('Each arm is the next stop on a line that calls here, in that mode’s colour.')
+                : t('No line calls here right now, so this shows the stops within walking distance.')}
+            </p>
           </Card>
+          ) : null}
+
+          <WikipediaCard stopId={stop.id} />
 
           <Card className="stack">
             <h2 className="t-section">{t('Lines calling here')}</h2>
