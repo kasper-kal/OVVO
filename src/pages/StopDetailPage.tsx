@@ -47,13 +47,13 @@ export function StopDetailPage() {
   const minutes = useMinuteNow();
   const nearby = useMemo(() => (stop ? nearbyStops(stop.id, 4) : []), [stop?.id]);
   /*
-   * The card shows **ten** departures — the next ten things that leave from here — and exactly
-   * ten: the board is generated at that length and the list is given the same number as its cap,
+   * The card shows **six** departures — the next six things that leave from here — and exactly
+   * six: the board is generated at that length and the list is given the same number as its cap,
    * so there is nothing left over to promise and no "show more" row to press. The full timetable
    * is one press away through "Open the full board" above the rows.
    */
   const board = useMemo(
-    () => (stop ? boardForStop(stop.id, { fromMinutes: minutes, limit: 10, tick: 0 }) : []),
+    () => (stop ? boardForStop(stop.id, { fromMinutes: minutes, limit: 6, tick: 0 }) : []),
     [stop?.id, minutes],
   );
   const alerts = stop ? disruptionsForStop(stop.id) : [];
@@ -329,7 +329,7 @@ export function StopDetailPage() {
                 {t('Open the full board')}
               </Link>
             </div>
-            <BoardList departures={board} limit={10} />
+            <BoardList departures={board} limit={6} />
           </Card>
           ) : null}
 
