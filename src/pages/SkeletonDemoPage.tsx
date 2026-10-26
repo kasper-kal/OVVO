@@ -32,7 +32,7 @@ import type { Journey } from '../data/types';
  * paints in one frame). It cycles here to be *looked at*, and says so: a skeleton that ships
  * nowhere is a drawing, and the note is what stops it being mistaken for a state the app is in.
  *
- * Reached at `#/skeleton`, dev only (`import.meta.env.DEV` in `App.tsx`), outside the app shell so
+ * Reached at `/skeleton`, dev only (`import.meta.env.DEV` in `App.tsx`), outside the app shell so
  * the hold is the whole screen. It is not in a build.
  */
 
@@ -297,7 +297,7 @@ export function SkeletonDemoPage() {
         <Section
           title={t('Journey result')}
           note={t(
-            'Ships nowhere: the results screen plans in one frame. Four marks, the times heaviest — then the real cards, for comparison.',
+            'Ships nowhere: the results screen plans in one frame. Four marks, the times heaviest, then the real cards, for comparison.',
           )}
           status={
             journeyLoading
@@ -324,7 +324,7 @@ export function SkeletonDemoPage() {
         <Section
           title={t('Stop picker rows')}
           note={t(
-            'Ships: the address lookup and the "closest stops" wait both hold the row with three marks — a disc, a name, a meta line.',
+            'Ships: the address lookup and the "closest stops" wait both hold the row with three marks: a disc, a name, a meta line.',
           )}
           status={
             pickerLoading

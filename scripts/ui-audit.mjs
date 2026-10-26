@@ -16,6 +16,8 @@
  *
  * Run:   node scripts/ui-audit.mjs [origin]      (needs playwright, see README)
  */
+import { ensureAppFont } from './font-guard.mjs';
+
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
 /*
  * `/disruptions/d1` is not an alert, and the page said so: the "Alert not found" empty state is
@@ -146,7 +148,9 @@ for (const width of WIDTHS) {
   );
   const page = await context.newPage();
   for (const route of ROUTES) {
-    await page.goto(`${ORIGIN}/#${route}`, { waitUntil: 'networkidle' });
+    await page.goto(`${ORIGIN}${route}`, { waitUntil: 'networkidle' });
+    /* Every contrast ratio and every clipped word below is about the app's own type. */
+    await ensureAppFont(page);
     await page.waitForTimeout(140);
     /*
      * Close anything modal first. The location dialog opens on first use and its overlay covers
@@ -518,7 +522,14 @@ for (const width of WIDTHS) {
         window.scrollTo(0, 400);
         const stuckTop = header.getBoundingClientRect().top;
         const stuckFade = getComputedStyle(header, '::before');
-        if (Number(stuckFade.opacity) > 0) {
+        /*
+         * A row with **no** `::before` rule at all reports `opacity: 1` and `backgroundImage: none`
+         * — a pseudo-element that does not exist is not a fade, and reading its default opacity as
+         * one made every page fail this check (72 hits, all of them `the fade ends in none`). Only a
+         * fade that actually paints is judged, and then only by where it ends.
+         */
+        const paintsFade = stuckFade.content !== 'none' && stuckFade.backgroundImage !== 'none';
+        if (paintsFade && Number(stuckFade.opacity) > 0) {
           const image = stuckFade.backgroundImage;
           if (!/rgba\(0, 0, 0, 0\) 100%\)$/.test(image.trim()))
             out.band.push({ el: name(header), why: `the fade ends in ${image.slice(-70)}, not transparency — that is a bar` });

@@ -48,8 +48,11 @@ export function PreferencesPage() {
               {t('See the results')}
             </Link>
           ) : (
+            /* `route`, the same glyph as every other control that opens the planner — the
+               consistency register (`scripts/consistency-audit.mjs`) fails when one action draws
+               two, and this one drew `search` while the rest of the app drew `route`. */
             <Link to="/" className="btn btn--primary">
-              <Icon name="search" size={16} />
+              <Icon name="route" size={16} />
               {t('Plan a journey')}
             </Link>
           )

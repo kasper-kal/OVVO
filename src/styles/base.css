@@ -204,6 +204,52 @@ svg {
   flex: none;
 }
 
+/*
+ * **A glyph inside a line of text.**
+ *
+ * `.icon` is `flex: none` for the many places a glyph sits in a flex row; in a sentence it is
+ * still an inline `svg`, and an inline `svg` sits on the text's baseline with its whole box above
+ * it, which lifts the glyph and drops the line. Downwards is where the middle of a word is, so
+ * the picture lines up with the letters beside it instead of floating over them.
+ *
+ * The depth is a fifth of an em rather than an eighth, and that is measured: `icon-audit` read
+ * every glyph against the x-height centre of the words beside it, and at an eighth the stop
+ * card's type mark (`station`, `bus`, `ship`) sat 1.0–1.8px high. A fifth lands all six of them
+ * within 0.8px of the letters — the tolerance is 1.5.
+ */
+.icon--inline {
+  display: inline-block;
+  vertical-align: -0.2em;
+}
+
+/* A short phrase that must not be split across two lines: a headway, a "40 m". */
+.nowrap {
+  white-space: nowrap;
+}
+
+/*
+ * **A run of mode glyphs inside a line of text.**
+ *
+ * The journey card draws its modes as a chain of badges; a stop page's nearby row needs the same
+ * chain in the middle of a sentence, so it is one inline flex line with the same 4px rhythm. Without
+ * it the glyphs sit shoulder to shoulder and read as one smudge.
+ */
+.mode-chain {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  /*
+   * **Sits on the baseline, not below it.**
+   *
+   * The chain is a line of 13px glyphs inside 12px words, and an inline-flex box aligns by its
+   * own bottom edge: pushed down an eighth of an em, as the plain inline glyphs are, its centred
+   * glyphs ended up 1.8px *under* the sentence's x-height centre — the audit's worst reading on
+   * the stop page. Left on the baseline the chain's own centring does the work, and the glyphs
+   * land within half a pixel of the words beside them.
+   */
+  vertical-align: baseline;
+}
+
 svg.map-canvas {
   display: block;
 }
@@ -213,6 +259,20 @@ svg.map-canvas {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
   border-radius: var(--r-compact);
+}
+
+/*
+ * **A sheet's panel takes the focus without wearing a ring.**
+ *
+ * Both overlay containers (`ui/primitives` `Dialog` and `ui/FullScreen`) put the keyboard on the
+ * panel when they open, so the overlay is announced and the trap is live (see `lib/useOverlay`).
+ * The panel is a container, not a control — a ring round the whole sheet is noise, and it was
+ * never meant to be there. Tab out of it reaches the × and rings that, which is the state a
+ * keyboard user needs to see.
+ */
+:where(.modal, .fullscreen):focus,
+:where(.modal, .fullscreen):focus-visible {
+  outline: none;
 }
 
 /*
@@ -305,6 +365,14 @@ svg.map-canvas {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /*
+   * The cut is **drawn**.
+   *
+   * Without this the box stopped at the second line and swallowed the rest of the word, so
+   * "Take bus 347 from Schiphol Airport to Ha…" arrived as "…to Ha" — which reads as a typo, not as
+   * a shortened sentence. A clamp is a fair choice; a clamp that does not admit it is a bug.
+   */
+  text-overflow: ellipsis;
 }
 
 /* ------------------------------------------------------------------ Structure */
@@ -656,7 +724,15 @@ svg.map-canvas {
   padding: 0 var(--s-2);
   border-radius: var(--r-pill);
   border: 1px solid transparent;
-  color: var(--ink-muted);
+  /*
+   * **The alert mark is drawn in the row's own ink, not the muted one.**
+   *
+   * It sat in `--ink-muted` while the alert count beside it is loud, so on a tinted page the
+   * triangle read as decoration next to a number — reported, with the pair circled, as "what a
+   * contrast issue". The muted tone clears its 3:1 as a graphic, but it was the *only* warning mark
+   * in the app and it now says so at the strength the other header control (Edit) uses.
+   */
+  color: var(--ink-strong);
   transition: background var(--t-press) var(--ease-press), color var(--t-press) var(--ease-press);
 }
 
@@ -755,10 +831,17 @@ svg.map-canvas {
    * The fill used to be a cut of the accent chosen to stand off the page; it is the chosen colour
    * itself now (a black primary stays black, see `lib/background.ts`), which means it can equal the
    * surface it sits on — a green count on a green page drew as nothing but four white digits. The
-   * ring is one hairline of the label's ink at 32%, so the pill's shape survives whatever colour it
+   * ring is one hairline of the label's ink at 55%, so the pill's shape survives whatever colour it
    * is painted with, and no colour has to be talked out of.
+   *
+   * **55%, not 32%, because the ring is sometimes the only edge there is.** On a page tinted the
+   * traveller's own colour with the widgets following it, the fill *is* the page — so the ring is
+   * the whole shape, and at 32% it measured **1.35:1** against that page: a count pill you could not
+   * see, reported from a screenshot with a periwinkle page (“what a contrast issue”). At 55% the
+   * same edge is **3.9:1**, over the 3:1 a control's boundary is held to, while a badge painted in
+   * the accent keeps a quiet hairline because its own fill already stands off the page.
    */
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 32%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 55%, transparent);
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
   letter-spacing: var(--track-pill);
@@ -1167,10 +1250,18 @@ svg.map-canvas {
  * notice still appears; they simply do not glide there. The one thing this rules out is an
  * infinite animation that would sit still at a random point, and both of those (the spinner and
  * the skeleton shimmer) are given a stated still form below.
+  *
+ * **A measured-slow phone gets `save` as well**, through `<html data-speed="slow">`: browsers
+ * report no chip and no memory, so `lib/deviceSpeed.ts` times a fixed piece of real work instead
+ * and the quickest of three runs decides. It is the same reduction on purpose — the movement is
+ * what a weak processor cannot afford — and the pinning of it is in `state/AppState.tsx`.
  */
 :root[data-power='save'] *,
+:root[data-speed='slow'] *,
 :root[data-power='save'] *::before,
-:root[data-power='save'] *::after {
+:root[data-speed='slow'] *::before,
+:root[data-power='save'] *::after,
+:root[data-speed='slow'] *::after {
   animation-duration: 1ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
@@ -1230,6 +1321,7 @@ svg.map-canvas {
 /* The ring that holds the results list's place: still, and still a ring — the shape of waiting
    without the turning (the same form the reduced-motion switch gives it). */
 :root[data-power='save'] .spinner__ring,
+:root[data-speed='slow'] .spinner__ring,
 :root[data-power='super'] .spinner__ring {
   animation: none !important;
 }
@@ -1244,12 +1336,14 @@ svg.map-canvas {
  * page is broken, which is a worse trade than the animation.
  */
 :root[data-power='save'] .skeleton,
+:root[data-speed='slow'] .skeleton,
 :root[data-power='super'] .skeleton {
   animation: none !important;
   background: var(--skeleton-fill) !important;
 }
 
 :root[data-power='save'] .skeleton::after,
+:root[data-speed='slow'] .skeleton::after,
 :root[data-power='super'] .skeleton::after {
   content: none !important;
 }
@@ -1293,4 +1387,16 @@ svg.map-canvas {
 ::placeholder {
   color: var(--ink-faint);
   opacity: 1;
+}
+
+/* The page's wash under a photograph, and the scrim the power settings paint: both are mixes, and
+   both have a plain value for a browser that cannot mix (see the note in `tokens.css`). */
+@supports not (color: color-mix(in srgb, #000 50%, transparent)) {
+  :root[data-surface='glass'] {
+    --app-bg-wash: rgb(252 251 250 / 0.4);
+  }
+
+  :root[data-power='super'] .home-menu__scrim {
+    background: var(--canvas-base);
+  }
 }

@@ -53,7 +53,7 @@ export function WikipediaCard({ stopId }: { stopId: string }) {
   if (!summary) return null;
 
   return (
-    <Card className="stack">
+    <Card className="stack" data-quoted="wikipedia">
       <div className="stack-1">
         {/*
           The card is headed with **the article's own title**, not with the stop's name: the two

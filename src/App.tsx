@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProvider, useApp } from './state/AppState';
 import { AppShell } from './components/layout/AppShell';
 import { HomePage } from './pages/HomePage';
@@ -39,16 +39,24 @@ function SettingsRoute() {
  * OVVO — application entry point and route table.
  * Every screen is reachable from the sidebar (desktop) and the floating dock
  * plus "All sections" sheet (mobile).
+ *
+ * **Clean addresses, no `#`.** The router was `HashRouter`, which keeps the route after a `#` so a
+ * static host never has to answer for it. The traveller asked for `/stops/utrecht-centraal` instead
+ * of `/#/stops/utrecht-centraal`, and the trade is the host's: a real path is a request the host
+ * must answer, so every unknown address has to come back as `index.html` rather than a 404 (Vite's
+ * SPA fallback, `appType: 'spa'` in `vite.config.ts`, which both the dev server and `vite preview`
+ * honour — that pair is how this site is served). Addresses that still carry a `#/` are translated
+ * on the way in (`main.tsx`), so an old bookmark or a link already shared does not break.
  */
 export default function App() {
   return (
     <AppProvider>
-      <HashRouter>
+      <BrowserRouter>
         <Routes>
           {/**
             * **The skeleton lab, development only.**
             *
-            * `#/skeleton` is the app's held place on a bare page, on its own, so it can be judged
+            * `/skeleton` is the app's held place on a bare page, on its own, so it can be judged
             * without a header, a dock or a real search around it (`pages/SkeletonDemoPage.tsx`).
             * It sits *outside* the shell because that is the point: the placeholder is the whole
             * screen. `import.meta.env.DEV` is `false` in a build, so this route never ships, and
@@ -65,6 +73,10 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
+                  {/* One search, in full: everything a reload or a pasted link must put back —
+                      see `lib/searchLink`. `/results` alone still works and says there is nothing
+                      to show yet. */}
+                  <Route path="/results/:searchId" element={<ResultsPage />} />
                   <Route path="/journey/:journeyId" element={<JourneyDetailPage />} />
                   <Route path="/map" element={<MapPage />} />
                   <Route path="/stops" element={<StopsPage />} />
@@ -89,7 +101,7 @@ export default function App() {
           a deployed site.
         */}
         {import.meta.env.DEV ? <ReviewLayer /> : null}
-      </HashRouter>
+      </BrowserRouter>
     </AppProvider>
   );
 }

@@ -42,12 +42,17 @@ export function JourneyDetailPage() {
         <EmptyState
           icon="route"
           title={t('This journey could not be restored')}
+          /* Directly under the page's `h1`, so `h2`; see the same note in `ResultsPage`. */
+          headingLevel={2}
           description={t(
             'Re-run the search to see the options again, or open one of your favourited journeys.',
           )}
         >
+          {/* `route`, not `search`: reaching the planner is one action, and every other control
+              in the app that offers it wears the route glyph (the consistency register groups them
+              and `--gate` fails when one of them draws a different mark). */}
           <Link to="/" className="btn btn--primary">
-            <Icon name="search" size={16} />
+            <Icon name="route" size={16} />
             {t('Plan a new journey')}
           </Link>
           <Link to="/?widget=your-journeys" className="btn">
@@ -89,6 +94,19 @@ export function JourneyDetailPage() {
     );
   }
 
+  /*
+   * **The heading as a sentence, for the name a screen reader reads.**
+   *
+   * Drawn, the title is the two ends with a glyph between them; spoken, that glyph says nothing, and
+   * the page was announced as "Utrecht CentraalAmsterdam Centraal" — two place names run together,
+   * the first thing a screen-reader traveller hears on arriving (`AppShell` reads the heading out).
+   * The word lives in the heading's own `aria-label` rather than in a hidden span inside it, so the
+   * visible title is unchanged and no lowercase fragment of a sentence lands in the markup.
+   */
+  const fromWords = journey.legs[0].fromLabel ?? stopLabel(journey.legs[0].fromStopId);
+  const toWords =
+    journey.legs[journey.legs.length - 1].toLabel ?? stopLabel(journey.legs[journey.legs.length - 1].toStopId);
+
   const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   const disruptions = journey.disruptionIds.map((id) => getDisruption(id)).filter(Boolean);
   const transfers = journey.legs
@@ -118,6 +136,8 @@ export function JourneyDetailPage() {
             )}
           </>
         }
+        /* The same two ends, in a sentence — see `fromWords` above. */
+        titleLabel={t('{from} to {to}', { from: fromWords, to: toWords })}
         description={`${format.date(search?.query.date ?? '')} · ${t('departs {time}', { time: format.time(journey.departure) })} · ${t('arrives {time}', { time: format.time(journey.arrival) })} · ${
           journey.transfers === 0 ? t('direct') : plural(journey.transfers, t('transfer'))
         }`}
@@ -207,7 +227,7 @@ export function JourneyDetailPage() {
                   className="t-sm alert-link alert-link--banner"
                 >
                   <span className="t-strong">{alert.title}</span>
-                  <span>{t('— read the details and advice')}</span>
+                  <span>{t('Read the details and advice')}</span>
                 </Link>
               ) : null,
             )}

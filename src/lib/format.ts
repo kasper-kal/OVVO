@@ -175,12 +175,10 @@ export function stopTypeLabel(type: StopType): string {
   return STOP_TYPE_LABELS[type];
 }
 
-export const MODE_ICONS: Record<TravelMode, string> = {
-  walk: '🚶',
-  bike: '🚲',
-  train: '🚆',
-  bus: '🚌',
-  tram: '🚊',
-  metro: 'Ⓜ',
-  ferry: '⛴',
-};
+/*
+ * `MODE_ICONS` used to sit here: a map from each mode to an emoji (a walking figure, a bus, a
+ * train). Nothing drew it — every mode in the app is a drawn glyph (`components/ui/Icons.tsx`) —
+ * but it was the one place in the shipped code holding an emoji, and an unused export is exactly
+ * the sort of thing someone reaches for later. It is deleted rather than left unused, so the
+ * answer to "is there an emoji anywhere on this site" stays a plain no.
+ */

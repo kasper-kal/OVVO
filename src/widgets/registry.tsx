@@ -6,8 +6,9 @@ import { useApp } from '../state/AppState';
 import { SearchForm } from '../components/journey/SearchForm';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { BoardList } from '../components/stops/BoardList';
+import { StopLink } from '../components/stops/StopLink';
 import { Button, Chip, Dialog, IconButton } from '../components/ui/primitives';
-import { Icon } from '../components/ui/Icons';
+import { Icon, MODE_ICON_NAME } from '../components/ui/Icons';
 import type { IconName } from '../components/ui/Icons';
 import {
   STOPS,
@@ -137,6 +138,30 @@ const MODE_CHOICES: { value: 'all' | PublicMode; label: string }[] = [
 
 function PlannerWidget() {
   return <SearchForm />;
+}
+
+/**
+ * **The two ends of a kept search, each one a way to its stop.**
+ *
+ * "Utrecht Centraal → Amsterdam Centraal" is the most-read line on the home screen — it is how a
+ * saved search and a saved journey name themselves — and both of those words are places with a
+ * page. They were plain text, so the only way to look at one of them was to plan the journey again
+ * and find it on the results screen.
+ *
+ * An end that is an address rather than a stop keeps its words and gets no link: it has no page
+ * (`StopLink`'s second rule, and the reason `endLabel` exists).
+ */
+function QueryEnds({ query }: { query: Parameters<typeof endLabel>[0] }) {
+  const end = (side: 'from' | 'to') => {
+    const stopId = side === 'from' ? query.fromStopId : query.toStopId;
+    const label = endLabel(query, side);
+    return stopId ? <StopLink stopId={stopId} label={label} /> : <>{label}</>;
+  };
+  return (
+    <>
+      {end('from')} <Icon name="arrowRight" size={13} /> {end('to')}
+    </>
+  );
 }
 
 /** A handful of names: a label per stop is unreadable. */
@@ -445,9 +470,23 @@ export function NetworkMap({
   return (
     <div className="stack-4">
       <div className="row-wrap chip-group chip-group--compact" role="group" aria-label={t('Map route filter')}>
+        {/*
+          **A mode's chip wears its mode's glyph, in its mode's colour.**
+
+          These were six words beside a coloured dash. The dash was the route key — the map draws
+          each mode in that colour — but a colour is not a name, and a traveller who cannot tell
+          sage from butter had six identical marks to choose between. The glyph says *what* it is;
+          the colour it is painted in still says *which line on the map*. The dash is gone because
+          a chip with two marks before its word reads as two things.
+        */}
         {MODE_CHOICES.map((choice) => (
-          <Chip key={choice.value} selected={mode === choice.value} onClick={() => setMode(choice.value)}>
-            <span className={`map-legend__swatch map-legend__swatch--${choice.value}`} aria-hidden="true" />
+          <Chip
+            key={choice.value}
+            selected={mode === choice.value}
+            onClick={() => setMode(choice.value)}
+            className={`map-mode-chip map-mode-chip--${choice.value}`}
+            icon={choice.value === 'all' ? 'route' : MODE_ICON_NAME[choice.value]}
+          >
             {t(choice.label)}
           </Chip>
         ))}
@@ -562,6 +601,20 @@ function MapWidget() {
         : [],
     [nearestOrigin],
   );
+  /*
+   * The names under the drawing, each one a way to its stop.
+   *
+   * "Your stops: Haarlem · Zaandam" was a sentence about the card's own subject, printed as
+   * plain words: the drawing beside it answers "which", and no part of the line let you go and
+   * look at one of them. The separator stays a separator, and every name is a word-link.
+   */
+  const names = (ids: string[]) =>
+    ids.slice(0, 3).map((id, index) => (
+      <span key={id}>
+        {index ? ' · ' : ''}
+        <StopLink stopId={id} />
+      </span>
+    ));
   /* Five, because five is what a 390px drawing can carry without two names colliding. */
   const priority = useMemo(
     () => [...favouriteStopIds, ...near].filter((id, index, list) => list.indexOf(id) === index).slice(0, 5),
@@ -580,10 +633,12 @@ function MapWidget() {
       */}
       {favouriteStopIds.length ? (
         <p className="t-sm t-muted">
-          {t('Your stops: {stops}', { stops: favouriteStopIds.slice(0, 3).map((id) => stopLabel(id)).join(' · ') })}
+          {t('Your stops:')} {names(favouriteStopIds)}
         </p>
       ) : near.length ? (
-        <p className="t-sm t-muted">{t('Near you: {stops}', { stops: near.slice(0, 3).map((id) => stopLabel(id)).join(' · ') })}</p>
+        <p className="t-sm t-muted">
+          {t('Near you:')} {names(near)}
+        </p>
       ) : null}
     </>
   );
@@ -593,7 +648,7 @@ function MapWidget() {
  * **Your journeys** — saved journeys and saved searches, in one card.
  *
  * They were two widgets, both on by default, both empty on a fresh browser: 83px each of
- * *"Nothing favourited yet."* and *"Nothing kept yet — keep a search from its results…"*,
+ * *"Nothing favourited yet."* and *"Nothing kept yet. Keep a search from its results…"*,
  * explaining two halves of the same idea on the first screen. The audit's verdict was **merge**,
  * and it is right for a reason beyond pixels — they list the same thing, journeys you have run,
  * at two granularities:
@@ -630,12 +685,6 @@ function YourJourneysWidget() {
   const journeysShown = savedJourneys.slice(0, perSection);
   const searchesShown = recentSearches.slice(0, perSection);
 
-  const ends = (query: Parameters<typeof endLabel>[0]) => (
-    <>
-      {endLabel(query, 'from')} <Icon name="arrowRight" size={13} /> {endLabel(query, 'to')}
-    </>
-  );
-
   if (savedJourneys.length === 0 && recentSearches.length === 0) {
     return (
       <WidgetEmpty
@@ -655,7 +704,9 @@ function YourJourneysWidget() {
             {journeysShown.map((entry) => (
               <li key={entry.id} className="list-row list-row--static">
                 <span className="stack-1 grow">
-                  <span className="t-strong t-sm">{ends(entry.query)}</span>
+                  <span className="t-strong t-sm">
+                    <QueryEnds query={entry.query} />
+                  </span>
                   <span className="t-sm t-faint">
                     {format.date(entry.query.date, 'dayMonth')} · {format.time(entry.query.time)}
                   </span>
@@ -674,7 +725,7 @@ function YourJourneysWidget() {
                   icon={pendingId === entry.id ? 'heart' : 'heartFilled'}
                   label={
                     pendingId === entry.id
-                      ? `${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} — waiting for confirmation`
+                      ? `${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} , waiting for confirmation`
                       : `Unfavourite ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')}`
                   }
                   /* No `active`: this control chooses its own glyph — solid while the journey is
@@ -697,7 +748,9 @@ function YourJourneysWidget() {
             {searchesShown.map((entry) => (
               <li key={entry.id} className="list-row list-row--static">
                 <span className="stack-1 grow">
-                  <span className="t-strong t-sm">{ends(entry.query)}</span>
+                  <span className="t-strong t-sm">
+                    <QueryEnds query={entry.query} />
+                  </span>
                   <span className="t-sm t-faint">
                     {format.date(entry.query.date, 'dayMonth')} · {format.time(entry.query.time)}
                   </span>
@@ -763,7 +816,9 @@ function YourJourneysWidget() {
         */}
         {pending ? (
           <div className="stack-1">
-            <p className="t-sm">{ends(pending.query)}</p>
+            <p className="t-sm">
+              <QueryEnds query={pending.query} />
+            </p>
             <p className="t-sm t-muted">
               {format.date(pending.query.date, 'dayMonth')} · {format.time(pending.journey.departure)} →{' '}
               {format.time(pending.journey.arrival)}
@@ -856,8 +911,10 @@ function NextDeparturesWidget({ binding = 'next-departures' }: { binding?: strin
 
   return (
     <div className="stack-2">
+      {/* The station this card is tied to, as the way to its page — the card names one station
+          and never offered a way to look at it. */}
       <span className="t-sm t-muted">
-        {t('{stop} · from {time}', { stop: stopLabel(stopId), time: format.time(minutes) })}
+        <StopLink stopId={stopId} /> · {t('from {time}', { time: format.time(minutes) })}
       </span>
       <BoardList departures={board} limit={rows} />
       {/* A control, not a line of muted text: the same action the stop page offers wears the
@@ -916,7 +973,7 @@ function AlertsOnSavedWidget() {
   if (hits.length === 0) {
     return (
       <p className="t-sm t-muted">
-        {t('No alerts touch the journeys you kept — all {count} are running as planned.', {
+        {t('No alerts touch the journeys you kept. All {count} are running as planned.', {
           count: savedJourneys.length,
         })}
       </p>
@@ -980,7 +1037,7 @@ function RightNowWidget() {
               from: endLabel(search.query, 'from'),
               to: endLabel(search.query, 'to'),
             })
-          : t('Nothing to re-run yet — plan a journey first.')}
+          : t('Nothing to re-run yet. Plan a journey first.')}
       </span>
     </div>
   );
@@ -1138,8 +1195,7 @@ function CommuteWidget() {
             <li key={entry.id} className="list-row list-row--static">
               <span className="stack-1 grow">
                 <span className="t-strong t-sm">
-                  {endLabel(entry.query, 'from')} <Icon name="arrowRight" size={13} />{' '}
-                  {endLabel(entry.query, 'to')}
+                  <QueryEnds query={entry.query} />
                 </span>
                 <span className="t-sm t-faint">
                   {next
@@ -1273,7 +1329,9 @@ function FacilitiesWidget() {
               {customStopName(stop.id) ?? stop.name}
             </Link>
             <span className="t-sm t-faint">
-              {stop.facilities.length ? stop.facilities.join(' · ') : t('No facilities listed for this stop.')}
+              {stop.facilities.length
+                ? stop.facilities.map((facility) => t(facility)).join(' · ')
+                : t('No facilities listed for this stop.')}
             </span>
           </li>
         ))}
@@ -1378,7 +1436,7 @@ function LastServiceWidget() {
   return (
     <div className="stack-2">
       <span className="field__label">
-        {t('Last services from {stop}', { stop: stopLabel(entry.query.fromStopId) })}
+        {t('Last services from')} <StopLink stopId={entry.query.fromStopId} />
       </span>
       {late.length ? (
         <ul className="stack-1">

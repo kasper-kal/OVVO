@@ -19,11 +19,10 @@ import { useMinuteNow } from '../lib/useMinuteNow';
 import { Button, Card, EmptyState, IconButton } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { WikipediaCard } from '../components/stops/WikipediaCard';
-import { Icon, ModeIcon } from '../components/ui/Icons';
+import { facilityIcon, Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useT } from '../lib/useT';
-import { stopTypeLabel } from '../lib/format';
 import { modeLabel } from '../data/preferences';
 
 export function StopDetailPage() {
@@ -193,6 +192,39 @@ export function StopDetailPage() {
       return true;
     });
 
+  /*
+   * **The card keeps two facts, and they are the two a traveller cannot see elsewhere.**
+   *
+   * It used to print six rows and a two-sentence legend about what the heart and the pin in the
+   * head do — Type, City, Region, Platforms, Facilities and Bicycle, most of them repeating the
+   * badges above or the line under the page's name, and the legend teaching glyphs that are
+   * already labelled for a screen reader. It read as a form.
+   *
+   * What is left is the number you need before you walk in (which platform) and the list you need
+   * once you are there. City, region and stop code stay, as one quiet line: the page head's own
+   * description is `sr-only` everywhere (see `PageHeader`), so dropping the City and Region rows
+   * would have taken that line off the screen entirely.
+   *
+   * Platforms are printed as a range when they run 1–10 rather than as ten numbers with commas,
+   * and the bicycle facts are folded into the facilities where they belong: "Bicycle parking" was
+   * already in that list, so the row that repeated it only added a second place to read it.
+   *
+   * The facilities themselves are badges with glyphs rather than a dotted sentence — see the list
+   * below — and each word is translated in `lib/i18n`, which the joined line never was.
+   */
+  const platformNumbers = stop.platforms.map((value) => Number(value));
+  const runsInOrder = platformNumbers.every(
+    (value, index) => Number.isInteger(value) && (index === 0 || value === platformNumbers[index - 1] + 1),
+  );
+  const platformLabel =
+    stop.platforms.length > 1 && runsInOrder
+      ? `${stop.platforms[0]}–${stop.platforms[stop.platforms.length - 1]}`
+      : stop.platforms.join(' · ');
+
+  const facilities = [...stop.facilities];
+  if (stop.bikeParking && !facilities.includes('Bicycle parking')) facilities.push('Bicycle parking');
+  if (stop.ovFiets) facilities.push('OV-fiets');
+
   return (
     <div className="stack-6">
       <PageHeader
@@ -266,45 +298,49 @@ export function StopDetailPage() {
                 ))}
               </div>
             </div>
-            {/*
-              The one sentence that says what the two glyphs in the head do, on the page that
-              offers both. A heart is a favourite (a place you use — it leads your lists); a pin
-              is a promise to the departures screen (its board is on that page). Neither is the
-              other, so neither is described as the other.
-            */}
+            {/* The only place on the page where the city, the region and the stop code are
+                written out: the head's description is for screen readers alone. */}
             <p className="t-sm t-faint">
-              <Icon name="heart" size={13} /> {t('Favourite stops lead your stop lists.')}{' '}
-              <Icon name="pin" size={13} />
-              {t('Pinned stops have their board on the departure board page.')}
+              {stop.city} · {stop.region} · {t('stop code {code}', { code: stop.code })}
             </p>
-            <dl className="dl">
-              <dt>{t('Type')}</dt>
-              <dd>{t(stopTypeLabel(stop.type))}</dd>
-              <dt>{t('City')}</dt>
-              <dd>{stop.city}</dd>
-              <dt>{t('Region')}</dt>
-              <dd>{stop.region}</dd>
-              <dt>{t('Platforms / stops')}</dt>
-              <dd>{stop.platforms.join(', ')}</dd>
-              <dt>{t('Facilities')}</dt>
-              <dd>{stop.facilities.join(', ')}</dd>
-              <dt>{t('Bicycle')}</dt>
-              <dd>
-                {stop.bikeParking ? t('Secure bicycle parking') : t('No bicycle parking listed')}
-                {stop.ovFiets ? t(' · OV-fiets rental available') : ''}
-              </dd>
-              {/*
-                The Accessibility row is deleted, by name: "get rid of ALL accesibility
-                descriptions EVERYWHERE" (2026-10-17t20-49-20). Step-free, lift, tactile paving,
-                staff assistance and low-floor boarding were five claims this page made about a
-                traveller it does not know; the row is gone rather than restyled, and so is the
-                claim in every other surface that drew one (the stop card's Step-free pill, the
-                journey card's chip, each leg's Step-free pill, the transfer lines and the alert
-                page's affected-stop meta). Hidden accessibility — `aria` names, roles, alt text —
-                stays, because it is not a description on the page and removing it would break
-                controls for a screen reader without changing anything visible.
-              */}
+            <dl className="dl dl--inline">
+              <dt>{t('Platforms')}</dt>
+              <dd>{platformLabel}</dd>
             </dl>
+            {/*
+              **Every facility is a badge with its own glyph.**
+
+              It used to be one line of words joined by dots — "Toilets · Kiosk · Bicycle parking ·
+              Lift · Ticket machine · Taxi rank" — which is a list you read word by word to find
+              the one thing you came for. As badges, "is there a lift" is a shape to spot. The
+              glyph is drawn `aria-hidden` (see `Icon`), so a screen reader still hears the same
+              words in the same order it heard before.
+
+              It is a block of its own rather than the second row of the definition list above, and
+              that is a measurement, not a preference: a value wide enough to span both columns of
+              `.dl` hands its width back to the label column, so "Platforms" pushed its number
+              300px away and the row read as two unrelated things at opposite edges of the card.
+              Laid out under its own label, the badge row gets the card's whole width.
+
+              The platforms row is one line for the same reason (`dl--inline`): a two-column grid
+              whose first track is `minmax(96px, auto)` will stretch that track whenever some wide
+              value is placed in it, and this card has had one. A flex row has no track to stretch,
+              so the number stays a fixed `--s-2` from its word at every width.
+            */}
+            <div className="stack-2">
+              <p className="t-sm t-muted">{t('Facilities')}</p>
+              <ul className="facility-list">
+                {facilities.map((facility) => {
+                  const glyph = facilityIcon(facility);
+                  return (
+                    <li key={facility} className="facility-badge">
+                      {glyph ? <Icon name={glyph} size={13} /> : null}
+                      {t(facility)}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </Card>
 
           {hasBoard(stop) ? (
@@ -312,7 +348,7 @@ export function StopDetailPage() {
             <div className="stack-1">
               <h2 className="t-section">{t('Next departures')}</h2>
               <span className="t-sm t-muted">
-                {t('Showing from {time} — the current time in this browser', { time: format.time(minutes) })}
+                {t('Showing from {time}, the current time in this browser', { time: format.time(minutes) })}
               </span>
             </div>
             {/*
@@ -493,7 +529,12 @@ export function StopDetailPage() {
                     <span className="stack-1 grow">
                       <span className="t-strong t-sm">
                         {line.name}{' '}
-                        <span className="t-faint">{t('· every {minutes} min', { minutes: line.headway })}</span>
+                        {/* A headway is a clock: the app draws one for a journey's duration, so the
+                            one fact every line row carries gets the same picture. */}
+                        <span className="t-faint nowrap">
+                          <Icon name="clock" size={12} className="icon--inline" />{' '}
+                          {t('every {minutes} min', { minutes: line.headway })}
+                        </span>
                       </span>
                       <span className="t-sm t-muted">
                         {operatorName(line.operatorId)} ·{' '}
@@ -507,7 +548,13 @@ export function StopDetailPage() {
                     </span>
                     {/* `xs`: the row is a link now, so this pill is the one labelled control in it and
                         the route text needs the width more than the word does. */}
-                    <Link to={`/disruptions?line=${line.id}`} className="btn btn--xs btn--ghost list-row__control">
+                    <Link
+                      to={`/disruptions?line=${line.id}`}
+                      className="btn btn--xs btn--ghost list-row__control"
+                      /* One "Alerts" per line row is the same name three times over, each going
+                         to a different line's alerts. */
+                      aria-label={t('Alerts: {line}', { line: line.name })}
+                    >
                       {t('Alerts')}
                     </Link>
                     <Icon name="chevronRight" size={16} className="list-row__chevron" />
@@ -535,10 +582,31 @@ export function StopDetailPage() {
                     />
                     <span className="stack-1 grow">
                       <span className="t-strong t-sm">{neighbour.name}</span>
+                      {/*
+                        **Minutes on foot are a footprint, and the modes are their glyphs.**
+
+                        The row read `126 min walk · Train, Metro, Bus` — the same two kinds of fact
+                        the journey card draws as a walk glyph and a chain of mode badges. Each mode
+                        keeps its name in an `sr-only` span, so the line is still spoken as words.
+                      */}
                       <span className="t-sm t-muted">
-                        {t('{minutes} min walk', { minutes: walkMinutesBetween(stop, neighbour) })} ·{' '}
-                        {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').map((mode) => t(modeLabel(mode))).join(', ') ||
-                          t('walking only')}
+                        <Icon name="walk" size={12} className="icon--inline" />
+                        <span className="sr-only">{t(modeLabel('walk'))}</span>{' '}
+                        {t('{count} min', { count: walkMinutesBetween(stop, neighbour) })} ·{' '}
+                        {neighbour.modes.filter((m) => m !== 'walk' && m !== 'bike').length ? (
+                          <span className="mode-chain">
+                            {neighbour.modes
+                              .filter((m) => m !== 'walk' && m !== 'bike')
+                              .map((mode) => (
+                                <span key={mode}>
+                                  <ModeIcon mode={mode} size={13} />
+                                  <span className="sr-only">{t(modeLabel(mode))}</span>
+                                </span>
+                              ))}
+                          </span>
+                        ) : (
+                          t('walking only')
+                        )}
                       </span>
                     </span>
                     <Icon name="chevronRight" size={16} className="list-row__chevron" />

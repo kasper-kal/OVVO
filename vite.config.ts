@@ -83,6 +83,39 @@ export default defineConfig(({ mode }) => {
   const allowlist = allowedHosts.length > 0 ? allowedHosts : undefined;
 
   return {
+    /*
+     * **Every address the router owns must be answered with `index.html`.**
+     *
+     * The app's routes are real paths now (`/stops/utrecht-centraal`), not a `#` fragment, so a
+     * refresh or a link pasted into a chat asks the host for a file at that path — and a host that
+     * answers "not found" breaks the screen the traveller was reading. `spa` is Vite's own default
+     * and was already the behaviour; it is written here so it is a decision rather than an
+     * assumption, and so the dev server and `vite preview` (the two ways this site is served) agree
+     * about it by name. Verified with a real refresh on a deep address — see
+     * `.logs/clean-url-check.cjs`.
+     */
+    appType: 'spa',
+    /*
+     * **Safari 14, because that is the iPhone that can no longer update.**
+     *
+     * Vite's default target is "safari 16.4 and friends" — the browsers from 2023 that it calls
+     * widely available. On an iPhone stuck on iOS 14 that is not a slightly worse page: the browser
+     * cannot parse the code at all, so it runs none of it and the screen stays white. The app draws
+     * everything with JavaScript, so there is nothing underneath to show instead.
+     *
+     * 14 is named rather than a JavaScript year because that is the question being asked: the
+     * oldest browser this is meant to run in. `ios14` covers the iPhone; `safari14` covers the Mac,
+     * which ships the same engine. `es2019` is what the two of them understand, so esbuild is told
+     * the syntax it may leave in place, and `cssTarget` says the same for the stylesheet's
+     * minifier — without it a shortened value could use a syntax iOS 14 does not read.
+     *
+     * `scripts/old-phone-check.mjs` fails when the built files stop being old enough, so this line
+     * cannot drift back up unnoticed.
+     */
+    build: {
+      target: ['es2019', 'safari14', 'ios14'],
+      cssTarget: ['ios14'],
+    },
     define: {
       __REVIEW_BATCH__: JSON.stringify(reviewBatch),
     },

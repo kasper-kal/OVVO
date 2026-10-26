@@ -22,6 +22,18 @@ export function OfflineBar() {
   const online = useOnline();
   const t = useT();
   const [back, setBack] = useState(false);
+  /*
+   * Whether a worker has the shell, so a reload with no network will draw the app.
+   *
+   * `public/sw.js` makes the sentence above true across a reload, but only once it is in control:
+   * not on a first visit, not in the development build (where it is deliberately not registered),
+   * and not in a browser that refused it. Where it is not true, the strip says so in one clause
+   * rather than promising something the next reload cannot keep.
+   */
+  const shellCached =
+    typeof navigator !== 'undefined' &&
+    'serviceWorker' in navigator &&
+    Boolean(navigator.serviceWorker.controller);
   const seen = useRef(online);
   useEffect(() => {
     const was = seen.current;
@@ -44,9 +56,10 @@ export function OfflineBar() {
           </span>
           <span className="offline-bar__text">
             <strong>{t("You're offline")}</strong>{' '}
-            {t('OVVO still works — your journeys, boards and saved stops are all here.')}{' '}
+            {t('OVVO still works. Your journeys, boards and saved stops are all here.')}{' '}
             <strong>{t('Departure times are not live.')}</strong>{' '}
-            {t('They come from the timetable until the connection is back.')}
+            {t('They come from the timetable until the connection is back.')}{' '}
+            {shellCached ? null : t('Reloading this page needs a connection.')}
           </span>
         </span>
       </div>
@@ -59,7 +72,7 @@ export function OfflineBar() {
         <span className="offline-bar__icon" aria-hidden="true">
           <Icon name="check" size={18} />
         </span>
-        <span className="offline-bar__text">{t('Back online — live times resume.')}</span>
+        <span className="offline-bar__text">{t('Back online. Live times resume.')}</span>
       </span>
     </div>
   );

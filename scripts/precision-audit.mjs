@@ -27,6 +27,7 @@
  *        PRECISION_THEME=dark  runs the sweep in the other appearance
  */
 import { chromium } from 'playwright';
+import { ensureAppFont } from './font-guard.mjs';
 
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
 const ROUTES = [
@@ -52,12 +53,13 @@ const browser = await chromium.launch();
 for (const width of WIDTHS) {
   for (const route of ROUTES) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
-    /* A hash route changes no document, so the second `goto` would wait for a load that has
-       already happened. One load, then the hash. */
-    await page.goto(ORIGIN + '/', { waitUntil: 'domcontentloaded' });
-    await page.evaluate((hash) => {
-      window.location.hash = hash;
-    }, '#' + route);
+    /* Every route is a real address, so each one is its own load — there is no document to keep
+       and no hash to set after it (the app used `HashRouter` once; `main.tsx` still translates an
+       old `#/...` address on the way in, which is why that shape is not measured here). */
+    await page.goto(ORIGIN + route, { waitUntil: 'domcontentloaded' });
+    /* Geometry does not need the font, but the type inside the boxes does — and a fallback font is
+       wider, which is how a line that fits starts to wrap and a box that is right starts to clip. */
+    await ensureAppFont(page);
     await page.waitForTimeout(700);
     await page.evaluate((theme) => {
       document.documentElement.dataset.theme = theme;

@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
-import { customStopName, formatDistance, hasBoard } from '../../data/stops';
+import { customStopName, formatDistance, hasBoard, stopLabel } from '../../data/stops';
 import { modeLabel } from '../../data/preferences';
 import { stopTypeLabel } from '../../lib/format';
 import { useFormat } from '../../lib/useFormat';
 import { useT } from '../../lib/useT';
 import { Button, IconButton, Pill } from '../ui/primitives';
 import { ResultCard, ResultCardLink } from '../ui/ResultCard';
-import { Icon, ModeIcon } from '../ui/Icons';
+import { StopLink } from './StopLink';
+import { Icon, ModeIcon, stopTypeIcon } from '../ui/Icons';
 import type { Departure, Stop } from '../../data/types';
 
 /**
@@ -54,10 +55,31 @@ export function StopCard({
         <div className="stack-1">
           <ResultCardLink to={`/stops/${stop.id}`}>{name}</ResultCardLink>
           <span className="t-sm t-muted stop-card__meta">
+            {/*
+              **The type is a glyph, and its word is only spoken.**
+
+              This line used to read `Amsterdam · ASC · Station · 40 m` — four words where two of
+              them are categories the app draws everywhere else, repeated on 61 cards. The type
+              takes its mode's glyph and keeps the word in an `sr-only` span beside it, so a screen
+              reader still hears "Station" (and now hears it in Dutch, which the old literal never
+              managed).
+
+              The glyph leads the line rather than sitting between two dots: a mark in the middle of
+              `ASC · mark · 40 m` read as a second separator, where the same mark in front of the city
+              says what kind of place this row is before its name.
+            */}
+            <Icon name={stopTypeIcon(stop.type)} size={13} className="icon--inline" />
+            <span className="sr-only">{t(stopTypeLabel(stop.type))}</span>{' '}
             {customStopName(stop.id) ? `${stop.name} · ` : ''}
-            {stop.city} · {stop.code} · {stopTypeLabel(stop.type)}
+            {stop.city} · {stop.code}
             {/* A straight line, not a travel time, and only when we have a position. */}
-            {distance !== null ? ` · ${formatDistance(distance)}` : ''}
+            {distance !== null ? (
+              <>
+                {' · '}
+                <Icon name="walk" size={12} className="icon--inline" />{' '}
+                {formatDistance(distance)}
+              </>
+            ) : null}
           </span>
         </div>
         {/* `card-actions` so this control is held at the trailing edge at 320 too — the same group
@@ -104,16 +126,27 @@ export function StopCard({
               <span className={`t-mono-num${departure.cancelled ? ' strike' : ''}`}>
                 {format.time(departure.cancelled ? departure.planned : departure.expected)}
               </span>
-              <span className="grow">{departure.destinationLabel}</span>
+              {/*
+                Where this service goes, as the way to that stop's page — the same word-link the
+                full board draws in the same column (`BoardList`). It opened nothing here, so a
+                card that lists four destinations told the traveller where the trains go and gave
+                them no way to look at any of those places.
+              */}
+              <span className="grow">
+                <StopLink stopId={departure.destinationStopId} label={departure.destinationLabel} />
+              </span>
               {departure.delayMinutes > 0 && !departure.cancelled ? (
                 <span className="delay">+{departure.delayMinutes}</span>
               ) : null}
               {departure.cancelled ? (
                 <span className="delay">{t('Cancelled')}</span>
               ) : (
-                /* `P6`, not a bare `6`: a lone digit at the end of a row reads as a stray number. */
-                <span className="t-sm t-faint" title={`${t('Platform')} ${departure.platform}`}>
-                  P{departure.platform}
+                <span className="row t-sm t-faint" title={`${t('Platform')} ${departure.platform}`}>
+                  {/* `P6` was a letter standing in for a word; the platform has its own glyph, the
+                      same one the board and a journey's stop rows draw. */}
+                  <Icon name="platform" size={12} />
+                  <span className="sr-only">{t('Platform')}</span>
+                  {departure.platform}
                 </span>
               )}
             </li>
@@ -133,6 +166,12 @@ export function StopCard({
           <Link
             to={`/departures?stop=${stop.id}`}
             className="btn btn--xs btn--ghost"
+            /*
+              Every card on the stops list carried a link named just "Board", so a screen reader's
+              link list offered five of them, all going to different stops. The name keeps the
+              visible word first — a speech-input user says what they see — and says whose board.
+            */
+            aria-label={t('Board: {stop}', { stop: stopLabel(stop.id) })}
             onClick={(event) => event.stopPropagation()}
           >
             <Icon name="board" size={14} />

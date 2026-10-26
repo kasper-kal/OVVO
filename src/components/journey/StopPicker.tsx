@@ -709,7 +709,7 @@ export function StopPicker({
                 <p className="t-sm t-faint stops-origin">
                   {nearestOrigin.source === 'device'
                     ? t('From your device location.')
-                    : t('From an approximate IP location — it can be off by a lot.')}
+                    : t('From an approximate IP location, which can be off by a lot.')}
                 </p>
               </>
             ) : approximateLocationPending ? (

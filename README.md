@@ -27,8 +27,11 @@ npm run build        # typecheck (tsc --noEmit) + production build into dist/
 npm run typecheck
 ```
 
-The app is a single-page React app. Routing uses a hash router, so a refresh or a deep
-link works on any static host.
+The app is a single-page React app. Routes are real paths (`/stops/utrecht-centraal`), so
+the host must answer an unknown path with `index.html` — Vite's SPA fallback
+(`appType: 'spa'` in `vite.config.ts`) does that for the dev server and for `vite preview`,
+which is how this site is served. An address that still carries a `#/` (an old bookmark)
+is translated to the path on the way in (`src/main.tsx`), so old links keep working.
 
 ### Previewing from another hostname
 
@@ -390,6 +393,28 @@ node scripts/class-audit.mjs
 # FONTCONFIG_FILE. Every browser check and probe below goes through it
 node scripts/icon-audit.mjs
 
+# **A browser check is only worth something in the app's own font.** `index.html` asks Google Fonts
+# for Plus Jakarta Sans, and a browser that cannot reach it does not complain: it draws the page in
+# a fallback, so every number and every picture then describes a font no traveller ever sees. This
+# is not hypothetical — Playwright's WebKit build on this VM has no TLS, so it fell back to
+# Liberation Sans, whose lopsided ascent put every word 4.5px above the middle of its line box; a
+# correctly aligned row of chips looked broken in a screenshot and cost a round of work.
+# `scripts/font-guard.mjs` is the one call that closes it: `await ensureAppFont(page)` after each
+# navigation injects a cached copy of the same stylesheet when the browser has no faces, waits for
+# every weight the interface draws with (400–800) and **throws**, naming the fix, if the family is
+# still not loaded. Every instrument below calls it; so must any probe that measures text or takes
+# a picture. `FONT_CSS_FILE=<path>` points it at a copy on a machine with no network.
+node -e "import('./scripts/font-guard.mjs').then(m => m.localFontCss())"   # pre-warm the copy
+
+# the header's alerts entry, in every palette a traveller can build (11 of them: cream, tinted page
+# with the widgets following it, tinted page with a different widget colour, blue, green, high
+# contrast, and dark). Two faults lived here that no cream-canvas check could see: the count's ring
+# at 32% left the pill at 1.35:1 when its fill was the page's own colour, and a split palette could
+# draw ivory digits on an ivory pill (1.00:1). It asserts 4.5:1 for the digits and 3:1 for the pill's
+# boundary — its fill or its ring, read off the pixels — and 3:1 for the warning mark.
+#   report: .logs/palette-audit.md
+node scripts/palette-audit.mjs
+
 # the consistency audit: every control on every screen — its glyphs, its shape, the landmark
 # and row it sits in and the side of it — grouped by the *action* it performs, so the same action
 # wearing a different shape or place on another screen is printed as a finding. The signature is
@@ -413,6 +438,19 @@ node scripts/consistency-audit.mjs [origin] [--gate]
 # behavioural, so both are measured; run UI_AUDIT_THEME=dark and UI_AUDIT_LANGUAGE=nl to
 # audit the other appearance and the longer language
 node scripts/ui-audit.mjs
+
+# **what every screen sounds like.** Contrast, target sizes and layout all pass without saying a
+# word about the interface a screen reader reads, so this takes the browser's own accessibility
+# tree for all thirteen screens — the same tree VoiceOver, TalkBack and NVDA read — and writes each
+# one out under `.logs/sr/`, then reports what reads badly or says nothing: a control with no name,
+# a name that is only its placeholder, the same name on two links going to different places (five
+# "Board" links, five boards), a skipped heading level, a picture that carries meaning and says
+# nothing, and the live regions a screen has. Exits 1 on a finding.
+#
+# The trees are the point as much as the assertions: read `.logs/sr/departures.yml` and you are
+# reading the board as it is spoken, which is how the delay that read "18:10 18:00 plus 10" and the
+# journey announced as "Utrecht CentraalAmsterdam Centraal" were found.
+node scripts/screen-reader-audit.mjs
 
 # the dashed enclosure, as paint: screenshots the empty box from a real browser and walks its
 # straight edge and its four corner arcs per position (PIL), because "the corners got done" is a
@@ -539,7 +577,7 @@ saves power on its own, in two steps, with nothing to switch on and nothing stor
   squeeze at all — plus no shadows and no frosted glass on any surface, no request spent on the IP
   location estimate, and a home screen that keeps only the cards that answer *when does the bus
   go* — the planner, the next-departures card and the hearted stops — with one line saying so.
-  **Settings is closed** while this mode is on: it is left out of the navigation and `#/settings`
+  **Settings is closed** while this mode is on: it is left out of the navigation and `/settings`
   goes home, because it is the most expensive screen in the app and the least about catching a
   bus. Leaving customising, or plugging the phone in, restores the whole interface and Settings
   with it.

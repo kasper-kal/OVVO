@@ -14,7 +14,17 @@ import { LANGUAGES } from '../lib/i18n';
 import type { Stop } from '../data/types';
 import type { Language, ThemeChoice } from '../state/types';
 
-/** The three appearances, in the order the control offers them. */
+/**
+ * The three appearances, in the order the control offers them.
+ *
+ * **A segmented control is words, or it is pictures — never both.** These segments used to carry a
+ * monitor, a sun and a moon beside the words (an earlier audit counted glyphs on the Settings page
+ * and asked for them). Side by side with the word, a glyph that says the same thing is not a
+ * shortcut, it is a second thing to read: "System" and a monitor both mean the device setting, and
+ * the clock format offered two identical clocks for "24-hour" and "12-hour". The words are the
+ * choice and they already fit, so the pictures go; the language control was words all along and
+ * shows the shape the others now share.
+ */
 const THEME_OPTIONS: { value: ThemeChoice; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
@@ -90,6 +100,12 @@ function StopNameRow({ stop }: { stop: Stop }) {
           className="input"
           value={draft}
           maxLength={40}
+          /*
+            The visible label above this field is the stop's own name, so a screen reader read the
+            box as "Haarlem Station · Haarlem, edit text" — the place, never the job. The name says
+            what to type and still contains the visible words, so a speech-input user can say them.
+          */
+          aria-label={t('Your name for {stop}', { stop: `${stop.name} · ${stop.city}` })}
           placeholder={t('For example: Work')}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commit}
@@ -168,7 +184,7 @@ export function SettingsPage() {
 
   const appearanceLabel =
     settings.theme === 'system'
-      ? t('{appearance} — from your device', { appearance: appearance === 'dark' ? t('Dark') : t('Light') })
+      ? t('{appearance}, from your device', { appearance: appearance === 'dark' ? t('Dark') : t('Light') })
       : appearance === 'dark'
         ? t('Dark')
         : t('Light');
@@ -226,7 +242,10 @@ export function SettingsPage() {
                 ariaLabel={t('Appearance')}
                 value={settings.theme}
                 onChange={(value) => updateSettings({ theme: value })}
-                options={THEME_OPTIONS.map((option) => ({ value: option.value, label: t(option.label) }))}
+                options={THEME_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: t(option.label),
+                }))}
               />
             </Field>
             <Field label={t('Language')} hint={t('The language of the interface.')}>
@@ -340,10 +359,10 @@ export function SettingsPage() {
             />
             <p className="t-sm t-faint">
               {locationConsent === 'granted'
-                ? t('Allowed for this browser — you can turn it off again here at any time.')
+                ? t('Allowed for this browser. You can turn it off again here at any time.')
                 : locationConsent === 'denied'
                   ? t('Not allowed. Switch it on here whenever you want it.')
-                  : t('No answer yet — the question appears the first time you open the app.')}
+                  : t('No answer yet. The question appears the first time you open the app.')}
             </p>
           </Card>
 
@@ -364,7 +383,7 @@ export function SettingsPage() {
             <h2 className="t-section">{t('Names for your favourites')}</h2>
             <p className="t-sm t-muted">
               {t(
-                'Give a stop you have favourited your own name — Work, Home, Closest bus stop. The name is used everywhere the stop appears, and this screen is the only place to change it.',
+                'Give a stop you have favourited your own name: Work, Home, Closest bus stop. The name is used everywhere the stop appears, and this screen is the only place to change it.',
               )}
             </p>
             {favouriteStops.length ? (
@@ -375,7 +394,7 @@ export function SettingsPage() {
               </ul>
             ) : (
               <p className="t-sm t-faint">
-                {t('Heart a stop first — its name appears here once it is a favourite.')}
+                {t('Heart a stop first. Its name appears here once it is a favourite.')}
               </p>
             )}
           </Card>
@@ -475,8 +494,10 @@ export function SettingsPage() {
                     <span className="t-mono-num">{format.time(sampleTime)}</span>
                   </span>
                   <span className="board-list__main">
-                    <span className="board-list__destination">{t('Amsterdam Centraal')}</span>
-                    <span className="t-sm t-faint">{t('Tram')} 2 · GVB</span>
+                    <span className="board-list__line">
+                      <span className="board-list__destination">{t('Amsterdam Centraal')}</span>
+                      <span className="t-sm t-faint">{t('Tram')} 2 · GVB</span>
+                    </span>
                   </span>
                   <span className="board-list__platform">1</span>
                 </li>
@@ -489,8 +510,10 @@ export function SettingsPage() {
                     </span>
                   </span>
                   <span className="board-list__main">
-                    <span className="board-list__destination">{t('Utrecht Centraal')}</span>
-                    <span className="t-sm t-faint">{t('Tram')} 4 · GVB</span>
+                    <span className="board-list__line">
+                      <span className="board-list__destination">{t('Utrecht Centraal')}</span>
+                      <span className="t-sm t-faint">{t('Tram')} 4 · GVB</span>
+                    </span>
                   </span>
                   <span className="board-list__platform">2</span>
                 </li>
@@ -512,7 +535,7 @@ export function SettingsPage() {
             </div>
 
             <Banner tone="butter" icon="info" title={t('Service notice')}>
-              {t('Work on the line until 18:00 — add ten minutes.')}
+              {t('Work on the line until 18:00. Add ten minutes.')}
             </Banner>
 
             <h3 className="t-label">{t('Accent colours')}</h3>

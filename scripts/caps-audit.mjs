@@ -33,6 +33,7 @@
  * the other audits here. Fragments never fail it.
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { ensureAppFont } from './font-guard.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -248,6 +249,8 @@ for (const lang of LANGUAGES) {
 
     if (screen.search) {
       await page.goto(URL_BASE, { waitUntil: 'networkidle' });
+      /* A capital letter is a shape: read it in the app's own font, not in a fallback. */
+      await ensureAppFont(page);
       await page.waitForTimeout(400);
       await page.locator('.planner-row__btn').first().click();
       await page.locator('#picker-from').click();
@@ -286,6 +289,7 @@ for (const lang of LANGUAGES) {
       }
     } else {
       await page.goto(`${URL_BASE}#${screen.path}`, { waitUntil: 'networkidle' });
+      await ensureAppFont(page);
       await page.waitForTimeout(450);
       await read(screen.name);
       /*

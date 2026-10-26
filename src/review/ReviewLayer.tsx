@@ -348,7 +348,7 @@ export function ReviewLayer() {
         setActiveId(shot.id);
         setStatus(
           resized
-            ? `Added — ${kb(file.size)} resized to ${kb(dataUrlBytes(resized.dataUrl))} so it can upload. Pin a spot, or select a panel.`
+            ? `Added: ${kb(file.size)} resized to ${kb(dataUrlBytes(resized.dataUrl))} so it can upload. Pin a spot, or select a panel.`
             : 'Added. Pin a spot, or select a panel.',
         );
         window.requestAnimationFrame(() => bodyRef.current?.scrollTo({ top: 0 }));
@@ -470,7 +470,7 @@ export function ReviewLayer() {
     };
     /* A tap in area mode is not a selection; no panel is 2% of the picture in both directions. */
     if (box.w < 0.02 || box.h < 0.02) {
-      setStatus('Drag a box over the panel you mean — a tap is too small to select.');
+      setStatus('Drag a box over the panel you mean; a tap is too small to select.');
       return;
     }
     const region: Region = {
@@ -556,7 +556,7 @@ export function ReviewLayer() {
     } catch (error) {
       const message =
         error instanceof Error && error.name === 'AbortError'
-          ? `no answer after ${SAVE_TIMEOUT_MS / 1000}s — the upload did not reach the dev server`
+          ? `no answer after ${SAVE_TIMEOUT_MS / 1000}s, so the upload did not reach the dev server`
           : explain(error);
       setStatus(`Not saved: ${message}`);
     } finally {
@@ -579,7 +579,7 @@ export function ReviewLayer() {
       <button
         type="button"
         aria-label="Review notes"
-        title={`Review notes — saving to review/${REVIEW_BATCH} — drag to move, click to open`}
+        title={`Review notes: saving to review/${REVIEW_BATCH}. Drag to move, click to open`}
         onPointerDown={onDotDown}
         onPointerMove={onDotMove}
         onPointerUp={onDotUp}

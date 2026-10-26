@@ -20,6 +20,7 @@ import {
 } from '../lib/approximateLocation';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
+import { deviceIsSlow } from '../lib/deviceSpeed';
 import { applyBackground } from '../lib/background';
 import { applySelection } from '../lib/selection';
 import { paletteFor } from '../lib/palette';
@@ -123,6 +124,13 @@ interface AppContextValue {
   search: PlannerSearchState | null;
   journeys: Journey[];
   startSearch: (query: SearchQuery) => void;
+  /*
+   * A whole search state taken from an address (`/results/<id>`), rather than a fresh search whose
+   * sort, filters and paged window start at their defaults. One action, because the four parts are
+   * one screen: applying them one at a time would render the list between each and let a reader see
+   * a sort they never chose (`lib/searchLink`).
+   */
+  adoptSearch: (state: PlannerSearchState) => void;
   updateSearchQuery: (patch: Partial<SearchQuery>) => void;
   shiftWindow: (deltaMinutes: number) => void;
   setSortMode: (mode: SortMode) => void;
@@ -241,6 +249,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   const [power, setPower] = useState<PowerState>(NO_BATTERY);
   useEffect(() => watchBattery(setPower), []);
+  /*
+   * **A slow phone, measured rather than guessed.**
+   *
+   * Browsers do not name the chip or the memory — Safari reports neither, and never the iPhone
+   * model — so `lib/deviceSpeed.ts` times a fixed piece of the app's own work instead. It runs
+   * once, a second after the first paint: early enough to matter, late enough that the timing is
+   * not competing with the app's own opening, and never on a device that has already been given
+   * a slower look for another reason.
+   */
+  const [slowDevice, setSlowDevice] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlowDevice(deviceIsSlow()), 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [savedJourneys, setSavedJourneys] = useState<SavedJourney[]>(() =>
     readStored<SavedJourney[]>(STORAGE_KEYS.savedJourneys, []),
   );
@@ -369,6 +391,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.power = power.mode;
   }, [power.mode]);
+
+  /*
+   * The speed answer, written where CSS can read it. Only ever set as `slow`: the attribute being
+   * absent *is* the fast answer, so a phone that measures quick leaves the document untouched and
+   * the stylesheet's existing rules apply exactly as they did before this existed.
+   */
+  useEffect(() => {
+    if (slowDevice) document.documentElement.dataset.speed = 'slow';
+    else delete document.documentElement.dataset.speed;
+  }, [slowDevice]);
 
   /*
    * Appearance. `system` follows the device and keeps following it — a traveller who leaves the
@@ -550,6 +582,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSearch({ query, windowOffsetMinutes: 0, sortMode: 'best', filter: DEFAULT_RESULTS_FILTER });
   }, []);
 
+  const adoptSearch = useCallback((state: PlannerSearchState) => {
+    setSearch(state);
+  }, []);
+
   /*
    * One rule for "nearest me", in one place: the device's own fix wins, and the approximate
    * estimate is what is left when there is no usable one. Every screen that sorts by distance
@@ -656,6 +692,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     search,
     journeys,
     startSearch,
+    adoptSearch,
     updateSearchQuery: (patch) => {
       setSearch((current) => {
         if (!current) return current;

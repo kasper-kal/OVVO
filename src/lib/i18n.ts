@@ -20,12 +20,14 @@ const NL: Record<string, string> = {
   'Skip to main content': 'Ga naar de hoofdinhoud',
   /* ---------------------------------------------------------------- connection */
   "You're offline": 'Je bent offline',
-  'OVVO still works — your journeys, boards and saved stops are all here.':
-    'OVVO blijft werken — je reizen, borden en bewaarde haltes staan er allemaal.',
+  'OVVO still works. Your journeys, boards and saved stops are all here.':
+    'OVVO blijft werken. Je reizen, borden en bewaarde haltes staan er allemaal.',
   'Departure times are not live.': 'Vertrektijden zijn niet live.',
   'They come from the timetable until the connection is back.':
     'Ze komen uit de dienstregeling tot je weer online bent.',
-  'Back online — live times resume.': 'Weer online — live tijden hervatten.',
+  'Back online. Live times resume.': 'Weer online. Live tijden hervatten.',
+  /* Said only where the shell is not cached, so it is true when it appears. */
+  'Reloading this page needs a connection.': 'Deze pagina opnieuw laden heeft een verbinding nodig.',
   'Not live': 'Niet live',
   'Scheduled times, not live updates.': 'Geplande tijden, geen live updates.',
   'Main navigation': 'Hoofdnavigatie',
@@ -129,8 +131,8 @@ const NL: Record<string, string> = {
   'Only a station or stop has a departure board.':
     'Alleen een station of halte heeft een vertrektijdenbord.',
   'Pick a stop': 'Kies een halte',
-  'A board shows one stop at a time. Choose a station or stop above — the one you choose is kept for your next visit.':
-    'Een bord toont één halte tegelijk. Kies hierboven een station of halte — je keuze blijft bewaard voor je volgende bezoek.',
+  'A board shows one stop at a time. Choose a station or stop above. The one you choose is kept for your next visit.':
+    'Een bord toont één halte tegelijk. Kies hierboven een station of halte. Je keuze blijft bewaard voor je volgende bezoek.',
   'Show {count} more': 'Nog {count} tonen',
   'Show fewer': 'Minder tonen',
   'No board here': 'Hier is geen bord',
@@ -152,6 +154,11 @@ const NL: Record<string, string> = {
      is the field's accessible name, and the × beside it says "Clear …" with the same words. */
   'Station for this card': 'Halte voor deze kaart',
   '{stop} · from {time}': '{stop} · vanaf {time}',
+  /* The same line once the station's name is a link: the name is its own element, so the words
+     around it are this. */
+  'from {time}': 'vanaf {time}',
+  'Next departures from': 'Volgende vertrekken vanaf',
+  'Towards': 'Richting',
   'auto-refresh every {seconds}s': 'automatisch verversen elke {seconds} s',
   '{count} delay in this window · ': '{count} vertraging in dit venster · ',
   '{count} delays in this window · ': '{count} vertragingen in dit venster · ',
@@ -201,8 +208,8 @@ const NL: Record<string, string> = {
   /* The Colours card's palette picker — a different question from `Appearance` above, and the
      hint is the sentence that keeps the two from being confused for one another. */
   'Colours for': 'Kleuren voor',
-  'This only picks which palette you are editing. It does not change the app’s appearance — use Appearance for that.':
-    'Dit kiest alleen welke kleuren je bewerkt. Het verandert de weergave van de app niet — gebruik daarvoor Weergave.',
+  'This only picks which palette you are editing. It does not change the app’s appearance. Use Appearance for that.':
+    'Dit kiest alleen welke kleuren je bewerkt. Het verandert de weergave van de app niet. Gebruik daarvoor Weergave.',
   'The app is {appearance} right now, so you will see these colours when it is {mode}.':
     'De app is nu {appearance}, dus je ziet deze kleuren als hij {mode} is.',
   Language: 'Taal',
@@ -250,17 +257,19 @@ const NL: Record<string, string> = {
     'Hart een reis en elke storing die hem raakt verschijnt hier.',
   'A saved journey is one result on the results screen, with its own times.':
     'Een bewaarde reis is één resultaat op het resultaatscherm, met zijn eigen tijden.',
-  'No alerts touch the journeys you kept — all {count} are running as planned.':
-    'Geen storingen raken de reizen die je bewaarde — alle {count} rijden volgens plan.',
+  'No alerts touch the journeys you kept. All {count} are running as planned.':
+    'Geen storingen raken de reizen die je bewaarde. Alle {count} rijden volgens plan.',
   'All alerts': 'Alle storingen',
   'Re-run from now': 'Opnieuw vanaf nu',
   'Run the search you are looking at again, starting at this minute.':
     'Voer de zoekopdracht die je ziet opnieuw uit, vanaf deze minuut.',
   '{from} to {to}, starting at this minute.': '{from} naar {to}, vanaf deze minuut.',
-  'Nothing to re-run yet — plan a journey first.': 'Nog niets om opnieuw te doen — plan eerst een reis.',
+  'Nothing to re-run yet. Plan a journey first.': 'Nog niets om opnieuw te doen. Plan eerst een reis.',
   'The stops you hearted, one tap each.': 'De haltes die je hartte, elk met één tik.',
   'Your stops: {stops}': 'Jouw haltes: {stops}',
   'Near you: {stops}': 'Bij jou in de buurt: {stops}',
+  'Your stops:': 'Jouw haltes:',
+  'Near you:': 'Bij jou in de buurt:',
   'Every route, with your own stops named and picked out.':
     'Elke lijn, met je eigen haltes benoemd en gemarkeerd.',
   'Search {count} stations, stops and landmarks': 'Zoek in {count} stations, haltes en plekken',
@@ -301,14 +310,14 @@ const NL: Record<string, string> = {
   Glass: 'Glas',
   'From your wallpaper': 'Uit je achtergrond',
   'From your photo': 'Uit je foto',
-  'Tap or drag the photo to take the widgets’ colour from it — the same colour the Primary colour block sets.':
-    'Tik of sleep op de foto om de kleur van de widgets eruit te halen — dezelfde kleur die het blok Primaire kleur instelt.',
+  'Tap or drag the photo to take the widgets’ colour from it: the same colour the Primary colour block sets.':
+    'Tik of sleep op de foto om de kleur van de widgets eruit te halen: dezelfde kleur die het blok Primaire kleur instelt.',
   'Tap or drag on your wallpaper to take its colour':
     'Tik of sleep op je achtergrond om de kleur over te nemen',
   'Loading your photo…': 'Je foto wordt geladen…',
   Eyedropper: 'Pipet',
-  'The page’s own colour. The widgets keep their colour — see Primary colour below. A dark choice keeps its colour and gets light text.':
-    'De kleur van de pagina zelf. De widgets houden hun eigen kleur — zie Primaire kleur hieronder. Een donkere keuze blijft donker en krijgt lichte tekst.',
+  'The page’s own colour. The widgets keep their colour. See Primary colour below. A dark choice keeps its colour and gets light text.':
+    'De kleur van de pagina zelf. De widgets houden hun eigen kleur. Zie Primaire kleur hieronder. Een donkere keuze blijft donker en krijgt lichte tekst.',
   'The cards, the panels, the sidebar and the accent. The page keeps its own colour.':
     'De kaarten, de panelen, de zijbalk en het accent. De pagina houdt zijn eigen kleur.',
   'Following the background: the widgets take the page’s colour, and the app’s own surfaces and coral while the page is cream.':
@@ -324,14 +333,14 @@ const NL: Record<string, string> = {
   'Replace the photo': 'Foto vervangen',
   'Remove the photo': 'Foto verwijderen',
   'Choose a background photo': 'Kies een achtergrondfoto',
-  'The app’s own warm canvas — the background it has always had.':
-    'Het eigen warme canvas van de app — de achtergrond die er altijd al was.',
+  'The app’s own warm canvas: the background it has always had.':
+    'Het eigen warme canvas van de app: de achtergrond die er altijd al was.',
   /* The row-based Colours card: short values on the rows, one sentence on each screen. */
   'Page colour': 'Kleur van de pagina',
   'App default': 'App-standaard',
   'The app’s own warm canvas.': 'Het eigen warme canvas van de app.',
-  'The page’s own colour. The widgets keep theirs — see Widgets.':
-    'De kleur van de pagina zelf. De widgets houden de hunne — zie Widgets.',
+  'The page’s own colour. The widgets keep theirs. See Widgets.':
+    'De kleur van de pagina zelf. De widgets houden de hunne. Zie Widgets.',
   'Crop it to choose what the page shows.': 'Snijd het bij om te kiezen wat de pagina toont.',
   'Solid cards in the widgets’ colour.': 'Effen kaarten in de kleur van de widgets.',
   'Widgets’ colour': 'Kleur van de widgets',
@@ -355,15 +364,15 @@ const NL: Record<string, string> = {
   /* Match colours: one fill for every button, picked in the pop-up. */
   'Match colours': 'Kleuren gelijkzetten',
   'Stop matching': 'Niet meer gelijkzetten',
-  'The labels take {ink} ink — {ratio}:1': 'De labels nemen {ink} inkt — {ratio}:1',
+  'The labels take {ink} ink, {ratio}:1': 'De labels nemen {ink} inkt, {ratio}:1',
   'Pick your own': 'Kies je eigen kleur',
   'Opens the colour picker of this device.': 'Opent de kleurenkiezer van dit apparaat.',
   'Button colour': 'Knopkleur',
   'Every button · {colour}': 'Elke knop · {colour}',
   /* Matching is the palette's three colours now — page, primary, selected text — and it is
      confirmed rather than applied on sight. Buttons are not among them. */
-  'One colour for the page, the primary colour and the selected text — the same HEX in all three.':
-    'Eén kleur voor de pagina, de primaire kleur en de geselecteerde tekst — dezelfde HEX in alle drie.',
+  'One colour for the page, the primary colour and the selected text: the same HEX in all three.':
+    'Eén kleur voor de pagina, de primaire kleur en de geselecteerde tekst: dezelfde HEX in alle drie.',
   'Match all three': 'Zet alle drie gelijk',
   'Everything · {colour}': 'Alles · {colour}',
   'The page, the primary colour and the selected text are the same colour.':
@@ -385,8 +394,8 @@ const NL: Record<string, string> = {
 
   /* The colour redesign (`COLOURS_PLAN.md`): two screens for the photograph and one for any
      colour. The words are the controls' own, short enough for a phone. */
-  'The cards take it with {ink} ink — {ratio}:1':
-    'De kaarten nemen hem met {ink} inkt — {ratio}:1',
+  'The cards take it with {ink} ink, {ratio}:1':
+    'De kaarten nemen hem met {ink} inkt, {ratio}:1',
   'The cards take it with {ratio}:1 ink': 'De kaarten nemen hem met {ratio}:1 inkt',
   light: 'lichte',
   dark: 'donkere',
@@ -410,8 +419,8 @@ const NL: Record<string, string> = {
     'Je foto, op dit apparaat bewaard onder een waas van de canvaskleur. Snijd hem bij om te kiezen wat de pagina laat zien.',
   'This browser cannot read the photo.': 'Deze browser kan de foto niet lezen.',
   'That file is not an image.': 'Dat bestand is geen afbeelding.',
-  'That image is too large — try one under 12 MB.':
-    'Die afbeelding is te groot — probeer er een onder 12 MB.',
+  'That image is too large. Try one under 12 MB.':
+    'Die afbeelding is te groot. Probeer er een onder 12 MB.',
   'That image could not be read.': 'Die afbeelding kon niet worden gelezen.',
   'This browser cannot resize an image.': 'Deze browser kan geen afbeelding verkleinen.',
   /* Battery saving, which is a reading rather than a switch (see `lib/power.ts`). */
@@ -424,8 +433,8 @@ const NL: Record<string, string> = {
   Saving: 'Sparen',
   Charging: 'Aan de lader',
   'Not reported': 'Niet doorgegeven',
-  'Super energy saving is on — {cards} come back when this device is charged.':
-    'Maximale energiebesparing staat aan — {cards} komen terug zodra dit apparaat aan de lader ligt.',
+  'Super energy saving is on. {cards} come back when this device is charged.':
+    'Maximale energiebesparing staat aan. {cards} komen terug zodra dit apparaat aan de lader ligt.',
   'Only what you need to catch a bus is drawn, and Settings come back with the rest.':
     'Alleen wat je nodig hebt om een bus te halen wordt getoond, en Instellingen komen terug met de rest.',
   Location: 'Locatie',
@@ -492,7 +501,7 @@ const NL: Record<string, string> = {
   'The live dot on a service that is running.': 'De live-stip bij een dienst die rijdt.',
   /* The settings with no sample of their own, named with the value in force. */
   'Currently in effect': 'Nu actief',
-  '{appearance} — from your device': '{appearance} — van je apparaat',
+  '{appearance}, from your device': '{appearance}, van je apparaat',
   Contrast: 'Contrast',
   Raised: 'Verhoogd',
   Standard: 'Standaard',
@@ -536,8 +545,8 @@ const NL: Record<string, string> = {
   'No search has been run in this browser yet.':
     'In deze browser is nog geen zoekopdracht gedaan.',
   'Nothing to show yet': 'Nog niets te tonen',
-  'Plan a journey first — the results of your search will appear here and survive a refresh.':
-    'Plan eerst een reis — de resultaten verschijnen hier en blijven na een vernieuwing staan.',
+  'Plan a journey first: the results of your search will appear here and survive a refresh.':
+    'Plan eerst een reis: de resultaten verschijnen hier en blijven na een vernieuwing staan.',
   'Open the journey planner': 'Open de reisplanner',
   'Start:': 'Vertrek:',
   'End:': 'Aankomst:',
@@ -554,7 +563,7 @@ const NL: Record<string, string> = {
   Carriers: 'Vervoerders',
   'Reset all filters': 'Alle filters wissen',
   'Alerts affect this search': 'Storingen beïnvloeden deze zoekopdracht',
-  '— view details': '— bekijk details',
+  'View details': 'Bekijk details',
   'Earlier options': 'Eerdere opties',
   'Later options': 'Latere opties',
   Earlier: 'Eerder',
@@ -574,8 +583,8 @@ const NL: Record<string, string> = {
     'Geen reis past bij deze zoekopdracht met deze instellingen.',
   'Switch one of these back on and the list fills up again':
     'Zet een van deze weer aan en de lijst loopt weer vol',
-  'Nothing helps for this search — try another time or another pair of stops.':
-    'Niets helpt voor deze zoekopdracht — probeer een ander tijdstip of een ander tweetal haltes.',
+  'Nothing helps for this search. Try another time or another pair of stops.':
+    'Niets helpt voor deze zoekopdracht. Probeer een ander tijdstip of een ander tweetal haltes.',
   'Reset result filters': 'Resultaatfilters wissen',
   'Adjust travel preferences': 'Reisvoorkeuren aanpassen',
   'Try one hour later': 'Probeer een uur later',
@@ -643,8 +652,8 @@ const NL: Record<string, string> = {
   'A saved search is a pair of stops you keep. A saved journey is one result with its own times.':
     'Een opgeslagen zoekopdracht is een set haltes die je bewaart. Een opgeslagen reis is één resultaat met zijn eigen tijden.',
   'This search is in your recent searches.': 'Deze zoekopdracht staat bij je recente zoekopdrachten.',
-  'Searching does not save anything — keep it here to find it again.':
-    'Zoeken bewaart niets — bewaar het hier om het terug te vinden.',
+  'Searching does not save anything. Keep it here to find it again.':
+    'Zoeken bewaart niets. Bewaar het hier om het terug te vinden.',
   'The journeys you saved, one tap to repeat.':
     'De reizen die je opsloeg, met één tik opnieuw.',
   'Your last searches in this browser.': 'Je laatste zoekopdrachten in deze browser.',
@@ -713,11 +722,13 @@ const NL: Record<string, string> = {
   'Closest stops': 'Dichtstbijzijnde haltes',
   'Popular stops': 'Populaire haltes',
   'From your device location.': 'Vanaf je apparaatlocatie.',
-  'From an approximate IP location — it can be off by a lot.':
-    'Vanaf een geschatte IP-locatie — die kan er flink naast zitten.',
+  'From an approximate IP location, which can be off by a lot.':
+    'Vanaf een geschatte IP-locatie; die kan er flink naast zitten.',
   'Turn on location to see what is closest.': 'Zet locatie aan om te zien wat het dichtstbij is.',
-  'Nearest first, from an approximate IP location — it can be off by a lot.':
-    'Dichtstbijzijnde eerst, vanaf een benaderde IP-locatie — die kan er flink naast zitten.',
+  'We could not estimate where you are, so this is the city order.':
+    'We konden niet inschatten waar je bent, dus dit is de volgorde op plaats.',
+  'Nearest first, from an approximate IP location, which can be off by a lot.':
+    'Dichtstbijzijnde eerst, vanaf een benaderde IP-locatie; die kan er flink naast zitten.',
   'Sorted by {sort}. Turn on location for nearest-first.':
     'Gesorteerd op {sort}. Zet locatie aan voor dichtstbijzijnde eerst.',
   /* Said while the position is still being found, in place of the line about the order. */
@@ -739,12 +750,12 @@ const NL: Record<string, string> = {
     'Gebruik de navigatie voor de planner, resultaten, haltes en vertrektijden.',
 
   /* ------------------------------------------------------ settings, in full */
-  'Allowed for this browser — you can turn it off again here at any time.':
-    'Toegestaan voor deze browser — je kunt het hier altijd weer uitzetten.',
+  'Allowed for this browser. You can turn it off again here at any time.':
+    'Toegestaan voor deze browser. Je kunt het hier altijd weer uitzetten.',
   'Not allowed. Switch it on here whenever you want it.':
     'Niet toegestaan. Zet het hier aan wanneer je wilt.',
-  'No answer yet — the question appears the first time you open the app.':
-    'Nog geen antwoord — de vraag verschijnt als je de app voor het eerst opent.',
+  'No answer yet. The question appears the first time you open the app.':
+    'Nog geen antwoord. De vraag verschijnt als je de app voor het eerst opent.',
   '{pins}, {journeys} and {searches} will be deleted. The app then starts fresh.':
     '{pins}, {journeys} en {searches} worden verwijderd. De app begint daarna opnieuw.',
   '{favourites}, {board}, {journeys} and {searches} will be deleted. The app then starts fresh.':
@@ -772,19 +783,16 @@ const NL: Record<string, string> = {
   'Choose stops': 'Haltes kiezen',
   'No stops pinned to the board': 'Geen haltes vastgezet op het bord',
   'Showing your default origin': 'Je standaardvertrekpunt wordt getoond',
-  'Favourite stops lead your stop lists.': 'Favoriete haltes staan bovenaan je haltelijsten.',
   'Names for your favourites': 'Namen voor je favorieten',
-  'Give a stop you have favourited your own name — Work, Home, Closest bus stop. The name is used everywhere the stop appears, and this screen is the only place to change it.':
-    'Geef een favoriete halte je eigen naam — Werk, Thuis, Dichtstbijzijnde bushokje. De naam wordt overal gebruikt waar de halte verschijnt, en dit scherm is de enige plek om hem te wijzigen.',
+  'Give a stop you have favourited your own name: Work, Home, Closest bus stop. The name is used everywhere the stop appears, and this screen is the only place to change it.':
+    'Geef een favoriete halte je eigen naam: Werk, Thuis, Dichtstbijzijnde bushokje. De naam wordt overal gebruikt waar de halte verschijnt, en dit scherm is de enige plek om hem te wijzigen.',
   'For example: Work': 'Bijvoorbeeld: Werk',
   'Shown as {name}': 'Wordt getoond als {name}',
   'Use the official name': 'Gebruik de officiële naam',
-  'Heart a stop first — its name appears here once it is a favourite.':
-    'Markeer eerst een halte met een hart — dan verschijnt de naam hier.',
-  'Pinned stops have their board on the departure board page.':
-    'Vastgezette haltes hebben hun bord op de vertrektijdenpagina.',
-  'Pin a stop and its departures appear here. You can pin several at once — they are the boards this page shows, not your favourites.':
-    'Zet een halte vast en de vertrektijden verschijnen hier. Je kunt er meerdere tegelijk vastzetten — dat zijn de borden op deze pagina, niet je favorieten.',
+  'Heart a stop first. Its name appears here once it is a favourite.':
+    'Markeer eerst een halte met een hart. Dan verschijnt de naam hier.',
+  'Pin a stop and its departures appear here. You can pin several at once: they are the boards this page shows, not your favourites.':
+    'Zet een halte vast en de vertrektijden verschijnen hier. Je kunt er meerdere tegelijk vastzetten: dat zijn de borden op deze pagina, niet je favorieten.',
   'Stops on the departure board': 'Haltes op het vertrektijdenbord',
   'Pin the stops whose boards you want here. A heart is a favourite: a stop you like, which leads your lists but does not add a board.':
     'Zet de haltes vast waarvan je de borden hier wilt. Een hart is een favoriet: een halte die je leuk vindt, die bovenaan je lijsten staat maar geen bord toevoegt.',
@@ -815,12 +823,12 @@ const NL: Record<string, string> = {
     'Markeer een reis op de resultatenpagina met een hart en hij staat hier, met zijn tijden.',
   'Busiest sample stops': 'Drukste voorbeelhaltes',
   'Busiest sample stop: {stop}': 'Drukste voorbeeldhalte: {stop}',
-  'Nothing kept yet — keep a search from its results to put it here.':
-    'Nog niets bewaard — bewaar een zoekopdracht vanaf de resultaten om die hier te zetten.',
+  'Nothing kept yet. Keep a search from its results to put it here.':
+    'Nog niets bewaard. Bewaar een zoekopdracht vanaf de resultaten om die hier te zetten.',
   'Change travel preferences': 'Reisvoorkeuren aanpassen',
   'Re-run my search from now': 'Mijn zoekopdracht opnieuw vanaf nu',
-  'No default origin set — pick one in Settings.':
-    'Geen standaard vertrekpunt — kies er een bij Instellingen.',
+  'No default origin set. Pick one in Settings.':
+    'Geen standaard vertrekpunt. Kies er een bij Instellingen.',
   'Default origin: {stop}': 'Standaard vertrekpunt: {stop}',
   Walking: 'Lopen',
   Biking: 'Fietsen',
@@ -846,6 +854,7 @@ const NL: Record<string, string> = {
   'Arrival platform': 'Aankomstspoor',
   'Platform {platform}': 'Spoor {platform}',
   'Direction {headsign}': 'Richting {headsign}',
+  'Direction': 'Richting',
   '{count} intermediate stop': '{count} tussenhalte',
   '{count} intermediate stops': '{count} tussenhalten',
   'No intermediate stops on this service.': 'Geen tussenhalten op deze rit.',
@@ -909,11 +918,22 @@ const NL: Record<string, string> = {
   "Pick a stop from the full list instead.": "Kies een halte uit de volledige lijst.",
   "All stations & stops": "Alle stations en haltes",
   "Stop information": "Halte-informatie",
-  "Platforms / stops": "Perrons / haltes",
-  "Secure bicycle parking": "Beveiligde fietsenstalling",
-  "No bicycle parking listed": "Geen fietsenstalling bekend",
-  " · OV-fiets rental available": " · OV-fiets te huur",
-  "Showing from {time} — the current time in this browser": "Getoond vanaf {time} — de huidige tijd in deze browser",
+  "Platforms": "Perrons",
+  /* The facility words are the data's own (see `FACILITIES_BY_TYPE` in `data/stops`); they are
+     translated here so a badge on a stop page reads in the language the page is in. */
+  "Toilets": "Toiletten",
+  "Kiosk": "Kiosk",
+  "Bicycle parking": "Fietsenstalling",
+  "Lift": "Lift",
+  "Ticket machine": "Kaartautomaat",
+  "Left luggage": "Bagageopslag",
+  "Taxi rank": "Taxistandplaats",
+  "Shops": "Winkels",
+  "Shelter": "Abri",
+  "Rubbish bin": "Prullenbak",
+  "LED display": "LED-bord",
+  "Bench": "Bankje",
+  "Showing from {time}, the current time in this browser": "Getoond vanaf {time}, de huidige tijd in deze browser",
   "Open the full board": "Open het volledige bord",
   "Alerts at this stop": "Storingen bij deze halte",
   "No alerts affect this stop right now.": "Er zijn nu geen storingen bij deze halte.",
@@ -932,11 +952,11 @@ const NL: Record<string, string> = {
   "Re-run the search to see the options again, or open one of your favourited journeys.": "Doe de zoekopdracht opnieuw om de opties te zien, of open een van je favoriete reizen.",
   "Re-run my last search": "Mijn laatste zoekopdracht opnieuw",
   "Alerts on this journey": "Storingen op deze reis",
-  "— read the details and advice": "— lees de details en het advies",
+  "Read the details and advice": "Lees de details en het advies",
   "Complete journey": "Volledige reis",
   "Journey summary": "Reisoverzicht",
   "Transfers": "Overstappen",
-  "This is a direct journey — no transfers at all.": "Dit is een directe reis — zonder overstappen.",
+  "This is a direct journey, with no transfers at all.": "Dit is een directe reis, zonder overstappen.",
   "Expected occupancy": "Verwachte drukte",
   "Every mode starts switched on; unselected modes are left out of your journeys.": "Elke wijze staat standaard aan; uitgezette wijzen blijven buiten je reizen.",
   "With no transport mode selected no journey can be planned.": "Zonder vervoerswijze kan er geen reis worden gepland.",
@@ -988,7 +1008,7 @@ const NL: Record<string, string> = {
   "Departure board": "Vertrektijdenbord",
   "Filters": "Filters",
   "Service notice": "Dienstmededeling",
-  "Work on the line until 18:00 — add ten minutes.": "Werk aan de lijn tot 18:00 — reken tien minuten extra.",
+  "Work on the line until 18:00. Add ten minutes.": "Werk aan de lijn tot 18:00. Reken tien minuten extra.",
   "Planning your journey": "Je reis wordt gepland",
   "When": "Wanneer",
 
@@ -1025,6 +1045,7 @@ const NL: Record<string, string> = {
   "Heart the journey home and this card knows its last service.": "Markeer de reis naar huis en deze kaart kent de laatste rit.",
   "The last departures are read from the same board the departure screen draws.": "De laatste vertrekken komen van hetzelfde bord als op het vertrekscherm.",
   "Last services from {stop}": "Laatste ritten vanaf {stop}",
+  "Last services from": "Laatste ritten vanaf",
   "No late service from this stop in the data.": "Geen late rit vanaf deze halte in de gegevens.",
   "Read at {time}, the same minute the board uses.": "Gelezen om {time}, dezelfde minuut die het bord gebruikt.",
 
@@ -1079,6 +1100,17 @@ const NL: Record<string, string> = {
   "Clear the search to see the whole network again": "Wis de zoekopdracht om het hele netwerk te zien",
   "Show every alert again, not only the ones you kept": "Toon alle storingen, niet alleen de bewaarde",
   "Journey details for {time}": "Reisdetails voor {time}",
+  "Journey details: {departure} to {arrival}": "Reisdetails: {departure} naar {arrival}",
+  /* The word the arrow between two place names cannot say. Spoken in a heading and in the one line
+     of an alert that names the two ends of an affected service. */
+  to: 'naar',
+  "{from} to {to}": "{from} naar {to}",
+  "scheduled {time} · {count} min late": "gepland {time} · {count} min te laat",
+  "Your name for {stop}": "Jouw naam voor {stop}",
+  /* The three links that repeated one word down a list and went to a different place each time. */
+  "Board: {stop}": "Bord: {stop}",
+  "Alerts: {line}": "Storingen: {line}",
+  "Alert details & advice: {title}": "Details en advies: {title}",
   "Show the {time} journey on the map": "Toon de reis van {time} op de kaart",
   "Favourite the {time} journey": "Bewaar de reis van {time}",
   "Favourite the {from} to {to} journey": "Bewaar de reis van {from} tot {to}",

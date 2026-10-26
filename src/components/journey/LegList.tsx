@@ -81,7 +81,10 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
           <span className="leg-row__time">
             {format.time(leg.departure)} <Icon name="arrowRight" size={13} /> {format.time(leg.arrival)}
           </span>
-          <Pill>{format.duration(leg.arrival - leg.departure)}</Pill>
+          <Pill>
+            <Icon name="clock" size={12} />
+            {format.duration(leg.arrival - leg.departure)}
+          </Pill>
           {leg.delayMinutes ? (
             <Pill tone="coral" dot dotTone="coral">
               {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
@@ -106,7 +109,16 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
           {isLastRide ? null : <PlatformTag platform={leg.arrivalPlatform} label={t('Arrival platform')} />}
           {/* The operator is on the journey's summary and on the stop's own board; a chip per leg
               here only repeated the line's name in a third place. */}
-          {leg.headsign ? <Pill tone="outline">{t('Direction {headsign}', { headsign: leg.headsign })}</Pill> : null}
+          {/* The direction of travel is the arrow the leg's own times wear; the headsign beside it
+              is the destination it points at. The bike pill next door already has its picture. */}
+          {leg.headsign ? (
+            <Pill tone="outline">
+              <Icon name="arrowRight" size={12} />
+              {/* The terminus the service is headed for is a station like any other: the words
+                  keep their pill, and the name inside it is the way to its page. */}
+              {t('Direction')} <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+            </Pill>
+          ) : null}
           {leg.bikeAllowed ? (
             <Pill tone="outline">
               <Icon name="bike" size={12} />

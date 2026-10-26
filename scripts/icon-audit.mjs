@@ -18,6 +18,8 @@
  * Run it against a dev server:   node scripts/icon-audit.mjs [origin]
  * It needs playwright:           npm i -D playwright && npx playwright install chromium
  */
+import { ensureAppFont } from './font-guard.mjs';
+
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
 const ROUTES = ['/', '/results', '/journey/j1', '/stops', '/stops/utrecht-centraal', '/departures',
   '/disruptions', '/disruptions/d1', '/preferences', '/settings', '/nope'];
@@ -47,7 +49,12 @@ for (const width of WIDTHS) {
   const appErrors = [];
   page.on('pageerror', (e) => appErrors.push(e.message));
   for (const route of ROUTES) {
-    await page.goto(`${ORIGIN}/#${route}`, { waitUntil: 'networkidle' });
+    await page.goto(`${ORIGIN}${route}`, { waitUntil: 'networkidle' });
+    /*
+     * The whole audit is "is the icon on the line's optical centre", and the line's centre depends
+     * on the font: a fallback with a lopsided ascent moves the text and every check moves with it.
+     */
+    await ensureAppFont(page);
     await page.waitForTimeout(150);
     const found = await page.evaluate(() => {
       const canvas = document.createElement('canvas');

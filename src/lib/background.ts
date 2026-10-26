@@ -928,11 +928,19 @@ export function applyBackground(settings: BackgroundSettings): void {
 
   root.style.setProperty('--accent-primary', accent);
   // (the matched palette's flat surfaces are written below, with the other card properties)
-  /* A split palette fills with the widgets' colour, which is the one its cards wear. */
-  root.style.setProperty(
-    '--accent-fill',
-    splitAccent ? buttonPaint(primaryRgb).bg : paint.accentFill,
-  );
+  /*
+   * **A filled control's label and its fill are one colour's pair, or the label is not there.**
+   *
+   * In a split palette the fill used to be taken from the widgets' colour ("the one its cards
+   * wear") while the label was the ink chosen for the accent's own cut. Those are two different
+   * colours, so with a periwinkle page and an ivory card colour the alert count in the header came
+   * out as an ivory pill holding ivory digits — measured **1.00:1**, a badge with no number in it
+   * (reported from the traveller's own screenshot). Both halves now come from the accent's cut
+   * across the page and the cards, which is the colour these controls are actually painted with,
+   * and `buttonPaint` has already chosen and measured the label against that same fill.
+   */
+  const splitButton = splitAccent ? buttonPaint(splitAccent) : null;
+  root.style.setProperty('--accent-fill', splitButton ? splitButton.bg : paint.accentFill);
   root.style.setProperty(
     '--accent-primary-border',
     splitAccent ? toHex(mix(splitAccent, primaryRgb, 0.18)) : paint.accentBorder,
@@ -944,7 +952,7 @@ export function applyBackground(settings: BackgroundSettings): void {
       : paint.accentHover,
   );
   root.style.setProperty('--accent-primary-ink', accent);
-  root.style.setProperty('--on-accent', splitAccent ? buttonPaint(splitAccent).ink : paint.onAccent);
+  root.style.setProperty('--on-accent', splitButton ? splitButton.ink : paint.onAccent);
 
   if (splitCardAccent) {
     root.style.setProperty('--card-accent', toHex(splitCardAccent));
@@ -954,9 +962,11 @@ export function applyBackground(settings: BackgroundSettings): void {
       toHex(mix(splitCardAccent, parseColor(paint.ink) ?? primaryRgb, 0.12)),
     );
     root.style.setProperty('--card-accent-ink', toHex(splitCardAccent));
-    /* The in-card accent has the same two cuts: the ring's and the label's. */
-    root.style.setProperty('--card-accent-fill', buttonPaint(primaryRgb).bg);
-    root.style.setProperty('--card-on-accent', buttonPaint(splitCardAccent).ink);
+    /* The in-card accent has the same two cuts: the ring's and the label's — and, as above, the
+       label is chosen for the fill it is actually drawn on, not for a second colour. */
+    const splitCardButton = buttonPaint(splitCardAccent);
+    root.style.setProperty('--card-accent-fill', splitCardButton.bg);
+    root.style.setProperty('--card-on-accent', splitCardButton.ink);
   }
   root.style.setProperty('--map-accent', paint.mapAccent);
   root.style.setProperty('--accent-on-dock', paint.dockAccent);
@@ -1021,7 +1031,7 @@ export async function readImageFile(
   maxEdge = BACKGROUND_IMAGE_MAX_EDGE,
 ): Promise<string> {
   if (!file.type.startsWith('image/')) throw new Error('That file is not an image.');
-  if (file.size > BACKGROUND_IMAGE_MAX_BYTES) throw new Error('That image is too large — try one under 12 MB.');
+  if (file.size > BACKGROUND_IMAGE_MAX_BYTES) throw new Error('That image is too large. Try one under 12 MB.');
   const bitmap = await decode(file);
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * scale));

@@ -107,6 +107,15 @@ export interface Leg {
   lineName?: string;
   operatorId?: string;
   headsign?: string;
+  /**
+   * The stop that headsign names.
+   *
+   * The direction a service runs in is named after its terminus, and that terminus is a station
+   * with a page — so the leg keeps the id beside the words, and the pill that prints them can be
+   * a way to look at where the vehicle is going. Optional: a journey saved by an older build has
+   * the name and not this, and a leg without it prints the words as plain text.
+   */
+  headsignStopId?: string;
   intermediateStops?: IntermediateStop[];
   delayMinutes?: number;
   cancelled?: boolean;

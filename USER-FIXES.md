@@ -975,3 +975,84 @@ and `.logs/rail-1440.png` are the eyes' copy. `ui-audit` now also fails when the
 edge leaves the page's content rail (it could not see that before); all three sweeps — light/en,
 dark/en, dark/nl — exit 0. `tsc`, build, class-audit 415/415 and `round15-check` 86/86 pass on the
 final code.
+
+## Super energy saving: no customising, and the line that went missing
+
+> WHY IS CUSTOMIZING THE HOME SCREEN EVEN POSSIBLE ON SUPER SAVING MODE. WHY IS. Why is this line
+> between from and to missing in super saving mode.
+
+Two faults, one mode.
+
+**Customising was exempt from the mode, and should not have been.** The old rule said arranging the
+home screen must stay possible because "a card that is not on screen cannot be dragged". That
+confuses *seeing* a card with *drawing the screen*: at 10% the mode exists to draw the three cards
+that answer "when does the bus go", and a layout you can drag, remove and re-add — with a hold that
+locks text selection and listens to the document for a second — is the most expensive screen in the
+app asking to be repainted. So in super: the Edit corner is not drawn (the corner keeps the ordinary
+way-back slot, which is empty on Home), the press-and-hold does not start its clock, the layout menu
+closes with it, and a mode already open closes when the reading crosses the line. Nothing is
+deleted, so a charger puts the whole layout back.
+
+**The hairline between From and To was a box-shadow, and super drops every shadow.** It was
+`inset 0 1px 0` — a shadow, chosen so a 1px line would not add a pixel to the row's box and push the
+rail's square half a pixel down. Painting it as a `background-image` is the same pixel in the same
+place, at the same cost, and no mode strips it. Both copies of the rule in `components.css` are
+changed.
+
+Verified with `.logs/torture/probe-super-home.cjs` on a faked battery at 9%, in **Chromium, Firefox
+and WebKit**, in both appearances: no Edit corner, a 1.3-second press on the page opens nothing, and
+the divider's computed background is the hairline gradient with no shadow. Crossing the line while
+customising (open at 15%, then 9%) closes the mode in all three. `.logs/battery-modes.cjs` now
+checks the new rule instead of the old exemption, and its Settings-URL check uses a real path —
+**41/41 pass**, where four were failing before the harness was corrected (a hash URL is not a route
+since `BrowserRouter`, and the faked battery did not survive a reload).
+
+## The two marks on "When", and the raised half of "Depart at"
+
+> All circled things are issues.  (the two carets inside the When group, and the pill around
+> DEPART AT, in the Date and time dialog)
+
+**The carets were the browser's own picker button, and two of them inside one frame read as a
+stray column.** Each native date/time input draws its own indicator against the group's inner
+edge; on a phone the group stacks, so the two appeared one above the other beside the divider,
+like a dropdown that belonged to nothing. Each field is now its own slot, and the app draws the
+mark: the browser's button keeps its place and its size but its glyph is made invisible
+(`::-webkit-calendar-picker-indicator { opacity: 0 }`), and the app's own 18px calendar / clock
+is painted under it. A tap on that mark still focuses the field (measured: `results-date`), so the
+device's own picker still opens. Firefox does not expose the button and WebKit does not recognise
+the query, so in those two nothing is hidden and the app's mark is not drawn — never two marks.
+
+**The pill around the chosen half was not concentric.** The compact capsule padded its thumb
+`2px 4px`, so the thumb sat 3px from the capsule's top and bottom and **5px** from its ends. Both
+are fully round, so the thumb's left curve sat inside the capsule's with a crescent of background
+between them: a second outline, drawn slightly wrong. It is `2px` all round now and the two curves
+are concentric.
+
+Verified with `.logs/torture/probe-when.cjs` at **320, 390 and 440** in **Chromium, Firefox and
+WebKit**: the fields stack below 400 and sit side by side above it, the divider is between slots
+(horizontal when stacked), the thumb's inset is **3px on every side** in all three, and a tap on
+the app's mark lands on the field. `tsc`, the build and `ui-audit` (contrast, targets, clipping,
+header, wrapped capsules, popover attachment) all pass.
+
+## The chip that arrived with no outline
+
+> Why is the outline from this button gone till you touch something in the screen.
+
+Two faults, and they only show together.
+
+**A phone leaves `:hover` on whatever was under the finger.** Finishing the search is a tap on a
+list row; the results bar then appears under that same spot, and the chip there is drawn in its
+hover state before anybody has hovered anything. **And that state was drawing a border of
+`--struct-main`**, which in the dark appearance is `rgb(24, 24, 27)` — darker than the chip's own
+surface, so a "hovered" chip was a chip with no outline, lifted 4px and 2% larger. The next touch
+anywhere else cleared the hover and the outline came back: exactly the report.
+
+The lift now sits behind `@media (hover: hover) and (pointer: fine)`, as the dock's does
+(`base.css`), and the chip's hover changes the fill only — the hairline it is drawn with survives
+every state in every appearance. The same gate is on `.btn:hover` and `.chip:hover`, which had the
+same sticky-lift fault on a touch screen.
+
+Measured with `.logs/torture/probe-chips.cjs` on a touch context in **Chromium, Firefox and
+WebKit**, after finishing a search and after tapping Options: `:hover` still matches, and the chip
+is `transform: none` with a **`1px solid rgb(74, 70, 60)`** outline in all three. `tsc`, the build
+and `ui-audit` pass.

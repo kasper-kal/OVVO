@@ -4,6 +4,7 @@ import { PageHeader } from '../components/layout/AppShell';
 import { Card } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { NetworkMap } from '../widgets/registry';
+import { StopLink } from '../components/stops/StopLink';
 import { getStop, stopLabel } from '../data/stops';
 import { useT } from '../lib/useT';
 
@@ -43,14 +44,26 @@ export function MapPage() {
           <div className="between wrap">
             <span className="row t-strong">
               <Icon name={journey ? 'route' : 'station'} size={16} />
-              {journey
-                ? `${stopLabel(journey.legs[0].fromStopId)} → ${stopLabel(last?.toStopId ?? journey.legs[0].toStopId)}`
-                : stop?.name}
+              {/*
+                The name itself is the way to the page — a stop's own name, underlined.
+
+                There used to be a **Stop page** button here as well, which said the same thing
+                twice: the card named one station and then offered a button to reach it. A journey
+                keeps its button, because a journey's two ends are words and the page they lead to
+                is not either of them.
+              */}
+              {journey ? (
+                `${stopLabel(journey.legs[0].fromStopId)} → ${stopLabel(last?.toStopId ?? journey.legs[0].toStopId)}`
+              ) : (
+                <StopLink stopId={stop?.id} label={stop?.name} />
+              )}
             </span>
-            <Link to={journey ? `/journey/${journey.id}` : `/stops/${stop?.id}`} className="btn btn--sm">
-              <Icon name={journey ? 'route' : 'station'} size={15} />
-              {t(journey ? 'Journey details' : 'Stop page')}
-            </Link>
+            {journey ? (
+              <Link to={`/journey/${journey.id}`} className="btn btn--sm">
+                <Icon name="route" size={15} />
+                {t('Journey details')}
+              </Link>
+            ) : null}
           </div>
         </Card>
       ) : null}

@@ -275,6 +275,17 @@ export function ModeBadge({
   );
 }
 
+/*
+ * A row of choices, **words only**.
+ *
+ * There used to be an optional `icon` on each option, and Settings used it on four of its five
+ * controls. A glyph beside a word that already says the same thing is a second thing to read, not
+ * a saving (and two of those controls drew the *same* glyph on both halves — two clocks for
+ * 24-hour and 12-hour, two grids for comfortable and compact, so the picture carried no
+ * information at all). The shape is now enforced by the type: a segment is a label, which is also
+ * what the language control always was. A control that genuinely needs a picture — a toolbar, a
+ * map, the board's own actions — is not a segmented control and does not use this.
+ */
 export function Segmented<T extends string | number>({
   options,
   value,
@@ -282,7 +293,7 @@ export function Segmented<T extends string | number>({
   ariaLabel,
   size = 'md',
 }: {
-  options: { value: T; label: string; icon?: IconName }[];
+  options: { value: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string;
@@ -299,7 +310,6 @@ export function Segmented<T extends string | number>({
           aria-pressed={option.value === value}
           onClick={() => onChange(option.value)}
         >
-          {option.icon ? <Icon name={option.icon} size={15} /> : null}
           {option.label}
         </button>
       ))}
@@ -345,11 +355,19 @@ export function Switch({
   onChange,
   label,
   description,
+  icon,
 }: {
   checked: boolean;
   onChange: (next: boolean) => void;
   label: string;
   description?: string;
+  /*
+   * An optional glyph in front of the label, for a row whose subject the app already draws
+   * somewhere else — a trade-off about transfers wears the swap arrows a journey's chips wear,
+   * and one about walking wears the footprints. The label is unchanged, so nothing depends on the
+   * picture to be understood; it is a landmark, not a replacement (W3C COGA).
+   */
+  icon?: IconName;
 }) {
   return (
     <button type="button" className="switch" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}>
@@ -357,7 +375,10 @@ export function Switch({
         <span className="switch__thumb" />
       </span>
       <span className="switch__text">
-        <span className="t-strong t-sm">{label}</span>
+        <span className="t-strong t-sm row">
+          {icon ? <Icon name={icon} size={14} /> : null}
+          {label}
+        </span>
         {description ? <span className="t-sm t-muted">{description}</span> : null}
       </span>
     </button>

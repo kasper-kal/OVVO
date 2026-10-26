@@ -9,7 +9,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-signal-utrecht',
     type: 'delay',
     severity: 'warning',
-    title: 'Signalling fault — delays around Utrecht Centraal',
+    title: 'Signalling fault: delays around Utrecht Centraal',
     description:
       'A signalling fault is causing delays of 5 to 10 minutes on services running through Utrecht Centraal. Intercity services may be held at the platform for a few minutes.',
     advice: 'Allow 15 minutes extra travel time, or use the Sprinter 5000 between Den Haag and Zwolle.',
@@ -41,7 +41,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-works-rotterdam',
     type: 'works',
     severity: 'warning',
-    title: 'Engineering works — Rotterdam Blaak closed to trams',
+    title: 'Engineering works: Rotterdam Blaak closed to trams',
     description:
       'Planned track works mean tram 24 and tram 8 do not call at Rotterdam Blaak. Metro A and metro E continue to run.',
     advice: 'Travel via metro A/E or walk from Rotterdam Centraal (about 15 minutes).',
@@ -57,7 +57,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-cancel-schiphol',
     type: 'cancellation',
     severity: 'severe',
-    title: 'Cancelled services — Schiphol Airport to Haarlem',
+    title: 'Cancelled services: Schiphol Airport to Haarlem',
     description:
       'Two Sprinter services between Schiphol Airport and Haarlem are cancelled because of a shortage of rolling stock.',
     advice: 'Take bus 347 from Schiphol Airport to Haarlem, or the Intercity to Amsterdam Sloterdijk and travel back.',
@@ -77,7 +77,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-ferry-buiksloterweg',
     type: 'delay',
     severity: 'info',
-    title: 'Ferry F3 — longer waiting times',
+    title: 'Ferry F3: longer waiting times',
     description:
       'The Buiksloterweg ferry runs every 20 minutes instead of every 10 minutes because one vessel is under maintenance.',
     advice: 'Use metro 52 to Amsterdam Noord as an alternative.',
@@ -109,7 +109,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-weather-groningen',
     type: 'weather',
     severity: 'warning',
-    title: 'Strong wind — reduced speed in the north',
+    title: 'Strong wind: reduced speed in the north',
     description:
       'Strong winds are reducing the speed of trains between Groningen, Leeuwarden and Zwolle.',
     advice: 'Expect 10 minutes extra travel time on trains in the north.',
@@ -125,7 +125,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-metro-noord-zuid',
     type: 'delay',
     severity: 'warning',
-    title: 'Metro 52 — longer journey times',
+    title: 'Metro 52: longer journey times',
     description:
       'A track inspection between Amsterdam Noord and Amsterdam Centraal adds 4 minutes to metro 52 journeys.',
     advice: 'Allow extra time or use ferry F3 to Amsterdam Noord.',
@@ -141,7 +141,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-works-denhaag',
     type: 'works',
     severity: 'warning',
-    title: 'Planned works — fewer trains to Den Haag HS',
+    title: 'Planned works: fewer trains to Den Haag HS',
     description:
       'Scheduled maintenance means tram 1 runs a shortened route between Den Haag Centraal and Den Haag HS.',
     advice: 'Walk from Den Haag Centraal (12 minutes) or use metro E.',
@@ -189,7 +189,7 @@ export const DISRUPTIONS: Disruption[] = [
     id: 'd-waterbus-dordrecht',
     type: 'delay',
     severity: 'info',
-    title: 'Waterbus 20 — timetable adjusted',
+    title: 'Waterbus 20: timetable adjusted',
     description:
       'The waterbus between Rotterdam Erasmus bridge and Dordrecht runs to a reduced timetable.',
     advice: 'Use the train from Rotterdam Blaak to Dordrecht instead.',

@@ -152,7 +152,7 @@ export function ColourScreen({
               })}
             </span>
             <span className="t-sm t-faint">
-              {t('The cards take it with {ink} ink — {ratio}:1', {
+              {t('The cards take it with {ink} ink, {ratio}:1', {
                 ink: ink.light ? t('light') : t('dark'),
                 ratio: ink.ratio.toFixed(1),
               })}

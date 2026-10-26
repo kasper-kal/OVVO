@@ -35,6 +35,7 @@ import type { ComponentType, ReactNode } from 'react';
 import type { LucideProps } from 'lucide-react';
 import {
   Accessibility,
+  Armchair,
   ArrowLeft,
   ArrowRight,
   ArrowUpDown,
@@ -42,6 +43,8 @@ import {
   Bookmark,
   Building2,
   Bus,
+  Car,
+  Coffee,
   Footprints,
   GripVertical,
   CalendarDays,
@@ -62,32 +65,41 @@ import {
   Info,
   LayoutGrid,
   List,
+  Luggage,
   Map,
   Minus,
   Monitor,
+  Moon,
+  MoveVertical,
   Pin,
   Pipette,
+  Plane,
   Plus,
   RefreshCw,
   Route,
   Search,
   Settings,
   Ship,
+  ShoppingBag,
   SlidersHorizontal,
+  SquareParking,
   Star,
+  Sun,
   Ticket,
+  Toilet,
   TrainFront,
   TrainFrontTunnel,
   TrainTrack,
   TramFront,
   Trash2,
   TriangleAlert,
+  Umbrella,
   Users,
   X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import type { TravelMode } from '../../data/types';
+import type { StopType, TravelMode } from '../../data/types';
 
 /**
  * **A place on the map** — Lucide's `MapPin` teardrop, drawn as one compound path so that its
@@ -129,6 +141,11 @@ function MapPinGlyph({ size = 20, strokeWidth = 2, className, ...rest }: LucideP
 const GLYPHS = {
   accessibility: Accessibility,
   alert: TriangleAlert,
+  /*
+   * **A bench to sit on** — Lucide's `Armchair`. Only a walking landmark lists one, and it is
+   * the one facility whose whole meaning is "there is somewhere to sit down here".
+   */
+  bench: Armchair,
   arrowLeft: ArrowLeft,
   arrowRight: ArrowRight,
   bike: Bike,
@@ -167,6 +184,11 @@ const GLYPHS = {
   ferry: Ship,
   filter: Funnel,
   /*
+   * **A locker for a case** — Lucide's `Luggage`, the suitcase. It stands for *left luggage* on
+   * a stop page: the place you leave a bag for the day.
+   */
+  lockers: Luggage,
+  /*
    * "Fit the whole network in view" — the map picker's recentre control.
    *
    * It used to be drawn with `location`, the same crosshair the two *use my location* controls
@@ -185,6 +207,12 @@ const GLYPHS = {
   history: History,
   home: House,
   info: Info,
+  /*
+   * **Up and down between floors** — Lucide's `MoveVertical`, two arrowheads on one vertical
+   * line. Named `lift` here so a facility can ask for it by its own word, and deliberately not
+   * `ArrowUpDown`/`swap`, which already means "turn the search around" on the planner.
+   */
+  lift: MoveVertical,
   location: Crosshair,
   /*
    * **Arrange the home screen** — Lucide's `LayoutGrid`, the tiles themselves.
@@ -196,11 +224,19 @@ const GLYPHS = {
    * and remove blocks. The grid is what it changes, so the grid is what it draws.
    */
   layout: LayoutGrid,
+  kiosk: Coffee,
   map: Map,
   menu: List,
   metro: TrainFrontTunnel,
+  /*
+   * **The device the app is running on** — Lucide's `Monitor`. It is the *System* half of the
+   * appearance picker, where the other two halves are a sun and a moon; it is not `board`, which is
+   * the hand-drawn departures screen and means "live times" every time it is used.
+   */
+  monitor: Monitor,
   mapPin: MapPinGlyph,
   minus: Minus,
+  moon: Moon,
   /*
    * **Keep a stop** — Lucide's `Pin`, the drawing pin, not the teardrop above it.
    *
@@ -219,6 +255,11 @@ const GLYPHS = {
    * the stop is not being pointed at, it is being pinned to the traveller's own list.
    */
   pin: Pin,
+  /*
+   * **An airport** — Lucide's `Plane`. A stop's type is drawn with a glyph rather than written out
+   * (`stopTypeIcon` below), and an airport is the one type the mode glyphs do not cover.
+   */
+  plane: Plane,
   /* The same drawing, kept: a pin whose board is on the departure screen. */
   pinFilled: Pin,
   /*
@@ -226,6 +267,7 @@ const GLYPHS = {
    * crosshair) in the first version of the sampler, which meant "where am I" was standing in for
    * "sample this pixel". The eyedropper draws the thing, not the intent.
    */
+  parking: SquareParking,
   pipette: Pipette,
   /*
    * A platform is not the departure board, and it was wearing that screen's monitor glyph
@@ -237,11 +279,16 @@ const GLYPHS = {
   route: Route,
   search: Search,
   settings: Settings,
+  shelter: Umbrella,
+  shops: ShoppingBag,
   sliders: SlidersHorizontal,
   star: Star,
   station: Building2,
+  sun: Sun,
   swap: ArrowUpDown,
+  taxi: Car,
   ticket: Ticket,
+  toilet: Toilet,
   train: TrainFront,
   tram: TramFront,
   trash: Trash2,
@@ -362,8 +409,78 @@ export const MODE_ICON_NAME: Record<TravelMode, IconName> = {
   ferry: 'ferry',
 };
 
-export function ModeIcon({ mode, size = 16 }: { mode: TravelMode; size?: number }) {
-  return <Icon name={MODE_ICON_NAME[mode]} size={size} />;
+export function ModeIcon({
+  mode,
+  size = 16,
+  className,
+}: {
+  mode: TravelMode;
+  size?: number;
+  className?: string;
+}) {
+  return <Icon name={MODE_ICON_NAME[mode]} size={size} className={className} />;
+}
+
+/**
+ * **What is at the stop, drawn.**
+ *
+ * The stop page used to print its facilities as one line of words with dots between them —
+ * `Toilets · Kiosk · Bicycle parking · Lift · Ticket machine · Taxi rank` — which is a list you
+ * have to read word by word to find the one thing you came for. Each facility is now a badge
+ * with its own glyph, so "is there a lift" is a shape to spot rather than a sentence to scan.
+ *
+ * The keys are the words in `data/stops.ts`, which are the words the app already printed, so
+ * the data did not have to change to be drawn. A facility with no glyph here still renders —
+ * the badge simply has no picture — which is what keeps a new word in the data from vanishing
+ * off the page because nobody added an icon for it.
+ *
+ * Where a facility has no honest drawing of its own, the glyph is the object rather than the
+ * abstract idea: `parking` is the P sign a bicycle shed is marked with in the Netherlands, and
+ * `lockers` is a suitcase because left luggage is a case you hand over.
+ */
+const FACILITY_ICON_NAME: Record<string, IconName> = {
+  'LED display': 'board',
+  'Bicycle parking': 'parking',
+  'Left luggage': 'lockers',
+  'Rubbish bin': 'trash',
+  'OV-fiets': 'bike',
+  'Taxi rank': 'taxi',
+  Bench: 'bench',
+  Kiosk: 'kiosk',
+  Lift: 'lift',
+  Shelter: 'shelter',
+  Shops: 'shops',
+  Toilets: 'toilet',
+  'Ticket machine': 'ticket',
+};
+
+export function facilityIcon(facility: string): IconName | null {
+  return FACILITY_ICON_NAME[facility] ?? null;
+}
+
+/**
+ * **What kind of stop this is, drawn.**
+ *
+ * A stop's row used to spell its type out — `Amsterdam · ASC · Station · 40 m` — on every card, in
+ * every list, 61 times over. The type is a category, and the app already has a picture for six of
+ * the seven: the mode glyphs. An airport is the exception the modes do not cover, so it takes a
+ * plane; a landmark is reached on foot, so it takes the footprints a walk wears everywhere else.
+ *
+ * The word is still spoken — the call sites put it in an `sr-only` span beside the glyph — because
+ * a picture is not a word and a screen reader must not be shown one.
+ */
+const STOP_TYPE_ICON_NAME: Record<StopType, IconName> = {
+  station: 'station',
+  airport: 'plane',
+  metrostop: 'metro',
+  tramstop: 'tram',
+  busstop: 'bus',
+  ferrystop: 'ferry',
+  landmark: 'walk',
+};
+
+export function stopTypeIcon(type: StopType): IconName {
+  return STOP_TYPE_ICON_NAME[type];
 }
 
 /**

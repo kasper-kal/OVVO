@@ -49,6 +49,8 @@
  * one in a dialog's footer cannot occupy the same place, and WCAG 3.2.3 — the clause about
  * repeated controls — is about their *relative order*, which this instrument does not measure.
  */
+import { ensureAppFont } from './font-guard.mjs';
+
 const ORIGIN = process.argv.find((arg) => arg.startsWith('http')) ?? 'http://127.0.0.1:3000';
 const GATE = process.argv.includes('--gate');
 const WIDTH = Number(process.env.CONSISTENCY_WIDTH ?? 390);
@@ -412,7 +414,10 @@ const capture = async (screen) => {
 };
 
 const go = async (route) => {
-  await page.goto(`${ORIGIN}/#${route}`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${ORIGIN}${route}`, { waitUntil: 'domcontentloaded' });
+  /* This audit compares what things *say* and how they are shaped; a fallback font changes the
+     shape of every word it reads. */
+  await ensureAppFont(page);
   await page.waitForTimeout(700);
   for (const label of ['Not now', 'No thanks', 'Deny', 'Dismiss', 'Got it']) {
     const button = page.locator('[role=dialog] button, [role=dialog] a').filter({ hasText: new RegExp(label, 'i') });

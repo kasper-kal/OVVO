@@ -128,23 +128,56 @@ export function BoardList({
             <li key={departure.id} className="board-list__row" data-cancelled={departure.cancelled || undefined}>
               <span className="board-list__time">
                 <span className="t-mono-num">{format.time(departure.cancelled ? departure.planned : departure.expected)}</span>
+                {/*
+                  **A delay, said in words.** Drawn, the second line is the booked time struck
+                  through and "+10" beside it; spoken, that was "18:10 18:00 plus 10" — two times
+                  and a number with nothing saying what any of them meant, on the screen people
+                  read at a stop. The picture is now hidden from assistive tech and the sentence
+                  beside it is spoken: "scheduled 18:00 · 10 min late".
+                */}
                 {delayed ? (
                   <span className="board-list__delta">
-                    <span className="strike">{format.time(departure.planned)}</span>
-                    <span className="delay">+{departure.delayMinutes}</span>
+                    <span className="strike" aria-hidden="true">
+                      {format.time(departure.planned)}
+                    </span>
+                    <span className="delay" aria-hidden="true">
+                      +{departure.delayMinutes}
+                    </span>
+                    <span className="sr-only">
+                      {t('scheduled {time} · {count} min late', {
+                        time: format.time(departure.planned),
+                        count: departure.delayMinutes,
+                      })}
+                    </span>
                   </span>
                 ) : null}
               </span>
 
+              {/*
+                **The alert for a cancelled service lives at the end of the line it explains.**
+
+                It used to be a third control in the row's action cluster, beside the plan button —
+                and a row is a grid whose last column is sized by its contents, so that one row was
+                48px wider at the end than every other row, and the platform number in front of it
+                moved 48px left. Reserving the space for every row fixed the line-up and left a
+                thumb's width of nothing on every row that had no alert, which is worse to look at
+                than the jump was.
+
+                This cell is the row's one flexible column — everything right of it is anchored to
+                the right edge — so an icon in here costs the destination a little text width and
+                moves nothing. The rows above and below keep their platform numbers and plan buttons
+                in exactly the same place, and a board with no cancellations carries no empty slot.
+              */}
               <span className="board-list__main">
-                {/*
-                  Where this service goes, as a way to that station's page. It is the one word on
-                  the row that names a place — the time, the platform and the line are facts about
-                  *this* stop — so it is the row's link, and the row keeps its own plan button.
-                */}
-                <span className="board-list__destination">
-                  <StopLink stopId={departure.destinationStopId} label={departure.destinationLabel} />
-                </span>
+                <span className="board-list__line">
+                  {/*
+                    Where this service goes, as a way to that station's page. It is the one word on
+                    the row that names a place — the time, the platform and the line are facts about
+                    *this* stop — so it is the row's link, and the row keeps its own plan button.
+                  */}
+                  <span className="board-list__destination">
+                    <StopLink stopId={departure.destinationStopId} label={departure.destinationLabel} />
+                  </span>
                 {/*
                   The same word the journey card and the leg list use, from the same entry: it was
                   a literal here, so a cancelled departure read `cancelled` — lowercase and English
@@ -158,25 +191,12 @@ export function BoardList({
                   cut: the word wraps as its own line in the row's main column, which the row is
                   already free to grow into.
                 */}
-                {departure.cancelled ? <span className="board-list__cancelled">{t('Cancelled')}</span> : null}
-                <span className="t-sm t-faint">
-                  {line ? `${line.name} · ` : ''}
-                  {operatorName(departure.operatorId)}
+                  {departure.cancelled ? <span className="board-list__cancelled">{t('Cancelled')}</span> : null}
+                  <span className="t-sm t-faint">
+                    {line ? `${line.name} · ` : ''}
+                    {operatorName(departure.operatorId)}
+                  </span>
                 </span>
-              </span>
-
-              {/* A ferry's platform is a word ("Pier 1"), and the compact rule prefixes a bare
-                  `P` for the numbers — so it rendered "PPier 1" at 320/390/768 (5.8, 6.5). A
-                  named platform takes the value alone and no prefix. */}
-              <span
-                className={`board-list__platform${/^\d/.test(departure.platform) ? '' : ' board-list__platform--named'}`}
-                title={t('Platform {platform}', { platform: departure.platform })}
-              >
-                <span className="board-list__platform-label">{t('Platform')}</span>
-                {departure.platform}
-              </span>
-
-              <span className="board-list__actions">
                 {departure.cancelled && departure.disruptionId ? (
                   <Link
                     className="board-list__alert"
@@ -186,6 +206,30 @@ export function BoardList({
                     <Icon name="alert" size={15} />
                   </Link>
                 ) : null}
+              </span>
+
+              {/*
+                **The word "PLATFORM", ten times a board, replaced by the platform's own glyph.**
+
+                It was spelled out on every row and, below a 420px container, replaced by a bare
+                `P` — which is the stylesheet admitting the word is disposable. The app already
+                draws a platform (`platform`, Lucide's TrainTrack) on a journey's stop rows; this is
+                the same fact on the surface it is read most, so it wears the same picture.
+
+                The word is still *spoken*: the `sr-only` span keeps the accessible name the `title`
+                gave, and a ferry's "Pier 1" now needs no prefix rule at all — the glyph says where
+                the number belongs.
+              */}
+              <span
+                className="board-list__platform"
+                title={t('Platform {platform}', { platform: departure.platform })}
+              >
+                <Icon name="platform" size={13} className="board-list__platform-icon" />
+                <span className="sr-only">{t('Platform')}</span>
+                {departure.platform}
+              </span>
+
+              <span className="board-list__actions">
                 <IconButton
                   icon="route"
                   /* Five identical names on a ferry board told a screen reader nothing about which

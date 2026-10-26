@@ -149,7 +149,7 @@ function BackgroundScreen({
     settings.background === 'cream'
       ? t(appearance === 'dark' ? 'The app’s own black canvas.' : 'The app’s own cream canvas.')
       : settings.background === 'colour'
-        ? t('The page’s own colour. The widgets keep theirs — see Primary colour.')
+        ? t('The page’s own colour. The widgets keep theirs. See Primary colour.')
         : t('Your photo, kept on this device under a wash of the canvas colour.');
 
   return (
@@ -669,7 +669,7 @@ function MatchColoursDialog({
     <Dialog
       open={open}
       title={t('Match colours')}
-      description={t('One colour for the page, the primary colour and the selected text — the same HEX in all three.')}
+      description={t('One colour for the page, the primary colour and the selected text: the same HEX in all three.')}
       onClose={onClose}
       footer={
         <>
@@ -702,7 +702,7 @@ function MatchColoursDialog({
           />
           <span className="t-strong t-mono-num">{paint.bg.toUpperCase()}</span>
           <span className="t-sm t-faint grow">
-            {t('The labels take {ink} ink — {ratio}:1', {
+            {t('The labels take {ink} ink, {ratio}:1', {
               ink: paint.light ? t('light') : t('dark'),
               ratio: paint.ratio.toFixed(1),
             })}
@@ -858,7 +858,7 @@ export function ColourSettings() {
             ]}
           />
           <p className="field__hint">
-            {t('This only picks which palette you are editing. It does not change the app’s appearance — use Appearance for that.')}
+            {t('This only picks which palette you are editing. It does not change the app’s appearance. Use Appearance for that.')}
           </p>
           {pickedOther ? (
             <p className="field__hint">

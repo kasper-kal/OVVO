@@ -393,7 +393,8 @@ function buildLeg(step: RawStep, query: SearchQuery, index: number): Leg {
     });
   }
 
-  const headsign = requireStop(dir.stops[dir.stops.length - 1]).name;
+  const headsignStopId = dir.stops[dir.stops.length - 1];
+  const headsign = requireStop(headsignStopId).name;
   const rng = seededRandom('leg', line.id, step.fromStopId, step.toStopId, query.date, step.departMinute);
   const disruption = disruptionForLeg(line.id, step.fromStopId, step.toStopId);
   const delayRoll = rng();
@@ -421,6 +422,7 @@ function buildLeg(step: RawStep, query: SearchQuery, index: number): Leg {
     lineName: line.name,
     operatorId: line.operatorId,
     headsign,
+    headsignStopId,
     intermediateStops: intermediate.length ? intermediate : undefined,
     delayMinutes: delayMinutes || undefined,
     cancelled: cancelled || undefined,

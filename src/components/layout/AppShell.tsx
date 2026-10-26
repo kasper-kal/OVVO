@@ -5,6 +5,7 @@ import { Button, Dialog, Toaster } from '../ui/primitives';
 import { DISRUPTIONS } from '../../data/disruptions';
 import { LocationPermission } from '../location/LocationPermission';
 import { OfflineBar } from './OfflineBar';
+import { ErrorBoundary } from './ErrorBoundary';
 import { useT } from '../../lib/useT';
 import { translate } from '../../lib/i18n';
 import { useApp } from '../../state/AppState';
@@ -292,6 +293,7 @@ function MenuDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
  */
 export function PageHeader({
   title,
+  titleLabel,
   description,
   actions,
   badge,
@@ -301,6 +303,16 @@ export function PageHeader({
   /* A heading can carry a glyph between its words (the journey page's `from → to`), so the title
      is a node rather than a string — the icon is `aria-hidden`, and the words are still the name. */
   title: ReactNode;
+  /**
+   * The heading as words, when the drawn title is not a sentence on its own.
+   *
+   * The journey page's title is two station names with an arrow between them: drawn, that reads
+   * perfectly; spoken, the arrow is silent and the two names run together ("Utrecht Centraal
+   * Amsterdam Centraal"). A string here becomes the `h1`'s own `aria-label`, so the heading and the
+   * arrival announcement say where the journey goes, and the visible title does not change at all.
+   * Nothing is passed for a title that is already a sentence.
+   */
+  titleLabel?: string;
   description?: string;
   actions?: ReactNode;
   badge?: ReactNode;
@@ -318,7 +330,9 @@ export function PageHeader({
       {description ? <p className="sr-only">{description}</p> : null}
       {mobileTitle ? (
         <header className="page-head page-head--mobile-title">
-          <h1 className="page-head__title t-section">{title}</h1>
+          <h1 className="page-head__title t-section" aria-label={titleLabel}>
+            {title}
+          </h1>
           {badge || actions ? (
             <div className="row-wrap page-head__actions">
               {badge}
@@ -332,14 +346,18 @@ export function PageHeader({
             {/* No `grow`: the name and the page's controls are one left-aligned group. Growing the
                 title pushed the controls to the far edge of the page, which is the right-aligned
                 band that was reported ("I'm not Arabic"). */}
-            <h1 className="page-head__title t-section">{title}</h1>
+            <h1 className="page-head__title t-section" aria-label={titleLabel}>
+              {title}
+            </h1>
             {badge}
             {actions}
           </div>
         </header>
       ) : (
         <>
-          <h1 className="sr-only">{title}</h1>
+          <h1 className="sr-only" aria-label={titleLabel}>
+            {title}
+          </h1>
           {badge || actions ? (
             <header className="page-head">
               {/*
@@ -405,7 +423,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const t = useT();
   const alertCount = DISRUPTIONS.length;
   const headerBack = useHeaderBack();
-  const { homeEditing, setHomeEditing, homeMenuOpen, setHomeMenuOpen } = useApp();
+  const { homeEditing, setHomeEditing, homeMenuOpen, setHomeMenuOpen, power } = useApp();
   /*
    * The home screen's editing controls, drawn in the two corners a phone's home screen uses: **+**
    * where the way back goes, **Done** where the alerts entry sits. They exist only on the home
@@ -414,6 +432,18 @@ export function AppShell({ children }: { children: ReactNode }) {
    */
   const onHome = isActivePath(location.pathname, '/');
   const editingHome = homeEditing && onHome;
+  /*
+   * **Arranging the home screen is not "when does the bus go".**
+   *
+   * Super energy saving is a subtraction, and the shape of the screen is one of the things taken
+   * out of it: the mode draws the three cards that answer the question, and a layout you can drag,
+   * remove and re-add while the phone is at 9% is the most expensive screen in the app asking to
+   * be drawn and re-painted. So the way in is not drawn at all — the corner keeps the ordinary
+   * way-back slot, which is empty on Home — and the hold-to-customise gesture is refused in
+   * `HomePage`. Leaving the mode is the charger, not a button here; the layout is untouched and
+   * comes back exactly as it was.
+   */
+  const canArrangeHome = onHome && power.mode !== 'super';
 
   /*
    * **Customising is a mode of the home screen, so leaving it leaves the mode.**
@@ -464,7 +494,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     if (moved) {
       const heading = mainRef.current?.querySelector('h1');
-      if (announcementRef.current) announcementRef.current.textContent = heading?.textContent?.trim() ?? '';
+      /*
+       * The heading's own name first: a title drawn as two names and an arrow has no sentence in
+       * its text, and reading the text gave "Utrecht CentraalAmsterdam Centraal" (`titleLabel` on
+       * `PageHeader` is where such a heading says its words).
+       */
+      if (announcementRef.current) {
+        announcementRef.current.textContent =
+          heading?.getAttribute('aria-label')?.trim() || heading?.textContent?.trim() || '';
+      }
       mainRef.current?.focus({ preventScroll: true });
     }
   }, [location.pathname, location.key, navigationType]);
@@ -560,7 +598,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               else — see `useHeaderBack`.
             */}
             <div className="app-header__back">
-              {onHome ? (
+              {canArrangeHome ? (
                 /*
                  * **Edit** and the `+` it becomes are **one control**, with two faces.
                  *
@@ -638,7 +676,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="app-body">
           <Sidebar />
           <main className="app-main" id="main" ref={mainRef} tabIndex={-1}>
-            {children}
+            {/*
+              **A screen that cannot be drawn is the page's problem, not the app's.** The boundary
+              sits inside the shell, so a crash in one screen leaves the header, the dock and the
+              navigation working, and the card takes that screen's place — the way out is the
+              navigation rather than a blank page (`layout/ErrorBoundary`).
+
+              Keyed by the address: a boundary that has caught an error keeps showing its card
+              until it is reset, so arriving on a *different* screen remounts it and starts clean
+              — otherwise one broken screen would hold every screen after it.
+            */}
+            <ErrorBoundary key={location.pathname} variant="inline">
+              {children}
+            </ErrorBoundary>
           </main>
         </div>
 

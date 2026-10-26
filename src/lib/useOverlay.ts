@@ -137,9 +137,21 @@ export function useOverlay(
 
     /*
      * Focus moves once the overlay is in the document. `data-autofocus` wins (a field a screen
-     * wants the caret in); otherwise the first focusable control — for these panels the close
-     * button, which is a control the traveller can act on at once. The panel itself is the last
-     * resort, so a screen with no controls still takes the keyboard.
+     * wants the caret in); otherwise **the panel itself** takes the keyboard.
+     *
+     * It used to be the first focusable control, which for every sheet in the app is the ×. That
+     * is a ring drawn round a control nobody touched: the sheet is often opened for the traveller
+     * (the location question appears by itself on a first visit), so no pointer or key press has
+     * happened yet — and with no interaction to judge by, the engine treats the focus the app
+     * placed as keyboard focus and paints the coral `:focus-visible` ring on the × the instant the
+     * sheet appears. It reads as "already selected", and it is the app showing a keyboard state
+     * that is not true.
+     *
+     * The panel is the honest target. It is `tabindex="-1"` on both containers, so it takes
+     * focus, the trap still works, and a screen reader announces the sheet's own name and
+     * description — better than announcing "Close" as the first thing. The first Tab goes to the
+     * × as it always did, and the ring is then earned, so it is drawn (see the panel rule in
+     * `styles/base.css`).
      */
     let frame = 0;
     const placeFocus = () => {
@@ -147,8 +159,10 @@ export function useOverlay(
         if (!panel) return;
         /* A screen that focused its own field in the same commit keeps it. */
         if (document.activeElement && panel.contains(document.activeElement)) return;
+        const field = panel.querySelector<HTMLElement>('[data-autofocus]');
+        /* A container that cannot take focus would swallow the call, so ask the controls then. */
         const target =
-          panel.querySelector<HTMLElement>('[data-autofocus]') ?? focusableInside(panel)[0] ?? panel;
+          field ?? (panel.hasAttribute('tabindex') ? panel : focusableInside(panel)[0] ?? panel);
         target.focus({ preventScroll: true });
       });
     };
@@ -178,13 +192,20 @@ export function useOverlay(
       const last = stops[stops.length - 1];
       const active = document.activeElement;
       const outside = !panel.contains(active ?? null);
+      /*
+       * The panel is where an overlay starts, and it is not in `stops` (`tabindex="-1"` is not a
+       * tab stop). Left to the browser, Shift+Tab from it walks *backwards out of the sheet* into
+       * the page behind, which is the trap leaking. It is the first position, so it wraps to the
+       * last control like any other start would.
+       */
+      const onPanel = active === panel;
 
       if (event.shiftKey) {
-        if (outside || active === first) {
+        if (outside || onPanel || active === first) {
           event.preventDefault();
           last.focus({ preventScroll: true });
         }
-      } else if (outside || active === last) {
+      } else if (outside || onPanel || active === last) {
         event.preventDefault();
         first.focus({ preventScroll: true });
       }

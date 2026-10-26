@@ -201,7 +201,10 @@ export function SearchForm({
      * were opened from, which is the one thing the arrow promises.
      */
     startSearch(query);
-    navigate('/results', { replace: pathname === '/results' });
+    /* `startsWith`, not equality: the results screen has its own address per search
+       (`/results/<id>`, see `lib/searchLink`), and a second search from that screen is the same
+       screen changing — one history entry, so Back still leaves the results. */
+    navigate('/results', { replace: pathname.startsWith('/results') });
     setSheet(null);
     onSearch?.();
   };

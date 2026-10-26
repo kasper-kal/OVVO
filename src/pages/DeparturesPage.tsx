@@ -4,6 +4,8 @@ import { useApp } from '../state/AppState';
 import { HeaderButton, PageHeader, useHeaderControl } from '../components/layout/AppShell';
 import { BoardList } from '../components/stops/BoardList';
 import { StopCombobox } from '../components/journey/StopCombobox';
+import { StopLink } from '../components/stops/StopLink';
+import { PlanStopDialog } from '../components/stops/PlanStopDialog';
 import { customStopName, getStop, hasBoard, stopLabel } from '../data/stops';
 import { boardForLine, boardForStop } from '../data/departures';
 import { directions, getLine } from '../data/network';
@@ -67,6 +69,17 @@ export function DeparturesPage() {
   /* A board that cannot hear about a delay is a timetable, and it says so rather than pretending. */
   const online = useOnline();
   const [tick, setTick] = useState(0);
+  /*
+   * **One Plan control per board, and the choice behind it.**
+   *
+   * The foot of every board held two pills side by side — *Plan from here* and *Plan to here* —
+   * which is the same question the stop page and the stop cards answer with **one** button and
+   * `PlanStopDialog` ("is this where you leave from, or where you are going?"). The board kept the
+   * pair through four rounds of audits because nothing was looking for it; now this page asks the
+   * question the way the rest of the app does, and the pairs cannot come back (see
+   * `scripts/plan-pair-audit.mjs`).
+   */
+  const [planStop, setPlanStop] = useState<Stop | null>(null);
 
   /*
    * **The board refreshed itself once a minute at best, while saying every 5 seconds.**
@@ -224,19 +237,21 @@ export function DeparturesPage() {
         <Card className="stack">
           <div className="between wrap">
             <div className="stack-1">
-              <h2 className="t-section">{t('Next departures from {stop}', { stop: lineStop.name })}</h2>
+              {/*
+                The stop this line's board is at, as the way to its page.
+
+                This head used to end in a **Stop page** button of its own, and so did every
+                board's head below: four boards, four buttons, all saying the one word the stop's
+                own name can say. A station's name is the way to its page everywhere else in this
+                app (`StopLink`), so it is here too, underlined — and the head keeps only the one
+                control that has no word for what it does.
+              */}
+              <h2 className="t-section">
+                {t('Next departures from')} <StopLink stopId={lineStop.id} label={lineStop.name} />
+              </h2>
               <span className="t-sm t-muted">
                 {t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
               </span>
-            </div>
-            <div className="row-wrap">
-              {/* The refresh is the screen's now, in the bar's start corner — one control for every
-                  board on it, the line board included. */}
-              {/* The way back to where the line was pressed — the stop's own page, not a dead end. */}
-              <Link to={`/stops/${lineStop.id}`} className="btn btn--sm">
-                <Icon name="arrowLeft" size={15} />
-                {t('Stop page')}
-              </Link>
             </div>
           </div>
           <BoardList
@@ -248,17 +263,23 @@ export function DeparturesPage() {
         <Card className="stack">
           <h2 className="t-section">{t('Route')}</h2>
           {directions(line).map((dir) => {
-            const towards = stopLabel(dir.stops[dir.stops.length - 1]);
+            const terminus = dir.stops[dir.stops.length - 1];
             return (
               <div key={dir.index} className="stack-1">
-                <span className="field__label">{t('Towards {stop}', { stop: towards })}</span>
+                <span className="field__label">
+                  {t('Towards')} <StopLink stopId={terminus} label={stopLabel(terminus)} />
+                </span>
+                {/* Every stop on the route is a station's own name in a line, so every one of them
+                    is the way to that station's page — the same word-link a board row uses. */}
                 <div className="row-wrap">
                   {dir.stops.map((stopId, index) => (
                     <span key={stopId} className="row row--inline">
                       {index > 0 ? <Icon name="chevronRight" size={12} /> : null}
-                      <span className={stopId === lineStop.id ? 't-sm t-strong' : 't-sm t-muted'}>
-                        {stopLabel(stopId)}
-                      </span>
+                      <StopLink
+                        stopId={stopId}
+                        label={stopLabel(stopId)}
+                        className={stopId === lineStop.id ? 't-sm t-strong' : 't-sm t-muted'}
+                      />
                     </span>
                   ))}
                 </div>
@@ -364,7 +385,7 @@ export function DeparturesPage() {
                     stop: getStop(requested)!.name,
                   })
                 : t(
-                    'Pin a stop and its departures appear here. You can pin several at once — they are the boards this page shows, not your favourites.',
+                    'Pin a stop and its departures appear here. You can pin several at once: they are the boards this page shows, not your favourites.',
                   )
             }
           >
@@ -381,7 +402,9 @@ export function DeparturesPage() {
               `.board-head .card-actions` in `components.css`. */}
           <div className="between wrap board-head">
             <div className="stack-1">
-              <h2 className="t-section">{customStopName(stop.id) ?? stop.name}</h2>
+              <h2 className="t-section">
+                <StopLink stopId={stop.id} label={customStopName(stop.id) ?? stop.name} />
+              </h2>
               <span className="t-sm t-muted">
                 {customStopName(stop.id) ? `${stop.name} · ` : ''}
                 {stop.city} · {stop.code} ·{' '}
@@ -407,10 +430,6 @@ export function DeparturesPage() {
               pin here stays.
             */}
             <div className="card-actions">
-              <Link to={`/stops/${stop.id}`} className="btn btn--sm">
-                <Icon name="station" size={15} />
-                {t('Stop page')}
-              </Link>
               <IconButton
                 icon="pin"
                 label={
@@ -469,44 +488,45 @@ export function DeparturesPage() {
           ) : null}
 
           {/*
-            The planning shortcuts belong to the board they name: with several boards on this
-            page, "from here" has to mean a particular stop.
+            The planning shortcut belongs to the board it names: with several boards on this
+            page, "this stop" has to mean a particular stop — so the button carries the stop's name
+            for a screen reader, and the dialog it opens names the stop too.
 
             The 4px step above the row is not decoration. The alerts link above it is a
             `tap-target`, whose hit area reaches 14px beyond its own box; a card's 12px gap left
-            the buttons' top 2px inside the link's overlay, so a press on the very top of "Plan from
-            here" hit the link instead (measured: the 44×44 probe at the button's top edge landed on
+            the button's top 2px inside the link's overlay, so a press on the very top of it hit the
+            link instead (measured: the 44×44 probe at the button's top edge landed on
             `a.row.tap-target`). One small step of separation is what makes both targets real — the
             same fix, for the same reason, as the board's "Show N more" row.
           */}
           <div className="row-wrap" style={{ marginTop: 'var(--s-1)' }}>
-            {/*
-              One end, then the other: `Plan from here` fills the FROM and opens the picker on
-              the TO, and its twin does the mirror image. Neither reuses a search that is already
-              in the session, and neither jumps to the results (F28).
-            */}
+            {/* `route`, not the crosshair: this plans a journey, it does not locate anyone. */}
             <Button
               size="sm"
-              /* `route`, not the crosshair: this plans a journey, it does not locate anyone. */
               icon="route"
-              aria-label={t('Plan from {stop}', { stop: customStopName(stop.id) ?? stop.name })}
-              onClick={() => navigate(`/?from=${stop.id}&pick=to`)}
+              aria-label={t('Plan a journey with {stop}', { stop: customStopName(stop.id) ?? stop.name })}
+              onClick={() => setPlanStop(stop)}
             >
-              {t('Plan from here')}
-            </Button>
-            <Button
-              size="sm"
-              /* Same glyph as "Plan from here" beside it — the pair is one action, and the
-                 words say which end of the journey this stop is. */
-              icon="route"
-              aria-label={t('Plan to {stop}', { stop: customStopName(stop.id) ?? stop.name })}
-              onClick={() => navigate(`/?to=${stop.id}&pick=from`)}
-            >
-              {t('Plan to here')}
+              {t('Plan')}
             </Button>
           </div>
         </Card>
       ))}
+
+      {/*
+        The board's one Plan button, asking the two-choice question every other surface asks
+        (`PlanStopDialog`): "from" fills the FROM and opens the picker on the TO, "to" does the
+        mirror image, and neither reuses a search already in the session (F28).
+      */}
+      <PlanStopDialog
+        stop={planStop}
+        onClose={() => setPlanStop(null)}
+        onPlan={(direction) => {
+          if (!planStop) return;
+          navigate(`/?${direction}=${planStop.id}&pick=${direction === 'from' ? 'to' : 'from'}`);
+          setPlanStop(null);
+        }}
+      />
 
       {/*
         The "About this board" panel that used to close this page is gone: four lines of the

@@ -1,5 +1,6 @@
 import type { Language } from '../state/types';
 import { wikipediaArticle, wikipediaUrl } from '../data/wikipedia';
+import { timeoutSignal } from './timeoutSignal';
 
 /**
  * A stop's summary, asked of Wikipedia when its page is opened.
@@ -80,7 +81,7 @@ async function requestSummary(language: Language, article: string): Promise<Wiki
   try {
     const response = await fetch(address, {
       headers: { accept: 'application/json' },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: timeoutSignal(TIMEOUT_MS),
     });
     if (!response.ok) return null;
     const body: unknown = await response.json();

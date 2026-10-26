@@ -239,7 +239,7 @@ export function DisruptionsPage() {
           <p className="t-sm t-faint stops-origin">
             {nearestOrigin.source === 'device'
               ? t('Nearest first, from your device location.')
-              : t('Nearest first, from an approximate IP location — it can be off by a lot.')}
+              : t('Nearest first, from an approximate IP location, which can be off by a lot.')}
           </p>
         ) : null}
 
@@ -442,8 +442,21 @@ function AlertCard({ alert }: { alert: Disruption }) {
       */}
       {alert.affectedStopIds.length ? (
         <p className="t-sm t-muted">
+          {/*
+            **A stop is a glyph; its word is only spoken.**
+
+            This read `Affected stops (3) :` — a label, then a stray space before a colon, on every
+            alert card. The count and the names are the fact; the label is the category, so it takes
+            the station's glyph and keeps its words in an `sr-only` span. The names themselves stay
+            words: each one is a link to that stop.
+          */}
           <span className="t-faint">
-            {t('Affected stops ({count})', { count: alert.affectedStopIds.length })}:{' '}
+            <Icon name="station" size={12} className="icon--inline" /> {alert.affectedStopIds.length}
+            <span className="sr-only">
+              {' '}
+              {t('Affected stops ({count})', { count: alert.affectedStopIds.length })}
+            </span>
+            {' · '}
           </span>
           {alert.affectedStopIds.map((stopId, index) => (
             <span key={stopId}>
@@ -459,7 +472,17 @@ function AlertCard({ alert }: { alert: Disruption }) {
         page (and on the stop's page); a second button here made the eye choose twice per row.
       */}
       <div className="row-wrap">
-        <Link to={to} className="btn btn--primary btn--sm" onClick={(event) => event.stopPropagation()}>
+        <Link
+          to={to}
+          className="btn btn--primary btn--sm"
+          /*
+            "Alert details & advice" on every card is one name repeated down the whole list, each
+            going to a different alert — indistinguishable in a screen reader's link list. The
+            visible words lead the name; the alert's own title tells the five apart.
+          */
+          aria-label={t('Alert details & advice: {title}', { title: alert.title })}
+          onClick={(event) => event.stopPropagation()}
+        >
           <Icon name="info" size={15} />
           {t('Alert details & advice')}
         </Link>

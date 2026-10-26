@@ -112,6 +112,13 @@ export function PreferencesControls({
         >
           <select
             className="select"
+            /*
+              The field's label is a `<label>` with no `htmlFor`, so this control had no name at
+              all: a screen reader announced "combo box, Maximum 2 transfers, selected" and never
+              said what it was counting. The visible words are the name, spelled the way the
+              slider above spells them for the same reason (10.7).
+            */
+            aria-label={t('Maximum number of transfers')}
             value={preferences.maxTransfers}
             onChange={(event) => onChange({ maxTransfers: Number(event.target.value) })}
           >
@@ -130,12 +137,14 @@ export function PreferencesControls({
           checked={preferences.preferFewerTransfers}
           onChange={(next) => onChange({ preferFewerTransfers: next })}
           label={t('Prefer fewer transfers')}
+          icon="swap"
           description={withHints ? t('Ranks journeys with fewer changes higher, even if slower.') : undefined}
         />
         <Switch
           checked={preferences.preferLessWalking}
           onChange={(next) => onChange({ preferLessWalking: next })}
           label={t('Prefer less walking')}
+          icon="walk"
           description={withHints ? t('Shortens walking links and ranks them lower.') : undefined}
         />
       </div>

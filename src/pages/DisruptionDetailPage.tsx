@@ -1,12 +1,16 @@
-import { Link, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../components/layout/AppShell';
 import { DISRUPTIONS, DISRUPTION_TYPE_LABELS, getDisruption } from '../data/disruptions';
 import { getLine } from '../data/network';
 import { getStop, stopLabel } from '../data/stops';
+import { StopLink } from '../components/stops/StopLink';
+import { PlanStopDialog } from '../components/stops/PlanStopDialog';
+import type { Stop } from '../data/types';
 import { modeLabel } from '../data/preferences';
 import { operatorName } from '../data/operators';
 import { severityTone } from './DisruptionsPage';
-import { Banner, Card, EmptyState, Panel, Pill } from '../components/ui/primitives';
+import { Banner, Button, Card, EmptyState, Panel, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -14,9 +18,19 @@ import { usePageTitle } from '../lib/usePageTitle';
 
 export function DisruptionDetailPage() {
   const { disruptionId } = useParams();
+  const navigate = useNavigate();
   const format = useFormat();
   const t = useT();
   const alert = getDisruption(disruptionId);
+  /*
+   * **One Plan control per stop, and the choice behind it.**
+   *
+   * Every affected stop here carried its own *Plan to here* link — an end already decided on the
+   * traveller's behalf, spelled the one way the rest of the app no longer spells it. A stop gets
+   * the app's one answer instead: a single *Plan* button that opens `PlanStopDialog` and asks
+   * whether this is where you leave from or where you are going.
+   */
+  const [planStop, setPlanStop] = useState<Stop | null>(null);
   usePageTitle(alert ? alert.title : t('Alert not found'));
 
   if (!alert) {
@@ -52,7 +66,14 @@ export function DisruptionDetailPage() {
         title={alert.title}
         description={`${t('Alert')} · ${format.time(alert.startsAt)} – ${format.time(alert.endsAt)} · ${t(DISRUPTION_TYPE_LABELS[alert.type])}`}
         showTitle
-        badge={<Pill tone={severityTone(alert.severity)}>{severityLabel(alert.severity, t)}</Pill>}
+        badge={
+          /* A severity is what the warning glyph means: the same picture the board's cancelled
+             rows and the alert list wear. */
+          <Pill tone={severityTone(alert.severity)}>
+            <Icon name="alert" size={12} />
+            {severityLabel(alert.severity, t)}
+          </Pill>
+        }
       />
 
       {/*
@@ -70,10 +91,16 @@ export function DisruptionDetailPage() {
               {alert.advice}
             </Banner>
             <div className="row-wrap">
+              {/* The window is a clock; the kind of alert is the info mark. Two facts, two shapes,
+                  instead of two outline pills that only differ by their words. */}
               <Pill tone="outline">
+                <Icon name="clock" size={12} />
                 {format.time(alert.startsAt)}–{format.time(alert.endsAt)}
               </Pill>
-              <Pill tone="outline">{t(DISRUPTION_TYPE_LABELS[alert.type])}</Pill>
+              <Pill tone="outline">
+                <Icon name="info" size={12} />
+                {t(DISRUPTION_TYPE_LABELS[alert.type])}
+              </Pill>
               {alert.modes.map((mode) => (
                 <span key={mode} className={`mode-badge mode-badge--${mode}`}>
                   <ModeIcon mode={mode} size={13} />
@@ -120,19 +147,17 @@ export function DisruptionDetailPage() {
                         {stop.city} · {stop.code}
                       </span>
                     </span>
-                    {/* One end, then the other: this fills the TO and opens the FROM picker
-                        (F28). `navigate` from the import line below is the whole handler. */}
-                    {/* A link, not a `<button>` that navigates: four "Plan to here" buttons told
-                        a screen reader nothing about which stop each one plans, and a button
-                        cannot be opened in a new tab (8.3). */}
-                    <Link
-                      to={`/?to=${stop.id}&pick=from`}
-                      className="btn btn--sm"
-                      aria-label={t('Plan to {stop}', { stop: stop.name })}
+                    {/* One control, one question: the dialog names the stop and asks which end
+                        it is, instead of four rows each deciding *to* for the reader (8.3, and
+                        the same reason the board's own pair became one button). */}
+                    <Button
+                      size="sm"
+                      icon="route"
+                      aria-label={t('Plan a journey with {stop}', { stop: stop.name })}
+                      onClick={() => setPlanStop(stop)}
                     >
-                      <Icon name="route" size={16} />
-                      {t('Plan to here')}
-                    </Link>
+                      {t('Plan')}
+                    </Button>
                   </li>
                 ) : null,
               )}
@@ -150,9 +175,19 @@ export function DisruptionDetailPage() {
                     </span>
                     <span className="stack-1 grow">
                       <span className="t-strong t-sm">{line.name}</span>
+                      {/* The two ends of the affected line, each one the way to that station's
+                          page: an alert that names a place is naming a place you can look at. */}
                       <span className="t-sm t-muted">
-                        {operatorName(line.operatorId)} · {stopLabel(line.stops[0])} <Icon name="arrowRight" size={12} />{' '}
-                        {stopLabel(line.stops[line.stops.length - 1])} ·{' '}
+                        {operatorName(line.operatorId)} ·{' '}
+                        <StopLink stopId={line.stops[0]} label={stopLabel(line.stops[0])} />{' '}
+                        <Icon name="arrowRight" size={12} />{' '}
+                        {/* The arrow is a picture: without this word the two ends of the affected
+                            line are heard as one run of place names, with no "from" or "to". */}
+                        <span className="sr-only">{t('to')}</span>{' '}
+                        <StopLink
+                          stopId={line.stops[line.stops.length - 1]}
+                          label={stopLabel(line.stops[line.stops.length - 1])}
+                        />{' · '}
                         {t('every {minutes} min', { minutes: line.headway })}
                       </span>
                     </span>
@@ -207,6 +242,19 @@ export function DisruptionDetailPage() {
           </Link>
         </div>
       </Panel>
+
+      {/* The stop's own Plan button asks the app's one question, and answers it the same way
+          every other surface does: "from" fills the FROM and opens the TO picker, "to" does the
+          mirror image (F28). */}
+      <PlanStopDialog
+        stop={planStop}
+        onClose={() => setPlanStop(null)}
+        onPlan={(direction) => {
+          if (!planStop) return;
+          navigate(`/?${direction}=${planStop.id}&pick=${direction === 'from' ? 'to' : 'from'}`);
+          setPlanStop(null);
+        }}
+      />
     </div>
   );
 }

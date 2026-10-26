@@ -61,13 +61,26 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           <Link
             to={to}
             className="journey-card__link"
-            aria-label={t('Journey details for {time}', { time: format.time(journey.departure) })}
+            /*
+              Both ends, because two journeys can leave in the same minute — the list held two
+              "Journey details for 09:30" links to two different journeys (one arriving 09:54, one
+              09:59), which a screen reader's link list cannot tell apart.
+            */
+            aria-label={t('Journey details: {departure} to {arrival}', {
+              departure: format.time(journey.departure),
+              arrival: format.time(journey.arrival),
+            })}
             onClick={(event) => event.stopPropagation()}
           >
             <span className="journey-card__time">{format.time(journey.departure)}</span>
             <Icon name="arrowRight" size={18} className="journey-card__arrow" />
             <span className="journey-card__time">{format.time(journey.arrival)}</span>
-            <span className="pill">{format.duration(journey.durationMinutes)}</span>
+            {/* The journey's own page already draws its duration as `[clock] 51 min`; the card was
+                the one place the same fact was a word in a pill with no picture. */}
+            <span className="pill">
+              <Icon name="clock" size={12} />
+              {format.duration(journey.durationMinutes)}
+            </span>
           </Link>
         </h2>
         <div className="journey-card__tags">

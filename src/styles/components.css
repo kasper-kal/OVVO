@@ -442,10 +442,12 @@
     color var(--t-press) var(--ease-press);
 }
 
-.btn:hover {
-  transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
-  transition: transform var(--t-hover) var(--ease-hover);
-  border-color: var(--struct-main);
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
+    transition: transform var(--t-hover) var(--ease-hover);
+    border-color: var(--struct-main);
+  }
 }
 
 .btn:active {
@@ -715,10 +717,12 @@
     border-color var(--t-press) var(--ease-press);
 }
 
-.chip:hover {
-  transform: translateY(var(--hover-lift));
-  border-color: var(--struct-main);
-  transition: transform var(--t-hover) var(--ease-hover);
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    transform: translateY(var(--hover-lift));
+    border-color: var(--struct-main);
+    transition: transform var(--t-hover) var(--ease-hover);
+  }
 }
 
 .chip:active {
@@ -730,16 +734,6 @@
   background: var(--struct-main);
   border-color: var(--struct-secondary);
   color: var(--on-dark);
-}
-
-/* A mode chip carries the colour its routes are drawn in on the map. */
-.chip .map-legend__swatch {
-  flex: 0 0 auto;
-  width: 16px;
-}
-
-.chip[aria-pressed='true'] .map-legend__swatch {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
 
 .chip[aria-pressed='true'] .chip__icon,
@@ -880,7 +874,16 @@
      buttons" looks like. Still the tightest gap in the app, so the pair still reads as one
      control — a whole 8px step would make it read as two. */
   gap: var(--s-1);
-  padding: 2px var(--s-1);
+  /*
+   * **The inset is the same on all four sides, so the chosen half is concentric.**
+   *
+   * It was `2px 4px`, which put the thumb 3px from the capsule's top and bottom edge and 5px from
+   * its ends — two different radii in one shape. Both are fully round, so the thumb's left curve sat
+   * inside the capsule's with a crescent of background between them, and at 2x it read as a second
+   * outline drawn slightly wrong (reported, circled on "Depart at"). At 2px all round the two curves
+   * are concentric and the gap is even: the shape reads as one capsule with one raised half.
+   */
+  padding: 2px;
   min-height: var(--target-min);
 }
 
@@ -1351,8 +1354,22 @@
   min-height: var(--planner-row);
 }
 
+/*
+ * **The hairline between the two rows is painted, not shadowed.**
+ *
+ * It was `inset 0 1px 0` — a shadow, which draws one pixel without adding a pixel to the row's box
+ * (a border would push the To row's centre half a pixel down, and the rail's square with it). That
+ * works until super energy saving arrives: the mode drops every box-shadow in the interface for
+ * the compositor's sake, so the one line that makes this look like two rows went with it and the
+ * planner read as a single tall empty field (reported, with a screenshot of exactly that at 9%).
+ * A background is not a shadow: this is the same pixel, in the same place, at the same cost, and
+ * no mode strips it.
+ */
 .planner-row--to {
-  box-shadow: inset 0 1px 0 var(--border-hairline);
+  background-image: linear-gradient(var(--border-hairline), var(--border-hairline));
+  background-size: 100% 1px;
+  background-position: 0 0;
+  background-repeat: no-repeat;
 }
 
 /* The row ends with its own clear button, nothing else. */
@@ -1854,10 +1871,12 @@
     color var(--t-press) var(--ease-press);
 }
 
-.btn:hover {
-  transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
-  transition: transform var(--t-hover) var(--ease-hover);
-  border-color: var(--struct-main);
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
+    transition: transform var(--t-hover) var(--ease-hover);
+    border-color: var(--struct-main);
+  }
 }
 
 .btn:active {
@@ -2108,10 +2127,12 @@
     border-color var(--t-press) var(--ease-press);
 }
 
-.chip:hover {
-  transform: translateY(var(--hover-lift));
-  border-color: var(--struct-main);
-  transition: transform var(--t-hover) var(--ease-hover);
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    transform: translateY(var(--hover-lift));
+    border-color: var(--struct-main);
+    transition: transform var(--t-hover) var(--ease-hover);
+  }
 }
 
 .chip:active {
@@ -2123,16 +2144,6 @@
   background: var(--struct-main);
   border-color: var(--struct-secondary);
   color: var(--on-dark);
-}
-
-/* A mode chip carries the colour its routes are drawn in on the map. */
-.chip .map-legend__swatch {
-  flex: 0 0 auto;
-  width: 16px;
-}
-
-.chip[aria-pressed='true'] .map-legend__swatch {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
 
 .chip[aria-pressed='true'] .chip__icon,
@@ -2273,7 +2284,16 @@
      buttons" looks like. Still the tightest gap in the app, so the pair still reads as one
      control — a whole 8px step would make it read as two. */
   gap: var(--s-1);
-  padding: 2px var(--s-1);
+  /*
+   * **The inset is the same on all four sides, so the chosen half is concentric.**
+   *
+   * It was `2px 4px`, which put the thumb 3px from the capsule's top and bottom edge and 5px from
+   * its ends — two different radii in one shape. Both are fully round, so the thumb's left curve sat
+   * inside the capsule's with a crescent of background between them, and at 2x it read as a second
+   * outline drawn slightly wrong (reported, circled on "Depart at"). At 2px all round the two curves
+   * are concentric and the gap is even: the shape reads as one capsule with one raised half.
+   */
+  padding: 2px;
   min-height: var(--target-min);
 }
 
@@ -2744,8 +2764,22 @@
   min-height: var(--planner-row);
 }
 
+/*
+ * **The hairline between the two rows is painted, not shadowed.**
+ *
+ * It was `inset 0 1px 0` — a shadow, which draws one pixel without adding a pixel to the row's box
+ * (a border would push the To row's centre half a pixel down, and the rail's square with it). That
+ * works until super energy saving arrives: the mode drops every box-shadow in the interface for
+ * the compositor's sake, so the one line that makes this look like two rows went with it and the
+ * planner read as a single tall empty field (reported, with a screenshot of exactly that at 9%).
+ * A background is not a shadow: this is the same pixel, in the same place, at the same cost, and
+ * no mode strips it.
+ */
 .planner-row--to {
-  box-shadow: inset 0 1px 0 var(--border-hairline);
+  background-image: linear-gradient(var(--border-hairline), var(--border-hairline));
+  background-size: 100% 1px;
+  background-position: 0 0;
+  background-repeat: no-repeat;
 }
 
 /* The row ends with its own clear button, nothing else. */
@@ -3087,12 +3121,30 @@
     border-color var(--t-press) var(--ease-press);
 }
 
-.results-chip:hover,
+/*
+ * **A chip's hover is for a pointer that hovers — and it never takes the outline away.**
+ *
+ * Two faults met on the results bar. The hover rule changed the border to `--struct-main`, which in
+ * the dark appearance is `rgb(24, 24, 27)` — darker than the chip's own surface — so a hovered chip
+ * was a chip with *no* outline, and the lift moved it 4px up as well. And a phone leaves `:hover` on
+ * whatever was under the finger, so after finishing the search the chip that happened to be at that
+ * spot arrived already "hovered": no outline, floating, until the next touch somewhere else put it
+ * back (reported as "the outline from this button is gone till you touch something").
+ *
+ * So the lift sits behind `hover: hover` and a fine pointer, exactly as the dock's does
+ * (`base.css`), and the fill is the whole hover: the hairline the chip is drawn with survives every
+ * state, in every appearance. The keyboard's own ring is the global `:focus-visible` outline.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .results-chip:hover {
+    background: var(--surface-alt);
+    transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
+    transition: transform var(--t-hover) var(--ease-hover);
+  }
+}
+
 .results-chip:focus-visible {
   background: var(--surface-alt);
-  border-color: var(--struct-main);
-  transform: translateY(var(--hover-lift)) scale(var(--hover-scale));
-  transition: transform var(--t-hover) var(--ease-hover);
 }
 
 .results-chip:active {
@@ -3187,6 +3239,24 @@
 }
 
 /*
+ * **A card's title link is 44px tall on its own.**
+ *
+ * The title of an alert card is `tap-target`, and its borrowed target kept being clipped: measured
+ * outward from the words, a two-line title reached 36px because the block above owned the space the
+ * pseudo wanted. Borrowing only works when the row around a link has room to spare, and a list is
+ * the one place it never does — so inside a card the link is the target (44px, expansion off),
+ * exactly as the results banner's alert link already was.
+ */
+.card a.tap-target {
+  min-height: var(--target-min);
+  align-items: center;
+}
+
+.card a.tap-target::after {
+  inset: 0;
+}
+
+/*
  * An expanded hit area has to fit inside the space its row is given, and this one did not.
  *
  * `.tap-target::after` reaches 14px above its own box, and the card above it left a 12px gap to
@@ -3198,6 +3268,20 @@
  */
 .board-alerts {
   margin-top: var(--s-1);
+  /*
+   * The row takes its own 44px instead of borrowing them.
+   *
+   * `.tap-target::after` reaches 14px past the box, and here that borrowed height was being eaten
+   * — by the dock that floats over the foot of the page, and by whatever card sits above it — so
+   * the target a finger actually got was the 16px of the words. The expansion is switched off and
+   * the row is the target: 262-270px wide on a phone, and 44 tall everywhere.
+   */
+  min-height: var(--target-min);
+  align-items: center;
+}
+
+.board-alerts::after {
+  inset: 0;
 }
 
 /* An alert's title and its "— view details" tail: the title takes the space the row has,
@@ -3546,6 +3630,40 @@
   background: transparent;
   border-style: dashed;
   color: var(--ink-muted);
+}
+
+/* --------------------------------------------------------- Facility badges */
+/*
+ * What is at the stop, one badge per facility.
+ *
+ * The same pill a mode badge wears — a card showing two kinds of pill either shares one shape or
+ * asks the traveller to learn a second for no reason — but set quieter: a facility is reference
+ * ("is there a lift?"), not a category the way a mode is, so the ink is the muted one and the
+ * weight is `medium` where a mode badge is bold. That is what keeps six of them in a row from
+ * reading as six headings.
+ */
+.facility-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.facility-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 26px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  color: var(--ink-muted);
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
 }
 
 .status-dot {
@@ -4849,6 +4967,38 @@
   color: var(--accent-primary-ink);
 }
 
+/* ------------------------------------------------------------ the error screen */
+/*
+ * `layout/ErrorScreen`, in its two sizes. The page one stands in the middle of the canvas on its
+ * own — there is no header and no dock, because the shell was part of what failed. The inline one
+ * is just a card in the page's place, so it adds no ground and no height of its own: the shell
+ * around it already supplies both.
+ */
+.error-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--s-4);
+}
+
+.error-screen--inline {
+  min-height: 0;
+  padding: 0;
+}
+
+.error-screen__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  max-width: 46ch;
+  padding: var(--s-8) var(--s-6);
+  text-align: center;
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-card);
+}
+
 .tabs {
   display: flex;
   gap: var(--s-1);
@@ -4930,6 +5080,23 @@
   color: var(--ink-strong);
   font-weight: var(--fw-medium);
 }
+
+/*
+ * A label and its value on one line, with a gap that cannot stretch.
+ *
+ * `.dl` is a two-column grid so a stack of rows lines up under one gutter. A single pair does not
+ * need that gutter, and it cannot have it safely: `minmax(96px, auto)` grows to whatever the widest
+ * thing placed in the column wants, so one wide value elsewhere turns the gap into the width of
+ * the card. A flex row has no such track — the number sits a fixed `--s-2` from its word, at every
+ * width, and the pair wraps together on a phone rather than separating.
+ */
+.dl--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-2);
+}
+
 
 /*
  * The accent list in the settings preview.
@@ -5606,11 +5773,31 @@
   font-size: var(--fs-pill);
 }
 
+/*
+ * The row's flexible cell: the words on the left, and — only on a cancelled row — the alert that
+ * explains them on the right.
+ *
+ * It is laid out as a row so the alert can sit at the end of the line without widening the row.
+ * Everything to the right of this cell (the platform, the plan button) is sized by its contents and
+ * anchored to the right edge, so anything that grows in *here* costs this cell a little width and
+ * moves nothing else. That is the whole reason the alert lives here rather than beside the plan
+ * button, where it was a second 44px control that shoved the platform number 48px sideways on the
+ * one row that had it (see `BoardList`).
+ */
 .board-list__main {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+/* The words themselves, stacked: destination, the cancelled word, the line and carrier. */
+.board-list__line {
   display: flex;
   flex-direction: column;
   gap: var(--s-1);
   min-width: 0;
+  flex: 1;
 }
 
 .board-list__destination {
@@ -5624,6 +5811,8 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+  /* A clamped station name says it continues (see `.t-clamp-2` in `base.css`). */
+  text-overflow: ellipsis;
 }
 
 /*
@@ -5648,11 +5837,10 @@
   white-space: nowrap;
 }
 
-.board-list__platform-label {
+/* The platform's glyph where the word "PLATFORM" used to be. */
+.board-list__platform-icon {
   color: var(--ink-faint);
-  font-size: var(--fs-pill);
-  letter-spacing: var(--track-pill);
-  text-transform: uppercase;
+  align-self: center;
 }
 
 .board-list__actions {
@@ -5666,6 +5854,13 @@
  * that was not: it drew 32x32, so the audit found it the moment the timetable held a cancellation
  * (a cancelled row is the only row with this link). Sized rather than enlarged by a pseudo-element
  * — the established pattern for a corner control — because this one sits in a flex row beside
+ * another 44px control, and a grown hit area there would overlap its neighbour's.
+ */
+/*
+ * 44px, because that is the target the app promises and this was the one control on a board row
+ * that was not: it drew 32x32, so the audit found it the moment the timetable held a cancellation
+ * (a cancelled row is the only row with this link). Sized rather than enlarged by a pseudo-element
+ * - the established pattern for a corner control - because this one sits in a flex row beside
  * another 44px control, and a grown hit area there would overlap its neighbour's.
  */
 .board-list__alert {
@@ -5694,24 +5889,7 @@
     gap: var(--s-2);
   }
 
-  .board-list__platform {
-    gap: 0;
-  }
 
-  .board-list__platform-label {
-    font-size: 0;
-  }
-
-  .board-list__platform-label::before {
-    content: 'P';
-    font-size: var(--fs-pill);
-    letter-spacing: 0;
-  }
-
-  /* "Pier 1" already names itself: the P prefix is for a bare number. */
-  .board-list__platform--named .board-list__platform-label {
-    display: none;
-  }
 }
 
 /*
@@ -5740,19 +5918,6 @@
     gap: var(--s-2);
   }
 
-  .board-list__platform {
-    gap: 0;
-  }
-
-  .board-list__platform-label {
-    font-size: 0;
-  }
-
-  .board-list__platform-label::before {
-    content: 'P';
-    font-size: var(--fs-pill);
-    letter-spacing: 0;
-  }
 }
 
 /* ------------------------------------------------------------ Widget grid */
@@ -6435,15 +6600,65 @@
  * group. `min-width: 0` is what keeps a native date from widening the column it was given: its
  * intrinsic width is the locale's longest date, which is wider than half a phone.
  */
-.when-field__group .input {
+/*
+ * **One answer per slot, and one mark per answer.**
+ *
+ * Each field is a wrapper of its own so the group can divide *slots* rather than inputs, and so a
+ * glyph can be placed in a field without being a child of an input. The wrapper is the thing that
+ * carries the divider: `input + input` stopped matching the moment the inputs were no longer
+ * siblings, which is the whole reason the divider rule is written against the slot now.
+ */
+.when-field__field {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.when-field__field .input {
+  flex: 1 1 auto;
   min-width: 0;
   padding-right: var(--s-2);
-  /* The platform draws its own glyph against this edge; the app's padding was tuned for text. */
   font-variant-numeric: tabular-nums;
 }
 
-.when-field__group .select + .select,
-.when-field__group .input + .input {
+/*
+ * The app's own calendar and clock, in the slot the browser's own picker button occupies.
+ *
+ * It is drawn **under** that button and never instead of it: the button keeps its place and its
+ * size, so the tap that used to open the device's calendar still lands on the device's calendar.
+ * Only its glyph goes — `opacity: 0` on the indicator, which is the hook Chromium offers and this
+ * app's engines can be asked about. Firefox has no such hook and WebKit's indicator is not
+ * recognised by that query either (it shows its own mark only while the field is focused), so in
+ * both of those the app draws nothing and the browser's own behaviour is left exactly as it was:
+ * one mark, or the browser's, never two.
+ *
+ * Why bother: the indicator is a chevron on some phones and a calendar on others, and two of them
+ * stacked beside the group's divider read as a stray dropdown column fenced into the field
+ * (reported, circled). The app's own mark is the same 18px glyph the rest of the interface uses.
+ */
+.when-field__glyph {
+  position: absolute;
+  top: 50%;
+  right: var(--s-2);
+  display: none;
+  align-items: center;
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+@supports selector(::-webkit-calendar-picker-indicator) {
+  .when-field__field .input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .when-field__glyph {
+    display: inline-flex;
+  }
+}
+
+.when-field__field + .when-field__field {
   border-left: 1px solid var(--border-hairline);
 }
 
@@ -6459,8 +6674,7 @@
     grid-template-columns: 1fr;
   }
 
-  .when-field__group .select + .select,
-  .when-field__group .input + .input {
+  .when-field__field + .when-field__field {
     border-left: 0;
     border-top: 1px solid var(--border-hairline);
   }
@@ -6593,4 +6807,73 @@
    one (`--l1-border`). */
 :root[data-surface='glass'] .planner-card.planner-card--invalid {
   border-color: var(--accent-primary);
+}
+
+/* ==========================================================================================
+ * **The second value, for a browser that cannot mix colours.**
+ *
+ * Every rule above that paints a surface with `color-mix()` would vanish whole on iOS 14 — not
+ * fade, vanish: the parser drops the declaration and the element keeps whatever it had before,
+ * which for a card over a photograph is nothing. Glass becomes an opaque pane of the canvas (the
+ * picture stays behind the page, not behind the words), a hairline becomes the theme's own line,
+ * the scrim becomes 62% black, and the waiting blocks keep a colour.
+ *
+ * It has to be a separate block rather than a second declaration in the same rule: the CSS
+ * minifier deletes the overridden one, and the build silently went back to the modern value —
+ * measured, not assumed (see `scripts/old-phone-check.mjs`).
+ * ========================================================================================== */
+@supports not (color: color-mix(in srgb, #000 50%, transparent)) {
+  :root[data-surface='glass'] .card:not(.card--obsidian),
+  :root[data-surface='glass'] .app-sidebar,
+  :root[data-surface='glass'] .planner-card {
+    background: var(--canvas-base);
+    border: 1px solid var(--border-hairline);
+  }
+
+  .overlay {
+    background: rgb(24 24 27 / 0.62);
+  }
+
+  .empty {
+    --empty-dash-ink: var(--accent-primary);
+  }
+
+  .settings-row__swatch {
+    border: 1px solid var(--ink-faint);
+  }
+
+  .colour-screen__swatch,
+  .colour-screen__hue input::-webkit-slider-thumb,
+  .colour-screen__hue input::-moz-range-thumb {
+    border: 1px solid var(--border-hairline);
+  }
+
+  .home-menu__scrim {
+    background: rgb(0 0 0 / 0.28);
+  }
+
+  .home-menu {
+    background: var(--l2-bg);
+  }
+
+  .home-menu .home-menu__row:hover,
+  .home-menu .home-menu__row:focus-visible {
+    background: rgb(24 24 27 / 0.07);
+  }
+
+  .home-menu .home-menu__row:active {
+    background: rgb(24 24 27 / 0.11);
+  }
+}
+
+/* `dvh` is Safari 15.4; the plain height is the same number on a phone whose browser never hides
+   its own chrome, which is every iPhone this block is for. */
+@supports not (height: 88dvh) {
+  .modal {
+    max-height: 88vh;
+  }
+
+  .error-screen {
+    min-height: 100vh;
+  }
 }

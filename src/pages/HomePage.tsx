@@ -284,7 +284,17 @@ export function HomePage() {
    * that the clock is running, and nothing between the press and the mode re-arms the timer.
    */
   useEffect(() => {
-    if (editing) return undefined;
+    /*
+     * **Super energy saving closes the way in, both of them.**
+     *
+     * The header's Edit is not drawn in the mode (`AppShell`), and the hold is refused here rather
+     * than being allowed to start a clock that would open the same mode a second later. The clock
+     * is the more expensive half of the two: it locks text selection, listens to the document and
+     * re-renders a hint, all on a phone at a tenth of a battery, to open a screen the mode has just
+     * decided not to draw. Nothing is deleted — the layout is exactly where it was — so a charger
+     * puts the whole thing back.
+     */
+    if (editing || power.mode === 'super') return undefined;
 
     const onDown = (event: PointerEvent) => {
       if (!event.isPrimary) return;
@@ -362,7 +372,22 @@ export function HomePage() {
       lockPress(false);
       setHolding(false);
     };
-  }, [editing, cancelHold, clearHoldTimers, isHoldSurface]);
+  }, [editing, power.mode, cancelHold, clearHoldTimers, isHoldSurface]);
+
+  /*
+   * **A mode already open closes when the battery crosses the line.**
+   *
+   * The hold that started customising can be running at 11%, and the next reading can be 9%. The
+   * mode is not up for discussion at that point: the screen goes back to the three cards that
+   * answer "when does the bus go", and the layout is untouched.
+   */
+  useEffect(() => {
+    if (power.mode !== 'super') return;
+    if (editing) setEditing(false);
+    /* The layout menu hangs from the Edit corner, so it closes with it rather than hanging from a
+       control that is no longer drawn. */
+    if (homeMenuOpen) setHomeMenuOpen(false);
+  }, [power.mode, editing, homeMenuOpen, setEditing, setHomeMenuOpen]);
 
   /*
    * Leaving is a **tap**, not a hold: in customising, a press and release on that same surface
@@ -1073,7 +1098,7 @@ export function HomePage() {
         */}
       {thinning ? (
         <p className="t-sm t-muted" role="status">
-          {t('Super energy saving is on — {cards} come back when this device is charged.', {
+          {t('Super energy saving is on. {cards} come back when this device is charged.', {
             cards: plural(hiddenBySaving, 'card'),
           })}{' '}
           {/*

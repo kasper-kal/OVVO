@@ -12,18 +12,26 @@
  * used, in the traveller's own language, and the device fix always wins when there is one.
  *
  * Two services are asked, in order, because one of them rate-limits by the caller's address and a
- * browser on a shared connection can be the caller that gets the 429: `ipwho.is`, then
- * `freeipapi.com`. Both are HTTPS, CORS-open, keyless and signup-free, so a static frontend with
- * no server can call them directly. Measured while building this: over the same minute, from the
- * same machine, `ipwho.is` answered **200 to curl and 429 to the browser** (a CORS request), while
- * `freeipapi.com` answered **200 in the browser** — which is exactly why the second one exists.
- * `ipapi.co` was tried and answered 429 too, so it is not in the list.
+ * browser on a shared connection can be the caller that gets the 429: `freeipapi.com`, then
+ * `ipwho.is`. Both are HTTPS, CORS-open, keyless and signup-free, so a static frontend with no
+ * server can call them directly.
+ *
+ * **The working one goes first, and it was measured rather than assumed.** Over the same minute,
+ * from the same machine, `ipwho.is` answered **200 to curl and 429 to the browser** (a CORS
+ * request), while `freeipapi.com` answered **200 in the browser**; measured again in this browser
+ * on 2026-10-25, `ipwho.is` was still **429** while `freeipapi.com` still answered **200**. Asking
+ * the reliable one first is not a preference: with the old order every fresh visit made a request
+ * that could not succeed, waited for its answer, and logged a console error before the fallback
+ * supplied the same estimate — a failure the traveller never asked for, on the one path that is
+ * meant to be silent. `ipwho.is` stays as the fallback it can actually be, and `ipapi.co` was
+ * tried and answered 429 too, so it is not in the list.
  *
  * A failure is silent by design: the sort keeps whatever it had, and nothing is announced for a
  * convenience that did not arrive.
  */
 
 import { STORAGE_KEYS, readStored, writeStored } from './storage';
+import { timeoutSignal } from './timeoutSignal';
 
 interface Provider {
   readonly name: string;
@@ -31,7 +39,18 @@ interface Provider {
   readonly read: (body: Record<string, unknown>) => { lat: number; lon: number } | null;
 }
 
+/*
+ * The first name here is the one measured to answer a browser, and it is first for that reason
+ * alone: `askProviders` already keeps asking until one answers, so the order decides only how
+ * many requests a fresh visit makes before it gets its estimate — and the old order made one that
+ * could never succeed.
+ */
 const PROVIDERS: readonly Provider[] = [
+  {
+    name: 'freeipapi.com',
+    url: 'https://freeipapi.com/api/json',
+    read: (body) => coordinates(body.latitude, body.longitude),
+  },
   {
     name: 'ipwho.is',
     url: 'https://ipwho.is/',
@@ -40,11 +59,6 @@ const PROVIDERS: readonly Provider[] = [
       /* `latitude`/`longitude`, with the short spellings accepted for safety. */
       return coordinates(body.latitude ?? body.lat, body.longitude ?? body.lon);
     },
-  },
-  {
-    name: 'freeipapi.com',
-    url: 'https://freeipapi.com/api/json',
-    read: (body) => coordinates(body.latitude, body.longitude),
   },
 ];
 
@@ -124,7 +138,7 @@ async function askProvider(provider: Provider): Promise<ApproximateLocation | nu
   try {
     const response = await fetch(provider.url, {
       headers: { accept: 'application/json' },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: timeoutSignal(TIMEOUT_MS),
     });
     if (!response.ok) return null;
     const body: unknown = await response.json();

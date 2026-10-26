@@ -64,6 +64,13 @@ export function StopsPage() {
    */
   const positionPending = sort === 'nearest' && nearestOrigin === null && approximateLocationPending;
   /*
+   * The estimate was asked for and did not arrive. It is a third-party request (the IP lookup), and
+   * when it is refused or rate-limited the list quietly falls back to city order — so the line under
+   * the filters said "Turn on location", which is the wrong advice to somebody whose location is
+   * already on and whose network simply could not say where they are.
+   */
+  const locationUnavailable = sort === 'nearest' && nearestOrigin === null && !approximateLocationPending;
+  /*
    * Nearest-first needs an origin, but *asking for one* is not the same as not having one: while
    * the answer is on its way the select stays on Nearest rather than showing City for the length
    * of the request and changing itself afterwards. With no estimate coming at all — refused,
@@ -279,6 +286,8 @@ export function StopsPage() {
         <p className="t-sm t-faint stops-origin">
           {positionPending
             ? t('Finding where you are, so the list can be nearest-first…')
+            : locationUnavailable
+            ? t('We could not estimate where you are, so this is the city order.')
             : activeSort !== 'nearest' || !nearestOrigin
             ? t('Sorted by {sort}. Turn on location for nearest-first.', {
                 sort: t(
@@ -287,7 +296,7 @@ export function StopsPage() {
               })
             : nearestOrigin.source === 'device'
               ? t('Nearest first, from your device location.')
-              : t('Nearest first, from an approximate IP location — it can be off by a lot.')}
+              : t('Nearest first, from an approximate IP location, which can be off by a lot.')}
         </p>
 
         {optionsOpen ? (

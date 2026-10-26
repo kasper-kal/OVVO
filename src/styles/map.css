@@ -208,44 +208,52 @@
   color: var(--ink-muted);
 }
 
-.map-legend__swatch {
-  width: 22px;
-  height: 3px;
-  border-radius: var(--r-pill);
-  background: var(--map-ink);
+/*
+ * **The map's mode chips: a glyph, a word, and the mode's colour on the glyph.**
+ *
+ * `.map-route--*` draws each mode in a colour, and these chips are the key to it — so the ink of
+ * the glyph is the route's colour and the shape is the mode's. (They used to carry a coloured dash
+ * beside the word: a colour with no name, which six of these had in common for a traveller who
+ * cannot separate sage from butter.)
+ */
+.map-mode-chip .icon {
+  color: var(--ink-muted);
 }
 
-/* Route key: the same colours .map-route--* draws in, shown beside the mode chips
-   so the map needs no separate legend. */
-.map-legend__swatch--train {
-  background: var(--map-ink);
+.map-mode-chip--train .icon {
+  color: var(--map-ink);
 }
 
-.map-legend__swatch--bus {
-  background: var(--map-accent);
+/*
+ * **The route's colour, pulled towards the ink until the glyph can be read.**
+ *
+ * Each chip's glyph takes the colour its line is drawn in on the map, so the row of chips doubles
+ * as the map's key. Two of those colours are too pale to be *ink*: bus drew rgb(255,126,103) at
+ * **2.49:1** and metro rgb(201,162,39) at **2.42:1** on the white chip, where an icon needs 3:1.
+ * Mixing the colour two parts to one with the theme's ink keeps the hue and the key, and darkens
+ * it enough to read; in the dark appearance the ink is light, so the same mix lightens instead of
+ * darkening — which is why this is a mix with `--ink` and not a second hard-coded colour.
+ */
+.map-mode-chip--bus .icon {
+  color: color-mix(in srgb, var(--map-accent) 62%, var(--ink));
 }
 
-.map-legend__swatch--tram {
-  background: var(--tint-sage-ink);
+.map-mode-chip--tram .icon {
+  color: var(--tint-sage-ink);
 }
 
-.map-legend__swatch--metro {
-  background: var(--tint-butter-ink);
+.map-mode-chip--metro .icon {
+  color: color-mix(in srgb, var(--tint-butter-ink) 62%, var(--ink));
 }
 
-.map-legend__swatch--ferry {
-  background: var(--coral-ink);
+.map-mode-chip--ferry .icon {
+  color: var(--coral-ink);
 }
 
-.map-legend__swatch--all {
-  background: linear-gradient(
-    90deg,
-    var(--map-ink) 0 20%,
-    var(--map-accent) 20% 40%,
-    var(--tint-sage-ink) 40% 60%,
-    var(--tint-butter-ink) 60% 80%,
-    var(--coral-ink) 80% 100%
-  );
+/* A chosen chip is drawn dark, so its glyph takes the ink that surface carries rather than the
+   route colour, which would be a smudge on it. */
+.map-mode-chip[aria-pressed='true'] .icon {
+  color: var(--on-dark);
 }
 
 /* The home widget draws the whole country on the same canvas, at the size `.map-canvas` gives it
@@ -569,4 +577,21 @@
 .map-stops__link:hover {
   background: var(--l1-bg);
   color: var(--ink-strong);
+}
+
+/* The faint ink on the map. Without the mix the label keeps the map's own muted ink: lighter than
+   the names beside it, still legible, which is all that token was for. */
+@supports not (color: color-mix(in srgb, #000 50%, transparent)) {
+  :root[data-surface='tint'] .map-canvas,
+  :root[data-surface='cards'] .map-canvas,
+  :root[data-surface='split'] .map-canvas {
+    --ink-faint: var(--ink-muted);
+  }
+
+  /* The two chips whose glyph was pulled towards the ink to be readable. Unmixed, the glyph takes
+     the ink itself: the hue that doubles as the map's key is lost, the contrast is not. */
+  .map-mode-chip--bus .icon,
+  .map-mode-chip--metro .icon {
+    color: var(--ink);
+  }
 }

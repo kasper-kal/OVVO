@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { SearchForm } from '../components/journey/SearchForm';
@@ -13,6 +13,7 @@ import { NoMatches } from '../components/ui/NoMatches';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } from '../lib/format';
 import { useFormat } from '../lib/useFormat';
+import { decodeSearchLink, encodeSearchLink } from '../lib/searchLink';
 import { useT } from '../lib/useT';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
@@ -52,6 +53,9 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
  * list — so it keeps its place directly above the journeys.
  */
 export function ResultsPage() {
+  /* The search the address names, if it names one — `/results/<id>` (`lib/searchLink`). */
+  const { searchId } = useParams();
+  const navigate = useNavigate();
   const {
     search,
     journeys,
@@ -59,6 +63,7 @@ export function ResultsPage() {
     updatePreferences,
     updateSearchQuery,
     startSearch,
+    adoptSearch,
     setSortMode,
     setFilter,
     resetFilter,
@@ -97,14 +102,77 @@ export function ResultsPage() {
     return sortJourneys(filtered, search.sortMode, preferences);
   }, [search, journeys, preferences]);
 
+  /*
+   * **The address is the search.**
+   *
+   * Two effects, one rule: what is on the screen and what is in the address are the same thing, and
+   * they are kept in step in both directions.
+   *
+   * The first reads the address into the screen — a reload, a bookmark, a pasted link, or the
+   * browser's back button. It only acts when the address names a *different* search from the one
+   * already open, so arriving on a link cannot throw away a search the traveller is reading, and a
+   * re-render cannot adopt twice. `null` from the decoder is not acted on here: the screen says so
+   * in words instead (see the empty state below).
+   *
+   * The second writes the screen back into the address, replacing the entry rather than pushing
+   * one. That single line is why sorting, filters, the paged window and a changed end all survive a
+   * refresh without a setter being wired to anything: they all change `search`, and this watches
+   * `search`. `replace` keeps the history honest — pressing Back still goes to the screen the
+   * results were opened from, not through a list you sorted six times.
+   */
+  /*
+   * `writtenByUs` is what stops the two effects fighting.
+   *
+   * Reading the address and writing the address are opposites, and the first version of this read
+   * *every* change of `search` as a disagreement with the address: clicking **Fastest** set the
+   * sort, then the reader immediately decoded the old id and set it back to **Best** — the list
+   * changed for one frame and reverted, and the address never mentioned the sort at all (measured:
+   * 3 checks failing for that one reason). The address is now only read when it was *not* written
+   * here, which is exactly the case that matters — a reload, a bookmark, a pasted link, Back.
+   */
+  const writtenByUs = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!searchId) return;
+    if (writtenByUs.current === searchId) return;
+    const decoded = decodeSearchLink(searchId);
+    if (!decoded) return;
+    writtenByUs.current = searchId;
+    /* The address carries no preferences on purpose, so the ones in force here are the ones that
+       filter the list — a stranger's link cannot overrule anyone's walking limit. */
+    adoptSearch({ ...decoded, query: { ...decoded.query, preferences } });
+  }, [searchId, preferences, adoptSearch]);
+
+  useEffect(() => {
+    if (!search) return;
+    const id = encodeSearchLink(search);
+    if (id === searchId) return;
+    writtenByUs.current = id;
+    navigate(`/results/${id}`, { replace: true });
+  }, [search, searchId, navigate]);
+
   if (!search) {
+    /* An address that names a search the app cannot read is a different answer from "you have not
+       searched yet", and it is not the traveller's fault: say which one it is. */
+    const unreadable = Boolean(searchId) && !decodeSearchLink(searchId ?? '');
     return (
       <div className="stack-6">
-        <PageHeader title={t('Journey results')} description={t('No search has been run in this browser yet.')} showTitle />
+        <PageHeader
+          title={t('Journey results')}
+          description={unreadable ? t('This address does not name a search.') : t('No search has been run in this browser yet.')}
+          showTitle
+        />
         <EmptyState
           icon="search"
-          title={t('Nothing to show yet')}
-          description={t('Plan a journey first — the results of your search will appear here and survive a refresh.')}
+          title={unreadable ? t('That search could not be opened') : t('Nothing to show yet')}
+          /* The page title above it is an `h1` and there is no section between them, so this is
+             `h2` — an `h3` announced a section that does not exist (WCAG 1.3.1). */
+          headingLevel={2}
+          description={
+            unreadable
+              ? t('The address is missing a part of the search or names a stop this network does not have. Planning it again takes one step.')
+              : t('Plan a journey first: its results will appear here, and this address will bring them back.')
+          }
         >
           <Link to="/" className="btn btn--primary">
             <Icon name="search" size={16} />
@@ -414,7 +482,7 @@ export function ResultsPage() {
                 })
               : t('No journey matches this search with these settings.')
           }
-          reason={`${emptyReason}${relaxations.length ? '' : ` ${t('Nothing helps for this search — try another time or another pair of stops.')}`}`}
+          reason={`${emptyReason}${relaxations.length ? '' : ` ${t('Nothing helps for this search. Try another time or another pair of stops.')}`}`}
           fixes={relaxations.map((suggestion) => ({
             id: suggestion.id,
             label: suggestion.label,
@@ -600,48 +668,70 @@ export function ResultsPage() {
         <div className="field field--wide">
           <span className="field__label">{t('When')}</span>
           <div className="when-field__group">
-            <input
-              id="results-date"
-              className="input"
-              type="date"
-              aria-label={t('Date')}
-              value={query.date}
-              /* A journey cannot be planned for yesterday; the engine would only ever answer with
-                 the departures that already left. */
-              min={todayIso()}
-              aria-invalid={dateInvalid || undefined}
-              aria-describedby={dateInvalid ? 'results-date-error' : undefined}
-              onChange={(event) => {
-                const next = event.target.value;
-                if (!next) {
+            {/*
+              * **Each answer owns its own slot, and the app owns the glyph.**
+              *
+              * The two fields used to be bare inputs in the group's grid, with the browser's own
+              * picker button against the group's inner edge. On a phone two of those stacked either
+              * side of the group's divider read as a stray dropdown column fenced into the field — a
+              * chevron that belonged to nothing (reported, circled). Chromium and WebKit let us keep
+              * that button and draw the mark: the button stays exactly where it was and is made
+              * invisible, and the app's own calendar / clock sits under it, so a tap still opens the
+              * device's picker. Firefox does not expose the button, so there the browser's glyph
+              * stays and ours is not drawn (see `.when-field__glyph` in `components.css`).
+              */}
+            <div className="when-field__field">
+              <input
+                id="results-date"
+                className="input"
+                type="date"
+                aria-label={t('Date')}
+                value={query.date}
+                /* A journey cannot be planned for yesterday; the engine would only ever answer with
+                   the departures that already left. */
+                min={todayIso()}
+                aria-invalid={dateInvalid || undefined}
+                aria-describedby={dateInvalid ? 'results-date-error' : undefined}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  if (!next) {
+                    setDateInvalid(false);
+                    updateSearchQuery({ date: todayIso() });
+                    return;
+                  }
+                  if (next < todayIso()) {
+                    setDateInvalid(true);
+                    return;
+                  }
                   setDateInvalid(false);
-                  updateSearchQuery({ date: todayIso() });
-                  return;
-                }
-                if (next < todayIso()) {
-                  setDateInvalid(true);
-                  return;
-                }
-                setDateInvalid(false);
-                updateSearchQuery({ date: next });
-              }}
-            />
-            <input
-              id="results-time"
-              className="input"
-              type="time"
-              aria-label={t('Time')}
-              value={timeInputValue(query.time)}
-              /* Away from the field's own 1-minute default: every other time in this app is on a
-                 5-minute step, and the picker's arrows follow the same step. */
-              step={300}
-              onChange={(event) => {
-                const next = parseTimeInput(event.target.value);
-                /* Cleared (some browsers allow it): the last real time stands rather than the
-                   search silently moving to midnight. */
-                if (next !== null) updateSearchQuery({ time: next });
-              }}
-            />
+                  updateSearchQuery({ date: next });
+                }}
+              />
+              <span className="when-field__glyph" aria-hidden="true">
+                <Icon name="calendar" size={18} />
+              </span>
+            </div>
+            <div className="when-field__field">
+              <input
+                id="results-time"
+                className="input"
+                type="time"
+                aria-label={t('Time')}
+                value={timeInputValue(query.time)}
+                /* Away from the field's own 1-minute default: every other time in this app is on a
+                   5-minute step, and the picker's arrows follow the same step. */
+                step={300}
+                onChange={(event) => {
+                  const next = parseTimeInput(event.target.value);
+                  /* Cleared (some browsers allow it): the last real time stands rather than the
+                     search silently moving to midnight. */
+                  if (next !== null) updateSearchQuery({ time: next });
+                }}
+              />
+              <span className="when-field__glyph" aria-hidden="true">
+                <Icon name="clock" size={18} />
+              </span>
+            </div>
           </div>
           {/* The same answer, in the app's own date and clock format — the settings the native
               control above cannot honour. */}

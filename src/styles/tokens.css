@@ -477,3 +477,28 @@
   --s-6: 16px;
   --s-8: 24px;
 }
+
+/* ==========================================================================================
+ * **When the mix cannot be made.**
+ *
+ * `color-mix()` arrived in Safari 16.2. An iPhone that stopped updating at iOS 14 drops any
+ * declaration that uses it, and a custom property that is dropped is a property with no value —
+ * so a skeleton painted `var(--skeleton-fill)` painted nothing at all, and the phone that waits
+ * longest for an answer was the one showing a blank space where "loading" should be.
+ *
+ * These are the same values made by hand, one block for each appearance.
+ * ========================================================================================== */
+@supports not (color: color-mix(in srgb, #000 50%, transparent)) {
+  :root {
+    --app-bg-wash: rgb(252 251 250 / 0.62);
+    --skeleton-fill: #e7e4de;
+    --skeleton-sheen: #f2f0eb;
+  }
+
+  /* The canvas is near-black here, so the block has to be lighter than the card, not darker. */
+  :root[data-theme='dark'] {
+    --app-bg-wash: rgb(18 18 17 / 0.7);
+    --skeleton-fill: #33313a;
+    --skeleton-sheen: #46434d;
+  }
+}
