@@ -473,7 +473,7 @@ const NL: Record<string, string> = {
   Preferences: 'Voorkeuren',
   'Storage location': 'Opslaglocatie',
   'This browser (localStorage)': 'Deze browser (localStorage)',
-  'Remove all stored data': 'Alle gegevens verwijderen',
+  'Reset the app': 'App resetten',
   'Browse stops': 'Haltes bekijken',
   'Manage on the home screen': 'Beheren op het startscherm',
   'Preview with current settings': 'Voorbeeld met huidige instellingen',
@@ -532,10 +532,15 @@ const NL: Record<string, string> = {
   'Built with': 'Gemaakt met',
   'Back to the planner': 'Terug naar de planner',
   'Browse the {count} stops': 'Bekijk de {count} haltes',
-  'Remove all locally stored data?': 'Alle lokaal opgeslagen gegevens verwijderen?',
-  'Preferences, pins, favourited journeys, recent searches and location permission are deleted from this browser. Settings return to their defaults.':
-    'Voorkeuren, vastgezette haltes, favoriete reizen, recente zoekopdrachten en locatietoestemming worden uit deze browser verwijderd. Instellingen gaan terug naar de standaard.',
-  'Remove everything': 'Alles verwijderen',
+  'Reset OVVO?': 'OVVO resetten?',
+  /*
+   * The reset, said plainly, because this is the one control that takes things away. The second
+   * sentence is not decoration: the location question coming back is the part that reads as a
+   * fault unless it is announced before it happens.
+   */
+  'Everything OVVO remembers in this browser is deleted, and the settings go back to their defaults. It then asks about your location again, the way it does on a first visit.':
+    'Alles wat OVVO in deze browser onthoudt wordt verwijderd en de instellingen gaan terug naar de standaard. Daarna vraagt OVVO weer om je locatie, zoals bij een eerste bezoek.',
+  'Reset everything': 'Alles resetten',
   Cancel: 'Annuleren',
 
   /* ------------------------------------------------------------- not found */
@@ -548,7 +553,7 @@ const NL: Record<string, string> = {
   'Origin and destination must be different stops':
     'Vertrek en bestemming moeten verschillende haltes zijn',
   Unpinned: 'Niet meer vastgezet',
-  'All locally stored data has been removed': 'Alle lokaal opgeslagen gegevens zijn verwijderd',
+  'OVVO has been reset.': 'OVVO is gereset.',
   'Location is unavailable': 'Locatie is niet beschikbaar',
   'Location access was not granted.': 'Locatietoegang is niet gegeven.',
   'This browser cannot provide a location.': 'Deze browser kan geen locatie geven.',
@@ -774,8 +779,6 @@ const NL: Record<string, string> = {
     '{pins}, {journeys} en {searches} worden verwijderd. De app begint daarna opnieuw.',
   '{favourites}, {board}, {journeys} and {searches} will be deleted. The app then starts fresh.':
     '{favourites}, {board}, {journeys} en {searches} worden verwijderd. De app begint daarna opnieuw.',
-  'Preferences, favourites, board pins, favourited journeys, recent searches and location permission are deleted from this browser. Settings return to their defaults.':
-    'Voorkeuren, favorieten, vastgezette borden, favoriete reizen, recente zoekopdrachten en locatietoestemming worden uit deze browser verwijderd. Instellingen keren terug naar de standaardwaarden.',
   'pinned stops': 'vastgezette haltes',
   /* ------------------------------------------------- heart (favourite) vs pin (board) */
   /*

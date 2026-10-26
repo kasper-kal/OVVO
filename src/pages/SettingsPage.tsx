@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { StopCombobox } from '../components/journey/StopCombobox';
@@ -164,6 +164,7 @@ export function SettingsPage() {
     .filter((stop): stop is Stop => Boolean(stop));
   const format = useFormat();
   const t = useT();
+  const navigate = useNavigate();
   /* The colours **in force** here — each appearance keeps its own (`lib/palette.ts`), so the
      "currently in effect" labels below must read the half that is being drawn. */
   const palette = paletteFor(settings, appearance);
@@ -591,22 +592,26 @@ export function SettingsPage() {
         (the build line, a browse link and the install hint).
 
         One thing was reachable only from inside the manifest, and it is kept as a bare button at
-        the foot: Remove all stored data, with its confirmation dialog unchanged. Say the word and
-        it goes too — a screen with no way to clear what it stores is a different decision from a
-        screen with fewer blocks on it, so it was not made silently.
+        the foot, which is now the app's **reset** rather than only its way to empty the store.
+        It was called *Remove all stored data*, which named half of what it does: the traveller
+        asked for a control that makes OVVO treat them as somebody new, and that is the whole of
+        it now - the data goes, the settings go back to their defaults, and the two questions a
+        first visit asks (where are you, and would you like this on your home screen) come back
+        with them (`resetLocalData`, `state/AppState.tsx`). It is **one** control, not a second
+        button beside an older one doing nearly the same job.
       */}
       <div className="row-wrap">
         <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
-          {t('Remove all stored data')}
+          {t('Reset the app')}
         </Button>
       </div>
 
 
       <Dialog
         open={confirmReset}
-        title={t('Remove all locally stored data?')}
+        title={t('Reset OVVO?')}
         description={t(
-          'Preferences, favourites, board pins, favourited journeys, recent searches and location permission are deleted from this browser. Settings return to their defaults.',
+          'Everything OVVO remembers in this browser is deleted, and the settings go back to their defaults. It then asks about your location again, the way it does on a first visit.',
         )}
         onClose={() => setConfirmReset(false)}
         footer={
@@ -618,9 +623,16 @@ export function SettingsPage() {
                 resetLocalData();
                 setOrigin(null);
                 setConfirmReset(false);
+                /*
+                 * Home, which is where a first visit starts. Staying on Settings would draw the
+                 * reset as a screen of changed defaults and then cover it with the location
+                 * question the same trip is meant to be - so the traveller is put where a new
+                 * phone is put, and the first-visit sheet arrives on that screen instead.
+                 */
+                navigate('/');
               }}
             >
-              {t('Remove everything')}
+              {t('Reset everything')}
             </Button>
             <Button variant="ghost" onClick={() => setConfirmReset(false)}>
               {t('Cancel')}

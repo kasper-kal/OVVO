@@ -143,6 +143,14 @@ interface AppContextValue {
   pushToast: (message: string, tone?: Toast['tone']) => void;
   dismissToast: (id: string) => void;
 
+  /**
+   * **Start again, as a first visit.**
+   *
+   * One press and the app is the app a new phone gets: every slot this browser holds is dropped,
+   * every piece of state read from one goes back to its default in the same pass, and the two
+   * questions a first visit brings with it come back with it. See the implementation for the two
+   * answers this deliberately reverses.
+   */
   resetLocalData: () => void;
 
   /** Device location: asked for once on first open, then kept for nearest-stop lookups. */
@@ -795,6 +803,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     approximateLocationPending,
     nearestOrigin,
 
+    /*
+     * **Everything this browser knows about the traveller, put back to how it was before the app
+     * had ever been opened.**
+     *
+     * Three parts, and all three are needed for the promise to hold:
+     *
+     *   1. **Storage.** `clearStored()` removes every `ov-planner:v1:` slot in one go - settings,
+     *      preferences, hearts, board pins, stop names, saved journeys, recent searches, the home
+     *      layout and its station bindings, the location answer and fix, the network estimate, and
+     *      the install banner's "already asked". Listing them here instead would mean a new slot
+     *      is forgotten by the one control whose whole job is to forget things.
+     *   2. **The state that was read from it**, put back to its default by hand: the storage wipe
+     *      happens *under* a running app, so nothing would redraw without this half.
+     *   3. **The two questions a first visit asks.** The location sheet returns (`unknown`, not
+     *      `denied`) and the install banner returns on the next visit, because its "refused" flag
+     *      went with the storage above.
+     *
+     * **On the location answer, an earlier decision is deliberately reversed.** Audit 11.11 chose
+     * `denied` here so that emptying the store would not read as "the app forgot in order to ask
+     * again" - right for a control called *remove all stored data*, wrong for one whose entire
+     * purpose is to make the app treat you as somebody new, which is what this is now. A first
+     * visit is asked; so is this.
+     */
     resetLocalData: () => {
       clearStored();
       setSettings(DEFAULT_SETTINGS);
@@ -807,15 +838,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSavedJourneys([]);
       setRecentSearches([]);
       setSearch(null);
-      /* `unknown` re-opened the first-visit location sheet in the same frame, so removing
-         everything read as the app forgetting in order to ask again (11.11). The answer was
-         already given; Settings is where it is changed. */
-      setLocationConsent('denied');
+      /*
+       * The journeys planned this session go with the search they belonged to. They live in memory
+       * (`sessionJourneys`), not in storage, so the wipe above does not reach them - and a journey
+       * screen still openable against a search that no longer exists is the reset leaking.
+       */
+      sessionJourneys.current.clear();
+      setLocationConsent('unknown');
       setUserLocation(null);
-      /* The estimate goes with everything else: it is this browser's data, and "remove all" is
-         the one instruction that has to mean all of it. */
+      /* The estimate goes with everything else: it is this browser's data too, and this is the one
+         instruction that has to mean all of it. */
       setApproximateLocation(null);
-      pushToast('All locally stored data has been removed');
+      /*
+       * Said a moment later, on purpose. `pushToast` translates through the live language, and this
+       * reset is about to put the interface back to English - so a Dutch toast pushed from here
+       * would hang over an English screen. The timeout lands after the re-render, so the sentence
+       * is in the language the traveller is actually looking at.
+       */
+      window.setTimeout(() => pushToast('OVVO has been reset.'), 0);
     },
   };
 

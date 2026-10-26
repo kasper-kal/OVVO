@@ -96,8 +96,8 @@ const SCREENS = [
   { name: 'an alert page', path: '/disruptions/d-signal-utrecht' },
   { name: 'travel preferences', path: '/preferences' },
   { name: 'settings', path: '/settings' },
-  { name: 'settings · remove-all-data dialog', path: '/settings', open: async (page, lang) => {
-      await page.getByRole('button', { name: LABEL(lang, 'Remove all stored data', 'Alle gegevens verwijderen') }).click();
+  { name: 'settings · reset dialog', path: '/settings', open: async (page, lang) => {
+      await page.getByRole('button', { name: LABEL(lang, 'Reset the app', 'App resetten') }).click();
       await page.waitForTimeout(300);
     } },
   { name: 'not-found', path: '/nope' },
