@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
 import { DISRUPTIONS } from '../../data/disruptions';
+import { InstallBanner } from '../ui/InstallBanner';
 import { LocationPermission } from '../location/LocationPermission';
 import { OfflineBar } from './OfflineBar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -695,6 +696,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <MobileDock onOpenMenu={() => setMenuOpen(true)} />
         <MenuDialog open={menuOpen} onClose={() => setMenuOpen(false)} />
         <Toaster />
+        {/*
+          The one-time offer to put OVVO on the home screen. It sits above the dock, hides itself
+          (`display: none`) until a browser offers an install or an iPhone is recognised, and
+          asks nothing on a later visit once it has been answered (see `ui/InstallBanner`).
+        */}
+        <InstallBanner />
         <LocationPermission />
       </div>
     </HeaderControlContext.Provider>

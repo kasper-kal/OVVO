@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/layout/ErrorBoundary';
+import { watchInstallPrompt } from './lib/install';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
@@ -27,6 +28,17 @@ function translateLegacyHash() {
 }
 
 translateLegacyHash();
+
+/**
+ * **The browser's install offer is caught before React draws.**
+ *
+ * Chromium fires `beforeinstallprompt` once, and it can arrive a few hundred milliseconds after
+ * the page is parsed — before the first screen has mounted. A listener attached in an effect can
+ * therefore miss it on a slow phone and catch it on a fast one, which is the worst kind of bug to
+ * have. So the listeners are attached here, at module load, and the event is kept in `lib/install`
+ * until the traveller's own banner is ready to use it.
+ */
+watchInstallPrompt();
 
 /**
  * **The offline strip keeps its promise across a reload.**

@@ -87,4 +87,11 @@ export const STORAGE_KEYS = {
    * screen that uses them says which one it used.
    */
   approximateLocation: 'approximate-location',
+  /*
+   * That the traveller has already been asked about installing the app on their home screen, and
+   * said no (or finished the install). The install banner is a first-visit thing
+   * (`lib/install`), so this slot is the whole of that memory: once it is set the banner does not
+   * come back, and clearing the app's stored data brings it back with everything else.
+   */
+  install: 'install-asked',
 } as const;

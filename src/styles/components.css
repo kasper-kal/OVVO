@@ -6919,3 +6919,113 @@
     min-height: 100vh;
   }
 }
+
+/* ---------------------------------------------------------------- Install banner */
+
+/*
+ * **The one-time offer to put OVVO on a home screen.**
+ *
+ * Fixed, because it belongs to no page: it is the app asking a question about itself, on whatever
+ * screen the traveller happens to be. It sits *above* the dock rather than on top of it (the pill
+ * is 54px with its border and its own 12px step from the edge, plus the safe-area inset a phone
+ * puts under a gesture bar). At 1040 the dock is gone, so it drops to the foot of the window.
+ *
+ * `display: none` until a browser offers an install or an iPhone is recognised. The element exists
+ * from the first paint, so the banner appears over the page instead of pushing it down.
+ */
+.install-banner {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(max(var(--s-3), env(safe-area-inset-bottom)) + 54px + var(--s-3));
+  z-index: 45; /* under the dock (50) and every overlay, above the page */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  width: min(440px, calc(100vw - var(--s-4)));
+  padding: var(--s-3);
+  background: var(--l2-bg);
+  border: var(--l2-border);
+  border-radius: var(--r-card);
+}
+
+.install-banner.is-hidden {
+  display: none;
+}
+
+.install-banner__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-inner);
+  background: var(--tint-sage);
+  color: var(--struct-secondary);
+}
+
+/* The words take the room they need and the buttons wrap under them on a narrow screen. */
+.install-banner__words {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 170px;
+  min-width: 0;
+}
+
+.install-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-left: auto;
+}
+
+@media (min-width: 1040px) {
+  .install-banner {
+    bottom: var(--s-4);
+  }
+}
+
+/* The iPhone's two steps, as steps: the number, then the words beside it. */
+.install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-steps > li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+
+.install-steps__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-inner);
+  background: var(--tint-sage);
+  color: var(--struct-secondary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+/*
+ * The one picture in the instruction: the mark the traveller is looking for in Safari's bar,
+ * drawn beside the words at the set's stroke. Inline, so it sits on the line it belongs to.
+ */
+.install-steps__glyph {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 3px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-compact, 12px);
+  background: var(--l1-bg);
+  color: var(--ink-strong);
+}

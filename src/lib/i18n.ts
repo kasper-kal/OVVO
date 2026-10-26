@@ -21,6 +21,17 @@ import type { Language } from '../state/types';
 const NL: Record<string, string> = {
   /* ---------------------------------------------------------------- app shell */
   'Skip to main content': 'Ga naar de hoofdinhoud',
+  /* ------------------------------------------------------------------ install */
+  'Install OVVO': 'OVVO installeren',
+  'Add OVVO to your home screen': 'Zet OVVO op je beginscherm',
+  'It then opens like an app, with no address bar.': 'Dan opent OVVO als een app, zonder adresbalk.',
+  Install: 'Installeren',
+  /* 'Not now' is already in this table, for the location prompt (further down). */
+  'Safari has no install button. This is the way in.': 'Safari heeft geen installeerknop. Zo gaat het.',
+  'Tap the Share button in the Safari bar, the square with an arrow pointing up.':
+    'Tik in de balk van Safari op de deelknop, het vierkantje met het pijltje omhoog.',
+  'Choose "Add to Home Screen".': 'Kies dan "Zet op beginscherm".',
+  'Got it': 'Duidelijk',
   /* ---------------------------------------------------------------- connection */
   "You're offline": 'Je bent offline',
   'OVVO still works. Your journeys, boards and saved stops are all here.':

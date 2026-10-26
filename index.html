@@ -10,6 +10,20 @@
     />
     <title>OVVO, Dutch public transport journey planner</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      **The home-screen app.**
+
+      `manifest.json` is what makes "Add to Home Screen" an install rather than a bookmark: the
+      name under the icon, the mark itself, the theme colour of the splash, and `standalone` so
+      the app it opens has no address bar. It is served from the site's root because that is the
+      address the browser asks for, and the icons are PNGs at the sizes a phone requests (they are
+      renders of `favicon.svg`, which stays the drawing).
+
+      `apple-touch-icon` is the same icon for iOS, which reads no manifest icons at all when it
+      makes its own tile.
+    -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
