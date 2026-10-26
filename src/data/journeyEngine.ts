@@ -426,7 +426,11 @@ function buildLeg(step: RawStep, query: SearchQuery, index: number): Leg {
     intermediateStops: intermediate.length ? intermediate : undefined,
     delayMinutes: delayMinutes || undefined,
     cancelled: cancelled || undefined,
-    message: disruption ? `Alert: ${disruption.title}` : undefined,
+    /*
+     * No sentence is built here: the alert's id travels with the leg, and the screen that draws
+     * the leg writes it in the language the page is in (`lib/disruptionText`). The English text
+     * this used to store stayed English on a Dutch page.
+     */
     disruptionId: disruption?.id,
     stepFree: fromStop.accessibility.stepFree && toStop.accessibility.stepFree && line.mode !== 'ferry',
     bikeAllowed: line.mode === 'ferry' || line.mode === 'metro' || !peak,

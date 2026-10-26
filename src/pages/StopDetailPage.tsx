@@ -23,6 +23,7 @@ import { facilityIcon, Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useT } from '../lib/useT';
+import { alertWords } from '../lib/disruptionText';
 import { modeLabel } from '../data/preferences';
 
 export function StopDetailPage() {
@@ -234,7 +235,7 @@ export function StopDetailPage() {
          * timetable, and a page that says only "Herengracht 12" is not the name they chose.
          */
         title={customStopName(stop.id) ?? stop.name}
-        description={`${customStopName(stop.id) ? `${stop.name} · ` : ''}${stop.city} · ${stop.region} · stop code ${stop.code}`}
+        description={`${customStopName(stop.id) ? `${stop.name} · ` : ''}${stop.city} · ${stop.region} · ${t('stop code {code}', { code: stop.code })}`}
         /* On a phone the name is drawn above the controls, so the head is one block at the
            margin instead of three buttons alone in a row (F18). Wide screens keep the trailing
            row they had. */
@@ -375,26 +376,30 @@ export function StopDetailPage() {
               <p className="t-sm t-muted">{t('No alerts affect this stop right now.')}</p>
             ) : (
               <ul className="stack-2">
-                {alerts.map((alert) => (
+                {alerts.map((alert) => {
+                  /* The alert's own words in the page's language (`lib/disruptionText`). */
+                  const words = alertWords(t, alert);
+                  return (
                   <li key={alert.id} className="list-row list-row--static">
                     <span className="leg-row__marker">
                       <Icon name="alert" size={18} />
                     </span>
                     <span className="stack-1 grow">
-                      <span className="t-strong t-sm">{alert.title}</span>
-                      <span className="t-sm t-muted t-clamp-2">{alert.description}</span>
+                      <span className="t-strong t-sm">{words.title}</span>
+                      <span className="t-sm t-muted t-clamp-2">{words.description}</span>
                     </span>
                     {/* Five links called "Details" told a screen reader nothing about which alert
                         each one opens (5.9). */}
                     <Link
                       to={`/disruptions/${alert.id}`}
                       className="btn btn--sm"
-                      aria-label={t('Details of {alert}', { alert: alert.title })}
+                      aria-label={t('Details of {alert}', { alert: words.title })}
                     >
                       {t('Details')}
                     </Link>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </Card>

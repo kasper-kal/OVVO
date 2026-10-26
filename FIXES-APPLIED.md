@@ -407,3 +407,21 @@ traveller had chosen — *"Pull the background and the colour to MORE places, li
 
 `tsc` clean, `build` clean, class-audit **448** clean, `.logs/canvas-picker.cjs`,
 `.logs/colour-screen-canvas.cjs` and `.logs/canvas-picker-photo-dark.png` for the readings.
+
+## The open list, checked on 2026-10-26
+
+The notes above left a handful of things "open, recorded rather than claimed". Each one was
+re-checked against the tree and, where it could be, against the running app, and each is either
+fixed or closed with the reason. Nothing below is a promise: what says *measured* was measured.
+
+| open item | state now |
+|---|---|
+| **29.3** the photo sampler's loupe leaving the stage at three edges | **Fixed.** `PhotoScreen.sample` now clamps the loupe's x to half its width inside the stage and flips it **below** the pointer when there is no room above (`.photo-screen__loupe.is-below`, 18px of clearance the other way). The arithmetic is on the stage box the sampler already reads; it type-checks and the app builds, but it was not driven with a real photograph in a browser this round |
+| **30.5** the crop screen's corrupt-image path | **Fixed.** The decode now has an `onerror`, and the hint line is replaced with "That image could not be read." (`role="alert"`) rather than a screen whose maths has nothing to measure |
+| **29.6** an empty colour behind Done | **Closed, not a defect now.** `hex` starts as `value` — the colour in force — so Done before any sample keeps the colour the page already had |
+| **29.9** the sampler's dead-end error state | **Closed.** An unreadable picture is a sentence on the stage and the bar's own × leaves the screen |
+| **29.2** the sampler's framing | **By design.** The `<img>` is `max-width`/`max-height: 100%` inside a centred stage, so its box *is* the drawn picture; that is the property the sampler's pointer maths depends on. A very small photograph is drawn at its own size instead of being blown up |
+| **30.4** the crop screen's saved-frame chip | **By design.** The screen *opens on* the saved frame (`crop ?? whole picture` and the opening effect), which says more than a chip labelling it would |
+| **the dock covering a control at first paint** | **Closed by measurement.** `.logs/open-items-check.cjs` walks the dock's own box in 18px steps over the controls on `/preferences`, `/disruptions`, `/departures` and `/stops` at 390×900 and 768×700: **0 controls covered** at all eight combinations |
+| **the one clipping at 320 on `/settings`** | **Closed by measurement.** On a settled page (fonts loaded) the row the note named measures **68 in 68** — not clipped. The one element the probe still flags is the `sr-only` 1×1 line, which is clipped on purpose |
+| **the desktop round** | **Still deferred, and not a defect.** `DESKTOP-FIXES.md` is a placeholder; no wide-screen defect is waiting on it |

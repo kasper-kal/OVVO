@@ -14,6 +14,7 @@ import { StopLink } from '../components/stops/StopLink';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
+import { alertWords } from '../lib/disruptionText';
 import type { Disruption, DisruptionSeverity, DisruptionType, PublicMode } from '../data/types';
 import { modeLabel } from '../data/preferences';
 
@@ -81,7 +82,10 @@ export function DisruptionsPage() {
         if (!haystack.includes(stopTerm)) return false;
       }
       if (normalised) {
-        const haystack = `${alert.title} ${alert.description} ${alert.advice} ${alert.affectedLineIds.join(' ')}`.toLowerCase();
+        /* Both languages, so a search matches the alert whichever language the page is in. */
+        const words = alertWords(t, alert);
+        const haystack =
+          `${alert.title} ${alert.description} ${alert.advice} ${words.title} ${words.description} ${words.advice} ${alert.affectedLineIds.join(' ')}`.toLowerCase();
         if (!haystack.includes(normalised)) return false;
       }
       return true;
@@ -102,7 +106,7 @@ export function DisruptionsPage() {
       }
       return severityRank[a.severity] - severityRank[b.severity];
     });
-  }, [types, severities, modes, stopQuery, textQuery, favouritesOnly, activeSort, lineFilter, favouriteStopIds, nearestOrigin]);
+  }, [types, severities, modes, stopQuery, textQuery, favouritesOnly, activeSort, lineFilter, favouriteStopIds, nearestOrigin, t]);
 
   /** True while any filter is off its default, which is when a reset has something to do. */
   const filtered = Boolean(
@@ -395,6 +399,7 @@ export function DisruptionsPage() {
 function AlertCard({ alert }: { alert: Disruption }) {
   const t = useT();
   const format = useFormat();
+  const words = alertWords(t, alert);
   const to = `/disruptions/${alert.id}`;
   return (
     /*
@@ -410,7 +415,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
             <Icon name="alert" size={18} />
           </span>
           <div className="stack-1">
-            <ResultCardLink to={to}>{alert.title}</ResultCardLink>
+            <ResultCardLink to={to}>{words.title}</ResultCardLink>
             <span className="t-sm t-muted">
               {format.time(alert.startsAt)} – {format.time(alert.endsAt)}
             </span>
@@ -425,7 +430,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
         per affected stop — nine or ten things to read on a row whose only question is "what do I
         do about this?"
       */}
-      <p className="t-sm t-clamp-2">{alert.advice}</p>
+      <p className="t-sm t-clamp-2">{words.advice}</p>
 
       {/*
         Which stops this alert touches, and each one a way to its page.
@@ -480,7 +485,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
             going to a different alert — indistinguishable in a screen reader's link list. The
             visible words lead the name; the alert's own title tells the five apart.
           */
-          aria-label={t('Alert details & advice: {title}', { title: alert.title })}
+          aria-label={t('Alert details & advice: {title}', { title: words.title })}
           onClick={(event) => event.stopPropagation()}
         >
           <Icon name="info" size={15} />

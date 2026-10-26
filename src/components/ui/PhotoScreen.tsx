@@ -30,6 +30,10 @@ import { inkFor, toHex } from '../../lib/colour';
  * sample anything visible on the screen, which the picture alone cannot.
  */
 
+/** The loupe's own size and the clearance above the pointer, in pixels (see `components.css`). */
+const LOUPE_SIZE = 112;
+const LOUPE_GAP = 18;
+
 export function PhotoScreen({
   open,
   image,
@@ -60,8 +64,15 @@ export function PhotoScreen({
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [hex, setHex] = useState(value);
-  /** Where the loupe is, in stage pixels; `null` until the pointer has been over the picture. */
-  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  /**
+   * Where the loupe is: its point in stage pixels, its x already pulled inside the stage, and
+   * `below` when there is no room above the pointer.
+   *
+   * The note that left this open (29.3) was exact: the loupe rode 130px above the pointer and
+   * simply left the stage at three edges, so the magnified pixels were half off the screen exactly
+   * where a photograph's edges are.
+   */
+  const [cursor, setCursor] = useState<{ x: number; y: number; below: boolean } | null>(null);
 
   /* The picture decoded once, at a bounded working size, into a canvas whose pixels can be read.
      A data URL from this browser's own storage does not taint the canvas, so no upload is involved. */
@@ -124,6 +135,8 @@ export function PhotoScreen({
       y: Math.min(canvas.height - 1, Math.max(0, Math.round(fy * canvas.height))),
       stageX: clientX - stageRect.left,
       stageY: clientY - stageRect.top,
+      stageW: stageRect.width,
+      stageH: stageRect.height,
     };
   };
 
@@ -132,7 +145,13 @@ export function PhotoScreen({
     const canvas = sourceRef.current;
     if (!point || !canvas) return;
     lastRef.current = { x: point.x, y: point.y };
-    setCursor({ x: point.stageX, y: point.stageY });
+    /* Keep the whole loupe inside the stage: half its width from either side, and above the
+       pointer only when there is room, below it otherwise (`is-below`). */
+    const half = LOUPE_SIZE / 2;
+    const margin = 4;
+    const x = Math.min(Math.max(point.stageX, half + margin), Math.max(half + margin, point.stageW - half - margin));
+    const below = point.stageY - (LOUPE_SIZE + LOUPE_GAP) < margin;
+    setCursor({ x, y: point.stageY, below });
     const data = canvas
       .getContext('2d', { willReadFrequently: true })
       ?.getImageData(point.x, point.y, 1, 1).data;
@@ -267,7 +286,7 @@ export function PhotoScreen({
             first sample of a drag would show an empty circle.
           */}
           <span
-            className={`photo-screen__loupe${cursor ? '' : ' is-hidden'}`}
+            className={`photo-screen__loupe${cursor ? '' : ' is-hidden'}${cursor?.below ? ' is-below' : ''}`}
             style={cursor ? { left: `${cursor.x}px`, top: `${cursor.y}px` } : undefined}
             aria-hidden="true"
           >

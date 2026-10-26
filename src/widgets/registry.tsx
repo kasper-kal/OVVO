@@ -28,6 +28,7 @@ import { endLabel } from '../data/journeyEngine';
 import { useMinuteNow } from '../lib/useMinuteNow';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
+import { alertWords } from '../lib/disruptionText';
 import type { PublicMode, Stop } from '../data/types';
 import type { WidgetWidth } from '../state/types';
 
@@ -955,7 +956,7 @@ function AlertsOnSavedWidget() {
         const alert = disruptionForLeg(leg.lineId, leg.fromStopId, leg.toStopId);
         if (!alert || seen.has(alert.id)) continue;
         seen.add(alert.id);
-        out.push({ id: alert.id, title: alert.title, journey: name });
+        out.push({ id: alert.id, title: alertWords(t, alert).title, journey: name });
       }
     }
     return out;
@@ -1128,7 +1129,7 @@ function AlertsAtPinsWidget() {
               <li key={alert.id}>
                 <Link to={`/disruptions/${alert.id}`} className="row t-sm">
                   <Icon name="alert" size={14} />
-                  {alert.title}
+                  {alertWords(t, alert).title}
                 </Link>
               </li>
             ))}

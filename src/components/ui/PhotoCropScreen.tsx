@@ -64,6 +64,9 @@ export function PhotoCropScreen({
   const pinchFrom = useRef(0);
   const dragging = useRef(false);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  /* A picture the browser cannot decode has no size to crop, and the screen used to sit there
+     with empty maths rather than saying so (30.5). */
+  const [failed, setFailed] = useState(false);
   const [frame, setFrame] = useState<Frame>('screen');
   const [pageAspect, setPageAspect] = useState(() =>
     typeof window === 'undefined' ? 16 / 9 : window.innerWidth / window.innerHeight,
@@ -74,7 +77,9 @@ export function PhotoCropScreen({
   useEffect(() => {
     if (!open || !source) return;
     const image = new Image();
+    setFailed(false);
     image.onload = () => setSize({ w: image.naturalWidth, h: image.naturalHeight });
+    image.onerror = () => setFailed(true);
     image.src = source;
   }, [open, source]);
 
@@ -266,9 +271,15 @@ export function PhotoCropScreen({
             </Button>
           </div>
 
-          <p className="t-sm t-muted crop-screen__hint">
-            {t('Drag to move the picture; pinch or use the wheel to zoom')}
-          </p>
+          {failed ? (
+            <p className="t-sm" role="alert">
+              {t('That image could not be read.')}
+            </p>
+          ) : (
+            <p className="t-sm t-muted crop-screen__hint">
+              {t('Drag to move the picture; pinch or use the wheel to zoom')}
+            </p>
+          )}
           {/* A hidden marker for the mapping the saved crop will use; the checks read it. */}
           <span className="sr-only" data-crop-background={ratio.size} />
         </div>

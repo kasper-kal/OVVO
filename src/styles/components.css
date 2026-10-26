@@ -5499,6 +5499,15 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
+/*
+ * Near the top edge there is no room above the pointer, so the loupe flips below it rather than
+ * hanging off the stage (29.3). Its x is already clamped in PhotoScreen.sample, so only the
+ * vertical side is a class.
+ */
+.photo-screen__loupe.is-below {
+  transform: translate(-50%, 18px);
+}
+
 .photo-screen__loupe.is-hidden {
   display: none;
 }

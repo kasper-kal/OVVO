@@ -11,9 +11,12 @@ import type { Language } from '../state/types';
  *
  * `{name}` in a value is filled from the call's variables.
  *
- * What is *not* translated is the demonstration data: stop names, line numbers, carrier names
- * and the text of the fourteen alerts. Those are the timetable talking, not the interface, and
- * a translated station name would be a lie about a real place.
+ * The demonstration data's **sentences** are translated too (the fourteen alerts' titles,
+ * descriptions and advice, at the bottom of the table) because an English paragraph under a
+ * Dutch heading is not a language, it is a half-finished job. What is *not* translated is the
+ * data's **names**: stop names, line numbers, carrier names and the times inside a sentence.
+ * Those are the timetable talking, not the interface, and a translated station name would be a
+ * lie about a real place.
  */
 const NL: Record<string, string> = {
   /* ---------------------------------------------------------------- app shell */
@@ -1125,6 +1128,138 @@ const NL: Record<string, string> = {
   "Saved": "Bewaard",
   "Indicative single fare": "Indicatief enkel ticket",
   "Walking only · no ticket needed": "Alleen lopen · geen ticket nodig",
+
+  /* ------------------------------------------------------- the last English lines */
+  /* Found by walking every screen in Dutch (`.logs/dutch-scan.cjs`) and by checking every `t()`
+     call against this table (`.logs/i18n-missing.mjs`): the address errors, the two waiting
+     lines, the one-word reset, and the counts the home screen opens with. */
+  "Finding the stops closest to you…": "De haltes dichtst bij je worden gezocht…",
+  "The page’s own colour. The widgets keep theirs. See Primary colour.":
+    "De kleur van de pagina zelf. De widgets houden de hunne. Zie Primaire kleur.",
+  "Tap or drag the photo to take its colour": "Tik of sleep op de foto om de kleur over te nemen",
+  "Reset": "Herstellen",
+  "This address does not name a search.": "Dit adres wijst geen zoekopdracht aan.",
+  "That search could not be opened": "Die zoekopdracht kon niet worden geopend",
+  "The address is missing a part of the search or names a stop this network does not have. Planning it again takes one step.":
+    "Het adres mist een deel van de zoekopdracht of noemt een halte die dit netwerk niet heeft. Opnieuw plannen kost één stap.",
+  "Plan a journey first: its results will appear here, and this address will bring them back.":
+    "Plan eerst een reis: de resultaten verschijnen hier, en dit adres haalt ze terug.",
+  "1 alert affects this search: {title}": "1 storing raakt deze zoekopdracht: {title}",
+  "{count} alerts affect this search: {title}": "{count} storingen raken deze zoekopdracht: {title}",
+  "Alert: {title}": "Storing: {title}",
+  /*
+   * The six kinds of alert. They are looked up as `t(DISRUPTION_TYPE_LABELS[type])`, with a value
+   * rather than a written-out sentence, which is why the line-by-line scan of `t('...')` calls
+   * never saw them: only `Cancelled` had an entry.
+   */
+  "Delay": "Vertraging",
+  "Planned works": "Gepland werk",
+  "Platform change": "Spoorwijziging",
+  "Busy": "Druk",
+  "Weather": "Weer",
+  /* The counts the home screen opens with, each with its own plural, because "1 haltes" is not a
+     sentence anybody writes. */
+  "{count} stop": "{count} halte",
+  "{count} stops": "{count} haltes",
+  "{count} service": "{count} dienst",
+  "{count} services": "{count} diensten",
+  "{count} alert": "{count} storing",
+  "{count} alerts": "{count} storingen",
+  "{count} card": "{count} kaart",
+  "{count} cards": "{count} kaarten",
+  "{stops}, {services} and {alerts}.": "{stops}, {services} en {alerts}.",
+
+  /* ------------------------------------------------------------------ the alerts */
+  /*
+   * **The fourteen demonstration alerts, in Dutch.** They used to be English on every screen in
+   * both languages, and they are the longest prose in the app, so they carried most of what read
+   * wrong on a Dutch page. The words that are names stay: places, carriers, line numbers and the
+   * times inside a sentence are the timetable talking, and they are the same in both languages.
+   */
+  /* 1. d-signal-utrecht */
+  "Signalling fault: delays around Utrecht Centraal": "Seinstoring: vertraging rond Utrecht Centraal",
+  "A signalling fault is causing delays of 5 to 10 minutes on services running through Utrecht Centraal. Intercity services may be held at the platform for a few minutes.":
+    "Een seinstoring zorgt voor 5 tot 10 minuten vertraging bij diensten die via Utrecht Centraal rijden. Intercity's kunnen een paar minuten aan het perron blijven staan.",
+  "Allow 15 minutes extra travel time, or use the Sprinter 5000 between Den Haag and Zwolle.":
+    "Reken 15 minuten extra reistijd, of neem de Sprinter 5000 tussen Den Haag en Zwolle.",
+  /* 2. d-platform-amsterdam */
+  "Platform changes at Amsterdam Centraal": "Spoorwijzigingen op Amsterdam Centraal",
+  "Trains towards Alkmaar and Zaandam depart from a different platform than planned. Please check the departure boards.":
+    "Treinen richting Alkmaar en Zaandam vertrekken van een ander spoor dan gepland. Kijk op de vertrektijdenborden.",
+  "Check the departure board at the station; the app shows the platform in the journey details.":
+    "Kijk op het bord op het station; de app toont het spoor bij de reisdetails.",
+  /* 3. d-works-rotterdam */
+  "Engineering works: Rotterdam Blaak closed to trams": "Werkzaamheden: Rotterdam Blaak dicht voor trams",
+  "Planned track works mean tram 24 and tram 8 do not call at Rotterdam Blaak. Metro A and metro E continue to run.":
+    "Door gepland spoorwerk stoppen tram 24 en tram 8 niet bij Rotterdam Blaak. Metro A en metro E blijven rijden.",
+  "Travel via metro A/E or walk from Rotterdam Centraal (about 15 minutes).":
+    "Reis via metro A/E of loop vanaf Rotterdam Centraal (ongeveer 15 minuten).",
+  /* 4. d-cancel-schiphol */
+  "Cancelled services: Schiphol Airport to Haarlem": "Ritten vervallen: Schiphol Airport naar Haarlem",
+  "Two Sprinter services between Schiphol Airport and Haarlem are cancelled because of a shortage of rolling stock.":
+    "Twee Sprinters tussen Schiphol Airport en Haarlem vervallen door een tekort aan materieel.",
+  "Take bus 347 from Schiphol Airport to Haarlem, or the Intercity to Amsterdam Sloterdijk and travel back.":
+    "Neem bus 347 van Schiphol Airport naar Haarlem, of de Intercity naar Amsterdam Sloterdijk en dan terug.",
+  /* 5. d-ferry-buiksloterweg */
+  "Ferry F3: longer waiting times": "Veer F3: langere wachttijden",
+  "The Buiksloterweg ferry runs every 20 minutes instead of every 10 minutes because one vessel is under maintenance.":
+    "Het veer van de Buiksloterweg vaart elke 20 minuten in plaats van elke 10, omdat één boot in onderhoud is.",
+  "Use metro 52 to Amsterdam Noord as an alternative.":
+    "Neem als alternatief metro 52 naar Amsterdam Noord.",
+  /* 6. d-crowding-utrecht */
+  "Busy trains towards Amsterdam": "Drukke treinen richting Amsterdam",
+  "Crowding is expected on afternoon Intercity services between Utrecht Centraal and Amsterdam Centraal.":
+    "In de middag wordt het druk in de Intercity's tussen Utrecht Centraal en Amsterdam Centraal.",
+  "Travel outside the 16:00–18:00 peak, or take the Sprinter 6000 via Hilversum.":
+    "Reis buiten de piek van 16:00 tot 18:00, of neem de Sprinter 6000 via Hilversum.",
+  /* 7. d-weather-groningen */
+  "Strong wind: reduced speed in the north": "Harde wind: lagere snelheid in het noorden",
+  "Strong winds are reducing the speed of trains between Groningen, Leeuwarden and Zwolle.":
+    "Door harde wind rijden treinen langzamer tussen Groningen, Leeuwarden en Zwolle.",
+  "Expect 10 minutes extra travel time on trains in the north.":
+    "Reken 10 minuten extra reistijd op treinen in het noorden.",
+  /* 8. d-metro-noord-zuid */
+  "Metro 52: longer journey times": "Metro 52: langere reistijd",
+  "A track inspection between Amsterdam Noord and Amsterdam Centraal adds 4 minutes to metro 52 journeys.":
+    "Een controle aan het spoor tussen Amsterdam Noord en Amsterdam Centraal maakt ritten met metro 52 4 minuten langer.",
+  "Allow extra time or use ferry F3 to Amsterdam Noord.":
+    "Reken extra tijd of neem veer F3 naar Amsterdam Noord.",
+  /* 9. d-works-denhaag */
+  "Planned works: fewer trains to Den Haag HS": "Gepland werk: minder treinen naar Den Haag HS",
+  "Scheduled maintenance means tram 1 runs a shortened route between Den Haag Centraal and Den Haag HS.":
+    "Door gepland onderhoud rijdt tram 1 een verkorte route tussen Den Haag Centraal en Den Haag HS.",
+  "Walk from Den Haag Centraal (12 minutes) or use metro E.":
+    "Loop vanaf Den Haag Centraal (12 minuten) of neem metro E.",
+  /* 10. d-cancel-maastricht */
+  "Cancelled night bus N851 to Utrecht": "Nachtbus N851 naar Utrecht vervalt",
+  "The 02:00 night bus from Rotterdam Centraal to Utrecht Centraal does not run tonight.":
+    "De nachtbus van 02:00 van Rotterdam Centraal naar Utrecht Centraal rijdt vannacht niet.",
+  "Use the first morning Intercity from Rotterdam Centraal, or plan a different night connection.":
+    "Neem de eerste Intercity van de ochtend vanaf Rotterdam Centraal, of plan een andere nachtverbinding.",
+  /* 11. d-platform-eindhoven */
+  "Platform change at Eindhoven Centraal": "Spoorwijziging op Eindhoven Centraal",
+  "Intercity 1100 towards Den Haag departs from a different platform at Eindhoven Centraal.":
+    "Intercity 1100 richting Den Haag vertrekt van een ander spoor op Eindhoven Centraal.",
+  "Check the departure board; the app shows the simulated platform in the journey details.":
+    "Kijk op het vertrektijdenbord; de app toont het nagebootste spoor bij de reisdetails.",
+  /* 12. d-waterbus-dordrecht */
+  "Waterbus 20: timetable adjusted": "Waterbus 20: aangepaste dienstregeling",
+  "The waterbus between Rotterdam Erasmus bridge and Dordrecht runs to a reduced timetable.":
+    "De waterbus tussen de Rotterdamse Erasmusbrug en Dordrecht vaart op een aangepaste dienstregeling.",
+  "Use the train from Rotterdam Blaak to Dordrecht instead.":
+    "Neem in plaats daarvan de trein van Rotterdam Blaak naar Dordrecht.",
+  /* 13. d-crowding-brabantliner */
+  "Brabantliner 300 very busy in the morning": "Brabantliner 300 erg druk in de ochtend",
+  "High demand is expected on Brabantliner 300 between Breda and Eindhoven during the morning peak.":
+    "In de ochtendpiek wordt het druk in Brabantliner 300 tussen Breda en Eindhoven.",
+  "Travel before 07:30 or take the Intercity 1100.":
+    "Reis voor 07:30 of neem de Intercity 1100.",
+  /* 14. d-lift-almere */
+  "Lift out of service at Almere Centrum": "Lift buiten dienst op Almere Centrum",
+  "The lift to platform 3 and 4 at Almere Centrum is out of service. Staff assistance is available.":
+    "De lift naar spoor 3 en 4 op Almere Centrum is buiten dienst. Het personeel kan helpen.",
+  "Ask station staff for assistance, or use platform 1 with the Sprinter.":
+    "Vraag het personeel om hulp, of neem de Sprinter vanaf spoor 1.",
 };
 
 

@@ -12,6 +12,7 @@ import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { plural } from '../lib/format';
 import { usePageTitle } from '../lib/usePageTitle';
+import { alertWords } from '../lib/disruptionText';
 
 export function JourneyDetailPage() {
   const { journeyId } = useParams();
@@ -226,7 +227,7 @@ export function JourneyDetailPage() {
                   to={`/disruptions/${alert.id}`}
                   className="t-sm alert-link alert-link--banner"
                 >
-                  <span className="t-strong">{alert.title}</span>
+                  <span className="t-strong">{alertWords(t, alert).title}</span>
                   <span>{t('Read the details and advice')}</span>
                 </Link>
               ) : null,

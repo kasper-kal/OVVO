@@ -15,6 +15,7 @@ import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { usePageTitle } from '../lib/usePageTitle';
+import { alertWords } from '../lib/disruptionText';
 
 export function DisruptionDetailPage() {
   const { disruptionId } = useParams();
@@ -31,7 +32,7 @@ export function DisruptionDetailPage() {
    * whether this is where you leave from or where you are going.
    */
   const [planStop, setPlanStop] = useState<Stop | null>(null);
-  usePageTitle(alert ? alert.title : t('Alert not found'));
+  usePageTitle(alert ? alertWords(t, alert).title : t('Alert not found'));
 
   if (!alert) {
     return (
@@ -54,6 +55,8 @@ export function DisruptionDetailPage() {
     );
   }
 
+  /* The alert's own words, in the interface's language (`lib/disruptionText`). */
+  const words = alertWords(t, alert);
   const index = DISRUPTIONS.findIndex((item) => item.id === alert.id);
   const previous = DISRUPTIONS[(index - 1 + DISRUPTIONS.length) % DISRUPTIONS.length];
   const next = DISRUPTIONS[(index + 1) % DISRUPTIONS.length];
@@ -63,7 +66,7 @@ export function DisruptionDetailPage() {
   return (
     <div className="stack-6">
       <PageHeader
-        title={alert.title}
+        title={words.title}
         description={`${t('Alert')} · ${format.time(alert.startsAt)} – ${format.time(alert.endsAt)} · ${t(DISRUPTION_TYPE_LABELS[alert.type])}`}
         showTitle
         badge={
@@ -86,9 +89,9 @@ export function DisruptionDetailPage() {
         <div className="stack-4">
           <Card className="stack">
             <h2 className="t-section">{t('What is happening')}</h2>
-            <p className="t-body">{alert.description}</p>
+            <p className="t-body">{words.description}</p>
             <Banner tone="butter" icon="info" title={t('Advice')}>
-              {alert.advice}
+              {words.advice}
             </Banner>
             <div className="row-wrap">
               {/* The window is a clock; the kind of alert is the info mark. Two facts, two shapes,
@@ -234,11 +237,11 @@ export function DisruptionDetailPage() {
         <div className="row-wrap">
           <Link to={`/disruptions/${previous.id}`} className="btn btn--sm">
             <Icon name="chevronLeft" size={15} />
-            <span className="pager__label">{previous.title}</span>
+            <span className="pager__label">{alertWords(t, previous).title}</span>
           </Link>
           <Link to={`/disruptions/${next.id}`} className="btn btn--sm">
             <Icon name="chevronRight" size={15} />
-            <span className="pager__label">{next.title}</span>
+            <span className="pager__label">{alertWords(t, next).title}</span>
           </Link>
         </div>
       </Panel>

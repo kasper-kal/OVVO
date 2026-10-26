@@ -15,6 +15,7 @@ import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } fro
 import { useFormat } from '../lib/useFormat';
 import { decodeSearchLink, encodeSearchLink } from '../lib/searchLink';
 import { useT } from '../lib/useT';
+import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
 
@@ -533,16 +534,16 @@ export function ResultsPage() {
               className="search-alert"
               aria-label={
                 stopAlerts.length === 1
-                  ? t('1 alert affects this search: {title}', { title: stopAlerts[0].title })
+                  ? t('1 alert affects this search: {title}', { title: alertWords(t, stopAlerts[0]).title })
                   : t('{count} alerts affect this search: {title}', {
                       count: stopAlerts.length,
-                      title: stopAlerts[0].title,
+                      title: alertWords(t, stopAlerts[0]).title,
                     })
               }
             >
               <Icon name="alert" size={16} className="search-alert__icon" />
               <span className="search-alert__text">
-                {stopAlerts[0].title}
+                {alertWords(t, stopAlerts[0]).title}
                 {stopAlerts.length > 1 ? <span className="t-muted"> +{stopAlerts.length - 1}</span> : null}
               </span>
               <Icon name="chevronRight" size={14} className="t-faint" />

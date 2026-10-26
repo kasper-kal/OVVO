@@ -9,7 +9,7 @@ import { WIDGETS, WIDGET_CATEGORIES, widgetById } from '../widgets/registry';
 import { NETWORK } from '../data/network';
 import { DISRUPTIONS } from '../data/disruptions';
 import { STOPS } from '../data/stops';
-import { plural } from '../lib/format';
+
 import { useT } from '../lib/useT';
 
 /** How long the home screen has to be held before it opens its customising mode. */
@@ -100,6 +100,11 @@ const NO_PRESS =
  * the press also locks text selection while it runs, or the browser's own
  * half-second selection would take the gesture away (`lockPress`).
  */
+/** "1 halte" / "61 haltes", in the language the page is in. */
+function counted(t: (key: string, vars?: Record<string, string | number>) => string, count: number, one: string, many: string) {
+  return t(count === 1 ? one : many, { count });
+}
+
 export function HomePage() {
   const {
     homeWidgets,
@@ -1084,7 +1089,19 @@ export function HomePage() {
           need to say its own name on screen (see PageHeader). */}
       <PageHeader
         title={t('Home')}
-        description={`Plan a journey, check the network, and pick up where you left off. ${plural(STOPS.length, 'stop')}, ${plural(NETWORK.length, 'service')} and ${plural(DISRUPTIONS.length, 'alert')}.`}
+        /*
+         * The counts are part of the sentence, so they are translated with it: `plural` is the
+         * app's English pluraliser, and it printed "61 stops, 41 services and 14 alerts" on a
+         * Dutch home screen. Each count takes its own entry, singular or plural.
+         */
+        description={`${t('Plan a journey, check the network, and pick up where you left off.')} ${t(
+          '{stops}, {services} and {alerts}.',
+          {
+            stops: counted(t, STOPS.length, '{count} stop', '{count} stops'),
+            services: counted(t, NETWORK.length, '{count} service', '{count} services'),
+            alerts: counted(t, DISRUPTIONS.length, '{count} alert', '{count} alerts'),
+          },
+        )}`}
       />
 
       {/*
@@ -1099,7 +1116,7 @@ export function HomePage() {
       {thinning ? (
         <p className="t-sm t-muted" role="status">
           {t('Super energy saving is on. {cards} come back when this device is charged.', {
-            cards: plural(hiddenBySaving, 'card'),
+            cards: counted(t, hiddenBySaving, '{count} card', '{count} cards'),
           })}{' '}
           {/*
             * The second half of the sentence is the Settings screen: super saving takes it off the

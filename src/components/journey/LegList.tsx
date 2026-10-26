@@ -1,5 +1,7 @@
 import { getStop, stopLabel, nearbyStops } from '../../data/stops';
 import { getLine } from '../../data/network';
+import { getDisruption } from '../../data/disruptions';
+import { alertLine } from '../../lib/disruptionText';
 import { useFormat } from '../../lib/useFormat';
 import { Disclosure, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
@@ -23,6 +25,11 @@ function WalkLegRow({ leg }: { leg: Leg }) {
   const format = useFormat();
   const t = useT();
   const minutes = leg.arrival - leg.departure;
+  /*
+   * The alert on this leg, read from the record rather than from a sentence built once in the
+   * engine: a stored English line stayed English on a Dutch page.
+   */
+  const alert = leg.disruptionId ? getDisruption(leg.disruptionId) : undefined;
   const metres = leg.distanceMetres ?? 0;
   return (
     <li className="timeline__rail timeline__rail--dashed">
@@ -48,7 +55,7 @@ function WalkLegRow({ leg }: { leg: Leg }) {
             {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />} <Icon name="arrowRight" size={13} />{' '}
             {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
           </p>
-          {leg.message ? <p className="t-sm t-faint">{leg.message}</p> : null}
+          {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
         </div>
       </div>
     </li>
