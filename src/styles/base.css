@@ -449,21 +449,28 @@ svg.map-canvas {
   flex-wrap: wrap;
 }
 
+/*
+ * A fixed minimum in `auto-fit` is a floor the grid cannot go under, so on a page narrower than
+ * the floor the column is wider than its own card and the whole page scrolls sideways. 280px of
+ * browser was enough to do it on Travel preferences: a 260px column in a 222px card, 11px of
+ * sideways scroll. `min()` keeps the useful two-column floor wherever there is room and lets the
+ * column be the page's width where there is not.
+ */
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--s-4); /* same 16px step as the card lists */
 }
 
 .grid-3 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
   gap: var(--s-4);
 }
 
 .grid-4 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: var(--s-3);
 }
 
