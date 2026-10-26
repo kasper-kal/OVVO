@@ -84,6 +84,17 @@ body {
   line-height: var(--lh-body);
   font-weight: var(--fw-regular);
   letter-spacing: var(--track-body);
+  /*
+   * **A word that cannot fit its column breaks instead of leaving it.**
+   *
+   * `break-word` is the one that only acts when there is no other way to fit the word, and unlike
+   * `anywhere` it does not change how wide an element says its content is — so an element in a flex
+   * row still asks for the room its words need and the row still breaks onto a second line rather
+   * than shrinking a column to one letter. Measured at 280px on a stop page, "Maastricht" is 61px
+   * and the column it sat in was 52px, so the word was drawn out of the column and over the
+   * control beside it.
+   */
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -414,14 +425,32 @@ svg.map-canvas {
   gap: var(--s-1);
 }
 
+/*
+ * **A row makes a second line instead of squeezing what is on it.**
+ *
+ * Without wrapping, a row that runs out of width has only one way to fit: every child shrinks,
+ * and a child whose words cannot shrink any further keeps its box and lets the words out of it.
+ * Measured at 280px, on the "Lines at this stop" row: the column was squeezed to 52px and
+ * "every 30 min" drew its 87px out of the box and over the controls beside it.
+ *
+ * `flex-wrap: wrap` is the rule instead: when the line is too narrow for what is on it, the last
+ * control moves down to a second line. Nothing moves on a line that already fits, so this costs
+ * no layout at the sizes the app was designed on.
+ *
+ * `.row-wrap` used to be the only row that did this, so the app had two kinds of row and a screen
+ * could pick the wrong one. Every row wraps now; the class stays as the name for a row of pills,
+ * because that is what its call sites mean.
+ */
 .row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s-2);
 }
 
 .row-3 {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s-3);
 }
@@ -435,6 +464,7 @@ svg.map-canvas {
 
 .between {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);

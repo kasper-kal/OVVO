@@ -966,11 +966,23 @@
   box-shadow: none;
 }
 
-/* A control's label is one line, whatever it is squeezed into: "TRAVEL PREFERENCES PAGE" used
-   to break over three lines inside its own pill and "RESET ALL FILTERS" over two, which is what
-   a pill wrapping its own label looks like. */
+/*
+ * **A control's label is one line, until the pill itself cannot hold it.**
+ *
+ * A row breaks before it squeezes a control (`base.css`, `.row`, wraps), so in practice a label
+ * never needs a second line: the control moves down instead. This rule used to forbid the second
+ * line outright, and that is what turned a pill capped by a narrow card into text drawn outside
+ * its own box: a `nowrap` label with `max-width: 100%` has nowhere to go but out.
+ *
+ * So a label may take a second line inside its pill, and one unbreakable word breaks rather than
+ * escapes. `.segmented__btn` keeps its one line: its two halves sit under one sliding thumb, and
+ * a half that grew to two lines would leave the thumb pointing at the middle of neither.
+ */
 .btn,
-.chip,
+.chip {
+  white-space: normal;
+}
+
 .segmented__btn {
   white-space: nowrap;
 }
@@ -2376,11 +2388,23 @@
   box-shadow: none;
 }
 
-/* A control's label is one line, whatever it is squeezed into: "TRAVEL PREFERENCES PAGE" used
-   to break over three lines inside its own pill and "RESET ALL FILTERS" over two, which is what
-   a pill wrapping its own label looks like. */
+/*
+ * **A control's label is one line, until the pill itself cannot hold it.**
+ *
+ * A row breaks before it squeezes a control (`base.css`, `.row`, wraps), so in practice a label
+ * never needs a second line: the control moves down instead. This rule used to forbid the second
+ * line outright, and that is what turned a pill capped by a narrow card into text drawn outside
+ * its own box: a `nowrap` label with `max-width: 100%` has nowhere to go but out.
+ *
+ * So a label may take a second line inside its pill, and one unbreakable word breaks rather than
+ * escapes. `.segmented__btn` keeps its one line: its two halves sit under one sliding thumb, and
+ * a half that grew to two lines would leave the thumb pointing at the middle of neither.
+ */
 .btn,
-.chip,
+.chip {
+  white-space: normal;
+}
+
 .segmented__btn {
   white-space: nowrap;
 }
@@ -4062,10 +4086,17 @@
   min-width: 0;
 }
 
+/*
+ * The meta line wraps instead of being cut.
+ *
+ * At 280px it is 13px wider than the column it sits in ("Station Leeuwarden · LW · 8742 km"), and
+ * `nowrap` plus a hidden overflow spent that as an ellipsis over the distance, which is the one
+ * fact on the line a traveller is reading it for. A card may be a line taller; it may not hide a
+ * fact. A word too long for the column breaks (`body` sets `overflow-wrap`), so it stays inside the
+ * card rather than out of it.
+ */
 .stop-card__meta {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
 }
 
 /*
@@ -5249,14 +5280,17 @@
   font-weight: var(--fw-semibold);
 }
 
+/*
+ * The value wraps instead of being cut: at 280px "App default" was 8px wider than its 60px box and
+ * the ellipsis ate the end of it. The row is one line on every width where the words fit, which is
+ * every width above the smallest phone.
+ */
 .settings-row__value {
   margin-left: auto;
   max-width: 55%;
-  overflow: hidden;
   color: var(--ink-muted);
   font-size: var(--fs-sm);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: right;
 }
 
 .settings-row:hover .settings-row__value,
@@ -6553,9 +6587,8 @@
 }
 
 .stop-card__departure .grow {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* The destination wraps rather than being cut: it is a station's name and the link to its page. */
+  overflow-wrap: break-word;
 }
 
 /*

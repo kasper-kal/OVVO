@@ -535,8 +535,12 @@ export function StopDetailPage() {
                       <span className="t-strong t-sm">
                         {line.name}{' '}
                         {/* A headway is a clock: the app draws one for a journey's duration, so the
-                            one fact every line row carries gets the same picture. */}
-                        <span className="t-faint nowrap">
+                            one fact every line row carries gets the same picture.
+
+                            The phrase may wrap. It was `nowrap` as one unit, and at 280px the
+                            column it sits in is 35px narrower than "every 30 min", so the words
+                            were drawn out of the box and over the platform beside it. */}
+                        <span className="t-faint">
                           <Icon name="clock" size={12} className="icon--inline" />{' '}
                           {t('every {minutes} min', { minutes: line.headway })}
                         </span>
