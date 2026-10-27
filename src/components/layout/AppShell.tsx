@@ -488,10 +488,27 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     const moved = previousPath.current !== location.pathname;
     previousPath.current = location.pathname;
+    let claim = 0;
     if (navigationType === 'POP') {
       window.scrollTo({ top: reachedAt.current.get(location.key) ?? 0, behavior: 'auto' });
     } else if (moved) {
+      /*
+       * **A new screen starts at its top, and it starts there last.**
+       *
+       * One call is not enough when something is closing behind the navigation. A sheet that
+       * navigates is unmounted by the same commit, and its clean-up puts the page's scroll offset
+       * back (`lib/useOverlay`) — after this line has already run, on some orderings of the two
+       * effects. The traveller then lands on a fresh screen already nudged down, which is what a
+       * reset was doing. Repeating the claim on the next frame wins that race whatever order the
+       * commit happened in, and it is the destination that should win it.
+       */
       window.scrollTo({ top: 0, behavior: 'auto' });
+      const arrived = location.pathname;
+      claim = window.requestAnimationFrame(() => {
+        /* Another screen since? Then this is no longer the arrival being positioned. */
+        if (window.location.pathname !== arrived) return;
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
     }
     if (moved) {
       const heading = mainRef.current?.querySelector('h1');
@@ -506,6 +523,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       }
       mainRef.current?.focus({ preventScroll: true });
     }
+    return () => {
+      if (claim) window.cancelAnimationFrame(claim);
+    };
   }, [location.pathname, location.key, navigationType]);
 
   /*

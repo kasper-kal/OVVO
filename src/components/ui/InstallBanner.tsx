@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useInstallPrompt } from '../../lib/install';
 import { useT } from '../../lib/useT';
 import { Icon } from './Icons';
@@ -29,6 +29,36 @@ export function InstallBanner() {
   const t = useT();
   const { visible, route, install, dismiss } = useInstallPrompt();
   const [helpOpen, setHelpOpen] = useState(false);
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+
+  /*
+   * **The page is told how much room the banner is taking.**
+   *
+   * It floats over the foot of the window, and the page reserves room only for the dock — so with
+   * the offer on screen the last card of a page, and any control in it, sat underneath the banner
+   * and could not be pressed. Found by trying to press *Reset the app* at the foot of Settings: the
+   * tap landed on the banner instead ("It then opens like an app" intercepted it). The height is
+   * measured rather than guessed, because the banner wraps to two rows on a narrow phone; a
+   * `ResizeObserver` keeps that number true when it does.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!visible) {
+      root.style.removeProperty('--install-offer-space');
+      return undefined;
+    }
+    const measure = () => {
+      const height = bannerRef.current?.getBoundingClientRect().height ?? 0;
+      root.style.setProperty('--install-offer-space', `${Math.ceil(height + 16)}px`);
+    };
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    if (observer && bannerRef.current) observer.observe(bannerRef.current);
+    return () => {
+      observer?.disconnect();
+      root.style.removeProperty('--install-offer-space');
+    };
+  }, [visible]);
   /* Safari's Share sheet, or the browser's own menu: both are words, not a prompt. */
   const explains = route === 'safari' || route === 'menu';
 
@@ -44,6 +74,7 @@ export function InstallBanner() {
   return (
     <>
       <div
+        ref={bannerRef}
         className={`install-banner${visible ? '' : ' is-hidden'}`}
         role="region"
         aria-label={t('Install OVVO')}

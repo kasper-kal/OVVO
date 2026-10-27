@@ -31,6 +31,17 @@ function translateLegacyHash() {
 translateLegacyHash();
 
 /**
+ * **The app restores scroll itself, so the browser must not.**
+ *
+ * Two things were moving the page after a route change, and they disagree: the app puts every new
+ * screen at its top (and a screen you go back to where you left it, by history entry — see
+ * `layout/AppShell`), while the browser performs its own restoration on the same events. Whichever
+ * ran last won, so a reset could land on a home screen already nudged down by the offset of the
+ * screen before it. With `manual`, there is one owner of this and it is the app.
+ */
+if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+
+/**
  * **The browser's install offer is caught before React draws.**
  *
  * Chromium fires `beforeinstallprompt` once, and it can arrive a few hundred milliseconds after

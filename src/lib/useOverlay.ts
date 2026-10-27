@@ -45,6 +45,8 @@ function focusableInside(panel: HTMLElement | null): HTMLElement[] {
 const openStack: HTMLElement[] = [];
 let lockDepth = 0;
 let savedScrollY = 0;
+/* Which screen that offset belonged to, so it is never handed to the next one. */
+let savedPath = '';
 let savedBody: { overflow: string; paddingRight: string; overscroll: string } | null = null;
 let savedRootOverflow = '';
 
@@ -53,6 +55,7 @@ function lockDocument(): void {
   const root = document.documentElement;
   const body = document.body;
   savedScrollY = window.scrollY;
+  savedPath = window.location.pathname;
   savedRootOverflow = root.style.overflow;
   savedBody = {
     overflow: body.style.overflow,
@@ -79,8 +82,19 @@ function unlockDocument(): void {
     document.body.style.overscrollBehavior = savedBody.overscroll;
   }
   savedBody = null;
-  /* Restoring `overflow` can reset the scroll offset in some engines; put it back. */
-  window.scrollTo({ top: savedScrollY, behavior: 'auto' });
+  /*
+   * Restoring `overflow` can reset the scroll offset in some engines; put it back — but **only on
+   * the screen it was taken from**.
+   *
+   * A sheet that navigates (the reset, a board that plans a journey, a picker that hands a stop to
+   * another screen) closes *after* the new screen has been drawn, and putting the old offset back
+   * would drop the traveller partway down a page they have never seen. That is how a reset used to
+   * land on a home screen already scrolled down: the offset belonged to Settings. A screen that has
+   * not changed keeps its position, which is the whole point of the restore.
+   */
+  if (window.location.pathname === savedPath) {
+    window.scrollTo({ top: savedScrollY, behavior: 'auto' });
+  }
 }
 
 /* What a phone's keyboard belongs to: the same list `dismissKeyboard` blurs. */
