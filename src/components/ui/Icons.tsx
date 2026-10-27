@@ -309,8 +309,22 @@ export type IconName = keyof typeof GLYPHS;
  * row without a seam.
  */
 const NAV_GLYPHS: Partial<Record<IconName, ReactNode>> = {
-  /* A door with a pitched roof; the tile is the door, not the house. */
-  home: <path d="M4 11l8-6.5 8 6.5v8a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 19v-8z" />,
+  /*
+   * A door with a pitched roof; the tile is the door, not the house.
+   *
+   * **The drawing sits in the middle of its own grid, exactly.** The outline runs from 4 to 20
+   * across and from 4 to 20 down, so its box centre is 12,12, the middle of the 24-unit grid. The
+   * stroke is centred on the outline as well, so the ink is symmetric about that same point on both
+   * axes, and the dock's 44px disc is drawn around a 20px box that is centred in it. Nothing is
+   * left to nudge and nothing is left to guess.
+   *
+   * It used to run from 4.5 to 20.5 down, half a unit low: 0.4px at the 20px the dock draws the
+   * glyph at. Too little to be able to point at, and enough to sit in the eye wrong on a coral disc
+   * (reported as off centre, left and above the middle). A transform was tried on top of that and
+   * only moved the box low by a further half pixel, so the geometry is fixed here instead of being
+   * corrected after the fact.
+   */
+  home: <path d="M4 10.5l8-6.5 8 6.5v8a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 18.5v-8z" />,
   /* The departures screen: a framed board with two lines of times on it. */
   board: (
     <>
