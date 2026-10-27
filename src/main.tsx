@@ -42,12 +42,14 @@ translateLegacyHash();
 watchInstallPrompt();
 
 /**
- * **And the manifest that makes the app installable is handed over from inside the page.**
+ * **And the manifest is checked, with a rebuilt copy only if the site's own does not arrive.**
  *
  * A host that answers `/manifest.json` with anything but the file (a preview proxy, a catch-all
  * page, a security challenge) leaves Chrome unable to read it, and Chrome's answer is the one in
- * its own menu: "this app cannot be installed". Building the same manifest here and linking it as
- * a `blob:` URL takes the file's delivery out of the browser's way (`lib/manifest`).
+ * its own menu: "this app cannot be installed". Building the same manifest in the page and linking
+ * it as a `blob:` URL takes the file's delivery out of the browser's way (`lib/manifest`) - but a
+ * rebuilt manifest installs as a Chrome shortcut rather than a real app, so it is only used when
+ * the file is genuinely unusable.
  */
 void installManifest();
 

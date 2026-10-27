@@ -14,24 +14,54 @@ import icon512 from '../../public/icons/icon-512.png?inline';
  * under Install, as **"this app cannot be installed"**, and the traveller is left with a site that
  * refuses to install while every other site on the phone installs fine.
  *
- * So the same manifest is built here, in the page, and linked as a `blob:` URL. Chrome reads it,
- * and the check it runs on it is the one it runs on the file. Two things make it work anywhere:
+ * So the same manifest can be built here, in the page, and linked as a `blob:` URL. Two things make
+ * that one work anywhere:
  *
  *   - the addresses inside it are **absolute** (`id`, `start_url`, `scope`), because a relative
  *     `start_url` would be resolved against a `blob:` address and point at nothing;
  *   - the icons are **inlined as data URLs**, so installability does not depend on the icon files
- *     being reachable either. They are the same two PNGs the file names, read from the site itself.
+ *     being reachable either.
+ *
+ * **But it is the fallback, not the rule.** Chrome installs a web app properly, as an Android app
+ * with its own entry in the launcher and in screen time, only when it can fetch a manifest and its
+ * icons over the network; everything else it installs is a *shortcut*, with a small Chrome mark on
+ * the icon and no app of its own. So the site's own file is used whenever it arrives intact, and
+ * this rebuilt manifest only takes over when it does not. A built manifest is better than an app
+ * nobody can install, and worse than a real install, and that order is the whole design here.
  *
  * The file stays the source of truth: the values come from `public/manifest.json` at build time,
- * so there is one manifest to edit, not two. This only changes where the browser is handed it.
+ * so there is one manifest to edit, not two.
  */
 
 let started = false;
+
+/**
+ * Does the site's own manifest arrive, and is it a manifest?
+ *
+ * Asked before anything is replaced, because a host that serves the file properly gives the
+ * traveller a real install, and nothing here should stand between them and it. Anything that is not
+ * JSON with a name and at least one icon is not a manifest, whatever status code came with it.
+ */
+async function servedManifestIsUsable(): Promise<boolean> {
+  try {
+    const response = await fetch('/manifest.json', { cache: 'no-cache' });
+    if (!response.ok) return false;
+    const manifest: unknown = JSON.parse(await response.text());
+    if (!manifest || typeof manifest !== 'object') return false;
+    const candidate = manifest as { name?: unknown; icons?: unknown };
+    return typeof candidate.name === 'string' && Array.isArray(candidate.icons) && candidate.icons.length > 0;
+  } catch {
+    /* A page, a challenge, an empty body, a broken connection: none of them is a manifest. */
+    return false;
+  }
+}
 
 
 export async function installManifest(): Promise<void> {
   if (started || typeof document === 'undefined') return;
   started = true;
+
+  if (await servedManifestIsUsable()) return;
 
   const root = new URL('/', window.location.href).href;
   /*
