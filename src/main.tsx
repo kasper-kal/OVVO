@@ -54,24 +54,30 @@ watchInstallPrompt();
 void installManifest();
 
 /**
- * **The offline strip keeps its promise across a reload.**
+ * **The offline strip keeps its promise across a reload, and the install offer depends on this.**
  *
  * `public/sw.js` keeps the shell, so a page opened with no network draws the app instead of the
- * browser's error page — which is the one thing the strip could not honestly claim before. Two
- * conditions, both deliberate: the build only (`import.meta.env.PROD`), because in development the
- * modules change on every keystroke and a cache in front of them would serve yesterday's code; and
- * after `load`, so registering never competes with the first paint for the connection.
+ * browser's error page — which is the one thing the strip could not honestly claim before. It is
+ * registered in the build only (`import.meta.env.PROD`), because in development the modules change
+ * on every keystroke and a cache in front of them would serve yesterday's code.
+ *
+ * **It used to wait for `load`, and that was wrong.** Chrome's published note on its install
+ * criteria says the algorithm that shows the install prompt still asks for a worker with a
+ * `fetch` handler, even though installing from the browser menu no longer does
+ * (developer.chrome.com/blog/update-install-criteria). Waiting for `load` meant the first visit of
+ * a new traveller had no worker at all when Chrome made up its mind, so the offer never came and
+ * the banner had nothing to spend: it fell back to written instructions on the one visit where the
+ * traveller was most likely to install. Registering straight away fixes the order of those two
+ * events, and the cost is one small request that the page was going to make anyway.
  *
  * A failure here is logged and otherwise ignored. Offline support is an improvement, not a
  * dependency: the app is local, and a browser that refuses a worker (private mode, an old WebView)
  * must not be given a broken app because of it.
  */
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    void navigator.serviceWorker
-      .register('/sw.js')
-      .catch((error) => console.warn('[ovvo] service worker not registered', error));
-  });
+  void navigator.serviceWorker
+    .register('/sw.js')
+    .catch((error) => console.warn('[ovvo] service worker not registered', error));
 }
 
 /**
