@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { watchInstallPrompt } from './lib/install';
+import { installManifest } from './lib/manifest';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
@@ -39,6 +40,16 @@ translateLegacyHash();
  * until the traveller's own banner is ready to use it.
  */
 watchInstallPrompt();
+
+/**
+ * **And the manifest that makes the app installable is handed over from inside the page.**
+ *
+ * A host that answers `/manifest.json` with anything but the file (a preview proxy, a catch-all
+ * page, a security challenge) leaves Chrome unable to read it, and Chrome's answer is the one in
+ * its own menu: "this app cannot be installed". Building the same manifest here and linking it as
+ * a `blob:` URL takes the file's delivery out of the browser's way (`lib/manifest`).
+ */
+void installManifest();
 
 /**
  * **The offline strip keeps its promise across a reload.**
