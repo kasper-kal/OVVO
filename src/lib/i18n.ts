@@ -26,8 +26,13 @@ const NL: Record<string, string> = {
   'Add OVVO to your home screen': 'Zet OVVO op je beginscherm',
   'It then opens like an app, with no address bar.': 'Dan opent OVVO als een app, zonder adresbalk.',
   Install: 'Installeren',
+  'Open in a tab': 'Open in een tab',
   /* 'Not now' is already in this table, for the location prompt (further down). */
   'Safari has no install button. This is the way in.': 'Safari heeft geen installeerknop. Zo gaat het.',
+  'Your browser does this from its own menu.': 'Je browser doet dit via zijn eigen menu.',
+  'Open the browser menu, the three dots at the top or the bottom of the screen.':
+    'Open het menu van je browser, de drie puntjes boven of onder in het scherm.',
+  'Choose "Install app" or "Add to Home screen".': 'Kies dan "App installeren" of "Zet op beginscherm".',
   'Tap the Share button in the Safari bar, the square with an arrow pointing up.':
     'Tik in de balk van Safari op de deelknop, het vierkantje met het pijltje omhoog.',
   'Choose "Add to Home Screen".': 'Kies dan "Zet op beginscherm".',

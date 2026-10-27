@@ -11,9 +11,11 @@ import { Button, Dialog, IconButton } from './primitives';
  * Chromium draws a mini bar of its own along the bottom of the window, and iOS draws nothing at
  * all. So the app asks instead. The rules are short:
  *
- *   - **It is drawn only when there is something to offer** — a saved install event, or Safari on
- *     an iPhone or iPad, where the button shows instructions. On a desktop browser that cannot
- *     install, in Firefox, or in a tab that has already installed the app, nothing is on screen.
+ *   - **It is drawn on the first visit of a browser that can install**, whichever way that browser
+ *     allows it: an install event to spend, Safari's Share sheet, another browser's own menu, or a
+ *     tab of its own when the page is shown inside another page. A browser that cannot install at
+ *     all (Firefox, desktop Safari), a device that already has the app, and a traveller who has
+ *     answered the banner all get nothing on screen.
  *   - **It is hidden until then.** The element is always mounted (so the banner never pops into
  *     existence and shifts the page), and `.install-banner.is-hidden` is `display: none`.
  *   - **It is asked once.** Refusing it, or finishing an install, writes that down, and the banner
@@ -25,8 +27,10 @@ import { Button, Dialog, IconButton } from './primitives';
  */
 export function InstallBanner() {
   const t = useT();
-  const { visible, needsIosHelp, install, dismiss } = useInstallPrompt();
+  const { visible, route, install, dismiss } = useInstallPrompt();
   const [helpOpen, setHelpOpen] = useState(false);
+  /* Safari's Share sheet, or the browser's own menu: both are words, not a prompt. */
+  const explains = route === 'safari' || route === 'menu';
 
   /*
    * Closing the instructions counts as having been told: the banner has done its job, and the
@@ -52,16 +56,16 @@ export function InstallBanner() {
           <p className="t-sm t-muted">{t('It then opens like an app, with no address bar.')}</p>
         </div>
         <div className="install-banner__actions">
-          {/* One button, two jobs: on iOS there is no prompt to call, so it shows the way. */}
+          {/* One button, and what it does is this browser's answer (`InstallRoute`). */}
           <Button
             variant="primary"
             size="sm"
             onClick={() => {
-              if (needsIosHelp) setHelpOpen(true);
+              if (explains) setHelpOpen(true);
               else void install();
             }}
           >
-            {t('Install')}
+            {route === 'frame' ? t('Open in a tab') : t('Install')}
           </Button>
           <IconButton icon="close" label={t('Not now')} onClick={dismiss} />
         </div>
@@ -70,7 +74,11 @@ export function InstallBanner() {
       <Dialog
         open={helpOpen}
         title={t('Add OVVO to your home screen')}
-        description={t('Safari has no install button. This is the way in.')}
+        description={
+          route === 'safari'
+            ? t('Safari has no install button. This is the way in.')
+            : t('Your browser does this from its own menu.')
+        }
         onClose={closeHelp}
         footer={
           <Button variant="primary" onClick={closeHelp}>
@@ -84,17 +92,27 @@ export function InstallBanner() {
               1
             </span>
             <span>
-              {t('Tap the Share button in the Safari bar, the square with an arrow pointing up.')}{' '}
-              <span className="install-steps__glyph">
-                <ShareGlyph />
-              </span>
+              {route === 'safari' ? (
+                <>
+                  {t('Tap the Share button in the Safari bar, the square with an arrow pointing up.')}{' '}
+                  <span className="install-steps__glyph">
+                    <ShareGlyph />
+                  </span>
+                </>
+              ) : (
+                t('Open the browser menu, the three dots at the top or the bottom of the screen.')
+              )}
             </span>
           </li>
           <li>
             <span className="install-steps__mark" aria-hidden="true">
               2
             </span>
-            <span>{t('Choose "Add to Home Screen".')}</span>
+            <span>
+              {route === 'safari'
+                ? t('Choose "Add to Home Screen".')
+                : t('Choose "Install app" or "Add to Home screen".')}
+            </span>
           </li>
         </ol>
       </Dialog>

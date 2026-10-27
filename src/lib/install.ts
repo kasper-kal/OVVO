@@ -97,6 +97,45 @@ export function isIosDevice() {
 }
 
 /**
+ * **Is this page inside another page?**
+ *
+ * The preview panel here, and plenty of other places a site is shown, draw it inside a frame. A
+ * browser will not install a page it is showing inside another page, and it does not offer an
+ * install there either. The banner still has one useful thing to say in that case, so this is
+ * asked rather than guessed at: reading `top` throws when the frame belongs to another origin,
+ * which is itself a frame.
+ */
+function isFramed() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * **A browser that can install, even when it has not offered to.**
+ *
+ * Chrome, Edge, Samsung Internet and Opera all put apps on a home screen; Firefox and desktop
+ * Safari do not. The offer event is the easy case, but it is not the only case: Chrome decides for
+ * itself whether to hand the page that event, and it withholds it in a frame, in a private window,
+ * and on a site it thinks the traveller has already answered for. When it does, the banner used to
+ * vanish completely and there was nothing on screen to say an app was even possible.
+ *
+ * So the browsers that *can* install are recognised, and the banner's button then explains the way
+ * in rather than pretending to have an offer to spend.
+ */
+function canInstall() {
+  if (typeof navigator === 'undefined') return false;
+  const brands = (navigator as Navigator & { userAgentData?: { brands?: { brand: string }[] } })
+    .userAgentData?.brands;
+  if (brands?.length) return brands.some(({ brand }) => /Chromium|Chrome|Edge|Opera|Samsung/i.test(brand));
+  /* No `userAgentData` (Safari, Firefox, older Chromium): the name in the user agent is all there is. */
+  return /Chrome\/|Chromium|Edg\/|OPR\/|SamsungBrowser/.test(navigator.userAgent);
+}
+
+/**
  * **Only Safari can put a site on an iPhone's home screen.**
  *
  * Every browser on iOS is WebKit wearing a different name, and the ones that are not Safari have no
@@ -158,31 +197,64 @@ function refuse() {
   publish({ refused: true });
 }
 
+/**
+ * **How this browser can put OVVO on a home screen.**
+ *
+ *   - `prompt`: Chromium handed the page an offer. The button spends it, and the browser installs.
+ *   - `safari`: an iPhone or iPad on Safari, where the only route is the Share sheet.
+ *   - `menu`: a browser that can install but did not offer: Chromium without the event, or another
+ *     browser on iOS. The button explains where the item is in that browser's own menu.
+ *   - `frame`: the page is inside another page, where no install is possible at all. The button
+ *     opens OVVO in its own tab, which is the one step that makes installing possible.
+ */
+export type InstallRoute = 'prompt' | 'safari' | 'menu' | 'frame';
+
 export interface InstallOffer {
-  /** Show the banner: not refused before, not installed, and there is something to offer. */
+  /** Show the banner: not refused before, not installed, and this browser can install at all. */
   visible: boolean;
-  /** iOS Safari, where the button opens instructions rather than a prompt. */
-  needsIosHelp: boolean;
-  /** Ask the browser to install. Resolves after the traveller answers. */
+  /** What pressing the button will do. */
+  route: InstallRoute;
+  /**
+   * Ask the browser to install, or put the page in its own tab first when it is framed.
+   * Resolves after the traveller answers.
+   */
   install: () => Promise<void>;
   /** Refuse for good: the banner does not come back on the next visit. */
   dismiss: () => void;
 }
 
 /**
- * The banner's state and its two actions.
+ * The banner's state and its actions.
  *
- * `install` is deliberately allowed to be an empty promise on a browser with nothing to offer: a
- * button that is on screen is a promise that pressing it does something, and the only case where
- * there is no event to spend is iOS, where the button opens the instructions instead.
+ * `route` is worked out here rather than in the component so the two halves cannot disagree: the
+ * button, the instructions and the decision to draw the banner all read the same answer.
  */
 export function useInstallPrompt(): InstallOffer {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  const ios = isIosSafari();
+  const iosSafari = isIosSafari();
+  const framed = isFramed();
+  const ios = isIosDevice();
+
+  const route: InstallRoute = snapshot.deferred
+    ? 'prompt'
+    : framed
+      ? 'frame'
+      : iosSafari
+        ? 'safari'
+        : 'menu';
 
   const dismiss = useCallback(() => refuse(), []);
 
   const install = useCallback(async () => {
+    /*
+     * Inside another page there is nothing to install and no prompt to call: the browser refuses
+     * to install a framed document. Opening the same address in its own tab is the way out, and it
+     * is a real action on a real button rather than an explanation of one.
+     */
+    if (framed) {
+      window.open(window.location.href, '_blank', 'noopener,noreferrer');
+      return;
+    }
     const event = snapshot.deferred;
     if (!event) return;
     /* Cleared first: the event may be spent once, and a second press must not try again. */
@@ -201,11 +273,16 @@ export function useInstallPrompt(): InstallOffer {
      * already been answered, and so nothing appears again if an older browser fires a fresh event.
      */
     dismiss();
-  }, [dismiss, snapshot.deferred]);
+  }, [dismiss, framed, snapshot.deferred]);
 
   return {
-    visible: !snapshot.refused && !snapshot.installed && (snapshot.deferred !== null || ios),
-    needsIosHelp: ios,
+    /*
+     * On screen on the first visit of any browser that can install, not only when an offer happens
+     * to be in hand. The old rule hid the banner on every browser that stayed quiet, which is most
+     * of them outside a plain Chrome tab, and a feature nobody can see is not a feature.
+     */
+    visible: !snapshot.refused && !snapshot.installed && (canInstall() || iosSafari || ios),
+    route,
     install,
     dismiss,
   };
