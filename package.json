@@ -9,6 +9,7 @@
     "check:text": "node scripts/em-dash-audit.mjs",
     "typecheck": "tsc --noEmit",
     "check:phone": "node scripts/old-phone-check.mjs",
+    "check:scroll": "node scripts/scroll-audit.mjs",
     "preview": "vite preview",
     "dev:preview": "bash scripts/dev-preview.sh"
   },

@@ -630,6 +630,28 @@ export function SettingsPage() {
                  * phone is put, and the first-visit sheet arrives on that screen instead.
                  */
                 navigate('/');
+                /*
+                 * **And the home screen of a fresh visitor is at its top, not just asked to be.**
+                 *
+                 * The arrival already puts a new screen at its top (`layout/AppShell`), and a
+                 * closing sheet no longer hands over the offset of the screen it came from
+                 * (`lib/useOverlay`) - both were reported as a reset landing *slightly scrolled
+                 * down*, and neither could be reproduced in a test browser, which means the last
+                 * mover on a real phone is something this app does not own: the browser's own
+                 * restoration, a collapsing address bar, or a phone that lays the page out one
+                 * frame later.
+                 *
+                 * So the claim is made more than once, across the first quarter second, and only
+                 * while the home screen is still the screen being shown. It cannot fight the
+                 * traveller: a quarter of a second after a reset is not a moment anybody has
+                 * scrolled in, and the last claim is skipped entirely once the address is no longer
+                 * the home screen.
+                 */
+                [0, 90, 260].forEach((delay) =>
+                  window.setTimeout(() => {
+                    if (window.location.pathname === '/') window.scrollTo({ top: 0, behavior: 'auto' });
+                  }, delay),
+                );
               }}
             >
               {t('Reset everything')}
