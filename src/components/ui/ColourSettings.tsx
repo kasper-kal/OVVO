@@ -496,13 +496,24 @@ function SelectionScreen({
 }) {
   const { settings, updateSettings } = useApp();
   const t = useT();
-  const customRef = useRef<HTMLInputElement | null>(null);
   const palette = paletteFor(settings, mode);
   const current = selectionColor(palette.selectionColor, palette.selectionCustom) || '#ff7e67';
+  /*
+   * **Custom opens this app's own picker now, not the device's.**
+   *
+   * The row used to hand the traveller straight to the platform dialog, which is a fine picker and
+   * a strange thing to be the *only* one: the five named colours were a list you could only leave
+   * by going to a different operating system's idea of a colour picker, with no spectrum, no hex
+   * field and no sight of what the app would do with the value. The screen the other two colour
+   * rows open — grid, spectrum, typed value — opens here instead, and its own **Pick your own**
+   * button is the way on to the device's picker for anyone who prefers it.
+   */
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   if (!open) return null;
 
   return (
+    <>
     <FullScreen
       title={t('Text selection')}
       onClose={onClose}
@@ -535,12 +546,7 @@ function SelectionScreen({
             type="button"
             className="settings-row"
             aria-pressed={palette.selectionColor === 'custom'}
-            onClick={() => {
-              const input = customRef.current;
-              if (!input) return;
-              input.value = current;
-              input.click();
-            }}
+            onClick={() => setPickerOpen(true)}
           >
             <span
               className="settings-row__swatch"
@@ -564,25 +570,23 @@ function SelectionScreen({
         >
           {t('Reset the selected-text colour')}
         </Button>
-        {/* The device's own dialog, opened from inside the row's gesture. */}
-        <input
-          ref={customRef}
-          type="color"
-          className="sr-only"
-          tabIndex={-1}
-          aria-label={t('Custom colour')}
-          value={current}
-          onChange={(event) =>
-            updateSettings(
-              palettePatch(mode, {
-                selectionColor: 'custom',
-                selectionCustom: event.target.value,
-              }),
-            )
-          }
-        />
       </div>
     </FullScreen>
+    {/*
+      The app's own picker, over this screen rather than instead of it — the same way the photo
+      sampler opens over the widgets dialog. Closing it brings the five colours back.
+    */}
+    <ColourScreen
+      open={pickerOpen}
+      title={t('Custom colour')}
+      value={current}
+      swatches={SELECTION_SWATCHES.map((swatch) => selectionColor(swatch.key, '')).filter(Boolean)}
+      onChange={(hex) =>
+        updateSettings(palettePatch(mode, { selectionColor: 'custom', selectionCustom: hex }))
+      }
+      onClose={() => setPickerOpen(false)}
+    />
+    </>
   );
 }
 

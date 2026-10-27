@@ -1,21 +1,48 @@
+import { Suspense, lazy, type ComponentType } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProvider, useApp } from './state/AppState';
 import { AppShell } from './components/layout/AppShell';
 import { HomePage } from './pages/HomePage';
-import { ResultsPage } from './pages/ResultsPage';
-import { JourneyDetailPage } from './pages/JourneyDetailPage';
-
-import { MapPage } from './pages/MapPage';
-import { StopsPage } from './pages/StopsPage';
-import { StopDetailPage } from './pages/StopDetailPage';
-import { DeparturesPage } from './pages/DeparturesPage';
-import { DisruptionsPage } from './pages/DisruptionsPage';
-import { DisruptionDetailPage } from './pages/DisruptionDetailPage';
-import { PreferencesPage } from './pages/PreferencesPage';
-import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SkeletonDemoPage } from './pages/SkeletonDemoPage';
 import { ReviewLayer } from './review/ReviewLayer';
+
+/**
+ * **One screen is downloaded, the rest when they are asked for.**
+ *
+ * The build shipped every screen in one file — measured at **700 kB** before this, on every
+ * visit, whatever the traveller opened. On a cheap phone that is the expensive part of starting:
+ * the bytes come over the radio and then have to be parsed and compiled before the first card can
+ * be drawn, and none of it is the home screen's business. Results, a journey, the map, the stop
+ * list, the board, the alerts, preferences and settings each live in their own chunk now, fetched
+ * the first time they are opened and kept afterwards.
+ *
+ * The home screen stays in the first file on purpose: it is the screen the app opens on, and a
+ * chunk boundary in front of it would put a wait between the traveller and the planner for no
+ * saving at all.
+ *
+ * Nothing about the shape of the app changes. `pages/*` still export the same named components;
+ * this is a `.then` to turn one into the default export `lazy` asks for.
+ *
+ * **The fallback is nothing at all, on purpose.** A held-place card here would flash for one frame
+ * on a fast connection and lie about the shape of the screen — the board, the map and the settings
+ * list are not a journey result. The chunk is a local file, the header and the dock are already
+ * drawn, and a screen that is a beat late should look like a beat, not like a skeleton of the wrong
+ * thing.
+ */
+const page = <Name extends string>(load: () => Promise<Record<Name, ComponentType>>, name: Name) =>
+  lazy(() => load().then((module) => ({ default: module[name] })));
+
+const ResultsPage = page(() => import('./pages/ResultsPage'), 'ResultsPage');
+const JourneyDetailPage = page(() => import('./pages/JourneyDetailPage'), 'JourneyDetailPage');
+const MapPage = page(() => import('./pages/MapPage'), 'MapPage');
+const StopsPage = page(() => import('./pages/StopsPage'), 'StopsPage');
+const StopDetailPage = page(() => import('./pages/StopDetailPage'), 'StopDetailPage');
+const DeparturesPage = page(() => import('./pages/DeparturesPage'), 'DeparturesPage');
+const DisruptionsPage = page(() => import('./pages/DisruptionsPage'), 'DisruptionsPage');
+const DisruptionDetailPage = page(() => import('./pages/DisruptionDetailPage'), 'DisruptionDetailPage');
+const PreferencesPage = page(() => import('./pages/PreferencesPage'), 'PreferencesPage');
+const SettingsPage = page(() => import('./pages/SettingsPage'), 'SettingsPage');
 
 /**
  * **Settings is closed at 10% or below.**
@@ -70,6 +97,7 @@ export default function App() {
             path="*"
             element={
               <AppShell>
+                <Suspense fallback={null}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
@@ -89,6 +117,7 @@ export default function App() {
                   <Route path="/planner" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
+                </Suspense>
               </AppShell>
             }
           />

@@ -69,6 +69,8 @@ export function ColourScreen({
 }: ColourScreenProps) {
   const t = useT();
   const padRef = useRef<HTMLDivElement | null>(null);
+  /* The device's own dialog, reached from a button rather than from the row that opened this. */
+  const ownRef = useRef<HTMLInputElement | null>(null);
   const dragging = useRef(false);
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value));
   /*
@@ -178,6 +180,38 @@ export function ColourScreen({
               );
             })}
           </div>
+        </div>
+
+        {/*
+          **And the way out of this screen's own colours.**
+          
+          This picker is the app's — a grid, a spectrum, a typed value — and every one of those is
+          a good way to choose a colour only when the colour you want is one you can name. The
+          device's picker is the other way: its own palettes, its own remembered colours, the one a
+          traveller already knows how to use. It used to be reachable only from the *rows* behind
+          this screen, so the screen a colour opened was a dead end for anything not on its grid.
+        */}
+        <div className="row-wrap">
+          <Button
+            onClick={() => {
+              const input = ownRef.current;
+              if (!input) return;
+              input.value = current;
+              input.click();
+            }}
+          >
+            {t('Pick your own')}
+          </Button>
+          <span className="t-sm t-faint grow">{t('Opens the colour picker of this device.')}</span>
+          <input
+            ref={ownRef}
+            type="color"
+            className="sr-only"
+            tabIndex={-1}
+            aria-label={t('Custom colour')}
+            value={current}
+            onChange={(event) => commit(hexToHsv(event.target.value))}
+          />
         </div>
 
         {image && onPickFromPhoto ? (

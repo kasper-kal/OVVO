@@ -1350,6 +1350,25 @@ svg.map-canvas {
 }
 
 /*
+ * **And the photograph goes, which is the biggest thing the mode was leaving on.**
+ *
+ * A picture is not decoration at the cost of a shadow: `background.image` is a phone photograph
+ * decoded at device resolution, kept in memory for the life of the visit, and re-composited behind
+ * every card that passes over it. Measured at 7% before this rule existed, the page still carried
+ * the image at `cover` and the cards were still translucent panes over it — the one place where the
+ * saving mode saved nothing at all.
+ *
+ * `lib/background.ts` stops writing the image in this mode, which is the authority; this is the
+ * same statement in the stylesheet so the two cannot drift, and so the flat canvas is what is drawn
+ * even in the frame before the palette is re-derived. Nothing is deleted: leaving super, or plugging
+ * the phone in, paints the traveller's own picture again.
+ */
+:root[data-power='super'][data-background='photo'] body,
+:root[data-power='super'][data-background='photo'] .fullscreen {
+  background-image: none;
+}
+
+/*
  * Two controls that scale with a number of their own rather than a token — the home menu's rows
  * and the colour swatches — so flattening the tokens does not reach them. Named here so that
  * "no movement" in super is a fact about every control and not about the well-behaved ones.

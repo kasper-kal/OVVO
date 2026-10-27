@@ -105,6 +105,17 @@ export interface BackgroundSettings {
   selectionColour?: string;
   selectionCustom?: string;
   /**
+   * Super energy saving, in which the photograph is not drawn at all.
+   *
+   * The picture is the most expensive thing this app can put on a screen: a phone's photograph,
+   * decoded at device resolution, held in memory and re-composited behind every card that scrolls
+   * over it. At a tenth of a battery that is exactly the kind of spending the mode exists to stop,
+   * and it was the one thing it left alone (measured: at 7% the page still carried the image,
+   * cover-sized, with the cards still translucent over it). Nothing is deleted — the photo is still
+   * stored, and the moment the battery is back above the threshold it is drawn again.
+   */
+  superSaving?: boolean;
+  /**
    * Raised contrast, which the derived ink ramp has to *know about* rather than be colouring over.
    *
    * The tinted palette writes `--ink`, `--ink-muted`, `--ink-faint` and the hairlines on `:root`
@@ -818,10 +829,9 @@ export function applyBackground(settings: BackgroundSettings): void {
    * section read as a flat list (reported: "corners must never be deleted, no matter what my
    * settings are"). No picture means no glass — the app's own cards stand until there is one.
    */
-  const glass =
-    settings.background === 'photo' &&
-    settings.cardTreatment === 'glass' &&
-    Boolean(settings.backgroundImage);
+  /* No picture is drawn in super saving, so there is nothing for a card to be glass over. */
+  const photoDrawn = settings.background === 'photo' && Boolean(settings.backgroundImage) && !settings.superSaving;
+  const glass = photoDrawn && settings.cardTreatment === 'glass';
 
   root.dataset.background = settings.background;
   for (const property of DYNAMIC_PROPERTIES) root.style.removeProperty(property);
@@ -837,7 +847,7 @@ export function applyBackground(settings: BackgroundSettings): void {
    */
   if (glass) root.dataset.surface = 'glass';
 
-  if (settings.background === 'photo' && settings.backgroundImage) {
+  if (photoDrawn) {
     root.style.setProperty('--app-bg-image', `url("${settings.backgroundImage}")`);
     /*
      * The crop's own centre, so the subject the traveller framed stays in view when another screen

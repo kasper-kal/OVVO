@@ -1115,15 +1115,25 @@ export function HomePage() {
         */}
       {thinning ? (
         <p className="t-sm t-muted" role="status">
-          {t('Super energy saving is on. {cards} come back when this device is charged.', {
-            cards: counted(t, hiddenBySaving, '{count} card', '{count} cards'),
-          })}{' '}
+          {t('Super energy saving is on.')}{' '}
           {/*
-            * The second half of the sentence is the Settings screen: super saving takes it off the
-            * navigation and closes its URL (`AppShell`, `App.tsx`), so this line is the only place
-            * the traveller is told that it went with the cards rather than out of the app.
+            * **The cards are named only when some were taken.** On the default home screen the
+            * three cards that stay are the three the mode keeps, so nothing was hidden — and the
+            * line still offered to bring back zero of them, which reads as a fault rather than as a
+            * courtesy.
             */}
-          {t('Only what you need to catch a bus is drawn, and Settings come back with the rest.')}
+          {hiddenBySaving > 0
+            ? t('{cards} come back when this device is charged.', {
+                cards: counted(t, hiddenBySaving, '{count} card', '{count} cards'),
+              }) + ' '
+            : ''}
+          {/*
+            * The rest is the mode's whole shape, in the order a traveller notices it: the app is
+            * thinner, it is dark, and Settings went with the cards rather than out of the app. The
+            * appearance they chose is untouched and comes back with all of it — which is why the
+            * screen is described as *dark*, not as *set* to dark.
+            */}
+          {t('Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.')}
         </p>
       ) : null}
 

@@ -268,8 +268,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * a slower look for another reason.
    */
   const [slowDevice, setSlowDevice] = useState(false);
+  /* Read inside the timer without making it a dependency: a level change arrives every percent, and
+     re-scheduling this on each one would be the opposite of saving anything. */
+  const powerModeRef = useRef(power.mode);
+  powerModeRef.current = power.mode;
   useEffect(() => {
-    const timer = window.setTimeout(() => setSlowDevice(deviceIsSlow()), 1200);
+    const timer = window.setTimeout(() => {
+      /*
+       * **At a tenth of a battery the question is already answered.** The measurement is real work
+       * on the main thread — three timed passes over a fixed loop — and its only purpose is to
+       * decide whether to give this phone the still interface, which super saving has already given
+       * it. Spending the battery to ask a question the battery already answered is the one thing a
+       * saving mode must not do.
+       */
+      if (powerModeRef.current === 'super') return;
+      setSlowDevice(deviceIsSlow());
+    }, 1200);
     return () => window.clearTimeout(timer);
   }, []);
   const [savedJourneys, setSavedJourneys] = useState<SavedJourney[]>(() =>
@@ -433,8 +447,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => media.removeEventListener('change', onSystemChange);
   }, []);
 
+  /*
+   * **Super saving draws dark, whatever the traveller chose.**
+   *
+   * A dark screen is the one saving that needs no code on this side of the pixel: on an OLED phone
+   * a black pixel is a pixel that is off, and this app at a tenth of a battery is mostly a page and
+   * a card — the two largest areas it ever paints. So the mode takes the appearance as it takes the
+   * motion, the blur and the photograph, and hands it back untouched: `settings.theme` is not
+   * written, not migrated and not shown as changed anywhere, because a battery reading is a fact
+   * about the phone and not a preference of the person holding it. Charging returns their own
+   * appearance in the same frame the cards come back.
+   */
   const appearance: 'light' | 'dark' =
-    settings.theme === 'system' ? (systemDark ? 'dark' : 'light') : settings.theme;
+    power.mode === 'super'
+      ? 'dark'
+      : settings.theme === 'system'
+        ? systemDark
+          ? 'dark'
+          : 'light'
+        : settings.theme;
 
   useEffect(() => {
     document.documentElement.dataset.theme = appearance;
@@ -477,6 +508,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
          view (`lib/photoCrop.ts`, `cropFocus`). */
       backgroundCrop: settings.backgroundCrop,
       cardTreatment: settings.cardTreatment,
+      /*
+       * Super saving does not draw the photograph: a full-screen image is the most expensive thing
+       * on the screen and the mode exists to stop exactly that. The value is passed rather than read
+       * from the document so the two cannot disagree by a frame — the attribute is written by its
+       * own effect, and this one would otherwise depend on which ran first.
+       */
+      superSaving: power.mode === 'super',
       primaryColour: palette.primaryColour,
       selectionColour: palette.selectionColor,
       selectionCustom: palette.selectionCustom,
@@ -496,6 +534,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     palette.selectionCustom,
     appearance,
     settings.highContrast,
+    /* The picture is set and cleared by the battery, so the mode is part of this palette. */
+    power.mode,
   ]);
 
   /* The document's own language, so screen readers, hyphenation and the browser's spelling all

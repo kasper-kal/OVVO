@@ -90,8 +90,33 @@ export function DeparturesPage() {
    * the behaviour cannot drift apart again.
    */
   useEffect(() => {
-    const timer = window.setInterval(() => setTick((value) => value + 1), BOARD_REFRESH_SECONDS * 1000);
-    return () => window.clearInterval(timer);
+    let timer = 0;
+    const start = () => {
+      window.clearInterval(timer);
+      timer = window.setInterval(() => setTick((value) => value + 1), BOARD_REFRESH_SECONDS * 1000);
+    };
+    /*
+     * **Five seconds is a cadence for a screen somebody is watching.** A board left open in the
+     * background refreshed twelve times a minute for nobody, and a refresh is a re-render and a
+     * repaint — the most expensive kind of work this app does. Hidden, the timer stops; on the way
+     * back it ticks once at once, so the times on the board are current before the first frame the
+     * traveller sees, and then resumes its five seconds.
+     */
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        window.clearInterval(timer);
+        timer = 0;
+        return;
+      }
+      setTick((value) => value + 1);
+      start();
+    };
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   /*
