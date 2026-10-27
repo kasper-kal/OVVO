@@ -624,6 +624,29 @@ export function SettingsPage() {
                 setOrigin(null);
                 setConfirmReset(false);
                 /*
+                 * **The page is put at its top *before* the screen changes, and that order is the
+                 * whole fix.**
+                 *
+                 * A reset opens the first-visit location question on the home screen, and it does it
+                 * in the same commit as this navigation. A sheet remembers the offset it was opened
+                 * over so it can give it back (`lib/useOverlay`), so it remembered the offset left
+                 * on the document by this very navigation: the traveller was well down a Settings
+                 * screen, the home screen is shorter, and the browser clamped that offset to the
+                 * home screen's own last screenful. Measured on a 360x640 phone that clamp is
+                 * **205px**, and answering the question handed it back - a reset that lands on a
+                 * home screen already scrolled down.
+                 *
+                 * The claims further down (and the arrival in `layout/AppShell`) could not stop it:
+                 * they ran while the sheet had the document locked, where a scroll position of zero
+                 * is what is *read* whether or not it is what is set, and the sheet's restore came
+                 * after them and won.
+                 *
+                 * Claiming the top here leaves nothing stale for anything to remember. The other
+                 * claims still stand as what they always were, a second and third guard across the
+                 * frames after this one, but the value they defend is now right from the start.
+                 */
+                window.scrollTo({ top: 0, behavior: 'auto' });
+                /*
                  * Home, which is where a first visit starts. Staying on Settings would draw the
                  * reset as a screen of changed defaults and then cover it with the location
                  * question the same trip is meant to be - so the traveller is put where a new
