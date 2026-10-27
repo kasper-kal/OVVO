@@ -84,10 +84,16 @@ void installManifest();
  * A failure here is logged and otherwise ignored. Offline support is an improvement, not a
  * dependency: the app is local, and a browser that refuses a worker (private mode, an old WebView)
  * must not be given a broken app because of it.
+ *
+ * **`updateViaCache: 'none'`, and this one line cost a phone an installable app.** By default the
+ * browser may answer its own request for `sw.js` from the HTTP cache, so a worker fetched once
+ * keeps being the worker, and every fix below it waits for a cache that never expires. Chrome is
+ * the one that has to install this app, so Chrome must read the current worker and the current
+ * manifest, not what a cache remembers of them.
  */
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   void navigator.serviceWorker
-    .register('/sw.js')
+    .register('/sw.js', { updateViaCache: 'none' })
     .catch((error) => console.warn('[ovvo] service worker not registered', error));
 }
 

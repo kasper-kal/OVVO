@@ -21,8 +21,31 @@
  * their own caches: they are not this app's to store, and a stale font is not worth a stale estimate
  * of where somebody is.
  */
-const CACHE = 'ovvo-shell-v1';
+/*
+ * **The version is bumped when the cache has to be thrown away, and it has to be now.**
+ *
+ * Everything below is cache-first, which is right for content-hashed bundles and wrong for
+ * anything a bad answer can stick to. Two files a browser reads to decide whether this app can be
+ * installed are exactly that: an old copy of `manifest.json` kept here (or of the site's page,
+ * served in its place by a host long ago) is handed to Chrome on every visit, and Chrome's answer
+ * is the one in its own menu — Installeren, greyed out, "this app cannot be installed" — on a
+ * build that installs perfectly in a browser that has never seen the old copy.
+ *
+ * `v2` drops the old cache on activate, so a phone carrying a poisoned one is clean once, and the
+ * two rules below make sure it cannot happen again.
+ */
+const CACHE = 'ovvo-shell-v2';
 const SHELL = ['/', '/index.html', '/favicon.svg'];
+
+/**
+ * Files whose answer decides installability, and which must therefore never come out of a cache.
+ *
+ * The worker itself is here for the same reason as the manifest: a cached `sw.js` is a worker that
+ * is never replaced, so every fix in this file would take a cache name bump to reach anyone.
+ */
+const NEVER_CACHE = ['/manifest.json', '/sw.js'];
+
+const isUncached = (url) => NEVER_CACHE.some((each) => url.pathname === each);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -49,6 +72,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  /* Asked of the network every time, and never stored: see `NEVER_CACHE`. */
+  if (isUncached(url)) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(

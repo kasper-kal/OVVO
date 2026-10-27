@@ -38,8 +38,10 @@ const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
  * target probe, and its names are the only text on the panel — measured against whatever ground the
  * panel paints (`.map-card .map-canvas`), which is the thing this audit is for.
  */
-const ROUTES = ['/', '/results', '/journey/j1', '/stops', '/stops/utrecht-centraal', '/departures',
-  '/disruptions', '/disruptions/d-cancel-schiphol', '/preferences', '/settings', '/map', '/nope'];
+const ROUTES = process.env.UI_AUDIT_ROUTES
+  ? process.env.UI_AUDIT_ROUTES.split(',')
+  : ['/', '/results', '/journey/j1', '/stops', '/stops/utrecht-centraal', '/departures',
+    '/disruptions', '/disruptions/d-cancel-schiphol', '/preferences', '/settings', '/map', '/nope'];
 /*
  * The widths every route is measured at. `719` and `720` are both here on purpose: they are the
  * two sides of the one breakpoint (`src/styles/base.css`, "the one breakpoint"), and the defects
@@ -48,7 +50,14 @@ const ROUTES = ['/', '/results', '/journey/j1', '/stops', '/stops/utrecht-centra
  * changed shape at 641. A round that samples 390 and 768 skips the band those numbers live in, so
  * the boundary is now in the sweep and `scripts/breakpoint-audit.mjs` fails if it ever moves.
  */
-const WIDTHS = [320, 390, 719, 720, 768, 1440];
+/*
+ * `UI_AUDIT_WIDTHS=390` and `UI_AUDIT_ROUTES=/stops,/map` narrow the sweep. The default is the
+ * whole matrix and stays that way — a gate that only ever looks at three screens is how a fault
+ * survives on the other nine. The narrowing exists for `scripts/colour-audit.mjs`, which has to run
+ * this measurement once per palette: twelve routes at six widths per palette is a quarter of an
+ * hour, and the palettes are the thing being compared there.
+ */
+const WIDTHS = (process.env.UI_AUDIT_WIDTHS ?? '320,390,719,720,768,1440').split(',').map(Number).filter(Boolean);
 const MIN_TARGET = 44;
 /*
  * `UI_AUDIT_THEME=dark` (or `nl` for the language) runs the whole audit again in the other
@@ -87,7 +96,17 @@ const SETTINGS_STORAGE = {
   timeFormat: '24h',
   dateFormat: 'long',
   density: 'comfortable',
-  highContrast: false,
+  /*
+   * The palette, from the environment so a caller can walk the Colours screen's own space without
+   * a browser to click with — see `scripts/colour-audit.mjs`. `primaryColour` is the widget colour
+   * (the second of the three colours on that screen) and `""` means "follow the page colour".
+   */
+  primaryColour: process.env.UI_AUDIT_PRIMARY ?? '',
+  primaryColourDark: process.env.UI_AUDIT_PRIMARY ?? '',
+  selectionColor: process.env.UI_AUDIT_SELECTION ?? 'coral',
+  selectionColorDark: process.env.UI_AUDIT_SELECTION ?? 'coral',
+  backgroundColourDark: process.env.UI_AUDIT_BACKGROUND_DARK ?? BACKGROUND_COLOUR,
+  highContrast: process.env.UI_AUDIT_HIGH_CONTRAST === '1',
   reduceMotion: false,
   background: BACKGROUND,
   backgroundColour: BACKGROUND_COLOUR,
@@ -103,7 +122,11 @@ const SETTINGS_STORAGE = {
 
 let chromium;
 try {
-  ({ chromium } = await import('playwright'));
+  /* `prepareBrowserEnv` is what makes this runnable on its own: without it the browser dies at
+     launch on a machine whose libraries live in `$HOME/syslibs`, which reads like a test failure. */
+  const browserEnv = await import('./browser-env.mjs');
+  browserEnv.prepareBrowserEnv();
+  ({ chromium } = browserEnv);
 } catch {
   console.error('this audit needs a browser: npm i -D playwright && npx playwright install chromium');
   process.exit(2);

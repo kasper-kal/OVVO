@@ -4994,8 +4994,17 @@
   border: 1px solid var(--border-hairline);
   display: grid;
   place-items: center;
-  /* Ink, not a fill: see --accent-primary-ink. */
-  color: var(--accent-primary-ink);
+  /*
+   * **A tinted ink, not the accent's raw cut.**
+   *
+   * `--accent-primary-ink` is a colour measured against one surface (the page's, or a widget's),
+   * and an empty state stands on whichever of them it happens to be drawn on. Painting the raw cut
+   * put the widgets' cut on the page's surface: measured 1.53:1 for green widgets over a cream
+   * page, and 1.33:1 for coral in the dark appearance, where the cut was a dark red on a
+   * near-black tile. Mixing the cut into the local ink keeps the traveller's colour in the mark
+   * while the surface underneath sets its lightness, the same way the map's chips are mixed.
+   */
+  color: color-mix(in srgb, var(--accent-primary-ink) 40%, var(--ink));
 }
 
 /* ------------------------------------------------------------ the error screen */
