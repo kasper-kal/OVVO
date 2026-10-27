@@ -24,6 +24,7 @@ import { deviceIsSlow } from '../lib/deviceSpeed';
 import { applyBackground } from '../lib/background';
 import { applySelection } from '../lib/selection';
 import { paletteFor } from '../lib/palette';
+import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
 import {
   DEFAULT_SETTINGS,
@@ -817,8 +818,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
      *   2. **The state that was read from it**, put back to its default by hand: the storage wipe
      *      happens *under* a running app, so nothing would redraw without this half.
      *   3. **The two questions a first visit asks.** The location sheet returns (`unknown`, not
-     *      `denied`) and the install banner returns on the next visit, because its "refused" flag
-     *      went with the storage above.
+     *      `denied`), and the install banner returns because its answer is cleared **twice**: the
+     *      storage slot goes with the wipe, and `resetInstallOffer()` clears the copy the running
+     *      banner is reading. The second call is not belt and braces: the banner keeps its answer in
+     *      a store beside the browser's install event, and a wipe alone left it hidden for the rest
+     *      of the visit, which is what a reset was reported as failing to do.
      *
      * **On the location answer, an earlier decision is deliberately reversed.** Audit 11.11 chose
      * `denied` here so that emptying the store would not read as "the app forgot in order to ask
@@ -849,6 +853,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       /* The estimate goes with everything else: it is this browser's data too, and this is the one
          instruction that has to mean all of it. */
       setApproximateLocation(null);
+      /* And the home-screen offer is unanswered again, so the banner may come back at once. */
+      resetInstallOffer();
       /*
        * Said a moment later, on purpose. `pushToast` translates through the live language, and this
        * reset is about to put the interface back to English - so a Dutch toast pushed from here

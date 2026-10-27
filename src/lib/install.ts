@@ -1,4 +1,4 @@
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { readStored, STORAGE_KEYS, writeStored } from './storage';
 
 /**
@@ -28,6 +28,9 @@ import { readStored, STORAGE_KEYS, writeStored } from './storage';
  *
  * Nothing in this file talks to a server, and the only thing it remembers is whether the traveller
  * has already said no (`STORAGE_KEYS.install`), which is what makes the banner a first-visit thing.
+ * That answer is kept **in the store beside the event**, not in the banner's own state: the reset
+ * (`resetInstallOffer`) has to reach it, and a `useState` inside a mounted component cannot be
+ * reached from anywhere — which is exactly why a reset used to leave the banner hidden.
  */
 
 /** The event Chromium fires. It is real, standard behaviour, and in none of the DOM types. */
@@ -43,9 +46,17 @@ interface InstallState {
   deferred: BeforeInstallPromptEvent | null;
   /** Already installed, or open right now as an installed app. */
   installed: boolean;
+  /** The traveller has answered the banner: it does not come back on this device. */
+  refused: boolean;
 }
 
-let state: InstallState = { version: 0, deferred: null, installed: false };
+let state: InstallState = {
+  version: 0,
+  deferred: null,
+  installed: false,
+  /* Read once, here rather than in a component, so the whole app shares one answer. */
+  refused: readStored(STORAGE_KEYS.install, false),
+};
 const listeners = new Set<() => void>();
 
 function publish(patch: Partial<Omit<InstallState, 'version'>>) {
@@ -122,6 +133,31 @@ export function watchInstallPrompt() {
   if (isStandalone()) publish({ installed: true });
 }
 
+/**
+ * **Forget that the banner was ever answered, for a reset.**
+ *
+ * Called by `resetLocalData` (`state/AppState.tsx`), whose promise is that OVVO treats the
+ * traveller as somebody new. The stored flag goes with the rest of the storage wipe; this clears
+ * the copy the running app is holding, which is the half that a wipe alone cannot reach. Whether
+ * the banner is then on screen depends on the browser: an offer still in hand is drawn at once,
+ * and an offer already spent in this visit can only come back on the next page load, because
+ * Chromium hands the page that event once per load.
+ */
+export function resetInstallOffer() {
+  publish({ refused: false });
+}
+
+/**
+ * Put the answer away.
+ *
+ * The store is the single copy: writing storage here as well keeps the next visit quiet even if
+ * this tab is reloaded before anything else touches it.
+ */
+function refuse() {
+  writeStored(STORAGE_KEYS.install, true);
+  publish({ refused: true });
+}
+
 export interface InstallOffer {
   /** Show the banner: not refused before, not installed, and there is something to offer. */
   visible: boolean;
@@ -142,13 +178,9 @@ export interface InstallOffer {
  */
 export function useInstallPrompt(): InstallOffer {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  const [refused, setRefused] = useState(() => readStored(STORAGE_KEYS.install, false));
   const ios = isIosSafari();
 
-  const dismiss = useCallback(() => {
-    writeStored(STORAGE_KEYS.install, true);
-    setRefused(true);
-  }, []);
+  const dismiss = useCallback(() => refuse(), []);
 
   const install = useCallback(async () => {
     const event = snapshot.deferred;
@@ -172,7 +204,7 @@ export function useInstallPrompt(): InstallOffer {
   }, [dismiss, snapshot.deferred]);
 
   return {
-    visible: !refused && !snapshot.installed && (snapshot.deferred !== null || ios),
+    visible: !snapshot.refused && !snapshot.installed && (snapshot.deferred !== null || ios),
     needsIosHelp: ios,
     install,
     dismiss,
