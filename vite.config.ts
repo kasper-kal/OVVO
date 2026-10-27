@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 /*
  * The review layer's upload endpoint (see `review/`). It writes pasted screenshots and their notes
@@ -70,6 +70,49 @@ const hostsFromList = (value: string | undefined): string[] =>
  */
 const reviewBatch = reviewBatchName();
 
+/*
+ * **A line in the log for every request the preview host actually forwards.**
+ *
+ * A phone that says "this app cannot be installed" is telling us something about the *manifest*,
+ * and the manifest is one file the browser fetches by itself. Whether that fetch ever reaches this
+ * server, and what it got back, cannot be seen from the page: by the time the app is running, the
+ * answer is already a yes or a no inside the browser. So the server writes down what it was asked
+ * for and what it answered, and the two questions become answerable from the terminal:
+ *
+ *   - no line for `/manifest.json` means the host in front of us answers it itself, and no code in
+ *     this app can make that address installable;
+ *   - a line with `200` means the file arrived, and whatever Chrome decided afterwards is Chrome's
+ *     own business, not the host's.
+ *
+ * Development only (`apply: 'serve'`), and it writes nothing but the method, the path, the status
+ * and the host it was asked for.
+ */
+function requestTrace(): Plugin {
+  return {
+    name: 'ovvo-request-trace',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const started = Date.now();
+        /* Typed by hand: this project has no Node typings (see the `process` declaration above). */
+        const incoming = request as unknown as {
+          method?: string;
+          url?: string;
+          headers: Record<string, string | undefined>;
+        };
+        response.on('finish', () => {
+          const host = incoming.headers.host ?? '-';
+          const type = response.getHeader('content-type') ?? '-';
+          console.log(
+            `[req] ${response.statusCode} ${incoming.method} ${incoming.url} ${host} ${String(type)} ${Date.now() - started}ms`,
+          );
+        });
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const previewHost = previewHostFromEnv(mode);
   const allowedHosts = [
@@ -119,7 +162,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __REVIEW_BATCH__: JSON.stringify(reviewBatch),
     },
-    plugins: [react(), reviewUpload({ batch: reviewBatch })],
+    plugins: [react(), reviewUpload({ batch: reviewBatch }), requestTrace()],
     server: {
       host: '0.0.0.0',
       port: 3000,
