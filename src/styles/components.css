@@ -5792,6 +5792,28 @@
   border-bottom: 0;
 }
 
+/*
+ * **A row that is off the glass is not laid out until it is needed.**
+ *
+ * A pinned board holds up to twenty rows and a phone shows six or seven, so on every redraw the
+ * browser was laying out and painting the thirteen rows nobody was looking at.
+ * `content-visibility: auto` lets it skip those until they scroll into view. The rows are still in
+ * the page: find in the browser still finds them, a screen reader still reads them, and Tab still
+ * reaches them, because the browser brings each one back the moment it is asked for.
+ *
+ * The guess is the row's own `min-height`, written twice on purpose. The plain value is for a
+ * browser that knows `content-visibility` but not the `auto` keyword in
+ * `contain-intrinsic-size`, and it is the safe one: a wrong guess has a height rather than no
+ * height. The second line, where it is understood, tells the browser to remember each row's real
+ * height once it has drawn it, so a destination that wraps to two lines does not make the page grow
+ * as it arrives.
+ */
+.board-list__row {
+  content-visibility: auto;
+  contain-intrinsic-size: 56px;
+  contain-intrinsic-size: auto 56px;
+}
+
 .board-list__row[data-cancelled] .board-list__destination {
   color: var(--ink-muted);
   text-decoration: line-through;

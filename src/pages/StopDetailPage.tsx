@@ -29,7 +29,7 @@ import { modeLabel } from '../data/preferences';
 export function StopDetailPage() {
   const { stopId } = useParams();
   const navigate = useNavigate();
-  const { favouriteStopIds, toggleFavourite } = useApp();
+  const { favouriteStopIds, toggleFavourite, power } = useApp();
   const format = useFormat();
   const t = useT();
   const stop = getStop(stopId);
@@ -412,10 +412,13 @@ export function StopDetailPage() {
           <Card className="stack">
             <div className="between">
               <h2 className="t-section">{t('Position on the map')}</h2>
-              <Link to={`/map?stop=${stop.id}`} className="btn btn--sm">
-                <Icon name="map" size={15} />
-                {t('Open map')}
-              </Link>
+              {/* Closed at a tenth of a battery: the card's own drawing stays, the way in does not. */}
+              {power.mode === 'super' ? null : (
+                <Link to={`/map?stop=${stop.id}`} className="btn btn--sm">
+                  <Icon name="map" size={15} />
+                  {t('Open map')}
+                </Link>
+              )}
             </div>
             {/*
               **The station's own corner of the network.**

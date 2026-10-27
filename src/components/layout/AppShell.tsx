@@ -84,8 +84,16 @@ export function useNavigation(): NavGroup[] {
    * because nothing is stored: the mode is a subtraction, never a change.
    */
   if (power.mode !== 'super') return groups;
+  /*
+   * Settings and the map, and nothing else. The map was left in the first time this mode was
+   * written, on the argument that looking at where a stop is answers the same question the mode
+   * exists for. It does not: it answers it by downloading tiles and drawing them, which is the most
+   * expensive thing on the site, and a traveller at 6% wants the time, not the picture. Both of them
+   * are routes that redirect home too, so leaving either out here closes it rather than hiding it.
+   */
+  const closed = ['/settings', '/map'];
   return groups
-    .map((group) => ({ ...group, items: group.items.filter((item) => item.to !== '/settings') }))
+    .map((group) => ({ ...group, items: group.items.filter((item) => !closed.includes(item.to)) }))
     .filter((group) => group.items.length > 0);
 }
 

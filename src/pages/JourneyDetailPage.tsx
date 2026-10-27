@@ -17,7 +17,7 @@ import { alertWords } from '../lib/disruptionText';
 export function JourneyDetailPage() {
   const { journeyId } = useParams();
   const navigate = useNavigate();
-  const { findJourney, search, preferences, startSearch, isJourneySaved, saveJourney, savedJourneys } = useApp();
+  const { findJourney, search, preferences, startSearch, isJourneySaved, saveJourney, savedJourneys, power } = useApp();
   const format = useFormat();
   const t = useT();
   const journey = findJourney(journeyId);
@@ -187,10 +187,13 @@ export function JourneyDetailPage() {
             {t('Return')}
           </Button>
         ) : null}
-        <Link to={`/map?journey=${journey.id}`} className="btn" aria-label={t('Show on map')}>
-          <Icon name="map" size={16} />
-          {t('Map')}
-        </Link>
+        {/* At a tenth of a battery the map is closed everywhere, so the way in goes with it. */}
+        {power.mode === 'super' ? null : (
+          <Link to={`/map?journey=${journey.id}`} className="btn" aria-label={t('Show on map')}>
+            <Icon name="map" size={16} />
+            {t('Map')}
+          </Link>
+        )}
         {/*
           The same control as the one on this journey's card: a heart, filled while the journey is
           kept, with the two labels the card uses (`Favourite this journey` / `Favourited`). It

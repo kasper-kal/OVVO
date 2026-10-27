@@ -63,6 +63,21 @@ function SettingsRoute() {
 }
 
 /**
+ * **And at 10%, the map is closed with it, along with every way in.**
+ *
+ * A map is the most expensive screen in the app: tiles arriving over the radio, a drawing on top of
+ * them, and panning that repaints the lot. "When does the bus go" is answerable without it, so it
+ * leaves with Settings: not in the navigation (`AppShell`), not linked from a stop or a journey,
+ * not on the page-not-found screen, and not reachable by typing `/map` either. A charger brings it
+ * back, because the mode stores nothing.
+ */
+function MapRoute() {
+  const { power } = useApp();
+  if (power.mode === 'super') return <Navigate to="/" replace />;
+  return <MapPage />;
+}
+
+/**
  * OVVO — application entry point and route table.
  * Every screen is reachable from the sidebar (desktop) and the floating dock
  * plus "All sections" sheet (mobile).
@@ -106,7 +121,7 @@ export default function App() {
                       to show yet. */}
                   <Route path="/results/:searchId" element={<ResultsPage />} />
                   <Route path="/journey/:journeyId" element={<JourneyDetailPage />} />
-                  <Route path="/map" element={<MapPage />} />
+                  <Route path="/map" element={<MapRoute />} />
                   <Route path="/stops" element={<StopsPage />} />
                   <Route path="/stops/:stopId" element={<StopDetailPage />} />
                   <Route path="/departures" element={<DeparturesPage />} />

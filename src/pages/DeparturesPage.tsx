@@ -53,7 +53,20 @@ export function DeparturesPage() {
     isOnBoard,
     toggleBoardStop,
     setBoardStops,
+    power,
   } = useApp();
+  /*
+   * **At a tenth of a battery, a board moves when it is asked to.**
+   *
+   * Five seconds is a cadence for a screen somebody is watching, and it is still the right cadence
+   * at 80%, where a redraw is free. At 6% the same redraw is a re-render and a repaint twelve times
+   * a minute, for rows whose times come from data this app already has on the device: nothing new
+   * arrives, so nothing is saved by asking. The buttons stay exactly where they are (the Refresh
+   * control in the bar, and the minute's own tick for the times), and the sentence under each board
+   * says which of the two behaviours it is living with rather than promising five seconds it is not
+   * doing.
+   */
+  const manualRefresh = power.mode === 'super';
   const format = useFormat();
   const t = useT();
 
@@ -90,6 +103,7 @@ export function DeparturesPage() {
    * the behaviour cannot drift apart again.
    */
   useEffect(() => {
+    if (manualRefresh) return undefined;
     let timer = 0;
     const start = () => {
       window.clearInterval(timer);
@@ -117,7 +131,7 @@ export function DeparturesPage() {
       window.clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, []);
+  }, [manualRefresh]);
 
   /*
    * **One refresh, in the corner a detail screen puts its way back.**
@@ -275,7 +289,9 @@ export function DeparturesPage() {
                 {t('Next departures from')} <StopLink stopId={lineStop.id} label={lineStop.name} />
               </h2>
               <span className="t-sm t-muted">
-                {t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
+                {manualRefresh
+                  ? t('Updates only when you tap Refresh')
+                  : t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
               </span>
             </div>
           </div>
@@ -495,7 +511,9 @@ export function DeparturesPage() {
                     count: delayed,
                   })
                 : ''}
-              {t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
+              {manualRefresh
+                ? t('Updates only when you tap Refresh')
+                : t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
             </span>
           </div>
 

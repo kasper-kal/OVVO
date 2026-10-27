@@ -24,14 +24,25 @@ import {
  * straight away.
  */
 export function WikipediaCard({ stopId }: { stopId: string }) {
-  const { settings } = useApp();
+  const { settings, power } = useApp();
   const language = settings.language;
   const t = useT();
+  /*
+   * **At a tenth of a battery, this card is not asked for at all.**
+   *
+   * It is the only card in the app that spends a request on somebody else's server, and what comes
+   * back is a paragraph of history under a timetable. On a phone with 6% left that is the wrong
+   * trade twice over: the bytes come over the radio, and the article brings an image the browser
+   * then decodes and holds. The test is in the effect rather than only at the render, because an
+   * effect that runs and then draws nothing has still spent the request.
+   */
+  const superSaving = power.mode === 'super';
   const [summary, setSummary] = useState<WikipediaSummary | null>(() =>
     cachedWikipediaSummary(stopId, language),
   );
 
   useEffect(() => {
+    if (superSaving) return undefined;
     let live = true;
     const known = cachedWikipediaSummary(stopId, language);
     if (known) {
@@ -48,9 +59,9 @@ export function WikipediaCard({ stopId }: { stopId: string }) {
     return () => {
       live = false;
     };
-  }, [stopId, language]);
+  }, [stopId, language, superSaving]);
 
-  if (!summary) return null;
+  if (superSaving || !summary) return null;
 
   return (
     <Card className="stack" data-quoted="wikipedia">
