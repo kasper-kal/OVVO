@@ -36,6 +36,18 @@ import icon512 from '../../public/icons/icon-512.png?inline';
 let started = false;
 
 /**
+ * **The address the browser is asked to read the manifest from.**
+ *
+ * It carries a version, and the version is the point. For a long time this site answered
+ * `/manifest.json` with its own page, and Chrome caches what a manifest URL gave it. A browser that
+ * was told "this address is a web page" keeps believing that, so the file is fixed and the site
+ * still will not install. A different address cannot be holding the old answer, so the version goes
+ * up whenever the manifest changes shape or its delivery does. `index.html` links the same string;
+ * the two must match.
+ */
+const MANIFEST_URL = '/manifest.json?v=2';
+
+/**
  * Does the site's own manifest arrive, and is it a manifest?
  *
  * Asked before anything is replaced, because a host that serves the file properly gives the
@@ -44,7 +56,7 @@ let started = false;
  */
 async function servedManifestIsUsable(): Promise<boolean> {
   try {
-    const response = await fetch('/manifest.json', { cache: 'no-cache' });
+    const response = await fetch(MANIFEST_URL, { cache: 'no-cache' });
     if (!response.ok) return false;
     const manifest: unknown = JSON.parse(await response.text());
     if (!manifest || typeof manifest !== 'object') return false;

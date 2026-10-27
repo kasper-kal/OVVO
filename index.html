@@ -22,7 +22,13 @@
       `apple-touch-icon` is the same icon for iOS, which reads no manifest icons at all when it
       makes its own tile.
     -->
-    <link rel="manifest" href="/manifest.json" />
+    <!--
+      The `?v=2` is deliberate: for a while this address answered with the site's own page, and a
+      browser caches what a manifest address gave it. A version makes it a new address, so no
+      browser can keep serving itself the old, unreadable answer. It must match `MANIFEST_URL` in
+      `src/lib/manifest.ts`.
+    -->
+    <link rel="manifest" href="/manifest.json?v=2" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -183,7 +183,14 @@ export function watchInstallPrompt() {
  * Chromium hands the page that event once per load.
  */
 export function resetInstallOffer() {
-  publish({ refused: false });
+  /*
+   * `installed` is **re-read**, not trusted. It latches for the rest of the session when an install
+   * finishes (`appinstalled`), and the tab somebody resets in is not the installed app: before
+   * this line, a reset after an install left the banner hidden until the tab was closed, which is
+   * exactly what was reported. Reading `isStandalone()` puts the answer back to what this window
+   * really is: an ordinary tab offers the app again, and the app itself still offers nothing.
+   */
+  publish({ refused: false, installed: isStandalone() });
 }
 
 /**
