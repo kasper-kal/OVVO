@@ -13,7 +13,7 @@ import { operatorName } from '../data/operators';
 import { STORAGE_KEYS, writeStored } from '../lib/storage';
 import { disruptionsForStop } from '../data/disruptions';
 import { useMinuteNow } from '../lib/useMinuteNow';
-import { Button, Card, EmptyState, Pill } from '../components/ui/primitives';
+import { Button, Card, EmptyState, IconButton, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -440,11 +440,15 @@ export function DeparturesPage() {
       {boards.map(({ stop, departures, alerts, delayed }) => (
         <Card key={stop.id} className="stack">
           {/*
-            **The head is the stop's name and nothing else.** It used to carry a pin on its trailing
-            edge, filled because a board is a pinned stop; see the note on the remove control at the
-            foot of this card for why it is not there any more.
+            **The head is the stop's name, and the pin that put it there.**
+
+            A board is a pinned stop, so the pin sits filled on the head's trailing edge, and
+            pressing it is what takes the board off the page. It was moved to the foot as words for
+            one round, and that was the wrong place: the control that undoes a pin belongs at the
+            pin.
           */}
-          <div className="stack-1">
+          <div className="between">
+            <div className="stack-1">
               <h2 className="t-section">
                 <StopLink stopId={stop.id} label={customStopName(stop.id) ?? stop.name} />
               </h2>
@@ -459,6 +463,18 @@ export function DeparturesPage() {
                     </span>
                   ))}
               </span>
+            </div>
+            <div className="card-actions">
+              <IconButton
+                icon="pin"
+                label={t('Unpin {stop} from the departure board', {
+                  stop: customStopName(stop.id) ?? stop.name,
+                })}
+                active
+                className="glyph-toggle"
+                onClick={() => toggleBoardStop(stop.id)}
+              />
+            </div>
           </div>
 
           <div className="between wrap">
@@ -521,27 +537,6 @@ export function DeparturesPage() {
               onClick={() => setPlanStop(stop)}
             >
               {t('Plan')}
-            </Button>
-            {/*
-              **Taking a board away is said in words, at the board's own foot.**
-
-              It was a filled pin in the card's head, trailing the stop's name. A board *is* a
-              pinned stop, so that glyph was permanently in its "kept" state: it read as a badge
-              stuck to the name rather than as a control, and a pin whose press removes the board
-              means the opposite of what a pin means everywhere else in the app (the pin that adds a
-              board lives in the picker). The action belongs with the board's other action, and it
-              says what it does.
-            */}
-            <Button
-              size="sm"
-              variant="ghost"
-              icon="close"
-              aria-label={t('Remove {stop} from the board', {
-                stop: customStopName(stop.id) ?? stop.name,
-              })}
-              onClick={() => toggleBoardStop(stop.id)}
-            >
-              {t('Remove from the board')}
             </Button>
           </div>
         </Card>
