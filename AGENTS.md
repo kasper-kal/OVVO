@@ -17,6 +17,8 @@ Here are the rules:
 8. NEVER give a 44px padding, a tall hit area or an invisible box to a link that is a word inside a line of text — a station name in a journey leg, on a board row, in an alert. It is sized by the line it sits in, and it IS underlined so it reads as a link. The target-size audit is told to skip these (`.stop-link` in `scripts/ui-audit.mjs`), and if any audit still flags one, it is to be IGNORED, not fixed. The reason: padding pushes the line apart and lays a square over the words beside the link, so a near miss lands on nothing at all.
 9. TALK like a human being, say that your embarassed, say that your stupid, say that your sorry etc.
 
+10. NEVER blame a stale build, a stale deploy, a cache or an old copy of the site for a problem you cannot reproduce. If what you measure and what the user sees disagree, the truth is that you have not reproduced their steps yet. Never say it again: reproduce first, then fix what you actually saw.
+
 ## How the rules are enforced
 
 Pass these three gates on **every** turn, in this order. If one is missed, stop and fix it before sending the final message — never send first and explain afterwards.
