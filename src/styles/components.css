@@ -565,24 +565,6 @@
   margin-inline-start: auto;
 }
 
-/*
- * **A board's head actions take the line when they wrap, instead of hanging on the end of it.**
- *
- * On a phone the stop's name and its two controls do not share a line: the actions wrap, and with
- * `margin-inline-start: auto` they wrapped as a tight pair against the card's right edge — a
- * "STOP PAGE" capsule with a pin beside it, floating under a title that starts on the left, with
- * half the card empty next to them (reported: "this looks ugly … like it doesnt fit"). Given the
- * whole line, the row reads as what it is: the stop's own actions — the way to its page on the
- * left, the pin on the right, the two edges the text above uses. Above 720 nothing changes: the
- * name and the controls share one line there, and the pair stays hug-to-the-right as before.
- */
-@media (max-width: 719px) {
-  .board-head .card-actions {
-    flex: 1 1 auto;
-    justify-content: space-between;
-    margin-inline-start: 0;
-  }
-}
 
 /*
  * A bare icon: the glyph and its 44px target, nothing else. Hovering a `--ghost` button adds a
@@ -1177,6 +1159,19 @@
   position: relative;
 }
 
+/*
+ * **The list's own bottom padding must not be a window onto the next row.**
+ *
+ * A scrollport is clipped at the padding box, so with the panel's 8px of padding under the last
+ * row, the top 8px of the row after it stayed visible under the panel's edge: a list that ends in a
+ * cut-off line. The cap counts that padding as part of the panel, so when there are more rows than
+ * fit the padding is dropped — and the space is not lost, because it is the 8px the cap leaves
+ * under the last whole row.
+ */
+.suggestions.suggestions--more {
+  padding-bottom: 0;
+}
+
 .suggestions {
   position: absolute;
   z-index: 30;
@@ -1202,15 +1197,6 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-}
-
-/*
- * The list when there is more room above the field than below it: it hangs upwards, so the rows
- * near the field stay on screen instead of the list running off the bottom of a phone.
- */
-.suggestions--up {
-  top: auto;
-  bottom: calc(100% + var(--s-1));
 }
 
 .suggestion {
@@ -2626,15 +2612,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/*
- * The list when there is more room above the field than below it: it hangs upwards, so the rows
- * near the field stay on screen instead of the list running off the bottom of a phone.
- */
-.suggestions--up {
-  top: auto;
-  bottom: calc(100% + var(--s-1));
-}
-
 .suggestion {
   display: flex;
   align-items: center;
@@ -3291,7 +3268,7 @@
  * The lesson to keep: a pseudo-element target can only grow into space nobody else is using.
  */
 .board-alerts {
-  margin-top: var(--s-1);
+  /* The card gap above this row again: the row owns its 44px and reaches nowhere. */
   /*
    * The row takes its own 44px instead of borrowing them.
    *
@@ -3729,7 +3706,15 @@
   position: absolute;
   /* The line's centre sits on the node's centre — one number, so a node cannot drift off its rail. */
   left: calc(var(--rail-node) / 2 - var(--rail-line) / 2);
-  top: 9px;
+  /*
+   * **From the row's own edge, not from 9px down it.**
+   *
+   * The line used to begin at the node's top, so every mark on the rail had a 9px band of white
+   * above it: the segment from the row above stopped at this row's edge and the next one began
+   * only at the node's top. Both node kinds are painted on an opaque surface, so the 14px the line
+   * now runs behind simply disappears under the mark, and the line meets the shape's edge.
+   */
+  top: 0;
   /*
    * Into the gap, not short of it.
    *
@@ -3744,13 +3729,46 @@
   background: var(--border-hairline);
 }
 
-.timeline__rail--dashed::before,
+/*
+ * A dashed stretch, phased so a dash starts at the mark's edge rather than wherever the row
+ * happens to start. The node's top is 9px and it is 14px tall, so its bottom is 23px; the pattern
+ * is 12px long, so an 11px offset puts the start of a dash exactly on that edge (11 + 12 = 23).
+ * Without it the node swallowed 23px of the pattern and a half-drawn dash met a 6px gap right
+ * where the eye looks for the line to leave the circle.
+ */
+/*
+ * The rail starts at the first mark, not above it. Each row draws its own segment from its top so
+ * the rows join into one line, but on the first row there is nothing above the mark to join to:
+ * those 23px were a stub of line hanging over the departure circle, and at some widths a dash
+ * showed above it. The first row begins on the circle's bottom edge instead, and its pattern starts
+ * there too, so a full dash leaves the circle rather than 11px of white.
+ */
+.timeline > :first-child::before {
+  top: calc(9px + var(--rail-node));
+}
+
+.timeline > :first-child.timeline__rail--dashed::before {
+  background-position: 0 0;
+}
+
+.timeline__rail--dashed::before {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--border-hairline) 0 6px,
+    transparent 6px 12px
+  );
+  background-position: 0 11px;
+}
+
+/* The same rhythm on the short connector into the arrival square, phased so a dash ends on the
+   square's top edge (11px in) rather than a gap doing so: a 5px offset leaves it covering 5 to 11. */
 .timeline--dashed-end .timeline__end::before {
   background: repeating-linear-gradient(
     to bottom,
     var(--border-hairline) 0 6px,
     transparent 6px 12px
   );
+  background-position: 0 5px;
 }
 
 .timeline__node {
@@ -3813,8 +3831,16 @@
   content: '';
   position: absolute;
   left: calc(var(--rail-node) / 2 - var(--rail-line) / 2);
+  /*
+   * **Into the square, with no white band above it.**
+   *
+   * The connector used to begin 12px above its own row and stop 5px into it, which left a 6px band
+   * of white under the square's 11px top: the same complaint the circle had, one mark along. The
+   * row above already carries the full 12px of the list gap, so this piece only has to carry this
+   * row's own 11px, and the line now meets the square's edge.
+   */
   top: calc(var(--s-3) * -1);
-  height: calc(var(--s-3) + 8px);
+  height: calc(11px + var(--s-3));
   width: var(--rail-line);
   background: var(--border-hairline);
 }
@@ -3832,8 +3858,12 @@
  * fills in and reads as a solid bridge.
  */
 .timeline--dashed-end .timeline__end::before {
-  top: 0;
-  height: 8px;
+  /* The same 11px as the solid connector, so a journey that ends on foot and one that ends on a
+     bus draw their last stop to the same place: the square's edge. The box is re-phased for the
+     taller connector so a dash still finishes on that edge (17 to 23 in the new box) rather than
+     a gap doing so. */
+  top: calc(var(--s-3) * -1);
+  height: calc(11px + var(--s-3));
 }
 
 /* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
@@ -6954,22 +6984,48 @@
 /* ---------------------------------------------------------------- Install banner */
 
 /*
- * **The one-time offer to put OVVO on a home screen.**
+ * **The one-time offer to put OVVO on a home screen, and it hangs at the top.**
  *
  * Fixed, because it belongs to no page: it is the app asking a question about itself, on whatever
- * screen the traveller happens to be. It sits *above* the dock rather than on top of it (the pill
- * is 54px with its border and its own 12px step from the edge, plus the safe-area inset a phone
- * puts under a gesture bar). At 1040 the dock is gone, so it drops to the foot of the window.
+ * screen the traveller happens to be.
+ *
+ * **The top, because the foot of a first visit is already full.** The dock is there, the toast
+ * region sits above it, and a first-run sheet can be open over the page at the same moment, so the
+ * offer landed on top of whichever of them was there and somebody opening OVVO for the first time
+ * met two or three of them stacked in one place (reported). One step (`--s-2`) under the app's own
+ * row is the strip of the screen nothing else claims: the row above keeps its mark and its alerts
+ * entry, and the page's first row is pushed clear of the banner by the height `ui/InstallBanner`
+ * measures. Its offset is that row at rest, `--header-h` plus `--s-3`, and the measured
+ * `--install-offer-top` takes over when the offline strip, which is sticky above the row, takes
+ * the top of the screen and pushes the row down. The step is in **both** numbers, from this one
+ * token: with it in the resting offset only, the offer sat flush against the header the moment it
+ * appeared and stepped down a few pixels once the page had settled, which reads as badly placed
+ * with nothing on screen to point at.
+ *
+ * **The Install pill is a row of its own, under the words.** The words ask for 170px and the two
+ * controls want 118, so on a 360px phone they could not share a row and the buttons wrapped. At
+ * that point `margin-left: auto`, which was there to put them at the far edge of a one-row card,
+ * pinned both of them to the right and left a hole the width of the card's other half with a pill
+ * floating in it (reported from a phone screenshot). A full-width second row that starts at the
+ * words' own left edge is the same card at every width, in both languages, so nothing here has to
+ * guess where the wrap happens. The way out is not on that row: it is the card's own corner
+ * (`.install-banner__close`).
  *
  * `display: none` until a browser offers an install or an iPhone is recognised. The element exists
  * from the first paint, so the banner appears over the page instead of pushing it down.
  */
 .install-banner {
+  /*
+   * The app icon's own box in this card, stated once. The icon itself
+   * (`.install-banner__icon`) and the row of controls under the words, which lines up with the
+   * words rather than the icon, both measure from it, so the two cannot drift apart.
+   */
+  --install-tile: 32px;
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(max(var(--s-3), env(safe-area-inset-bottom)) + 54px + var(--s-3));
-  z-index: 45; /* under the dock (50) and every overlay, above the page */
+  top: var(--install-offer-top, calc(var(--header-h) + var(--s-3)));
+  z-index: 45; /* above the page and its sticky row (40), under every overlay */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -6985,37 +7041,111 @@
   display: none;
 }
 
+/*
+ * **The app's own icon, a small tile beside the words it introduces.**
+ *
+ * It used to be measured to the height of the words beside it, so the mark ran from the title's
+ * first line to the subtitle's last. That reading did not survive a screen of an unusual size: the
+ * words wrap more there, so the tile grew to match them, the taller tile took width away from the
+ * words and they wrapped again, and at some widths it filled the card and shoved the way out of its
+ * corner (reported twice, from a 296px window and from an oddly shaped one).
+ *
+ * So it is one size, stated here and never measured: `--install-tile`, a small square against two
+ * lines of small text, which no window can make grow. The row of controls under the words measures
+ * its own indent with the same token.
+ *
+ * Square, by the two sizes being the same token, and **rounded by a fifth of its own side** (22%, see
+ * the rule below), which is how a phone rounds a home-screen icon: the tile is the object the phone
+ * will install, so the card shows the shape the traveller will meet. The disc that was here went with the glyph it held: a mark on a circle read
+ * as a sticker on a circle (the two were drawn side by side to choose between them). The mark never
+ * turns over with the theme (`tokens.css`, `--brand-tile`), so in the dark appearance its two obsidian
+ * tiles meet the dark card the way they would meet a dark wallpaper.
+ */
 .install-banner__icon {
-  display: grid;
-  place-items: center;
+  display: block;
   flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-inner);
-  background: var(--tint-sage);
-  color: var(--struct-secondary);
+  width: var(--install-tile);
+  height: var(--install-tile);
+  /*
+   * **A share of its own side, not the app's fixed `--r-inner`.** That token is 16px, and 16px on a
+   * 32px tile is exactly half the side: the tile came out as a *circle* (reported). It stopped being
+   * the right number the moment this tile got a size of its own rather than the words' height, so the
+   * rounding is stated as a proportion now and stays a rounded square at any size.
+   */
+  border-radius: 22%;
+  overflow: hidden;
 }
 
-/* The words take the room they need and the buttons wrap under them on a narrow screen. */
+.install-banner__icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * The words take the room they need; the buttons are on their own row below (see the block above).
+ *
+ * `96px` is the line-break input, not a width the words end up at: they grow to fill whatever the
+ * row leaves, and this number only decides whether everything still fits on one line. It has to be
+ * small enough that the icon plus the words plus the way out **always** fit: that sum is what decides
+ * the line break, so a basis the icon outgrew pushed the way out onto a row of its own at the card's
+ * left edge — first at 320px with `170px`, then again on a 296px-wide window with `132px` (both
+ * reported). 96px leaves the row intact down to a card of about 216px of content.
+ */
 .install-banner__words {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 1 1 170px;
+  flex: 1 1 96px;
   min-width: 0;
 }
 
+/*
+ * `flex-basis: 100%` and no `margin-left: auto`: a row of its own, every time, lined up with the
+ * words above it. The indent is the icon's own width plus the card's own gap, from the same token
+ * the icon is sized by, so the controls sit in the text column rather than under the icon at every
+ * width. (A written-down `36px` here stopped being the icon's width the moment the icon was sized
+ * to the words: the pill then hung 15px to the left of the words it is meant to line up with.)
+ */
 .install-banner__actions {
   display: flex;
   align-items: center;
   gap: var(--s-1);
-  margin-left: auto;
+  flex: 1 1 100%;
+  padding-left: calc(var(--install-tile) + var(--s-3));
 }
 
-@media (min-width: 1040px) {
-  .install-banner {
-    bottom: var(--s-4);
-  }
+/*
+ * **The way out sits in the card's own top-right corner.**
+ *
+ * It used to be the last thing on the buttons' row, right of the Install pill, and it read as a
+ * third control beside two: the pill said "Install", the cross said "not now", and on a narrow
+ * phone the pair shoved each other around (reported: "such a weird X button placement,
+ * inconsistent with the rest of the website"). No other surface in the app puts its way out there.
+ * A sheet's is the panel's own corner, a toast's is the end of its one row, and this card takes the
+ * sheet's shape: the same disc, the same `--l1-bg` fill, the same hairline border and the same
+ * `--ink-strong` cross as `.modal__close`, because a sheet's panel is the same `--l2-bg` surface
+ * this card is.
+ *
+ * `align-self: flex-start` is the sheet's own head rule (`.modal__head`): the way out lines up with
+ * the words' first line instead of floating in the middle of a paragraph. It is `flex: none` and it
+ * comes before the pill in the markup, so it can never be the item that wraps: the words are the
+ * only item in this card that shrinks (`min-width: 0`), which keeps the disc in the corner at every
+ * width, in both languages, without anything here guessing where the break falls.
+ */
+.install-banner__close {
+  align-self: flex-start;
+  flex: none;
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+  color: var(--ink-strong);
+}
+
+.install-banner__close:hover,
+.install-banner__close:focus-visible {
+  background: var(--l2-bg);
+  border-color: var(--border-hairline);
+  color: var(--ink-strong);
 }
 
 /* The iPhone's two steps, as steps: the number, then the words beside it. */

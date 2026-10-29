@@ -16,6 +16,10 @@
  *   • **planner** — the app's one job.
  *   • **next-departures** — the board at a station of your own, tied once and then read at a
  *     glance. It was in the catalogue and switched off, which was the audit's whole finding.
+ *
+ * `recent-searches` is in the catalogue and, like `next-departures` was, stays off: the difference
+ * is that this one has nothing to say on a fresh browser — it lists searches you have already
+ * run — so switching it on would put an empty card on the first screen the audit was cleaning up.
  *   • **pinned-stops** — the stops you hearted, one tap each.
  *
  * `next-departures` arrives **untied**, asking for its station in the card itself (one sentence and
@@ -33,13 +37,22 @@ export const REQUIRED_WIDGETS: string[] = ['planner'];
  * A stored layout can name a card that has been cut. The home screen already draws only the ids
  * that still have a widget (`widgetById`), so a cut id is a slot that draws nothing rather than a
  * broken card and needs no help here. A **merged** id is different, because dropping it would lose
- * the traveller's card: `favourited-journeys` and `recent-searches` are folded into
- * `your-journeys` — at the position the first of them held, and only once, because two cards
- * showing the same list is worse than one.
+ * the traveller's card: `favourited-journeys` is folded into `your-journeys`, at the position it
+ * held and only once, because two cards showing the same list is worse than one.
+ *
+ * `cost` and `last-service` are folded, not cut dead: both were removed from the catalogue on 28 Oct
+ * because each one listed something another card already lists (the same fares as `fares`, the same
+ * late services as `first-last`), so a stored layout naming one keeps the card it was a copy of.
+ *
+ * `recent-searches` is **not** folded: it is a card of its own again, and it is not a copy of
+ * `your-journeys` any more. The app used to have one list with two names; it now has a history
+ * (`search-history`, written by running a search) and a kept list (`recent-searches`, written by
+ * the results screen's Save), and this card lists the first of them.
  */
 export const MERGED_WIDGETS: Record<string, string> = {
   'favourited-journeys': 'your-journeys',
-  'recent-searches': 'your-journeys',
+  cost: 'fares',
+  'last-service': 'first-last',
 };
 
 /** Brought forward from a stored layout: merged ids become their replacement, duplicates dropped. */

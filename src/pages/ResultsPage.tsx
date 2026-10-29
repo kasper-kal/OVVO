@@ -5,11 +5,12 @@ import { PageHeader } from '../components/layout/AppShell';
 import { SearchForm } from '../components/journey/SearchForm';
 import { PreferencesControls } from '../components/journey/PreferencesControls';
 import { JourneyCard } from '../components/journey/JourneyCard';
-import { DEFAULT_RESULTS_FILTER, filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
+import { DEFAULT_RESULTS_FILTER, endLabel, filterJourneys, sortJourneys, suggestRelaxations } from '../data/journeyEngine';
 import { ACCESS_MODES, DEFAULT_PREFERENCES, MODE_OPTIONS, PT_MODES, modeLabel } from '../data/preferences';
 import { disruptionsForStop } from '../data/disruptions';
 import { Button, Card, Chip, Dialog, EmptyState, Segmented } from '../components/ui/primitives';
 import { NoMatches } from '../components/ui/NoMatches';
+import { JourneyCardSkeletons } from '../components/ui/Skeletons';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } from '../lib/format';
 import { useFormat } from '../lib/useFormat';
@@ -28,6 +29,9 @@ import type { PublicMode, SortMode } from '../data/types';
  */
 const WINDOW_STEP_MINUTES = 30;
 const WINDOW_LIMIT_MINUTES = 240;
+
+/** How long the results screen holds its list's place for a new search, in milliseconds. */
+const HOLD_MS = 260;
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: 'best', label: 'Best' },
@@ -53,6 +57,22 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
  * first thing under the card. Sorting is not a search option — it is how you read the
  * list — so it keeps its place directly above the journeys.
  */
+/**
+ * The hold that is running for a search, and when it ends.
+ *
+ * Module scope on purpose: the screen is remounted whenever the address changes (the shell opens
+ * every screen at its top), and the address is rewritten as soon as the search lands. A hold kept
+ * in state alone was restarted by that remount, and by every press of **Earlier** or **Later** — a
+ * shimmer over a list that had already been answered. This remembers the hold itself, so a
+ * re-mount of the same search continues it and an expired one starts nothing.
+ */
+let heldSearch: { key: string; until: number } | null = null;
+
+/** Whether a hold for this search is still inside its window (a new search always starts one). */
+function holdIsRunning(key: string): boolean {
+  return Boolean(key) && (!heldSearch || heldSearch.key !== key || heldSearch.until > Date.now());
+}
+
 export function ResultsPage() {
   /* The search the address names, if it names one — `/results/<id>` (`lib/searchLink`). */
   const { searchId } = useParams();
@@ -72,7 +92,14 @@ export function ResultsPage() {
     recentSearches,
     keepSearch,
     removeRecentSearch,
+    power,
   } = useApp();
+  /*
+   * Read inside the effect through a ref: the hold belongs to the search, and a battery that
+   * crosses a threshold (or a charger going in) must not replay it over a list already there.
+   */
+  const savingRef = useRef(power.mode !== 'off');
+  savingRef.current = power.mode !== 'off';
   const format = useFormat();
   const t = useT();
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -84,18 +111,61 @@ export function ResultsPage() {
   const [nowRef] = useState(() => roundToStep(nowMinutes(), 5));
 
   /*
-   * **No held place on this screen — the answer is already here.**
+   * **The screen holds its list's own shape while a search lands.**
    *
-   * The list used to open in a "planning" state for 260ms: three skeleton cards and a sentence
-   * over an empty answer, because the report that asked for it was about a *flicker* of the home
-   * screen before the results. The planner is local and synchronous (6–25ms measured across the
-   * network), so that hold was a delay invented to make a placeholder visible, paid on every
-   * search and every time the window was paged. A skeleton belongs over work that is happening;
-   * when the work is a memo that has already returned, it is a lie with a timer on it.
+   * The results open in a *planning* state: the head, the search card and the chips paint at once,
+   * and the list's place is held by three journey-shaped cards (`ui/Skeletons`). That hold is what
+   * keeps a search from reading as a jump cut: the traveller asks for a journey, and the answer
+   * arrives in the shape of one, at the height it will stand at, so the real cards replace it
+   * without moving anything. It was part of this screen for several rounds and was dropped for a
+   * while; it is back on request, and the shape it holds is the refined one (four marks per card,
+   * not eleven).
    *
-   * So the page paints its head, its search card and the journeys in one frame. `ui/Skeletons.tsx`
-   * is still the app's held shape for the screens whose data is genuinely pending.
+   * It is keyed to the **search**, never to a filter or a sort: those are readings of a list that is
+   * already on screen, and a hold over them would be a wait for nothing.
+   *
+   * Battery saving skips it whole (the effect below): the planner is local and synchronous, so no
+   * work is being waited on, and both the hold and the shimmer cost a phone on its last few percent
+   * more than the hold is worth.
    */
+  /* The ends are named as the traveller named them, for the same reason `searchEntryId` is: an
+     address and the station it resolved to are one stop id and two different searches. */
+  const searchKey = search
+    ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
+    : '';
+  const [planning, setPlanning] = useState(power.mode === 'off' && holdIsRunning(searchKey));
+  useEffect(() => {
+    if (savingRef.current) {
+      /* Saving keeps no hold at all: there is nothing being waited on, and both the wait and the
+         shimmer cost a phone on its last few percent more than they are worth. */
+      heldSearch = null;
+      setPlanning(false);
+      return undefined;
+    }
+    if (!searchKey) {
+      setPlanning(false);
+      return undefined;
+    }
+    const now = Date.now();
+    if (heldSearch && heldSearch.key === searchKey) {
+      /* The same search opening again (its address was rewritten): the hold carries on where it
+         was rather than starting over, and when its window has gone the answer is simply there. */
+      const left = heldSearch.until - now;
+      setPlanning(left > 0);
+      if (left <= 0) return undefined;
+      const timer = window.setTimeout(() => setPlanning(false), left);
+      return () => window.clearTimeout(timer);
+    }
+    heldSearch = { key: searchKey, until: now + HOLD_MS };
+    setPlanning(true);
+    const timer = window.setTimeout(() => setPlanning(false), HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [searchKey]);
+  /* The battery reading lands after the first render; this ends a hold that started before it was
+     known, and never starts one (so plugging in does not replay it over a list that is there). */
+  useEffect(() => {
+    if (power.mode !== 'off') setPlanning(false);
+  }, [power.mode]);
 
   const visible = useMemo(() => {
     if (!search) return [];
@@ -473,7 +543,28 @@ export function ResultsPage() {
       ) : null}
 
 
-      {visible.length === 0 ? (
+      {planning ? (
+        /*
+          The held place, in the list's own columns.
+
+          A ring in an empty card said *wait* and nothing about what was coming, so the answers
+          landed as a change of subject on a screen that had been blank. Three cards carrying a
+          journey's own measurements — the pair of times, the label, the chain of services, the fare
+          — put the answer where the eye already is and keep its height.
+
+          The sentence above them is the plain statement of what is happening; the bars underneath
+          are `aria-hidden` and the region is `aria-busy`, so it is spoken once.
+        */
+        <div className="stack-2" role="status" aria-live="polite" aria-busy="true">
+          <p className="t-sm t-muted">
+            {t('Working out the options from {from} to {to}.', {
+              from: endLabel(query, 'from'),
+              to: endLabel(query, 'to'),
+            })}
+          </p>
+          <JourneyCardSkeletons />
+        </div>
+      ) : visible.length === 0 ? (
         <NoMatches
           title={t('No journeys match your settings')}
           description={

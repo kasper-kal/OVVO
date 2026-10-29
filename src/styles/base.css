@@ -70,9 +70,13 @@ html {
    * deep in a page was scrolled to the viewport's bottom edge and then sat under the dock (11.6).
    * `scroll-padding` is the property that governs where a focused element is brought to, so this
    * is where the reserve belongs rather than in each page.
+   *
+   * The offer to install hangs at the *top* (see `.install-banner`), so its measured height is
+   * added to the top reserve instead: a control scrolled to at the top of a page would otherwise
+   * be brought to exactly the strip the banner is floating over.
    */
-  scroll-padding-bottom: calc(var(--dock-h) + var(--s-4) + var(--install-offer-space, 0px));
-  scroll-padding-top: 96px;
+  scroll-padding-bottom: calc(var(--dock-h) + var(--s-4));
+  scroll-padding-top: calc(96px + var(--install-offer-space, 0px));
 }
 
 body {
@@ -894,10 +898,11 @@ svg.map-canvas {
      width below 1040 (the dock is hidden from there up), which is what 2.9, 4.9 and 9.9 measured
      by hand and what every page now gets from one rule. */
   /* `--install-offer-space` is the height the home-screen offer is floating over, measured by
-     `ui/InstallBanner` while it is on screen and absent otherwise. Without it the last card of a
-     page sat under the banner and could not be pressed. */
-  padding: var(--s-4) var(--s-3)
-    calc(var(--dock-h) + var(--s-6) + var(--install-offer-space, 0px));
+     `ui/InstallBanner` while it is on screen and absent otherwise. The offer hangs under the
+     header, so the reserve is at the **top**: without it the first card of every screen sat
+     underneath the banner and could not be pressed. */
+  padding: calc(var(--s-4) + var(--install-offer-space, 0px)) var(--s-3)
+    calc(var(--dock-h) + var(--s-6));
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--s-4);
@@ -921,7 +926,7 @@ svg.map-canvas {
 @media (min-width: 1040px) {
   .app-body {
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
-    padding-bottom: calc(var(--s-8) + var(--install-offer-space, 0px));
+    padding-bottom: var(--s-8);
   }
 }
 

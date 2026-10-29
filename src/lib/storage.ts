@@ -54,7 +54,14 @@ export const STORAGE_KEYS = {
    */
   stopNames: 'stop-names',
   savedJourneys: 'saved-journeys',
+  /* Searches the traveller kept: "Home → Work", saved from the results screen. */
   recentSearches: 'recent-searches',
+  /*
+   * Searches the traveller *ran*, newest first, written by `startSearch` rather than by a control.
+   * A slot of its own because keeping a search and running one are different acts with different
+   * lists: the kept pair survives a hundred runs, and the history forgets the ninth run of it.
+   */
+  searchHistory: 'search-history',
   /*
    * No `lastSearch` slot any more. It held the previous session's From/To and was read back on
    * every visit, which is what put two stops the traveller had not chosen *this* visit into the

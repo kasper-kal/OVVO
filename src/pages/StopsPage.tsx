@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLoadOnScroll } from '../lib/loadBatch';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -6,7 +7,6 @@ import { STOPS, cities, distanceFromPosition, hasBoard, regions } from '../data/
 import { boardForStop } from '../data/departures';
 import { PT_LABEL_ORDER } from '../lib/boardHelpers';
 import { useMinuteNow } from '../lib/useMinuteNow';
-import { useLoadOnScroll } from '../lib/loadBatch';
 import { stopTypeLabel } from '../lib/format';
 import { modeLabel } from '../data/preferences';
 import { Button, Card, Chip } from '../components/ui/primitives';

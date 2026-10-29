@@ -62,6 +62,7 @@ import {
   Heart,
   History,
   House,
+  HousePlus,
   Info,
   LayoutGrid,
   List,
@@ -205,6 +206,19 @@ const GLYPHS = {
   heart: Heart,
   heartFilled: Heart,
   history: History,
+  /*
+   * **Put this app on the phone's own home screen** — Lucide's `HousePlus`: a house with a plus
+   * cut into it.
+   *
+   * It takes `plus`'s place in the one card that asks the traveller to install OVVO. The plus
+   * already means two other things in the app — *Edit the home screen*, in the header's pill, and
+   * *Add widget*, in the home menu — so a third plus on the install card read as "add something
+   * to this page" rather than "put this app on your device" (reported: the icon "doesnt make any
+   * sense"). The words beside it are *Add OVVO to your home screen*, so the picture is now those
+   * words drawn: a home, with an add on it. One glyph, one meaning, and a meaning a traveller can
+   * read off the shape without being told.
+   */
+  addToHome: HousePlus,
   home: House,
   info: Info,
   /*

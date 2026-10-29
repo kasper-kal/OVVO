@@ -22,8 +22,11 @@ export function JourneyDetailPage() {
   const t = useT();
   const journey = findJourney(journeyId);
   const saved = journey ? isJourneySaved(journey.signature) : false;
-  const { recentSearches } = useApp();
-  const lastSearch = recentSearches[0] ?? null;
+  /* The search this journey came out of: the last one **run**, not the last one kept. A kept
+     search may be from weeks ago, and offering it here as "the search you were looking at" would
+     name a journey that is not on the screen. */
+  const { searchHistory } = useApp();
+  const lastSearch = searchHistory[0] ?? null;
   usePageTitle(
     journey
       ? `${journey.legs[0].fromLabel ?? stopLabel(journey.legs[0].fromStopId)} → ${

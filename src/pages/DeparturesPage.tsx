@@ -13,7 +13,7 @@ import { operatorName } from '../data/operators';
 import { STORAGE_KEYS, writeStored } from '../lib/storage';
 import { disruptionsForStop } from '../data/disruptions';
 import { useMinuteNow } from '../lib/useMinuteNow';
-import { Button, Card, EmptyState, IconButton, Pill } from '../components/ui/primitives';
+import { Button, Card, EmptyState, Pill } from '../components/ui/primitives';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -439,10 +439,12 @@ export function DeparturesPage() {
 
       {boards.map(({ stop, departures, alerts, delayed }) => (
         <Card key={stop.id} className="stack">
-          {/* `board-head` is what lets the actions row spread when it wraps on a phone — see
-              `.board-head .card-actions` in `components.css`. */}
-          <div className="between wrap board-head">
-            <div className="stack-1">
+          {/*
+            **The head is the stop's name and nothing else.** It used to carry a pin on its trailing
+            edge, filled because a board is a pinned stop; see the note on the remove control at the
+            foot of this card for why it is not there any more.
+          */}
+          <div className="stack-1">
               <h2 className="t-section">
                 <StopLink stopId={stop.id} label={customStopName(stop.id) ?? stop.name} />
               </h2>
@@ -457,36 +459,6 @@ export function DeparturesPage() {
                     </span>
                   ))}
               </span>
-            </div>
-            {/*
-              **The pin, trailing the row that names the stop — and this page is where it lives.**
-
-              A board *is* a pinned stop, so the control is filled for as long as its board is here,
-              and pressing it is what takes the board off the page again.
-
-              It was replaced for a round by a bare minus glyph, reading the rule "no pin button
-              anywhere except the departure boards tab" as "this card does not need one" — which
-              took the pin off the one screen it was meant to survive on. The rule stands and this
-              is the place it points at: a pin on the stop page is gone (see `StopDetailPage`), the
-              pin here stays.
-            */}
-            <div className="card-actions">
-              <IconButton
-                icon="pin"
-                label={
-                  isOnBoard(stop.id)
-                    ? t('Unpin {stop} from the departure board', {
-                        stop: customStopName(stop.id) ?? stop.name,
-                      })
-                    : t('Pin {stop} to the departure board', {
-                        stop: customStopName(stop.id) ?? stop.name,
-                      })
-                }
-                active={isOnBoard(stop.id)}
-                className="glyph-toggle"
-                onClick={() => toggleBoardStop(stop.id)}
-              />
-            </div>
           </div>
 
           <div className="between wrap">
@@ -535,14 +507,12 @@ export function DeparturesPage() {
             page, "this stop" has to mean a particular stop — so the button carries the stop's name
             for a screen reader, and the dialog it opens names the stop too.
 
-            The 4px step above the row is not decoration. The alerts link above it is a
-            `tap-target`, whose hit area reaches 14px beyond its own box; a card's 12px gap left
-            the button's top 2px inside the link's overlay, so a press on the very top of it hit the
-            link instead (measured: the 44×44 probe at the button's top edge landed on
-            `a.row.tap-target`). One small step of separation is what makes both targets real — the
-            same fix, for the same reason, as the board's "Show N more" row.
+            This row used to carry a 4px step of its own, because the alerts link above it was a
+            `tap-target` reaching 14px outside its box and it took the button's top 2px with it.
+            That link owns its 44px now and its overlay is `inset: 0`, so the step is gone and every
+            gap in this card is the card's own 12px, top to bottom.
           */}
-          <div className="row-wrap" style={{ marginTop: 'var(--s-1)' }}>
+          <div className="row-wrap">
             {/* `route`, not the crosshair: this plans a journey, it does not locate anyone. */}
             <Button
               size="sm"
@@ -551,6 +521,27 @@ export function DeparturesPage() {
               onClick={() => setPlanStop(stop)}
             >
               {t('Plan')}
+            </Button>
+            {/*
+              **Taking a board away is said in words, at the board's own foot.**
+
+              It was a filled pin in the card's head, trailing the stop's name. A board *is* a
+              pinned stop, so that glyph was permanently in its "kept" state: it read as a badge
+              stuck to the name rather than as a control, and a pin whose press removes the board
+              means the opposite of what a pin means everywhere else in the app (the pin that adds a
+              board lives in the picker). The action belongs with the board's other action, and it
+              says what it does.
+            */}
+            <Button
+              size="sm"
+              variant="ghost"
+              icon="close"
+              aria-label={t('Remove {stop} from the board', {
+                stop: customStopName(stop.id) ?? stop.name,
+              })}
+              onClick={() => toggleBoardStop(stop.id)}
+            >
+              {t('Remove from the board')}
             </Button>
           </div>
         </Card>

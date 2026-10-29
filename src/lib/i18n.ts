@@ -281,8 +281,8 @@ const NL: Record<string, string> = {
     'Geen storingen raken de reizen die je bewaarde. Alle {count} rijden volgens plan.',
   'All alerts': 'Alle storingen',
   'Re-run from now': 'Opnieuw vanaf nu',
-  'Run the search you are looking at again, starting at this minute.':
-    'Voer de zoekopdracht die je ziet opnieuw uit, vanaf deze minuut.',
+  'Your last search again, from this minute: the same route, new times.':
+    'Je laatste zoekopdracht opnieuw, vanaf deze minuut: dezelfde route, nieuwe tijden.',
   '{from} to {to}, starting at this minute.': '{from} naar {to}, vanaf deze minuut.',
   'Nothing to re-run yet. Plan a journey first.': 'Nog niets om opnieuw te doen. Plan eerst een reis.',
   'The stops you hearted, one tap each.': 'De haltes die je hartte, elk met één tik.',
@@ -673,6 +673,48 @@ const NL: Record<string, string> = {
   'Save this journey': 'Deze reis opslaan',
   'Saved journey': 'Reis opgeslagen',
   'Saved searches': 'Opgeslagen zoekopdrachten',
+  'Delays at your stops': 'Vertragingen bij je haltes',
+  'The services running late right now at the stops you hearted.':
+    'De ritten die nu vertraging hebben bij de haltes die je hart.',
+  'First and last service': 'Eerste en laatste rit',
+  'The first service today from a station of your own, and the last one.':
+    'De eerste rit van vandaag vanaf je eigen station, en de laatste.',
+  'The way back': 'De weg terug',
+  'Your last search, the other way round: the journey home, in one press.':
+    'Je laatste zoekopdracht, omgedraaid: de reis terug, met één tik.',
+  'What your journeys cost': 'Wat je reizen kosten',
+  'The fare of each journey you kept, with the cheapest marked.':
+    'De prijs van elke reis die je bewaarde, met de goedkoopste gemarkeerd.',
+  Quiet: 'Rustig',
+  'Heart a stop and the services running late from it are listed here.':
+    'Hart een halte en de ritten met vertraging verschijnen hier.',
+  'All {count} of your stops are running on time.': 'Al je {count} haltes rijden op tijd.',
+  'The stop you hearted is running on time.': 'De halte die je hart rijdt op tijd.',
+  'Open the board': 'Open het bord',
+  '+{minutes} min': '+{minutes} min',
+  First: 'Eerste',
+  Last: 'Laatste',
+  'No {label} service from this station in the data.':
+    'Geen {label} rit vanaf dit station in de gegevens.',
+  /* ------------------------------------------------- recent searches (the history) */
+  'A search you run is listed here, newest first.':
+    'Een zoekopdracht die je doet staat hier, de nieuwste bovenaan.',
+  'Plan a journey and it appears in this card.': 'Plan een reis en hij verschijnt in dit kaartje.',
+  'The searches you ran in this browser, newest first, one tap to repeat.':
+    'De zoekopdrachten die je in deze browser deed, de nieuwste bovenaan, met \u00e9\u00e9n tik opnieuw.',
+  'Clear recent searches': 'Recente zoekopdrachten wissen',
+  'Clear recent searches?': 'Recente zoekopdrachten wissen?',
+  'Every search in this list is removed. Saved searches, journeys, favourite stops and preferences stay as they are.':
+    'Elke zoekopdracht in deze lijst wordt verwijderd. Bewaarde zoekopdrachten, reizen, favoriete haltes en voorkeuren blijven staan.',
+  'Yes, clear them': 'Ja, wissen',
+  '{count} saved searches': '{count} bewaarde zoekopdrachten',
+  '1 recent search will be removed.': '1 recente zoekopdracht wordt verwijderd.',
+  '{count} recent searches will be removed.': '{count} recente zoekopdrachten worden verwijderd.',
+  'Heart a journey and its fare is listed here beside its time.':
+    'Hart een reis en de prijs staat hier naast de tijd.',
+  'A saved journey is one result on the results screen, with its own times and fare.':
+    'Een bewaarde reis is één resultaat op het resultaatscherm, met eigen tijden en prijs.',
+  'No fare': 'Geen prijs',
   'The searches you saved, one tap to repeat.':
     'De zoekopdrachten die je opsloeg, met één tik opnieuw.',
   'A saved search is a pair of stops you keep. A saved journey is one result with its own times.':
@@ -702,8 +744,6 @@ const NL: Record<string, string> = {
     'De vervoermiddelen en limieten die elke zoekopdracht bepalen.',
   'The stops you pinned, ready as an origin.':
     'De haltes die je vastzette, klaar als vertrekpunt.',
-  'Find a stop': 'Een halte zoeken',
-  'Search every stop from here.': 'Zoek hier in alle haltes.',
   'Services per mode': 'Diensten per vervoermiddel',
   'How many services each mode has.': 'Hoeveel diensten elk vervoermiddel heeft.',
   'Lines at the busiest stop': 'Lijnen bij de drukste halte',
@@ -903,6 +943,8 @@ const NL: Record<string, string> = {
 
   'Pin {stop}': 'Zet {stop} vast',
   'Unpin {stop}': 'Zet {stop} los',
+  'Remove from the board': 'Van het bord halen',
+  'Remove {stop} from the board': '{stop} van het bord halen',
   '{count} alert affects {stop}': '{count} storing raakt {stop}',
   '{count} alerts affect {stop}': '{count} storingen raken {stop}',
 
@@ -1034,6 +1076,7 @@ const NL: Record<string, string> = {
   "Service notice": "Dienstmededeling",
   "Work on the line until 18:00. Add ten minutes.": "Werk aan de lijn tot 18:00. Reken tien minuten extra.",
   "Planning your journey": "Je reis wordt gepland",
+  "Working out the options from {from} to {to}.": "De opties van {from} naar {to} worden uitgezocht.",
   "When": "Wanneer",
 
   /* -------------------------------------------------------------- the six widgets */

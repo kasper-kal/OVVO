@@ -33,6 +33,7 @@ import {
   type PlannerSearchState,
   type RecentSearch,
   type SavedJourney,
+  type SearchHistoryEntry,
   type Settings,
   type UserLocation,
 } from './types';
@@ -113,14 +114,25 @@ interface AppContextValue {
   saveJourney: (journey: Journey, query: SearchQuery, windowOffsetMinutes: number) => void;
   removeSavedJourney: (id: string) => void;
 
+  /** **Searches the traveller kept** — "Home → Work", saved from the results screen. */
   recentSearches: RecentSearch[];
   /**
-   * Keep a search in this browser's own history. It is not called by searching — see
-   * `startSearch` — only by the traveller asking for it.
+   * Keep a search. It is not called by searching — see `startSearch` — only by the traveller
+   * asking for it from the results screen's Save control.
    */
   keepSearch: (query: SearchQuery) => void;
   removeRecentSearch: (id: string) => void;
   clearRecentSearches: () => void;
+
+  /**
+   * **Searches the traveller ran**, newest first, written by `startSearch` and by nothing else.
+   *
+   * The third list, and the one the app did not have: a kept search is a pair you decided to keep,
+   * a saved journey is one result with its own times, and this is the plain record of what was
+   * looked up. Keeping one never adds to it, and running one never adds to the kept list.
+   */
+  searchHistory: SearchHistoryEntry[];
+  clearSearchHistory: () => void;
 
   search: PlannerSearchState | null;
   journeys: Journey[];
@@ -292,6 +304,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() =>
     readStored<RecentSearch[]>(STORAGE_KEYS.recentSearches, []),
   );
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>(() =>
+    readStored<SearchHistoryEntry[]>(STORAGE_KEYS.searchHistory, []),
+  );
   /*
    * A stored layout is brought forward on load: cards that were merged are folded into the card
    * that replaced them, and a duplicate is dropped. Only the merge is done here — an id that no
@@ -391,6 +406,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [customStopNames]);
   useEffect(() => writeStored(STORAGE_KEYS.savedJourneys, savedJourneys), [savedJourneys]);
   useEffect(() => writeStored(STORAGE_KEYS.recentSearches, recentSearches), [recentSearches]);
+  useEffect(() => writeStored(STORAGE_KEYS.searchHistory, searchHistory), [searchHistory]);
   useEffect(() => writeStored(STORAGE_KEYS.homeWidgets, homeWidgets), [homeWidgets]);
   useEffect(() => writeStored(STORAGE_KEYS.widgetStations, widgetStations), [widgetStations]);
   useEffect(() => writeStored(STORAGE_KEYS.locationConsent, locationConsent), [locationConsent]);
@@ -618,17 +634,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /*
-   * Searching is not saving.
+   * **Running a search is not keeping one, and both lists now say so.**
    *
-   * `startSearch` used to write every query it was given into the search history, so simply
-   * planning a journey — and re-planning it from "Try one hour later", from a favourite, from a
-   * recent search, or from the alerts list's own re-run — left an entry behind in this browser and
-   * in the Recent searches widget and the settings manifest, without ever being asked ("it keeps
-   * saving the journey you searched, even when you leave the results"). A search now has to be
-   * kept: `keepSearch` is that act, and the results screen is where it is offered.
+   * There are three things a traveller can have, and they were two:
+   *
+   *   • a **recent search** — a pair they ran, listed newest first, forgotten after twelve. Written
+   *     here, by running one, and by nothing else;
+   *   • a **saved search** — a pair they kept ("Home → Work"), listed until they say otherwise.
+   *     Written only by `keepSearch`, from the results screen's Save control;
+   *   • a **saved journey** — one result with its own times, hearted on the results screen.
+   *
+   * The history used to be the kept list, which is why "Recent searches" and "Saved searches"
+   * read as the same card: the same array, the same rows, two names. Running a search records the
+   * pair here and never touches the kept list, so keeping one survives a hundred runs of it.
    */
   const startSearch = useCallback((query: SearchQuery) => {
     setSearch({ query, windowOffsetMinutes: 0, sortMode: 'best', filter: DEFAULT_RESULTS_FILTER });
+    setSearchHistory((current) => {
+      const id = searchEntryId(query);
+      const entry: SearchHistoryEntry = { id, query, at: Date.now() };
+      return [entry, ...current.filter((item) => item.id !== id)].slice(0, 12);
+    });
   }, []);
 
   const adoptSearch = useCallback((state: PlannerSearchState) => {
@@ -737,6 +763,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     clearRecentSearches: () => {
       setRecentSearches([]);
     },
+
+    searchHistory,
+    clearSearchHistory: () => setSearchHistory([]),
 
     search,
     journeys,
@@ -881,6 +910,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setWidgetStations({});
       setSavedJourneys([]);
       setRecentSearches([]);
+      setSearchHistory([]);
       setSearch(null);
       /*
        * The journeys planned this session go with the search they belonged to. They live in memory

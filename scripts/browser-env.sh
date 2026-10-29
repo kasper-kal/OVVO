@@ -20,6 +20,10 @@ set -u
 
 : "${HOME:?}"
 SYSLIBS="$HOME/syslibs"
+# Where this script lives, so the packages can also be kept inside the workspace (see `install_libs`).
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# The copy that survives a restore: `$HOME` is not part of the checkpointed state, the workspace is.
+KEPT="$REPO/.logs/debs"
 export LD_LIBRARY_PATH="$SYSLIBS/usr/lib/x86_64-linux-gnu:$SYSLIBS/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export FONTCONFIG_FILE="$SYSLIBS/fonts.conf"
 
@@ -44,7 +48,7 @@ install_libs() {
   # working DNS, so `apt-get download` fails with "Unable to locate package" long after the run
   # that fetched them. `$H/pw/debs` and `$H/pw/debs2` are where the home harness keeps what it
   # downloaded, so they are used when they are there and apt is only the fallback.
-  for cached in "${HOME}/pw/debs" "${HOME}/pw/debs2"; do
+  for cached in "${HOME}/pw/debs" "${HOME}/pw/debs2" "$KEPT"; do
     [ -d "$cached" ] && cp "$cached"/*.deb "$dir/" 2>/dev/null
   done
   if ! ls "$dir"/*.deb >/dev/null 2>&1; then
@@ -52,6 +56,12 @@ install_libs() {
   fi
   mkdir -p "$SYSLIBS"
   for deb in "$dir"/*.deb; do dpkg-deb -x "$deb" "$SYSLIBS/"; done
+  # **A copy inside the workspace, because `$HOME` is not part of a restore.** A restored workspace
+  # keeps the files in it and loses what is outside, and this VM has no working DNS to fetch these
+  # packages again, so the copy is what makes this step rebuildable with no network at all. It lands
+  # in `.logs/`, which `.gitignore` excludes: twenty megabytes of other people's binaries do not
+  # belong in the repository.
+  mkdir -p "$KEPT" && cp "$dir"/*.deb "$KEPT/" 2>/dev/null
   rm -rf "$dir"
 }
 

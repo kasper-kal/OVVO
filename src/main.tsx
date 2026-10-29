@@ -122,3 +122,36 @@ createRoot(container).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+/*
+ * **The mark in `index.html` is taken down by the app, once the app has drawn.**
+ *
+ * The splash exists because the one wait left in this app is the first one: every screen is in
+ * this script, so a tap is never a request, but the script itself takes a moment to arrive and
+ * nothing on the page can draw it (see the comment on `#splash` in `index.html`).
+ *
+ * **It is held for a beat even when the app is ready.** A splash that appears and vanishes inside
+ * a frame is a flicker, and a flicker reads as a fault; a mark that is shown for about a third of
+ * a second reads as the app opening. The hold is measured from the moment the mark appeared
+ * (`window.__ovvoSplash`, set in `index.html`), so a slow load is not held any longer than it
+ * already was, and a fast one is not cut shorter than the eye can follow.
+ *
+ * The removal is a fade and then a delete: the fade so the first screen is not revealed with a
+ * cut, the delete so a full-screen layer is not left sitting over the page for the rest of the
+ * session. Reduced motion and the app's own switch take the fade out (`index.html`'s stylesheet
+ * reads `data-motion`, which the state provider has already written by the time this runs).
+ */
+function takeDownSplash(): void {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  const shownAt = (window as unknown as { __ovvoSplash?: number }).__ovvoSplash ?? 0;
+  const remaining = Math.max(0, 320 - (Date.now() - shownAt));
+  window.setTimeout(() => {
+    splash.setAttribute('data-leaving', '');
+    window.setTimeout(() => splash.remove(), 260);
+  }, remaining);
+}
+
+/* Two frames, so the mark leaves a screen the app has actually painted rather than one it is
+   still assembling. */
+window.requestAnimationFrame(() => window.requestAnimationFrame(takeDownSplash));

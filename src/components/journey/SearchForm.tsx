@@ -262,12 +262,35 @@ export function SearchForm({
     setErrors({});
   };
 
-  const reverse = () => {
-    setFrom(to);
-    setTo(from);
-    setLabels((current) => ({ from: current.to, to: current.from }));
-    setAccess((current) => ({ from: current.to, to: current.from }));
+  /**
+   * A swap of the two ends, and on the search's own card a swap is **a new search**.
+   *
+   * The control flipped the two rows and left the list alone, so it answered the pair that was
+   * already there: the one control whose whole job is "the other way round" did nothing you could
+   * see (reported with a screenshot of the reversed card above unchanged results, 2026-10-28).
+   * A reversed pair is a journey in the other direction, and the list is the one place that can
+   * say so.
+   *
+   * Nothing else about the search is invented: the reverse keeps its own date, time mode and
+   * preferences (the card's `when` is the search's own), both labels travel with their end, and the
+   * distances the picker measured swap with the stops. What a re-planned search always does — start
+   * a fresh sort, filters and time window — happens here too, exactly as it does when a stop is
+   * picked on this same card.
+   *
+   * `searchNow` is false for the picker's own card, where the pair is still a draft being edited
+   * and the pick that follows is what searches.
+   */
+  const reverse = (searchNow: boolean) => {
+    const nextFrom = to;
+    const nextTo = from;
+    const nextLabels = { from: labels.to, to: labels.from };
+    const nextAccess = { from: access.to, to: access.from };
+    setFrom(nextFrom);
+    setTo(nextTo);
+    setLabels(nextLabels);
+    setAccess(nextAccess);
     setErrors({});
+    if (searchNow && nextFrom && nextTo) run(nextFrom, nextTo, nextLabels, nextAccess);
   };
 
   const renderRow = (side: Side) => {
@@ -323,7 +346,7 @@ export function SearchForm({
           <button
             type="button"
             className="planner-swap"
-            onClick={reverse}
+            onClick={() => reverse(true)}
             aria-label={t('Reverse origin and destination')}
             title={t('Reverse journey')}
           >
@@ -349,7 +372,7 @@ export function SearchForm({
           error={error}
           onPick={pick}
           onClear={clear}
-          onReverse={reverse}
+          onReverse={() => reverse(false)}
           onOpenMap={(side) => setSheet({ kind: 'map', side })}
           onPlan={() => {
             if (from && to) run(from, to);

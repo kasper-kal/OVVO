@@ -88,12 +88,14 @@ export function StopCombobox({
    * the list could be scrolled, but its own scrollbar was below the viewport, which is what the
    * round reported as "its not possible to scroll through the options so you have to scroll using
    * the page" (2026-10-17t20-06-25). On a phone the cap is the room that is actually there, and
-   * when the room below is smaller than the room above the list hangs upwards instead of off the
-   * screen. Wider screens keep the old behaviour exactly: there, `min(58vh, 460px)` is a shape the
-   * audit measures as a promise (six or more rows may not be squeezed under 300px), and a desktop
-   * page always has room to scroll to a list that reaches past its own fold.
+   * the list always hangs **downwards** from the field (see the measurement below for why). Wider
+   * screens keep the old shape: there, `min(58vh, 460px)` is a promise the audit measures (six or
+   * more rows may not be squeezed under 300px), and a desktop page always has room to scroll to a
+   * list that reaches past its own fold.
    */
-  const [cap, setCap] = useState<{ max: number; up: boolean }>({ max: 460, up: false });
+  const [cap, setCap] = useState(460);
+  /** True when there are more rows than fit, so the panel must not show a sliver of the next one. */
+  const [more, setMore] = useState(false);
   /** Mirrors the selected stop so external changes (reverse, quick fill, location) update the text. */
   const selectedIdRef = useRef<string | null>(value?.id ?? null);
   /** True while the traveller is typing, so we do not overwrite what they typed. */
@@ -121,30 +123,25 @@ export function StopCombobox({
        * to stop.
        */
       const box = field.getBoundingClientRect();
-      const below = window.innerHeight - box.bottom - 12;
       /*
-       * **The bar's band is not room.**
-       *
-       * The header is sticky with a higher stacking order than the list, so a list hung upward
-       * through it is drawn *behind* the mark and the two corner controls — reported from a phone
-       * with a keyboard up, where the rows ran under the logo and the alerts badge and the list
-       * looked like it was passing through the header. Measured from the bar's own bottom edge, the
-       * room above a field is what is actually visible.
+       * **The room below is measured to the bottom of what the traveller can see** — which, with
+       * the phone's keyboard up, is the top of the keyboard. `visualViewport` is that box; the
+       * window's own height is not, because the keyboard does not change it.
        */
-      const bar = document.querySelector('.app-header__inner');
-      const barBottom = bar ? bar.getBoundingClientRect().bottom : 0;
-      const above = box.top - Math.max(12, barBottom + 8);
+      const view = window.visualViewport;
+      const visibleFoot = view ? view.height + view.offsetTop : window.innerHeight;
       /*
-       * Hang upwards until the whole list fits, not only until the room below is small.
+       * **The dock is not room either.**
        *
-       * The old test (`below < 200`) let a field with 327px beneath it draw a 327px list whose
-       * content was 352px: the list itself ran out of the viewport, and scrolling it moved 25px
-       * with the last row still out of reach (the settings screen's picker). Compare the room
-       * with the height a full list wants instead, so a list that would be cut moves above the
-       * field where the room is.
+       * The floating navigation dock is fixed over the foot of the screen on a phone, so a list
+       * given all the space to the bottom edge ends with its last row drawn behind the dock — the
+       * rows can be scrolled, but the part you are aiming at is covered. The room stops at the
+       * dock's top edge when the dock is actually drawn.
        */
-      const wanted = 352;
-      const up = below < Math.min(460, wanted) && above > below;
+      const dock = document.querySelector<HTMLElement>('.app-dock');
+      const dockTop = dock && dock.getBoundingClientRect().height > 0 ? dock.getBoundingClientRect().top : visibleFoot;
+      const foot = Math.min(visibleFoot, dockTop);
+      const below = foot - box.bottom - 12;
       /*
        * **A list is whole rows.**
        *
@@ -154,19 +151,72 @@ export function StopCombobox({
        * number of the rows this list actually draws (measured, since a long name can make a row
        * taller than 56px) plus the panel's own padding and borders.
        */
-      const rowHeight =
-        rootRef.current?.querySelector<HTMLElement>('.suggestion')?.getBoundingClientRect().height || 56;
-      const panelChrome = 18;
-      const room = Math.max(1, Math.min(460, up ? above : below));
-      const rows = Math.max(1, Math.floor((room - panelChrome) / rowHeight));
-      setCap({ max: rows * rowHeight + panelChrome, up });
+      const rows = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.suggestion') ?? []);
+      /* The panel's own edges: 8px above the rows, a 1px border each side, 8px under the last row. */
+      const above_rows = 10;
+      const below_rows = 8;
+      /*
+       * **The list always hangs downwards.**
+       *
+       * It used to turn upwards whenever the room below was smaller than a full list, and briefly
+       * only when there was not one row left — but any upward list is drawn over the card above the
+       * field, which is where the traveller is reading (reported from the next-departures card with
+       * a screenshot of the results sitting over the card above it, and the rows cut off at the top
+       * of the screen, 2026-10-28). The keyboard is what made the room below look empty: opening it
+       * shrinks the visible area without scrolling the page, so the list flipped up while there was
+       * plenty of screen underneath. Measured to the visible foot and hung downwards, the cap is
+       * what keeps a list on screen. A list that stays where it was put is worth a shorter list.
+       */
+      const room = Math.max(1, Math.min(460, below));
+      if (rows.length === 0) {
+        /* "No stops match" is a sentence, not rows: give it the room there is. */
+        setCap(Math.min(room, 460));
+        setMore(false);
+        return;
+      }
+      /*
+       * Rows are not all one height — a long station name wraps to a second line — so each is
+       * measured and added while it still fits, instead of dividing the room by the first one. That
+       * division is what left the bottom row cut across its middle edge at the panel's edge.
+       */
+      const heights = rows.map((row) => row.getBoundingClientRect().height);
+      const all = heights.reduce((sum, height) => sum + height, 0);
+      if (above_rows + all + below_rows <= room) {
+        /* Every row fits: the panel is exactly as tall as its rows plus its padding. */
+        setCap(above_rows + all + below_rows);
+        setMore(false);
+        return;
+      }
+      /*
+       * More rows than fit. There is no bottom padding in this state (`suggestions--more` in the
+       * stylesheet): a scrollport clips at its padding box, so 8px of padding under the last row is
+       * a window onto the top of the row after it, which reads as a list ending in a cut-off line.
+       * Whole rows only, and never fewer than one — the list scrolls, and an empty panel is not a
+       * list.
+       */
+      let whole = 0;
+      for (const height of heights) {
+        if (above_rows + whole + height > room) break;
+        whole += height;
+      }
+      setCap(Math.min(room, Math.max(above_rows + whole, Math.min(room, above_rows + heights[0]))));
+      setMore(true);
     };
     measure();
     window.addEventListener('resize', measure);
     window.addEventListener('scroll', measure, true);
+    /*
+     * The keyboard is a resize of the *visual* viewport only: without these two the list keeps the
+     * height it was given before the keyboard appeared (or before it went away), and a list capped
+     * for a screen that is no longer there is either one row tall or taller than the room.
+     */
+    window.visualViewport?.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('scroll', measure);
     return () => {
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure, true);
+      window.visualViewport?.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('scroll', measure);
     };
   }, [open]);
 
@@ -321,11 +371,11 @@ export function StopCombobox({
 
         {open && suggestions.length > 0 ? (
           <ul
-            className={`suggestions${cap.up ? ' suggestions--up' : ''}`}
+            className={`suggestions${more ? ' suggestions--more' : ''}`}
             id={`${id}-listbox`}
             role="listbox"
             aria-label={t('{label} suggestions', { label })}
-            style={{ maxHeight: `${cap.max}px` }}
+            style={{ maxHeight: `${cap}px` }}
           >
             {suggestions.map((stop, index) => (
               <li
@@ -383,10 +433,10 @@ export function StopCombobox({
            * says it once, and the field stops claiming its list is open.
            */
           <div
-            className={`suggestions${cap.up ? ' suggestions--up' : ''}`}
+            className="suggestions"
             role="status"
             aria-label={t('{label} suggestions', { label })}
-            style={{ maxHeight: `${cap.max}px` }}
+            style={{ maxHeight: `${cap}px` }}
           >
             <p className="stack-1" style={{ padding: 'var(--s-3)', margin: 0 }}>
               <span className="t-strong t-body">

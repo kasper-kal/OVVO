@@ -61,6 +61,21 @@ With that file in place, plain `npm run dev` already allows the preview hostname
 restore, replace the one value and restart. Without it the server stays localhost-only,
 which is the right default for a checkout that is not behind a preview proxy.
 
+### After a restore
+
+A restored workspace keeps the files and loses everything that is not in them: `node_modules`, the
+Chromium the browser checks drive, the system libraries it needs, and whatever was running. One
+script puts all of it back, checks each piece before touching it, and leaves the dev server
+listening on the preview port:
+
+```bash
+bash scripts/after-restore.sh pv-<workspace-id>.style.dev   # or: npm run after-restore -- pv-...
+```
+
+It ends by asking the running server for the app with that hostname and failing if it does not get a
+`200`, so "the server is up" is a measurement here rather than a hopeful line in a log. Run it with
+no hostname and the server stays localhost-only, which is the right default for a plain checkout.
+
 The live site is served from Render by `npm run preview`, which checks the same header and
 refused it until its own address was named. `vite.config.ts` therefore also allows
 `ovvo.onrender.com` and whatever `RENDER_EXTERNAL_HOSTNAME` holds (Render sets that per

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useLoadOnScroll } from '../lib/loadBatch';
+import { useMemo, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -6,7 +7,6 @@ import { DISRUPTIONS, DISRUPTION_TYPE_LABELS } from '../data/disruptions';
 import { getLine } from '../data/network';
 import { distanceFromPosition, getStop, stopLabel } from '../data/stops';
 import { PT_LABEL_ORDER } from '../lib/boardHelpers';
-import { useLoadOnScroll } from '../lib/loadBatch';
 import { Button, Card, Chip, Pill } from '../components/ui/primitives';
 import { NoMatches } from '../components/ui/NoMatches';
 import { ResultCard, ResultCardLink } from '../components/ui/ResultCard';

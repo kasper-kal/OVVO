@@ -694,7 +694,9 @@ export function SettingsPage() {
               favourites: t('{count} favourite stops', { count: favouriteStopIds.length }),
               board: t('{count} stops pinned to the board', { count: boardStopIds.length }),
               journeys: t('{count} favourited journeys', { count: savedJourneys.length }),
-              searches: t('{count} recent searches', { count: recentSearches.length }),
+              /* The kept list, named as the results screen names it — the history is a different
+                 list and is not part of what this sheet is counting. */
+              searches: t('{count} saved searches', { count: recentSearches.length }),
             },
           )}
         </p>

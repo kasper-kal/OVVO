@@ -27,7 +27,6 @@ export function boardForStop(stopId: string, options: BoardOptions): Departure[]
   if (!stop) return [];
   const limit = options.limit ?? 24;
   const from = options.fromMinutes;
-  const tick = options.tick ?? 0;
   const lines = linesAtStop(stopId);
   const entries: Departure[] = [];
 
@@ -41,7 +40,7 @@ export function boardForStop(stopId: string, options: BoardOptions): Departure[]
       let departure = nextDeparture(line, from);
       for (let i = 0; i < 6 && entries.length < limit * 3; i += 1) {
         if (!isInService(line, departure)) break;
-        entries.push(makeDeparture(line.id, dir.index, stopId, destinationStopId, departure, tick));
+        entries.push(makeDeparture(line.id, dir.index, stopId, destinationStopId, departure));
         departure += line.headway;
         if (departure > 1440 + 180) break;
       }
@@ -65,7 +64,6 @@ export function boardForLine(lineId: string, stopId: string, options: BoardOptio
   const stop = getStop(stopId);
   if (!line || !stop) return [];
   const limit = options.limit ?? 24;
-  const tick = options.tick ?? 0;
   const entries: Departure[] = [];
 
   for (const dir of directions(line)) {
@@ -77,7 +75,7 @@ export function boardForLine(lineId: string, stopId: string, options: BoardOptio
     let departure = nextDeparture(line, options.fromMinutes);
     for (let i = 0; i < 10 && entries.length < limit * 2; i += 1) {
       if (!isInService(line, departure)) break;
-      entries.push(makeDeparture(line.id, dir.index, stopId, destinationStopId, departure, tick));
+      entries.push(makeDeparture(line.id, dir.index, stopId, destinationStopId, departure));
       departure += line.headway;
       if (departure > 1440 + 180) break;
     }
@@ -92,10 +90,18 @@ function makeDeparture(
   stopId: string,
   destinationStopId: string,
   planned: number,
-  tick: number,
 ): Departure {
   const line = getLine(lineId);
-  const rng = seededRandom('departure', lineId, directionIndex, stopId, planned, tick);
+  /*
+   * **A refresh must not change what the board says.**
+   *
+   * The refresh counter (`BoardOptions.tick`) used to be part of this seed, so every five seconds —
+   * and every time the tab came back to the front, which ticks immediately — a service was re-rolled
+   * and could turn from on time into late, or from cancelled into running. The board's own line then
+   * went from "4 delays in this window" to "1 delay in this window" with nothing having happened on
+   * the line: a refresh is a repaint, and a fact about a departure is not a repaint.
+   */
+  const rng = seededRandom('departure', lineId, directionIndex, stopId, planned);
   const disruption = disruptionForLeg(lineId, stopId, destinationStopId);
   const roll = rng();
   let delayMinutes = 0;

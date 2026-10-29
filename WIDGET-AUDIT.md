@@ -184,6 +184,33 @@ and it is drawn at 208px, not 159. The saving is real, but it comes from the thr
 than from squeezing this card below the app's own minimum. The audit's judgement (*make it a
 default*) was right; its pixel estimate for the empty state was not.
 
+## Five more cards, 2026-10-28
+
+Asked for: *"extend the widgets severely, but make sure to only add actually useful widgets, use the
+rules from WIDGET-AUDIT.md"*. Five were added, and each is judged by this file's own rule (**holds
+something of yours, or does something for you**) rather than by whether a card could be drawn at all.
+None of them is a count of the sample network, a list of the network, a settings echo or a second
+copy of navigation, which is what every cut card had in common.
+
+| id | holds / does | empty state | with data |
+|---|---|---|---|
+| `delays` (Yours) | the lateness happening **at your hearted stops** right now, from `boardForStop`'s own `delayMinutes` / `cancelled`, soonest first, each row naming its stop, and a way to the board | *"Heart a stop and the services running late from it are listed here."* | measured: `Utrecht Centraal · 800 05:00 to Alkmaar Station +5 min`, three more, `OPEN THE BOARD` |
+| `first-last` (Travel information) | **when the day starts and ends** at a station of your own (tied in the card, `widgetStations` keyed per id), with platform and destination; the last is found by starting late in the day, so a missing one says so instead of printing yesterday | asks for its station in the card | `First 05:00 900 to Eindhoven Centraal · Platform 12` / `Last 23:50 E to Rotterdam Alexander · Platform 6` |
+| `quietest` (Plan) | which result in **your** search is emptiest, from `journey.occupancy`, and what choosing it costs in minutes against the fastest | *"Plan a journey and this card points at the quietest option."* | `11:00 → 12:16 · 1 hr 16 min` + `Quiet` + `N min slower than the fastest` |
+| `fares` (Plan) | the fare of each journey **you kept**, beside its time, cheapest marked; a walk prints `No fare` rather than `€0.00` | *"Heart a journey and its fare is listed here beside its time."* | `Utrecht Centraal → Rotterdam Centraal · 1 hr 16 min · €23.45` |
+
+All five are **off by default**: the default layout is the audit's decision and it was made on what a
+fresh browser holds, which for four of these is nothing yet. `recent-searches` also came back as a
+catalogue card of its own on the same round, so its entry in `MERGED_WIDGETS` is gone (it now names a
+real card, and a stored layout naming it reaches that card instead of `your-journeys`).
+
+Measured, not asserted: `.logs/new-widgets-check.cjs` seeds the layout, a hearted stop set, a tied
+station and one recent search, then runs a real search from the recent-searches card, hearts its
+first result, and reads all five cards at **390 and 1280 px** — 0 horizontal overflow, no console
+errors, and `PLAN THE WAY BACK` lands on the reversed pair. `.logs/quietest-session.cjs` checks the
+one card that reads live session state rather than storage: after a search, coming home inside the
+app (no reload) fills it.
+
 ## Verified
 
 `.logs/widget-audit.cjs` exit 0 — 2 passes (fresh, seeded) × 17 widgets, no `pageerror` on either.
@@ -202,3 +229,39 @@ Two things it leans on, both of which came out of the audit itself: `next-depart
 **one station of the traveller's own** instead of watching a stop it was handed (`USER-FIXES.md`
 orders 92–93), and the seeded pass above measures that tied card (386px) rather than the field it
 used to carry (501px).
+
+## Audited again, 28 Oct: six cards that repeated another card
+
+Asked for in one sentence: *"Audit the rest of the widgets."* The rule at the top of this file still
+governs (**holds something of yours, or does something for you**), and the card that started this
+added the second half of it: **a card also fails when what it says is already on the screen the
+traveller is looking at while it is true.** "The way back" named a reversed journey while the
+results it was reversed from were on another screen, one press away.
+
+| card | what it did | why it went |
+|---|---|---|
+| `return-trip` "The way back" | the last search, reversed | reversing is one press on the planner; the card was a second button for a job the screen already had |
+| `quietest` "The quietest option" | named the emptiest result of the search | crowding per journey is already on the results and journey screens; the card is only true while you are looking at those, not at your home screen |
+| `cost` "What it costs" | the fastest and the cheapest of that same search | the same two facts, from the same list, that `fares` names from your kept journeys |
+| `recent-searches` "Recent searches" | every search this browser ran, `Repeat` per row | **put back the same day, because the card was not the defect, the app was.** It had one list wearing two names: the history *was* the kept list, so no wording could have made the card honest. The history is its own store now (`search-history`, written by running a search), a saved search is what the results screen's Save writes, and this card lists the first of the three |
+| `last-service` "Last service home" | the last three services from the first kept journey's origin | `first-last` answers the same question for a station you choose, and adds the first service |
+| `stop-search` "Find a stop" | one search field | the field is the planner's own picker, and Stations & stops has the same search one tap away in the dock |
+
+**Kept, all fifteen, and why each survives the same test:** `planner` (the app's job),
+`next-departures` and `second-board` (live times at a station you tied), `pinned-stops` (your stops,
+one tap each), `your-journeys` (kept journeys and kept searches), `delays` (lateness right now at your
+stops), `alerts` and `alerts-at-pins` (trouble that touches a journey or a stop of yours), `first-last`
+(when the day starts and ends at your station), `fares` (what your kept journeys cost), `commute`
+(when to leave for the journey you keep most), `nearby-stops` (the stops around you and the next one
+out), `facilities` (what your stops list), `right-now` (the last pair again, from this minute), `map`
+(your network, your stops named).
+
+**Storage.** `cost` folds into `fares` and `last-service` into `first-last` (`src/widgets/defaults.ts`),
+so a stored layout naming one keeps the card it was a copy of instead of a dead slot. The others draw
+nothing and take no space. `recent-searches` is **not** folded: it is a card again, and it reads the
+history rather than the kept list.
+
+**Verified.** `tsc` clean; `npm run build` clean (main chunk 323.26 kB, 111.14 kB gzip); a 390px
+browser load of the home screen with **0 page errors** and no "way back" or "quietest" copy on it. The
+catalogue screen itself was **not** counted by that probe (the click that should have opened it
+missed), so the fifteen is read from the registry, not from a screenshot.

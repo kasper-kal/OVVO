@@ -224,6 +224,21 @@ export interface RecentSearch {
   at: number;
 }
 
+/**
+ * One search this browser ran.
+ *
+ * Kept apart from `RecentSearch` on purpose, even though the two objects have the same shape: a
+ * **kept** search is a pair the traveller decided to keep ("Home → Work") and is written only by
+ * the results screen's Save control, while a **history** entry is written by running a search and
+ * is never a decision. Merging the two lists is what made "Recent searches" and "Saved searches"
+ * read as the same card.
+ */
+export interface SearchHistoryEntry {
+  id: string;
+  query: SearchQuery;
+  at: number;
+}
+
 export interface PlannerSearchState {
   query: SearchQuery;
   windowOffsetMinutes: number;

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { ROWS_PER_LOAD } from '../../lib/loadBatch';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
@@ -10,7 +11,6 @@ import { PlanStopDialog } from './PlanStopDialog';
 import { StopLink } from './StopLink';
 import { Icon } from '../ui/Icons';
 import type { Departure, Stop } from '../../data/types';
-import { ROWS_PER_LOAD } from '../../lib/loadBatch';
 
 /**
  * [OCR Visual Transcode - Departure Row]

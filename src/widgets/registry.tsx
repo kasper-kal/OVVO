@@ -7,7 +7,7 @@ import { SearchForm } from '../components/journey/SearchForm';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { BoardList } from '../components/stops/BoardList';
 import { StopLink } from '../components/stops/StopLink';
-import { Button, Chip, Dialog, IconButton } from '../components/ui/primitives';
+import { Button, Chip, Dialog, IconButton, Pill } from '../components/ui/primitives';
 import { Icon, MODE_ICON_NAME } from '../components/ui/Icons';
 import type { IconName } from '../components/ui/Icons';
 import {
@@ -29,7 +29,7 @@ import { useMinuteNow } from '../lib/useMinuteNow';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { alertWords } from '../lib/disruptionText';
-import type { PublicMode, Stop } from '../data/types';
+import type { Departure, PublicMode, Stop } from '../data/types';
 import type { WidgetWidth } from '../state/types';
 
 /**
@@ -646,6 +646,100 @@ function MapWidget() {
 }
 
 /**
+ * **Recent searches** — the plain record of what this browser looked up, newest first.
+ *
+ * The three lists are three different things, and this card is the only one that is not a
+ * decision: running a search writes here (`startSearch`), while keeping one is a press on the
+ * results screen and lands in the Saved searches half of `your-journeys`. That is why the two are
+ * not one card, even though both hold a pair of stops: a saved search is "Home → Work" and costs
+ * nothing to keep, a recent search is what you were doing ten minutes ago and forgets itself.
+ */
+function RecentSearchesWidget() {
+  const t = useT();
+  const format = useFormat();
+  const navigate = useNavigate();
+  const { searchHistory, clearSearchHistory, startSearch, preferences } = useApp();
+  const [confirmClear, setConfirmClear] = useState(false);
+  const rows = 4;
+  const shown = searchHistory.slice(0, rows);
+
+  if (!searchHistory.length) {
+    return (
+      <WidgetEmpty
+        icon="search"
+        line={t('A search you run is listed here, newest first.')}
+        hint={t('Plan a journey and it appears in this card.')}
+      />
+    );
+  }
+
+  return (
+    <div className="stack-1">
+      <ul className="stack-1">
+        {shown.map((entry) => (
+          <li key={entry.id} className="list-row list-row--static">
+            <span className="stack-1 grow">
+              <span className="t-strong t-sm">
+                <QueryEnds query={entry.query} />
+              </span>
+              <span className="t-sm t-faint">
+                {format.date(entry.query.date, 'dayMonth')} · {format.time(entry.query.time)}
+              </span>
+            </span>
+            <Button
+              size="sm"
+              icon="search"
+              onClick={() => {
+                startSearch({ ...entry.query, preferences });
+                navigate('/results');
+              }}
+            >
+              {t('Repeat')}
+            </Button>
+          </li>
+        ))}
+      </ul>
+      <TrimNote total={searchHistory.length} shown={shown.length} />
+      <Button size="sm" variant="ghost" icon="trash" onClick={() => setConfirmClear(true)}>
+        {t('Clear recent searches')}
+      </Button>
+
+      <Dialog
+        open={confirmClear}
+        title={t('Clear recent searches?')}
+        description={t(
+          'Every search in this list is removed. Saved searches, journeys, favourite stops and preferences stay as they are.',
+        )}
+        onClose={() => setConfirmClear(false)}
+        footer={
+          <>
+            <Button
+              variant="accent"
+              icon="trash"
+              onClick={() => {
+                clearSearchHistory();
+                setConfirmClear(false);
+              }}
+            >
+              {t('Yes, clear them')}
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmClear(false)}>
+              {t('Cancel')}
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">
+          {searchHistory.length === 1
+            ? t('1 recent search will be removed.')
+            : t('{count} recent searches will be removed.', { count: searchHistory.length })}
+        </p>
+      </Dialog>
+    </div>
+  );
+}
+
+/**
  * **Your journeys** — saved journeys and saved searches, in one card.
  *
  * They were two widgets, both on by default, both empty on a fresh browser: 83px each of
@@ -882,7 +976,7 @@ function NextDeparturesWidget({ binding = 'next-departures' }: { binding?: strin
 
   if (!stopId) {
     return (
-      <div className="stack-2">
+      <div className="stack-3">
         <p className="t-sm t-muted">
           {t('Pick one station for this card. It keeps showing it, so a glance never has to search.')}
         </p>
@@ -911,7 +1005,7 @@ function NextDeparturesWidget({ binding = 'next-departures' }: { binding?: strin
   }
 
   return (
-    <div className="stack-2">
+    <div className="stack-3">
       {/* The station this card is tied to, as the way to its page — the card names one station
           and never offered a way to look at it. */}
       <span className="t-sm t-muted">
@@ -1041,37 +1135,6 @@ function RightNowWidget() {
           : t('Nothing to re-run yet. Plan a journey first.')}
       </span>
     </div>
-  );
-}
-
-/**
- * Find a stop — the field, and nothing else.
- *
- * It carried three chips of the busiest stops in the demonstration network, labelled a *sample*,
- * which the audit cut for exactly the reason the label existed: they are a fact about demo data
- * that no traveller has a relationship with, and they contradict this project's own rule that
- * nothing suggests a stop the traveller did not choose. The field is the widget; it opens the
- * planner's own picker, which already knows their favourites, their recent stops and — when
- * they allow it — where they are.
- */
-function StopSearchWidget() {
-  const navigate = useNavigate();
-  const t = useT();
-  const [value, setValue] = useState<Stop | null>(null);
-  return (
-    <StopCombobox
-      /* Not `widget-stop-search`: that is the widget section's own id, and the duplicate made
-         `getElementById` return the section, so the label pointed at nothing and the field had no
-         name (32.4). */
-      id="widget-stop-search-field"
-      label={t('Find a stop')}
-      value={value}
-      onSelect={(stop) => {
-        setValue(stop);
-        if (stop) navigate(`/stops/${stop.id}`);
-      }}
-      placeholder={t('Search {count} stations, stops and landmarks', { count: STOPS.length })}
-    />
   );
 }
 
@@ -1342,126 +1405,236 @@ function FacilitiesWidget() {
   );
 }
 
+/** The second tied board: the same card, bound to its own station. */
+function SecondBoardWidget() {
+  return <NextDeparturesWidget binding="second-board" />;
+}
+
+/* ------------------------------------------- your own timetable, in four more cards */
+
 /**
- * **What it costs** — the fare next to the time, for the search on screen or the journeys you kept.
+ * **Delays at your stops** — the lateness that is happening right now, at the places you chose.
  *
- * Money is the second question after time, and the engine already ranks on both (`sortJourneys` has
- * a cheapest mode and a fastest one). The card does not re-plan anything: it reads the journeys the
- * app is already holding and names the two ends of the trade-off — the quickest option and the
- * cheapest one, with their own times and fares.
+ * The audit's rule is that a card either holds something of yours or does something for you, and
+ * the two alert cards cover *planned* trouble (a closed line, a warning). Neither covers the
+ * ordinary everyday case: the 08:12 is four minutes late, at your stop, today. That fact is already
+ * computed by the board generator (`departure.delayMinutes`), it is about the traveller's own
+ * stops, and there is something to do with it, which is why it earns a card.
+ *
+ * It reads the same minute every other board reads and names the stop in the row, so a card with
+ * four rows is still four separate answers rather than one merged picture.
  */
-function CostWidget() {
+function DelaysAtStopsWidget() {
   const t = useT();
   const format = useFormat();
-  const { journeys, savedJourneys, search } = useApp();
-  const options = journeys.length ? journeys : savedJourneys.map((entry) => entry.journey);
+  const minutes = useClockMinutes();
+  const { favouriteStopIds } = useApp();
+  const rows = 4;
 
-  const fastest = options.reduce<(typeof options)[number] | null>(
-    (best, journey) => (!best || journey.durationMinutes < best.durationMinutes ? journey : best),
-    null,
-  );
-  const cheapest = options.reduce<(typeof options)[number] | null>(
-    (best, journey) => (!best || journey.fare.eur < best.fare.eur ? journey : best),
-    null,
-  );
+  const late = useMemo(() => {
+    const out: { stop: Stop; departure: Departure }[] = [];
+    for (const stopId of favouriteStopIds) {
+      const stop = getStop(stopId);
+      if (!stop || !hasBoard(stop)) continue;
+      for (const departure of boardForStop(stopId, { fromMinutes: minutes, limit: 24 })) {
+        if (departure.delayMinutes > 0 || departure.cancelled) out.push({ stop, departure });
+      }
+    }
+    /* The soonest trouble first: a card about today is read in the order today happens. */
+    return out.sort((a, b) => a.departure.expected - b.departure.expected).slice(0, rows);
+  }, [favouriteStopIds, minutes]);
 
-  if (!fastest || !cheapest) {
+  if (favouriteStopIds.length === 0) {
     return (
       <WidgetEmpty
-        icon="ticket"
-        line={t('Plan a journey and its fare appears here beside its time.')}
-        hint={t('Every result already carries a price; this card just puts the two next to each other.')}
+        icon="clock"
+        line={t('Heart a stop and the services running late from it are listed here.')}
+        hint={t('The heart on a stop card is the one that fills this card.')}
       />
     );
   }
 
-  const row = (label: string, journey: (typeof options)[number]) => (
-    <li className="list-row list-row--static">
-      <span className="stack-1 grow">
-        <span className="t-strong t-sm">{label}</span>
-        <span className="t-sm t-faint">
-          {format.time(journey.departure)} → {format.time(journey.arrival)} ·{' '}
-          {format.duration(journey.durationMinutes)}
-        </span>
-      </span>
-      <span className="t-strong">€{journey.fare.eur.toFixed(2)}</span>
-    </li>
+  if (!late.length) {
+    return (
+      <p className="t-sm t-muted">
+        {favouriteStopIds.length === 1
+          ? t('The stop you hearted is running on time.')
+          : t('All {count} of your stops are running on time.', { count: favouriteStopIds.length })}
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <ul className="stack-1">
+        {late.map(({ stop, departure }) => (
+          <li key={departure.id} className="list-row list-row--static">
+            <span className="stack-1 grow">
+              <span className="t-strong t-sm">
+                <StopLink stopId={stop.id} /> · {departure.lineNumber}
+              </span>
+              <span className="t-sm t-faint">
+                {format.time(departure.planned)} {t('to')} {departure.destinationLabel}
+              </span>
+            </span>
+            <Pill tone="coral">
+              {departure.cancelled
+                ? t('Cancelled')
+                : t('+{minutes} min', { minutes: departure.delayMinutes })}
+            </Pill>
+          </li>
+        ))}
+      </ul>
+      <Link to={`/departures?stop=${favouriteStopIds[0]}`} className="btn btn--sm">
+        <Icon name="board" size={15} />
+        {t('Open the board')}
+      </Link>
+    </>
   );
+}
+
+/**
+ * **First and last service** — the two times a day when "is there still one?" is the question.
+ *
+ * The board at one station answers "what is next"; the card that answers "when does it start, and
+ * when is the last one" did not exist. It is tied to a station of the traveller's own exactly as
+ * `next-departures` is (`widgetStations`, keyed per widget id), and it reads only the board the app
+ * already generates: the first service from that station today, and the last one it can still find
+ * before midnight (the generator runs a little past it, which is where a last service really is).
+ *
+ * Where the board has nothing left it says so, rather than printing a time from an earlier hour.
+ */
+function FirstLastWidget() {
+  const t = useT();
+  const format = useFormat();
+  const { widgetStations, setWidgetStation } = useApp();
+  const binding = 'first-last';
+
+  const bound = getStop(widgetStations[binding] ?? undefined);
+  const stop = bound && hasBoard(bound) ? bound : undefined;
+  const stopId = stop?.id ?? null;
+
+  const service = useMemo(() => {
+    if (!stopId) return { first: null as Departure | null, last: null as Departure | null };
+    const first = boardForStop(stopId, { fromMinutes: 0, limit: 1 })[0] ?? null;
+    /* The last, not the next: start late in the day and step back until the board answers. */
+    let last: Departure | null = null;
+    for (const start of [23 * 60, 22 * 60, 21 * 60, 20 * 60]) {
+      const late = boardForStop(stopId, { fromMinutes: start, limit: 60 });
+      if (late.length) {
+        last = late.reduce((a, b) => (b.planned > a.planned ? b : a));
+        break;
+      }
+    }
+    return { first, last };
+  }, [stopId]);
+
+  if (!stopId) {
+    return (
+      <div className="stack-3">
+        <p className="t-sm t-muted">
+          {t('Pick one station for this card. It keeps showing it, so a glance never has to search.')}
+        </p>
+        <StopCombobox
+          id={`${binding}-stop`}
+          label={t('Station for this card')}
+          hideLabel
+          value={null}
+          onSelect={(next) => {
+            if (next) setWidgetStation(binding, next.id);
+          }}
+          placeholder={t('Search a station or stop')}
+          filter={hasBoard}
+          emptyHint={t('Only a station or stop has a departure board.')}
+        />
+      </div>
+    );
+  }
+
+  const row = (label: string, departure: Departure | null) =>
+    departure ? (
+      <li className="list-row list-row--static">
+        <span className="stack-1 grow">
+          <span className="t-strong t-sm">
+            {label} {format.time(departure.planned)}
+          </span>
+          <span className="t-sm t-faint">
+            {departure.lineNumber} {t('to')} {departure.destinationLabel}
+          </span>
+        </span>
+        <Pill>{t('Platform')} {departure.platform}</Pill>
+      </li>
+    ) : (
+      <li className="t-sm t-muted">{t('No {label} service from this station in the data.', { label: label.toLowerCase() })}</li>
+    );
 
   return (
     <div className="stack-2">
-      {search ? <span className="field__label">{t('This search')}</span> : <span className="field__label">{t('Your saved journeys')}</span>}
+      <span className="t-sm t-muted">
+        <StopLink stopId={stopId} />
+      </span>
       <ul className="stack-1">
-        {row(t('Fastest'), fastest)}
-        {cheapest.id !== fastest.id ? row(t('Cheapest'), cheapest) : null}
+        {row(t('First'), service.first)}
+        {row(t('Last'), service.last)}
       </ul>
     </div>
   );
 }
 
 /**
- * **Last service home** — the one timetable fact people look up late.
+ * **What your journeys cost** — the fare of each journey you kept, with the cheapest marked.
  *
- * The board generator runs deliberately past midnight (to 27:00), so "the last one" is a real
- * answer rather than a guess: the card asks the origin stop for its late-evening board and names
- * the last three services still running. Nothing is invented, and when the data has nothing left it
- * says so.
+ * The `cost` card reads the search on screen and names the fastest and the cheapest of *those*
+ * journeys. This one is about the journeys you decided to keep: what the morning and the evening one
+ * actually cost, side by side, which is how a traveller decides whether to buy a day ticket. Every
+ * number is `journey.fare` from the saved journey itself; nothing is re-planned, and a journey whose
+ * fare is nothing (a walk) says so instead of printing a price of zero.
  */
-function LastServiceWidget() {
+function FaresWidget() {
   const t = useT();
   const format = useFormat();
-  const minutes = useClockMinutes();
-  const rows = 3;
   const { savedJourneys } = useApp();
-  const entry = savedJourneys[0];
+  const rows = 3;
 
-  const late = useMemo(() => {
-    if (!entry) return [];
-    return boardForStop(entry.query.fromStopId, { fromMinutes: 1380, limit: 60 })
-      .filter((departure) => departure.expected <= 1440 + 180)
-      .sort((a, b) => a.expected - b.expected)
-      .slice(-rows)
-      .reverse();
-  }, [entry, rows]);
-
-  if (!entry) {
+  if (!savedJourneys.length) {
     return (
       <WidgetEmpty
-        icon="clock"
-        line={t('Heart the journey home and this card knows its last service.')}
-        hint={t('The last departures are read from the same board the departure screen draws.')}
+        icon="ticket"
+        line={t('Heart a journey and its fare is listed here beside its time.')}
+        hint={t('A saved journey is one result on the results screen, with its own times and fare.')}
       />
     );
   }
 
-  return (
-    <div className="stack-2">
-      <span className="field__label">
-        {t('Last services from')} <StopLink stopId={entry.query.fromStopId} />
-      </span>
-      {late.length ? (
-        <ul className="stack-1">
-          {late.map((departure) => (
-            <li key={departure.id} className="list-row list-row--static">
-              <span className="t-strong t-sm grow">
-                {departure.destinationLabel}
-                {departure.lineNumber ? ` · ${departure.lineNumber}` : ''}
-              </span>
-              <span className="t-mono-num">{format.time(departure.expected)}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="t-sm t-muted">{t('No late service from this stop in the data.')}</p>
-      )}
-      <span className="t-sm t-faint">{t('Read at {time}, the same minute the board uses.', { time: format.time(minutes) })}</span>
-    </div>
-  );
-}
+  const shown = savedJourneys.slice(0, rows);
+  const paid = shown.filter((entry) => entry.journey.fare.eur > 0);
+  const cheapest = paid.length > 1 ? Math.min(...paid.map((entry) => entry.journey.fare.eur)) : null;
 
-/** The second tied board: the same card, bound to its own station. */
-function SecondBoardWidget() {
-  return <NextDeparturesWidget binding="second-board" />;
+  return (
+    <>
+      <ul className="stack-1">
+        {shown.map((entry) => {
+          const fare = entry.journey.fare;
+          const isCheapest = cheapest !== null && fare.eur === cheapest;
+          return (
+            <li key={entry.id} className="list-row list-row--static">
+              <span className="stack-1 grow">
+                <span className="t-strong t-sm">
+                  <QueryEnds query={entry.query} />
+                </span>
+                <span className="t-sm t-faint">
+                  {format.duration(entry.journey.durationMinutes)}
+                  {fare.eur > 0 ? ` · €${fare.eur.toFixed(2)}` : ` · ${t('No fare')}`}
+                </span>
+              </span>
+              {isCheapest ? <Pill tone="sage">{t('Cheapest')}</Pill> : null}
+            </li>
+          );
+        })}
+      </ul>
+      <TrimNote total={savedJourneys.length} shown={shown.length} />
+    </>
+  );
 }
 
 /* --------------------------------------------------------------- the catalogue */
@@ -1513,6 +1686,38 @@ const DEFINITIONS: WidgetDefinition[] = [
     Body: YourJourneysWidget,
   },
   {
+    id: 'recent-searches',
+    title: 'Recent searches',
+    description: 'The searches you ran in this browser, newest first, one tap to repeat.',
+    category: 'Yours',
+    span: 6,
+    Body: RecentSearchesWidget,
+  },
+  {
+    id: 'delays',
+    title: 'Delays at your stops',
+    description: 'The services running late right now at the stops you hearted.',
+    category: 'Yours',
+    span: 6,
+    Body: DelaysAtStopsWidget,
+  },
+  {
+    id: 'first-last',
+    title: 'First and last service',
+    description: 'The first service today from a station of your own, and the last one.',
+    category: 'Travel information',
+    span: 4,
+    Body: FirstLastWidget,
+  },
+  {
+    id: 'fares',
+    title: 'What your journeys cost',
+    description: 'The fare of each journey you kept, with the cheapest marked.',
+    category: 'Plan',
+    span: 6,
+    Body: FaresWidget,
+  },
+  {
     id: 'alerts',
     title: 'Alerts on your journeys',
     description: 'Only the alerts that touch a journey you saved.',
@@ -1531,18 +1736,10 @@ const DEFINITIONS: WidgetDefinition[] = [
   {
     id: 'right-now',
     title: 'Re-run from now',
-    description: 'Run the search you are looking at again, starting at this minute.',
+    description: 'Your last search again, from this minute: the same route, new times.',
     category: 'Plan',
     span: 4,
     Body: RightNowWidget,
-  },
-  {
-    id: 'stop-search',
-    title: 'Find a stop',
-    description: 'Search every stop from here.',
-    category: 'Travel information',
-    span: 4,
-    Body: StopSearchWidget,
   },
   {
     id: 'commute',
@@ -1567,22 +1764,6 @@ const DEFINITIONS: WidgetDefinition[] = [
     category: 'Yours',
     span: 4,
     Body: FacilitiesWidget,
-  },
-  {
-    id: 'cost',
-    title: 'What it costs',
-    description: 'The quickest option and the cheapest one, with their fares, side by side.',
-    category: 'Plan',
-    span: 4,
-    Body: CostWidget,
-  },
-  {
-    id: 'last-service',
-    title: 'Last service home',
-    description: 'The last departures from the stop your saved journey starts at.',
-    category: 'Travel information',
-    span: 4,
-    Body: LastServiceWidget,
   },
   {
     id: 'second-board',

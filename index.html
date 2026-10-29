@@ -37,17 +37,125 @@
       rel="stylesheet"
     />
     <!--
+      **The splash, and why it is in this file rather than in the app.**
+
+      Every screen now lives in one script, so there is no wait between screens at all: a tap is
+      drawn in the frame it happens in. The one wait left is the first one, when that script is
+      still arriving, and it cannot be answered from inside the app because the app is the thing
+      that has not arrived yet. So it is answered here, in plain HTML and CSS, and taken away by
+      the app the moment it has drawn (`src/main.tsx`).
+
+      The drawing is `/favicon.svg`, which is the artwork itself: the same four tiles the header
+      shows, with the same 256-of-1024 corner rounded by a mask over the whole mark, so the
+      splash's corners and the header's are the same curve rather than two hand-matched guesses.
+      It is simply larger here, and centred both ways in a grid that fills the screen.
+
+      Two details are deliberate:
+
+        • it is `#fcfbfa` until the script below has read the saved appearance, because the splash
+          must paint before anything else and the light canvas is the app's own default. A phone
+          whose traveller chose dark gets `#121211` before the first frame is painted, so a dark
+          screen does not begin with a white flash;
+        • it uses nothing newer than the browsers the app itself supports (top/right/bottom/left
+          rather than `inset`, no custom properties here, no `gap`), for the same reason the old
+          note below does: it has to be readable by the phones this app is meant for.
+
+      Nothing about the mark is redrawn or edited. The file below is the artwork, shown.
+    -->
+    <style>
+      #splash {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 2147483000;
+        display: grid;
+        place-items: center;
+        background: #fcfbfa;
+        opacity: 1;
+        transition: opacity 200ms ease-out;
+        /* The traveller's own tap still reaches the page under it, never the splash itself. */
+        pointer-events: none;
+      }
+      #splash[data-leaving] {
+        opacity: 0;
+      }
+      #splash img {
+        display: block;
+        width: 112px;
+        height: 112px;
+      }
+      @media (max-width: 340px) {
+        #splash img {
+          width: 96px;
+          height: 96px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #splash {
+          transition: none;
+        }
+      }
+      :root[data-motion='reduced'] #splash {
+        transition: none;
+      }
+    </style>
+    <!--
+      **The splash's ground, taken from the appearance the traveller saved, before it is painted.**
+
+      The app's canvas is `#fcfbfa` in light and `#121211` in dark, and the choice is stored as
+      `settings.theme` (`localStorage`, prefix `ov-planner:v1:`), with `system` following the
+      phone exactly as the app does. This runs in the head, before the mark has been painted even
+      once, and adds a rule rather than restyling an element: a dark screen must not open on a
+      white flash, and setting it afterwards would be exactly that flash.
+
+      Anything unreadable leaves the stylesheet's light ground alone, which is the app's default.
+      `__ovvoSplash` is when the mark appeared: the app reads it so a fast load is still shown for
+      a moment instead of flickering (`src/main.tsx`). The timer is the last resort, so a bundle
+      that never arrives cannot trap the page behind a logo forever.
+
+      Old JavaScript on purpose, for the same reason as the check at the end of the body: this
+      must be able to run on the phones the app is meant for.
+    -->
+    <script>
+      (function () {
+        var dark = false;
+        try {
+          var raw = localStorage.getItem('ov-planner:v1:settings');
+          var saved = raw ? JSON.parse(raw) : null;
+          var theme = saved && saved.theme ? saved.theme : 'system';
+          var phone = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          dark = theme === 'dark' || (theme !== 'light' && phone);
+        } catch (error) {
+          dark = false;
+        }
+        if (dark) {
+          var rule = document.createElement('style');
+          rule.appendChild(document.createTextNode('#splash { background: #121211; }'));
+          document.head.appendChild(rule);
+        }
+
+        window.__ovvoSplash = Date.now();
+
+        setTimeout(function () {
+          var splash = document.getElementById('splash');
+          if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 15000);
+      })();
+    </script>
+    <!--
       **The note for a browser that cannot read the app.**
 
       Everything OVVO shows is drawn by JavaScript, so a browser that cannot parse the bundle draws
       nothing at all: no error, no message, no reason to try again. That is what an iPad 4 on iOS 10
-      gets — a white page — and it is the one failure this app cannot answer for itself, because the
+      gets, a white page, and it is the one failure this app cannot answer for itself, because the
       code that would answer it never runs.
 
       So the note is plain HTML and plain CSS, sitting in the body, hidden until the check at the end
       of the body reveals it. Three rules keep it safe:
 
-        • it uses nothing newer than the browsers it is meant for — no custom properties, no flex
+        • it uses nothing newer than the browsers it is meant for: no custom properties, no flex
           gap, no clamp(), a block layout with a max-width. An old browser must be able to *read* it;
         • it is `display: none` until proven needed, so a normal phone never sees a flash of it;
         • the app itself removes it the moment it draws (`main.tsx`), so a wrong guess about an old
@@ -114,6 +222,10 @@
   <body>
     <div id="root"></div>
 
+    <div id="splash" aria-hidden="true">
+      <img src="/favicon.svg" alt="" width="112" height="112" />
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
 
     <div id="too-old" role="alert">
@@ -137,15 +249,20 @@
     </div>
 
     <!--
-      **Can this browser read the app at all?**
+      **Can this browser read the app at all, and if not, does the splash get out of the way?**
 
-      Two questions, both about reading rather than running, because a browser that fails here fails
-      before the first line of the app executes:
+      The second half is new with the splash. A browser that cannot read the app would otherwise sit
+      on the mark forever, because the code that takes the splash away is the code it cannot run.
+      This script runs while the page is still being parsed, before the first paint, so the mark is
+      removed and the note is shown in the same frame rather than after a flash of logo.
+
+      The two questions are about reading rather than running, because a browser that fails here
+      fails before the first line of the app executes:
 
         1. *Does it understand modules?* The bundle is loaded as an ES module. Safari 10.1 added
            that, so iOS 10.0 and older ignore the file even if the rest were fine.
         2. *Can it parse the shape of the code?* The build is aimed at iOS 14, which leaves object
-           spread `{ ...a }` and a nameless `catch { }` in place — both newer than the iPad's
+           spread `{ ...a }` and a nameless `catch { }` in place, both newer than the iPad's
            browser, both a syntax error that stops the whole file.
 
       `new Function` is used rather than writing the syntax out here, so that *this* script still
@@ -171,7 +288,11 @@
 
         var notice = document.getElementById('too-old');
         if (notice) notice.style.display = 'block';
+
+        var splash = document.getElementById('splash');
+        if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
       })();
     </script>
+
   </body>
 </html>

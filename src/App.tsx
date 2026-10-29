@@ -1,48 +1,42 @@
-import { Suspense, lazy, type ComponentType } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProvider, useApp } from './state/AppState';
 import { AppShell } from './components/layout/AppShell';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SkeletonDemoPage } from './pages/SkeletonDemoPage';
+import { ResultsPage } from './pages/ResultsPage';
+import { JourneyDetailPage } from './pages/JourneyDetailPage';
+import { MapPage } from './pages/MapPage';
+import { StopsPage } from './pages/StopsPage';
+import { StopDetailPage } from './pages/StopDetailPage';
+import { DeparturesPage } from './pages/DeparturesPage';
+import { DisruptionsPage } from './pages/DisruptionsPage';
+import { DisruptionDetailPage } from './pages/DisruptionDetailPage';
+import { PreferencesPage } from './pages/PreferencesPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { ReviewLayer } from './review/ReviewLayer';
 
 /**
- * **One screen is downloaded, the rest when they are asked for.**
+ * **Every screen is in this one file, and that is the fix for the half second.**
  *
- * The build shipped every screen in one file — measured at **700 kB** before this, on every
- * visit, whatever the traveller opened. On a cheap phone that is the expensive part of starting:
- * the bytes come over the radio and then have to be parsed and compiled before the first card can
- * be drawn, and none of it is the home screen's business. Results, a journey, the map, the stop
- * list, the board, the alerts, preferences and settings each live in their own chunk now, fetched
- * the first time they are opened and kept afterwards.
+ * Each screen used to live in a file of its own, requested at startup and unwrapped on the tap.
+ * That put a promise between the traveller and the screen they had just asked for: the address
+ * changed, the old screen was still on display, then the content area was empty while the file
+ * was read, and only then did the new screen appear. Measured on the built site at phone size:
+ * about three tenths of a second where the middle of the page had nothing in it, and the new
+ * screen's words at about four tenths. A tap should not be a wait.
  *
- * The home screen stays in the first file on purpose: it is the screen the app opens on, and a
- * chunk boundary in front of it would put a wait between the traveller and the planner for no
- * saving at all.
+ * All ten were already being downloaded at startup (`warmEveryPage`), so the split was buying
+ * nothing and cost that wait on every screen. They are one script now: the browser reads it once,
+ * at the start, behind the mark in `index.html`, and every tap after that is a render rather than
+ * a request. The cost is the same bytes the app was already fetching.
  *
- * Nothing about the shape of the app changes. `pages/*` still export the same named components;
- * this is a `.then` to turn one into the default export `lazy` asks for.
- *
- * **The fallback is nothing at all, on purpose.** A held-place card here would flash for one frame
- * on a fast connection and lie about the shape of the screen — the board, the map and the settings
- * list are not a journey result. The chunk is a local file, the header and the dock are already
- * drawn, and a screen that is a beat late should look like a beat, not like a skeleton of the wrong
- * thing.
+ * The per-screen recovery went with it, because it answered a failure that can no longer happen:
+ * a screen cannot fail to load on its own when it is part of the same file as the screen you are
+ * looking at. If the whole script does not arrive, there is nothing yet to show a card on, and
+ * `index.html`'s own note is what answers that (see `too-old` there). A screen that throws while
+ * drawing is still caught by the boundary in the shell, which is untouched.
  */
-const page = <Name extends string>(load: () => Promise<Record<Name, ComponentType>>, name: Name) =>
-  lazy(() => load().then((module) => ({ default: module[name] })));
-
-const ResultsPage = page(() => import('./pages/ResultsPage'), 'ResultsPage');
-const JourneyDetailPage = page(() => import('./pages/JourneyDetailPage'), 'JourneyDetailPage');
-const MapPage = page(() => import('./pages/MapPage'), 'MapPage');
-const StopsPage = page(() => import('./pages/StopsPage'), 'StopsPage');
-const StopDetailPage = page(() => import('./pages/StopDetailPage'), 'StopDetailPage');
-const DeparturesPage = page(() => import('./pages/DeparturesPage'), 'DeparturesPage');
-const DisruptionsPage = page(() => import('./pages/DisruptionsPage'), 'DisruptionsPage');
-const DisruptionDetailPage = page(() => import('./pages/DisruptionDetailPage'), 'DisruptionDetailPage');
-const PreferencesPage = page(() => import('./pages/PreferencesPage'), 'PreferencesPage');
-const SettingsPage = page(() => import('./pages/SettingsPage'), 'SettingsPage');
 
 /**
  * **Settings is closed at 10% or below.**
@@ -112,7 +106,6 @@ export default function App() {
             path="*"
             element={
               <AppShell>
-                <Suspense fallback={null}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
@@ -132,7 +125,6 @@ export default function App() {
                   <Route path="/planner" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
-                </Suspense>
               </AppShell>
             }
           />

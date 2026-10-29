@@ -110,11 +110,13 @@ const LANGUAGES = [{ code: 'en', label: 'English' }, { code: 'nl', label: 'Neder
  * and it is gone from `widgets/registry.tsx`. Listing it here would send the audit looking for a
  * catalogue entry that no longer exists.
  */
-/* The nine widgets the catalogue holds after the widget audit (`WIDGET-AUDIT.md`). A stored id
-   that no longer has a card draws nothing, so a stale list here would quietly audit seven empty
-   slots instead of the screen. */
-const ALL_WIDGETS = ['planner', 'next-departures', 'pinned-stops', 'your-journeys', 'alerts',
-  'alerts-at-pins', 'right-now', 'stop-search', 'map'];
+/* The fifteen cards the catalogue holds after the 28 Oct audit (`WIDGET-AUDIT.md`). A stored id
+   that no longer has a card draws nothing, so a stale list here would quietly audit empty slots
+   instead of the screen. */
+const ALL_WIDGETS = ['planner', 'next-departures', 'pinned-stops', 'your-journeys', 'recent-searches',
+  'delays',
+  'first-last', 'fares', 'alerts', 'alerts-at-pins', 'right-now', 'commute', 'nearby-stops',
+  'facilities', 'second-board', 'map'];
 const PINS = ['utrecht-centraal', 'amsterdam-leidseplein', 'rotterdam-centraal', 'eindhoven-centraal',
   'zaanse-schans', 'utrecht-domtoren'];
 const QUERY = {

@@ -14,7 +14,8 @@
     "check:colours": "node scripts/colour-audit.mjs",
     "verify": "node scripts/verify.mjs",
     "preview": "vite preview",
-    "dev:preview": "bash scripts/dev-preview.sh"
+    "dev:preview": "bash scripts/dev-preview.sh",
+    "after-restore": "bash scripts/after-restore.sh"
   },
   "dependencies": {
     "lucide-react": "^1.56.0",
