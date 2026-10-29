@@ -96,10 +96,22 @@ export function StopCombobox({
   const [cap, setCap] = useState(460);
   /** True when there are more rows than fit, so the panel must not show a sliver of the next one. */
   const [more, setMore] = useState(false);
+  /**
+   * How far under the field the panel starts.
+   *
+   * Four pixels is right in the middle of a card. At the **foot** of one it is not: the panel hung
+   * there covered the card's own bottom padding and the border with it, so the card had air on
+   * three sides and none on the fourth - reported on the next-departures card, where this field is
+   * the last thing in the card. At the foot the panel starts below that padding instead, and the
+   * card ends where it always ends.
+   */
+  const [gap, setGap] = useState(4);
   /** Mirrors the selected stop so external changes (reverse, quick fill, location) update the text. */
   const selectedIdRef = useRef<string | null>(value?.id ?? null);
   /** True while the traveller is typing, so we do not overwrite what they typed. */
   const typingRef = useRef(false);
+  /** The first measurement of an opening sets the list's height; the rest may only add rows. */
+  const firstMeasureRef = useRef(true);
 
   useEffect(() => {
     const nextId = value?.id ?? null;
@@ -112,6 +124,9 @@ export function StopCombobox({
   /* The room the list is allowed, re-read whenever the page moves under it. */
   useEffect(() => {
     if (!open) return undefined;
+    firstMeasureRef.current = true;
+    /* A fresh opening starts from the whole list and is cut down by its own first measurement. */
+    setCap(460);
     const measure = () => {
       const field = rootRef.current?.querySelector('.combobox__field');
       if (!field) return;
@@ -141,7 +156,26 @@ export function StopCombobox({
       const dock = document.querySelector<HTMLElement>('.app-dock');
       const dockTop = dock && dock.getBoundingClientRect().height > 0 ? dock.getBoundingClientRect().top : visibleFoot;
       const foot = Math.min(visibleFoot, dockTop);
-      const below = foot - box.bottom - 12;
+      const card = rootRef.current?.closest('.card');
+      const cardBox = card?.getBoundingClientRect();
+      const cardPad = card ? parseFloat(getComputedStyle(card).paddingBottom) || 0 : 0;
+      /* Is the field the last thing in its card? Eight pixels of slack is layout rounding. */
+      const atFoot = Boolean(cardBox && cardBox.bottom - cardPad - box.bottom < 8);
+      const panelGap = atFoot ? cardPad : 4;
+      setGap(panelGap);
+      let below = foot - box.bottom - panelGap - 8;
+      /*
+       * **A list does not shrink while it is being read.**
+       *
+       * The keyboard takes about 300px off the screen, and a measurement taken while it was rising
+       * cut the panel from four rows down to the single row that still fitted: four results, then
+       * one, with the card's bottom padding gone under the panel (reported with a screenshot). The
+       * room is still read to the visible foot, but the cap may only *grow* for the length of one
+       * opening, so what the traveller opened is what stays open. If the keyboard ends up over the
+       * panel's foot the list scrolls, which it already does, and closing it forgets the height.
+       */
+      const applyCap = (next: number) =>
+        setCap((prev) => (firstMeasureRef.current ? next : Math.max(prev, next)));
       /*
        * **A list is whole rows.**
        *
@@ -170,7 +204,7 @@ export function StopCombobox({
       const room = Math.max(1, Math.min(460, below));
       if (rows.length === 0) {
         /* "No stops match" is a sentence, not rows: give it the room there is. */
-        setCap(Math.min(room, 460));
+        applyCap(Math.min(room, 460));
         setMore(false);
         return;
       }
@@ -183,7 +217,7 @@ export function StopCombobox({
       const all = heights.reduce((sum, height) => sum + height, 0);
       if (above_rows + all + below_rows <= room) {
         /* Every row fits: the panel is exactly as tall as its rows plus its padding. */
-        setCap(above_rows + all + below_rows);
+        applyCap(above_rows + all + below_rows);
         setMore(false);
         return;
       }
@@ -199,24 +233,47 @@ export function StopCombobox({
         if (above_rows + whole + height > room) break;
         whole += height;
       }
-      setCap(Math.min(room, Math.max(above_rows + whole, Math.min(room, above_rows + heights[0]))));
+      applyCap(Math.min(room, Math.max(above_rows + whole, Math.min(room, above_rows + heights[0]))));
       setMore(true);
     };
     measure();
-    window.addEventListener('resize', measure);
-    window.addEventListener('scroll', measure, true);
+    firstMeasureRef.current = false;
+    /*
+     * **The keyboard's rise is an animation, and a measurement taken during it is a lie.**
+     *
+     * Opening the keyboard fires a resize on every frame, and the room under the field is a
+     * different number on each one. Measured live, the list was re-sized from four rows down to the
+     * one row that fitted while the keyboard was halfway up, and it stayed there once the keyboard
+     * had finished: the field showed four results for a moment and then a single one, with the
+     * card's bottom padding gone under it (reported with a screenshot). The measurement now waits
+     * for the viewport to stop moving, and takes one more reading at the end of the animation in
+     * case the last event arrives early, so the list is sized to the screen the traveller is
+     * actually looking at.
+     */
+    let trailing = 0;
+    let settle = 0;
+    const schedule = () => {
+      window.clearTimeout(trailing);
+      window.clearTimeout(settle);
+      trailing = window.setTimeout(measure, 140);
+      settle = window.setTimeout(measure, 420);
+    };
+    window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', schedule, true);
     /*
      * The keyboard is a resize of the *visual* viewport only: without these two the list keeps the
      * height it was given before the keyboard appeared (or before it went away), and a list capped
      * for a screen that is no longer there is either one row tall or taller than the room.
      */
-    window.visualViewport?.addEventListener('resize', measure);
-    window.visualViewport?.addEventListener('scroll', measure);
+    window.visualViewport?.addEventListener('resize', schedule);
+    window.visualViewport?.addEventListener('scroll', schedule);
     return () => {
-      window.removeEventListener('resize', measure);
-      window.removeEventListener('scroll', measure, true);
-      window.visualViewport?.removeEventListener('resize', measure);
-      window.visualViewport?.removeEventListener('scroll', measure);
+      window.clearTimeout(trailing);
+      window.clearTimeout(settle);
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', schedule, true);
+      window.visualViewport?.removeEventListener('resize', schedule);
+      window.visualViewport?.removeEventListener('scroll', schedule);
     };
   }, [open]);
 
@@ -375,7 +432,7 @@ export function StopCombobox({
             id={`${id}-listbox`}
             role="listbox"
             aria-label={t('{label} suggestions', { label })}
-            style={{ maxHeight: `${cap}px` }}
+            style={{ maxHeight: `${cap}px`, top: `calc(100% + ${gap}px)` }}
           >
             {suggestions.map((stop, index) => (
               <li
@@ -436,7 +493,7 @@ export function StopCombobox({
             className="suggestions"
             role="status"
             aria-label={t('{label} suggestions', { label })}
-            style={{ maxHeight: `${cap}px` }}
+            style={{ maxHeight: `${cap}px`, top: `calc(100% + ${gap}px)` }}
           >
             <p className="stack-1" style={{ padding: 'var(--s-3)', margin: 0 }}>
               <span className="t-strong t-body">
