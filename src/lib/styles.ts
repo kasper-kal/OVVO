@@ -590,6 +590,7 @@ export const STYLES: StyleDef[] = [
     photo: { scrim: 0.44, scrimNight: 0.02, glass: true },
     /* The same face as Midnight Silk: the owner prefers it to Cormorant here, and the two styles
        were already sharing the same reading face, so the whole of Navy's type now matches. */
+    sub: 'instrument',
     display: 'instrument',
     ui: 'inter',
   },
