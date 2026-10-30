@@ -17,7 +17,9 @@
  * Run: node scripts/screen-reader-audit.mjs [origin]
  * Writes .logs/sr/<screen>.yml (the tree) and prints the findings.
  */
-import { chromium } from 'playwright';
+import { chromium, prepareBrowserEnv } from './browser-env.mjs';
+
+prepareBrowserEnv();
 import { writeFileSync, mkdirSync } from 'node:fs';
 
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';

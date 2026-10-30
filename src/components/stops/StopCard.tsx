@@ -110,7 +110,7 @@ export function StopCard({
           {modes.map((mode) => (
             <span key={mode} className={`mode-badge mode-badge--${mode}`}>
               <ModeIcon mode={mode} size={13} />
-              {modeLabel(mode)}
+              {t(modeLabel(mode))}
             </span>
           ))}
           {/* The Step-free / Stairs-only pill is deleted with every other visible accessibility

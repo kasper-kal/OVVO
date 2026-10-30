@@ -1,0 +1,211 @@
+/* =============================================================================
+ * **Styles: a picker, not a poster wall.**
+ *
+ * The first version drew fifty large tiles, each with a pretend card inside it and its name set in
+ * that style's own display face. Fifty typefaces and fifty big pictures in a column is noise. This
+ * is the calm version: small colour swatches, every name in the interface's own font, one short
+ * heading per group and nothing else. The colours are the content; everything around them stays
+ * quiet so they can be compared.
+ * ============================================================================= */
+
+/*
+ * **Headings take the style's display face.** `--font-display` is written by `lib/styles.ts` for
+ * every style and falls back to the interface's own stack, so a page whose font file has not
+ * arrived draws exactly as it did before this file existed. Card titles (`.t-section`) keep the
+ * interface's face: they were in this rule for one round and every small heading on every screen
+ * turned into a serif, which reads as the app being broken rather than as a style being chosen.
+ */
+/*
+ * The title face reaches the page's own name and every title, and stops there: section headings
+ * take `--font-sub` in `base.css`, so a style can set a serif title over a sans subtitle.
+ */
+h1,
+.t-display,
+.t-h1 {
+  font-family: var(--font-display, var(--font-stack));
+}
+
+/* ------------------------------------------------------------------ the look in use */
+
+.style-picker {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.style-current {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.style-current__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+/* Three chips: the page, a card on it, and the accent. The style, in three colours. */
+.style-current__swatches {
+  display: flex;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+}
+
+.style-current__swatches > span {
+  display: block;
+  width: 18px;
+  height: 34px;
+}
+
+.style-current__label {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.style-current__name {
+  font-family: var(--font-display, var(--font-stack));
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semibold);
+  line-height: 1.15;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* ------------------------------------------------------------------ the catalogue */
+
+.style-list {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.style-group {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.style-group__title {
+  font-family: var(--font-stack);
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* Three across a phone, more as the card grows. A swatch, not a preview of a whole screen. */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--s-2);
+}
+
+.style-tile {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 5px;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--border-hairline);
+  border-radius: 14px;
+}
+
+.style-tile:hover {
+  border-color: var(--ink-faint);
+}
+
+.style-tile:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/*
+ * Selected is a ring, not a shadow: this app draws with no shadows at all, and the ring is what
+ * every other chosen control uses. It is outside the tile so the 1px border does not move.
+ */
+.style-tile[data-selected='true'] {
+  border-color: var(--focus-ring);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/*
+ * The swatch: three bands — the page, a card on it, and the accent.
+ *
+ * The accent was a 7px dot until now, which is why **Navy and Gold** looked like Navy: the gold was
+ * there, at the size of a full stop. A third of the swatch is enough to read it, and it matches the
+ * proportion the app uses where the accent paints the dock pill and the alert badge.
+ */
+.style-tile__swatch {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.55fr;
+  height: 46px;
+  border-radius: 9px;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+}
+
+.style-tile__swatch > span {
+  display: block;
+  min-width: 0;
+}
+
+.style-tile__name {
+  font-family: var(--font-stack);
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+  padding: 0 2px 2px;
+  min-width: 0;
+  overflow-wrap: break-word;
+  /*
+   * **Two lines of room, always.** Clamping at two lines only capped a long name; a name that
+   * fitted on one made its tile 14px shorter than the tile beside it, so a row of swatches sat on
+   * a ragged baseline. Reserving both lines makes every tile the same height whichever group it is
+   * in, and the clamp still stops a third line.
+   */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* Two lines of 1.25, plus the 2px under them: the padding is inside the box, so 2.5em alone
+     included it and left the tile 2px short of a two-line one. */
+  min-height: calc(2.5em + 2px);
+}
+
+/*
+ * `.style-link` is used by Settings, for the row that opens this screen. It is deliberately not
+ * used in this page's header: the shell already draws a back arrow there, and two ways back is one
+ * too many.
+ */
+.style-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--target-min);
+  padding: 0 var(--s-4);
+  border-radius: var(--r-input);
+  border: 1px solid var(--border-hairline);
+  background: var(--l2-bg);
+  color: var(--ink);
+  font-family: var(--font-stack);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  transition: background var(--t-hover) var(--ease-out);
+}
+
+.style-link:hover {
+  background: var(--l1-bg);
+}
+
+.style-link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}

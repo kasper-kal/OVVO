@@ -20,10 +20,7 @@ import {
 } from '../lib/approximateLocation';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
-import { deviceIsSlow } from '../lib/deviceSpeed';
-import { applyBackground } from '../lib/background';
-import { applySelection } from '../lib/selection';
-import { paletteFor } from '../lib/palette';
+import { applyStyle, styleById, stylePhotograph } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
 import {
@@ -42,6 +39,34 @@ export interface Toast {
   id: string;
   message: string;
   tone?: 'default' | 'success' | 'warning';
+}
+
+/**
+ * Watch a media query on a browser old enough to have only `addListener`.
+ *
+ * iOS 14's Safari is the oldest browser this app promises, and its `MediaQueryList` has no
+ * `addEventListener`; the first version of the appearance listener used it anyway, so a device
+ * that only ever fires `addListener` never heard the system change its mind. One helper, used by
+ * both queries, so the two cannot drift apart again.
+ */
+function watchMedia(query: string, onChange: (matches: boolean) => void): () => void {
+  /*
+   * The cast is the point: `MediaQueryList` in this TypeScript version always *declares*
+   * `addEventListener`, so an `in` test narrows the other branch to `never` and the legacy call
+   * cannot be written at all. Declaring the optional shape is what lets the old branch exist.
+   */
+  type LegacyQuery = MediaQueryList & {
+    addListener?: (listener: () => void) => void;
+    removeListener?: (listener: () => void) => void;
+  };
+  const media = window.matchMedia(query) as LegacyQuery;
+  const listener = () => onChange(media.matches);
+  if (typeof media.addEventListener === 'function') media.addEventListener('change', listener);
+  else media.addListener?.(listener);
+  return () => {
+    if (typeof media.removeEventListener === 'function') media.removeEventListener('change', listener);
+    else media.removeListener?.(listener);
+  };
 }
 
 /**
@@ -64,6 +89,9 @@ interface AppContextValue {
    * answer, so a screen that reports it cannot disagree with the one on the glass.
    */
   appearance: 'light' | 'dark';
+
+  /** Whether the interface is moving: the `Reduce motion` switch, and nothing else. */
+  reduceMotion: boolean;
 
   /**
    * Battery saving as the device reports it (see `lib/power.ts`): `save` at 20%, `super` at 10%,
@@ -270,34 +298,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   const [power, setPower] = useState<PowerState>(NO_BATTERY);
   useEffect(() => watchBattery(setPower), []);
-  /*
-   * **A slow phone, measured rather than guessed.**
-   *
-   * Browsers do not name the chip or the memory — Safari reports neither, and never the iPhone
-   * model — so `lib/deviceSpeed.ts` times a fixed piece of the app's own work instead. It runs
-   * once, a second after the first paint: early enough to matter, late enough that the timing is
-   * not competing with the app's own opening, and never on a device that has already been given
-   * a slower look for another reason.
-   */
-  const [slowDevice, setSlowDevice] = useState(false);
-  /* Read inside the timer without making it a dependency: a level change arrives every percent, and
-     re-scheduling this on each one would be the opposite of saving anything. */
-  const powerModeRef = useRef(power.mode);
-  powerModeRef.current = power.mode;
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      /*
-       * **At a tenth of a battery the question is already answered.** The measurement is real work
-       * on the main thread — three timed passes over a fixed loop — and its only purpose is to
-       * decide whether to give this phone the still interface, which super saving has already given
-       * it. Spending the battery to ask a question the battery already answered is the one thing a
-       * saving mode must not do.
-       */
-      if (powerModeRef.current === 'super') return;
-      setSlowDevice(deviceIsSlow());
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, []);
   const [savedJourneys, setSavedJourneys] = useState<SavedJourney[]>(() =>
     readStored<SavedJourney[]>(STORAGE_KEYS.savedJourneys, []),
   );
@@ -417,8 +417,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.dataset.density = settings.density === 'compact' ? 'compact' : 'comfortable';
     root.dataset.contrast = settings.highContrast ? 'high' : 'normal';
-    root.dataset.motion = settings.reduceMotion ? 'reduced' : 'full';
-  }, [settings.density, settings.highContrast, settings.reduceMotion]);
+  }, [settings.density, settings.highContrast]);
+
 
   /*
    * Battery saving is drawn by the stylesheet, so the mode is written where CSS can read it — one
@@ -430,16 +430,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.power = power.mode;
   }, [power.mode]);
-
-  /*
-   * The speed answer, written where CSS can read it. Only ever set as `slow`: the attribute being
-   * absent *is* the fast answer, so a phone that measures quick leaves the document untouched and
-   * the stylesheet's existing rules apply exactly as they did before this existed.
-   */
-  useEffect(() => {
-    if (slowDevice) document.documentElement.dataset.speed = 'slow';
-    else delete document.documentElement.dataset.speed;
-  }, [slowDevice]);
 
   /*
    * Appearance. `system` follows the device and keeps following it — a traveller who leaves the
@@ -456,12 +446,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches,
   );
 
+  useEffect(() => watchMedia('(prefers-color-scheme: dark)', setSystemDark), []);
+
+  /*
+   * **The switch is the whole answer.** The stylesheets used to reduce movement on their own when
+   * the device asked for it, which is why the screen could be still while the setting read off;
+   * that was the bug. Reading the device here too would only put a second answer back in charge of
+   * the first, so motion is what the traveller chose and nothing else.
+   */
+  const reduceMotion = settings.reduceMotion;
+
+  /*
+   * **One truth for motion, written where the stylesheet reads it.**
+   *
+   * The stylesheets used to reduce movement in two ways at once: `[data-motion='reduced']` from the
+   * switch, and their own `@media (prefers-reduced-motion: reduce)` blocks from the device. Those
+   * two answers could disagree, and when they did the screen was still while the setting said it
+   * was not. The media queries are gone from the stylesheets; the resolution happens above, once,
+   * and this attribute is the only thing CSS asks.
+   */
   useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onSystemChange = () => setSystemDark(media.matches);
-    media.addEventListener('change', onSystemChange);
-    return () => media.removeEventListener('change', onSystemChange);
-  }, []);
+    document.documentElement.dataset.motion = reduceMotion ? 'reduced' : 'full';
+  }, [reduceMotion]);
 
   /*
    * **Super saving draws dark, whatever the traveller chose.**
@@ -488,71 +494,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [appearance]);
 
   /*
-   * The selection colour, written where `::selection` reads it.
+   * **The style, and only the style.**
    *
-   * Keyed to the appearance as well as to the setting because a named choice resolves *through
-   * its token*: coral, butter, sage and the rest are re-declared for dark, and a colour that did
-   * not follow the theme would be the one part of the page ignoring it. The theme attribute is
-   * written by the effect above, which runs first, so the tokens read here are the new ones.
+   * This replaces the two effects that used to derive a whole palette from three chosen colours:
+   * the page, the widgets and the selection. A style's tokens are authored and measured in
+   * `lib/styles.ts` (and gated by `scripts/styles-audit.mjs`), so there is nothing to derive here —
+   * only a style, an appearance, and whether its photograph may be drawn. `applyStyle` writes the
+   * tokens, the two fonts and the picture in one pass; the selected text, the accent's fills, the
+   * map's palette and the dialogs all follow from those tokens.
+   *
+   * The photograph is a style's own, so it is fetched only when that style is in force, never
+   * preloaded, and never drawn in super saving: the mode is passed in rather than read from the
+   * document, so the two cannot disagree by a frame.
    */
-  /*
-   * Both effects below read the palette **for the appearance being drawn**, not the light one:
-   * each appearance keeps its own page, widget and selection colours (`lib/palette.ts`), and the
-   * appearance is the key that decides which half is in force.
-   */
-  const palette = paletteFor(settings, appearance);
+  const style = styleById(settings.styleId);
+  const photographAllowed =
+    Boolean(stylePhotograph(style)) &&
+    !settings.photoColourOnly.includes(style.id) &&
+    power.mode !== 'super';
 
   useEffect(() => {
-    applySelection(palette.selectionColor, palette.selectionCustom);
-  }, [palette.selectionColor, palette.selectionCustom, appearance]);
-
-  /*
-   * The page's colour and the widgets' colour — two choices, each derived into a palette.
-   *
-   * Keyed to the appearance for the same reason the selection is: "readable" depends on which ink
-   * is in force, so the same navy washes the page in light and fills the cards in dark, and the
-   * ink ramp, the accent and the map's cut are all measured again. The theme attribute is written
-   * by the effect above, so the tokens read here are the new ones. Raised contrast is in the list
-   * for the same reason: it strengthens the inks the measurement is made against.
-   */
-  useEffect(() => {
-    applyBackground({
-      background: settings.background,
-      backgroundColour: palette.backgroundColour,
-      backgroundImage: settings.backgroundImage,
-      /* Where in the picture the frame sits, so a screen of another shape keeps the subject in
-         view (`lib/photoCrop.ts`, `cropFocus`). */
-      backgroundCrop: settings.backgroundCrop,
-      cardTreatment: settings.cardTreatment,
-      /*
-       * Super saving does not draw the photograph: a full-screen image is the most expensive thing
-       * on the screen and the mode exists to stop exactly that. The value is passed rather than read
-       * from the document so the two cannot disagree by a frame — the attribute is written by its
-       * own effect, and this one would otherwise depend on which ran first.
-       */
-      superSaving: power.mode === 'super',
-      primaryColour: palette.primaryColour,
-      selectionColour: palette.selectionColor,
-      selectionCustom: palette.selectionCustom,
-      /* The ramp is derived at two strengths (see `lib/background.ts`): with a page colour in force
-         the raised-contrast tokens in `tokens.css` are beaten on source order, so the setting has to
-         reach the derivation itself or the switch does nothing. */
+    applyStyle({
+      style,
+      appearance,
       highContrast: settings.highContrast,
+      photo: photographAllowed,
     });
-  }, [
-    settings.background,
-    palette.backgroundColour,
-    settings.backgroundImage,
-    settings.backgroundCrop,
-    settings.cardTreatment,
-    palette.primaryColour,
-    palette.selectionColor,
-    palette.selectionCustom,
-    appearance,
-    settings.highContrast,
-    /* The picture is set and cleared by the battery, so the mode is part of this palette. */
-    power.mode,
-  ]);
+  }, [style, appearance, settings.highContrast, photographAllowed]);
+
 
   /* The document's own language, so screen readers, hyphenation and the browser's spelling all
      agree with the interface. */
@@ -677,6 +646,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateSettings: (patch) => setSettings((current) => ({ ...current, ...patch })),
     resetSettings: () => setSettings(DEFAULT_SETTINGS),
     appearance,
+    reduceMotion,
     power,
 
     preferences,

@@ -92,11 +92,8 @@
           height: 96px;
         }
       }
-      @media (prefers-reduced-motion: reduce) {
-        #splash {
-          transition: none;
-        }
-      }
+      /* One answer only: the attribute the state provider resolved (see `src/state/AppState.tsx`),
+         which already includes the device's own preference when the setting follows it. */
       :root[data-motion='reduced'] #splash {
         transition: none;
       }

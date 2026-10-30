@@ -354,7 +354,7 @@ export function StopsPage() {
                   onClick={() => toggleMode(mode)}
                 >
                   <ModeIcon mode={mode} size={15} />
-                  {modeLabel(mode)}
+                  {t(modeLabel(mode))}
                 </Chip>
               ))}
               <Chip

@@ -8,6 +8,7 @@ import {
 } from '../lib/background';
 import type { SelectionChoice } from '../lib/selection';
 import type { CropRect } from '../lib/photoCrop';
+import { DEFAULT_STYLE_ID, nearestStyleId } from '../lib/styles';
 
 /** Light, dark, or whatever the device is set to. */
 export type ThemeChoice = 'system' | 'light' | 'dark';
@@ -31,8 +32,26 @@ export interface Settings {
   density: 'comfortable' | 'compact';
   /** Strengthens ink and hairline contrast. */
   highContrast: boolean;
-  /** Disables spring/tactile transforms. */
+  /** Disables spring and tactile movement. One switch, and it is the whole answer. */
   reduceMotion: boolean;
+  /**
+   * **The look.** One of the fifty in `lib/styles.ts`, and the whole of the interface's colour and
+   * lettering: the page, the cards, the ink ramp, the accent, the selection and the two fonts.
+   *
+   * It replaced the three colour settings below, which are kept in storage for one version so a
+   * rollback loses nothing — nothing reads them now (`STYLES_PLAN.md` §3.4). A style is a finished
+   * answer rather than a colour, which is what ended the contrast problem: every ink is authored
+   * against the surface it is drawn on instead of being derived from somebody's hex.
+   */
+  styleId: string;
+  /**
+   * The photo styles whose **photograph** is switched off, worn as their own colour instead.
+   *
+   * A list rather than a boolean because the answer belongs to each style: Marble set to Colour
+   * stays colour when the traveller visits Arches and comes back. The saving modes ignore it — at
+   * 10% of a battery no picture is drawn whatever this says — and the Styles card says so.
+   */
+  photoColourOnly: string[];
   /**
    * The colour selected text is painted with: one of the palette's five, or `custom`.
    *
@@ -114,11 +133,14 @@ export interface Settings {
   defaultOriginStopId: string | null;
 }
 
-export const SETTINGS_VERSION = 8;
+export const SETTINGS_VERSION = 10;
 
 export const DEFAULT_SETTINGS: Settings = {
   version: SETTINGS_VERSION,
   theme: 'system',
+  /* The app's own look: the cream page, white cards, obsidian ink and the coral accent. */
+  styleId: DEFAULT_STYLE_ID,
+  photoColourOnly: [],
   language: 'en',
   timeFormat: '24h',
   dateFormat: 'long',
@@ -184,6 +206,28 @@ export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
    */
   return {
     ...stored,
+    /*
+     * **Version 9 replaces the three colours with a style.** A browser that never chose a colour
+     * keeps the app's own look, which is the style `tram` — the exact page, cards and coral it has
+     * been drawing. A browser that *did* customise gets the style nearest to what it chose, worked
+     * out once by colour distance (`nearestStyleId`), so nobody's page changes shape on the way in.
+     * The old fields stay untouched for one version; nothing reads them.
+     */
+    styleId:
+      stored.styleId ??
+      nearestStyleId({
+        page: stored.background === 'colour' ? stored.backgroundColour : undefined,
+        accent: stored.primaryColour || undefined,
+      }),
+    photoColourOnly: stored.photoColourOnly ?? [],
+    /*
+     * **Version 10 keeps motion a single switch.** It spent part of one build as three answers
+     * (`system` / `full` / `reduced`), which was a control nobody asked for. A browser that answered
+     * that control while it existed keeps the only part that mattered, whether movement is reduced;
+     * `system` and `full` both mean "not reduced".
+     */
+    reduceMotion:
+      stored.reduceMotion ?? ((stored as { motion?: string }).motion === 'reduced'),
     backgroundColourDark:
       stored.backgroundColourDark ?? stored.backgroundColour ?? DEFAULT_SETTINGS.backgroundColourDark,
     primaryColourDark: stored.primaryColourDark ?? stored.primaryColour ?? DEFAULT_SETTINGS.primaryColourDark,

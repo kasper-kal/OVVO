@@ -240,7 +240,7 @@ export function StopCardSkeletons({ cards }: { cards: HeldStopCard[] }) {
                   /* The real chip, with `stop-skeleton__badge` taking its ink out. */
                   <span key={mode} className={`mode-badge mode-badge--${mode} stop-skeleton__badge`}>
                     <ModeIcon mode={mode} size={13} />
-                    {modeLabel(mode)}
+                    {t(modeLabel(mode))}
                   </span>
                 ))}
               {stop.ovFiets ? (

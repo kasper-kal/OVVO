@@ -339,7 +339,7 @@ export function PageHeader({
       {description ? <p className="sr-only">{description}</p> : null}
       {mobileTitle ? (
         <header className="page-head page-head--mobile-title">
-          <h1 className="page-head__title t-section" aria-label={titleLabel}>
+          <h1 className="page-head__title t-display" aria-label={titleLabel}>
             {title}
           </h1>
           {badge || actions ? (
@@ -355,7 +355,7 @@ export function PageHeader({
             {/* No `grow`: the name and the page's controls are one left-aligned group. Growing the
                 title pushed the controls to the far edge of the page, which is the right-aligned
                 band that was reported ("I'm not Arabic"). */}
-            <h1 className="page-head__title t-section" aria-label={titleLabel}>
+            <h1 className="page-head__title t-display" aria-label={titleLabel}>
               {title}
             </h1>
             {badge}
@@ -554,11 +554,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       '/disruptions': 'Disruptions',
       '/preferences': 'Travel preferences',
       '/settings': 'Settings',
+      '/styles': 'Styles',
     };
-    const name = fixed[location.pathname];
+    /*
+     * `/results/<id>` is the results screen too, and it was the one route missing from this list:
+     * a search kept the browser's own default title, which is English in both languages.
+     */
+    const fixedPath = location.pathname.startsWith('/results') ? '/results' : location.pathname;
+    const name = fixed[fixedPath];
     if (name === undefined) return;
-    document.title = `${name} · OVVO`;
-  }, [location.pathname]);
+    /*
+     * **Through the dictionary, because a tab is read too.** The names above are the English
+     * sentences the rest of the app is keyed by; printing them straight into the tab title left
+     * every Dutch page with an English name in its tab, its history entry and its bookmark.
+     */
+    document.title = `${t(name)} · OVVO`;
+  }, [location.pathname, t]);
 
   /* Remembered as it is scrolled, not on the way out: by the time the leaving effect runs the
      document is already the next screen, and its height is what `scrollY` would have answered. */

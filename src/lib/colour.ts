@@ -91,7 +91,14 @@ export function relativeLuminance(hex: string): number {
   const channels = readHex(hex) ?? [0, 0, 0];
   const channel = (value: number) => {
     const c = value / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    /*
+     * **0.04045, which is the number the browsers use.** This file said 0.03928, the older value
+     * from the first WCAG draft. The gap is two thousandths and it is enough for the app to believe
+     * a colour clears 4.5:1 when a browser measures 4.47:1: two styles were shipped with an accent
+     * button label a hair under the line because of it. The lightness curve is the one the reader's
+     * eye is measured with, so the app measures with it too.
+     */
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
   const [r, g, b] = channels.map(channel) as [number, number, number];
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;

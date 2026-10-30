@@ -180,8 +180,9 @@ export function SkeletonDemoPage() {
     const root = document.documentElement;
     const before = { theme: root.dataset.theme, motion: root.dataset.motion, power: root.dataset.power };
     root.dataset.theme = appearance;
-    if (motion === 'reduced') root.dataset.motion = 'reduced';
-    else delete root.dataset.motion;
+    /* Always written now: the app resolves one answer, so the lab must not leave the attribute
+       absent and let a stale value decide for it. */
+    root.dataset.motion = motion === 'reduced' ? 'reduced' : 'full';
     if (power === 'save') root.dataset.power = 'save';
     else delete root.dataset.power;
     return () => {

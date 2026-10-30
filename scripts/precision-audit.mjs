@@ -26,7 +26,9 @@
  * Run:   node scripts/precision-audit.mjs [origin]
  *        PRECISION_THEME=dark  runs the sweep in the other appearance
  */
-import { chromium } from 'playwright';
+import { chromium, prepareBrowserEnv } from './browser-env.mjs';
+
+prepareBrowserEnv();
 import { ensureAppFont } from './font-guard.mjs';
 
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';

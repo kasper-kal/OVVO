@@ -114,7 +114,7 @@ export function DisruptionDetailPage() {
                     only place in the app where a mode read `train` instead of `Train`, in
                     both languages (reported by the capitalisation audit).
                   */}
-                  {modeLabel(mode)}
+                  {t(modeLabel(mode))}
                 </span>
               ))}
               {alert.operatorIds.map((operator) => (

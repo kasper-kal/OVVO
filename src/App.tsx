@@ -14,6 +14,7 @@ import { DisruptionsPage } from './pages/DisruptionsPage';
 import { DisruptionDetailPage } from './pages/DisruptionDetailPage';
 import { PreferencesPage } from './pages/PreferencesPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { StylesPage } from './pages/StylesPage';
 import { ReviewLayer } from './review/ReviewLayer';
 
 /**
@@ -122,6 +123,9 @@ export default function App() {
                   <Route path="/disruptions/:disruptionId" element={<DisruptionDetailPage />} />
                   <Route path="/preferences" element={<PreferencesPage />} />
                   <Route path="/settings" element={<SettingsRoute />} />
+                  {/* The look, one level in from Settings: fifty previews do not belong in a
+                      list of settings (`pages/StylesPage.tsx`). */}
+                  <Route path="/styles" element={<StylesPage />} />
                   <Route path="/planner" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

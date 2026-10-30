@@ -267,10 +267,16 @@ export function ModeBadge({
   label?: string;
   ghost?: boolean;
 }) {
+  /*
+   * The mode's own name goes through the dictionary here, at the last moment, because this is the
+   * badge every screen draws: translating it in `format.ts` would have made a data module depend
+   * on the language, and leaving it raw put "Train" on a Dutch chip.
+   */
+  const t = useT();
   return (
     <span className={`mode-badge mode-badge--${mode}${ghost ? ' mode-badge--ghost' : ''}`}>
       <ModeIcon mode={mode} size={14} />
-      {label ?? modeLabel(mode)}
+      {label ?? t(modeLabel(mode))}
     </span>
   );
 }

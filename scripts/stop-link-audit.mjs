@@ -26,7 +26,9 @@
  * Needs: playwright + a dev server on :3000 (it reads the stop list from the app's own module, so it
  * cannot drift from `data/stops.ts`).
  */
-import { chromium } from 'playwright';
+import { chromium, prepareBrowserEnv } from './browser-env.mjs';
+
+prepareBrowserEnv();
 import { ensureAppFont } from './font-guard.mjs';
 
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';

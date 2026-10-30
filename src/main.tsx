@@ -5,9 +5,11 @@ import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
 import './styles/tokens.css';
+import './styles/fonts.css';
 import './styles/base.css';
 import './styles/components.css';
 import './styles/map.css';
+import './styles/styles-panel.css';
 
 /**
  * **An address that still carries a `#/` is an old address, not an error.**

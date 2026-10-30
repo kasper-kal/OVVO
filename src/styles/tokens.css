@@ -82,7 +82,13 @@
   --coral-ink: #8f3423;
   --tint-sage-border: #cfdcc9;
   --tint-sage-strong: #7ba37a;
-  --tint-sage-ink: #5a7a58;
+  /*
+   * **Dark enough for the tint it is always painted on.** This was `#5a7a58`, which measured
+   * **4.08:1** on `--tint-sage` (`#e1eadf`): the pale sage pill and the tram badge are drawn on that
+   * fixed tint in every style, so their ink cannot be a style token that moves with the page. It is
+   * 5.7:1 now, in both appearances, because the tint itself does not change either.
+   */
+  --tint-sage-ink: #41603f;
   --tint-butter-border: #efe2a0;
   --tint-butter-strong: #e6cf3f;
   --tint-butter-ink: #c9a227;
@@ -155,11 +161,11 @@
   --l0-bg: var(--canvas-base);
   --l0-border: transparent;
   --l1-bg: var(--surface-alt);
-  --l1-border: 1px solid var(--border-hairline);
+  --l1-border: var(--line-width, 1px) solid var(--border-hairline);
   --l2-bg: var(--surface-raised);
-  --l2-border: 1px solid var(--border-hairline);
+  --l2-border: var(--line-width, 1px) solid var(--border-hairline);
   --l3-bg: var(--struct-main);
-  --l3-border: 1px solid var(--struct-secondary);
+  --l3-border: var(--line-width, 1px) solid var(--struct-secondary);
 
   /*
    * Waiting, drawn (F17).
@@ -177,11 +183,35 @@
   --skeleton-sheen: color-mix(in srgb, var(--ink) 4%, var(--l2-bg));
 
   /* --- 4. Squircle geometry & nested radii --- */
-  --r-hero: 32px; /* R32 · P16 · inner R16 */
-  --r-card: 28px; /* R28 · P16 · inner R12 */
-  --r-input: 20px; /* R20 · P8  · inner R12 */
-  --r-inner: 16px;
-  --r-nested: 12px; /* r-card - pad-card: keeps nested corners concentric */
+  /*
+   * **A corner has a ceiling, because a card has an edge.**
+   *
+   * The multipliers go as high as five, and 28 x 5 is a 140px corner on a 342px card: its own top
+   * edge became an arch and the content sat inside the dome (reported with a screenshot). Cards and
+   * heroes now stop at 56 and 64, inputs at 40, inner tiles at 28. Default is 28 and 32, so nothing
+   * it draws moves; a round style stays twice as round without turning into an arch.
+   */
+  --r-hero: min(calc(32px * var(--shape-scale, 1)), 64px);
+  --r-card: min(calc(28px * var(--shape-scale, 1)), 56px);
+  --r-input: min(calc(20px * var(--shape-scale, 1)), 40px);
+  --r-inner: min(calc(16px * var(--shape-scale, 1)), 28px);
+  --r-nested: max(0px, calc(var(--r-card) - var(--pad-card))); /* r-card - pad-card, so nested corners stay concentric */
+  /*
+   * The sheet's own curve, and the curve of what sits inside it.
+   *
+   * A card is a box on a page, and its corner grows with the style. A sheet is not a box on a
+   * page: it is as wide as the phone, so the same multiplier turned it into a dome whose curve
+   * swallowed the first row (reported on Bordeaux: "still looks horrible"). The corner is
+   * therefore **capped at 44px** — wide enough to read as the style, narrow enough that a 390px
+   * screen still has a flat edge at the top of the sheet.
+   *
+   * What stands inside it nests against *this* curve and this inset, not against the card's. The
+   * menu's rows were `--r-nested` (the card's arithmetic) inside a `--r-hero` sheet, so their
+   * corners were the wrong size for the sheet they sat in at every scale above 1.
+   */
+  --r-sheet: min(calc(32px * var(--shape-scale, 1)), 44px);
+  --r-sheet-nested: max(0px, calc(var(--r-sheet) - var(--pad-sheet)));
+  --pad-sheet: max(16px, calc(var(--r-sheet) * 0.4));
 
   /*
    * The journey rail: a circle for the departure, a square for the arrival, and the line between
@@ -193,13 +223,23 @@
   --rail-node: 14px;
   --rail-square: 10px;
   --rail-line: 2px;
-  --r-compact: 12px;
-  --r-hair: 8px;
+  --r-compact: calc(12px * var(--shape-scale, 1));
+  --r-hair: calc(8px * var(--shape-scale, 1));
   --r-pill: 9999px;
   --r-circle: 50%;
-  --pad-hero: 16px;
-  --pad-card: 16px;
-  --pad-input: 8px;
+  /* Four tenths of the corner it clears: 16px on Default, never more than 26px. */
+  --pad-hero: max(16px, calc(var(--r-hero) * 0.4));
+  --pad-card: max(16px, calc(var(--r-card) * 0.4));
+  --pad-input: max(8px, calc(var(--r-input) * 0.4));
+  /*
+   * The page's gutter, which grows with the corner.
+   *
+   * A card with a 60px corner sat 12px from the screen edge, so its curve nearly met the edge of
+   * the phone and the card read as a bubble pressed against the glass. The gutter follows the
+   * card's own curve at four tenths of it: 12px on Default, where it has always been 12, and more
+   * only where the corner is bigger. `--r-card` is read here, so the compact density moves too.
+   */
+  --pad-page: max(12px, calc(var(--r-card) * 0.12));
 
   /* --- 5. Baseline grid: strict 4px rhythm --- */
   --s-1: 4px;
@@ -468,12 +508,15 @@
 
 /* --- Settings adapter: compact density (still a strict 4px rhythm) --- */
 :root[data-density='compact'] {
-  --pad-hero: 12px;
-  --pad-card: 12px;
-  --pad-input: 8px;
-  --r-hero: 28px;
-  --r-card: 24px;
-  --r-nested: 12px; /* 24 - 12: still concentric in compact density */
+  --pad-hero: max(12px, calc(var(--r-hero) * 0.4));
+  --pad-card: max(12px, calc(var(--r-card) * 0.4));
+  --pad-input: max(8px, calc(var(--r-input) * 0.4));
+  --r-hero: min(calc(28px * var(--shape-scale, 1)), 56px);
+  --r-card: min(calc(24px * var(--shape-scale, 1)), 48px);
+  --r-nested: max(0px, calc(var(--r-card) - var(--pad-card)));
+  --r-sheet: min(calc(28px * var(--shape-scale, 1)), 40px);
+  --r-sheet-nested: max(0px, calc(var(--r-sheet) - var(--pad-sheet)));
+  --pad-sheet: max(16px, calc(var(--r-sheet) * 0.4));
   --s-6: 16px;
   --s-8: 24px;
 }

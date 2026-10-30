@@ -28,7 +28,9 @@
  *
  * Playwright is a dev dependency already, and device profiles are used so the pages are phones.
  */
-import { chromium, devices } from 'playwright';
+import { chromium, devices, prepareBrowserEnv } from './browser-env.mjs';
+
+prepareBrowserEnv();
 
 const URL = process.env.SCROLL_URL ?? 'http://127.0.0.1:3000';
 

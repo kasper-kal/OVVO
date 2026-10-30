@@ -83,7 +83,7 @@ body {
   margin: 0;
   background: var(--l0-bg);
   color: var(--ink);
-  font-family: var(--font-stack);
+  font-family: var(--font-body, var(--font-stack));
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   font-weight: var(--fw-regular);
@@ -117,20 +117,58 @@ body {
   background: var(--app-bg-colour, var(--l0-bg));
 }
 
+:root[data-background='photo'] {
+  /* Behind the wallpaper layer, so a picture that has not arrived is a colour and not a flash. */
+  background-color: var(--l0-bg);
+}
+
+/*
+ * **The wallpaper is its own layer, pinned to the window.**
+ *
+ * It used to be the `background-image` of `body`, held still with `background-attachment: fixed`.
+ * That reads as still on a desktop, but a document-level fixed background is re-laid out by several
+ * mobile browsers whenever the address bar changes height, and it creeps by a pixel or two while
+ * the page scrolls (reported: "Photo wallpapers slightly move when you scroll. Hate it."). A
+ * separate fixed layer is out of the scroll flow entirely, so there is nothing left to move.
+ */
+/*
+ * **The body keeps the colour, the picture moves to a layer of its own.**
+ *
+ * The colour has to stay on the body: saving mode drops the photograph and the page must still be
+ * the style's own canvas rather than the browser's white. Only the image moved off, so that it can
+ * stop moving with the page.
+ */
 :root[data-background='photo'] body {
+  background-color: var(--app-bg-colour, var(--l0-bg));
+  background-image: none;
+}
+
+:root[data-background='photo'] body::before {
+  content: '';
+  position: fixed;
+  /*
+   * **Sized to the largest viewport, not the current one.** `inset: 0` follows the *visible* height,
+   * so a phone hiding its address bar as you scroll grows the layer and `cover` rescales the
+   * photograph under your thumb: the same slight drift, from a different cause. `100vh` is the large
+   * viewport and stays put, so the picture is laid out once and only the window over it moves.
+   */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
   background-color: var(--l0-bg);
   background-image: linear-gradient(var(--app-bg-wash), var(--app-bg-wash)), var(--app-bg-image);
   background-size: cover, cover;
-  /*
-   * The crop's own centre, written by `applyBackground` from the frame the traveller chose. `cover`
-   * still re-crops on a differently-shaped screen, so the centre is what keeps the subject in view
-   * rather than the middle of the picture. Undefined — no crop — is `center`, the old behaviour.
-   */
   background-position: var(--app-bg-position, center), var(--app-bg-position, center);
   background-repeat: no-repeat, no-repeat;
-  /* Fixed, so scrolling the home screen moves the cards over a still picture rather than dragging
-     a 1600px image up the screen. */
-  background-attachment: fixed, fixed;
+}
+
+/* Saving mode draws the colour instead of the picture (`applyStyle` writes `colour`), and this
+   layer leaves with it rather than staying behind as a photograph nobody asked for. */
+:root[data-power='super'] body::before {
+  display: none;
 }
 
 /*
@@ -271,7 +309,7 @@ svg.map-canvas {
 
 /* Focus affordance without blur: 0-blur ring only (CHK-01 compliant). */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: var(--r-compact);
 }
@@ -307,19 +345,23 @@ svg.map-canvas {
 }
 
 /* ---------------------------------------------------------------- Typography */
+/*
+ * The display face's four numbers come from the style (`--display-*`), falling back to the app's own
+ * values so Default is untouched. A serif is not a sans set smaller: see `DISPLAY_TYPE`.
+ */
 .t-display {
-  font-size: var(--fs-display);
-  font-weight: var(--fw-extrabold);
-  line-height: var(--lh-display);
-  letter-spacing: var(--track-display);
+  font-size: var(--display-size, var(--fs-display));
+  font-weight: var(--display-weight, var(--fw-extrabold));
+  line-height: var(--display-leading, var(--lh-display));
+  letter-spacing: var(--display-tracking, var(--track-display));
   color: var(--ink-strong);
 }
 
 .t-h1 {
   font-size: var(--fs-h1);
-  font-weight: var(--fw-extrabold);
-  line-height: var(--lh-display);
-  letter-spacing: var(--track-display);
+  font-weight: var(--display-weight, var(--fw-extrabold));
+  line-height: var(--display-leading, var(--lh-display));
+  letter-spacing: var(--display-tracking, var(--track-display));
   color: var(--ink-strong);
 }
 
@@ -331,9 +373,15 @@ svg.map-canvas {
   color: var(--ink-strong);
 }
 
+.t-h2,
 .t-section {
-  font-size: var(--fs-section);
-  font-weight: var(--fw-bold);
+  /* The middle layer: section and card headings, in the style's own subtitle face. */
+  font-family: var(--font-sub, var(--font-display, var(--font-stack)));
+}
+
+.t-section {
+  font-size: var(--section-size, var(--fs-section));
+  font-weight: var(--section-weight, var(--fw-bold));
   line-height: var(--lh-heading);
   letter-spacing: var(--track-heading);
   color: var(--ink-strong);
@@ -1028,10 +1076,9 @@ svg.map-canvas {
   display: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .app-dock {
-    transition: none;
-  }
+/* The app's own answer, already resolved against the device in `state/AppState.tsx`. */
+:root[data-motion='reduced'] .app-dock {
+  transition: none;
 }
 
 @media (min-width: 1040px) {
@@ -1094,10 +1141,12 @@ svg.map-canvas {
   color: var(--tint-sage-ink);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .offline-bar {
-    animation: offline-bar-in 220ms var(--ease-out) both;
-  }
+/*
+ * `full` rather than `no-preference`: the attribute is the resolved answer, so an explicit choice of
+ * full motion animates even on a device that asks for less, and following the device does not.
+ */
+:root:not([data-motion='reduced']) .offline-bar {
+  animation: offline-bar-in 220ms var(--ease-out) both;
 }
 
 @keyframes offline-bar-in {
@@ -1107,9 +1156,6 @@ svg.map-canvas {
   }
 }
 
-:root[data-motion='reduced'] .offline-bar {
-  animation: none;
-}
 
 /* ------------------------------------------------------------ Sidebar module */
 .app-sidebar {
@@ -1274,11 +1320,16 @@ svg.map-canvas {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 1ms !important;
-    transition-duration: 1ms !important;
-  }
+/*
+ * The blanket standstill, driven by the resolved attribute and nothing else.
+ *
+ * It used to ride `@media (prefers-reduced-motion: reduce)`, which is why a phone asking for less
+ * movement stilled the app while the setting said "Full": two answers, and the media query won
+ * without the screen admitting it. `state/AppState.tsx` resolves the two into one attribute now.
+ */
+:root[data-motion='reduced'] * {
+  animation-duration: 1ms !important;
+  transition-duration: 1ms !important;
 }
 
 /* ---------------------------------------------------------------- battery saving */
@@ -1297,17 +1348,14 @@ svg.map-canvas {
  * infinite animation that would sit still at a random point, and both of those (the spinner and
  * the skeleton shimmer) are given a stated still form below.
   *
- * **A measured-slow phone gets `save` as well**, through `<html data-speed="slow">`: browsers
- * report no chip and no memory, so `lib/deviceSpeed.ts` times a fixed piece of real work instead
- * and the quickest of three runs decides. It is the same reduction on purpose — the movement is
- * what a weak processor cannot afford — and the pinning of it is in `state/AppState.tsx`.
+ * **Nothing else is allowed to still the interface.** A startup speed measurement used to write
+ * `<html data-speed="slow">` and get this same reduction, and that was the bug: a phone that was
+ * merely busy for the half second it was timed lost every transition while Settings said "Full".
+ * The measurement is gone, so the switch and the battery are the only two answers.
  */
 :root[data-power='save'] *,
-:root[data-speed='slow'] *,
 :root[data-power='save'] *::before,
-:root[data-speed='slow'] *::before,
-:root[data-power='save'] *::after,
-:root[data-speed='slow'] *::after {
+:root[data-power='save'] *::after {
   animation-duration: 1ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
@@ -1386,7 +1434,6 @@ svg.map-canvas {
 /* The ring that holds the results list's place: still, and still a ring — the shape of waiting
    without the turning (the same form the reduced-motion switch gives it). */
 :root[data-power='save'] .spinner__ring,
-:root[data-speed='slow'] .spinner__ring,
 :root[data-power='super'] .spinner__ring {
   animation: none !important;
 }
@@ -1401,14 +1448,12 @@ svg.map-canvas {
  * page is broken, which is a worse trade than the animation.
  */
 :root[data-power='save'] .skeleton,
-:root[data-speed='slow'] .skeleton,
 :root[data-power='super'] .skeleton {
   animation: none !important;
   background: var(--skeleton-fill) !important;
 }
 
 :root[data-power='save'] .skeleton::after,
-:root[data-speed='slow'] .skeleton::after,
 :root[data-power='super'] .skeleton::after {
   content: none !important;
 }
@@ -1464,4 +1509,24 @@ svg.map-canvas {
   :root[data-power='super'] .home-menu__scrim {
     background: var(--canvas-base);
   }
+}
+
+/* ------------------------------------------------------------------ the page gutter
+ *
+ * **The page's edge moves with the style's corner.**
+ *
+ * `--pad-page` is four tenths of the card's own radius (see `tokens.css`): 12px on Default, where
+ * this row has always been 12px, and wider only on the styles whose cards are rounder. Declared at
+ * the end of the file so the horizontal padding wins over the shorthand above, without that
+ * shorthand's vertical spacing being rewritten.
+ */
+.app-body {
+  padding-left: var(--pad-page);
+  padding-right: var(--pad-page);
+}
+
+/* The header shares the page's left edge, so the mark and the first card line up. */
+.app-header__inner {
+  padding-left: var(--pad-page);
+  padding-right: var(--pad-page);
 }

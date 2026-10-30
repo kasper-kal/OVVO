@@ -398,7 +398,7 @@ export function StopCombobox({
             aria-invalid={invalid || undefined}
             aria-describedby={describedBy}
             autoComplete="off"
-            placeholder={placeholder ?? 'Type a station, stop or landmark'}
+            placeholder={placeholder ?? t('Type a station, stop or landmark')}
             value={query}
             onChange={(event) => {
               typingRef.current = true;

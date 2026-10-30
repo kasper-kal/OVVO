@@ -52,7 +52,11 @@ const NL: Record<string, string> = {
   'Main navigation': 'Hoofdnavigatie',
   'Quick navigation': 'Snelle navigatie',
   'All sections': 'Alle onderdelen',
-  Home: 'Start',
+  /*
+   * **"Home" is not translated.** Dutch uses the word as a loanword for the start screen, the way
+   * phones and browsers do; "Start" was the Dutch word for a different idea.
+   */
+  Home: 'Home',
   'Journey results': 'Reisresultaten',
   'Travel information': 'Reisinformatie',
   'Stations & stops': 'Stations en haltes',
@@ -221,6 +225,9 @@ const NL: Record<string, string> = {
   'Appearance, defaults and locally stored data. Every change applies immediately and is stored in this browser.':
     'Weergave, standaardwaarden en lokaal opgeslagen gegevens. Elke wijziging geldt meteen en wordt in deze browser bewaard.',
   Appearance: 'Weergave',
+  /* The field under the Appearance heading: it picks a theme, and naming it "Appearance" again
+     printed the same word twice on every settings screen. */
+  Theme: 'Thema',
   'Light, dark or the device setting.': 'Licht, donker of de instelling van je apparaat.',
   System: 'Systeem',
   Light: 'Licht',
@@ -253,6 +260,21 @@ const NL: Record<string, string> = {
   'Reduce motion': 'Minder beweging',
   'Turns off the spring press and hover transitions.':
     'Zet de veer-effecten bij indrukken en aanwijzen uit.',
+  /* The Styles screen: the last English left on a Dutch page. */
+  'Pick a look. Every one is checked for readability.':
+    'Kies een uiterlijk. Elk ervan is op leesbaarheid gecontroleerd.',
+  Styles: 'Stijlen',
+  'In use': 'In gebruik',
+  /* A photograph, not the act of photographing. */
+  Photograph: 'Foto',
+  'This style uses its picture.': 'Dit uiterlijk gebruikt zijn foto.',
+  'This style draws its own colour instead of its picture.':
+    'Dit uiterlijk tekent zijn eigen kleur in plaats van zijn foto.',
+  'This style has no picture yet, so it is drawn in its own colour.':
+    'Dit uiterlijk heeft nog geen foto, dus het wordt in zijn eigen kleur getekend.',
+  'Saving battery, so this style draws its colour. The photograph comes back above 10%.':
+    'Om batterij te sparen tekent dit uiterlijk zijn kleur. De foto komt terug boven 10%.',
+
   /* The widget catalogue after the widget audit (`WIDGET-AUDIT.md`): the merged card, the
      reworked alerts and re-run cards, and the two trims. */
   'Your journeys': 'Jouw reizen',
@@ -906,7 +928,7 @@ const NL: Record<string, string> = {
   'Metro stop': 'Metrohalte',
   'Tram stop': 'Tramhalte',
   'Bus stop': 'Bushalte',
-  'Ferry stop': 'Veerhalte',
+  'Ferry stop': 'Veerboot halte',
   Landmark: 'Herkenningspunt',
 
   /* --------------------------------------------------------------- journeys */
@@ -1265,7 +1287,7 @@ const NL: Record<string, string> = {
   "Take bus 347 from Schiphol Airport to Haarlem, or the Intercity to Amsterdam Sloterdijk and travel back.":
     "Neem bus 347 van Schiphol Airport naar Haarlem, of de Intercity naar Amsterdam Sloterdijk en dan terug.",
   /* 5. d-ferry-buiksloterweg */
-  "Ferry F3: longer waiting times": "Veer F3: langere wachttijden",
+  "Ferry F3: longer waiting times": "Veerboot F3: langere wachttijden",
   "The Buiksloterweg ferry runs every 20 minutes instead of every 10 minutes because one vessel is under maintenance.":
     "Het veer van de Buiksloterweg vaart elke 20 minuten in plaats van elke 10, omdat één boot in onderhoud is.",
   "Use metro 52 to Amsterdam Noord as an alternative.":
@@ -1324,6 +1346,43 @@ const NL: Record<string, string> = {
     "De lift naar spoor 3 en 4 op Almere Centrum is buiten dienst. Het personeel kan helpen.",
   "Ask station staff for assistance, or use platform 1 with the Sprinter.":
     "Vraag het personeel om hulp, of neem de Sprinter vanaf spoor 1.",
+  /* ------------------------------------------------- modes, places and facilities */
+  /*
+   * Words the interface prints as labels rather than as sentences: the mode chips, the stop types,
+   * the facility badges and the tab titles. They were the last English left on a Dutch screen,
+   * because they arrive from `format.ts` and the data instead of from a `t()` call beside the
+   * place they are written.
+   */
+  'on time': 'op tijd',
+  'Choose a style': 'Kies een uiterlijk',
+  /*
+   * Counted nouns, with both forms: Dutch does not take an "s", so `plural()` is given the two
+   * words rather than appending one.
+   */
+  transfers: 'overstappen',
+  legs: 'trajecten',
+  stop: 'halte',
+  stops: 'haltes',
+  /* The skeleton demo is a developer screen, but it is drawn from the same strings. */
+  '{city} · {code}': '{city} · {code}',
+  '{from} → {to} · leaving after {time}': '{from} → {to} · vertrekt na {time}',
+  Battery: 'Batterij',
+  'Closest stops: {names}': 'Dichtstbijzijnde haltes: {names}',
+  'Every grey shape the app can draw, with the screen that replaces it. Dev only.':
+    'Elke grijze vorm die de app kan tekenen, met het scherm dat ervoor in de plaats komt. Alleen voor ontwikkelaars.',
+  'Held places': 'Vastgehouden plekken',
+  'Journey result': 'Reisresultaat',
+  'Loading…': 'Laden…',
+  Normal: 'Normaal',
+  Replay: 'Opnieuw',
+  'Replay all': 'Alles opnieuw',
+  'Saving (20%)': 'Besparen (20%)',
+  'Stop card': 'Haltekaart',
+  'Stop picker rows': 'Rijen in de haltelijst',
+  'The list: {names}': 'De lijst: {names}',
+  'The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.':
+    'Het hele beeld: de pagina, de kaarten, de inkt, de letters en de foto achter de pagina.',
+  'Type a station, stop or landmark': 'Typ een station, halte of herkenningspunt',
 };
 
 

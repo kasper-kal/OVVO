@@ -190,7 +190,7 @@ export function MapPicker({
             viewBox={`${view.cx - view.size / 2} ${view.cy - view.size / 2} ${view.size} ${view.size}`}
             preserveAspectRatio="xMidYMid slice"
             role="img"
-            aria-label={`Network map, ${plural(STOPS.length, 'stop')}`}
+            aria-label={`${t('Network map')}, ${plural(STOPS.length, t('stop'), t('stops'))}`}
           >
             {corridors.map((line) => (
               <polyline

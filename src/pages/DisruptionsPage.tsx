@@ -308,7 +308,7 @@ export function DisruptionsPage() {
                   onClick={() => setModes((current) => (current.includes(mode) ? current.filter((m) => m !== mode) : [...current, mode]))}
                 >
                   <ModeIcon mode={mode} size={15} />
-                  {modeLabel(mode)}
+                  {t(modeLabel(mode))}
                 </Chip>
               ))}
             </div>

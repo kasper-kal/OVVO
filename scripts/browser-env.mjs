@@ -24,7 +24,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
-export { chromium, firefox, webkit } from 'playwright';
+/*
+ * **First, before `playwright` is imported below.** Playwright fixes which folder it looks in when
+ * its module loads, so the variable has to be set by a module that runs before that import — doing
+ * it inside `prepareBrowserEnv()` was too late, which is why the browser was still reported missing
+ * with the fix in place. See `browser-path.mjs`.
+ */
+import './browser-path.mjs';
+
+export { chromium, firefox, webkit, devices } from 'playwright';
 
 const HOME = process.env.HOME ?? '';
 
@@ -36,6 +44,7 @@ const HOME = process.env.HOME ?? '';
  */
 export function prepareBrowserEnv() {
   if (!HOME) return false;
+
   const syslibs = path.join(HOME, 'syslibs');
   if (!fs.existsSync(path.join(syslibs, 'usr/lib/x86_64-linux-gnu'))) return false;
 

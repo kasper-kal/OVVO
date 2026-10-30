@@ -83,6 +83,19 @@ else
 fi
 
 # ------------------------------------------------------------------- the browser it drives
+# **Where Playwright looks, versus where the browser is.** On this host the browsers live in
+# `$HOME/pw-browsers`; Playwright's default is `$HOME/.cache/ms-playwright`. Left alone, every
+# browser check dies naming a file that does not exist and reads like the site is broken. A link
+# closes the gap for anything that does not go through `scripts/browser-env.mjs`, and that module
+# also sets `PLAYWRIGHT_BROWSERS_PATH` itself.
+step 'the folder Playwright looks in'
+if [ ! -e "$HOME/.cache/ms-playwright" ] && [ -d "$HOME/pw-browsers" ]; then
+  mkdir -p "$HOME/.cache"
+  ln -s "$HOME/pw-browsers" "$HOME/.cache/ms-playwright" && did "linked $HOME/.cache/ms-playwright to $HOME/pw-browsers"
+else
+  ok 'the folder Playwright looks in already has something in it'
+fi
+
 step 'the browser the checks drive'
 if compgen -G "$BROWSERS/chromium-*" >/dev/null || compgen -G "$BROWSERS/chromium_headless_shell-*" >/dev/null; then
   ok "Chromium is already in $BROWSERS"

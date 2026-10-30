@@ -5,7 +5,7 @@ import { PageHeader } from '../components/layout/AppShell';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { getStop } from '../data/stops';
 import { Banner, Button, Card, Dialog, Field, Pill, Segmented, Switch } from '../components/ui/primitives';
-import { ColourSettings } from '../components/ui/ColourSettings';
+import { styleById } from '../lib/styles';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
@@ -238,9 +238,15 @@ export function SettingsPage() {
               page depends on the light in the room.
             */}
             <h2 className="t-section">{t('Appearance')}</h2>
-            <Field label={t('Appearance')} hint={t('Light, dark or the device setting.')}>
+            {/*
+              **"Appearance" was printed twice, one above the other.** The section heading said
+              Appearance and the first field inside it said APPEARANCE, which is the same word twice
+              and tells the traveller nothing about what the control does. The control picks a
+              theme, so the field says Theme and the heading keeps the section.
+            */}
+            <Field label={t('Theme')} hint={t('Light, dark or the device setting.')}>
               <Segmented
-                ariaLabel={t('Appearance')}
+                ariaLabel={t('Theme')}
                 value={settings.theme}
                 onChange={(value) => updateSettings({ theme: value })}
                 options={THEME_OPTIONS.map((option) => ({
@@ -326,11 +332,28 @@ export function SettingsPage() {
           </Card>
 
           {/*
-            **Colours, as questions that open screens.** The card names each setting and its
-            current value; the choice itself lives one level in (`ColourSettings`, and the note
-            there). Everything about the interface's colour is still in this one place.
+            **Styles, as a row that opens a screen.** The grid of fifty looks is too much to stand
+            in the middle of a list of settings, so Settings names the look in force and one
+            control opens the picker (`pages/StylesPage.tsx`).
           */}
-          <ColourSettings />
+          <Card className="stack">
+            <div className="between">
+              <h2 className="t-section">{t('Styles')}</h2>
+              <span className="t-strong t-sm">
+                {settings.language === 'nl'
+                  ? styleById(settings.styleId).nameNl
+                  : styleById(settings.styleId).name}
+              </span>
+            </div>
+            <p className="field__hint">
+              {t('The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.')}
+            </p>
+            <div>
+              <Link className="style-link" to="/styles">
+                {t('Choose a style')}
+              </Link>
+            </div>
+          </Card>
 
           <Card className="stack">
             <h2 className="t-section">{t('Location')}</h2>
@@ -478,7 +501,7 @@ export function SettingsPage() {
                   {t('Tram')} 2
                 </span>
                 <span className="t-sm t-muted">{format.date(sampleDate)}</span>
-                <span className="t-sm t-faint">{format.relative(600, 606)}</span>
+                <span className="t-sm t-faint">{t(format.relative(600, 606))}</span>
               </div>
               <div className="row-wrap">
                 <Pill tone="sage">{t('Expected quiet')}</Pill>

@@ -26,7 +26,10 @@
  * numbers describe the type the traveller actually sees (`scripts/font-guard.mjs`).
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { chromium, prepareBrowserEnv } from './browser-env.mjs';
+
+// Without this the browser dies on `libnspr4.so` and the audit reads like a site failure.
+prepareBrowserEnv();
 import { ensureAppFont } from './font-guard.mjs';
 
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';

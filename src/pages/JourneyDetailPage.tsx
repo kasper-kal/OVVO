@@ -143,7 +143,9 @@ export function JourneyDetailPage() {
         /* The same two ends, in a sentence — see `fromWords` above. */
         titleLabel={t('{from} to {to}', { from: fromWords, to: toWords })}
         description={`${format.date(search?.query.date ?? '')} · ${t('departs {time}', { time: format.time(journey.departure) })} · ${t('arrives {time}', { time: format.time(journey.arrival) })} · ${
-          journey.transfers === 0 ? t('direct') : plural(journey.transfers, t('transfer'))
+          journey.transfers === 0
+            ? t('direct')
+            : plural(journey.transfers, t('transfer'), t('transfers'))
         }`}
         showTitle
       />
@@ -299,8 +301,10 @@ export function JourneyDetailPage() {
               </Pill>
               <Pill>
                 <Icon name="swap" size={12} />
-                {journey.transfers === 0 ? t('Direct') : plural(journey.transfers, t('transfer'))} ·{' '}
-                {plural(journey.legs.length, t('leg'))}
+                {journey.transfers === 0
+                  ? t('Direct')
+                  : plural(journey.transfers, t('transfer'), t('transfers'))}{' '}
+                · {plural(journey.legs.length, t('leg'), t('legs'))}
               </Pill>
               {/* A walk chip that says "0 min walking" answers a question nobody asked, and reads
                   as a promise the journey does not make. No walk, no chip. */}

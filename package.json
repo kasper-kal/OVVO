@@ -5,17 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && node scripts/em-dash-audit.mjs && vite build",
+    "build": "tsc --noEmit && node scripts/em-dash-audit.mjs && node scripts/styles-audit.mjs && node scripts/corner-audit.mjs && vite build",
     "check:text": "node scripts/em-dash-audit.mjs",
     "typecheck": "tsc --noEmit",
     "check:phone": "node scripts/old-phone-check.mjs",
     "check:scroll": "node scripts/scroll-audit.mjs",
     "check:install": "node scripts/install-audit.mjs",
     "check:colours": "node scripts/colour-audit.mjs",
+    "check:styles": "node scripts/styles-audit.mjs",
     "verify": "node scripts/verify.mjs",
     "preview": "vite preview",
     "dev:preview": "bash scripts/dev-preview.sh",
-    "after-restore": "bash scripts/after-restore.sh"
+    "after-restore": "bash scripts/after-restore.sh",
+    "check:corners": "node scripts/corner-audit.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.56.0",

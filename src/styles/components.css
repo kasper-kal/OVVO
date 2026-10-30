@@ -15,10 +15,15 @@
 
 /* ------------------------------------------------------------------ Surfaces */
 .card {
-  background: var(--l2-bg);
+  background: var(--card-fill, var(--l2-bg));
   border: var(--l2-border);
   border-radius: var(--r-card);
   padding: var(--pad-card);
+  /*
+   * A card has a material, not only a colour. A printed shape (square, line, plate) stays flat, a
+   * soft one lifts. Default is `soft` and its value is `none`, so nothing moves there.
+   */
+  box-shadow: var(--card-shadow, none);
   transition: transform var(--t-spring) var(--ease-spring);
 }
 
@@ -640,7 +645,9 @@
 .pill--sage {
   background: var(--tint-sage);
   border-color: var(--tint-sage-border);
-  color: var(--struct-secondary);
+  /* The tint is a fixed colour, so the ink on it is too: a style token here moved with the page
+     and put this label at 4.08:1 on nine styles. */
+  color: var(--tint-sage-ink);
 }
 
 .pill--butter {
@@ -1098,7 +1105,7 @@
 /* The wrapper is the control for a compound field (the board's search, the planner's origin),
    so the wrapper draws the ring. Same 2px coral at 2px offset as every button and link. */
 .input-group:focus-within {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -2066,7 +2073,9 @@
 .pill--sage {
   background: var(--tint-sage);
   border-color: var(--tint-sage-border);
-  color: var(--struct-secondary);
+  /* The tint is a fixed colour, so the ink on it is too: a style token here moved with the page
+     and put this label at 4.08:1 on nine styles. */
+  color: var(--tint-sage-ink);
 }
 
 .pill--butter {
@@ -2524,7 +2533,7 @@
 /* The wrapper is the control for a compound field (the board's search, the planner's origin),
    so the wrapper draws the ring. Same 2px coral at 2px offset as every button and link. */
 .input-group:focus-within {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -3176,7 +3185,8 @@
   border-radius: var(--r-pill);
   background: var(--struct-main);
   color: var(--on-dark);
-  font-size: 10px;
+  /* 11px is the floor for type on a 390px screen; this count sat one pixel under it. */
+  font-size: 11px;
   font-weight: var(--fw-bold);
 }
 
@@ -3612,7 +3622,8 @@
 .mode-badge--tram {
   background: var(--tint-sage);
   border-color: var(--tint-sage-border);
-  color: var(--struct-secondary);
+  /* Same reason as `.pill--sage`: a fixed tint needs an ink that does not travel with the style. */
+  color: var(--tint-sage-ink);
 }
 
 .mode-badge--metro {
@@ -3918,12 +3929,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .spinner__ring {
-    animation: none;
-  }
-}
-
 :root[data-motion='reduced'] .spinner__ring {
   animation: none;
 }
@@ -4048,18 +4053,8 @@
   }
 }
 
-/* Reduced motion — system or the app's own switch — leaves the marks as they are: the shape of
-   the card that is coming, flat, with no band frozen across it. */
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
-
-  .skeleton::after {
-    content: none;
-  }
-}
-
+/* Reduced motion leaves the marks as they are: the shape of the card that is coming, flat, with no
+   band frozen across it. One rule, for the one attribute the state provider resolves. */
 :root[data-motion='reduced'] .skeleton {
   animation: none;
 }
@@ -4076,7 +4071,7 @@
 
 /* An avatar, a glyph: a circle, the shape of the thing that is coming. */
 .skeleton--circle {
-  border-radius: 50%;
+  border-radius: var(--r-circle);
 }
 
 /* The stop card stacks its rows at `--s-2` (`.stack-2`), so its skeleton does too — the journey
@@ -4278,7 +4273,7 @@
 }
 
 .list-row--link > .list-row__stretch:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: inherit;
 }
@@ -4508,7 +4503,12 @@
      column beside it (reported as the card looking awkward). Holds a 16px glyph. */
   width: 32px;
   height: 32px;
-  border-radius: var(--r-nested);
+  /*
+   * **Concentric with the row it sits in.** The row is `--r-nested` round with `--s-3` of
+   * padding, so a marker with the same radius as its parent reads as two curves fighting: the
+   * inner one must be the outer one less the inset it is drawn at (12 - 12 = 0 here).
+   */
+  border-radius: max(0px, calc(var(--r-nested) - var(--s-3)));
   background: var(--l1-bg);
   border: 1px solid var(--border-hairline);
   display: grid;
@@ -4619,11 +4619,13 @@
   touch-action: manipulation;
   background: var(--l2-bg);
   border: var(--l2-border);
-  border-radius: var(--r-hero) var(--r-hero) 0 0;
+  /* `--r-sheet`, not `--r-hero`: a full-bleed sheet caps its curve (see `tokens.css`). */
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   padding: var(--pad-hero);
   /* A sheet flush with the floor put its last answer inside the home indicator. The dock has
      read this inset all along; the sheets did not (4.6, 13.3, 20.3, 21.5, 22.5, 23.4, 25.6). */
   padding-bottom: max(var(--pad-hero), calc(var(--pad-hero) + env(safe-area-inset-bottom)));
+  padding-inline: var(--pad-sheet);
   animation: sheet-in var(--t-spring) var(--ease-spring);
 }
 
@@ -4644,7 +4646,8 @@
 
 @media (min-width: 720px) {
   .modal {
-    border-radius: var(--r-hero);
+    /* The same capped curve as the phone sheet: one surface, one rounding, at every width. */
+    border-radius: var(--r-sheet);
   }
 }
 
@@ -4709,7 +4712,9 @@
      closer than that on its own. */
   top: 0;
   margin-top: 0;
-  padding-top: var(--s-3);
+  /* Three eighths of the sheet's own curve: 12px on Default, more when the corner is bigger, so
+     the title's first letters are never drawn on the arc. */
+  padding-top: calc(var(--r-sheet) * 0.375);
   padding-bottom: var(--s-1);
   margin-bottom: 0;
 }
@@ -4726,6 +4731,20 @@
 
 .menu-sheet .nav-list {
   gap: var(--s-1);
+}
+
+/*
+ * The menu's rows nest against the **sheet's** curve, not the card's.
+ *
+ * `.nav-item` is `--r-nested` because the desktop sidebar is a card; the same row is also drawn
+ * inside a sheet, whose corner is `--r-sheet` and whose inset is `--pad-hero`. On a style with a
+ * large shape multiplier those are two different curves, so a row rounded to the card's
+ * arithmetic inside the sheet left the first entry pinched into the corner above it.
+ */
+.menu-sheet .nav-item,
+.menu-sheet .card,
+.menu-sheet .empty {
+  border-radius: var(--r-sheet-nested);
 }
 
 .modal__head {
@@ -6315,7 +6334,7 @@
 
 .widget--dragging .widget__card {
   border-color: var(--accent-primary);
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -6507,7 +6526,7 @@
 
 .widget--flash .widget__card {
   border-color: var(--accent-primary);
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   transition: outline-color 400ms var(--ease-press);
 }
