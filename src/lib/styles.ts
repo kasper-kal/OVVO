@@ -340,7 +340,7 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'rijksmuseum': 'arch',
   'station-sign': 'pill',
   'tram': 'soft',
-  'obsidian': 'arch',
+  'obsidian': 'square',
   'contrast': 'round',
   'night-aa': 'arch',
   'sage': 'pill',
