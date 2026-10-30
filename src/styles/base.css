@@ -118,8 +118,16 @@ body {
 }
 
 :root[data-background='photo'] {
-  /* Behind the wallpaper layer, so a picture that has not arrived is a colour and not a flash. */
-  background-color: var(--l0-bg);
+  /*
+   * Behind the wallpaper layer, so a picture that has not arrived is a colour and not a flash.
+   *
+   * **The colour belongs to the root, not to the body.** The photograph is painted by
+   * `body::before` at `z-index: -1`, which is behind the body's own background: while the body
+   * carried the opaque canvas the layer was underneath it and no picture was ever seen, in any
+   * style. The root keeps the colour now, the body is transparent over it (`body` rule below), and
+   * the pinned layer sits between the two.
+   */
+  background-color: var(--app-bg-colour, var(--l0-bg));
 }
 
 /*
@@ -139,7 +147,8 @@ body {
  * stop moving with the page.
  */
 :root[data-background='photo'] body {
-  background-color: var(--app-bg-colour, var(--l0-bg));
+  /* Transparent on purpose: the root holds the canvas colour and `body::before` holds the picture. */
+  background-color: transparent;
   background-image: none;
 }
 

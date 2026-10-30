@@ -1,26 +1,43 @@
 # Credits
 
-One line per picture, as `public/style-photos/README.md` asks. These are the owner's own uploads
-from the `Wallpapers/` folder (commit `a105f62`, "Wallpaper upload"), so there is no outside
-source to credit and no licence to check. The line that matters is the last one: which style uses
-the file, so it can be swapped without hunting through the code.
+One line per picture, as `public/style-photos/README.md` asks. Every file here is the owner's own
+upload from the `Wallpapers/` folder and from the `public/style-photos/` upload on GitHub, so there is
+no outside source to credit and no licence to check. The column that matters is the style, so a
+picture can be swapped without hunting through the code.
 
 | File | Style | What it is |
 | ---- | ----- | ---------- |
-| `summit.jpg` | Summit | A mountain peak at dawn, gold on one ridge. Owner's upload. |
-| `cloudbank.jpg` | Cloudbank | Black-and-white clouds and stars. Owner's upload. |
-| `riviera.jpg` | Riviera | A painted coastal village, boats and turquoise water. Owner's upload. |
-| `palazzo.jpg` | Palazzo | A stone palace dome with gold ornament against blue sky. Owner's upload. |
-| `storm-tide.jpg` | Storm Tide | A painted stormy sea, palette-knife sky. Owner's upload. |
-| `skyline.jpg` | Skyline | A city skyline at night with amber windows. Owner's upload. |
-| `capsule.jpg` | Capsule | A stack of glossy white pills on black. Owner's upload. |
-| `toscane.jpg` | Toscane | The leaning tower, pale marble and terracotta. Owner's upload. |
-| `contact.jpg` | Contact | Two hands reaching, greyscale on black. Owner's upload. |
-| `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. Owner's upload. |
+| `navy-gold.jpg` | Navy and Gold | Gold light running down a dark sea. |
+| `midnight-silk.jpg` | Midnight Silk | Gold satin folds in raking light. |
+| `bordeaux.jpg` | Bordeaux | A city at night, everything washed wine red. |
+| `poppy-blue.jpg` | Poppy Blue | White clouds in a deep blue sky and one coral balloon. |
+| `cyber-teal.jpg` | Cyber Teal | A teal glass tower photographed from below. |
+| `broadsheet.jpg` | Broadsheet | A pile of old newspaper front pages. |
+| `rijksmuseum.jpg` | Rijksmuseum | The museum in evening light against a deep blue sky. |
+| `station-sign.jpg` | Station Sign | A Dutch train at sunset on a platform. |
+| `obsidian.jpg` | Obsidian | Black fractured rock. |
+| `sage.jpg` | Sage | Soft green hills under a white sky. |
+| `mustard.jpg` | Mustard | Two hands reaching across a field of orange. |
+| `terminal.jpg` | Terminal | A green circuit board with gold traces. |
+| `marble.jpg` | Marble | White marble veined with grey. |
+| `arches.jpg` | Arches | A colonnade of marble columns and gold ceilings. |
+| `summit.jpg` | Summit | A mountain peak at dawn, gold on one ridge. |
+| `cloudbank.jpg` | Cloudbank | Black-and-white clouds and stars. |
+| `riviera.jpg` | Riviera | A painted coastal village, boats and turquoise water. |
+| `palazzo.jpg` | Palazzo | A stone palace dome with gold ornament against blue sky. |
+| `storm-tide.jpg` | Storm Tide | A painted stormy sea, palette-knife sky. |
+| `skyline.jpg` | Skyline | A city skyline at night with amber windows. |
+| `capsule.jpg` | Capsule | A stack of glossy white pills on black. |
+| `toscane.jpg` | Toscane | The leaning tower, pale marble and terracotta. |
+| `contact.jpg` | Contact | Two hands reaching, greyscale on black. |
+| `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. |
 
-Each one also ships as `<id>-night.jpg`, generated from the same upload by dimming it to 45% and
-tinting it 12% toward that style's own night page, so the dark appearance has a picture cut for its
-light ink instead of the daylight frame.
+Each one also ships as `<id>-night.jpg`, cut from the same upload for the dark appearance. The cut is
+dimmed only as far as its own picture needs and tinted 12% toward that style's night page, and the
+style keeps a separate wash for it, so a pale picture goes darker at night than a picture that was
+already dark. `Ultraviolet`, `Blueprint`, `Spoorboekje` and `Tram` have no picture and wear their own
+colour.
 
-All ten are 736 pixels wide, portrait, between 18 and 367 KB. Kept at their uploaded size: a phone
-screen is sharp at that width, and only the style in use is ever fetched.
+All ten of the first upload are 736 pixels wide, portrait, between 18 and 367 KB. The later upload
+carried some larger files, up to 1536 pixels wide; they are kept as uploaded, and only the style in
+use is ever fetched.
