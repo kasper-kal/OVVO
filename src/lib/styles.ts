@@ -231,7 +231,7 @@ export interface StylePhoto {
  * defaults below, chosen from its own page: a dark page keeps its cards translucent, a pale page
  * gets solid cards and a slightly heavier wash, because the ink on a pale page is the dark one.
  */
-const PHOTO_FREE = new Set(['contrast', 'night-aa']);
+const PHOTO_FREE = new Set(['contrast']);
 
 /**
  * **Styles whose photograph is dark in the band the page's own name sits in.**
@@ -732,6 +732,13 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Nachtnet',
     group: 'dutch',
     light: ['#0E1526', '#18213A', '#F3EFE5', '#F0B429'],
+    /*
+     * **The photograph is a glass tower at dusk**, blue-violet sky with the office lights amber in
+     * the glass: the two colours this style is made of, caught in one picture. Its top is the
+     * brightest sky in the set, so the wash is the one measured to hold the warm white name at the
+     * 3:1 floor for large text, and no more.
+     */
+    photo: { scrim: 0.27, scrimNight: 0.02, glass: false },
     shape: 'pill',
     display: 'figtree',
     body: 'manrope',
@@ -756,6 +763,23 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Nostalgie',
     group: 'dutch',
     light: ['#121511', '#1F241C', '#F0E7D3', '#D9A05B'],
+    /*
+     * **Quieter lines than the shape asks for.** `soft` derives its hairlines at 1.7:1, which on a
+     * page this dark draws a bright outline round every card — a box, where the idea is old paper
+     * laid on a table (reported as "*too heavy to give nostalgia*"). These sit just above the 1.2:1
+     * floor: the edge is there when you look for it, and gone when you are reading.
+     */
+    pinned: {
+      light: { '--border-hairline': '#2F332A', '--hairline-on-dark': '#2E3229' },
+      dark: { '--border-hairline': '#2F332A', '--hairline-on-dark': '#2E3229' },
+    },
+    /*
+     * **The photograph is the platform at Haarlem, after the last train.** Warm lamps under the old
+     * iron roof, an empty platform, one person walking away. It needs almost no wash: the picture is
+     * already dark where the page's own name sits (measured 11.5:1 under cream), so a tint of 0.03
+     * is all that seats it in the palette.
+     */
+    photo: { scrim: 0.03, scrimNight: 0.02, glass: false },
     shape: 'soft',
     display: 'fraunces',
     body: 'work',
@@ -936,6 +960,13 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Pikzwart',
     group: 'reading',
     light: ['#000000', '#0E0E0E', '#FFFFFF', '#FFD400'],
+    /*
+     * **This one was flat on purpose, and the owner gave it a picture anyway.** The reason it had no
+     * photograph was the risk of a bright patch under dark ink, and that reason does not apply here:
+     * the ink is white and the picture is a black gloss with soft grey sheen, so nothing in it can
+     * out-shout the words. It takes the gentlest wash in the catalogue.
+     */
+    photo: { scrim: 0.02, scrimNight: 0.02, glass: false },
     display: 'inter',
     body: 'work',
     sub: 'archivo',

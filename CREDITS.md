@@ -31,11 +31,14 @@ picture can be swapped without hunting through the code.
 | `toscane.jpg` | Toscane | The leaning tower, pale marble and terracotta. |
 | `contact.jpg` | Contact | Two hands reaching, greyscale on black. |
 | `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. |
+| `nostalgia.jpg` | Nostalgia | The platform at Haarlem station after dark, lamps under the old iron roof. |
+| `nachtnet.jpg` | Nachtnet | A glass tower at dusk, blue-violet sky and amber office lights. |
+| `night-aa.jpg` | All Black | Glossy black curves lit from behind, no subject but the sheen. |
 
 Each one also ships as `<id>-night.jpg`, cut from the same upload for the dark appearance. The cut is
 dimmed only as far as its own picture needs and tinted 12% toward that style's night page, and the
 style keeps a separate wash for it, so a pale picture goes darker at night than a picture that was
-already dark. `Ultraviolet`, `Blueprint`, `Spoorboekje` and `Tram` have no picture and wear their own
+already dark. `Ultraviolet`, `Blueprint`, `Spoorboekje`, `Perron` and `Tram` have no picture and wear their own
 colour.
 
 All ten of the first upload are 736 pixels wide, portrait, between 18 and 367 KB. The later upload
