@@ -64,6 +64,16 @@ export function DeveloperPage() {
   const [clockField, setClockField] = useState(() => dateTimeValue(appNow()));
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
+  /*
+   * **The level the knob sits at.**
+   *
+   * With no simulation, that is the device's own reading and not a full battery. The knob used to
+   * be parked at the end of the rail while the sentence under it said the device's own battery was
+   * being read, which claims a charge nobody measured (reported). A browser that reports no level
+   * leaves the knob at 0, and the sentence says so rather than pretending otherwise.
+   */
+  const devicePercent = power.level === null ? null : Math.round(power.level * 100);
+  const shownPercent = percent ?? devicePercent;
   /* What the app is doing with the level it now believes, in the same words Settings uses. */
   const modeLabel =
     power.mode === 'last'
@@ -106,10 +116,18 @@ export function DeveloperPage() {
             <Field
               /* The number rides on the label, the way the battery reading in Settings does, so the
                  value is not written a second time under a rail that already shows it. */
-              label={percent === null ? t('Level') : t('Level · {percent}%', { percent })}
+              label={
+                shownPercent === null
+                  ? t('Level')
+                  : t('Level · {percent}%', { percent: shownPercent })
+              }
               hint={
                 dev.battery === null
-                  ? t('The device’s own battery is being read.')
+                  ? shownPercent === null
+                    ? t('This browser does not report a level, so the knob waits at 0 until you move it.')
+                    : t(
+                        'The device’s own battery is being read, and the knob sits at its level until you move it.',
+                      )
                   : t('The app is in {mode}.', { mode: modeLabel })
               }
             >
@@ -128,7 +146,7 @@ export function DeveloperPage() {
                   min={0}
                   max={100}
                   step={1}
-                  value={percent ?? 100}
+                  value={shownPercent ?? 0}
                   onChange={(event) => setDevOverrides({ battery: Number(event.target.value) / 100 })}
                   aria-label={t('Battery level')}
                 />
