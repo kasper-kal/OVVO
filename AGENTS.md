@@ -19,7 +19,7 @@ Here are the rules:
 
 10. NEVER blame a stale build, a stale deploy, a cache or an old copy of the site for a problem you cannot reproduce. If what you measure and what the user sees disagree, the truth is that you have not reproduced their steps yet. Never say it again: reproduce first, then fix what you actually saw.
 
-11. The corner gallery is guarded, and the guard is not optional. After ANY change to a card shape, a caption or the gallery page, run `node scripts/corners.mjs` and fix what it reports before saying the change is done. When a shape is approved, run `node scripts/corners.mjs --save`. If the page is ever overwritten, run `node scripts/corners.mjs --restore`; NEVER rebuild a corner shape by hand or from memory.
+11. NEVER leave finished work only in this workspace. Run `node scripts/keep.mjs --save "<why>"` when a change is finished and its checks pass: it commits the whole project, including the mockup gallery, which git ignores. `--list` shows the saves; `--restore <path> [--from <sha>]` brings a file or folder back. The corner shapes have a checker on top of that: after ANY change to a card shape, a caption or the gallery page run `node scripts/corners.mjs` and fix what it reports, run `--save` when a shape is approved, run `--restore` when the page is lost, and NEVER rebuild a corner by hand or from memory.
 
 12. NEVER ask permission to commit. When a change is finished and its checks pass, make the commit yourself, with a message that says why, and tell the steerer in one line that you did it. Do not commit half-finished work, and never commit secrets.
 
@@ -41,6 +41,14 @@ Pass these three gates on **every** turn, in this order. If one is missed, stop 
 - Never claim a check, measurement, screenshot or preview you did not actually run. Report failures and limitations as failures and limitations.
 - Do not hand authorised work back to the user with "say the word"; carry out what was asked and report the result.
 
+## Keeping work
+
+Git is the only copy that survives. The sandbox sleeps, the worktree can be replaced, and anything sitting in an ignored folder has no history at all, which is how a day of approved shapes was lost once.
+
+`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
+
+`--list` shows the recent saves. `--restore <path>` brings the newest saved copy of a file or folder back, and `--from <sha>` reaches further back. No timer is involved: the sandbox is asleep between turns, so work is saved when it finishes, not on a clock.
+
 ## The corner gallery
 
 The corner mockups live in `.logs/mock/index.html`, which git ignores, so that page is never the only copy of anything. The approved page and the nine shapes it draws are saved in `design/corners-gallery.html` and `design/corners.json`, both tracked by git.
@@ -51,7 +59,7 @@ Run `node scripts/corners.mjs --save` once a shape is approved, so the approved 
 
 Run `node scripts/corners.mjs --restore` when the page is lost or overwritten: it puts the approved copy back in a second. Rebuilding shapes by hand, or from memory of an earlier version, is what turned a stray overwrite into an hour of work, and it produced shapes that did not match what had been approved.
 
-After a restore, the app itself is untouched: this guard covers the mockup gallery only.
+That checker covers the shape of the mockup gallery only. The safety of the work itself comes from `scripts/keep.mjs`, which saves the app and the gallery together.
 
 ## Working agreements
 
