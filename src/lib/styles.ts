@@ -1385,8 +1385,9 @@ export const STYLES: StyleDef[] = [
    * soft old serif with a slight wonk in its curves, which reads as something printed a century ago
    * without pretending to be a cartoon, and it was kept on sight. The section headings first went to
    * Archivo, and a heavy corporate grotesque under that title was rejected on sight too, so they are
-   * Newsreader: a text serif drawn for reading at small sizes, sturdy enough at 18px that a heading is
-   * not a whisper, and made of the same paper as the title instead of fighting it. The body is a plain
+   * Cormorant Garamond, whose fine hairlines and wide capitals are what makes a magazine page look
+   * costly where a system serif looks cheap (Newsreader was tried and called cheap on sight). It sits
+   * under Fraunces as the lighter, airier voice, so the title stays the loud one. The body is a plain
    * sans and the interface face is the app's own, so nothing with a time or a platform is dressed up.
    */
   {
@@ -1398,7 +1399,7 @@ export const STYLES: StyleDef[] = [
     photo: { scrim: 0.18, scrimNight: 0.02, glass: true },
     shape: 'arch',
     display: 'fraunces',
-    sub: 'newsreader',
+    sub: 'cormorant',
     body: 'inter',
     ui: 'work',
   },
