@@ -211,12 +211,23 @@ body {
  * and gone before the margin, so there is no edge to see. The padding is given back as a negative
  * margin, so the name still starts on the page's own left edge and nothing below it moves.
  */
+/*
+ * **Nothing is drawn behind the name at all.**
+ *
+ * A plate was tried, then a glow, and both were visible as a shape on the photograph (reported
+ * twice, the second time with the glow still there, just quieter), so the head keeps no ground of
+ * its own and the picture runs under it untouched. What changes instead is the **ink**: on a
+ * photograph the name is set in whichever of the two inks can be read on the band it sits in, which
+ * is the style's own light cut for a dark picture and its dark one for a pale picture. `--ink` and
+ * `--ink-strong` are handed over here rather than a colour on the `h1`, because the head's own
+ * controls sit on the same picture and have to change with it.
+ *
+ * The token is written by `styleTokens` for every style, so this is a substitution and not a
+ * guess: `--page-head-ink` is the style's ink unless its photograph says otherwise.
+ */
 :root[data-background='photo'] .page-head {
-  padding: 12px 16px 16px;
-  margin: -12px -16px -8px;
-  background-image: var(--page-head-wash);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  --ink: var(--page-head-ink);
+  --ink-strong: var(--page-head-ink);
 }
 
 h1,

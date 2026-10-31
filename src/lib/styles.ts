@@ -233,6 +233,29 @@ export interface StylePhoto {
  */
 const PHOTO_FREE = new Set(['contrast', 'night-aa']);
 
+/**
+ * **Styles whose photograph is dark in the band the page's own name sits in.**
+ *
+ * The head keeps no ground of its own, so its ink has to be read against the picture. Measured over
+ * the top of each style's photograph, under its own wash: these are the ones where the authored ink
+ * loses (as low as **1.55:1** on Ultraviolet, where a dark name sat on a night sky). They take the
+ * style's night ink instead, cut light for exactly this job. Every other photo style keeps its own.
+ */
+const PHOTO_LIGHT_HEAD = new Set([
+  'arches',
+  'broadsheet',
+  'cloudbank',
+  'loggia',
+  'midnight-silk',
+  'navy-gold',
+  'obsidian',
+  'rijksmuseum',
+  'skyline',
+  'station-sign',
+  'terminal',
+  'ultraviolet',
+]);
+
 export function stylePhotograph(style: StyleDef): StylePhoto | null {
   if (PHOTO_FREE.has(style.id)) return null;
   if (style.photo) return style.photo;
@@ -1280,6 +1303,8 @@ export function styleTokens(
   options: StyleTokenOptions = {},
 ): Record<string, string> {
   const { canvas, card, ink, accent } = stylePalette(style, appearance);
+  /* The light half of the style's own ink, for a name set over a dark photograph. */
+  const nightInk = stylePalette(style, 'dark').ink;
   const raised = Boolean(options.highContrast);
   const shape = styleShape(style);
   /*
@@ -1487,16 +1512,15 @@ export function styleTokens(
     /* The photograph's wash, computed as rgb() so an old WebKit keeps its paint */
     '--app-bg-wash': wash(canvas, picture ? photoScrim(picture, appearance) : 0.55),
     /*
-     * **The page head's ground, as a glow rather than a plate.**
+     * **The ink the page's own name is set in, when the name is over a photograph.**
      *
-     * The head sits on the photograph, so it needs a ground of its own (see `.page-head` in
-     * `styles/base.css`). A solid one was drawn first and read as a box laid over the picture, with
-     * an edge all the way round (reported, with that edge circled). This is the same colour as a
-     * radial wash that is solid behind the words and gone before it reaches the margin, so there is
-     * no edge to see. Written here, in `rgba()`, for the reason the wash is: a `color-mix` is
-     * dropped by an old WebKit and the words would be left on the picture.
+     * Nothing is painted behind it (see `.page-head` in `styles/base.css`), so the ink itself has to
+     * survive the picture. Most photographs are dark where the name sits, and a pale style's own ink
+     * is a dark one, which measured 1.55:1 on Ultraviolet — the name was invisible. Those styles take
+     * their own **night** ink here: the same family, cut light, which is what the photo's band can
+     * carry. A pale picture keeps the authored ink (`PHOTO_DARK_HEAD` lists only the ones that flip).
      */
-    '--page-head-wash': `radial-gradient(105% 52% at 34% 50%, ${wash(canvas, 0.97)} 0%, ${wash(canvas, 0.94)} 40%, ${wash(canvas, 0.6)} 72%, ${wash(canvas, 0)} 100%)`,
+    '--page-head-ink': PHOTO_LIGHT_HEAD.has(style.id) ? nightInk : ink,
     '--page-border': pageHairline,
 
     /* Lettering: the title face, the section face and the reading face */
