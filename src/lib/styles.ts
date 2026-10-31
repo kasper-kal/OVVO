@@ -1379,10 +1379,14 @@ export const STYLES: StyleDef[] = [
    * **Halloween.** A carved lantern on a black doorstep: the page is the night, the cards the smoke
    * off the candle, the words the bone of the mask and the accent the pumpkin itself.
    *
-   * The headings are the one novelty face in the catalogue, Creepster, and it is deliberately the
-   * only place it is allowed: a sentence set in it is unreadable, a two-word title in it is the
-   * whole joke. The subtitle stays a sharp serif and the body a plain sans, so nothing a traveller
-   * has to read (a time, a platform, a line number) is ever dressed up.
+   * **The type is a storybook, not a costume.** The first cut set the title in Creepster and the
+   * section headings in a distressed typewriter, which is a poster for a party rather than a page you
+   * use (reported, plainly: "I hate the Halloween fonts"). Both are gone. The title is Fraunces, a
+   * soft old serif with a slight wonk in its curves, which reads as something printed a century ago
+   * without pretending to be a cartoon; the section headings are Archivo, a firm grotesque, so the
+   * words a traveller actually reads stay crisp under a title that is allowed to have character. The
+   * body is a plain sans and the interface face is the app's own, so nothing with a time or a platform
+   * on it is ever dressed up.
    */
   {
     id: 'halloween',
@@ -1392,8 +1396,8 @@ export const STYLES: StyleDef[] = [
     light: ['#130A06', '#2B1709', '#F6EEE1', '#FF851C'],
     photo: { scrim: 0.18, scrimNight: 0.02, glass: true },
     shape: 'arch',
-    display: 'creepster',
-    sub: 'special-elite',
+    display: 'fraunces',
+    sub: 'archivo',
     body: 'inter',
     ui: 'work',
   },
