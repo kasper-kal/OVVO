@@ -35,17 +35,17 @@ const DEMOS = [
   { n: 5, caption: 'Five. Pinched on all four sides.', styles: ['ultraviolet', 'summit'] },
   { n: 6, caption: 'Six. A scoop taken out of every corner.', styles: ['cyber-teal', 'cloudbank'] },
   { n: 7, caption: 'Seven. Deeper cut corners.', styles: ['broadsheet', 'riviera'] },
-  { n: 8, caption: 'Eight. Two hollow bands, one slightly bigger.', styles: ['spoorboekje', 'palazzo'] },
+  { n: 8, caption: 'Eight. Two hollow bands, one slightly bigger.', styles: ['mustard', 'palazzo'] },
   { n: 9, caption: 'Nine. Cut corners with a pinched top and bottom.', styles: ['rijksmuseum', 'storm-tide'] },
 ];
 
 /* The seven "Implemented" rows are the app's shipped card shapes. The plan gives them no corner,
    so they wear the card that already exists in the app: its own radius, drawn from --shape-scale. */
 const SHIPPED_ROWS = [
-  { shape: 'Soft', styles: ['perron', 'skyline'] },
+  { shape: 'Soft', styles: ['sage', 'skyline'] },
   { shape: 'Square', styles: ['tram'] },
   { shape: 'Round', styles: ['obsidian', 'toscane'] },
-  { shape: 'Pill', styles: ['contrast', 'contact'] },
+  { shape: 'Pill', styles: ['obsidian', 'contact'] },
   { shape: 'Line', styles: ['night-aa', 'loggia'] },
   { shape: 'Plate', styles: ['sage'] },
   { shape: 'Arch', styles: ['mustard'] },

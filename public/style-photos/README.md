@@ -25,7 +25,7 @@ remains.
 | Ultraviolet     | `ultraviolet.jpg`     | Terminal     | `terminal.jpg`    |
 | Cyber Teal      | `cyber-teal.jpg`      | Blueprint    | `blueprint.jpg`   |
 | Broadsheet      | `broadsheet.jpg`      | Marble       | `marble.jpg`      |
-| Spoorboekje     | `spoorboekje.jpg`     | Arches       | `arches.jpg`      |
+|                 |                       | Arches       | `arches.jpg`      |
 | Rijksmuseum     | `rijksmuseum.jpg`     |              |                   |
 | Sprinter        | `sprinter.jpg`        | Marble       | `marble.jpg`      |
 | Arches          | `arches.jpg`          | Summit       | `summit.jpg`      |
@@ -36,14 +36,11 @@ remains.
 | Loggia          | `loggia.jpg`          |              |                   |
 | Nostalgia       | `nostalgia.jpg`       | Evening Glass| `avondglas.jpg`   |
 | Pro             | `pro.jpg`             |              |                   |
-| Perron          | `perron.jpg`          |              |                   |
+|                 |                 |              |                   |
 
-| Fog             | `fog.jpg`             | Courtyard    | `binnenplaats.jpg` |
-| Travertine      | `travertine.jpg`      | Arena        | `arena.jpg`        |
-| Chrome          | `chrome.jpg`          |              |                    |
-**Contrast** and **All Black** are the two exceptions. They exist as the plainest reading answer, and
-a photograph behind the page is the one thing that can put a bright patch under dark ink, so they
-stay flat. A file named after either of them is simply ignored.
+**All Black** is the one exception. It exists as the plainest reading answer, and a photograph behind
+the page is the one thing that can put a bright patch under ink meant to be read flat, so it stays
+colour-only. A file named after it is simply ignored.
 
 Any size, portrait or landscape. 1600px on the long edge is the sweet spot: larger is wasted on a
 phone and costs data, smaller starts to look soft behind a full screen of text. A JPEG at that size

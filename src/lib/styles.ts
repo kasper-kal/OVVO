@@ -184,16 +184,16 @@ export interface StylePhoto {
  * not a property of a handful — `public/style-photos/<id>.jpg` is looked for on every style, and the
  * **Background** row appears on every style that has somewhere to put a picture.
  *
- * Two are deliberately left out. **Contrast** and **All Black** exist as the answer to "make it as
- * readable as you can", and a photograph behind the page is the one thing that can put a bright
- * patch under dark ink. They stay flat, and the Styles card has no Background row for them rather
+ * One is deliberately left out. **All Black** exists as the answer to "make it as plain as it can
+ * be", and a photograph behind the page is the one thing that can put a bright patch under ink meant
+ * to be read flat. It stays colour-only, and the Styles card has no Background row for it rather
  * than a switch that cannot keep its promise.
  *
  * The ten that authored their own scrim and card treatment keep them; every other style gets the
  * defaults below, chosen from its own page: a dark page keeps its cards translucent, a pale page
  * gets solid cards and a slightly heavier wash, because the ink on a pale page is the dark one.
  */
-const PHOTO_FREE = new Set(['contrast', 'night-aa']);
+const PHOTO_FREE = new Set(['night-aa']);
 
 /**
  * **Styles whose photograph is dark in the band the page's own name sits in.**
@@ -338,11 +338,9 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'ultraviolet': 'line',
   'cyber-teal': 'soft',
   'broadsheet': 'soft',
-  'spoorboekje': 'soft',
   'rijksmuseum': 'arch',
   'tram': 'soft',
   'obsidian': 'square',
-  'contrast': 'round',
   'night-aa': 'square',
   'sage': 'pill',
   'mustard': 'soft',
@@ -350,7 +348,6 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'blueprint': 'square',
   'marble': 'round',
   'arches': 'pill',
-  'perron': 'square',
 };
 
 /** The shape a style draws, for anything that previews it (the picker's swatches). */
@@ -581,47 +578,6 @@ export const STYLES: StyleDef[] = [
     sub: 'lora',
     ui: 'inter',
   },
-  /* ------------------------------------------------------------------ dutch */
-  {
-    /*
-     * **The yellow timetable book.**
-     *
-     * A spoorboekje is the printed timetable of the whole railway, published once a year: a thick
-     * book of station names down the left and clock times across the page. From the mid sixties to
-     * 2010 it was the one object that carried the NS house style into every house, and that style is
-     * two colours and nothing else: the **signal yellow** of the cover and the **dark blue** of the
-     * lettering. The body of the book is plain white paper.
-     *
-     * The palette here used to be parchment and rust, which is a book about trains from a century
-     * earlier and not the spoorboekje at all (reported: "you don't know what a spoorboekje is"). So
-     * the page is the cover, the cards are its pages, the ink is the blue the times are set in, and
-     * the accent is the red NS used for the notes under a table.
-     */
-    id: 'spoorboekje',
-    name: 'Spoorboekje',
-    nameNl: 'Spoorboekje',
-    group: 'gold',
-    light: ['#FFC917', '#FFFCF0', '#001D52', '#C8102E'],
-    /*
-     * **The quiet ink and the rule are the book's own, not a mix toward its paper.**
-     *
-     * `styleTokens` builds `--ink-muted` and the hairline by stepping the ink a few percent toward
-     * the card, which is right on a page and a card of the same family. Here the page is a signal
-     * yellow and the card is paper, so the same step landed at 3.87:1 for the muted ink and 1.16:1
-     * for the rule — both under the line. A printed timetable does not have "a blue faded toward
-     * paper" anyway: its small type is the blue, set smaller. So the two are written out.
-     */
-    pinned: {
-      light: {
-        '--ink-muted': '#33507D',
-        '--border-hairline': '#8F9CB0',
-      },
-    },
-    display: 'archivo',
-    body: 'work',
-    sub: 'grotesk',
-    ui: 'inter',
-  },
   {
     id: 'rijksmuseum',
     name: 'Rijksmuseum',
@@ -639,7 +595,7 @@ export const STYLES: StyleDef[] = [
    * The commuter train, and the lightest livery on the railway: a body of warm white, a band of
    * deep blue around the windows, and doors painted the one yellow that is allowed to mean "here".
    * So the page is the body, the cards are the panels, the ink is the band, and the accent is the
-   * door — the same yellow as the Spoorboekje cover, used for the thing you actually press.
+   * door — the same yellow as a timetable cover, used for the thing you actually press.
    */
   {
     id: 'sprinter',
@@ -673,18 +629,6 @@ export const STYLES: StyleDef[] = [
     display: 'outfit',
     body: 'inter',
     sub: 'grotesk',
-    ui: 'inter',
-  },
-
-  {
-    id: 'perron',
-    name: 'Perron',
-    nameNl: 'Perron',
-    group: 'cream',
-    light: ['#E6E4DE', '#FAF8F3', '#232428', '#B3271E'],
-    display: 'grotesk',
-    body: 'work',
-    sub: 'archivo',
     ui: 'inter',
   },
   /*
@@ -880,18 +824,6 @@ export const STYLES: StyleDef[] = [
     display: 'inter',
     body: 'plex',
     sub: 'grotesk',
-    ui: 'inter',
-  },
-  /* ------------------------------------------------------------------ reading */
-  {
-    id: 'contrast',
-    name: 'Contrast',
-    nameNl: 'Contrast',
-    group: 'cream',
-    light: ['#FFFFFF', '#FFFFFF', '#000000', '#0033CC'],
-    display: 'inter',
-    body: 'work',
-    sub: 'archivo',
     ui: 'inter',
   },
   {

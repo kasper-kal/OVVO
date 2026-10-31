@@ -545,7 +545,6 @@ const NL: Record<string, string> = {
   /* The settings with no sample of their own, named with the value in force. */
   'Currently in effect': 'Nu actief',
   '{appearance}, from your device': '{appearance}, van je apparaat',
-  Contrast: 'Contrast',
   Raised: 'Verhoogd',
   Standard: 'Standaard',
   Motion: 'Beweging',
