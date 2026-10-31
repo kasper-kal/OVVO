@@ -20,18 +20,6 @@ import type { Departure, Stop } from '../../data/types';
  * One calm list instead of a seven-column table: time, where it goes, which
  * platform. Everything else is secondary.
  */
-/**
- * **One boat, on the fifth of December.**
- *
- * Between six and eight on Sinterklaas evening every board gains a row that no timetable answers:
- * a boat with no platform and no time, because it has not arrived in the Netherlands by rail since
- * anyone can remember. It is here for two hours a year and it is a row like any other, so it scrolls
- * away with the board rather than sitting on top of it.
- */
-function sinterklaasEvening(now: Date = new Date()): boolean {
-  return now.getMonth() === 11 && now.getDate() === 5 && now.getHours() >= 18 && now.getHours() < 20;
-}
-
 export function BoardList({
   departures,
   limit = ROWS_PER_LOAD,
@@ -133,20 +121,6 @@ export function BoardList({
   return (
     <div className="stack-3">
       <ul className="board-list">
-        {sinterklaasEvening() ? (
-          <li className="board-list__row board-list__row--boat">
-            <span className="board-list__time">
-              <span className="t-mono-num">··</span>
-            </span>
-            <span className="board-list__main">
-              <span className="board-list__line">
-                <span className="board-list__destination">Pakjesboot</span>
-              </span>
-              <span className="t-sm t-muted">Geen spoor, geen tijd. Wel pepernoten.</span>
-            </span>
-            <span className="board-list__platform">geen</span>
-          </li>
-        ) : null}
         {shown.map((departure) => {
           const line = getLine(departure.lineId);
           const delayed = departure.delayMinutes > 0;

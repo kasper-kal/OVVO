@@ -127,15 +127,6 @@ export interface Settings {
   primaryColour: string;
   /** The widgets' colour **in the dark appearance** (`lib/palette.ts`). */
   primaryColourDark: string;
-  /**
-   * **Developer mode.**
-   *
-   * A switch in Settings that adds one panel for checking the hidden work: the rain, the snow, the
-   * pepernoten, the Christmas lights, the fireworks and the three jokes, each on demand instead of
-   * on its own date. Off for everybody who never asks for it, which is why it is optional: a stored
-   * settings object from before this existed simply has no answer, and no answer is off.
-   */
-  developer?: boolean;
   /** Which option the planner starts with. */
   defaultTimeMode: TimeMode;
   /** Prefilled origin for the planner. */

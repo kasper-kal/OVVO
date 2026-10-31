@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { getStop, stopLabel, nearbyStops } from '../../data/stops';
 import { getLine } from '../../data/network';
 import { getDisruption } from '../../data/disruptions';
@@ -9,43 +8,15 @@ import { Icon, ModeIcon } from '../ui/Icons';
 import { StopLink } from '../stops/StopLink';
 import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
-import { PUNCH_EVENT } from '../../lib/simulation';
-
-/**
- * **The conductor's punch.**
- *
- * Five taps on a platform tag stamp every platform on the journey with a punch mark, the way a
- * ticket gets checked. Nothing says so, nothing is saved, and the tags stay ordinary pills: a tap
- * on one does what a tap on a pill has always done, which is nothing.
- */
-function usePunched(): boolean {
-  const [punched, setPunched] = useState(false);
-  useEffect(() => {
-    const stamp = () => setPunched(true);
-    window.addEventListener(PUNCH_EVENT, stamp);
-    return () => window.removeEventListener(PUNCH_EVENT, stamp);
-  }, []);
-  return punched;
-}
 
 function PlatformTag({ platform, label }: { platform?: string; label: string }) {
-  const punched = usePunched();
-  const taps = useRef(0);
   if (!platform) return null;
   return (
     <Pill>
       {/* A platform, not the board: `board` is the departure screen's monitor and a control
           that opens it. */}
-      <span
-        className={`platform-tag${punched ? ' is-punched' : ''}`}
-        onClick={() => {
-          taps.current += 1;
-          if (taps.current >= 5) window.dispatchEvent(new Event(PUNCH_EVENT));
-        }}
-      >
-        <Icon name="platform" size={12} />
-        {label} {platform}
-      </span>
+      <Icon name="platform" size={12} />
+      {label} {platform}
     </Pill>
   );
 }

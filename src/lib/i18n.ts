@@ -1382,33 +1382,6 @@ const NL: Record<string, string> = {
   'The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.':
     'Het hele beeld: de pagina, de kaarten, de inkt, de letters en de foto achter de pagina.',
   'Type a station, stop or landmark': 'Typ een station, halte of herkenningspunt',
-  /* ---------------------------------------------------------- developer panel */
-  'Developer mode': 'Ontwikkelaarsmodus',
-  'Adds a panel for checking the hidden effects without waiting for the calendar.':
-    'Voegt een paneel toe om de verborgen effecten te bekijken zonder op de kalender te wachten.',
-  'Open the developer panel': 'Open het ontwikkelaarspaneel',
-  'Developer panel': 'Ontwikkelaarspaneel',
-  'Simulate the weather, the calendar and the hidden jokes. Nothing here is saved.':
-    'Simuleer het weer, de kalender en de verborgen grapjes. Niets hiervan wordt bewaard.',
-  'Weather and calendar': 'Weer en kalender',
-  'Hidden things': 'Verborgen dingen',
-  'Auto (today)': 'Automatisch (vandaag)',
-  'the date, then the sky': 'eerst de datum, dan de lucht',
-  'behind the cards': 'achter de kaarten',
-  'slow flakes': 'langzame vlokken',
-  'new year': 'nieuwjaar',
-  'warm lights': 'warme lichtjes',
-  'snow and lights': 'sneeuw en lichtjes',
-  'Tram across the dock': 'Tram door de balk',
-  'a phone, with the bottom bar showing': 'een telefoon, met de balk onderin',
-  'Punch a ticket': 'Kaartje knippen',
-  'on a journey, with a platform showing': 'op een reis, met een perron in beeld',
-  'The 9292 row': 'De 9292-rij',
-  'open the station field, then press': 'open het stationveld en druk dan',
-  'Reduce motion is on, so the weather layer is paused.':
-    'Beweging minderen staat aan, dus de weerlaag staat stil.',
-  'Super energy saving is on, so the weather layer is paused.':
-    'Super energiebesparing staat aan, dus de weerlaag staat stil.',
 };
 
 
