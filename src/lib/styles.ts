@@ -633,7 +633,7 @@ export const STYLES: StyleDef[] = [
     id: 'sprinter',
     name: 'Sprinter',
     nameNl: 'Sprinter',
-    group: 'gold',
+    group: 'cream',
     light: ['#F4F1E9', '#FFFFFF', '#12305C', '#FFC917'],
     /*
      * **Its own night, not a turned-over day.** The derived night cut this style's cream page into a
