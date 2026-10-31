@@ -334,17 +334,19 @@ export function SettingsPage() {
                   : t('This browser does not report the battery, so the full interface is always drawn.')}
               </p>
             </div>
-          </Card>
+            {/*
+              **The developer panel, behind one switch — and no card of its own.**
 
-          {/*
-            **The developer panel, behind one switch.**
+              It ships because this site has one user and he is the one who tests it. Off is the
+              state a visitor finds, and off is what clears every simulation: the switch is the
+              whole of the safety here, so it is drawn as a switch and not as a link, and the panel
+              itself lives at its own address (see `pages/DeveloperPage.tsx`).
 
-            It ships because this site has one user and he is the one who tests it. Off is the
-            state a visitor finds, and off is what clears every simulation: the switch is the whole
-            of the safety here, so it is drawn as a switch and not as a link, and the panel itself
-            lives at its own address (see `pages/DeveloperPage.tsx`).
-          */}
-          <Card className="stack">
+              It sat in a card by itself, which drew a heading and a frame around a single control
+              — a section that says "Developer" and holds one switch reads as a section that is
+              missing the rest of itself. It belongs with the other settings for this copy of the
+              app, so it is the last section of this card instead (reported).
+            */}
             <h2 className="t-section">{t('Developer')}</h2>
             <Switch
               checked={settings.developerMode}
