@@ -301,20 +301,33 @@ interface Shape {
   shadow: string;
 }
 
+/*
+ * **Every shape draws a one-pixel line, and none of them draws a thicker one.**
+ *
+ * The first cut gave the printed shapes a heavier rule — 2px for `square` and `line`, 3px for
+ * `plate` — as if weight were what made them read as printed. It is not: the corners, the flat
+ * surfaces and the darker hairline already say that, and the extra pixels simply looked like a
+ * frame drawn around every card (reported: "all borders so thick on almost every style … I dont
+ * want mega thin borders, but not thick ones either like now"). The black shelf falls back to
+ * `square`, so its whole column was framed at 2px, which is the shelf the Styles page opens on.
+ *
+ * What still separates a printed style from a soft one is the *strength* of the same one-pixel
+ * line, which is `hair`, and the geometry around it. A border is a border, not an outline.
+ */
 const SHAPES: Record<ShapeId, Shape> = {
   /* The app's own look: the values this file used before shapes existed, and no shadow — Default
      must not move by a pixel. */
   soft: { scale: 1, line: '1px', tint: 0.055, hair: 1.7, glass: 1, shadow: 'none' },
   /* Print: square corners, a rule you can see, flat on the page. */
-  square: { scale: 0, line: '2px', tint: 0.02, hair: 2.2, glass: 1, shadow: 'none' },
+  square: { scale: 0, line: '1px', tint: 0.02, hair: 2.2, glass: 1, shadow: 'none' },
   /* A friendly radius, with cards just off the page. */
   round: { scale: 1.45, line: '1px', tint: 0.08, hair: 1.55, glass: 0.96, shadow: '0 1px 2px -1px rgb(0 0 0 / 0.10)' },
   /* Capsules for every control, cards lifted and see-through. */
   pill: { scale: 5, line: '1px', tint: 0.1, hair: 1.45, glass: 0.92, shadow: '0 8px 20px -12px rgb(0 0 0 / 0.34), 0 1px 2px -1px rgb(0 0 0 / 0.10)' },
-  /* A thin plate: nearly square, a heavy outline, almost no surface tint, flat. */
-  line: { scale: 0.3, line: '2px', tint: 0.015, hair: 2.3, glass: 1, shadow: 'none' },
-  /* A printed sheet: no tint at all, a 3px rule, flat page and flat card. */
-  plate: { scale: 0.5, line: '3px', tint: 0, hair: 2.5, glass: 1, shadow: 'none' },
+  /* A thin plate: nearly square, a firm rule, almost no surface tint, flat. */
+  line: { scale: 0.3, line: '1px', tint: 0.015, hair: 2.3, glass: 1, shadow: 'none' },
+  /* A printed sheet: no tint at all, the firmest hairline in the catalogue, flat page and card. */
+  plate: { scale: 0.5, line: '1px', tint: 0, hair: 2.5, glass: 1, shadow: 'none' },
   /* Drawn: the roundest corners, and the most see-through cards, floating highest. */
   arch: { scale: 2.2, line: '1px', tint: 0.11, hair: 1.5, glass: 0.88, shadow: '0 14px 34px -18px rgb(0 0 0 / 0.40), 0 1px 3px -1px rgb(0 0 0 / 0.12)' },
 };
