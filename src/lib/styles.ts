@@ -187,6 +187,17 @@ export interface StylePhoto {
   /**
    * How hard the canvas colour is laid over the picture, as a fraction. A dark photograph with
    * cream ink needs less than a bright one with dark ink, which is why it belongs to the style.
+   *
+   * **The wash is a tint now, not a lid.** It was doing two jobs at once — seating the picture in
+   * the palette *and* keeping the page's own headings readable over it — and the second job was
+   * costing the picture more than half of itself: Ultraviolet laid 57% pale lavender over a night
+   * sky and turned it into milk (reported as *"the lightening ... is so unnecessarily heavy"*), and
+   * it still measured under 2:1 for the quiet ink over the dark half of that photograph, so the
+   * cover was not buying the readability it was paid for.
+   *
+   * The headings keep their own ground instead (`.page-head` in `styles/base.css`), which is what
+   * lets these numbers be what they should always have been: a tint that makes the picture belong to
+   * the style. Roughly half of the old value, per style, so each look keeps the wash it chose.
    */
   scrim: number;
   /**
@@ -226,7 +237,7 @@ export function stylePhotograph(style: StyleDef): StylePhoto | null {
   if (PHOTO_FREE.has(style.id)) return null;
   if (style.photo) return style.photo;
   const dark = relativeLuminance(style.light[0]) < 0.35;
-  return { scrim: dark ? 0.52 : 0.6, glass: dark };
+  return { scrim: dark ? 0.23 : 0.27, glass: dark };
 }
 
 /** The wash in force in the appearance on screen. */
@@ -497,7 +508,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Navy en goud',
     group: 'luxe',
     light: ['#121d29', '#1b2e45', '#F4F1EA', '#c0a171'],
-    photo: { scrim: 0.44, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.2, scrimNight: 0.02, glass: true },
     /* The same face as Midnight Silk: the owner prefers it to Cormorant here, and the two styles
        were already sharing the same reading face, so the whole of Navy's type now matches. */
     sub: 'cormorant',
@@ -511,7 +522,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Middernachtzijde',
     group: 'luxe',
     light: ['#1A1410', '#2A211A', '#F3EADC', '#CBAE7E'],
-    photo: { scrim: 0.43, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: true },
     display: 'instrument',
     body: 'work',
     sub: 'lora',
@@ -536,7 +547,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Klaproosblauw',
     group: 'modern',
     light: ['#c9dbf0', '#e6f0fa', '#0F2A44', '#e25138'],
-    photo: { scrim: 0.5, scrimNight: 0.06, glass: false },
+    photo: { scrim: 0.22, scrimNight: 0.06, glass: false },
     display: 'grotesk',
     body: 'figtree',
     sub: 'outfit',
@@ -548,7 +559,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Ultraviolet',
     group: 'modern',
     light: ['#dccef7', '#f1eaff', '#241247', '#5935b5'],
-    photo: { scrim: 0.57, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.26, scrimNight: 0.02, glass: false },
     display: 'manrope',
     body: 'plex',
     sub: 'grotesk',
@@ -560,7 +571,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Cyberteal',
     group: 'modern',
     light: ['#bde2e9', '#e2f8fa', '#05322F', '#065f70'],
-    photo: { scrim: 0.52, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
     display: 'grotesk',
     body: 'figtree',
     sub: 'manrope',
@@ -573,7 +584,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Krant',
     group: 'editorial',
     light: ['#eae4dc', '#fbfaf6', '#141110', '#8b603a'],
-    photo: { scrim: 0.45, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.2, scrimNight: 0.02, glass: false },
     display: 'newsreader',
     body: 'work',
     sub: 'lora',
@@ -597,7 +608,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Rijksmuseum',
     group: 'dutch',
     light: ['#d8dfba', '#f6f6dd', '#14243A', '#1d3d68'],
-    photo: { scrim: 0.48, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.22, scrimNight: 0.02, glass: false },
     display: 'cormorant',
     body: 'work',
     sub: 'lora',
@@ -609,7 +620,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Stationsbord',
     group: 'dutch',
     light: ['#120f29', '#1f2a73', '#EEF3FA', '#f2b562'],
-    photo: { scrim: 0.36, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.16, scrimNight: 0.02, glass: true },
     display: 'archivo',
     body: 'work',
     sub: 'outfit',
@@ -795,7 +806,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Salie',
     group: 'soft',
     light: ['#d1e1d2', '#eff6ee', '#1B2A1B', '#54704e'],
-    photo: { scrim: 0.52, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
     display: 'figtree',
     body: 'work',
     sub: 'newsreader',
@@ -821,7 +832,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Terminal',
     group: 'technical',
     light: ['#111310', '#151a14', '#B8FFC0', '#98de67'],
-    photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.1, scrimNight: 0.02, glass: true },
     display: 'mono',
     body: 'plex',
     sub: 'grotesk',
@@ -861,7 +872,7 @@ export const STYLES: StyleDef[] = [
     body: 'lora',
     sub: 'cormorant',
     ui: 'inter',
-    photo: { scrim: 0.51, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
   },
 
   /*
@@ -904,7 +915,7 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
     shape: 'arch',
     /* White cloud on black is the brightest subject in the set, so it takes the heaviest wash. */
-    photo: { scrim: 0.43, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: true },
   },
   {
     id: 'riviera',
@@ -918,7 +929,7 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
     shape: 'round',
     /* Solid cards: small print on a busy sea through glass is tiring, whatever the wash. */
-    photo: { scrim: 0.43, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: false },
   },
   {
     id: 'palazzo',
@@ -931,7 +942,7 @@ export const STYLES: StyleDef[] = [
     body: 'work',
     ui: 'work',
     shape: 'plate',
-    photo: { scrim: 0.39, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.18, scrimNight: 0.02, glass: false },
   },
   {
     id: 'storm-tide',
@@ -944,7 +955,7 @@ export const STYLES: StyleDef[] = [
     body: 'plex',
     ui: 'work',
     shape: 'line',
-    photo: { scrim: 0.42, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: false },
   },
   {
     id: 'skyline',
@@ -958,7 +969,7 @@ export const STYLES: StyleDef[] = [
     ui: 'grotesk',
     shape: 'round',
     /* The city lights are the point of the picture, so the wash stays off them. */
-    photo: { scrim: 0.13, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.08, scrimNight: 0.02, glass: true },
   },
   {
     id: 'capsule',
@@ -971,7 +982,7 @@ export const STYLES: StyleDef[] = [
     body: 'inter',
     ui: 'manrope',
     shape: 'pill',
-    photo: { scrim: 0.33, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.15, scrimNight: 0.02, glass: true },
   },
   {
     id: 'toscane',
@@ -984,7 +995,7 @@ export const STYLES: StyleDef[] = [
     body: 'work',
     ui: 'work',
     shape: 'arch',
-    photo: { scrim: 0.36, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.16, scrimNight: 0.02, glass: false },
   },
   {
     id: 'contact',
@@ -1012,7 +1023,7 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
     shape: 'square',
     /* A bright sky and green leaves directly under the page title: the heaviest of the pale five. */
-    photo: { scrim: 0.54, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.24, scrimNight: 0.02, glass: false },
   },
 ];
 

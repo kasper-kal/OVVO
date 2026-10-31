@@ -86,6 +86,27 @@ h1,
   gap: var(--s-2);
 }
 
+/*
+ * **On a photograph, the catalogue carries its own ground.**
+ *
+ * The wash over a style's picture is a tint now, not a lid (see `StylePhoto.scrim`), so the two
+ * places on this page that used to lean on it lean on themselves instead: a tile's name sits on
+ * the tile's own surface rather than on the picture, and a group's label gets the same soft halo
+ * the page name has, so a dark photograph cannot swallow an 11px word.
+ */
+:root[data-background='photo'] .style-tile {
+  background: var(--l1-bg);
+}
+
+:root[data-background='photo'] .style-group__title {
+  display: inline-block;
+  width: fit-content;
+  padding: 3px 9px;
+  margin: -3px -9px;
+  border-radius: 999px;
+  background: var(--canvas-base);
+}
+
 .style-group__title {
   font-family: var(--font-stack);
   font-size: var(--fs-pill);

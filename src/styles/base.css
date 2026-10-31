@@ -181,13 +181,41 @@ body {
 }
 
 /*
- * Over a photo whose cards are **glass**, the wash is lifted: the picture is the point of the mode,
- * and the cards are what keep the type readable now (`[data-surface='glass']` in
- * `components.css`). The lighter wash still protects the page's own headings and the strips
- * between the cards, which have no pane of their own.
+ * Over a photo whose cards are **glass**, the wash is lifted again: the picture is the point of the
+ * mode, and the cards are what keep the type readable now (`[data-surface='glass']` in
+ * `components.css`). It was 40% and is now 18% for the same reason every other wash came down (see
+ * `StylePhoto.scrim`): the page's own headings keep a ground of their own below, so the wash no
+ * longer has to be one.
  */
 :root[data-surface='glass'] {
-  --app-bg-wash: color-mix(in srgb, var(--canvas-base) 40%, transparent);
+  --app-bg-wash: color-mix(in srgb, var(--canvas-base) 18%, transparent);
+}
+
+/*
+ * **The text that sits on the photograph keeps a ground of its own.**
+ *
+ * The wash used to be the only thing standing between a photograph and the page's headings, so it
+ * had to be heavy enough for the darkest corner of any picture — and it *still* was not: the quiet
+ * ink over the dark half of Ultraviolet's night sky measured under 2:1 at 57%, so the picture was
+ * half gone for a promise it could not keep. The page name and its description now sit on the
+ * style's own canvas colour instead. It travels with the head, so the picture scrolling underneath
+ * cannot leave the words without a ground.
+ *
+ * **The ground is the head's own background, not a pseudo-element.** A `::before` behind the words
+ * was tried twice and painted nothing either time: at `z-index: -1` it landed behind the wallpaper
+ * layer, and at `0` — with the head isolated and its children lifted above it — it still did not
+ * show, so the name stayed on the photograph (measured 2.57:1 on Ultraviolet, plainly unreadable).
+ * An element's own background always paints. The padding is given back as a negative margin, so the
+ * name still starts on the page's own left edge and nothing below it moves.
+ *
+ * A solid colour rather than a `color-mix`, because an old WebKit drops the mix and would leave the
+ * name on the picture — the same reason the wash itself is written as `rgba()`.
+ */
+:root[data-background='photo'] .page-head {
+  padding: 10px 14px 12px;
+  margin: -10px -14px -4px;
+  border-radius: var(--r-card, 28px);
+  background: var(--canvas-base);
 }
 
 h1,
@@ -1512,7 +1540,7 @@ svg.map-canvas {
    both have a plain value for a browser that cannot mix (see the note in `tokens.css`). */
 @supports not (color: color-mix(in srgb, #000 50%, transparent)) {
   :root[data-surface='glass'] {
-    --app-bg-wash: rgb(252 251 250 / 0.4);
+    --app-bg-wash: rgb(252 251 250 / 0.18);
   }
 
   :root[data-power='super'] .home-menu__scrim {
