@@ -18,7 +18,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Files and folders that git ignores but that are not throwaway.
-const ALWAYS_INCLUDED = ['.logs/mock/index.html'];
+const ALWAYS_INCLUDED = ['.logs/mock/index.html', '.logs/mock/scenes.html'];
 
 // Folders git ignores that can still hold work worth keeping.
 const WATCHED_FOLDERS = ['.logs', 'shots', 'artifacts'];
