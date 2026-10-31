@@ -165,28 +165,7 @@ function tile(styleId, cornerNumber, note) {
 /* ---------------------------------------------------------------- the page */
 
 const tiles = [];
-const planRows = [];
-
-for (const demo of DEMOS) {
-  planRows.push(
-    `<li><b>${esc(demo.caption)}</b><span class="sc-chips">${demo.styles
-      .map((id) => `<a class="sc-chip" href="#s-${id}">${esc(byId.get(id).name)}</a>`)
-      .join('')}</span></li>`,
-  );
-  for (const id of demo.styles) {
-    const word = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][demo.n - 1];
-    tiles.push(tile(id, demo.n, `Demo ${word} · corner ${demo.n}`));
-  }
-}
-
-for (const row of SHIPPED_ROWS) {
-  planRows.push(
-    `<li><b>${esc(row.shape)}</b><span class="sc-chips">${row.styles
-      .map((id) => `<a class="sc-chip" href="#s-${id}">${esc(byId.get(id).name)}</a>`)
-      .join('')}</span></li>`,
-  );
-  for (const id of row.styles) tiles.push(tile(id, null, `Shipped card · ${row.shape}`));
-}
+for (const style of styles) tiles.push(tile(style.id, null, 'Shipped card'));
 
 const styleRules = [];
 for (const style of styles) {
@@ -251,7 +230,7 @@ ${styleRules.map((rule) => `  ${rule}`).join('\n')}
   <div class="sc-head">
     <div>
       <h1>Thirty styles, one card</h1>
-      <p class="sc-lede">Every style's own page, with one card on it. The card wears the corner the plan pairs with that style, and the colours are the app's own tokens.</p>
+      <p class="sc-lede">Every style's own page, with the card that already ships sitting on it, in that style's own colours.</p>
     </div>
     <div class="sc-switches">
       <div class="segmented" role="group" aria-label="Appearance">
@@ -264,12 +243,6 @@ ${styleRules.map((rule) => `  ${rule}`).join('\n')}
       </div>
     </div>
   </div>
-
-  <h2>The demos</h2>
-  <ul class="sc-plan">${planRows.slice(0, DEMOS.length).join('')}</ul>
-
-  <h2>The shape rows, on the card that already ships</h2>
-  <ul class="sc-plan">${planRows.slice(DEMOS.length).join('')}</ul>
 
   <div class="sc-grid">
     ${tiles.join('\n    ')}
