@@ -221,6 +221,18 @@ export function DeveloperPage() {
               />
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
+            <div className="row">
+              <Button
+                variant="ghost"
+                icon="refresh"
+                onClick={() => {
+                  setDevOverrides({ clockOffset: null });
+                  setClockField(dateTimeValue(appNow()));
+                }}
+              >
+                {t('Use the device’s clock')}
+              </Button>
+            </div>
           </Card>
 
           <Card className="stack">

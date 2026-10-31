@@ -182,7 +182,7 @@ const NL: Record<string, string> = {
   'from {time}': 'vanaf {time}',
   'Next departures from': 'Volgende vertrekken vanaf',
   'Towards': 'Richting',
-  'auto-refresh every {seconds}s': 'automatisch verversen elke {seconds} s',
+  'Auto-refresh every {seconds}s': 'Automatisch verversen elke {seconds} s',
   'Updates only when you tap Refresh': 'Ververs alleen als je op Verversen tikt',
   '{count} delay in this window · ': '{count} vertraging in dit venster · ',
   '{count} delays in this window · ': '{count} vertragingen in dit venster · ',
