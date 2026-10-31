@@ -7310,3 +7310,10 @@
 .dev-dot[data-mood='auto'] {
   color: var(--ink-muted, currentColor);
 }
+
+/* The developer tiles keep the app's pill family out of the way: three lines in a small card need
+   square-ish corners and their own padding, or the curve eats the first letter of every label. */
+.dev-tile {
+  padding: 12px 14px;
+  border-radius: 18px;
+}
