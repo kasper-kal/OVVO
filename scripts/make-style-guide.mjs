@@ -1,5 +1,5 @@
 /**
- * Build the style guide PDF from the app's own definitions.
+ * Build the style list PDF from the app's own definitions.
  *
  * Reads `src/lib/styles.ts` (the catalogue, the font stacks, the authored quartets), renders the
  * pages with the real faces and the real hexes, and prints them with Chromium. Nothing here is
