@@ -684,10 +684,10 @@ export const STYLES: StyleDef[] = [
   /*
    * **Nostalgia.**
    *
-   * The platform at dusk as it is remembered rather than as it looks now: the green enamel of an
-   * old station's pillars and signs, the warm cream of a paper ticket, and one amber lamp still
-   * burning. No blue and no chrome. The pictures people feel this about were printed in warm ink on
-   * cheap paper that has yellowed, not in the cool grey of the phone they are holding.
+   * The platform at dusk as it is remembered rather than as it looks now: soot-brown iron under the
+   * canopy, the warm cream of a paper ticket, and one amber lamp still burning. **Brown, not green**:
+   * the first cut leaned on old enamelled signs and the whole page came out olive (reported), which
+   * is the colour of municipal paint rather than of memory. No blue and no chrome either.
    *
    * Dark on purpose, and warm rather than cold: the lamps under the canopy after the last train
    * has gone, when the platform has emptied and they are the only warm thing left.
@@ -696,8 +696,8 @@ export const STYLES: StyleDef[] = [
     id: 'nostalgia',
     name: 'Nostalgia',
     nameNl: 'Nostalgie',
-    group: 'green',
-    light: ['#121511', '#1F241C', '#F0E7D3', '#D9A05B'],
+    group: 'black',
+    light: ['#141210', '#241E18', '#F0E7D3', '#D9A05B'],
     /*
      * **Quieter lines than the shape asks for.** `soft` derives its hairlines at 1.7:1, which on a
      * page this dark draws a bright outline round every card — a box, where the idea is old paper
@@ -705,8 +705,8 @@ export const STYLES: StyleDef[] = [
      * floor: the edge is there when you look for it, and gone when you are reading.
      */
     pinned: {
-      light: { '--border-hairline': '#2F332A', '--hairline-on-dark': '#2E3229' },
-      dark: { '--border-hairline': '#2F332A', '--hairline-on-dark': '#2E3229' },
+      light: { '--border-hairline': '#282522', '--hairline-on-dark': '#332D26' },
+      dark: { '--border-hairline': '#282522', '--hairline-on-dark': '#332D26' },
     },
     /*
      * **The photograph is the platform at Haarlem, after the last train.** Warm lamps under the old
