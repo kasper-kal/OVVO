@@ -42,7 +42,7 @@ const DEMOS = [
 /* The seven "Implemented" rows are the app's shipped card shapes. The plan gives them no corner,
    so they wear the card that already exists in the app: its own radius, drawn from --shape-scale. */
 const SHIPPED_ROWS = [
-  { shape: 'Soft', styles: ['station-sign', 'skyline'] },
+  { shape: 'Soft', styles: ['nachtnet', 'skyline'] },
   { shape: 'Square', styles: ['tram', 'capsule'] },
   { shape: 'Round', styles: ['obsidian', 'toscane'] },
   { shape: 'Pill', styles: ['contrast', 'contact'] },

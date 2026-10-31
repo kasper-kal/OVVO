@@ -251,7 +251,6 @@ const PHOTO_LIGHT_HEAD = new Set([
   'obsidian',
   'rijksmuseum',
   'skyline',
-  'station-sign',
   'terminal',
   'ultraviolet',
 ]);
@@ -372,7 +371,6 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'broadsheet': 'soft',
   'spoorboekje': 'soft',
   'rijksmuseum': 'arch',
-  'station-sign': 'pill',
   'tram': 'soft',
   'obsidian': 'square',
   'contrast': 'round',
@@ -675,32 +673,7 @@ export const STYLES: StyleDef[] = [
     body: 'work',
     sub: 'lora',
     ui: 'inter',
-  },
-  {
-    /*
-     * **Named for the picture it is worn with.**
-     *
-     * The photograph is a train standing at a platform at dusk: a pale sky going apricot at the
-     * horizon over a blue and cream train, its lamps already lit. Nothing in it is a station sign, so
-     * the name said one thing and the wallpaper another (reported).
-     *
-     * It is the **blue hour** — that short window after sunset when the sky is still blue and the
-     * lamps are on — so that is the name, in both languages, and the palette is read off the picture:
-     * the deep sky at the top as the page, the train's blue as the cards, the warm white of its body
-     * as the ink, and the apricot of the horizon and the lamps as the accent.
-     */
-    id: 'station-sign',
-    name: 'Blue Hour',
-    nameNl: 'Blauw uur',
-    group: 'dutch',
-    light: ['#101A33', '#1B2E52', '#F3EEE6', '#E8A05A'],
-    photo: { scrim: 0.16, scrimNight: 0.02, glass: true },
-    display: 'archivo',
-    body: 'work',
-    sub: 'outfit',
-    ui: 'plex',
-  },
-  /*
+  },  /*
    * **Sprinter.**
    *
    * The commuter train, and the lightest livery on the railway: a body of warm white, a band of
@@ -714,6 +687,14 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Sprinter',
     group: 'dutch',
     light: ['#F4F1E9', '#FFFFFF', '#12305C', '#FFC917'],
+    /*
+     * **A heavier wash than the palette would ask for, because the picture is bright where the name
+     * sits.** The photograph is a train at dusk: pale sky at the top, and the dark window band and
+     * the platform's shadow lower down. Under the default wash the page's own name measured 1.57:1
+     * against those dark patches. Cream at 0.36 lifts the picture to the ink rather than the ink to
+     * the picture, and the photograph still reads as a photograph.
+     */
+    photo: { scrim: 0.36, glass: false },
     shape: 'round',
     display: 'outfit',
     body: 'inter',

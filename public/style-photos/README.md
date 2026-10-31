@@ -27,7 +27,7 @@ remains.
 | Broadsheet      | `broadsheet.jpg`      | Marble       | `marble.jpg`      |
 | Spoorboekje     | `spoorboekje.jpg`     | Arches       | `arches.jpg`      |
 | Rijksmuseum     | `rijksmuseum.jpg`     |              |                   |
-| Blue Hour       | `station-sign.jpg`    | Marble       | `marble.jpg`      |
+| Sprinter        | `sprinter.jpg`        | Marble       | `marble.jpg`      |
 | Arches          | `arches.jpg`          | Summit       | `summit.jpg`      |
 | Cloudbank       | `cloudbank.jpg`       | Riviera      | `riviera.jpg`     |
 | Palazzo         | `palazzo.jpg`         | Storm Tide   | `storm-tide.jpg`  |
