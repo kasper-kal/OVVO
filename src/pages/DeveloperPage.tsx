@@ -64,6 +64,15 @@ export function DeveloperPage() {
   const [clockField, setClockField] = useState(() => dateTimeValue(appNow()));
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
+  /* What the app is doing with the level it now believes, in the same words Settings uses. */
+  const modeLabel =
+    power.mode === 'last'
+      ? t('Last drop')
+      : power.mode === 'super'
+        ? t('Super saving')
+        : power.mode === 'save'
+          ? t('Saving')
+          : t('Off');
   const clock = appNow();
   const clockLabel = `${format.date(`${clock.getFullYear()}-${pad(clock.getMonth() + 1)}-${pad(
     clock.getDate(),
@@ -95,33 +104,35 @@ export function DeveloperPage() {
           <Card className="stack">
             <h2 className="t-section">{t('Battery')}</h2>
             <Field
-              label={t('Level')}
+              /* The number rides on the label, the way the battery reading in Settings does, so the
+                 value is not written a second time under a rail that already shows it. */
+              label={percent === null ? t('Level') : t('Level · {percent}%', { percent })}
               hint={
                 dev.battery === null
                   ? t('The device’s own battery is being read.')
-                  : t('The app sees {percent}% and is in {mode}.', {
-                      percent: percent ?? 0,
-                      mode:
-                        power.mode === 'last'
-                          ? t('Last drop')
-                          : power.mode === 'super'
-                            ? t('Super saving')
-                            : power.mode === 'save'
-                              ? t('Saving')
-                              : t('Off'),
-                    })
+                  : t('The app is in {mode}.', { mode: modeLabel })
               }
             >
-              <input
-                className="input"
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={percent ?? 100}
-                onChange={(event) => setDevOverrides({ battery: Number(event.target.value) / 100 })}
-                aria-label={t('Battery level')}
-              />
+              {/*
+                **The slider the rest of the app already uses, with the knob reaching its ends.**
+
+                This was a bare `input`, so it drew the browser's own blue control — the only one
+                on the site — and at 0% its knob sat a thumb's width inside the rail, which reads as
+                "not actually at the start" (reported, circled). `.range` is the app's coral slider
+                (the walking-time one), and `--flush` moves the input out by half a thumb so the
+                knob's centre lands on the rail's end at both 0 and 100.
+              */}
+              <div className="range range--flush">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={percent ?? 100}
+                  onChange={(event) => setDevOverrides({ battery: Number(event.target.value) / 100 })}
+                  aria-label={t('Battery level')}
+                />
+              </div>
             </Field>
             <Switch
               checked={dev.charging}

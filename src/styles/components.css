@@ -3603,6 +3603,20 @@
   border: 2px solid var(--surface-raised);
 }
 
+/*
+ * The developer panel's level slider: the knob reaches the ends of its rail.
+ *
+ * A native range puts the knob's centre half a thumb inside the track at its minimum, so 0% drew a
+ * knob floating away from the start of a rail with nothing to its left, which reads as a control
+ * that is not actually at its minimum (reported). The input is widened by one thumb and pulled out
+ * by half of it either side, so 0 puts the knob's centre on the left end and 100 puts it on the
+ * right. The card's own padding absorbs the overhang.
+ */
+.range--flush input[type='range'] {
+  width: calc(100% + 26px);
+  margin-inline: -13px;
+}
+
 /* -------------------------------------------------------------- Mode badges */
 .mode-badge {
   display: inline-flex;
