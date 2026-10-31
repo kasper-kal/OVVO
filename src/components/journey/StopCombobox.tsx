@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { NEIGHBOURS_EVENT } from '../../lib/simulation';
 import { useApp } from '../../state/AppState';
 import { customStopName, stopLabel } from '../../data/stops';
 import { modeLabel } from '../../data/preferences';
@@ -388,6 +389,16 @@ export function StopCombobox({
     setGhost(true);
     ghostTimer.current = window.setTimeout(() => setGhost(false), 2600);
   };
+
+  /* Developer mode can bring the row up on demand (`ui/DevPanel`), which is the only way to see it
+     without typing the number first. */
+  useEffect(() => {
+    window.addEventListener(NEIGHBOURS_EVENT, showNeighbours);
+    return () => {
+      window.removeEventListener(NEIGHBOURS_EVENT, showNeighbours);
+      window.clearTimeout(ghostTimer.current);
+    };
+  });
 
   return (
     <div className="combobox" ref={rootRef}>

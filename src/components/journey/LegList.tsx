@@ -9,6 +9,7 @@ import { Icon, ModeIcon } from '../ui/Icons';
 import { StopLink } from '../stops/StopLink';
 import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
+import { PUNCH_EVENT } from '../../lib/simulation';
 
 /**
  * **The conductor's punch.**
@@ -17,8 +18,6 @@ import type { Journey, Leg } from '../../data/types';
  * ticket gets checked. Nothing says so, nothing is saved, and the tags stay ordinary pills: a tap
  * on one does what a tap on a pill has always done, which is nothing.
  */
-const PUNCH_EVENT = 'ovvo:punch';
-
 function usePunched(): boolean {
   const [punched, setPunched] = useState(false);
   useEffect(() => {

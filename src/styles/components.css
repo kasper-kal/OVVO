@@ -7220,3 +7220,93 @@
   background: var(--l1-bg);
   color: var(--ink-strong);
 }
+
+/* ---------------------------------------------------------------- developer panel */
+/*
+ * The sheet the switch in Settings opens (`ui/DevPanel`). It is a grid of tiles rather than a list
+ * of rows because every entry is one small thing to look at, and a phone should show two of them
+ * across without scrolling sideways: two columns from the start, three once there is room, and a
+ * tile tall enough for a thumb at the app's 44px rule (it is taller than that, which is fine — a
+ * tile is pressed often and read once).
+ *
+ * The chosen tile is drawn with a ring, not a colour: a style can repaint every surface, so the
+ * only safe way to say "this one is on" is a line that follows the ink. The dot in its corner is
+ * the mood's own colour, so the grid looks like the thing it controls.
+ */
+.dev-panel {
+  max-height: min(86vh, 760px);
+  overflow-y: auto;
+}
+
+.dev-panel__group + .dev-panel__group {
+  margin-top: var(--s-4);
+}
+
+.dev-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+@media (min-width: 560px) {
+  .dev-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.dev-tile {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 78px;
+  white-space: normal;
+  text-align: left;
+}
+
+.dev-tile[aria-pressed='true'] {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.dev-dot {
+  width: 9px;
+  height: 9px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.dev-tile[aria-pressed='true'] .dev-dot {
+  opacity: 1;
+}
+
+.dev-dot[data-mood='rain'] {
+  color: #6fa8c9;
+}
+
+.dev-dot[data-mood='snow'] {
+  color: #9fb6c9;
+}
+
+.dev-dot[data-mood='fireworks'] {
+  color: #ff7e67;
+}
+
+.dev-dot[data-mood='lights'] {
+  color: #e0a75a;
+}
+
+.dev-dot[data-mood='christmas'] {
+  color: #4f8f6b;
+}
+
+.dev-dot[data-mood='pepernoten'] {
+  color: #8a5a34;
+}
+
+.dev-dot[data-mood='auto'] {
+  color: var(--ink-muted, currentColor);
+}

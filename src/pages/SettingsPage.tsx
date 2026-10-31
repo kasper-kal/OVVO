@@ -5,6 +5,7 @@ import { PageHeader } from '../components/layout/AppShell';
 import { StopCombobox } from '../components/journey/StopCombobox';
 import { getStop } from '../data/stops';
 import { Banner, Button, Card, Dialog, Field, Pill, Segmented, Switch } from '../components/ui/primitives';
+import { DevPanel } from '../components/ui/DevPanel';
 import { styleById } from '../lib/styles';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { paletteFor } from '../lib/palette';
@@ -169,6 +170,7 @@ export function SettingsPage() {
      "currently in effect" labels below must read the half that is being drawn. */
   const palette = paletteFor(settings, appearance);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [devPanel, setDevPanel] = useState(false);
   const [origin, setOrigin] = useState<Stop | null>(getStop(settings.defaultOriginStopId ?? undefined) ?? null);
   /*
    * While the browser is being asked for a fix.
@@ -309,6 +311,25 @@ export function SettingsPage() {
               label={t('Reduce motion')}
               description={t('Turns off the spring press and hover transitions.')}
             />
+            {/*
+              **Developer mode.** Off by default, and the only thing it adds is one sheet: the
+              weather, the calendar and the three jokes, each on demand (`ui/DevPanel`). It sits
+              with the two appearance switches because that is what it is for — looking at how the
+              app draws — and the panel itself is never on screen unless this is on and pressed.
+            */}
+            <Switch
+              checked={settings.developer ?? false}
+              onChange={(next) => updateSettings({ developer: next })}
+              label={t('Developer mode')}
+              description={t('Adds a panel for checking the hidden effects without waiting for the calendar.')}
+            />
+            {settings.developer ? (
+              <div className="row-wrap">
+                <Button variant="surface" icon="settings" onClick={() => setDevPanel(true)}>
+                  {t('Open the developer panel')}
+                </Button>
+              </div>
+            ) : null}
             {/*
               Battery saving is a reading, not a control, so it is drawn the way the page draws
               every other reading: a label, a sentence, and the value on the right. There is
@@ -629,6 +650,8 @@ export function SettingsPage() {
         </Button>
       </div>
 
+
+      <DevPanel open={devPanel} onClose={() => setDevPanel(false)} />
 
       <Dialog
         open={confirmReset}

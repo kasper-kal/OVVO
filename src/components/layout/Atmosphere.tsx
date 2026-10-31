@@ -17,8 +17,9 @@
  * loses to the calendar: a white Christmas stays a white Christmas even if it is raining outside.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { calendarMood, readWeather, type Mood } from '../../lib/atmosphere';
+import { getForcedMood, subscribeSimulation } from '../../lib/simulation';
 
 type Flake = {
   x: number;
@@ -316,6 +317,8 @@ function useRootFlag(name: 'motion' | 'power'): boolean {
 export function Atmosphere() {
   const [calendar, setCalendar] = useState<Mood | null>(() => calendarMood());
   const [weather, setWeather] = useState<'rain' | 'snow' | null>(null);
+  /* Developer mode's choice, which outranks both the date and the sky (`lib/simulation`). */
+  const forced = useSyncExternalStore(subscribeSimulation, getForcedMood);
   const reduced = useRootFlag('motion');
   const saving = useRootFlag('power');
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -340,7 +343,7 @@ export function Atmosphere() {
     };
   }, []);
 
-  const mood = calendar ?? weather;
+  const mood = forced ?? calendar ?? weather;
 
   useEffect(() => {
     const canvas = canvasRef.current;

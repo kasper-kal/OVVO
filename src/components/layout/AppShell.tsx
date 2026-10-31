@@ -11,6 +11,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { useT } from '../../lib/useT';
 import { translate } from '../../lib/i18n';
 import { useApp } from '../../state/AppState';
+import { TRAM_EVENT } from '../../lib/simulation';
 
 /**
  * Application shell.
@@ -227,6 +228,18 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
     },
     [],
   );
+
+  /* Developer mode's own button (`ui/DevPanel`): the same tram, without the two-second hold. The
+     energy-saving refusal is the same one the hold obeys, so the panel cannot show something the
+     real gesture would never do. */
+  useEffect(() => {
+    const hop = () => {
+      if (power.mode === 'super') return;
+      setTram((run) => run + 1);
+    };
+    window.addEventListener(TRAM_EVENT, hop);
+    return () => window.removeEventListener(TRAM_EVENT, hop);
+  }, [power.mode]);
 
   const lastHomeTap = useRef(0);
   const onHomeClick = (event: MouseEvent<HTMLAnchorElement>) => {
