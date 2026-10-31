@@ -111,12 +111,40 @@ export function StyleSettings() {
   const name = (style: { name: string; nameNl: string }) => (dutch ? style.nameNl : style.name);
 
   /*
+   * **One tile, drawn once.** The Upcoming shelf used to be its own card with its own heading, its
+   * own row and its own proportions — a second kind of thing beside the catalogue, which is exactly
+   * what it was reported as ("Upcoming should look like any other category"). The shelf below is
+   * now a heading and a grid like every other group, and both places draw the same tile from here,
+   * so the seasonal one cannot drift away from the catalogue's own shape again.
+   */
+  const tileFace = (style: (typeof STYLES)[number]) => {
+    const colours = stylePalette(style, appearance);
+    const shape = styleShape(style);
+    return (
+      <>
+        {/* The swatch is cut to the style's own shape, so the catalogue shows the geometry and not only the colours. */}
+        <span
+          className="style-tile__swatch"
+          aria-hidden="true"
+          style={{ borderRadius: Math.min(20, Math.round(9 * shape.scale)), borderWidth: shape.line }}
+        >
+          <span style={{ background: colours.canvas }} />
+          <span style={{ background: colours.card }} />
+          <span style={{ background: colours.accent }} />
+        </span>
+        <span className="style-tile__name" style={{ fontFamily: styleDisplayFamily(style) }}>
+          {name(style)}
+        </span>
+      </>
+    );
+  };
+
+  /*
    * **The next holiday, if it is close enough to matter.** Nothing is drawn on an ordinary day: the
    * row exists only inside the three-week window, so its absence is the normal state rather than a
    * slot that has to say "nothing coming".
    */
   const upcoming = upcomingHoliday();
-  const upcomingColours = upcoming ? stylePalette(upcoming.style, appearance) : null;
   const countdown =
     upcoming === null
       ? ''
@@ -136,27 +164,6 @@ export function StyleSettings() {
 
   return (
     <div className="style-picker">
-      {upcoming && upcomingColours && (
-        <Card className="style-upcoming">
-          <span className="style-upcoming__kicker">{t('Upcoming')}</span>
-          <button
-            type="button"
-            className="style-upcoming__row"
-            onClick={() => updateSettings({ styleId: upcoming.style.id })}
-          >
-            <span className="style-current__swatches" aria-hidden="true">
-              <span style={{ background: upcomingColours.canvas }} />
-              <span style={{ background: upcomingColours.card }} />
-              <span style={{ background: upcomingColours.accent }} />
-            </span>
-            <span className="style-current__label">
-              <span className="style-current__name">{name(upcoming.style)}</span>
-              <span className="t-faint t-sm">{countdown}</span>
-            </span>
-          </button>
-        </Card>
-      )}
-
       <Card className="style-current">
         <div className="style-current__head">
           <span className="style-current__swatches" aria-hidden="true">
@@ -200,6 +207,30 @@ export function StyleSettings() {
       </Card>
 
       <div className="style-list" role="radiogroup" aria-label={t('Styles')}>
+        {/*
+         * **Upcoming is a shelf, not a card.** It sits first, under the same heading and in the
+         * same grid as every other category, and it is simply absent on an ordinary day. The
+         * countdown rides on the heading line so the tile itself stays the tile the catalogue
+         * draws — one shape, one size, one way to choose.
+         */}
+        {upcoming && (
+          <div className="style-group">
+            <div className="style-group__head">
+              <h2 className="style-group__title">{t('Upcoming')}</h2>
+              <span className="style-group__note">{countdown}</span>
+            </div>
+            <div className="style-grid">
+              <button
+                type="button"
+                className="style-tile"
+                data-selected={upcoming.style.id === current.id ? 'true' : undefined}
+                onClick={() => updateSettings({ styleId: upcoming.style.id })}
+              >
+                {tileFace(upcoming.style)}
+              </button>
+            </div>
+          </div>
+        )}
         {STYLE_GROUPS.map((group) => {
           const members = STYLES.filter((style) => style.group === group.id);
           if (members.length === 0) return null;
@@ -209,7 +240,6 @@ export function StyleSettings() {
               <h2 className="style-group__title">{dutch ? group.labelNl : group.label}</h2>
               <div className="style-grid">
                 {members.map((style) => {
-                  const colours = stylePalette(style, appearance);
                   const selected = style.id === current.id;
                   return (
                     <button
@@ -234,22 +264,7 @@ export function StyleSettings() {
                         a 7px dot, which is why a style called Navy and Gold looked like Navy: the
                         gold was there, at the size of a full stop.
                       */}
-                      {/* The swatch is cut to the style's own shape, so the catalogue shows the geometry and not only the colours. */}
-                      <span
-                        className="style-tile__swatch"
-                        aria-hidden="true"
-                        style={{
-                          borderRadius: Math.min(20, Math.round(9 * styleShape(style).scale)),
-                          borderWidth: styleShape(style).line,
-                        }}
-                      >
-                        <span style={{ background: colours.canvas }} />
-                        <span style={{ background: colours.card }} />
-                        <span style={{ background: colours.accent }} />
-                      </span>
-                      <span className="style-tile__name" style={{ fontFamily: styleDisplayFamily(style) }}>
-                        {name(style)}
-                      </span>
+                      {tileFace(style)}
                     </button>
                   );
                 })}
