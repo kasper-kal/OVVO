@@ -914,7 +914,8 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Salie',
     group: 'green',
     light: ['#d1e1d2', '#eff6ee', '#1B2A1B', '#54704e'],
-    photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
+    /* The picture carries the green now, so less of the page is laid over it. */
+    photo: { scrim: 0.18, scrimNight: 0.02, glass: false },
     display: 'figtree',
     body: 'work',
     sub: 'newsreader',
