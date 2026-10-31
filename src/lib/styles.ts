@@ -700,6 +700,63 @@ export const STYLES: StyleDef[] = [
     sub: 'outfit',
     ui: 'plex',
   },
+  /*
+   * **Sprinter.**
+   *
+   * The commuter train, and the lightest livery on the railway: a body of warm white, a band of
+   * deep blue around the windows, and doors painted the one yellow that is allowed to mean "here".
+   * So the page is the body, the cards are the panels, the ink is the band, and the accent is the
+   * door — the same yellow as the Spoorboekje cover, used for the thing you actually press.
+   */
+  {
+    id: 'sprinter',
+    name: 'Sprinter',
+    nameNl: 'Sprinter',
+    group: 'dutch',
+    light: ['#F4F1E9', '#FFFFFF', '#12305C', '#FFC917'],
+    shape: 'round',
+    display: 'outfit',
+    body: 'inter',
+    sub: 'grotesk',
+    ui: 'inter',
+  },
+  /*
+   * **Perron.**
+   *
+   * The platform itself: pale concrete underfoot, the white line at the edge, and the red that marks
+   * where you may not stand. A page with no colour of its own, so the timetable laid on it is the
+   * only thing that catches the eye — which is what a platform is.
+   */
+  {
+    id: 'perron',
+    name: 'Perron',
+    nameNl: 'Perron',
+    group: 'dutch',
+    light: ['#E6E4DE', '#FAF8F3', '#232428', '#B3271E'],
+    display: 'grotesk',
+    body: 'work',
+    sub: 'archivo',
+    ui: 'inter',
+  },
+  /*
+   * **Nachtnet.**
+   *
+   * The night bus and the last train: a near-black blue page, warm white lettering, and the amber of
+   * a stop that is still lit. It is the one style here that starts dark on purpose rather than
+   * turning over at night, because the thing it is named after only runs after dark.
+   */
+  {
+    id: 'nachtnet',
+    name: 'Nachtnet',
+    nameNl: 'Nachtnet',
+    group: 'dutch',
+    light: ['#0E1526', '#18213A', '#F3EFE5', '#F0B429'],
+    shape: 'pill',
+    display: 'figtree',
+    body: 'manrope',
+    sub: 'outfit',
+    ui: 'manrope',
+  },
   {
     id: 'tram',
     name: 'Default',
