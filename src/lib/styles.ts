@@ -1383,10 +1383,11 @@ export const STYLES: StyleDef[] = [
    * section headings in a distressed typewriter, which is a poster for a party rather than a page you
    * use (reported, plainly: "I hate the Halloween fonts"). Both are gone. The title is Fraunces, a
    * soft old serif with a slight wonk in its curves, which reads as something printed a century ago
-   * without pretending to be a cartoon; the section headings are Archivo, a firm grotesque, so the
-   * words a traveller actually reads stay crisp under a title that is allowed to have character. The
-   * body is a plain sans and the interface face is the app's own, so nothing with a time or a platform
-   * on it is ever dressed up.
+   * without pretending to be a cartoon, and it was kept on sight. The section headings first went to
+   * Archivo, and a heavy corporate grotesque under that title was rejected on sight too, so they are
+   * Newsreader: a text serif drawn for reading at small sizes, sturdy enough at 18px that a heading is
+   * not a whisper, and made of the same paper as the title instead of fighting it. The body is a plain
+   * sans and the interface face is the app's own, so nothing with a time or a platform is dressed up.
    */
   {
     id: 'halloween',
@@ -1397,7 +1398,7 @@ export const STYLES: StyleDef[] = [
     photo: { scrim: 0.18, scrimNight: 0.02, glass: true },
     shape: 'arch',
     display: 'fraunces',
-    sub: 'archivo',
+    sub: 'newsreader',
     body: 'inter',
     ui: 'work',
   },
