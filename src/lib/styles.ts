@@ -1182,7 +1182,7 @@ function wash(hex: string, alpha: number): string {
  * its own `night` — the ten dark-first styles author theirs, because their page is *already* dark
  * and a derived night would flatten them into the same near-black.
  */
-function nightOf([canvas, , ink, accent]: Quad): Quad {
+function nightOf([canvas, card, ink, accent]: Quad): Quad {
   const { h, s } = hexToHsv(canvas);
   /*
    * **The night cut keeps the style's own hue.** It used to be the page mixed 88% toward near-black
@@ -1197,13 +1197,26 @@ function nightOf([canvas, , ink, accent]: Quad): Quad {
    * brightness in the cut, a deep one keeps a little less.
    */
   const { v: sourceValue } = hexToHsv(canvas);
+  const { v: cardValue } = hexToHsv(card);
   const depth = 0.075 + Math.min(1, sourceValue) * 0.085;
   const tint = (value: number) => hsvToHex({ h, s: Math.min(0.55, s * 1.6 + 0.1), v: value });
-  const page = tint(depth);
-  const card = tint(depth + 0.06);
+  /*
+   * **Night is the darker half of a style, and that has to hold on a page that is already dark.**
+   *
+   * The depth was an absolute value with a floor (0.075 plus a little of the page's own
+   * brightness), which is right for a pale page and wrong for a near-black one: Obsidian's page is
+   * `#111112`, so the "night" came out `#111115`, Contact's `#080707` became `#140e0e`, and Night
+   * AA's pure black page became a grey. Dark mode was lighter than light mode on six styles.
+   *
+   * The depth is now capped by the day value it came from, so the night page is always below its
+   * own day page and the night card below its own day card. A black page stays black; everything
+   * else keeps its hue and simply goes one step darker.
+   */
+  const page = tint(Math.min(depth, sourceValue * 0.8));
+  const cardTone = tint(Math.min(depth + 0.06, cardValue * 0.85));
   const light = mixHex(ink, MAX, 0.88);
-  const lit = toward(accent, card, 3.4);
-  return [page, card, light, lit];
+  const lit = toward(accent, cardTone, 3.4);
+  return [page, cardTone, light, lit];
 }
 
 /** The four authored colours in force in `appearance`. */
