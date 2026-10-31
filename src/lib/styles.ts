@@ -103,7 +103,7 @@ export const STYLE_GROUPS: StyleGroup[] = [
     label: 'Black',
     labelNl: 'Zwart',
     note: 'No colour at all: black pages, white words.',
-    noteNl: 'Geen kleur: zwarte pagina's, witte letters.',
+    noteNl: 'Geen kleur: zwarte bladzijden, witte letters.',
   },
   {
     id: 'cream',
@@ -331,16 +331,6 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'tram': 'soft',
   'obsidian': 'square',
   'contrast': 'round',
-  /*
-   * **The plainest reading answer gets the plainest geometry.**
-   *
-   * This was `arch` — the roundest shape in the catalogue, a 44px corner on every card — and that
-   * was never a judgement about the style: the shapes are spread so two neighbours on a shelf are
-   * never the same, Contrast had already taken `round`, and All Black was pushed to the far end to
-   * keep the pair apart. On a style whose whole promise is a flat black page and white ink, the
-   * result was the least professional geometry in the app on its most serious look (reported).
-   * Square corners, a rule you can see, flat on the page: print, not a bubble.
-   */
   'night-aa': 'square',
   'sage': 'pill',
   'mustard': 'soft',
@@ -348,6 +338,7 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'blueprint': 'square',
   'marble': 'round',
   'arches': 'pill',
+  'perron': 'square',
 };
 
 /** The shape a style draws, for anything that previews it (the picker's swatches). */
@@ -495,7 +486,6 @@ export const STYLES: StyleDef[] = [
     name: 'Navy and Gold',
     nameNl: 'Navy en goud',
     group: 'blue',
-    shape: 'soft',
     light: ['#121d29', '#1b2e45', '#F4F1EA', '#c0a171'],
     photo: { scrim: 0.2, scrimNight: 0.02, glass: true },
     /* The same face as Midnight Silk: the owner prefers it to Cormorant here, and the two styles
@@ -510,7 +500,6 @@ export const STYLES: StyleDef[] = [
     name: 'Midnight Silk',
     nameNl: 'Middernachtzijde',
     group: 'wine',
-    shape: 'soft',
     light: ['#1A1410', '#2A211A', '#F3EADC', '#CBAE7E'],
     photo: { scrim: 0.19, scrimNight: 0.02, glass: true },
     display: 'instrument',
@@ -523,7 +512,6 @@ export const STYLES: StyleDef[] = [
     name: 'Bordeaux',
     nameNl: 'Bordeaux',
     group: 'wine',
-    shape: 'arch',
     light: ['#291116', '#4c1a24', '#F7EFE9', '#D8B46A'],
     photo: { scrim: 0.02, scrimNight: 0.02, glass: true },
     display: 'cormorant',
@@ -537,7 +525,6 @@ export const STYLES: StyleDef[] = [
     name: 'Poppy Blue',
     nameNl: 'Klaproosblauw',
     group: 'blue',
-    shape: 'pill',
     light: ['#c9dbf0', '#e6f0fa', '#0F2A44', '#e25138'],
     photo: { scrim: 0.22, scrimNight: 0.06, glass: false },
     display: 'grotesk',
@@ -550,7 +537,6 @@ export const STYLES: StyleDef[] = [
     name: 'Ultraviolet',
     nameNl: 'Ultraviolet',
     group: 'wine',
-    shape: 'line',
     light: ['#dccef7', '#f1eaff', '#241247', '#5935b5'],
     photo: { scrim: 0.26, scrimNight: 0.02, glass: false },
     display: 'manrope',
@@ -563,7 +549,6 @@ export const STYLES: StyleDef[] = [
     name: 'Cyber Teal',
     nameNl: 'Cyberteal',
     group: 'green',
-    shape: 'soft',
     light: ['#bde2e9', '#e2f8fa', '#05322F', '#065f70'],
     photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
     display: 'grotesk',
@@ -577,7 +562,6 @@ export const STYLES: StyleDef[] = [
     name: 'Broadsheet',
     nameNl: 'Krant',
     group: 'cream',
-    shape: 'soft',
     light: ['#eae4dc', '#fbfaf6', '#141110', '#8b603a'],
     photo: { scrim: 0.2, scrimNight: 0.02, glass: false },
     display: 'newsreader',
@@ -605,7 +589,6 @@ export const STYLES: StyleDef[] = [
     name: 'Spoorboekje',
     nameNl: 'Spoorboekje',
     group: 'gold',
-    shape: 'soft',
     light: ['#FFC917', '#FFFCF0', '#001D52', '#C8102E'],
     /*
      * **The quiet ink and the rule are the book's own, not a mix toward its paper.**
@@ -692,7 +675,6 @@ export const STYLES: StyleDef[] = [
     name: 'Perron',
     nameNl: 'Perron',
     group: 'cream',
-    shape: 'square',
     light: ['#E6E4DE', '#FAF8F3', '#232428', '#B3271E'],
     display: 'grotesk',
     body: 'work',
@@ -744,7 +726,6 @@ export const STYLES: StyleDef[] = [
     name: 'Default',
     nameNl: 'Standaard',
     group: 'cream',
-    shape: 'soft',
     light: ['#FCFBFA', '#FFFFFF', '#18181B', '#FF7E67'],
     /*
      * **The app's own dark appearance, written out rather than derived.**
@@ -882,7 +863,6 @@ export const STYLES: StyleDef[] = [
     name: 'Obsidian',
     nameNl: 'Obsidiaan',
     group: 'black',
-    shape: 'square',
     light: ['#111112', '#17171a', '#F2F0EC', '#8FB8FF'],
     photo: { scrim: 0.02, scrimNight: 0.02, glass: true },
     display: 'inter',
@@ -896,7 +876,6 @@ export const STYLES: StyleDef[] = [
     name: 'Contrast',
     nameNl: 'Contrast',
     group: 'cream',
-    shape: 'round',
     light: ['#FFFFFF', '#FFFFFF', '#000000', '#0033CC'],
     display: 'inter',
     body: 'work',
@@ -915,7 +894,6 @@ export const STYLES: StyleDef[] = [
     name: 'All Black',
     nameNl: 'Pikzwart',
     group: 'black',
-    shape: 'square',
     light: ['#000000', '#0E0E0E', '#FFFFFF', '#FFD400'],
     display: 'inter',
     body: 'work',
@@ -929,7 +907,6 @@ export const STYLES: StyleDef[] = [
     name: 'Sage',
     nameNl: 'Salie',
     group: 'green',
-    shape: 'pill',
     light: ['#d1e1d2', '#eff6ee', '#1B2A1B', '#54704e'],
     photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
     display: 'figtree',
@@ -943,7 +920,6 @@ export const STYLES: StyleDef[] = [
     name: 'Mustard',
     nameNl: 'Mosterd',
     group: 'gold',
-    shape: 'soft',
     light: ['#f7dba6', '#fff2cf', '#2A1E02', '#a36c11'],
     photo: { scrim: 0.02, scrimNight: 0.02, glass: false },
     display: 'outfit',
@@ -957,7 +933,6 @@ export const STYLES: StyleDef[] = [
     name: 'Terminal',
     nameNl: 'Terminal',
     group: 'green',
-    shape: 'round',
     light: ['#111310', '#151a14', '#B8FFC0', '#98de67'],
     photo: { scrim: 0.1, scrimNight: 0.02, glass: true },
     display: 'mono',
@@ -983,7 +958,6 @@ export const STYLES: StyleDef[] = [
     name: 'Blueprint',
     nameNl: 'Blauwdruk',
     group: 'blue',
-    shape: 'square',
     light: ['#0F3A69', '#1A4C81', '#EAF2FB', '#8FD3FF'],
     display: 'plex',
     body: 'work',
@@ -1046,7 +1020,6 @@ export const STYLES: StyleDef[] = [
     name: 'Marble',
     nameNl: 'Marmer',
     group: 'cream',
-    shape: 'round',
     light: ['#ebe3d8', '#f6f2ed', '#181513', '#C9BFA9'],
     display: 'cormorant',
     body: 'work',
@@ -1059,7 +1032,6 @@ export const STYLES: StyleDef[] = [
     name: 'Arches',
     nameNl: 'Bogen',
     group: 'black',
-    shape: 'pill',
     light: ['#1e1c22', '#24242c', '#EDE8DF', '#b08c61'],
     display: 'playfair',
     body: 'lora',
