@@ -39,17 +39,16 @@ const DEMOS = [
   { n: 9, caption: 'Nine. Cut corners with a pinched top and bottom.', styles: ['rijksmuseum', 'storm-tide'] },
 ];
 
-/* The style rows under the plan name a shape, not a corner, so each is given the corner that
-   reads closest to that shape. This is the one place a choice was made rather than read off the
-   page, and it is the list to change if a pairing looks wrong. */
-const SHAPE_ROWS = [
-  { shape: 'Soft', styles: ['station-sign', 'skyline'], n: 1 },
-  { shape: 'Square', styles: ['tram', 'capsule'], n: 3 },
-  { shape: 'Round', styles: ['obsidian', 'toscane'], n: 6 },
-  { shape: 'Pill', styles: ['contrast', 'contact'], n: 5 },
-  { shape: 'Line', styles: ['night-aa', 'loggia'], n: 8 },
-  { shape: 'Plate', styles: ['sage'], n: 2 },
-  { shape: 'Arch', styles: ['mustard'], n: 7 },
+/* The seven "Implemented" rows are the app's shipped card shapes. The plan gives them no corner,
+   so they wear the card that already exists in the app: its own radius, drawn from --shape-scale. */
+const SHIPPED_ROWS = [
+  { shape: 'Soft', styles: ['station-sign', 'skyline'] },
+  { shape: 'Square', styles: ['tram', 'capsule'] },
+  { shape: 'Round', styles: ['obsidian', 'toscane'] },
+  { shape: 'Pill', styles: ['contrast', 'contact'] },
+  { shape: 'Line', styles: ['night-aa', 'loggia'] },
+  { shape: 'Plate', styles: ['sage'] },
+  { shape: 'Arch', styles: ['mustard'] },
 ];
 
 /* ---------------------------------------------------------------- the app's own tokens */
@@ -132,18 +131,24 @@ function shellVars(appearance) {
 
 function tile(styleId, cornerNumber, note) {
   const style = byId.get(styleId);
-  const corner = corners.get(cornerNumber);
-  if (!style || !corner) throw new Error(`Missing style ${styleId} or corner ${cornerNumber}`);
+  const corner = cornerNumber === null ? null : corners.get(cornerNumber);
+  if (!style || (cornerNumber !== null && !corner)) throw new Error(`Missing style ${styleId} or corner ${cornerNumber}`);
+  const radius = Math.min(28 * Number(style.light['--shape-scale'] ?? 1), 56);
+  const shipped = radius
+    ? `M${radius} 0 H${440 - radius} A${radius} ${radius} 0 0 1 440 ${radius} V${280 - radius} A${radius} ${radius} 0 0 1 ${440 - radius} 280 H${radius} A${radius} ${radius} 0 0 1 0 ${280 - radius} V${radius} A${radius} ${radius} 0 0 1 ${radius} 0 Z`
+    : 'M0 0 H440 V280 H0 Z';
+  const path = corner ? corner.path : shipped;
+  const label = corner ? corner.caption : 'the shipped card';
   const photoFree = style.photo === null || (!has(style.id, 'light') && !has(style.id, 'dark'));
   return [
     `<article class="sc-tile${photoFree ? ' sc-nophoto' : ''}" id="s-${style.id}" data-name="${esc(style.name)}">`,
     '  <div class="sc-scene">',
     '    <div class="sc-paper"></div>',
     '    <div class="sc-photo"></div>',
-    `    <svg class="sc-card" viewBox="0 0 ${VIEW_W} ${VIEW_H}" role="img" aria-label="${esc(style.name)}, ${esc(corner.caption)}">`,
-    `      <defs><clipPath id="clip-${style.id}"><path d="${corner.path}"/></clipPath></defs>`,
-    `      <path class="sc-fill" d="${corner.path}"/>`,
-    `      <g clip-path="url(#clip-${style.id})"><path class="sc-edge" d="${corner.path}"/></g>`,
+    `    <svg class="sc-card" viewBox="0 0 ${VIEW_W} ${VIEW_H}" role="img" aria-label="${esc(style.name)}, ${esc(label)}">`,
+    `      <defs><clipPath id="clip-${style.id}"><path d="${path}"/></clipPath></defs>`,
+    `      <path class="sc-fill" d="${path}"/>`,
+    `      <g clip-path="url(#clip-${style.id})"><path class="sc-edge" d="${path}"/></g>`,
     '      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>',
     '      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>',
     '      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>',
@@ -174,13 +179,13 @@ for (const demo of DEMOS) {
   }
 }
 
-for (const row of SHAPE_ROWS) {
+for (const row of SHIPPED_ROWS) {
   planRows.push(
     `<li><b>${esc(row.shape)}</b><span class="sc-chips">${row.styles
       .map((id) => `<a class="sc-chip" href="#s-${id}">${esc(byId.get(id).name)}</a>`)
       .join('')}</span></li>`,
   );
-  for (const id of row.styles) tiles.push(tile(id, row.n, `${row.shape} · corner ${row.n}`));
+  for (const id of row.styles) tiles.push(tile(id, null, `Shipped card · ${row.shape}`));
 }
 
 const styleRules = [];
@@ -263,7 +268,7 @@ ${styleRules.map((rule) => `  ${rule}`).join('\n')}
   <h2>The demos</h2>
   <ul class="sc-plan">${planRows.slice(0, DEMOS.length).join('')}</ul>
 
-  <h2>The shape rows</h2>
+  <h2>The shape rows, on the card that already ships</h2>
   <ul class="sc-plan">${planRows.slice(DEMOS.length).join('')}</ul>
 
   <div class="sc-grid">
