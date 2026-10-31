@@ -97,13 +97,9 @@ export function StopCombobox({
   /** True when there are more rows than fit, so the panel must not show a sliver of the next one. */
   const [more, setMore] = useState(false);
   /**
-   * How far under the field the panel starts.
+   * How far under the field the panel starts: four pixels, in every field on every screen.
    *
-   * Four pixels is right in the middle of a card. At the **foot** of one it is not: the panel hung
-   * there covered the card's own bottom padding and the border with it, so the card had air on
-   * three sides and none on the fourth - reported on the next-departures card, where this field is
-   * the last thing in the card. At the foot the panel starts below that padding instead, and the
-   * card ends where it always ends.
+   * See the measurement below for why the foot of a card stopped being a special case.
    */
   const [gap, setGap] = useState(4);
   /** Mirrors the selected stop so external changes (reverse, quick fill, location) update the text. */
@@ -156,13 +152,29 @@ export function StopCombobox({
       const dock = document.querySelector<HTMLElement>('.app-dock');
       const dockTop = dock && dock.getBoundingClientRect().height > 0 ? dock.getBoundingClientRect().top : visibleFoot;
       const foot = Math.min(visibleFoot, dockTop);
-      const card = rootRef.current?.closest('.card');
-      const cardBox = card?.getBoundingClientRect();
-      const cardPad = card ? parseFloat(getComputedStyle(card).paddingBottom) || 0 : 0;
-      /* Is the field the last thing in its card? Eight pixels of slack is layout rounding. */
-      const atFoot = Boolean(cardBox && cardBox.bottom - cardPad - box.bottom < 8);
-      const panelGap = atFoot ? cardPad : 4;
+      /*
+       * **Four pixels under the field, wherever the field is.**
+       *
+       * At the foot of a card this used to start the panel below the card's own bottom padding —
+       * 16px — so the card kept its air and its border. The list then hung a card's padding away
+       * from the field it belongs to, which is what the interface check reported as "hangs below
+       * the input": a panel that looks attached to the card rather than to the box you are typing
+       * in. At the foot it now starts 4px under the field like everywhere else, and the panel's own
+       * edge is what the card's padding shows in front of.
+       */
+      const panelGap = 4;
       setGap(panelGap);
+      /*
+       * **The cap is a phone rule.** Wider screens keep the stylesheet's `min(58vh, 460px)` and let
+       * the page scroll to the rest, exactly as the comment on `cap` says — but the measurement ran
+       * at every width, so a 1440px window was also cut down to four whole rows. Above the one
+       * breakpoint the opening height is simply the whole panel.
+       */
+      if (window.innerWidth >= 720) {
+        setCap(460);
+        setMore(false);
+        return;
+      }
       let below = foot - box.bottom - panelGap - 8;
       /*
        * **A list does not shrink while it is being read.**
@@ -174,8 +186,25 @@ export function StopCombobox({
        * opening, so what the traveller opened is what stays open. If the keyboard ends up over the
        * panel's foot the list scrolls, which it already does, and closing it forgets the height.
        */
-      const applyCap = (next: number) =>
-        setCap((prev) => (firstMeasureRef.current ? next : Math.max(prev, next)));
+      /*
+       * **The first measurement was being thrown away, so the list never shrank.**
+       *
+       * The flag that says "this is the first measurement, take it as given" was read *inside* the
+       * state updater, and React runs an updater at render time — after the effect had already set
+       * the flag to false. So the first measurement went down the `Math.max` branch against the
+       * 460px the opening started from, and the answer was always 460: the panel opened 460px tall
+       * on a 320px phone with 194px of room under its field, and 256px of it hung off the bottom of
+       * the screen (measured). The flag is now read and cleared here, synchronously, so the first
+       * measurement is the height the traveller gets.
+       */
+      const applyCap = (next: number) => {
+        if (firstMeasureRef.current) {
+          firstMeasureRef.current = false;
+          setCap(next);
+          return;
+        }
+        setCap((prev) => Math.max(prev, next));
+      };
       /*
        * **A list is whole rows.**
        *
@@ -236,8 +265,8 @@ export function StopCombobox({
       applyCap(Math.min(room, Math.max(above_rows + whole, Math.min(room, above_rows + heights[0]))));
       setMore(true);
     };
+    /* The flag is cleared by the first measurement itself (`applyCap`), not here. */
     measure();
-    firstMeasureRef.current = false;
     /*
      * **The keyboard's rise is an animation, and a measurement taken during it is a lie.**
      *

@@ -221,7 +221,13 @@ for (const width of WIDTHS) {
        * no-match panel — 0 rows — while reporting the geometry as fine.
        */
       await fieldInput.fill('A').catch(() => {});
-      await page.waitForTimeout(90);
+      /*
+       * Let the list settle before it is measured. `StopCombobox` sizes itself on a 140ms trailing
+       * timer and again at 420ms, so measuring at 90ms read the opening 460px panel before it had
+       * been cut down to the room under the field — on Settings that reported a 74px list beside
+       * "335px of room below it", which is a measurement of the wrong moment, not of the panel.
+       */
+      await page.waitForTimeout(560);
       const geo = await page.evaluate(() => {
         const list = document.querySelector('.combobox .suggestions');
         const group = list && list.closest('.combobox')?.querySelector('.input-group');
@@ -284,7 +290,14 @@ for (const width of WIDTHS) {
         const coversHint = hangingUp || geo.hintCovered !== false;
         const slipped = attachGap > 12 || attachGap < -12 || !justified;
         popoverSamples.push({ route, width, ...geo, side: hangingUp ? 'above' : 'below' });
-        if (slipped || !coversHint || (geo.rows >= 6 && geo.height < 300)) popovers.push({ route, width, ...geo, side: hangingUp ? 'above' : 'below' });
+        /*
+         * "Six or more rows may not be squeezed under 300px" is a promise about a screen with room
+         * to give, not about a 320px phone holding a keyboard-high field: there the cap is the space
+         * that actually exists, and a list that keeps 300px would hang off the bottom of the display
+         * — the defect this rule was read next to. So the floor applies only where the room is there.
+         */
+        const roomForSixRows = width >= 720 && geo.roomBelow >= 300;
+        if (slipped || !coversHint || (roomForSixRows && geo.rows >= 6 && geo.height < 300)) popovers.push({ route, width, ...geo, side: hangingUp ? 'above' : 'below' });
         pickerOpen = true;
       }
       await page.keyboard.press('Escape').catch(() => {});
