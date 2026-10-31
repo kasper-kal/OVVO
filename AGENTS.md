@@ -19,7 +19,7 @@ Here are the rules:
 
 10. NEVER blame a stale build, a stale deploy, a cache or an old copy of the site for a problem you cannot reproduce. If what you measure and what the user sees disagree, the truth is that you have not reproduced their steps yet. Never say it again: reproduce first, then fix what you actually saw.
 
-11. NEVER leave finished work only in this workspace. Run `node scripts/keep.mjs --save "<why>"` when a change is finished and its checks pass: it commits the whole project, including the mockup gallery, which git ignores. `--list` shows the saves; `--restore <path> [--from <sha>]` brings a file or folder back. The corner shapes have a checker on top of that: after ANY change to a card shape, a caption or the gallery page run `node scripts/corners.mjs` and fix what it reports, run `--save` when a shape is approved, run `--restore` when the page is lost, and NEVER rebuild a corner by hand or from memory.
+11. NEVER leave finished work only in this workspace. Run `node scripts/keep.mjs --save "<why>"` when a change is finished and its checks pass: it commits the whole project, including the mockup gallery, which git ignores. `--check` reports anything unsaved; `--list` shows the saves; `--restore <path> [--from <sha>]` brings a file or folder back. The corner shapes have a checker on top of that: after ANY change to a card shape, a caption or the gallery page run `node scripts/corners.mjs` and fix what it reports, run `--save` when a shape is approved, run `--restore` when the page is lost, and NEVER rebuild a corner by hand or from memory.
 
 12. NEVER ask permission to commit. When a change is finished and its checks pass, make the commit yourself, with a message that says why, and tell the steerer in one line that you did it. Do not commit half-finished work, and never commit secrets.
 
@@ -47,7 +47,7 @@ Git is the only copy that survives. The sandbox sleeps, the worktree can be repl
 
 `node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
 
-`--list` shows the recent saves. `--restore <path>` brings the newest saved copy of a file or folder back, and `--from <sha>` reaches further back. No timer is involved: the sandbox is asleep between turns, so work is saved when it finishes, not on a clock.
+`--check` reports anything unsaved, including ignored files that would not be kept. `--list` shows the recent saves. `--restore <path>` brings the newest saved copy of a file or folder back, and `--from <sha>` reaches further back. No timer is involved: the sandbox is asleep between turns, so work is saved when it finishes, not on a clock.
 
 ## The corner gallery
 

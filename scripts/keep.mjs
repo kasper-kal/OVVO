@@ -3,6 +3,7 @@
 //
 //   node scripts/keep.mjs --save "why this change is worth keeping"
 //   node scripts/keep.mjs                      same, with an automatic message
+//   node scripts/keep.mjs --check              what is unsaved, including files git ignores
 //   node scripts/keep.mjs --list               the last fifteen saves
 //   node scripts/keep.mjs --restore <path>     bring the newest saved copy of a file back
 //   node scripts/keep.mjs --restore <path> --from <sha>   reach further back
@@ -12,10 +13,15 @@
 // files a stray overwrite destroys and leaves no history of.
 
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Files and folders that git ignores but that are not throwaway.
 const ALWAYS_INCLUDED = ['.logs/mock/index.html'];
+
+// Folders git ignores that can still hold work worth keeping.
+const WATCHED_FOLDERS = ['.logs', 'shots', 'artifacts'];
+const WORK_FILE = /\.(html?|md|json|tsx?|jsx?|css|svg|mjs)$/;
 
 function git(args, options = {}) {
   return execFileSync('git', args, { encoding: 'utf8', ...options });
@@ -72,16 +78,51 @@ function restore(path, from) {
   console.log(`Restored ${path} from save ${short}.`);
 }
 
+function walk(dir, found = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) walk(full, found);
+    else found.push(full);
+  }
+  return found;
+}
+
+/** Report anything sitting unsaved, including ignored files that would be skipped. */
+function check() {
+  const dirty = git(['status', '--porcelain']).trim();
+  console.log(dirty ? `Unsaved changes in tracked files:\n${dirty}` : 'Nothing unsaved in tracked files.');
+  const lastSave = Number(git(['log', '-1', '--format=%ct']).trim() || 0) * 1000;
+  const atRisk = [];
+  for (const folder of WATCHED_FOLDERS) {
+    if (!existsSync(folder)) continue;
+    for (const file of walk(folder)) {
+      if (!WORK_FILE.test(file)) continue;
+      if (ALWAYS_INCLUDED.includes(file)) continue;
+      if (statSync(file).mtimeMs > lastSave) atRisk.push(file);
+    }
+  }
+  if (!atRisk.length) {
+    console.log('No ignored working file has changed since the last save.');
+    return;
+  }
+  console.log('These ignored files changed since the last save and would NOT be kept:');
+  for (const file of atRisk.slice(0, 12)) console.log(`  ${file}`);
+  if (atRisk.length > 12) console.log(`  and ${atRisk.length - 12} more`);
+  console.log('Add the ones that matter to ALWAYS_INCLUDED in scripts/keep.mjs, or move them into a tracked folder.');
+  process.exitCode = 1;
+}
+
 const args = process.argv.slice(2);
 const flag = args[0];
 
 if (flag === '--list') list();
+else if (flag === '--check') check();
 else if (flag === '--restore') {
   const path = args[1];
   const fromIndex = args.indexOf('--from');
   restore(path, fromIndex === -1 ? undefined : args[fromIndex + 1]);
 } else if (flag === '--save') save(args.slice(1).join(' '));
 else if (flag) {
-  console.error(`Unknown option ${flag}. Use --save, --list or --restore <path> [--from <sha>].`);
+  console.error(`Unknown option ${flag}. Use --save, --check, --list or --restore <path> [--from <sha>].`);
   process.exit(1);
 } else save();
