@@ -1040,6 +1040,31 @@ export const STYLES: StyleDef[] = [
     ui: 'inter',
     photo: { scrim: 0.29, scrimNight: 0.02, glass: false },
   },
+
+  /*
+   * **Pro.**
+   *
+   * The owner named this one, and the name is about the material rather than a mood: black pipes
+   * running the length of the frame with one clean sheen down each edge, the way professional
+   * equipment looks photographed in a studio. So the page is that black, the cards are the black one
+   * step up, the words are the sheen, and the accent is the cool silver of it.
+   *
+   * Deliberately not All Black: that style is a flat reading page with a yellow mark, this one is a
+   * surface with a light on it. They sit apart on the shelf so the difference is visible.
+   */
+  {
+    id: 'pro',
+    name: 'Pro',
+    nameNl: 'Pro',
+    group: 'photo',
+    light: ['#0B0B0D', '#181A1E', '#F4F4F6', '#C7CDD6'],
+    shape: 'arch',
+    display: 'grotesk',
+    body: 'work',
+    sub: 'outfit',
+    ui: 'inter',
+    photo: { scrim: 0.02, scrimNight: 0.02, glass: false },
+  },
   {
     id: 'marble',
     name: 'Marble',

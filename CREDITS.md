@@ -33,6 +33,7 @@ picture can be swapped without hunting through the code.
 | `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. |
 | `nostalgia.jpg` | Nostalgia | The platform at Haarlem station after dark, lamps under the old iron roof. |
 | `avondglas.jpg` | Evening Glass | A glass tower at dusk, blue-violet sky and amber office lights. |
+| `pro.jpg` | Pro | Glossy black curves lit along one edge, no subject but the sheen. |
 
 Each one also ships as `<id>-night.jpg`, cut from the same upload for the dark appearance. The cut is
 dimmed only as far as its own picture needs and tinted 12% toward that style's night page, and the

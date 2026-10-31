@@ -35,6 +35,7 @@ remains.
 | Toscane         | `toscane.jpg`         | Contact      | `contact.jpg`     |
 | Loggia          | `loggia.jpg`          |              |                   |
 | Nostalgia       | `nostalgia.jpg`       | Evening Glass| `avondglas.jpg`   |
+| Pro             | `pro.jpg`             |              |                   |
 | Perron          | `perron.jpg`          |              |                   |
 
 **Contrast** and **All Black** are the two exceptions. They exist as the plainest reading answer, and
