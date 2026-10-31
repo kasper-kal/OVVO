@@ -1,5 +1,5 @@
 /**
- * Build the style guide PDF from the app's own definitions.
+ * Build the style list PDF from the app's own definitions.
  *
  * Reads `src/lib/styles.ts` (the catalogue, the font stacks, the authored quartets), renders the
  * pages with the real faces and the real hexes, and prints them with Chromium. Nothing here is
@@ -10,12 +10,26 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const ROOT = process.cwd();
-const source = await readFile(path.join(ROOT, 'src/lib/styles.ts'), 'utf8');
+const raw = await readFile(path.join(ROOT, 'src/lib/styles.ts'), 'utf8');
+/* Two entries can share a line, written `},  {`; give each its own so the block reader below sees
+   both of them. Without this, Toscane was silently missing from the printed list. */
+const source = raw.replace(/},\s*\{/g, '},\n  {');
 
 /* ---------------------------------------------------------------- the data */
 
+/*
+ * **A family id may carry a hyphen** (`special-elite`), so every font-id pattern here is
+ * `[a-z-]+`. The first version was `[a-z]+`, which quietly failed to collect that stack and then
+ * threw while reading the family off `undefined`, so the printed list stopped building the day a
+ * face arrived with a hyphen in its name.
+ */
+/*
+ * A family id with a hyphen in it cannot be a bare object key, so it is written quoted
+ * (`'special-elite': "..."`) while every other one is bare. The pattern accepts both, or the stack
+ * is collected under a key nothing reads and the page fails while drawing a face it knows.
+ */
 const stacks = Object.fromEntries(
-  [...source.matchAll(/^ {2}([a-z]+): "([^"]+)",$/gm)].map((m) => [m[1], m[2]]),
+  [...source.matchAll(/^ {2}'?([a-z-]+)'?: "([^"]+)",$/gm)].map((m) => [m[1], m[2]]),
 );
 
 const groups = Object.fromEntries(
@@ -29,16 +43,16 @@ const styles = [];
 for (const match of source.matchAll(/\n  \{\n([\s\S]*?)\n  \},/g)) {
   const block = match[1];
   const id = block.match(/id: '([^']+)'/)?.[1];
-  if (!id || !/display: '[a-z]+'/.test(block)) continue;
+  if (!id || !/display: '[a-z-]+'/.test(block)) continue;
   const quad = [...(block.match(/light: \[([^\]]+)\]/)?.[1] ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1]);
   if (quad.length !== 4) continue;
   styles.push({
     id,
     name: block.match(/name: '([^']+)'/)?.[1] ?? id,
     group: block.match(/group: '([a-z]+)'/)?.[1] ?? 'basic',
-    display: block.match(/display: '([a-z]+)'/)?.[1],
-    sub: block.match(/sub: '([a-z]+)'/)?.[1],
-    body: block.match(/body: '([a-z]+)'/)?.[1],
+    display: block.match(/display: '([a-z-]+)'/)?.[1],
+    sub: block.match(/sub: '([a-z-]+)'/)?.[1],
+    body: block.match(/body: '([a-z-]+)'/)?.[1],
     quad,
   });
 }
@@ -79,7 +93,7 @@ const card = (style, index) => `
     <div class="faces">
       <div class="face">
         <span class="face__role">Header</span>
-        <span class="face__sample face__sample--head" style="font-family:${stacks[style.display]}">Aa Bb 24</span>
+        <span class="face__sample face__sample--head" style="font-family:${stacks[style.display]}">Home</span>
         <span class="face__family">${esc(family(stacks[style.display]))}</span>
       </div>
       <div class="face">
@@ -119,7 +133,7 @@ const allFamilies = new Set(styles.flatMap((s) => [s.display, s.sub, s.body]));
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
-<title>OVVO style guide</title>
+<title>OVVO style list</title>
 <style>
 ${fontsCss}
 @page { size: A4; margin: 14mm 13mm 16mm; }
@@ -152,11 +166,11 @@ body {
 .strip i { flex: 1; }
 
 h2.page-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 21pt; letter-spacing: -0.02em; margin: 0 0 2mm; }
-p.page-lede { color: #55555c; margin: 0 0 7mm; max-width: 152mm; }
+p.page-lede { color: #55555c; margin: 0 0 5.5mm; max-width: 152mm; }
 .tables { display: flex; gap: 7mm; align-items: flex-start; }
-table { width: 100%; border-collapse: collapse; font-size: 7.6pt; }
+table { width: 100%; border-collapse: collapse; font-size: 7.4pt; }
 th { text-align: left; font-size: 7.4pt; text-transform: uppercase; letter-spacing: 0.08em; color: #66666d; padding: 0 2mm 2mm 0; border-bottom: 0.3mm solid #cdc7b8; font-weight: 700; }
-td { padding: 1.3mm 1.6mm 1.3mm 0; border-bottom: 0.2mm solid #ece7dc; vertical-align: middle; }
+td { padding: 0.9mm 1.6mm 0.9mm 0; border-bottom: 0.2mm solid #ece7dc; vertical-align: middle; }
 .t-name { font-weight: 600; }
 .t-swatch { width: 18mm; white-space: nowrap; }
 .t-swatch i { display: inline-block; width: 2.9mm; height: 2.9mm; border-radius: 0.8mm; margin-right: 0.5mm; border: 0.2mm solid #00000012; }
@@ -210,7 +224,7 @@ td { padding: 1.3mm 1.6mm 1.3mm 0; border-bottom: 0.2mm solid #ece7dc; vertical-
       )
       .join('')}
   </div>
-  <div class="colophon"><span>OVVO style guide</span><span>Generated from the app's own catalogue</span></div>
+  <div class="colophon"><span>OVVO style list</span><span>Generated from the app's own catalogue</span></div>
 </div>
 
 ${(() => {
@@ -218,7 +232,7 @@ ${(() => {
   for (let index = 0; index < styles.length; index += 2) {
     pages.push(`<div class="page">
       ${styles.slice(index, index + 2).map((style, at) => card(style, at)).join('')}
-      <div class="colophon"><span>OVVO style guide</span><span>${index + 1} to ${Math.min(index + 2, styles.length)} of ${styles.length}</span></div>
+      <div class="colophon"><span>OVVO style list</span><span>${index + 1} to ${Math.min(index + 2, styles.length)} of ${styles.length}</span></div>
     </div>`);
   }
   return pages.join('\n');
@@ -253,7 +267,14 @@ console.log('short of three faces:', styles.filter((s) => new Set([s.display, s.
  * whose colours get cut in half on paper. 297mm of page less the 14mm and 16mm margins leaves
  * about 1009px at 96dpi.
  */
-await page.setViewportSize({ width: 794, height: 1123 });
+/*
+ * Measure the way the printer will lay it out, not the way the screen does. The screen copy is
+ * 794px wide (A4 at 96dpi) with no margins, so a page that fits here can still spill in print,
+ * where the side margins leave about 696px: that is how the colour table's colophon ended up alone
+ * on a page of its own, with a blank page in front of the first style cards.
+ */
+await page.emulateMedia({ media: 'print' });
+await page.setViewportSize({ width: 696, height: 1123 });
 await page.waitForTimeout(400);
 const coverOverflow = await page.evaluate(() => {
   const cover = document.querySelector('.cover');
@@ -263,7 +284,7 @@ console.log('cover overflow (px):', coverOverflow);
 const heights = await page.evaluate(() =>
   [...document.querySelectorAll('.page')].map((node) => Math.round(node.getBoundingClientRect().height)),
 );
-const tall = heights.map((h, i) => [i + 1, h]).filter(([, h]) => h > 1000);
+const tall = heights.map((h, i) => [i + 1, h]).filter(([, h]) => h > 1009);
 console.log('page heights:', heights.join(', '));
 console.log('overflowing pages:', tall.length ? JSON.stringify(tall) : 'none');
 for (const index of [0, 1, 2, 16]) {
@@ -272,16 +293,16 @@ for (const index of [0, 1, 2, 16]) {
 }
 
 await page.pdf({
-  path: path.join(ROOT, 'OVVO-style-guide.pdf'),
+  path: path.join(ROOT, 'OVVO-style-list.pdf'),
   format: 'A4',
   printBackground: true,
   displayHeaderFooter: true,
   headerTemplate: '<div></div>',
   footerTemplate:
-    '<div style="width:100%;font:7.5pt Inter,sans-serif;color:#8a8a90;padding:0 13mm;display:flex;justify-content:space-between;"><span>OVVO · style guide</span><span class="pageNumber"></span></div>',
+    '<div style="width:100%;font:7.5pt Inter,sans-serif;color:#8a8a90;padding:0 13mm;display:flex;justify-content:space-between;"><span>OVVO · style list</span><span class="pageNumber"></span></div>',
   margin: { top: '14mm', bottom: '16mm', left: '13mm', right: '13mm' },
 });
 
 await browser.close();
 await unlink(path.join(ROOT, 'public/__style-report.html'));
-console.log('pdf written: OVVO-style-guide.pdf');
+console.log('pdf written: OVVO-style-list.pdf');

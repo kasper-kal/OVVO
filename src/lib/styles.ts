@@ -51,6 +51,12 @@ export const FONT_STACKS = {
   work: "'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif",
   figtree: "'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif",
   inter: "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
+  /* The one face in the catalogue with nothing sensible behind it: a browser that refuses the
+     download has no display gothic installed, so it draws the nearest thing to a Halloween poster
+     and the page is still readable. */
+  creepster: "'Creepster', 'Chiller', 'Bradley Hand', cursive",
+  /* A typewriter, not a costume: the Halloween headings that have to be *read* are set in this. */
+  'special-elite': "'Special Elite', 'Courier New', Courier, monospace",
 } as const;
 
 export type FontId = keyof typeof FONT_STACKS;
@@ -73,6 +79,8 @@ export const FONT_FAMILIES: Record<FontId, string> = {
   work: 'Work Sans',
   figtree: 'Figtree',
   inter: 'Inter',
+  creepster: 'Creepster',
+  'special-elite': 'Special Elite',
 };
 
 /* ------------------------------------------------------------------ the shape of a style */
@@ -83,7 +91,8 @@ export type StyleGroupId =
   | 'gold'
   | 'blue'
   | 'green'
-  | 'wine';
+  | 'wine'
+  | 'holidays';
 
 export interface StyleGroup {
   id: StyleGroupId;
@@ -139,6 +148,19 @@ export const STYLE_GROUPS: StyleGroup[] = [
     labelNl: 'Wijn en roos',
     note: 'Wine, plum and dusty pink.',
     noteNl: 'Wijn, pruim en stoffig roze.',
+  },
+  /*
+   * **Holidays sits at the bottom, and is the one shelf that is about a day rather than a colour.**
+   * It holds the four seasonal looks all year, so nothing about them depends on the date; when one
+   * of those days is within three weeks the Styles page announces it at the top (see
+   * `lib/holidays.ts`) and this shelf is where the look itself lives.
+   */
+  {
+    id: 'holidays',
+    label: 'Holidays',
+    labelNl: 'Feestdagen',
+    note: 'Four days the app dresses for: Sinterklaas, Christmas, New Year and Easter.',
+    noteNl: 'Vier dagen waarvoor de app zich aankleedt: Sinterklaas, Kerstmis, oud en nieuw en Pasen.',
   },
 ];
 
@@ -285,24 +307,50 @@ interface Shape {
    * axis — it changes the material of a card without moving a single pixel of it.
    */
   shadow: string;
+  /**
+   * **How far the card's own edge sits off the card.**
+   *
+   * A card used to be outlined with the same line as a chip, a field and a button, which is a line
+   * chosen to be *seen* on the card — so every card in the catalogue wore a rule that read as a
+   * frame drawn around it rather than as the place where the paper ends. The frame is the card's
+   * own surface moved a little toward its ink: visibly a different colour when you look, close
+   * enough to the card that it stops being a border. The controls inside keep the stronger
+   * `hair`, because a field and a button have to be found. Contrast, not weight, is what makes this
+   * switch back: raised contrast draws this same edge at 3:1, so the card's shape is stated clearly
+   * for anyone who asked for that.
+   */
+  edge: number;
 }
 
+/*
+ * **Every shape draws a one-pixel line, and none of them draws a thicker one.**
+ *
+ * The first cut gave the printed shapes a heavier rule — 2px for `square` and `line`, 3px for
+ * `plate` — as if weight were what made them read as printed. It is not: the corners, the flat
+ * surfaces and the darker hairline already say that, and the extra pixels simply looked like a
+ * frame drawn around every card (reported: "all borders so thick on almost every style … I dont
+ * want mega thin borders, but not thick ones either like now"). The black shelf falls back to
+ * `square`, so its whole column was framed at 2px, which is the shelf the Styles page opens on.
+ *
+ * What still separates a printed style from a soft one is the *strength* of the same one-pixel
+ * line, which is `hair`, and the geometry around it. A border is a border, not an outline.
+ */
 const SHAPES: Record<ShapeId, Shape> = {
   /* The app's own look: the values this file used before shapes existed, and no shadow — Default
      must not move by a pixel. */
-  soft: { scale: 1, line: '1px', tint: 0.055, hair: 1.7, glass: 1, shadow: 'none' },
+  soft: { scale: 1, line: '1px', tint: 0.055, hair: 1.7, edge: 0.1, glass: 1, shadow: 'none' },
   /* Print: square corners, a rule you can see, flat on the page. */
-  square: { scale: 0, line: '2px', tint: 0.02, hair: 2.2, glass: 1, shadow: 'none' },
+  square: { scale: 0, line: '1px', tint: 0.02, hair: 2.2, edge: 0.15, glass: 1, shadow: 'none' },
   /* A friendly radius, with cards just off the page. */
-  round: { scale: 1.45, line: '1px', tint: 0.08, hair: 1.55, glass: 0.96, shadow: '0 1px 2px -1px rgb(0 0 0 / 0.10)' },
+  round: { scale: 1.45, line: '1px', tint: 0.08, hair: 1.55, edge: 0.09, glass: 0.96, shadow: '0 1px 2px -1px rgb(0 0 0 / 0.10)' },
   /* Capsules for every control, cards lifted and see-through. */
-  pill: { scale: 5, line: '1px', tint: 0.1, hair: 1.45, glass: 0.92, shadow: '0 8px 20px -12px rgb(0 0 0 / 0.34), 0 1px 2px -1px rgb(0 0 0 / 0.10)' },
-  /* A thin plate: nearly square, a heavy outline, almost no surface tint, flat. */
-  line: { scale: 0.3, line: '2px', tint: 0.015, hair: 2.3, glass: 1, shadow: 'none' },
-  /* A printed sheet: no tint at all, a 3px rule, flat page and flat card. */
-  plate: { scale: 0.5, line: '3px', tint: 0, hair: 2.5, glass: 1, shadow: 'none' },
+  pill: { scale: 5, line: '1px', tint: 0.1, hair: 1.45, edge: 0.08, glass: 0.92, shadow: '0 8px 20px -12px rgb(0 0 0 / 0.34), 0 1px 2px -1px rgb(0 0 0 / 0.10)' },
+  /* A thin plate: nearly square, a firm rule, almost no surface tint, flat. */
+  line: { scale: 0.3, line: '1px', tint: 0.015, hair: 2.3, edge: 0.16, glass: 1, shadow: 'none' },
+  /* A printed sheet: no tint at all, the firmest line in the catalogue, flat page and card. */
+  plate: { scale: 0.5, line: '1px', tint: 0, hair: 2.5, edge: 0.17, glass: 1, shadow: 'none' },
   /* Drawn: the roundest corners, and the most see-through cards, floating highest. */
-  arch: { scale: 2.2, line: '1px', tint: 0.11, hair: 1.5, glass: 0.88, shadow: '0 14px 34px -18px rgb(0 0 0 / 0.40), 0 1px 3px -1px rgb(0 0 0 / 0.12)' },
+  arch: { scale: 2.2, line: '1px', tint: 0.11, hair: 1.5, edge: 0.07, glass: 0.88, shadow: '0 14px 34px -18px rgb(0 0 0 / 0.40), 0 1px 3px -1px rgb(0 0 0 / 0.12)' },
 };
 
 /** Where a style does not name a shape, its group decides. */
@@ -313,6 +361,8 @@ const SHAPE_BY_GROUP: Record<StyleGroupId, ShapeId> = {
   blue: 'round',
   green: 'soft',
   wine: 'round',
+  /* The four seasonal looks name their own shape on the entry, so this is only the fallback. */
+  holidays: 'soft',
 };
 
 /**
@@ -342,12 +392,21 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'tram': 'soft',
   'obsidian': 'square',
   'night-aa': 'square',
+  /* Chrome is a material, not a period: the light on the metal is the whole idea, so it wears the
+     app's own soft cards rather than the square ones the black shelf defaults to. */
+  'chrome': 'soft',
   'sage': 'pill',
   'mustard': 'soft',
   'terminal': 'round',
   'blueprint': 'square',
   'marble': 'round',
   'arches': 'pill',
+  'christmas': 'arch',
+  'sinterklaas': 'round',
+  'new-year': 'line',
+  'easter': 'soft',
+  /* The roundest corners and the most see-through cards, which is what a lantern in the dark is. */
+  'halloween': 'arch',
 };
 
 /** The shape a style draws, for anything that previews it (the picker's swatches). */
@@ -390,6 +449,9 @@ const SUB_TYPE: Partial<Record<FontId, { size: string; weight: string }>> = {
   lora: { size: '17px', weight: '700' },
   fraunces: { size: '17.5px', weight: '700' },
   newsreader: { size: '18px', weight: '700' },
+  /* One weight, distressed outline: the same size as the app's own, set light so the typewriter's
+     inked edges do not close up at heading size. */
+  'special-elite': { size: '18.5px', weight: '400' },
 };
 
 /**
@@ -414,6 +476,9 @@ const DISPLAY_TYPE: Partial<Record<FontId, { size: string; weight: string; leadi
   outfit: { size: '30px', weight: '700', leading: '1.12', tracking: '-0.01em' },
   manrope: { size: '29px', weight: '800', leading: '1.12', tracking: '-0.02em' },
   figtree: { size: '29px', weight: '800', leading: '1.2', tracking: '-0.02em' },
+  /* One weight, and a fat one: set at the app's 800 it would be a fake bold on top of an already
+     heavy face. Larger than the rest, because a poster face at 29px reads as a label. */
+  creepster: { size: '33px', weight: '400', leading: '1.1', tracking: '0.01em' },
 };
 
 /**
@@ -1212,6 +1277,132 @@ export const STYLES: StyleDef[] = [
     body: 'jakarta',
     ui: 'inter',
   },
+
+  /*
+   * --------------------------------------------------------------- the year
+   *
+   * **Four days the app dresses for.** They are styles like every other one — a page, a card, an ink
+   * and an accent, four faces and a geometry — and they stand on their own all year, so nothing about
+   * them waits for a date. Each is a colour-only look for now: there is no photograph for them yet,
+   * and a made-up one would be a wallpaper pretending to be a season.
+   */
+
+  /*
+   * **Christmas.** The tree in shade, a candle's light and one brass bauble. The page is the pine at
+   * night, the cards the same pine a shade up, the words the candle and the accent the bauble.
+   *
+   * **Its photograph is the tree in the Galeries Lafayette,** and the palette was pulled to it once
+   * the picture arrived: the page is the near-black sky above the tree with the pine kept in it, the
+   * accent is the gold of the lights rather than a brass that had to be guessed at. The lights are
+   * the brightest thing in the frame, so the wash is a shade heavier than the default.
+   */
+  {
+    id: 'christmas',
+    name: 'Christmas',
+    nameNl: 'Kerstmis',
+    group: 'holidays',
+    light: ['#0B1A12', '#16291C', '#F8EEDA', '#D8A84C'],
+    photo: { scrim: 0.34, scrimNight: 0.05, glass: true },
+    shape: 'arch',
+    display: 'playfair',
+    sub: 'instrument',
+    body: 'lora',
+    ui: 'work',
+  },
+  /*
+   * **Sinterklaas.** Brown paper, spice and marzipan: the page is a December evening, the cards the
+   * paper of a wrapped parcel, the words the marzipan inside it and the accent the pepernoot.
+   *
+   * **Its photograph is the bishop on the white horse, puppets at his shoulder,** and the palette now
+   * leans on what is in it: the page is the red of his robe taken down to a tobacco brown, the accent
+   * the gold on his mitre. The horse is the one white shape in a dark frame and the words have to
+   * survive it, so the wash is the heaviest of the four.
+   */
+  {
+    id: 'sinterklaas',
+    name: 'Sinterklaas',
+    nameNl: 'Sinterklaas',
+    group: 'holidays',
+    light: ['#2A100A', '#3D1B10', '#F8E8CC', '#D5A24D'],
+    photo: { scrim: 0.28, scrimNight: 0.05, glass: true },
+    shape: 'round',
+    display: 'cormorant',
+    sub: 'newsreader',
+    body: 'lora',
+    ui: 'figtree',
+  },
+  /*
+   * **New Year.** The sky just after midnight, the smoke still hanging and the last spark falling:
+   * the page is the sky, the cards the smoke, the words the champagne and the accent the spark.
+   *
+   * **Its photograph is fireworks over the rooftops,** so the page stopped being a blue-black and
+   * became the warm black the sky in the picture actually is, and the accent is the gold of the burst
+   * rather than a champagne that came close. Almost the whole frame is night, which is why this one
+   * needs the lightest wash of the four.
+   */
+  {
+    id: 'new-year',
+    name: 'New Year',
+    nameNl: 'Oud en nieuw',
+    group: 'holidays',
+    light: ['#0A0806', '#171210', '#F7F1E4', '#E7BE58'],
+    photo: { scrim: 0.26, scrimNight: 0.04, glass: true },
+    shape: 'line',
+    display: 'outfit',
+    sub: 'grotesk',
+    body: 'inter',
+    ui: 'manrope',
+  },
+  /*
+   * **Easter.** Pale cloth, a shell and the first green: the page is the cloth, the cards the shell,
+   * the words the garden in shade and the accent the leaf that has just opened.
+   *
+   * **Its photograph is a rabbit in a basket of pastel eggs,** which is a bright, busy picture under
+   * a pale page, so this is the one of the four that keeps solid cards: the dark ink sits on the card
+   * and the wash carries the rest. The page warmed toward the wicker, and the accent is the green of
+   * the sprig in its mouth.
+   */
+  {
+    id: 'easter',
+    name: 'Easter',
+    nameNl: 'Pasen',
+    group: 'holidays',
+    light: ['#F2EDE1', '#FDFAF3', '#26301F', '#7C9A62'],
+    photo: { scrim: 0.34, scrimNight: 0.08, glass: false },
+    shape: 'soft',
+    display: 'instrument',
+    sub: 'playfair',
+    body: 'figtree',
+    ui: 'work',
+  },
+  /*
+   * **Halloween.** A carved lantern on a black doorstep: the page is the night, the cards the smoke
+   * off the candle, the words the bone of the mask and the accent the pumpkin itself.
+   *
+   * **The type is a storybook, not a costume.** The first cut set the title in Creepster and the
+   * section headings in a distressed typewriter, which is a poster for a party rather than a page you
+   * use (reported, plainly: "I hate the Halloween fonts"). Both are gone. The title is Fraunces, a
+   * soft old serif with a slight wonk in its curves, which reads as something printed a century ago
+   * without pretending to be a cartoon, and it was kept on sight. The section headings first went to
+   * Archivo, and a heavy corporate grotesque under that title was rejected on sight too, so they are
+   * Cormorant Garamond, whose fine hairlines and wide capitals are what makes a magazine page look
+   * costly where a system serif looks cheap (Newsreader was tried and called cheap on sight). It sits
+   * under Fraunces as the lighter, airier voice, so the title stays the loud one. The body is a plain
+   * sans and the interface face is the app's own, so nothing with a time or a platform is dressed up.
+   */
+  {
+    id: 'halloween',
+    name: 'Halloween',
+    nameNl: 'Halloween',
+    group: 'holidays',
+    light: ['#130A06', '#2B1709', '#F6EEE1', '#FF851C'],
+    photo: { scrim: 0.18, scrimNight: 0.02, glass: true },
+    shape: 'arch',
+    display: 'fraunces',
+    sub: 'cormorant',
+    body: 'inter',
+    ui: 'work',
+  },
 ];
 
 /** The app's own look — the cream page, white cards, obsidian ink and coral. */
@@ -1514,6 +1705,16 @@ export function styleTokens(
   const pageHairline = preserveDefault
     ? edge(canvas, ink, raised ? 3 : 1.7)
     : toward(edge(canvas, ink, raised ? 3 : shape.hair), card, raised ? 3 : shape.hair);
+  /*
+   * **The card's edge, which is not the line the controls use.**
+   *
+   * This was the same value as `--border-hairline`, so a card was framed in the colour a chip is
+   * drawn in: visible from across the room, and identical on a card that already separates itself
+   * from the page by its surface. It is now the card's own colour moved toward its ink by the
+   * shape's `edge` — around a tenth of the way, so the paper has an edge without being outlined.
+   * Raised contrast keeps the old promise at 3:1, which is the one setting that asks for it.
+   */
+  const cardEdge = raised ? edge(card, ink, 3) : mixHex(card, ink, shape.edge);
 
   /*
    * **The dock is always the dark bar**, whichever page it sits under.
@@ -1579,6 +1780,7 @@ export function styleTokens(
     '--ink-muted': muted,
     '--ink-faint': faint,
     '--border-hairline': hairline,
+    '--card-edge': cardEdge,
 
     /*
      * **Delay and cancellation ink, derived against this style's own card.**

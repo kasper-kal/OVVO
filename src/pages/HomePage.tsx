@@ -183,17 +183,31 @@ export function HomePage() {
    * be dragged, resized or removed. Nothing is deleted, so leaving the mode (a charger, or the
    * battery climbing back above 12%) puts the whole layout back exactly as it was.
    */
-  const thinning = power.mode === 'super' && !editing;
+  /*
+   * **The last percent leaves the planner.**
+   *
+   * Super keeps the three cards that answer "when does the bus go". At 1% the departure board is
+   * the card to drop, not the planner: the stop in front of you already shows when its bus goes,
+   * and the one thing a phone at one percent cannot tell you by looking up is **the route to
+   * somewhere you are not standing**. So the planner is what is left, and if it is missing from
+   * the layout the first essential card stands in rather than an empty screen.
+   */
+  const thinning = (power.mode === 'super' || power.mode === 'last') && !editing;
+  const lastDrop = power.mode === 'last' && !editing;
   const visible = useMemo(() => {
     const all = order
       .map((id) => widgetById(id))
       .filter((widget): widget is NonNullable<typeof widget> => Boolean(widget));
     if (!thinning) return all;
+    if (lastDrop) {
+      const planner = all.filter((widget) => widget.id === 'planner');
+      return planner.length ? planner : all.filter((widget) => widget.essential).slice(0, 1);
+    }
     const essential = all.filter((widget) => widget.essential);
     /* The planner cannot be removed, so this is never empty in practice; keeping the first card
        if it ever were is what stops a thinned home screen from claiming to be an empty one. */
     return essential.length ? essential : all.slice(0, 1);
-  }, [order, thinning]);
+  }, [order, thinning, lastDrop]);
   /*
    * Counted over the cards that exist, not over the stored ids: a layout can still name a widget
    * that has been cut (the id is left alone so a returning card returns to its place), and a
@@ -299,7 +313,7 @@ export function HomePage() {
      * decided not to draw. Nothing is deleted — the layout is exactly where it was — so a charger
      * puts the whole thing back.
      */
-    if (editing || power.mode === 'super') return undefined;
+    if (editing || (power.mode === 'super' || power.mode === 'last')) return undefined;
 
     const onDown = (event: PointerEvent) => {
       if (!event.isPrimary) return;
@@ -387,7 +401,7 @@ export function HomePage() {
    * answer "when does the bus go", and the layout is untouched.
    */
   useEffect(() => {
-    if (power.mode !== 'super') return;
+    if ((power.mode !== 'super' && power.mode !== 'last')) return;
     if (editing) setEditing(false);
     /* The layout menu hangs from the Edit corner, so it closes with it rather than hanging from a
        control that is no longer drawn. */
@@ -1115,25 +1129,36 @@ export function HomePage() {
         */}
       {thinning ? (
         <p className="t-sm t-muted" role="status">
-          {t('Super energy saving is on.')}{' '}
+          {lastDrop ? t('Last drop is on, with 1% left.') : t('Super energy saving is on.')}{' '}
           {/*
             * **The cards are named only when some were taken.** On the default home screen the
             * three cards that stay are the three the mode keeps, so nothing was hidden — and the
             * line still offered to bring back zero of them, which reads as a fault rather than as a
             * courtesy.
             */}
-          {hiddenBySaving > 0
-            ? t('{cards} come back when this device is charged.', {
-                cards: counted(t, hiddenBySaving, '{count} card', '{count} cards'),
-              }) + ' '
-            : ''}
+          {/* At the last percent the sentence below already says everything comes back, so the
+              count is not repeated: it read "2 cards come back when this device is charged …
+              everything else comes back when this device is charged" in one line. */}
+          {lastDrop
+            ? ''
+            : hiddenBySaving > 0
+              ? t('{cards} come back when this device is charged.', {
+                  cards: counted(t, hiddenBySaving, '{count} card', '{count} cards'),
+                }) + ' '
+              : ''}
           {/*
             * The rest is the mode's whole shape, in the order a traveller notices it: the app is
             * thinner, it is dark, and Settings went with the cards rather than out of the app. The
             * appearance they chose is untouched and comes back with all of it — which is why the
             * screen is described as *dark*, not as *set* to dark.
             */}
-          {t('Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.')}
+          {lastDrop
+            ? t(
+                'Only the planner is drawn, the clock is stopped, and everything else comes back when this device is charged.',
+              )
+            : t(
+                'Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.',
+              )}
         </p>
       ) : null}
 

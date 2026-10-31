@@ -11,6 +11,14 @@
  *     frosted glass, no shadows, no network request spent on the convenience location estimate,
  *     and the home screen is drawn with only the cards that answer the question (see
  *     `essential` in `widgets/registry.tsx`).
+ *   • **last** at **1% or less** — the last drop, which is super and then one thing more: the clock
+ *     stops. The times on screen keep the minute they were read in, so nothing wakes the page once
+ *     a minute for a number nobody asked to change, and the home screen is **one card: the
+ *     planner**. A board says when the bus goes from the stop you are standing at, which you can
+ *     read off the stop itself; the route to somewhere else is the thing a phone at one percent
+ *     cannot show you by looking around. There is no way back inside the app — a control everyone
+ *     presses out of habit is the same as no mode at all — so it ends only on a charger or above
+ *     3%.
  *
  * Above the threshold the app goes back exactly as it was: these are states the browser reports,
  * not preferences, so nothing is stored and nothing has to be undone by hand. Plugging the phone
@@ -33,7 +41,7 @@
  * interface, so a browser without the API gets the full one.
  */
 
-export type PowerMode = 'off' | 'save' | 'super';
+export type PowerMode = 'off' | 'save' | 'super' | 'last';
 
 export interface PowerState {
   mode: PowerMode;
@@ -50,6 +58,9 @@ export const SAVE_AT = 0.2;
 /** Super saving begins here: a tenth. */
 export const SUPER_AT = 0.1;
 
+/** Last drop begins here: the final percent. */
+export const LAST_AT = 0.01;
+
 /**
  * How far above a threshold the level must climb before its mode is left, as a fraction of full
  * charge — two percentage points, which is more than the flicker a reading has and less than a
@@ -65,26 +76,39 @@ export const NO_BATTERY: PowerState = { mode: 'off', level: null, charging: fals
  * Pure, and separate from the browser call, because the interesting part is the hysteresis — and
  * because it is the one piece of this that can be checked without a device.
  */
+/** The modes in order of how much they take away. A higher index is a thinner interface. */
+const MODE_ORDER: PowerMode[] = ['off', 'save', 'super', 'last'];
+
+/** Where each mode begins. `off` has no threshold: it is what is left above all of them. */
+const ENTER_AT: Partial<Record<PowerMode, number>> = { save: SAVE_AT, super: SUPER_AT, last: LAST_AT };
+
 export function powerModeFor(previous: PowerMode, level: number | null, charging: boolean): PowerMode {
   /* A device on a charger is not running down, whatever the percentage says. */
   if (level === null || charging) return 'off';
 
+  /* The mode this level would put the app in, ignoring what it was already in. */
+  const target: PowerMode =
+    level <= LAST_AT ? 'last' : level <= SUPER_AT ? 'super' : level <= SAVE_AT ? 'save' : 'off';
+  if (target === previous) return previous;
+
   /*
-   * Leaving a mode takes the level being clear of its threshold; entering one takes the threshold
-   * itself. The two are written as one expression per mode so a level can only ever step one
-   * stage up or down, never jump from super to off because the reading fell past two margins.
+   * **Falling is immediate; climbing has to clear the threshold it is leaving.** A reading that
+   * drops past a line puts the app in the thinner mode at once — a phone at 1% should not wait two
+   * points for a mode that saves it. Climbing back is the direction that flickers, so it waits for
+   * the level to be clear of the threshold by `RELEASE_MARGIN`, which is what stops a phone resting
+   * on 20% from blinking the whole interface in and out of stillness.
    */
-  if (previous === 'super') {
-    if (level <= SUPER_AT + RELEASE_MARGIN) return 'super';
-    return level <= SAVE_AT + RELEASE_MARGIN ? 'save' : 'off';
-  }
-  if (previous === 'save') {
-    if (level <= SUPER_AT) return 'super';
-    return level <= SAVE_AT + RELEASE_MARGIN ? 'save' : 'off';
-  }
-  if (level <= SUPER_AT) return 'super';
-  return level <= SAVE_AT ? 'save' : 'off';
+  if (MODE_ORDER.indexOf(target) > MODE_ORDER.indexOf(previous)) return target;
+  const leaving = ENTER_AT[previous];
+  if (leaving !== undefined && level <= leaving + RELEASE_MARGIN) return previous;
+  return target;
 }
+
+/** True for every mode that is supervised by the 10% rules, `last` included. */
+export const isSuper = (mode: PowerMode): boolean => mode === 'super' || mode === 'last';
+
+/** True only at the final percent, where the clock stops and one card is left. */
+export const isLast = (mode: PowerMode): boolean => mode === 'last';
 
 /** The part of `BatteryManager` this app reads — no timings, which are fingerprinting surface. */
 interface BatteryManagerLike {

@@ -413,7 +413,7 @@ export function StopDetailPage() {
             <div className="between">
               <h2 className="t-section">{t('Position on the map')}</h2>
               {/* Closed at a tenth of a battery: the card's own drawing stays, the way in does not. */}
-              {power.mode === 'super' ? null : (
+              {(power.mode === 'super' || power.mode === 'last') ? null : (
                 <Link to={`/map?stop=${stop.id}`} className="btn btn--sm">
                   <Icon name="map" size={15} />
                   {t('Open map')}

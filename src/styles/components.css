@@ -16,7 +16,17 @@
 /* ------------------------------------------------------------------ Surfaces */
 .card {
   background: var(--card-fill, var(--l2-bg));
-  border: var(--l2-border);
+  /*
+   * **A card's edge is drawn from the card.**
+   *
+   * It used to be `--l2-border`, which is `--border-hairline` — the line a chip, a field and a
+   * button wear, chosen to be *found* on the card. Every card was therefore outlined rather than
+   * edge-lit: a frame around the paper, and the loudest thing in a quiet style. The edge is now the
+   * card's own surface moved a little toward its ink (`--card-edge`, from the style's shape), so you
+   * see where the card ends without a border being drawn. Controls inside keep the stronger
+   * hairline they need, and raised contrast rewrites this edge at 3:1.
+   */
+  border: var(--line-width, 1px) solid var(--card-edge, var(--border-hairline));
   border-radius: var(--r-card);
   padding: var(--pad-card);
   /*
@@ -90,6 +100,8 @@
    * It is measured on the surface those elements actually stand on: the card tier here.
    */
   --border-hairline: var(--card-border);
+  /* A tinted card is edged from the tint it was painted with, not from the style's palette. */
+  --card-edge: var(--card-border);
   --ink-strong: var(--card-ink-strong);
   --ink: var(--card-ink);
   --ink-muted: var(--card-ink-muted);
@@ -134,6 +146,8 @@
   --l1-border: 1px solid var(--card-border);
   --l2-border: 1px solid var(--card-border);
   --border-hairline: var(--card-border);
+  /* A tinted card is edged from the tint it was painted with, not from the style's palette. */
+  --card-edge: var(--card-border);
 }
 
 /*
@@ -161,6 +175,8 @@
    * pickers keep the theme's own hairline on the theme's own canvas.
    */
   --border-hairline: var(--card-border);
+  /* A tinted card is edged from the tint it was painted with, not from the style's palette. */
+  --card-edge: var(--card-border);
   --ink-strong: var(--card-ink-strong);
   --ink: var(--card-ink);
   --ink-muted: var(--card-ink-muted);
@@ -1274,7 +1290,8 @@
   grid-template-columns: 16px minmax(0, 1fr);
   column-gap: var(--s-3);
   background: var(--l1-bg);
-  border: var(--l1-border);
+  /* The From/To card is a card, so it carries the card's own edge (see `.card`). */
+  border: var(--line-width, 1px) solid var(--card-edge, var(--border-hairline));
   border-radius: var(--r-input);
   padding: 0 var(--s-4);
   transition: border-color var(--t-hover) var(--ease-hover);
@@ -2689,7 +2706,8 @@
   grid-template-columns: 16px minmax(0, 1fr);
   column-gap: var(--s-3);
   background: var(--l1-bg);
-  border: var(--l1-border);
+  /* The From/To card is a card, so it carries the card's own edge (see `.card`). */
+  border: var(--line-width, 1px) solid var(--card-edge, var(--border-hairline));
   border-radius: var(--r-input);
   padding: 0 var(--s-4);
   transition: border-color var(--t-hover) var(--ease-hover);
@@ -4341,17 +4359,17 @@
  * book-ended by two controls heavier than the journeys themselves (reported: "make the earlier and
  * later button MUCH AND MUCH smaller, 0 backdrop and only on the left side").
  *
- * A window step is now a small label at the start of the list's own column — the smallest type on
- * the app's scale, and a chevron to say which way the window moves. `align-self` is what keeps it
- * on the left: the page is a column, so the step takes its own width instead of the column's.
+ * A window step is a small label at the start of the list's own column — the smallest type on the
+ * app's scale, and a chevron to say which way the window moves. `align-self` is what keeps it on
+ * the left: the page is a column, so the step takes its own width instead of the column's.
  *
- * **The label keeps a pane of its own, and that is a correction.** It was bare ink on the page —
- * "no box, no fill" — which is right on a plain ground and wrong on a photograph: with a picture
- * behind the results, the grey word sat on foliage and could not be read at all (reported with a
- * screenshot). A control the traveller has to hunt for is not a quieter control, it is a missing
- * one. It now wears the smallest surface the app has, the same solid tint and hairline a `.pill`
- * wears, so it reads over any picture in either appearance and still weighs less than the journeys
- * it sits between.
+ * **It has no pane, on any style, and that is the rule now.** For a while it wore a `.pill`'s solid
+ * tint and hairline so the grey word could be read over a photograph. That pane became its own
+ * problem: a boxed control above and below the journeys, on every style, light or dark, one more
+ * surface on a page that already has the search card, the alert and every journey. Asked to take
+ * the backdrop off "Later" and "Earlier" on all styles, so it goes — no fill, no hairline, no
+ * padding: a word in the style's own ink over whatever ground that style has. Weight and the
+ * uppercase pill type carry it instead of a box.
  *
  * The 44px target is real, but it is the pseudo-element's rather than the label's — the same trick
  * `.tap-target` uses — so the eye gets a word and the thumb still gets a target. The expansion
@@ -4365,10 +4383,10 @@
   align-items: center;
   gap: var(--s-1);
   min-height: 24px;
-  padding: 0 var(--s-3);
-  border: 1px solid var(--border-hairline);
+  padding: 0;
+  border: 0;
   border-radius: var(--r-pill);
-  background: var(--l1-bg);
+  background: none;
   color: var(--ink);
   font-family: inherit;
   font-size: var(--fs-pill);
@@ -4385,10 +4403,9 @@
   inset: -14px -8px;
 }
 
-/* The colour says what happened; the edge answers the pointer. */
+/* The colour says what happened; there is no edge to answer the pointer any more. */
 .window-step:hover:not(:disabled) {
   color: var(--ink-strong);
-  border-color: var(--struct-main);
 }
 
 .window-step:disabled {

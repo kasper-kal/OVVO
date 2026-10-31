@@ -53,7 +53,7 @@ import { ReviewLayer } from './review/ReviewLayer';
  */
 function SettingsRoute() {
   const { power } = useApp();
-  if (power.mode === 'super') return <Navigate to="/" replace />;
+  if ((power.mode === 'super' || power.mode === 'last')) return <Navigate to="/" replace />;
   return <SettingsPage />;
 }
 
@@ -68,7 +68,7 @@ function SettingsRoute() {
  */
 function MapRoute() {
   const { power } = useApp();
-  if (power.mode === 'super') return <Navigate to="/" replace />;
+  if ((power.mode === 'super' || power.mode === 'last')) return <Navigate to="/" replace />;
   return <MapPage />;
 }
 

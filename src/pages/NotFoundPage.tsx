@@ -26,7 +26,7 @@ export function NotFoundPage() {
           {t('Back to the planner')}
         </Link>
         {/* The map is closed at a tenth of a battery, so no button to it either. */}
-        {power.mode === 'super' ? null : (
+        {(power.mode === 'super' || power.mode === 'last') ? null : (
           <Link to="/map" className="btn">
             <Icon name="map" size={16} />
             {t('Network map')}

@@ -83,7 +83,7 @@ export function useNavigation(): NavGroup[] {
    * left in it — otherwise "Yours" would be a heading over an empty list. A charger puts it back,
    * because nothing is stored: the mode is a subtraction, never a change.
    */
-  if (power.mode !== 'super') return groups;
+  if ((power.mode !== 'super' && power.mode !== 'last')) return groups;
   /*
    * Settings and the map, and nothing else. The map was left in the first time this mode was
    * written, on the argument that looking at where a stop is answers the same question the mode
@@ -192,7 +192,7 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
      * of a battery a bar that answers a press by doing nothing is the point, so the timers are not
      * started at all: the tab is pressed, the screen changes, nothing else happens.
      */
-    if (power.mode === 'super') return;
+    if ((power.mode === 'super' || power.mode === 'last')) return;
     window.clearTimeout(liftTimer.current);
     window.clearTimeout(settleTimer.current);
     setDial({ id, settling: false });
@@ -452,7 +452,7 @@ export function AppShell({ children }: { children: ReactNode }) {
    * `HomePage`. Leaving the mode is the charger, not a button here; the layout is untouched and
    * comes back exactly as it was.
    */
-  const canArrangeHome = onHome && power.mode !== 'super';
+  const canArrangeHome = onHome && (power.mode !== 'super' && power.mode !== 'last');
 
   /*
    * **Customising is a mode of the home screen, so leaving it leaves the mode.**

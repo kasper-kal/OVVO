@@ -49,3 +49,7 @@ use is ever fetched.
 | `arena.jpg` | Arena | Weathered stone arches under a storm sky. |
 | `chrome.jpg` | Chrome | Folded chrome over black leather. |
 | `blueprint.jpg` | Blueprint | A technical drawing, ink line on blue paper. |
+| `christmas.jpg` | Christmas | The tree in the Galeries Lafayette at night, thousands of bulbs and the dark sky above. |
+| `sinterklaas.jpg` | Sinterklaas | The bishop on his white horse, two puppets at his shoulder, red robe and gold mitre. |
+| `new-year.jpg` | New Year | Fireworks bursting gold and red over a black sky. |
+| `easter.jpg` | Easter | A white rabbit in a basket of pastel eggs, sunlight on the wicker. |

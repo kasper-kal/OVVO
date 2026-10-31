@@ -66,7 +66,7 @@ export function DeparturesPage() {
    * says which of the two behaviours it is living with rather than promising five seconds it is not
    * doing.
    */
-  const manualRefresh = power.mode === 'super';
+  const manualRefresh = (power.mode === 'super' || power.mode === 'last');
   const format = useFormat();
   const t = useT();
 

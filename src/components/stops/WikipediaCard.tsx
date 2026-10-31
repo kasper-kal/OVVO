@@ -36,7 +36,7 @@ export function WikipediaCard({ stopId }: { stopId: string }) {
    * then decodes and holds. The test is in the effect rather than only at the render, because an
    * effect that runs and then draws nothing has still spent the request.
    */
-  const superSaving = power.mode === 'super';
+  const superSaving = (power.mode === 'super' || power.mode === 'last');
   const [summary, setSummary] = useState<WikipediaSummary | null>(() =>
     cachedWikipediaSummary(stopId, language),
   );
