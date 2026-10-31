@@ -711,8 +711,8 @@ export const STYLES: StyleDef[] = [
      * floor: the edge is there when you look for it, and gone when you are reading.
      */
     pinned: {
-      light: { '--border-hairline': '#282522', '--hairline-on-dark': '#332D26' },
-      dark: { '--border-hairline': '#282522', '--hairline-on-dark': '#332D26' },
+      light: { '--border-hairline': '#332D26', '--hairline-on-dark': '#332D26' },
+      dark: { '--border-hairline': '#332D26', '--hairline-on-dark': '#332D26' },
     },
     /*
      * **The photograph is the platform at Haarlem, after the last train.** Warm lamps under the old
