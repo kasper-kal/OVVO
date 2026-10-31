@@ -113,24 +113,49 @@ export function DeveloperPage() {
         <div className="stack-4">
           <Card className="stack">
             <h2 className="t-section">{t('Battery')}</h2>
-            <Field
-              /* The number rides on the label, the way the battery reading in Settings does, so the
-                 value is not written a second time under a rail that already shows it. */
-              label={
-                shownPercent === null
-                  ? t('Level')
-                  : t('Level · {percent}%', { percent: shownPercent })
-              }
-              hint={
-                dev.battery === null
-                  ? shownPercent === null
-                    ? t('This browser does not report a level, so the knob waits at 0 until you move it.')
-                    : t(
-                        'The device’s own battery is being read, and the knob sits at its level until you move it.',
-                      )
-                  : t('The app is in {mode}.', { mode: modeLabel })
-              }
-            >
+            {/*
+              **No slider while the device's own battery is being read.**
+
+              The rail used to be drawn in both states, its knob parked at whatever the device
+              reported. A rail with a knob on it, in front of a sentence saying nothing is being
+              simulated, reads as a control that is set to that level (reported twice). When the
+              device is being read there is nothing to drag, so the level is drawn the way Settings
+              draws a reading, name on the left and value on the right, and the slider arrives only
+              when the traveller asks to pretend one.
+            */}
+            {dev.battery === null ? (
+              <>
+                <div className="field">
+                  <div className="between">
+                    <span className="field__label">{t('Level')}</span>
+                    <span className="t-strong t-sm">
+                      {devicePercent === null ? t('Not reported') : `${devicePercent}%`}
+                    </span>
+                  </div>
+                  <p className="field__hint">
+                    {devicePercent === null
+                      ? t('This browser does not report a level.')
+                      : t('Read from this device. Nothing here is being simulated.')}
+                  </p>
+                </div>
+                <div className="row">
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      setDevOverrides({ battery: power.level ?? 0.5, charging: power.charging })
+                    }
+                  >
+                    {t('Pretend a level')}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Field
+                  /* The number rides on the label, the way the battery reading in Settings does. */
+                  label={t('Level · {percent}%', { percent: shownPercent ?? 0 })}
+                  hint={t('The app is in {mode}.', { mode: modeLabel })}
+                >
               {/*
                 **The slider the rest of the app already uses, with the knob reaching its ends.**
 
@@ -151,22 +176,26 @@ export function DeveloperPage() {
                   aria-label={t('Battery level')}
                 />
               </div>
-            </Field>
-            <Switch
-              checked={dev.charging}
-              onChange={(next) => setDevOverrides({ charging: next })}
-              label={t('On a charger')}
-              description={t('A charger puts the app back in its full interface, whatever the level says.')}
-            />
-            <div className="row">
-              <Button
-                variant="ghost"
-                icon="refresh"
-                onClick={() => setDevOverrides({ battery: null, charging: false })}
-              >
-                {t('Use the device’s battery')}
-              </Button>
-            </div>
+                </Field>
+                <Switch
+                  checked={dev.charging}
+                  onChange={(next) => setDevOverrides({ charging: next })}
+                  label={t('On a charger')}
+                  description={t(
+                    'A charger puts the app back in its full interface, whatever the level says.',
+                  )}
+                />
+                <div className="row">
+                  <Button
+                    variant="ghost"
+                    icon="refresh"
+                    onClick={() => setDevOverrides({ battery: null, charging: false })}
+                  >
+                    {t('Use the device’s battery')}
+                  </Button>
+                </div>
+              </>
+            )}
           </Card>
 
           <Card className="stack">
