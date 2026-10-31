@@ -193,7 +193,7 @@ export interface StylePhoto {
  * defaults below, chosen from its own page: a dark page keeps its cards translucent, a pale page
  * gets solid cards and a slightly heavier wash, because the ink on a pale page is the dark one.
  */
-const PHOTO_FREE = new Set(['night-aa']);
+const PHOTO_FREE = new Set(['night-aa', 'christmas', 'sinterklaas', 'new-year', 'easter']);
 
 /**
  * **Styles whose photograph is dark in the band the page's own name sits in.**
@@ -348,6 +348,10 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'blueprint': 'square',
   'marble': 'round',
   'arches': 'pill',
+  'christmas': 'arch',
+  'sinterklaas': 'round',
+  'new-year': 'line',
+  'easter': 'soft',
 };
 
 /** The shape a style draws, for anything that previews it (the picker's swatches). */
@@ -1211,6 +1215,80 @@ export const STYLES: StyleDef[] = [
     sub: 'grotesk',
     body: 'jakarta',
     ui: 'inter',
+  },
+
+  /*
+   * --------------------------------------------------------------- the year
+   *
+   * **Four days the app dresses for.** They are styles like every other one — a page, a card, an ink
+   * and an accent, four faces and a geometry — and they stand on their own all year, so nothing about
+   * them waits for a date. Each is a colour-only look for now: there is no photograph for them yet,
+   * and a made-up one would be a wallpaper pretending to be a season.
+   */
+
+  /*
+   * **Christmas.** The tree in shade, a candle's light and one brass bauble. The page is the pine at
+   * night, the cards the same pine a shade up, the words the candle and the accent the bauble.
+   */
+  {
+    id: 'christmas',
+    name: 'Christmas',
+    nameNl: 'Kerstmis',
+    group: 'green',
+    light: ['#0E2318', '#163425', '#F7EFE0', '#D9A441'],
+    shape: 'arch',
+    display: 'playfair',
+    sub: 'instrument',
+    body: 'lora',
+    ui: 'work',
+  },
+  /*
+   * **Sinterklaas.** Brown paper, spice and marzipan: the page is a December evening, the cards the
+   * paper of a wrapped parcel, the words the marzipan inside it and the accent the pepernoot.
+   */
+  {
+    id: 'sinterklaas',
+    name: 'Sinterklaas',
+    nameNl: 'Sinterklaas',
+    group: 'wine',
+    light: ['#2A140C', '#3A1D12', '#F8E7CB', '#D9A24B'],
+    shape: 'round',
+    display: 'cormorant',
+    sub: 'newsreader',
+    body: 'lora',
+    ui: 'figtree',
+  },
+  /*
+   * **New Year.** The sky just after midnight, the smoke still hanging and the last spark falling:
+   * the page is the sky, the cards the smoke, the words the champagne and the accent the spark.
+   */
+  {
+    id: 'new-year',
+    name: 'New Year',
+    nameNl: 'Oud en nieuw',
+    group: 'black',
+    light: ['#08080F', '#14141F', '#F6F2E6', '#E8C15A'],
+    shape: 'line',
+    display: 'outfit',
+    sub: 'grotesk',
+    body: 'inter',
+    ui: 'manrope',
+  },
+  /*
+   * **Easter.** Pale cloth, a shell and the first green: the page is the cloth, the cards the shell,
+   * the words the garden in shade and the accent the leaf that has just opened.
+   */
+  {
+    id: 'easter',
+    name: 'Easter',
+    nameNl: 'Pasen',
+    group: 'cream',
+    light: ['#F1EEE1', '#FBF8EE', '#24301F', '#6F8F5A'],
+    shape: 'soft',
+    display: 'instrument',
+    sub: 'playfair',
+    body: 'figtree',
+    ui: 'work',
   },
 ];
 
