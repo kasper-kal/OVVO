@@ -4,47 +4,49 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OVVO · thirty styles, one card</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
 <style>
-  :root { color-scheme: light }
-  * { box-sizing: border-box }
-  body { margin: 0; background: #f7f5ef; color: #18181b; font-family: 'Inter', system-ui, sans-serif }
-  main { max-width: 1080px; margin: 0 auto; padding: 48px 24px 72px }
-  h1 { margin: 0 0 6px; font: 800 26px/1.15 'Plus Jakarta Sans', Inter, sans-serif; letter-spacing: -0.02em }
-  .lede { margin: 0; max-width: 60ch; font-size: 13px; line-height: 1.5; color: #5f5f66 }
-  .switches { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 2px }
-  .switch { display: inline-flex; padding: 3px; border: 1px solid #cdc7b8; border-radius: 999px; background: #fff }
-  .switch button { appearance: none; border: 0; background: none; cursor: pointer; padding: 7px 16px; border-radius: 999px;
-    font: 600 12px/1 'Inter', system-ui, sans-serif; color: #5f5f66 }
-  .switch button[aria-pressed="true"] { background: #18181b; color: #fff }
-  h2 { margin: 26px 0 8px; font: 800 15px/1.2 'Plus Jakarta Sans', Inter, sans-serif }
-  ul.plan { list-style: none; margin: 0; padding: 0; columns: 3; column-gap: 20px }
-  ul.plan li { break-inside: avoid; padding: 5px 0; border-top: 1px solid #e6e1d6 }
-  ul.plan b { display: block; font-size: 10.5px; font-weight: 600; line-height: 1.25 }
-  .chips { display: block; margin-top: 3px }
-  .chip-link { display: inline-block; margin: 1px 3px 1px 0; padding: 1px 8px; border: 1px solid #cdc7b8; border-radius: 999px;
-    font-size: 10px; color: #3a3a3f; text-decoration: none }
-  .chip-link:hover { border-color: #18181b }
-  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 26px }
-  .tile { margin: 0 }
-  .scene { position: relative; overflow: hidden; border: 1px solid #e2ddd1; border-radius: 2px; padding: 34px 30px; background: var(--canvas) }
-  .paper { position: absolute; inset: 0; background: var(--canvas) }
-  .photo { position: absolute; inset: 0; background-image: linear-gradient(var(--wash), var(--wash)), var(--photo);
+  /* The page shell wears the app's own tokens, so it changes with the switch like the app does. */
+  :root { --canvas-base:#fcfbfa;--surface-alt:#f3f1ea;--surface-raised:#ffffff;--l1-bg:#f3f1ea;--l2-bg:#ffffff;--card-fill:#FFFFFF;--l1-border:1px solid #cdc7b8;--l2-border:1px solid #cdc7b8;--ink-strong:#18181b;--ink:#3f3f45;--ink-muted:#5f5f66;--ink-faint:#66666d;--border-hairline:#cdc7b8;--hairline-on-dark:#2d3b2d;--accent-primary:#ff7e67;--accent-fill:#ff7e67;--on-accent:#18181b;--focus-ring:#d9533a;--font-display:'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-stack:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--line-width:1px }
+  [data-appearance="dark"] { --canvas-base:#121211;--surface-alt:#1b1a18;--surface-raised:#232220;--l1-bg:#1b1a18;--l2-bg:#232220;--card-fill:#232220;--l1-border:1px solid #4a463c;--l2-border:1px solid #4a463c;--ink-strong:#f7f6f3;--ink:#dedcd6;--ink-muted:#b8b5ae;--ink-faint:#a5a29b;--border-hairline:#4a463c;--hairline-on-dark:#3b3a3d;--accent-primary:#ff7e67;--accent-fill:#ff7e67;--on-accent:#18181b;--focus-ring:#d9533a;--font-display:'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-stack:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--line-width:1px; color-scheme: dark }
+  body { background: var(--canvas-base) }
+  .sc-wrap { max-width: 1120px; margin: 0 auto; padding: var(--s-8, 32px) var(--s-5, 20px) 72px }
+  .sc-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-4, 16px) }
+  .sc-switches { display: flex; flex-wrap: wrap; gap: var(--s-2, 8px) }
+  .sc-lede { margin: var(--s-2, 8px) 0 0; max-width: 62ch; color: var(--ink-muted); font-size: var(--fs-body, 15px); line-height: 1.5 }
+  .sc-plan { list-style: none; margin: var(--s-2, 8px) 0 0; padding: 0; columns: 3; column-gap: var(--s-5, 20px) }
+  .sc-plan li { break-inside: avoid; padding: var(--s-1, 4px) 0 var(--s-3, 12px); border-top: 1px solid var(--border-hairline) }
+  .sc-plan b { display: block; font-size: var(--fs-caption, 12px); font-weight: var(--fw-bold, 700); line-height: 1.3 }
+  .sc-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+  .sc-chip { display: inline-block; padding: 2px 10px; border: 1px solid var(--border-hairline); border-radius: var(--r-pill, 9999px);
+    font-size: var(--fs-pill, 11px); font-weight: var(--fw-bold, 700); letter-spacing: var(--track-pill, 0.01em); text-transform: uppercase;
+    color: var(--ink-muted); text-decoration: none; background: var(--l1-bg) }
+  .sc-chip:hover { color: var(--ink-strong); border-color: var(--ink-muted) }
+  .sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-5, 20px); margin-top: var(--s-5, 20px) }
+  .sc-tile { margin: 0 }
+  .sc-scene { position: relative; overflow: hidden; border: 1px solid var(--border-hairline); border-radius: var(--r-card, 28px); padding: var(--s-7, 28px); background: var(--canvas) }
+  .sc-paper { position: absolute; inset: 0; background: var(--canvas) }
+  .sc-photo { position: absolute; inset: 0; background-image: linear-gradient(var(--wash), var(--wash)), var(--photo);
     background-size: cover; background-position: center }
-  [data-wallpaper="colour"] .photo { display: none }
-  .no-photo .photo { display: none }
-  .card { position: relative; display: block; width: 100%; height: auto }
-  .card-fill { fill: var(--card) }
-  .card-line { fill: none; stroke: var(--line); stroke-width: var(--line-width); stroke-linejoin: miter }
-  .eyebrow { fill: var(--ink-faint); font-family: var(--font-body); font-size: 8.5px; letter-spacing: 0.14em }
-  .title { fill: var(--ink-strong); font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.02em }
-  .subt { fill: var(--ink-muted); font-family: var(--font-body); font-size: 11.5px }
-  .chip { fill: var(--accent) }
-  .chip-label { fill: var(--on-accent); font-family: var(--font-body); font-size: 10.5px; font-weight: 600 }
-  .time { fill: var(--ink-muted); font-family: var(--font-body); font-size: 11px; font-weight: 600 }
-  .meta { display: flex; align-items: baseline; gap: 8px; margin: 8px 2px 0 }
-  .meta b { font-size: 12.5px }
-  .meta span { font-size: 10.5px; color: #8a8478 }
-  @media (max-width: 720px) { .grid { grid-template-columns: 1fr } ul.plan { columns: 1 } }
+  [data-wallpaper="colour"] .sc-photo { display: none }
+  .sc-nophoto .sc-photo { display: none }
+  .sc-card { position: relative; display: block; width: 100%; height: auto }
+  .sc-fill { fill: var(--card) }
+  .sc-edge { fill: none; stroke: var(--line); stroke-width: var(--line-width); stroke-linejoin: miter }
+  .sc-eyebrow { fill: var(--ink-faint); font-family: var(--font-body); font-size: 8.5px; letter-spacing: 0.14em }
+  .sc-title { fill: var(--ink-strong); font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.02em }
+  .sc-sub { fill: var(--ink-muted); font-family: var(--font-body); font-size: 11.5px }
+  .sc-pill { fill: var(--accent) }
+  .sc-pill-label { fill: var(--on-accent); font-family: var(--font-body); font-size: 10.5px; font-weight: 600 }
+  .sc-time { fill: var(--ink-muted); font-family: var(--font-body); font-size: 11px; font-weight: 600 }
+  .sc-meta { display: flex; align-items: baseline; gap: 8px; margin: var(--s-2, 8px) 2px 0 }
+  .sc-meta b { font-size: var(--fs-caption, 13px) }
+  .sc-meta span { font-size: var(--fs-pill, 11px); color: var(--ink-faint) }
+  h2 { margin: var(--s-8, 32px) 0 var(--s-2, 8px); font-size: var(--section-size, 16px); font-weight: var(--section-weight, 700) }
+  @media (max-width: 760px) { .sc-grid, .sc-plan { grid-template-columns: 1fr; columns: 1 } .sc-wrap { padding: 24px 16px 56px } }
   [data-appearance="light"] #s-navy-gold { --canvas:#121d29;--card:rgba(27, 46, 69, 1);--line:#465566;--line-width:1px;--ink-strong:#F4F1EA;--ink:#dadad6;--ink-muted:#b6babd;--ink-faint:#adb2b7;--accent:#c0a171;--on-accent:#0B0B0C;--wash:rgba(18, 29, 41, 0.44);--photo:url(photos/navy-gold.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
   [data-appearance="dark"] #s-navy-gold { --canvas:#0a1017;--card:rgba(17, 27, 38, 1);--line:#404851;--line-width:1px;--ink-strong:#fefdfc;--ink:#bcbec0;--ink-muted:#a3a6aa;--ink-faint:#989ca1;--accent:#c0a171;--on-accent:#0B0B0C;--wash:rgba(10, 16, 23, 0.02);--photo:url(photos/navy-gold-night.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
   [data-appearance="light"] #s-midnight-silk { --canvas:#1b141e;--card:rgba(36, 27, 44, 1);--line:#4d444f;--line-width:1px;--ink-strong:#EFE9DC;--ink:#cfc8c0;--ink-muted:#aba5a3;--ink-faint:#a29b9c;--accent:#baa382;--on-accent:#0B0B0C;--wash:rgba(27, 20, 30, 0.43);--photo:url(photos/midnight-silk.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
@@ -108,576 +110,579 @@
 </style>
 </head>
 <body>
-<main>
-  <h1>Thirty styles, one card</h1>
-  <p class="lede">Every style's own page, with one card on it. The card wears the corner the plan pairs with that style, and the colours are the app's own tokens. Switch the appearance, and switch the background between the style's colour and its photograph.</p>
-  <div class="switches">
-    <div class="switch" role="group" aria-label="Appearance">
-      <button type="button" data-set="appearance" data-value="light" aria-pressed="true">Light</button>
-      <button type="button" data-set="appearance" data-value="dark" aria-pressed="false">Dark</button>
+<main class="sc-wrap">
+  <div class="sc-head">
+    <div>
+      <h1>Thirty styles, one card</h1>
+      <p class="sc-lede">Every style's own page, with one card on it. The card wears the corner the plan pairs with that style, and the colours are the app's own tokens.</p>
     </div>
-    <div class="switch" role="group" aria-label="Background">
-      <button type="button" data-set="wallpaper" data-value="colour" aria-pressed="true">Colour</button>
-      <button type="button" data-set="wallpaper" data-value="photo" aria-pressed="false">Photo</button>
+    <div class="sc-switches">
+      <div class="segmented" role="group" aria-label="Appearance">
+        <button type="button" class="segmented__btn" data-set="appearance" data-value="light" aria-pressed="true">Light</button>
+        <button type="button" class="segmented__btn" data-set="appearance" data-value="dark" aria-pressed="false">Dark</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Background">
+        <button type="button" class="segmented__btn" data-set="wallpaper" data-value="colour" aria-pressed="true">Colour</button>
+        <button type="button" class="segmented__btn" data-set="wallpaper" data-value="photo" aria-pressed="false">Photo</button>
+      </div>
     </div>
   </div>
 
   <h2>The demos</h2>
-  <ul class="plan"><li><b>One. Cut corners.</b><span class="chips"><a class="chip-link" href="#s-navy-gold">Navy and Gold</a><a class="chip-link" href="#s-terminal">Terminal</a></span></li><li><b>Two. Top and bottom pinched to a point.</b><span class="chips"><a class="chip-link" href="#s-midnight-silk">Midnight Silk</a><a class="chip-link" href="#s-blueprint">Blueprint</a></span></li><li><b>Three. A square step at every corner.</b><span class="chips"><a class="chip-link" href="#s-bordeaux">Bordeaux</a><a class="chip-link" href="#s-marble">Marble</a></span></li><li><b>Four. The sides pinch in from top to bottom.</b><span class="chips"><a class="chip-link" href="#s-poppy-blue">Poppy Blue</a><a class="chip-link" href="#s-arches">Arches</a></span></li><li><b>Five. Pinched on all four sides.</b><span class="chips"><a class="chip-link" href="#s-ultraviolet">Ultraviolet</a><a class="chip-link" href="#s-summit">Summit</a></span></li><li><b>Six. A scoop taken out of every corner.</b><span class="chips"><a class="chip-link" href="#s-cyber-teal">Cyber Teal</a><a class="chip-link" href="#s-cloudbank">Cloudbank</a></span></li><li><b>Seven. Deeper cut corners.</b><span class="chips"><a class="chip-link" href="#s-broadsheet">Broadsheet</a><a class="chip-link" href="#s-riviera">Riviera</a></span></li><li><b>Eight. Two hollow bands, one slightly bigger.</b><span class="chips"><a class="chip-link" href="#s-spoorboekje">Spoorboekje</a><a class="chip-link" href="#s-palazzo">Palazzo</a></span></li><li><b>Nine. Cut corners with a pinched top and bottom.</b><span class="chips"><a class="chip-link" href="#s-rijksmuseum">Rijksmuseum</a><a class="chip-link" href="#s-storm-tide">Storm Tide</a></span></li></ul>
+  <ul class="sc-plan"><li><b>One. Cut corners.</b><span class="sc-chips"><a class="sc-chip" href="#s-navy-gold">Navy and Gold</a><a class="sc-chip" href="#s-terminal">Terminal</a></span></li><li><b>Two. Top and bottom pinched to a point.</b><span class="sc-chips"><a class="sc-chip" href="#s-midnight-silk">Midnight Silk</a><a class="sc-chip" href="#s-blueprint">Blueprint</a></span></li><li><b>Three. A square step at every corner.</b><span class="sc-chips"><a class="sc-chip" href="#s-bordeaux">Bordeaux</a><a class="sc-chip" href="#s-marble">Marble</a></span></li><li><b>Four. The sides pinch in from top to bottom.</b><span class="sc-chips"><a class="sc-chip" href="#s-poppy-blue">Poppy Blue</a><a class="sc-chip" href="#s-arches">Arches</a></span></li><li><b>Five. Pinched on all four sides.</b><span class="sc-chips"><a class="sc-chip" href="#s-ultraviolet">Ultraviolet</a><a class="sc-chip" href="#s-summit">Summit</a></span></li><li><b>Six. A scoop taken out of every corner.</b><span class="sc-chips"><a class="sc-chip" href="#s-cyber-teal">Cyber Teal</a><a class="sc-chip" href="#s-cloudbank">Cloudbank</a></span></li><li><b>Seven. Deeper cut corners.</b><span class="sc-chips"><a class="sc-chip" href="#s-broadsheet">Broadsheet</a><a class="sc-chip" href="#s-riviera">Riviera</a></span></li><li><b>Eight. Two hollow bands, one slightly bigger.</b><span class="sc-chips"><a class="sc-chip" href="#s-spoorboekje">Spoorboekje</a><a class="sc-chip" href="#s-palazzo">Palazzo</a></span></li><li><b>Nine. Cut corners with a pinched top and bottom.</b><span class="sc-chips"><a class="sc-chip" href="#s-rijksmuseum">Rijksmuseum</a><a class="sc-chip" href="#s-storm-tide">Storm Tide</a></span></li></ul>
 
   <h2>The shape rows</h2>
-  <ul class="plan"><li><b>Soft</b><span class="chips"><a class="chip-link" href="#s-station-sign">Station Sign</a><a class="chip-link" href="#s-skyline">Skyline</a></span></li><li><b>Square</b><span class="chips"><a class="chip-link" href="#s-tram">Default</a><a class="chip-link" href="#s-capsule">Capsule</a></span></li><li><b>Round</b><span class="chips"><a class="chip-link" href="#s-obsidian">Obsidian</a><a class="chip-link" href="#s-toscane">Toscane</a></span></li><li><b>Pill</b><span class="chips"><a class="chip-link" href="#s-contrast">Contrast</a><a class="chip-link" href="#s-contact">Contact</a></span></li><li><b>Line</b><span class="chips"><a class="chip-link" href="#s-night-aa">Night AA</a><a class="chip-link" href="#s-loggia">Loggia</a></span></li><li><b>Plate</b><span class="chips"><a class="chip-link" href="#s-sage">Sage</a></span></li><li><b>Arch</b><span class="chips"><a class="chip-link" href="#s-mustard">Mustard</a></span></li></ul>
+  <ul class="sc-plan"><li><b>Soft</b><span class="sc-chips"><a class="sc-chip" href="#s-station-sign">Station Sign</a><a class="sc-chip" href="#s-skyline">Skyline</a></span></li><li><b>Square</b><span class="sc-chips"><a class="sc-chip" href="#s-tram">Default</a><a class="sc-chip" href="#s-capsule">Capsule</a></span></li><li><b>Round</b><span class="sc-chips"><a class="sc-chip" href="#s-obsidian">Obsidian</a><a class="sc-chip" href="#s-toscane">Toscane</a></span></li><li><b>Pill</b><span class="sc-chips"><a class="sc-chip" href="#s-contrast">Contrast</a><a class="sc-chip" href="#s-contact">Contact</a></span></li><li><b>Line</b><span class="sc-chips"><a class="sc-chip" href="#s-night-aa">Night AA</a><a class="sc-chip" href="#s-loggia">Loggia</a></span></li><li><b>Plate</b><span class="sc-chips"><a class="sc-chip" href="#s-sage">Sage</a></span></li><li><b>Arch</b><span class="sc-chips"><a class="sc-chip" href="#s-mustard">Mustard</a></span></li></ul>
 
-  <div class="grid">
-    <article class="tile" id="s-navy-gold" data-name="Navy and Gold">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Navy and Gold, One. Cut corners.">
+  <div class="sc-grid">
+    <article class="sc-tile" id="s-navy-gold" data-name="Navy and Gold">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Navy and Gold, One. Cut corners.">
       <defs><clipPath id="clip-navy-gold"><path d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></clipPath></defs>
-      <path class="card-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
-      <g clip-path="url(#clip-navy-gold)"><path class="card-line" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
+      <g clip-path="url(#clip-navy-gold)"><path class="sc-edge" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Navy and Gold</b><span>Demo one · corner 1</span></p>
+  <p class="sc-meta"><b>Navy and Gold</b><span>Demo one · corner 1</span></p>
 </article>
-    <article class="tile" id="s-terminal" data-name="Terminal">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Terminal, One. Cut corners.">
+    <article class="sc-tile" id="s-terminal" data-name="Terminal">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Terminal, One. Cut corners.">
       <defs><clipPath id="clip-terminal"><path d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></clipPath></defs>
-      <path class="card-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
-      <g clip-path="url(#clip-terminal)"><path class="card-line" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
+      <g clip-path="url(#clip-terminal)"><path class="sc-edge" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Terminal</b><span>Demo one · corner 1</span></p>
+  <p class="sc-meta"><b>Terminal</b><span>Demo one · corner 1</span></p>
 </article>
-    <article class="tile" id="s-midnight-silk" data-name="Midnight Silk">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Midnight Silk, Two. Top and bottom pinched to a point.">
+    <article class="sc-tile" id="s-midnight-silk" data-name="Midnight Silk">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Midnight Silk, Two. Top and bottom pinched to a point.">
       <defs><clipPath id="clip-midnight-silk"><path d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/>
-      <g clip-path="url(#clip-midnight-silk)"><path class="card-line" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/>
+      <g clip-path="url(#clip-midnight-silk)"><path class="sc-edge" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Midnight Silk</b><span>Demo two · corner 2</span></p>
+  <p class="sc-meta"><b>Midnight Silk</b><span>Demo two · corner 2</span></p>
 </article>
-    <article class="tile no-photo" id="s-blueprint" data-name="Blueprint">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Blueprint, Two. Top and bottom pinched to a point.">
+    <article class="sc-tile sc-nophoto" id="s-blueprint" data-name="Blueprint">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Blueprint, Two. Top and bottom pinched to a point.">
       <defs><clipPath id="clip-blueprint"><path d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/>
-      <g clip-path="url(#clip-blueprint)"><path class="card-line" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/>
+      <g clip-path="url(#clip-blueprint)"><path class="sc-edge" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Blueprint</b><span>Demo two · corner 2 · colour only</span></p>
+  <p class="sc-meta"><b>Blueprint</b><span>Demo two · corner 2 · colour only</span></p>
 </article>
-    <article class="tile" id="s-bordeaux" data-name="Bordeaux">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Bordeaux, Three. A square step at every corner.">
+    <article class="sc-tile" id="s-bordeaux" data-name="Bordeaux">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Bordeaux, Three. A square step at every corner.">
       <defs><clipPath id="clip-bordeaux"><path d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
-      <g clip-path="url(#clip-bordeaux)"><path class="card-line" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
+      <g clip-path="url(#clip-bordeaux)"><path class="sc-edge" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Bordeaux</b><span>Demo three · corner 3</span></p>
+  <p class="sc-meta"><b>Bordeaux</b><span>Demo three · corner 3</span></p>
 </article>
-    <article class="tile" id="s-marble" data-name="Marble">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Marble, Three. A square step at every corner.">
+    <article class="sc-tile" id="s-marble" data-name="Marble">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Marble, Three. A square step at every corner.">
       <defs><clipPath id="clip-marble"><path d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
-      <g clip-path="url(#clip-marble)"><path class="card-line" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
+      <g clip-path="url(#clip-marble)"><path class="sc-edge" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Marble</b><span>Demo three · corner 3</span></p>
+  <p class="sc-meta"><b>Marble</b><span>Demo three · corner 3</span></p>
 </article>
-    <article class="tile" id="s-poppy-blue" data-name="Poppy Blue">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Poppy Blue, Four. The sides pinch in from top to bottom.">
+    <article class="sc-tile" id="s-poppy-blue" data-name="Poppy Blue">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Poppy Blue, Four. The sides pinch in from top to bottom.">
       <defs><clipPath id="clip-poppy-blue"><path d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/>
-      <g clip-path="url(#clip-poppy-blue)"><path class="card-line" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/>
+      <g clip-path="url(#clip-poppy-blue)"><path class="sc-edge" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Poppy Blue</b><span>Demo four · corner 4</span></p>
+  <p class="sc-meta"><b>Poppy Blue</b><span>Demo four · corner 4</span></p>
 </article>
-    <article class="tile" id="s-arches" data-name="Arches">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Arches, Four. The sides pinch in from top to bottom.">
+    <article class="sc-tile" id="s-arches" data-name="Arches">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Arches, Four. The sides pinch in from top to bottom.">
       <defs><clipPath id="clip-arches"><path d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/>
-      <g clip-path="url(#clip-arches)"><path class="card-line" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/>
+      <g clip-path="url(#clip-arches)"><path class="sc-edge" d="M0 0 H440 L416 140 L440 280 H0 L24 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Arches</b><span>Demo four · corner 4</span></p>
+  <p class="sc-meta"><b>Arches</b><span>Demo four · corner 4</span></p>
 </article>
-    <article class="tile" id="s-ultraviolet" data-name="Ultraviolet">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Ultraviolet, Five. Pinched on all four sides.">
+    <article class="sc-tile" id="s-ultraviolet" data-name="Ultraviolet">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Ultraviolet, Five. Pinched on all four sides.">
       <defs><clipPath id="clip-ultraviolet"><path d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
-      <g clip-path="url(#clip-ultraviolet)"><path class="card-line" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
+      <g clip-path="url(#clip-ultraviolet)"><path class="sc-edge" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Ultraviolet</b><span>Demo five · corner 5</span></p>
+  <p class="sc-meta"><b>Ultraviolet</b><span>Demo five · corner 5</span></p>
 </article>
-    <article class="tile" id="s-summit" data-name="Summit">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Summit, Five. Pinched on all four sides.">
+    <article class="sc-tile" id="s-summit" data-name="Summit">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Summit, Five. Pinched on all four sides.">
       <defs><clipPath id="clip-summit"><path d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
-      <g clip-path="url(#clip-summit)"><path class="card-line" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
+      <g clip-path="url(#clip-summit)"><path class="sc-edge" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Summit</b><span>Demo five · corner 5</span></p>
+  <p class="sc-meta"><b>Summit</b><span>Demo five · corner 5</span></p>
 </article>
-    <article class="tile" id="s-cyber-teal" data-name="Cyber Teal">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Cyber Teal, Six. A scoop taken out of every corner.">
+    <article class="sc-tile" id="s-cyber-teal" data-name="Cyber Teal">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Cyber Teal, Six. A scoop taken out of every corner.">
       <defs><clipPath id="clip-cyber-teal"><path d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
-      <g clip-path="url(#clip-cyber-teal)"><path class="card-line" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
+      <g clip-path="url(#clip-cyber-teal)"><path class="sc-edge" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Cyber Teal</b><span>Demo six · corner 6</span></p>
+  <p class="sc-meta"><b>Cyber Teal</b><span>Demo six · corner 6</span></p>
 </article>
-    <article class="tile" id="s-cloudbank" data-name="Cloudbank">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Cloudbank, Six. A scoop taken out of every corner.">
+    <article class="sc-tile" id="s-cloudbank" data-name="Cloudbank">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Cloudbank, Six. A scoop taken out of every corner.">
       <defs><clipPath id="clip-cloudbank"><path d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
-      <g clip-path="url(#clip-cloudbank)"><path class="card-line" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
+      <g clip-path="url(#clip-cloudbank)"><path class="sc-edge" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Cloudbank</b><span>Demo six · corner 6</span></p>
+  <p class="sc-meta"><b>Cloudbank</b><span>Demo six · corner 6</span></p>
 </article>
-    <article class="tile" id="s-broadsheet" data-name="Broadsheet">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Broadsheet, Seven. Deeper cut corners.">
+    <article class="sc-tile" id="s-broadsheet" data-name="Broadsheet">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Broadsheet, Seven. Deeper cut corners.">
       <defs><clipPath id="clip-broadsheet"><path d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></clipPath></defs>
-      <path class="card-fill" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/>
-      <g clip-path="url(#clip-broadsheet)"><path class="card-line" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/>
+      <g clip-path="url(#clip-broadsheet)"><path class="sc-edge" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Broadsheet</b><span>Demo seven · corner 7</span></p>
+  <p class="sc-meta"><b>Broadsheet</b><span>Demo seven · corner 7</span></p>
 </article>
-    <article class="tile" id="s-riviera" data-name="Riviera">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Riviera, Seven. Deeper cut corners.">
+    <article class="sc-tile" id="s-riviera" data-name="Riviera">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Riviera, Seven. Deeper cut corners.">
       <defs><clipPath id="clip-riviera"><path d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></clipPath></defs>
-      <path class="card-fill" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/>
-      <g clip-path="url(#clip-riviera)"><path class="card-line" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/>
+      <g clip-path="url(#clip-riviera)"><path class="sc-edge" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Riviera</b><span>Demo seven · corner 7</span></p>
+  <p class="sc-meta"><b>Riviera</b><span>Demo seven · corner 7</span></p>
 </article>
-    <article class="tile no-photo" id="s-spoorboekje" data-name="Spoorboekje">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Spoorboekje, Eight. Two hollow bands, one slightly bigger.">
+    <article class="sc-tile sc-nophoto" id="s-spoorboekje" data-name="Spoorboekje">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Spoorboekje, Eight. Two hollow bands, one slightly bigger.">
       <defs><clipPath id="clip-spoorboekje"><path d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
-      <g clip-path="url(#clip-spoorboekje)"><path class="card-line" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
+      <g clip-path="url(#clip-spoorboekje)"><path class="sc-edge" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Spoorboekje</b><span>Demo eight · corner 8 · colour only</span></p>
+  <p class="sc-meta"><b>Spoorboekje</b><span>Demo eight · corner 8 · colour only</span></p>
 </article>
-    <article class="tile" id="s-palazzo" data-name="Palazzo">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Palazzo, Eight. Two hollow bands, one slightly bigger.">
+    <article class="sc-tile" id="s-palazzo" data-name="Palazzo">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Palazzo, Eight. Two hollow bands, one slightly bigger.">
       <defs><clipPath id="clip-palazzo"><path d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
-      <g clip-path="url(#clip-palazzo)"><path class="card-line" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
+      <g clip-path="url(#clip-palazzo)"><path class="sc-edge" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Palazzo</b><span>Demo eight · corner 8</span></p>
+  <p class="sc-meta"><b>Palazzo</b><span>Demo eight · corner 8</span></p>
 </article>
-    <article class="tile" id="s-rijksmuseum" data-name="Rijksmuseum">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Rijksmuseum, Nine. Cut corners with a pinched top and bottom.">
+    <article class="sc-tile" id="s-rijksmuseum" data-name="Rijksmuseum">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Rijksmuseum, Nine. Cut corners with a pinched top and bottom.">
       <defs><clipPath id="clip-rijksmuseum"><path d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/>
-      <g clip-path="url(#clip-rijksmuseum)"><path class="card-line" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/>
+      <g clip-path="url(#clip-rijksmuseum)"><path class="sc-edge" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Rijksmuseum</b><span>Demo nine · corner 9</span></p>
+  <p class="sc-meta"><b>Rijksmuseum</b><span>Demo nine · corner 9</span></p>
 </article>
-    <article class="tile" id="s-storm-tide" data-name="Storm Tide">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Storm Tide, Nine. Cut corners with a pinched top and bottom.">
+    <article class="sc-tile" id="s-storm-tide" data-name="Storm Tide">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Storm Tide, Nine. Cut corners with a pinched top and bottom.">
       <defs><clipPath id="clip-storm-tide"><path d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/>
-      <g clip-path="url(#clip-storm-tide)"><path class="card-line" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/>
+      <g clip-path="url(#clip-storm-tide)"><path class="sc-edge" d="M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Storm Tide</b><span>Demo nine · corner 9</span></p>
+  <p class="sc-meta"><b>Storm Tide</b><span>Demo nine · corner 9</span></p>
 </article>
-    <article class="tile" id="s-station-sign" data-name="Station Sign">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Station Sign, One. Cut corners.">
+    <article class="sc-tile" id="s-station-sign" data-name="Station Sign">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Station Sign, One. Cut corners.">
       <defs><clipPath id="clip-station-sign"><path d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></clipPath></defs>
-      <path class="card-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
-      <g clip-path="url(#clip-station-sign)"><path class="card-line" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
+      <g clip-path="url(#clip-station-sign)"><path class="sc-edge" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Station Sign</b><span>Soft · corner 1</span></p>
+  <p class="sc-meta"><b>Station Sign</b><span>Soft · corner 1</span></p>
 </article>
-    <article class="tile" id="s-skyline" data-name="Skyline">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Skyline, One. Cut corners.">
+    <article class="sc-tile" id="s-skyline" data-name="Skyline">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Skyline, One. Cut corners.">
       <defs><clipPath id="clip-skyline"><path d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></clipPath></defs>
-      <path class="card-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
-      <g clip-path="url(#clip-skyline)"><path class="card-line" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/>
+      <g clip-path="url(#clip-skyline)"><path class="sc-edge" d="M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Skyline</b><span>Soft · corner 1</span></p>
+  <p class="sc-meta"><b>Skyline</b><span>Soft · corner 1</span></p>
 </article>
-    <article class="tile no-photo" id="s-tram" data-name="Default">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Default, Three. A square step at every corner.">
+    <article class="sc-tile sc-nophoto" id="s-tram" data-name="Default">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Default, Three. A square step at every corner.">
       <defs><clipPath id="clip-tram"><path d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
-      <g clip-path="url(#clip-tram)"><path class="card-line" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
+      <g clip-path="url(#clip-tram)"><path class="sc-edge" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Default</b><span>Square · corner 3 · colour only</span></p>
+  <p class="sc-meta"><b>Default</b><span>Square · corner 3 · colour only</span></p>
 </article>
-    <article class="tile" id="s-capsule" data-name="Capsule">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Capsule, Three. A square step at every corner.">
+    <article class="sc-tile" id="s-capsule" data-name="Capsule">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Capsule, Three. A square step at every corner.">
       <defs><clipPath id="clip-capsule"><path d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
-      <g clip-path="url(#clip-capsule)"><path class="card-line" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/>
+      <g clip-path="url(#clip-capsule)"><path class="sc-edge" d="M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Capsule</b><span>Square · corner 3</span></p>
+  <p class="sc-meta"><b>Capsule</b><span>Square · corner 3</span></p>
 </article>
-    <article class="tile" id="s-obsidian" data-name="Obsidian">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Obsidian, Six. A scoop taken out of every corner.">
+    <article class="sc-tile" id="s-obsidian" data-name="Obsidian">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Obsidian, Six. A scoop taken out of every corner.">
       <defs><clipPath id="clip-obsidian"><path d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
-      <g clip-path="url(#clip-obsidian)"><path class="card-line" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
+      <g clip-path="url(#clip-obsidian)"><path class="sc-edge" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Obsidian</b><span>Round · corner 6</span></p>
+  <p class="sc-meta"><b>Obsidian</b><span>Round · corner 6</span></p>
 </article>
-    <article class="tile" id="s-toscane" data-name="Toscane">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Toscane, Six. A scoop taken out of every corner.">
+    <article class="sc-tile" id="s-toscane" data-name="Toscane">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Toscane, Six. A scoop taken out of every corner.">
       <defs><clipPath id="clip-toscane"><path d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
-      <g clip-path="url(#clip-toscane)"><path class="card-line" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/>
+      <g clip-path="url(#clip-toscane)"><path class="sc-edge" d="M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Toscane</b><span>Round · corner 6</span></p>
+  <p class="sc-meta"><b>Toscane</b><span>Round · corner 6</span></p>
 </article>
-    <article class="tile no-photo" id="s-contrast" data-name="Contrast">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Contrast, Five. Pinched on all four sides.">
+    <article class="sc-tile sc-nophoto" id="s-contrast" data-name="Contrast">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Contrast, Five. Pinched on all four sides.">
       <defs><clipPath id="clip-contrast"><path d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
-      <g clip-path="url(#clip-contrast)"><path class="card-line" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
+      <g clip-path="url(#clip-contrast)"><path class="sc-edge" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Contrast</b><span>Pill · corner 5 · colour only</span></p>
+  <p class="sc-meta"><b>Contrast</b><span>Pill · corner 5 · colour only</span></p>
 </article>
-    <article class="tile" id="s-contact" data-name="Contact">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Contact, Five. Pinched on all four sides.">
+    <article class="sc-tile" id="s-contact" data-name="Contact">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Contact, Five. Pinched on all four sides.">
       <defs><clipPath id="clip-contact"><path d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
-      <g clip-path="url(#clip-contact)"><path class="card-line" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/>
+      <g clip-path="url(#clip-contact)"><path class="sc-edge" d="M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Contact</b><span>Pill · corner 5</span></p>
+  <p class="sc-meta"><b>Contact</b><span>Pill · corner 5</span></p>
 </article>
-    <article class="tile no-photo" id="s-night-aa" data-name="Night AA">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Night AA, Eight. Two hollow bands, one slightly bigger.">
+    <article class="sc-tile sc-nophoto" id="s-night-aa" data-name="Night AA">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Night AA, Eight. Two hollow bands, one slightly bigger.">
       <defs><clipPath id="clip-night-aa"><path d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
-      <g clip-path="url(#clip-night-aa)"><path class="card-line" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
+      <g clip-path="url(#clip-night-aa)"><path class="sc-edge" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Night AA</b><span>Line · corner 8 · colour only</span></p>
+  <p class="sc-meta"><b>Night AA</b><span>Line · corner 8 · colour only</span></p>
 </article>
-    <article class="tile" id="s-loggia" data-name="Loggia">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Loggia, Eight. Two hollow bands, one slightly bigger.">
+    <article class="sc-tile" id="s-loggia" data-name="Loggia">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Loggia, Eight. Two hollow bands, one slightly bigger.">
       <defs><clipPath id="clip-loggia"><path d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></clipPath></defs>
-      <path class="card-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
-      <g clip-path="url(#clip-loggia)"><path class="card-line" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/>
+      <g clip-path="url(#clip-loggia)"><path class="sc-edge" d="M60 0 H380 L440 140 L380 280 H60 L0 140 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Loggia</b><span>Line · corner 8</span></p>
+  <p class="sc-meta"><b>Loggia</b><span>Line · corner 8</span></p>
 </article>
-    <article class="tile" id="s-sage" data-name="Sage">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Sage, Two. Top and bottom pinched to a point.">
+    <article class="sc-tile" id="s-sage" data-name="Sage">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Sage, Two. Top and bottom pinched to a point.">
       <defs><clipPath id="clip-sage"><path d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></clipPath></defs>
-      <path class="card-fill" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/>
-      <g clip-path="url(#clip-sage)"><path class="card-line" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/>
+      <g clip-path="url(#clip-sage)"><path class="sc-edge" d="M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Sage</b><span>Plate · corner 2</span></p>
+  <p class="sc-meta"><b>Sage</b><span>Plate · corner 2</span></p>
 </article>
-    <article class="tile" id="s-mustard" data-name="Mustard">
-  <div class="scene">
-    <div class="paper"></div>
-    <div class="photo"></div>
-    <svg class="card" viewBox="0 0 440 280" role="img" aria-label="Mustard, Seven. Deeper cut corners.">
+    <article class="sc-tile" id="s-mustard" data-name="Mustard">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Mustard, Seven. Deeper cut corners.">
       <defs><clipPath id="clip-mustard"><path d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></clipPath></defs>
-      <path class="card-fill" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/>
-      <g clip-path="url(#clip-mustard)"><path class="card-line" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></g>
-      <text class="eyebrow" x="64" y="100">VOLGENDE TRET</text>
-      <text class="title" x="64" y="136">Amsterdam Zuid</text>
-      <text class="subt" x="64" y="156">Utrecht Centraal · spoor 4</text>
-      <rect class="chip" x="64" y="174" width="78" height="26" rx="13"/>
-      <text class="chip-label" x="103" y="191" text-anchor="middle">Direct</text>
-      <text class="time" x="376" y="191" text-anchor="end">09:12</text>
+      <path class="sc-fill" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/>
+      <g clip-path="url(#clip-mustard)"><path class="sc-edge" d="M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
     </svg>
   </div>
-  <p class="meta"><b>Mustard</b><span>Arch · corner 7</span></p>
+  <p class="sc-meta"><b>Mustard</b><span>Arch · corner 7</span></p>
 </article>
   </div>
 </main>
 <script>
-  for (const button of document.querySelectorAll('.switch button')) {
+  for (const button of document.querySelectorAll('.segmented__btn')) {
     button.addEventListener('click', () => {
-      const set = button.dataset.set;
-      const group = button.closest('.switch');
-      for (const sibling of group.querySelectorAll('button')) sibling.setAttribute('aria-pressed', String(sibling === button));
-      document.documentElement.dataset[set] = button.dataset.value;
+      const group = button.closest('.segmented');
+      for (const sibling of group.querySelectorAll('.segmented__btn')) sibling.setAttribute('aria-pressed', String(sibling === button));
+      document.documentElement.dataset[button.dataset.set] = button.dataset.value;
     });
   }
 </script>
