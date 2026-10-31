@@ -16,7 +16,17 @@
 /* ------------------------------------------------------------------ Surfaces */
 .card {
   background: var(--card-fill, var(--l2-bg));
-  border: var(--l2-border);
+  /*
+   * **A card's edge is drawn from the card.**
+   *
+   * It used to be `--l2-border`, which is `--border-hairline` — the line a chip, a field and a
+   * button wear, chosen to be *found* on the card. Every card was therefore outlined rather than
+   * edge-lit: a frame around the paper, and the loudest thing in a quiet style. The edge is now the
+   * card's own surface moved a little toward its ink (`--card-edge`, from the style's shape), so you
+   * see where the card ends without a border being drawn. Controls inside keep the stronger
+   * hairline they need, and raised contrast rewrites this edge at 3:1.
+   */
+  border: var(--line-width, 1px) solid var(--card-edge, var(--border-hairline));
   border-radius: var(--r-card);
   padding: var(--pad-card);
   /*
@@ -90,6 +100,8 @@
    * It is measured on the surface those elements actually stand on: the card tier here.
    */
   --border-hairline: var(--card-border);
+  /* A tinted card is edged from the tint it was painted with, not from the style's palette. */
+  --card-edge: var(--card-border);
   --ink-strong: var(--card-ink-strong);
   --ink: var(--card-ink);
   --ink-muted: var(--card-ink-muted);
@@ -134,6 +146,8 @@
   --l1-border: 1px solid var(--card-border);
   --l2-border: 1px solid var(--card-border);
   --border-hairline: var(--card-border);
+  /* A tinted card is edged from the tint it was painted with, not from the style's palette. */
+  --card-edge: var(--card-border);
 }
 
 /*
@@ -161,6 +175,8 @@
    * pickers keep the theme's own hairline on the theme's own canvas.
    */
   --border-hairline: var(--card-border);
+  /* A tinted card is edged from the tint it was painted with, not from the style's palette. */
+  --card-edge: var(--card-border);
   --ink-strong: var(--card-ink-strong);
   --ink: var(--card-ink);
   --ink-muted: var(--card-ink-muted);
@@ -1274,7 +1290,8 @@
   grid-template-columns: 16px minmax(0, 1fr);
   column-gap: var(--s-3);
   background: var(--l1-bg);
-  border: var(--l1-border);
+  /* The From/To card is a card, so it carries the card's own edge (see `.card`). */
+  border: var(--line-width, 1px) solid var(--card-edge, var(--border-hairline));
   border-radius: var(--r-input);
   padding: 0 var(--s-4);
   transition: border-color var(--t-hover) var(--ease-hover);
@@ -2689,7 +2706,8 @@
   grid-template-columns: 16px minmax(0, 1fr);
   column-gap: var(--s-3);
   background: var(--l1-bg);
-  border: var(--l1-border);
+  /* The From/To card is a card, so it carries the card's own edge (see `.card`). */
+  border: var(--line-width, 1px) solid var(--card-edge, var(--border-hairline));
   border-radius: var(--r-input);
   padding: 0 var(--s-4);
   transition: border-color var(--t-hover) var(--ease-hover);

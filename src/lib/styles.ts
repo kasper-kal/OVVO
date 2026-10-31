@@ -307,6 +307,19 @@ interface Shape {
    * axis — it changes the material of a card without moving a single pixel of it.
    */
   shadow: string;
+  /**
+   * **How far the card's own edge sits off the card.**
+   *
+   * A card used to be outlined with the same line as a chip, a field and a button, which is a line
+   * chosen to be *seen* on the card — so every card in the catalogue wore a rule that read as a
+   * frame drawn around it rather than as the place where the paper ends. The frame is the card's
+   * own surface moved a little toward its ink: visibly a different colour when you look, close
+   * enough to the card that it stops being a border. The controls inside keep the stronger
+   * `hair`, because a field and a button have to be found. Contrast, not weight, is what makes this
+   * switch back: raised contrast draws this same edge at 3:1, so the card's shape is stated clearly
+   * for anyone who asked for that.
+   */
+  edge: number;
 }
 
 /*
@@ -325,19 +338,19 @@ interface Shape {
 const SHAPES: Record<ShapeId, Shape> = {
   /* The app's own look: the values this file used before shapes existed, and no shadow — Default
      must not move by a pixel. */
-  soft: { scale: 1, line: '1px', tint: 0.055, hair: 1.7, glass: 1, shadow: 'none' },
+  soft: { scale: 1, line: '1px', tint: 0.055, hair: 1.7, edge: 0.1, glass: 1, shadow: 'none' },
   /* Print: square corners, a rule you can see, flat on the page. */
-  square: { scale: 0, line: '1px', tint: 0.02, hair: 2.2, glass: 1, shadow: 'none' },
+  square: { scale: 0, line: '1px', tint: 0.02, hair: 2.2, edge: 0.15, glass: 1, shadow: 'none' },
   /* A friendly radius, with cards just off the page. */
-  round: { scale: 1.45, line: '1px', tint: 0.08, hair: 1.55, glass: 0.96, shadow: '0 1px 2px -1px rgb(0 0 0 / 0.10)' },
+  round: { scale: 1.45, line: '1px', tint: 0.08, hair: 1.55, edge: 0.09, glass: 0.96, shadow: '0 1px 2px -1px rgb(0 0 0 / 0.10)' },
   /* Capsules for every control, cards lifted and see-through. */
-  pill: { scale: 5, line: '1px', tint: 0.1, hair: 1.45, glass: 0.92, shadow: '0 8px 20px -12px rgb(0 0 0 / 0.34), 0 1px 2px -1px rgb(0 0 0 / 0.10)' },
+  pill: { scale: 5, line: '1px', tint: 0.1, hair: 1.45, edge: 0.08, glass: 0.92, shadow: '0 8px 20px -12px rgb(0 0 0 / 0.34), 0 1px 2px -1px rgb(0 0 0 / 0.10)' },
   /* A thin plate: nearly square, a firm rule, almost no surface tint, flat. */
-  line: { scale: 0.3, line: '1px', tint: 0.015, hair: 2.3, glass: 1, shadow: 'none' },
-  /* A printed sheet: no tint at all, the firmest hairline in the catalogue, flat page and card. */
-  plate: { scale: 0.5, line: '1px', tint: 0, hair: 2.5, glass: 1, shadow: 'none' },
+  line: { scale: 0.3, line: '1px', tint: 0.015, hair: 2.3, edge: 0.16, glass: 1, shadow: 'none' },
+  /* A printed sheet: no tint at all, the firmest line in the catalogue, flat page and card. */
+  plate: { scale: 0.5, line: '1px', tint: 0, hair: 2.5, edge: 0.17, glass: 1, shadow: 'none' },
   /* Drawn: the roundest corners, and the most see-through cards, floating highest. */
-  arch: { scale: 2.2, line: '1px', tint: 0.11, hair: 1.5, glass: 0.88, shadow: '0 14px 34px -18px rgb(0 0 0 / 0.40), 0 1px 3px -1px rgb(0 0 0 / 0.12)' },
+  arch: { scale: 2.2, line: '1px', tint: 0.11, hair: 1.5, edge: 0.07, glass: 0.88, shadow: '0 14px 34px -18px rgb(0 0 0 / 0.40), 0 1px 3px -1px rgb(0 0 0 / 0.12)' },
 };
 
 /** Where a style does not name a shape, its group decides. */
@@ -1686,6 +1699,16 @@ export function styleTokens(
   const pageHairline = preserveDefault
     ? edge(canvas, ink, raised ? 3 : 1.7)
     : toward(edge(canvas, ink, raised ? 3 : shape.hair), card, raised ? 3 : shape.hair);
+  /*
+   * **The card's edge, which is not the line the controls use.**
+   *
+   * This was the same value as `--border-hairline`, so a card was framed in the colour a chip is
+   * drawn in: visible from across the room, and identical on a card that already separates itself
+   * from the page by its surface. It is now the card's own colour moved toward its ink by the
+   * shape's `edge` — around a tenth of the way, so the paper has an edge without being outlined.
+   * Raised contrast keeps the old promise at 3:1, which is the one setting that asks for it.
+   */
+  const cardEdge = raised ? edge(card, ink, 3) : mixHex(card, ink, shape.edge);
 
   /*
    * **The dock is always the dark bar**, whichever page it sits under.
@@ -1751,6 +1774,7 @@ export function styleTokens(
     '--ink-muted': muted,
     '--ink-faint': faint,
     '--border-hairline': hairline,
+    '--card-edge': cardEdge,
 
     /*
      * **Delay and cancellation ink, derived against this style's own card.**

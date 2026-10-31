@@ -346,6 +346,8 @@ const tokensFor = (style, appearance, raised) => {
     '--ink-muted': muted,
     '--ink-faint': faint,
     '--border-hairline': hairline,
+    /* The card's own edge: near the card, and clearly off it when contrast is raised. */
+    '--card-edge': raised ? edge(card, ink, 3) : mix(card, ink, 0.1),
     '--page-border': pageHairline,
     '--on-dark': dockInk,
     '--on-dark-muted': mix(dockInk, dock, 0.26),
