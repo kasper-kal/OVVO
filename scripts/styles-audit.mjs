@@ -272,7 +272,7 @@ while ((match = entryPattern.exec(registry))) {
 const wentLighter = (day, night) => {
   const difference = luminance(night) - luminance(day);
   if (difference > 1e-5) return true;
-  /* Equal is only right where the day is already black: Night AA's page cannot go lower. */
+  /* Equal is only right where the day is already black: All Black's page cannot go lower. */
   if (difference > -1e-5) return hexToHsv(day).v > 0;
   return false;
 };

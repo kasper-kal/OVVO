@@ -222,7 +222,7 @@ export interface StylePhoto {
  * not a property of a handful — `public/style-photos/<id>.jpg` is looked for on every style, and the
  * **Background** row appears on every style that has somewhere to put a picture.
  *
- * Two are deliberately left out. **Contrast** and **Night AA** exist as the answer to "make it as
+ * Two are deliberately left out. **Contrast** and **All Black** exist as the answer to "make it as
  * readable as you can", and a photograph behind the page is the one thing that can put a bright
  * patch under dark ink. They stay flat, and the Styles card has no Background row for them rather
  * than a switch that cannot keep its promise.
@@ -379,7 +379,7 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
    *
    * This was `arch` — the roundest shape in the catalogue, a 44px corner on every card — and that
    * was never a judgement about the style: the shapes are spread so two neighbours on a shelf are
-   * never the same, Contrast had already taken `round`, and Night AA was pushed to the far end to
+   * never the same, Contrast had already taken `round`, and All Black was pushed to the far end to
    * keep the pair apart. On a style whose whole promise is a flat black page and white ink, the
    * result was the least professional geometry in the app on its most serious look (reported).
    * Square corners, a rule you can see, flat on the page: print, not a bubble.
@@ -924,9 +924,16 @@ export const STYLES: StyleDef[] = [
     ui: 'inter',
   },
   {
+    /*
+     * **The id stays `night-aa`, the name does not.** The name was `All Black`, which meant "the dark
+     * one that meets the WCAG AA contrast level", and nobody outside this codebase knows what AA
+     * stands for (asked, plainly: what is All Black). The owner picked *All Black* instead. The id is
+     * left alone because a saved choice points at it: renaming it would drop whoever had picked this
+     * look back to Default, for a change no traveller could see.
+     */
     id: 'night-aa',
-    name: 'Night AA',
-    nameNl: 'Nacht AA',
+    name: 'All Black',
+    nameNl: 'Pikzwart',
     group: 'reading',
     light: ['#000000', '#0E0E0E', '#FFFFFF', '#FFD400'],
     display: 'inter',
