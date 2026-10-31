@@ -83,7 +83,8 @@ export type StyleGroupId =
   | 'gold'
   | 'blue'
   | 'green'
-  | 'wine';
+  | 'wine'
+  | 'holidays';
 
 export interface StyleGroup {
   id: StyleGroupId;
@@ -139,6 +140,19 @@ export const STYLE_GROUPS: StyleGroup[] = [
     labelNl: 'Wijn en roos',
     note: 'Wine, plum and dusty pink.',
     noteNl: 'Wijn, pruim en stoffig roze.',
+  },
+  /*
+   * **Holidays sits at the bottom, and is the one shelf that is about a day rather than a colour.**
+   * It holds the four seasonal looks all year, so nothing about them depends on the date; when one
+   * of those days is within three weeks the Styles page announces it at the top (see
+   * `lib/holidays.ts`) and this shelf is where the look itself lives.
+   */
+  {
+    id: 'holidays',
+    label: 'Holidays',
+    labelNl: 'Feestdagen',
+    note: 'Four days the app dresses for: Sinterklaas, Christmas, New Year and Easter.',
+    noteNl: 'Vier dagen waarvoor de app zich aankleedt: Sinterklaas, Kerstmis, oud en nieuw en Pasen.',
   },
 ];
 
@@ -313,6 +327,8 @@ const SHAPE_BY_GROUP: Record<StyleGroupId, ShapeId> = {
   blue: 'round',
   green: 'soft',
   wine: 'round',
+  /* The four seasonal looks name their own shape on the entry, so this is only the fallback. */
+  holidays: 'soft',
 };
 
 /**
@@ -1242,7 +1258,7 @@ export const STYLES: StyleDef[] = [
     id: 'christmas',
     name: 'Christmas',
     nameNl: 'Kerstmis',
-    group: 'green',
+    group: 'holidays',
     light: ['#0B1A12', '#16291C', '#F8EEDA', '#D8A84C'],
     photo: { scrim: 0.34, scrimNight: 0.05, glass: true },
     shape: 'arch',
@@ -1264,7 +1280,7 @@ export const STYLES: StyleDef[] = [
     id: 'sinterklaas',
     name: 'Sinterklaas',
     nameNl: 'Sinterklaas',
-    group: 'wine',
+    group: 'holidays',
     light: ['#2A100A', '#3D1B10', '#F8E8CC', '#D5A24D'],
     photo: { scrim: 0.28, scrimNight: 0.05, glass: true },
     shape: 'round',
@@ -1286,7 +1302,7 @@ export const STYLES: StyleDef[] = [
     id: 'new-year',
     name: 'New Year',
     nameNl: 'Oud en nieuw',
-    group: 'black',
+    group: 'holidays',
     light: ['#0A0806', '#171210', '#F7F1E4', '#E7BE58'],
     photo: { scrim: 0.26, scrimNight: 0.04, glass: true },
     shape: 'line',
@@ -1308,7 +1324,7 @@ export const STYLES: StyleDef[] = [
     id: 'easter',
     name: 'Easter',
     nameNl: 'Pasen',
-    group: 'cream',
+    group: 'holidays',
     light: ['#F2EDE1', '#FDFAF3', '#26301F', '#7C9A62'],
     photo: { scrim: 0.34, scrimNight: 0.08, glass: false },
     shape: 'soft',

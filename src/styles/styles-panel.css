@@ -230,3 +230,46 @@ h1,
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+
+/* ------------------------------------------------------------------ the next holiday */
+
+/*
+ * **Upcoming, and only when there is one.** Three weeks before a holiday the seasonal shelf stops
+ * being something you scroll past: a row above the look in use names the day that is coming, in
+ * that day's own colours, and one tap wears it. On every other day of the year this card is not
+ * drawn at all, so there is no empty slot pretending that nothing is happening.
+ */
+.style-upcoming {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.style-upcoming__kicker {
+  font-family: var(--font-stack);
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* The whole row is the control, so the swatch and the name cannot disagree about what it opens. */
+.style-upcoming__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-compact);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.style-upcoming__row:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}

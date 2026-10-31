@@ -274,6 +274,11 @@ const NL: Record<string, string> = {
     'Dit uiterlijk heeft nog geen foto, dus het wordt in zijn eigen kleur getekend.',
   'Saving battery, so this style draws its colour. The photograph comes back above 10%.':
     'Om batterij te sparen tekent dit uiterlijk zijn kleur. De foto komt terug boven 10%.',
+  /* The seasonal shelf, and the row that is only on the page in the three weeks before a holiday. */
+  Upcoming: 'Komt eraan',
+  'In {count} days': 'Over {count} dagen',
+  Today: 'Vandaag',
+  Tomorrow: 'Morgen',
 
   /* The widget catalogue after the widget audit (`WIDGET-AUDIT.md`): the merged card, the
      reworked alerts and re-run cards, and the two trims. */

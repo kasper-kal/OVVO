@@ -13,6 +13,7 @@ import {
   stylePhotoStatus,
   styleShape,
 } from '../../lib/styles';
+import { upcomingHoliday } from '../../lib/holidays';
 
 /**
  * **The style picker.**
@@ -109,6 +110,22 @@ export function StyleSettings() {
 
   const name = (style: { name: string; nameNl: string }) => (dutch ? style.nameNl : style.name);
 
+  /*
+   * **The next holiday, if it is close enough to matter.** Nothing is drawn on an ordinary day: the
+   * row exists only inside the three-week window, so its absence is the normal state rather than a
+   * slot that has to say "nothing coming".
+   */
+  const upcoming = upcomingHoliday();
+  const upcomingColours = upcoming ? stylePalette(upcoming.style, appearance) : null;
+  const countdown =
+    upcoming === null
+      ? ''
+      : upcoming.days === 0
+        ? t('Today')
+        : upcoming.days === 1
+          ? t('Tomorrow')
+          : t('In {count} days', { count: upcoming.days });
+
   const setBackground = (next: 'photo' | 'colour') => {
     if (!picture) return;
     const off = new Set(settings.photoColourOnly);
@@ -119,6 +136,27 @@ export function StyleSettings() {
 
   return (
     <div className="style-picker">
+      {upcoming && upcomingColours && (
+        <Card className="style-upcoming">
+          <span className="style-upcoming__kicker">{t('Upcoming')}</span>
+          <button
+            type="button"
+            className="style-upcoming__row"
+            onClick={() => updateSettings({ styleId: upcoming.style.id })}
+          >
+            <span className="style-current__swatches" aria-hidden="true">
+              <span style={{ background: upcomingColours.canvas }} />
+              <span style={{ background: upcomingColours.card }} />
+              <span style={{ background: upcomingColours.accent }} />
+            </span>
+            <span className="style-current__label">
+              <span className="style-current__name">{name(upcoming.style)}</span>
+              <span className="t-faint t-sm">{countdown}</span>
+            </span>
+          </button>
+        </Card>
+      )}
+
       <Card className="style-current">
         <div className="style-current__head">
           <span className="style-current__swatches" aria-hidden="true">
