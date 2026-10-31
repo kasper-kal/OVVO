@@ -48,3 +48,4 @@ use is ever fetched.
 | `travertine.jpg` | Travertine | Carved stone and deep shadow, no colour but the warmth of the stone. |
 | `arena.jpg` | Arena | Weathered stone arches under a storm sky. |
 | `chrome.jpg` | Chrome | Folded chrome over black leather. |
+| `blueprint.jpg` | Blueprint | A technical drawing, ink line on blue paper. |
