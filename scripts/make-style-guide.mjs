@@ -10,7 +10,10 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const ROOT = process.cwd();
-const source = await readFile(path.join(ROOT, 'src/lib/styles.ts'), 'utf8');
+const raw = await readFile(path.join(ROOT, 'src/lib/styles.ts'), 'utf8');
+/* Two entries can share a line, written `},  {`; give each its own so the block reader below sees
+   both of them. Without this, Toscane was silently missing from the printed list. */
+const source = raw.replace(/},\s*\{/g, '},\n  {');
 
 /* ---------------------------------------------------------------- the data */
 
@@ -79,7 +82,7 @@ const card = (style, index) => `
     <div class="faces">
       <div class="face">
         <span class="face__role">Header</span>
-        <span class="face__sample face__sample--head" style="font-family:${stacks[style.display]}">Aa Bb 24</span>
+        <span class="face__sample face__sample--head" style="font-family:${stacks[style.display]}">Home</span>
         <span class="face__family">${esc(family(stacks[style.display]))}</span>
       </div>
       <div class="face">
@@ -119,7 +122,7 @@ const allFamilies = new Set(styles.flatMap((s) => [s.display, s.sub, s.body]));
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
-<title>OVVO style guide</title>
+<title>OVVO style list</title>
 <style>
 ${fontsCss}
 @page { size: A4; margin: 14mm 13mm 16mm; }
@@ -210,7 +213,7 @@ td { padding: 1.3mm 1.6mm 1.3mm 0; border-bottom: 0.2mm solid #ece7dc; vertical-
       )
       .join('')}
   </div>
-  <div class="colophon"><span>OVVO style guide</span><span>Generated from the app's own catalogue</span></div>
+  <div class="colophon"><span>OVVO style list</span><span>Generated from the app's own catalogue</span></div>
 </div>
 
 ${(() => {
@@ -218,7 +221,7 @@ ${(() => {
   for (let index = 0; index < styles.length; index += 2) {
     pages.push(`<div class="page">
       ${styles.slice(index, index + 2).map((style, at) => card(style, at)).join('')}
-      <div class="colophon"><span>OVVO style guide</span><span>${index + 1} to ${Math.min(index + 2, styles.length)} of ${styles.length}</span></div>
+      <div class="colophon"><span>OVVO style list</span><span>${index + 1} to ${Math.min(index + 2, styles.length)} of ${styles.length}</span></div>
     </div>`);
   }
   return pages.join('\n');
@@ -272,16 +275,16 @@ for (const index of [0, 1, 2, 16]) {
 }
 
 await page.pdf({
-  path: path.join(ROOT, 'OVVO-style-guide.pdf'),
+  path: path.join(ROOT, 'OVVO-style-list.pdf'),
   format: 'A4',
   printBackground: true,
   displayHeaderFooter: true,
   headerTemplate: '<div></div>',
   footerTemplate:
-    '<div style="width:100%;font:7.5pt Inter,sans-serif;color:#8a8a90;padding:0 13mm;display:flex;justify-content:space-between;"><span>OVVO · style guide</span><span class="pageNumber"></span></div>',
+    '<div style="width:100%;font:7.5pt Inter,sans-serif;color:#8a8a90;padding:0 13mm;display:flex;justify-content:space-between;"><span>OVVO · style list</span><span class="pageNumber"></span></div>',
   margin: { top: '14mm', bottom: '16mm', left: '13mm', right: '13mm' },
 });
 
 await browser.close();
 await unlink(path.join(ROOT, 'public/__style-report.html'));
-console.log('pdf written: OVVO-style-guide.pdf');
+console.log('pdf written: OVVO-style-list.pdf');
