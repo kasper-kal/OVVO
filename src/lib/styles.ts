@@ -691,11 +691,16 @@ export const STYLES: StyleDef[] = [
      * **Its own night, not a turned-over day.** The derived night cut this style's cream page into a
      * grey-brown, which is not a Sprinter: the train is cream, deep blue and yellow whatever the hour
      * is (reported as "*does not give Sprinter*"). So the night is authored from the livery instead —
-     * the page becomes the blue band of the train, the cards become that blue a shade lighter, the
-     * ink stays the cream of its body, and the accent is still the yellow of its doors. The night
-     * photo keeps the same inks, so its wash is the one that holds cream over the dimmed picture.
+     * a deep blue page, the cards the same blue one step up, the cream of the body for the words, and
+     * the yellow of the doors for the accent.
+     *
+     * **The night picture is left as its dimmed cut is**, with no wash of its own: it is already dark
+     * enough for the cream words to clear the line on it, and the deep blue of the page around it is
+     * what carries the livery. The first night put a lighter blue on both the page and the cards, and
+     * the picture and the cards met in the middle as one browny blue, which is what read as no
+     * Sprinter at all.
      */
-    night: ['#0F2246', '#1A3A6B', '#F4F1E9', '#FFC917'],
+    night: ['#0A1B36', '#16345F', '#F4F1E9', '#FFC917'],
     /*
      * **A heavier wash than the palette would ask for, because the picture is bright where the name
      * sits.** The photograph is a train at dusk: pale sky at the top, and the dark window band and
