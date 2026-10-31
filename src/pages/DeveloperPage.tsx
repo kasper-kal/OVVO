@@ -211,7 +211,6 @@ export function DeveloperPage() {
             */}
             <Field
               label={t('Date and time')}
-              hint={t('The picker is your device’s own. The app’s clock moves to whatever it says.')}
             >
               <input
                 className="input"
@@ -222,35 +221,6 @@ export function DeveloperPage() {
               />
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
-            <div className="row-wrap">
-              <Button
-                variant="ghost"
-                onClick={() => setDevOverrides({ clockOffset: (dev.clockOffset ?? 0) + 3_600_000 })}
-              >
-                {t('One hour later')}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  const now = appNow();
-                  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 8, 0, 0, 0);
-                  setDevOverrides({ clockOffset: tomorrow.getTime() - Date.now() });
-                  setClockField(dateTimeValue(tomorrow));
-                }}
-              >
-                {t('Tomorrow at 08:00')}
-              </Button>
-              <Button
-                variant="ghost"
-                icon="refresh"
-                onClick={() => {
-                  setDevOverrides({ clockOffset: null });
-                  setClockField(dateTimeValue(appNow()));
-                }}
-              >
-                {t('Use the device’s clock')}
-              </Button>
-            </div>
           </Card>
 
           <Card className="stack">
