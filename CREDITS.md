@@ -32,14 +32,13 @@ picture can be swapped without hunting through the code.
 | `contact.jpg` | Contact | Two hands reaching, greyscale on black. |
 | `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. |
 | `nostalgia.jpg` | Nostalgia | The platform at Haarlem station after dark, lamps under the old iron roof. |
-| `nachtnet.jpg` | — not in use | A glass tower at dusk, blue-violet sky and amber office lights. Kept after the Nachtnet style was scrapped. |
-| `night-aa.jpg` | All Black | Glossy black curves lit from behind, no subject but the sheen. |
+| `avondglas.jpg` | Evening Glass | A glass tower at dusk, blue-violet sky and amber office lights. |
 
 Each one also ships as `<id>-night.jpg`, cut from the same upload for the dark appearance. The cut is
 dimmed only as far as its own picture needs and tinted 12% toward that style's night page, and the
 style keeps a separate wash for it, so a pale picture goes darker at night than a picture that was
-already dark. `Ultraviolet`, `Blueprint`, `Spoorboekje`, `Perron` and `Tram` have no picture and wear their own
-colour.
+already dark. `Ultraviolet`, `Blueprint`, `Spoorboekje`, `Perron`, `All Black` and `Tram` have no picture and wear
+their own colour.
 
 All ten of the first upload are 736 pixels wide, portrait, between 18 and 367 KB. The later upload
 carried some larger files, up to 1536 pixels wide; they are kept as uploaded, and only the style in

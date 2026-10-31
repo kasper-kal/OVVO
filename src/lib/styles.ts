@@ -231,7 +231,7 @@ export interface StylePhoto {
  * defaults below, chosen from its own page: a dark page keeps its cards translucent, a pale page
  * gets solid cards and a slightly heavier wash, because the ink on a pale page is the dark one.
  */
-const PHOTO_FREE = new Set(['contrast']);
+const PHOTO_FREE = new Set(['contrast', 'night-aa']);
 
 /**
  * **Styles whose photograph is dark in the band the page's own name sits in.**
@@ -688,13 +688,22 @@ export const STYLES: StyleDef[] = [
     group: 'dutch',
     light: ['#F4F1E9', '#FFFFFF', '#12305C', '#FFC917'],
     /*
+     * **Its own night, not a turned-over day.** The derived night cut this style's cream page into a
+     * grey-brown, which is not a Sprinter: the train is cream, deep blue and yellow whatever the hour
+     * is (reported as "*does not give Sprinter*"). So the night is authored from the livery instead —
+     * the page becomes the blue band of the train, the cards become that blue a shade lighter, the
+     * ink stays the cream of its body, and the accent is still the yellow of its doors. The night
+     * photo keeps the same inks, so its wash is the one that holds cream over the dimmed picture.
+     */
+    night: ['#0F2246', '#1A3A6B', '#F4F1E9', '#FFC917'],
+    /*
      * **A heavier wash than the palette would ask for, because the picture is bright where the name
      * sits.** The photograph is a train at dusk: pale sky at the top, and the dark window band and
      * the platform's shadow lower down. Under the default wash the page's own name measured 1.57:1
      * against those dark patches. Cream at 0.36 lifts the picture to the ink rather than the ink to
      * the picture, and the photograph still reads as a photograph.
      */
-    photo: { scrim: 0.36, glass: false },
+    photo: { scrim: 0.36, scrimNight: 0.0, glass: false },
     shape: 'round',
     display: 'outfit',
     body: 'inter',
@@ -933,13 +942,6 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Pikzwart',
     group: 'reading',
     light: ['#000000', '#0E0E0E', '#FFFFFF', '#FFD400'],
-    /*
-     * **This one was flat on purpose, and the owner gave it a picture anyway.** The reason it had no
-     * photograph was the risk of a bright patch under dark ink, and that reason does not apply here:
-     * the ink is white and the picture is a black gloss with soft grey sheen, so nothing in it can
-     * out-shout the words. It takes the gentlest wash in the catalogue.
-     */
-    photo: { scrim: 0.02, scrimNight: 0.02, glass: false },
     display: 'inter',
     body: 'work',
     sub: 'archivo',
@@ -1010,6 +1012,29 @@ export const STYLES: StyleDef[] = [
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ photographs */
+  /*
+   * **Evening Glass.**
+   *
+   * The owner's photograph with a style of its own: a glass tower at dusk, the sky gone violet and
+   * every window lit amber. A building rather than a station, which is why it does not wear a
+   * transport name — it is the colour of the hour the last trams run in. The page is the sky, the
+   * cards are the glass, the ink is the warm white of a lit room, and the accent is the amber itself.
+   *
+   * It stands where Nachtnet stood, because that picture was never a night bus.
+   */
+  {
+    id: 'avondglas',
+    name: 'Evening Glass',
+    nameNl: 'Avondglas',
+    group: 'photo',
+    light: ['#191733', '#262247', '#F3EDE4', '#E9A15C'],
+    shape: 'round',
+    display: 'outfit',
+    body: 'work',
+    sub: 'manrope',
+    ui: 'inter',
+    photo: { scrim: 0.29, scrimNight: 0.02, glass: false },
+  },
   {
     id: 'marble',
     name: 'Marble',
