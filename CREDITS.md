@@ -20,7 +20,7 @@ picture can be swapped without hunting through the code.
 | `mustard.jpg` | Mustard | Two hands reaching across a field of orange. |
 | `terminal.jpg` | Terminal | A green circuit board with gold traces. |
 | `marble.jpg` | Marble | White marble veined with grey. |
-| `arches.jpg` | Arches | A colonnade of marble columns and gold ceilings. |
+| `arches.jpg` | Arches | A dark brick nave, ribbed vaults leading to one wall lit amber. |
 | `summit.jpg` | Summit | A mountain peak at dawn, gold on one ridge. |
 | `cloudbank.jpg` | Cloudbank | Black-and-white clouds and stars. |
 | `riviera.jpg` | Riviera | A painted coastal village, boats and turquoise water. |

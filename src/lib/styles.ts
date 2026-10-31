@@ -1038,12 +1038,22 @@ export const STYLES: StyleDef[] = [
     name: 'Arches',
     nameNl: 'Bogen',
     group: 'black',
-    light: ['#1e1c22', '#24242c', '#EDE8DF', '#b08c61'],
+    /*
+     * **Read off the new photograph.** The picture was replaced with a different one: a dark brick
+     * nave, ribbed vaults marching away to a single wall lit amber, everything else near-black. So the
+     * page is the dark brick, the cards are that brick a step up, the words are the pale stone, and
+     * the accent is the lit wall itself. The old palette was a cool purple-grey with gold, which no
+     * longer matched anything in the frame.
+     *
+     * The wash is light because the picture is: its top third measures about a tenth of white, so the
+     * pale ink clears the line on it with 5% of the page colour laid over it.
+     */
+    light: ['#17110C', '#241A12', '#F1E7D6', '#D9A25B'],
     display: 'playfair',
     body: 'lora',
     sub: 'cormorant',
     ui: 'inter',
-    photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.05, scrimNight: 0.02, glass: true },
   },
 
   /*
