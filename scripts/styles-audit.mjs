@@ -266,16 +266,16 @@ while ((match = entryPattern.exec(registry))) {
  * them: eleven styles fell through to the UI face, so their subtitle tier was their body tier, and
  * two styles drew every word in one family. A look that names one face looks like no look at all.
  * The gate now reads the style blocks, so every style must name a display, a subtitle and a body
- * face, and at least two of them must differ.
+ * face, and the three must differ: three tiers in two faces is not a type system.
  */
 const faceless = styles.filter((style) => !style.faces.display || !style.faces.sub || !style.faces.body);
 const monotone = styles.filter(
-  (style) => style.faces.display && new Set([style.faces.display, style.faces.sub, style.faces.body]).size < 2,
+  (style) => style.faces.display && new Set([style.faces.display, style.faces.sub, style.faces.body]).size < 3,
 );
 if (faceless.length > 0 || monotone.length > 0) {
   console.error('\nstyles-audit: every style must name three faces\n');
   for (const style of faceless) console.error(`  ${style.id}: display ${style.faces.display}, subtitle ${style.faces.sub}, body ${style.faces.body}`);
-  for (const style of monotone) console.error(`  ${style.id}: one face for the whole page`);
+  for (const style of monotone) console.error(`  ${style.id}: ${style.faces.display} / ${style.faces.sub} / ${style.faces.body}`);
   process.exit(1);
 }
 

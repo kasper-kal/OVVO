@@ -747,7 +747,7 @@ export const STYLES: StyleDef[] = [
     },
     display: 'jakarta',
     body: 'inter',
-    sub: 'inter',
+    sub: 'figtree',
     ui: 'inter',
   },
 
@@ -824,7 +824,7 @@ export const STYLES: StyleDef[] = [
     photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
     display: 'mono',
     body: 'plex',
-    sub: 'plex',
+    sub: 'grotesk',
     ui: 'plex',
   },
   {
