@@ -1594,26 +1594,30 @@ svg.map-canvas {
  * blink rather than a move (reported: *"very clunky and animation less"*). Nothing here hides the
  * page: both frames are always on screen, one fading into the other.
  */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 320ms;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  animation-name: style-fade-out;
+/*
+ * **One page fades into the other; the two are never both see-through.**
+ *
+ * The first version faded the old snapshot out *and* the new one in at the same time, so halfway
+ * through the move both frames were half transparent and the page showed through the pair of them.
+ * That double exposure is a large part of what read as clunky. The old page now stays solid
+ * underneath and the new one fades in on top of it, which is a clean dissolve with no wash in the
+ * middle.
+ */
+::view-transition-old(root) {
+  animation: none;
+  opacity: 1;
 }
 
 ::view-transition-new(root) {
-  animation-name: style-fade-in;
-}
-
-@keyframes style-fade-out {
-  to {
-    opacity: 0;
-  }
+  animation: style-fade-in 320ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes style-fade-in {
   from {
     opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -1622,4 +1626,5 @@ svg.map-canvas {
   ::view-transition-new(root) {
     animation: none;
   }
+}
 }

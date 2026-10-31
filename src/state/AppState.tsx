@@ -20,7 +20,7 @@ import {
 } from '../lib/approximateLocation';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
-import { applyStyle, styleById, stylePhotograph, stylePhotoPath } from '../lib/styles';
+import { applyStyle, FONT_FAMILIES, styleById, stylePhotograph, stylePhotoPath, type StyleDef } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
 import {
@@ -60,6 +60,31 @@ function preloadPhoto(src: string): Promise<void> {
     void image.decode?.().then(done, done);
     window.setTimeout(done, 1200);
   });
+}
+
+/**
+ * **The new page's lettering is loaded before the new page is painted.**
+ *
+ * The dissolve was still reported as clunky, with the reason given plainly: *"no one blocks the
+ * vision while fonts change"*. The crossfade was fine, but the four faces arrived a beat after the
+ * new snapshot was taken, so the words re-flowed inside the fade — a title that grows or shifts
+ * mid-dissolve reads as a glitch however smooth the fade is.
+ *
+ * So the style's display, section, body and UI faces are asked for, at the weights the interface
+ * actually sets, and the paint waits for them. `document.fonts.ready` afterwards catches anything
+ * else already in flight. A family that is not there resolves to an empty list rather than an
+ * error, and in that case the stack behind it draws exactly as it did before.
+ */
+async function preloadFonts(style: StyleDef): Promise<void> {
+  if (typeof document === 'undefined' || !('fonts' in document)) return;
+  const families = new Set([style.display, style.sub, style.body, style.ui].map((id) => FONT_FAMILIES[id]));
+  const weights = ['400', '500', '600', '700'];
+  await Promise.all(
+    [...families].flatMap((family) =>
+      weights.map((weight) => document.fonts.load(`${weight} 16px "${family}"`).catch(() => [])),
+    ),
+  );
+  await document.fonts.ready.catch(() => undefined);
 }
 
 export interface Toast {
@@ -549,6 +574,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       painted.current = next;
     };
     const pictures = photographAllowed ? [stylePhotoPath(style.id, appearance)] : [];
+    /* Both halves of the change are ready before the new page is painted: the picture and the type. */
+    const ready = () => Promise.all([preloadFonts(style), ...pictures.map(preloadPhoto)]);
     const changedStyle = painted.current !== null && painted.current.id !== style.id;
     const startViewTransition = (
       document as Document & { startViewTransition?: (update: () => void | Promise<void>) => unknown }
@@ -577,12 +604,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * before the look is written: no dissolve, but no late pop either.
      */
     if (!startViewTransition || settings.reduceMotion) {
-      void Promise.all(pictures.map(preloadPhoto)).then(paint);
+      void ready().then(paint);
       return;
     }
 
     startViewTransition.call(document, async () => {
-      await Promise.all(pictures.map(preloadPhoto));
+      await ready();
       paint();
     });
   }, [style, appearance, settings.highContrast, photographAllowed, settings.reduceMotion]);
