@@ -1047,7 +1047,9 @@ export const STYLES: StyleDef[] = [
    * The owner named this one, and the name is about the material rather than a mood: black pipes
    * running the length of the frame with one clean sheen down each edge, the way professional
    * equipment looks photographed in a studio. So the page is that black, the cards are the black one
-   * step up, the words are the sheen, and the accent is the cool silver of it.
+   * step up, the words are the sheen, and the accent is a plain grey — **no blue in any of them**:
+   * the first cut had a blue cast in the cards and the accent (reported as "it should be more
+   * gray-ish"), which on a black page reads as navy rather than as a neutral metal.
    *
    * Deliberately not All Black: that style is a flat reading page with a yellow mark, this one is a
    * surface with a light on it. They sit apart on the shelf so the difference is visible.
@@ -1057,7 +1059,7 @@ export const STYLES: StyleDef[] = [
     name: 'Pro',
     nameNl: 'Pro',
     group: 'photo',
-    light: ['#0B0B0D', '#181A1E', '#F4F4F6', '#C7CDD6'],
+    light: ['#0D0D0D', '#1B1B1B', '#F2F2F2', '#C6C6C6'],
     shape: 'arch',
     display: 'grotesk',
     body: 'work',
