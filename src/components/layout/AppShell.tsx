@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
-import { BrandMark, Icon, type IconName } from '../ui/Icons';
+import { BrandMark, Icon, ModeIcon, type IconName } from '../ui/Icons';
+import { Atmosphere } from './Atmosphere';
 import { Button, Dialog, Toaster } from '../ui/primitives';
 import { DISRUPTIONS } from '../../data/disruptions';
 import { InstallBanner } from '../ui/InstallBanner';
@@ -183,6 +184,23 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
   const [dial, setDial] = useState<{ id: string; settling: boolean } | null>(null);
   const liftTimer = useRef(0);
   const settleTimer = useRef(0);
+  /*
+   * **Hold Home for two seconds and a tram crosses the bar.**
+   *
+   * A joke, and a quiet one: nothing on the bar says it is there, the icon does not change, and the
+   * tap the traveller actually makes still goes home. The hold only runs on the Home tab and only
+   * outside super energy saving, where every extra thing the bar does is the thing the mode exists
+   * to stop; letting go at any point cancels it, so a thumb resting on the bar while reading never
+   * sends a tram past.
+   */
+  const holdTimer = useRef(0);
+  const [tram, setTram] = useState(0);
+  const startHold = () => {
+    if (power.mode === 'super') return;
+    window.clearTimeout(holdTimer.current);
+    holdTimer.current = window.setTimeout(() => setTram((run) => run + 1), 2000);
+  };
+  const endHold = () => window.clearTimeout(holdTimer.current);
   const lift = (id: string) => {
     /*
      * **Not in super energy saving — not even here.**
@@ -205,6 +223,7 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
     () => () => {
       window.clearTimeout(liftTimer.current);
       window.clearTimeout(settleTimer.current);
+      window.clearTimeout(holdTimer.current);
     },
     [],
   );
@@ -228,7 +247,13 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
           aria-current={isActivePath(location.pathname, item.to) ? 'page' : undefined}
           aria-label={t(item.key)}
           title={t(item.key)}
-          onPointerDown={() => lift(item.to)}
+          onPointerDown={() => {
+            lift(item.to);
+            if (item.to === '/') startHold();
+          }}
+          onPointerUp={endHold}
+          onPointerLeave={endHold}
+          onPointerCancel={endHold}
           onClick={item.to === '/' ? onHomeClick : undefined}
         >
           <Icon name={item.icon} size={20} />
@@ -244,6 +269,16 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
       >
         <Icon name="menu" size={20} />
       </button>
+      {tram ? (
+        <span
+          key={tram}
+          className="app-dock__tram"
+          aria-hidden="true"
+          onAnimationEnd={() => setTram(0)}
+        >
+          <ModeIcon mode="tram" size={16} />
+        </span>
+      ) : null}
     </nav>
   );
 }
@@ -592,6 +627,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <HeaderControlContext.Provider value={setHeaderControl}>
       <div className="app-shell">
+        {/*
+          The weather and the calendar, between the wallpaper and the cards: rain, snow, pepernoten,
+          Christmas lights and new year's fireworks (`layout/Atmosphere`). It draws nothing at all
+          when none of those is true, in reduced motion, or at a tenth of a battery.
+        */}
+        <Atmosphere />
         {/*
           A hash link cannot skip anything in a hash-routed app: `href="#main"` *is* a route, so
           Enter on the first control sent the router to a page called `main` and drew the 404 over

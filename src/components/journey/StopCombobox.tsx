@@ -96,6 +96,18 @@ export function StopCombobox({
   const [cap, setCap] = useState(460);
   /** True when there are more rows than fit, so the panel must not show a sliver of the next one. */
   const [more, setMore] = useState(false);
+  /*
+   * **9292, and then gone.**
+   *
+   * Typing the old neighbour's number and clearing the field again brings one grey row into the
+   * list, saying "de buren": the app tipping its hat to the thing it was built to be as good as.
+   * The row is not an option — it has no button, no role and no place in the list's count — and it
+   * leaves by itself after two and a half seconds. Nothing is stored, and it only happens in the
+   * field it was typed in, once per clearing.
+   */
+  const [ghost, setGhost] = useState(false);
+  const ghostTimer = useRef(0);
+  const sawNeighbours = useRef(false);
   /**
    * How far under the field the panel starts.
    *
@@ -371,6 +383,12 @@ export function StopCombobox({
     }
   };
 
+  const showNeighbours = () => {
+    window.clearTimeout(ghostTimer.current);
+    setGhost(true);
+    ghostTimer.current = window.setTimeout(() => setGhost(false), 2600);
+  };
+
   return (
     <div className="combobox" ref={rootRef}>
       {hideLabel ? null : (
@@ -401,11 +419,14 @@ export function StopCombobox({
             placeholder={placeholder ?? t('Type a station, stop or landmark')}
             value={query}
             onChange={(event) => {
+              const typed = event.target.value;
               typingRef.current = true;
               selectedIdRef.current = null;
-              setQuery(event.target.value);
+              setQuery(typed);
               setOpen(true);
               setActiveIndex(0);
+              if (typed.trim() === '9292') sawNeighbours.current = true;
+              else if (typed === '' && sawNeighbours.current) showNeighbours();
               if (value) onSelect(null);
             }}
             onFocus={() => setOpen(true)}
@@ -417,8 +438,13 @@ export function StopCombobox({
               className="btn btn--ghost btn--icon-circle"
               aria-label={t('Clear {label}', { label: label.toLowerCase() })}
               onClick={() => {
+                const neighbours = query.trim() === '9292';
                 commit(null);
                 inputRef.current?.focus();
+                if (neighbours || sawNeighbours.current) {
+                  sawNeighbours.current = false;
+                  showNeighbours();
+                }
               }}
             >
               <Icon name="close" size={16} />
@@ -504,6 +530,24 @@ export function StopCombobox({
               </span>
             </p>
           </div>
+        ) : null}
+
+        {open && ghost ? (
+          /* A joke, not an option: no role, no button, nothing for a screen reader to land on. */
+          <ul
+            className="suggestions"
+            aria-hidden="true"
+            style={{ maxHeight: `${cap}px`, top: `calc(100% + ${gap}px)` }}
+          >
+            <li>
+              <span className="suggestion suggestion--ghost">
+                <span className="stack-1 grow">
+                  <span className="t-strong t-body row">de buren</span>
+                  <span className="t-sm t-muted">9292</span>
+                </span>
+              </span>
+            </li>
+          </ul>
         ) : null}
 
       </div>
