@@ -255,22 +255,42 @@ h1,
 }
 
 /*
- * **Upcoming carries its own ground.**
+ * **Upcoming carries its own ground, and the ground fits what is in it.**
  *
- * It is a shelf like the others, and that is what was asked for, but it is also the one shelf that
- * is not always there, so without a ground it appeared and disappeared out of the page as a stray
- * heading. A plate one step above the page, with the same 1px edge every other surface uses, gives
- * the row a home of its own for three weeks and then takes it away with the shelf. The tile inside
- * steps back down one surface, so the swatch still reads as a tile sitting on something rather than
- * a hole cut in the plate.
+ * The first plate was wrong twice and was shipped anyway: the heading kept the halo it needs on open
+ * photography, so its pill hung over the plate's own corner and cut it, and the single tile sat in
+ * the first of three columns with two thirds of the plate empty. Reported, rightly, as "not
+ * everything fits inside". A plate is a ground, not a backdrop: the heading drops the halo because
+ * the plate already is one, and the one tile takes the full width of its own row instead of a
+ * shelf-sized cell. The swatch stretches with it, because a 46px strip under a plate this wide read
+ * as a picture that failed to load. Nothing inside the plate sits outside it.
  */
 .style-group--upcoming {
   padding: var(--s-3);
   border: 1px solid var(--border-hairline);
   border-radius: var(--r-input);
   background: var(--l2-bg);
+  gap: var(--s-3);
+}
+
+/* `:root` here only to outrank the photo rule above, which is more specific than a plain class. */
+:root .style-group--upcoming .style-group__title {
+  display: block;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+.style-group--upcoming .style-grid {
+  grid-template-columns: 1fr;
 }
 
 .style-group--upcoming .style-tile {
   background: var(--l1-bg);
+  padding: 8px;
+}
+
+.style-group--upcoming .style-tile__swatch {
+  height: 56px;
 }
