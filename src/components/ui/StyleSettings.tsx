@@ -214,7 +214,7 @@ export function StyleSettings() {
          * draws — one shape, one size, one way to choose.
          */}
         {upcoming && (
-          <div className="style-group">
+          <div className="style-group style-group--upcoming">
             <div className="style-group__head">
               <h2 className="style-group__title">{t('Upcoming')}</h2>
               <span className="style-group__note">{countdown}</span>

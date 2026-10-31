@@ -253,3 +253,24 @@ h1,
   font-size: var(--fs-pill);
   color: var(--ink-faint);
 }
+
+/*
+ * **Upcoming carries its own ground.**
+ *
+ * It is a shelf like the others, and that is what was asked for, but it is also the one shelf that
+ * is not always there, so without a ground it appeared and disappeared out of the page as a stray
+ * heading. A plate one step above the page, with the same 1px edge every other surface uses, gives
+ * the row a home of its own for three weeks and then takes it away with the shelf. The tile inside
+ * steps back down one surface, so the swatch still reads as a tile sitting on something rather than
+ * a hole cut in the plate.
+ */
+.style-group--upcoming {
+  padding: var(--s-3);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--r-input);
+  background: var(--l2-bg);
+}
+
+.style-group--upcoming .style-tile {
+  background: var(--l1-bg);
+}
