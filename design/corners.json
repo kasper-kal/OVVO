@@ -1,0 +1,54 @@
+{
+  "viewBox": "0 0 440 280",
+  "savedAt": "2026-10-31T00:34:37.898Z",
+  "cards": [
+    {
+      "n": 1,
+      "caption": "One. Cut corners.",
+      "path": "M16 0 H424 L440 16 V264 L424 280 H16 L0 264 V16 Z"
+    },
+    {
+      "n": 2,
+      "caption": "Two. Top and bottom pinched to a point.",
+      "path": "M0 0 L220 24 L440 0 V280 L220 256 L0 280 Z"
+    },
+    {
+      "n": 3,
+      "caption": "Three. A square step at every corner.",
+      "path": "M0 26 H26 V0 H414 V26 H440 V254 H414 V280 H26 V254 H0 Z"
+    },
+    {
+      "n": 4,
+      "caption": "Four. The sides pinch in from top to bottom.",
+      "path": "M0 0 H440 L416 140 L440 280 H0 L24 140 Z"
+    },
+    {
+      "n": 5,
+      "caption": "Five. Pinched on all four sides.",
+      "path": "M0 0 L220 24 L440 0 L416 140 L440 280 L220 256 L0 280 L24 140 Z"
+    },
+    {
+      "n": 6,
+      "caption": "Six. A scoop taken out of every corner.",
+      "path": "M0 40 A40 40 0 0 0 40 0 H400 A40 40 0 0 0 440 40 V240 A40 40 0 0 0 400 280 H40 A40 40 0 0 0 0 240 Z"
+    },
+    {
+      "n": 7,
+      "caption": "Seven. Deeper cut corners.",
+      "path": "M40 0 H400 L440 40 V240 L400 280 H40 L0 240 V40 Z"
+    },
+    {
+      "n": 8,
+      "caption": "Eight. Two hollow bands, one slightly bigger.",
+      "path": "M60 0 H380 L440 140 L380 280 H60 L0 140 Z"
+    },
+    {
+      "n": 9,
+      "caption": "Nine. Cut corners with a pinched top and bottom.",
+      "path": "M0 44 L44 0 L220 24 L396 0 L440 44 V236 L396 280 L220 256 L44 280 L0 236 Z"
+    }
+  ],
+  "extraShapes": [
+    "M60 0 H380 L440 140 L380 280 H60 L0 140 Z M 64 6 L 106 6 L 109.2 11 L 67.2 11 L 50.7 49.6 L 47.4 44.6 Z M 376 6 L 334 6 L 330.8 11 L 372.8 11 L 389.3 49.6 L 392.6 44.6 Z M 64 274 L 106 274 L 109.2 269 L 67.2 269 L 50.7 230.4 L 47.4 235.4 Z M 376 274 L 334 274 L 330.8 269 L 372.8 269 L 389.3 230.4 L 392.6 235.4 Z M 70.5 16 L 100.5 16 L 103.2 20 L 73.2 20 L 61.4 47.6 L 58.7 43.6 Z M 369.5 16 L 339.5 16 L 336.8 20 L 366.8 20 L 378.6 47.6 L 381.3 43.6 Z M 70.5 264 L 100.5 264 L 103.2 260 L 73.2 260 L 61.4 232.4 L 58.7 236.4 Z M 369.5 264 L 339.5 264 L 336.8 260 L 366.8 260 L 378.6 232.4 L 381.3 236.4 Z"
+  ]
+}

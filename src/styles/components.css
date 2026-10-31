@@ -4712,9 +4712,20 @@
      closer than that on its own. */
   top: 0;
   margin-top: 0;
-  /* Three eighths of the sheet's own curve: 12px on Default, more when the corner is bigger, so
-     the title's first letters are never drawn on the arc. */
-  padding-top: calc(var(--r-sheet) * 0.375);
+  /*
+   * **The gap above the title is a gap, not a share of the corner.**
+   *
+   * It was three eighths of `--r-sheet`, which is 12px on Default and 3.6px on a thin-cornered
+   * style such as Ultraviolet (radius 9.6px): the All sections sheet opened with its title almost
+   * on the top edge there, and a clear 12px on Default, so the same sheet looked like two
+   * different components depending on the style. Measured at 390px and 320px: 12px on Default,
+   * 3.6px on Ultraviolet.
+   *
+   * A corner may differ between styles; the space above the first word may not. It is one number
+   * for every style, and 12px is what Default already showed, so nothing moved for the app's own
+   * look.
+   */
+  padding-top: 12px;
   padding-bottom: var(--s-1);
   margin-bottom: 0;
 }

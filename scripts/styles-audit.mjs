@@ -179,13 +179,15 @@ const hsvToHex = ({ h, s, v }) => {
 };
 
 /** The app's night cut, hue and depth included. */
-const nightOf = ([canvas, , ink, accent]) => {
+const nightOf = ([canvas, card, ink, accent]) => {
   const { h, s, v } = hexToHsv(canvas);
+  const dayCard = hexToHsv(card).v;
   const depth = 0.075 + Math.min(1, v) * 0.085;
   const tint = (value) => hsvToHex({ h, s: Math.min(0.55, s * 1.6 + 0.1), v: value });
-  const page = tint(depth);
-  const card = tint(depth + 0.06);
-  return [page, card, mix(ink, MAX, 0.88), toward(accent, card, 3.4)];
+  /* The app's own cap: a night page sits below its day page, a night card below its day card. */
+  const page = tint(Math.min(depth, v * 0.8));
+  const nextCard = tint(Math.min(depth + 0.06, dayCard * 0.85));
+  return [page, nextCard, mix(ink, MAX, 0.88), toward(accent, nextCard, 3.4)];
 };
 
 /* ------------------------------------------------------------------ read the registry */
@@ -251,7 +253,60 @@ while ((match = entryPattern.exec(registry))) {
     light: tuple(match[4]),
     night: match[5] ? tuple(match[5]) : null,
     pinned: readPinned(slice),
+    faces: {
+      display: slice.match(/display:\s*'([a-z-]+)'/)?.[1] ?? null,
+      sub: slice.match(/sub:\s*'([a-z-]+)'/)?.[1] ?? null,
+      body: slice.match(/body:\s*'([a-z-]+)'/)?.[1] ?? null,
+    },
   });
+}
+
+/*
+ * **Night is darker than day, on every style.**
+ *
+ * Six styles had a night page or card *lighter* than the day one, because the derived night was an
+ * absolute depth with a floor: a page at `#111112` was given `#111115`, and a pure black page was
+ * handed a grey. The fix lives in `nightOf`, and this is the line that keeps it: no style may draw
+ * its dark appearance lighter than its light one.
+ */
+const wentLighter = (day, night) => {
+  const difference = luminance(night) - luminance(day);
+  if (difference > 1e-5) return true;
+  /* Equal is only right where the day is already black: Night AA's page cannot go lower. */
+  if (difference > -1e-5) return hexToHsv(day).v > 0;
+  return false;
+};
+const turnedNight = styles.filter((style) => {
+  const night = style.night ?? nightOf(style.light);
+  return wentLighter(style.light[0], night[0]) || wentLighter(style.light[1], night[1]);
+});
+if (turnedNight.length > 0) {
+  console.error('\nstyles-audit: dark appearance is not darker than light\n');
+  for (const style of turnedNight) {
+    const night = style.night ?? nightOf(style.light);
+    console.error(`  ${style.id}: page ${style.light[0]} to ${night[0]}, card ${style.light[1]} to ${night[1]}`);
+  }
+  process.exit(1);
+}
+
+/*
+ * **Three faces, named by the style itself.**
+ *
+ * The faces used to live in two tables keyed by style id, and the catalogue was renamed around
+ * them: eleven styles fell through to the UI face, so their subtitle tier was their body tier, and
+ * two styles drew every word in one family. A look that names one face looks like no look at all.
+ * The gate now reads the style blocks, so every style must name a display, a subtitle and a body
+ * face, and the three must differ: three tiers in two faces is not a type system.
+ */
+const faceless = styles.filter((style) => !style.faces.display || !style.faces.sub || !style.faces.body);
+const monotone = styles.filter(
+  (style) => style.faces.display && new Set([style.faces.display, style.faces.sub, style.faces.body]).size < 3,
+);
+if (faceless.length > 0 || monotone.length > 0) {
+  console.error('\nstyles-audit: every style must name three faces\n');
+  for (const style of faceless) console.error(`  ${style.id}: display ${style.faces.display}, subtitle ${style.faces.sub}, body ${style.faces.body}`);
+  for (const style of monotone) console.error(`  ${style.id}: ${style.faces.display} / ${style.faces.sub} / ${style.faces.body}`);
+  process.exit(1);
 }
 
 if (styles.length < 20) {

@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en" data-appearance="light" data-wallpaper="colour">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OVVO · thirty styles, one card</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+<style>
+  /* The page shell wears the app's own tokens, so it changes with the switch like the app does. */
+  :root { --canvas-base:#fcfbfa;--surface-alt:#f3f1ea;--surface-raised:#ffffff;--l1-bg:#f3f1ea;--l2-bg:#ffffff;--card-fill:#FFFFFF;--l1-border:1px solid #cdc7b8;--l2-border:1px solid #cdc7b8;--ink-strong:#18181b;--ink:#3f3f45;--ink-muted:#5f5f66;--ink-faint:#66666d;--border-hairline:#cdc7b8;--hairline-on-dark:#2d3b2d;--accent-primary:#ff7e67;--accent-fill:#ff7e67;--on-accent:#18181b;--focus-ring:#d9533a;--font-display:'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-stack:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--line-width:1px }
+  [data-appearance="dark"] { --canvas-base:#121211;--surface-alt:#1b1a18;--surface-raised:#232220;--l1-bg:#1b1a18;--l2-bg:#232220;--card-fill:#232220;--l1-border:1px solid #4a463c;--l2-border:1px solid #4a463c;--ink-strong:#f7f6f3;--ink:#dedcd6;--ink-muted:#b8b5ae;--ink-faint:#a5a29b;--border-hairline:#4a463c;--hairline-on-dark:#3b3a3d;--accent-primary:#ff7e67;--accent-fill:#ff7e67;--on-accent:#18181b;--focus-ring:#d9533a;--font-display:'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-stack:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--line-width:1px; color-scheme: dark }
+  body { background: var(--canvas-base) }
+  .sc-wrap { max-width: 1120px; margin: 0 auto; padding: var(--s-8, 32px) var(--s-5, 20px) 72px }
+  .sc-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-4, 16px) }
+  .sc-switches { display: flex; flex-wrap: wrap; gap: var(--s-2, 8px) }
+  .sc-lede { margin: var(--s-2, 8px) 0 0; max-width: 62ch; color: var(--ink-muted); font-size: var(--fs-body, 15px); line-height: 1.5 }
+  .sc-plan { list-style: none; margin: var(--s-2, 8px) 0 0; padding: 0; columns: 3; column-gap: var(--s-5, 20px) }
+  .sc-plan li { break-inside: avoid; padding: var(--s-1, 4px) 0 var(--s-3, 12px); border-top: 1px solid var(--border-hairline) }
+  .sc-plan b { display: block; font-size: var(--fs-caption, 12px); font-weight: var(--fw-bold, 700); line-height: 1.3 }
+  .sc-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+  .sc-chip { display: inline-block; padding: 2px 10px; border: 1px solid var(--border-hairline); border-radius: var(--r-pill, 9999px);
+    font-size: var(--fs-pill, 11px); font-weight: var(--fw-bold, 700); letter-spacing: var(--track-pill, 0.01em); text-transform: uppercase;
+    color: var(--ink-muted); text-decoration: none; background: var(--l1-bg) }
+  .sc-chip:hover { color: var(--ink-strong); border-color: var(--ink-muted) }
+  .sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-5, 20px); margin-top: var(--s-5, 20px) }
+  .sc-tile { margin: 0 }
+  .sc-scene { position: relative; overflow: hidden; border: 1px solid var(--border-hairline); border-radius: var(--r-card, 28px); padding: var(--s-7, 28px); background: var(--canvas) }
+  .sc-paper { position: absolute; inset: 0; background: var(--canvas) }
+  .sc-photo { position: absolute; inset: 0; background-image: linear-gradient(var(--wash), var(--wash)), var(--photo);
+    background-size: cover; background-position: center }
+  [data-wallpaper="colour"] .sc-photo { display: none }
+  .sc-nophoto .sc-photo { display: none }
+  .sc-card { position: relative; display: block; width: 100%; height: auto }
+  .sc-fill { fill: var(--card) }
+  .sc-edge { fill: none; stroke: var(--line); stroke-width: var(--line-width); stroke-linejoin: miter }
+  .sc-eyebrow { fill: var(--ink-faint); font-family: var(--font-body); font-size: 8.5px; letter-spacing: 0.14em }
+  .sc-title { fill: var(--ink-strong); font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.02em }
+  .sc-sub { fill: var(--ink-muted); font-family: var(--font-body); font-size: 11.5px }
+  .sc-pill { fill: var(--accent) }
+  .sc-pill-label { fill: var(--on-accent); font-family: var(--font-body); font-size: 10.5px; font-weight: 600 }
+  .sc-time { fill: var(--ink-muted); font-family: var(--font-body); font-size: 11px; font-weight: 600 }
+  .sc-meta { display: flex; align-items: baseline; gap: 8px; margin: var(--s-2, 8px) 2px 0 }
+  .sc-meta b { font-size: var(--fs-caption, 13px) }
+  .sc-meta span { font-size: var(--fs-pill, 11px); color: var(--ink-faint) }
+  h2 { margin: var(--s-8, 32px) 0 var(--s-2, 8px); font-size: var(--section-size, 16px); font-weight: var(--section-weight, 700) }
+  @media (max-width: 760px) { .sc-grid, .sc-plan { grid-template-columns: 1fr; columns: 1 } .sc-wrap { padding: 24px 16px 56px } }
+  [data-appearance="light"] #s-navy-gold { --canvas:#121d29;--card:rgba(27, 46, 69, 1);--line:#465566;--line-width:1px;--ink-strong:#F4F1EA;--ink:#dadad6;--ink-muted:#b6babd;--ink-faint:#adb2b7;--accent:#c0a171;--on-accent:#0B0B0C;--wash:rgba(18, 29, 41, 0.44);--photo:url(photos/navy-gold.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-navy-gold { --canvas:#0a1017;--card:rgba(17, 27, 38, 1);--line:#404851;--line-width:1px;--ink-strong:#fefdfc;--ink:#bcbec0;--ink-muted:#a3a6aa;--ink-faint:#989ca1;--accent:#c0a171;--on-accent:#0B0B0C;--wash:rgba(10, 16, 23, 0.02);--photo:url(photos/navy-gold-night.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-midnight-silk { --canvas:#1b141e;--card:rgba(36, 27, 44, 1);--line:#4d444f;--line-width:1px;--ink-strong:#EFE9DC;--ink:#cfc8c0;--ink-muted:#aba5a3;--ink-faint:#a29b9c;--accent:#baa382;--on-accent:#0B0B0C;--wash:rgba(27, 20, 30, 0.43);--photo:url(photos/midnight-silk.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-midnight-silk { --canvas:#120a16;--card:rgba(31, 17, 37, 1);--line:#4b4050;--line-width:1px;--ink-strong:#fdfcfb;--ink:#bfbabf;--ink-muted:#a19ba3;--ink-faint:#9e98a0;--accent:#baa382;--on-accent:#0B0B0C;--wash:rgba(18, 10, 22, 0.02);--photo:url(photos/midnight-silk-night.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-bordeaux { --canvas:#291116;--card:rgba(76, 26, 36, 0.88);--line:#693e45;--line-width:1px;--ink-strong:#F7EFE9;--ink:#e2d5d1;--ink-muted:#cebebe;--ink-faint:#c8b7b8;--accent:#D8B46A;--on-accent:#0B0B0C;--wash:rgba(41, 17, 22, 0.02);--photo:url(photos/bordeaux.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-bordeaux { --canvas:#170a0d;--card:rgba(38, 17, 21, 0.88);--line:#4b393c;--line-width:1px;--ink-strong:#fefdfc;--ink:#c2bbbb;--ink-muted:#b6aeaf;--ink-faint:#aea6a7;--accent:#D8B46A;--on-accent:#0B0B0C;--wash:rgba(23, 10, 13, 0.02);--photo:url(photos/bordeaux-night.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-poppy-blue { --canvas:#c9dbf0;--card:rgba(230, 240, 250, 0.92);--line:#a6b1be;--line-width:1px;--ink-strong:#0F2A44;--ink:#203a53;--ink-muted:#3c5164;--ink-faint:#48586a;--accent:#e25138;--on-accent:#0B0B0C;--wash:rgba(201, 219, 240, 0.5);--photo:url(photos/poppy-blue.jpg);--font-display:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-poppy-blue { --canvas:#192028;--card:rgba(35, 44, 55, 0.92);--line:#3e4650;--line-width:1px;--ink-strong:#e2e5e9;--ink:#d3d6db;--ink-muted:#c0c4c8;--ink-faint:#b4b8bd;--accent:#e25138;--on-accent:#0B0B0C;--wash:rgba(25, 32, 40, 0.06);--photo:url(photos/poppy-blue-night.jpg);--font-display:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-ultraviolet { --canvas:#dccef7;--card:rgba(241, 234, 255, 1);--line:#887f9a;--line-width:2px;--ink-strong:#241247;--ink:#453564;--ink-muted:#5d4e7b;--ink-faint:#62567b;--accent:#5935b5;--on-accent:#FFFFFF;--wash:rgba(220, 206, 247, 0.57);--photo:url(photos/ultraviolet.jpg);--font-display:'Manrope', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif }
+  [data-appearance="dark"] #s-ultraviolet { --canvas:#1e1928;--card:rgba(42, 35, 55, 1);--line:#666070;--line-width:2px;--ink-strong:#e5e3e9;--ink:#cfccd4;--ink-muted:#a9a6b0;--ink-faint:#a09ca7;--accent:#8b72cb;--on-accent:#0B0B0C;--wash:rgba(30, 25, 40, 0.02);--photo:url(photos/ultraviolet-night.jpg);--font-display:'Manrope', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif }
+  [data-appearance="light"] #s-cyber-teal { --canvas:#bde2e9;--card:rgba(226, 248, 250, 1);--line:#90a9aa;--line-width:1px;--ink-strong:#05322F;--ink:#17423f;--ink-muted:#375d5b;--ink-faint:#446564;--accent:#065f70;--on-accent:#FFFFFF;--wash:rgba(189, 226, 233, 0.52);--photo:url(photos/cyber-teal.jpg);--font-display:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-cyber-teal { --canvas:#172427;--card:rgba(32, 51, 54, 1);--line:#475759;--line-width:1px;--ink-strong:#e1e6e6;--ink:#d9dfdf;--ink-muted:#b5bdbe;--ink-faint:#acb4b5;--accent:#518f9b;--on-accent:#0B0B0C;--wash:rgba(23, 36, 39, 0.02);--photo:url(photos/cyber-teal-night.jpg);--font-display:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-broadsheet { --canvas:#eae4dc;--card:rgba(251, 250, 246, 1);--line:#a9a8a5;--line-width:1px;--ink-strong:#141110;--ink:#42403e;--ink-muted:#595755;--ink-faint:#5f5d5b;--accent:#8b603a;--on-accent:#FFFFFF;--wash:rgba(234, 228, 220, 0.45);--photo:url(photos/broadsheet.jpg);--font-display:'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-broadsheet { --canvas:#27241f;--card:rgba(54, 50, 44, 1);--line:#595550;--line-width:1px;--ink-strong:#e3e2e2;--ink:#dcdbdb;--ink-muted:#c1bfbd;--ink-faint:#b4b3b1;--accent:#a78669;--on-accent:#0B0B0C;--wash:rgba(39, 36, 31, 0.02);--photo:url(photos/broadsheet-night.jpg);--font-display:'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-spoorboekje { --canvas:#F1E1B8;--card:rgba(251, 242, 217, 1);--line:#afa593;--line-width:1px;--ink-strong:#2A1C10;--ink:#4b3e30;--ink-muted:#605344;--ink-faint:#63584a;--accent:#B33A2B;--on-accent:#FFFFFF;--wash:rgba(241, 225, 184, 0.6);--photo:none;--font-display:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-spoorboekje { --canvas:#282215;--card:rgba(55, 48, 29, 1);--line:#5a5444;--line-width:1px;--ink-strong:#e5e4e2;--ink:#deddda;--ink-muted:#bdbbb5;--ink-faint:#b5b2ab;--accent:#c5695e;--on-accent:#0B0B0C;--wash:rgba(40, 34, 21, 0.6);--photo:none;--font-display:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-rijksmuseum { --canvas:#d8dfba;--card:rgba(246, 246, 221, 0.88);--line:#acb0a3;--line-width:1px;--ink-strong:#14243A;--ink:#2f3d4e;--ink-muted:#465057;--ink-faint:#4d565c;--accent:#1d3d68;--on-accent:#FFFFFF;--wash:rgba(216, 223, 186, 0.48);--photo:url(photos/rijksmuseum.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-rijksmuseum { --canvas:#232618;--card:rgba(50, 53, 34, 0.88);--line:#505343;--line-width:1px;--ink-strong:#e3e5e7;--ink:#dcdedf;--ink-muted:#cdcfcc;--ink-faint:#c3c4c1;--accent:#7c8ea7;--on-accent:#0B0B0C;--wash:rgba(35, 38, 24, 0.02);--photo:url(photos/rijksmuseum-night.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-station-sign { --canvas:#120f29;--card:rgba(31, 42, 115, 0.92);--line:#3c4686;--line-width:1px;--ink-strong:#EEF3FA;--ink:#d5dbea;--ink-muted:#c5cadd;--ink-faint:#b8bed5;--accent:#f2b562;--on-accent:#0B0B0C;--wash:rgba(18, 15, 41, 0.36);--photo:url(photos/station-sign.jpg);--font-display:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-station-sign { --canvas:#0c0a17;--card:rgba(19, 17, 38, 0.92);--line:#343244;--line-width:1px;--ink-strong:#fdfefe;--ink:#bbbcc2;--ink-muted:#a9a9b0;--ink-faint:#9f9fa8;--accent:#f2b562;--on-accent:#0B0B0C;--wash:rgba(12, 10, 23, 0.02);--photo:url(photos/station-sign-night.jpg);--font-display:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-tram { --canvas:#fcfbfa;--card:#FFFFFF;--line:#cdc7b8;--line-width:1px;--ink-strong:#18181b;--ink:#3f3f45;--ink-muted:#5f5f66;--ink-faint:#66666d;--accent:#ff7e67;--on-accent:#18181b;--wash:rgba(252, 251, 250, 0.62);--photo:none;--font-display:'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif }
+  [data-appearance="dark"] #s-tram { --canvas:#121211;--card:#232220;--line:#4a463c;--line-width:1px;--ink-strong:#f7f6f3;--ink:#dedcd6;--ink-muted:#b8b5ae;--ink-faint:#a5a29b;--accent:#ff7e67;--on-accent:#18181b;--wash:rgba(18, 18, 17, 0.7);--photo:none;--font-display:'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif }
+  [data-appearance="light"] #s-obsidian { --canvas:#111112;--card:rgba(23, 23, 26, 1);--line:#575657;--line-width:2px;--ink-strong:#F2F0EC;--ink:#bdbcba;--ink-muted:#9a9998;--ink-faint:#908f8e;--accent:#8FB8FF;--on-accent:#0B0B0C;--wash:rgba(17, 17, 18, 0.02);--photo:url(photos/obsidian.jpg);--font-display:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-obsidian { --canvas:#111115;--card:rgba(29, 29, 36, 1);--line:#57575c;--line-width:2px;--ink-strong:#fdfdfd;--ink:#c7c7c9;--ink-muted:#a0a0a4;--ink-faint:#979799;--accent:#8FB8FF;--on-accent:#0B0B0C;--wash:rgba(17, 17, 21, 0.02);--photo:url(photos/obsidian-night.jpg);--font-display:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-contrast { --canvas:#FFFFFF;--card:rgba(255, 255, 255, 0.96);--line:#cccccc;--line-width:1px;--ink-strong:#000000;--ink:#474747;--ink-muted:#575757;--ink-faint:#5f5f5f;--accent:#0033CC;--on-accent:#FFFFFF;--wash:rgba(255, 255, 255, 0.55);--photo:none;--font-display:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-contrast { --canvas:#292525;--card:rgba(56, 50, 50, 0.96);--line:#555050;--line-width:1px;--ink-strong:#e0e0e0;--ink:#e0e0e0;--ink-muted:#c5c3c3;--ink-faint:#bebcbc;--accent:#6b89e1;--on-accent:#0B0B0C;--wash:rgba(41, 37, 37, 0.55);--photo:none;--font-display:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-night-aa { --canvas:#000000;--card:rgba(14, 14, 14, 0.88);--line:#373737;--line-width:1px;--ink-strong:#FFFFFF;--ink:#bcbcbc;--ink-muted:#a8a8a8;--ink-faint:#9f9f9f;--accent:#FFD400;--on-accent:#0B0B0C;--wash:rgba(0, 0, 0, 0.55);--photo:none;--font-display:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-night-aa { --canvas:#131111;--card:rgba(34, 31, 31, 0.88);--line:#413e3e;--line-width:1px;--ink-strong:#ffffff;--ink:#cac9c9;--ink-muted:#bbbaba;--ink-faint:#b3b3b3;--accent:#FFD400;--on-accent:#0B0B0C;--wash:rgba(19, 17, 17, 0.55);--photo:none;--font-display:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-sage { --canvas:#d1e1d2;--card:rgba(239, 246, 238, 0.92);--line:#afb6ae;--line-width:1px;--ink-strong:#1B2A1B;--ink:#344234;--ink-muted:#4a564a;--ink-faint:#515a51;--accent:#54704e;--on-accent:#FFFFFF;--wash:rgba(209, 225, 210, 0.52);--photo:url(photos/sage.jpg);--font-display:'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-sage { --canvas:#1e261f;--card:rgba(42, 54, 43, 0.92);--line:#444f45;--line-width:1px;--ink-strong:#e4e5e4;--ink:#dddedd;--ink-muted:#c8cbc8;--ink-faint:#c1c4c1;--accent:#7d9278;--on-accent:#0B0B0C;--wash:rgba(30, 38, 31, 0.02);--photo:url(photos/sage-night.jpg);--font-display:'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-mustard { --canvas:#f7dba6;--card:rgba(255, 242, 207, 1);--line:#b1a689;--line-width:1px;--ink-strong:#2A1E02;--ink:#44371b;--ink-muted:#615438;--ink-faint:#655941;--accent:#aa7824;--on-accent:#0B0B0C;--wash:rgba(247, 219, 166, 0.02);--photo:url(photos/mustard.jpg);--font-display:'Outfit', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Fraunces', Georgia, 'Times New Roman', serif }
+  [data-appearance="dark"] #s-mustard { --canvas:#282012;--card:rgba(55, 45, 25, 1);--line:#5a5241;--line-width:1px;--ink-strong:#e5e4e1;--ink:#d7d5d1;--ink-muted:#bdbab3;--ink-faint:#b5b2ab;--accent:#ae7e2e;--on-accent:#0B0B0C;--wash:rgba(40, 32, 18, 0.02);--photo:url(photos/mustard-night.jpg);--font-display:'Outfit', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Fraunces', Georgia, 'Times New Roman', serif }
+  [data-appearance="light"] #s-terminal { --canvas:#111310;--card:rgba(21, 26, 20, 0.96);--line:#314131;--line-width:1px;--ink-strong:#B8FFC0;--ink:#97d19e;--ink-muted:#87ae8b;--ink-faint:#84a486;--accent:#98de67;--on-accent:#0B0B0C;--wash:rgba(17, 19, 16, 0.23);--photo:url(photos/terminal.jpg);--font-display:'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-terminal { --canvas:#10150d;--card:rgba(28, 36, 23, 0.96);--line:#3b4336;--line-width:1px;--ink-strong:#f6fff7;--ink:#c2cac1;--ink-muted:#afb6ae;--ink-faint:#a2a9a0;--accent:#98de67;--on-accent:#0B0B0C;--wash:rgba(16, 21, 13, 0.02);--photo:url(photos/terminal-night.jpg);--font-display:'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-blueprint { --canvas:#D6E2F5;--card:rgba(234, 241, 251, 1);--line:#8d96a5;--line-width:2px;--ink-strong:#0B1A33;--ink:#2f3c53;--ink-muted:#49566b;--ink-faint:#566174;--accent:#1D4ED8;--on-accent:#FFFFFF;--wash:rgba(214, 226, 245, 0.6);--photo:none;--font-display:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-blueprint { --canvas:#1c2128;--card:rgba(39, 45, 55, 1);--line:#5d626a;--line-width:2px;--ink-strong:#e2e4e7;--ink:#d3d5d9;--ink-muted:#abaeb4;--ink-faint:#a3a7ac;--accent:#6183e4;--on-accent:#0B0B0C;--wash:rgba(28, 33, 40, 0.6);--photo:none;--font-display:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-marble { --canvas:#ebe3d8;--card:rgba(246, 242, 237, 0.96);--line:#b8b4b1;--line-width:1px;--ink-strong:#181513;--ink:#3c3836;--ink-muted:#555250;--ink-faint:#5d5a57;--accent:#C9BFA9;--on-accent:#0B0B0C;--wash:rgba(235, 227, 216, 0.02);--photo:url(photos/marble.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Lora', 'Iowan Old Style', Georgia, 'Times New Roman', serif }
+  [data-appearance="dark"] #s-marble { --canvas:#27231e;--card:rgba(54, 49, 42, 0.96);--line:#534f49;--line-width:1px;--ink-strong:#e3e3e3;--ink:#dcdcdc;--ink-muted:#c5c4c2;--ink-faint:#b9b8b5;--accent:#C9BFA9;--on-accent:#0B0B0C;--wash:rgba(39, 35, 30, 0.18);--photo:url(photos/marble-night.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Lora', 'Iowan Old Style', Georgia, 'Times New Roman', serif }
+  [data-appearance="light"] #s-arches { --canvas:#1e1c22;--card:rgba(36, 36, 44, 0.92);--line:#403f45;--line-width:1px;--ink-strong:#EDE8DF;--ink:#cdc9c2;--ink-muted:#bbb8b6;--ink-faint:#b3b1b0;--accent:#b08c61;--on-accent:#0B0B0C;--wash:rgba(30, 28, 34, 0.51);--photo:url(photos/arches.jpg);--font-display:'Playfair Display', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Lora', 'Iowan Old Style', Georgia, 'Times New Roman', serif }
+  [data-appearance="dark"] #s-arches { --canvas:#100e16;--card:rgba(28, 23, 37, 0.92);--line:#3c3743;--line-width:1px;--ink-strong:#fdfcfb;--ink:#bebcbf;--ink-muted:#b2b0b5;--ink-faint:#aaa8ad;--accent:#b08c61;--on-accent:#0B0B0C;--wash:rgba(16, 14, 22, 0.02);--photo:url(photos/arches-night.jpg);--font-display:'Playfair Display', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Lora', 'Iowan Old Style', Georgia, 'Times New Roman', serif }
+  [data-appearance="light"] #s-summit { --canvas:#142429;--card:rgba(23, 49, 58, 1);--line:#43575c;--line-width:1px;--ink-strong:#F4EFE4;--ink:#d9d8d0;--ink-muted:#b4bab7;--ink-faint:#abb2b0;--accent:#be9f69;--on-accent:#0B0B0C;--wash:rgba(20, 36, 41, 0.02);--photo:url(photos/summit.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-summit { --canvas:#0a1417;--card:rgba(17, 33, 38, 1);--line:#404d51;--line-width:1px;--ink-strong:#fefdfc;--ink:#c5c8c9;--ink-muted:#a3a8aa;--ink-faint:#989fa1;--accent:#be9f69;--on-accent:#0B0B0C;--wash:rgba(10, 20, 23, 0.02);--photo:url(photos/summit-night.jpg);--font-display:'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-cloudbank { --canvas:#111214;--card:rgba(26, 28, 31, 0.88);--line:#393b3d;--line-width:1px;--ink-strong:#F6F6F4;--ink:#c1c2c1;--ink-muted:#b5b6b6;--ink-faint:#adaeae;--accent:#C6C9CE;--on-accent:#0B0B0C;--wash:rgba(17, 18, 20, 0.43);--photo:url(photos/cloudbank.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-cloudbank { --canvas:#0e1015;--card:rgba(24, 28, 36, 0.88);--line:#383c43;--line-width:1px;--ink-strong:#fefefe;--ink:#bebfc1;--ink-muted:#b1b3b5;--ink-faint:#a8aaae;--accent:#C6C9CE;--on-accent:#0B0B0C;--wash:rgba(14, 16, 21, 0.02);--photo:url(photos/cloudbank-night.jpg);--font-display:'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-riviera { --canvas:#f1f4df;--card:rgba(255, 255, 247, 0.96);--line:#bcc2c0;--line-width:1px;--ink-strong:#0C2A36;--ink:#29444d;--ink-muted:#485b60;--ink-faint:#516268;--accent:#0f5c91;--on-accent:#FFFFFF;--wash:rgba(241, 244, 223, 0.43);--photo:url(photos/riviera.jpg);--font-display:'Outfit', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-riviera { --canvas:#27281e;--card:rgba(53, 55, 42, 0.96);--line:#52554a;--line-width:1px;--ink-strong:#e2e5e7;--ink:#e2e5e7;--ink-muted:#c9cbc9;--ink-faint:#bebfbe;--accent:#6597b9;--on-accent:#0B0B0C;--wash:rgba(39, 40, 30, 0.02);--photo:url(photos/riviera-night.jpg);--font-display:'Outfit', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-palazzo { --canvas:#f1e3e0;--card:rgba(253, 247, 243, 1);--line:#97908b;--line-width:3px;--ink-strong:#2A2118;--ink:#433b32;--ink-muted:#655d55;--ink-faint:#69625c;--accent:#987942;--on-accent:#0B0B0C;--wash:rgba(241, 227, 224, 0.39);--photo:url(photos/palazzo.jpg);--font-display:'Playfair Display', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-palazzo { --canvas:#28211f;--card:rgba(55, 45, 43, 1);--line:#746d6b;--line-width:3px;--ink-strong:#e5e4e3;--ink:#dedddc;--ink-muted:#b4b1af;--ink-faint:#a5a19f;--accent:#9e814d;--on-accent:#0B0B0C;--wash:rgba(40, 33, 31, 0.02);--photo:url(photos/palazzo-night.jpg);--font-display:'Playfair Display', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-storm-tide { --canvas:#e0e6e8;--card:rgba(250, 252, 252, 1);--line:#8a9395;--line-width:2px;--ink-strong:#122730;--ink:#2e4148;--ink-muted:#536369;--ink-faint:#5b676c;--accent:#375f6f;--on-accent:#FFFFFF;--wash:rgba(224, 230, 232, 0.42);--photo:url(photos/storm-tide.jpg);--font-display:'Lora', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-storm-tide { --canvas:#212527;--card:rgba(46, 52, 54, 1);--line:#686d6e;--line-width:2px;--ink-strong:#e3e5e6;--ink:#dcdedf;--ink-muted:#b5b8b9;--ink-faint:#adafb1;--accent:#738f9a;--on-accent:#0B0B0C;--wash:rgba(33, 37, 39, 0.02);--photo:url(photos/storm-tide-night.jpg);--font-display:'Lora', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-skyline { --canvas:#0f101e;--card:rgba(20, 23, 39, 0.96);--line:#3a3c48;--line-width:1px;--ink-strong:#F5F1E8;--ink:#bfbdba;--ink-muted:#a7a6a7;--ink-faint:#9d9c9f;--accent:#E9A64B;--on-accent:#0B0B0C;--wash:rgba(15, 16, 30, 0.13);--photo:url(photos/skyline.jpg);--font-display:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-skyline { --canvas:#0a0b16;--card:rgba(17, 18, 37, 0.96);--line:#393a4a;--line-width:1px;--ink-strong:#fefdfc;--ink:#bcbbc0;--ink-muted:#a3a3a9;--ink-faint:#9898a0;--accent:#E9A64B;--on-accent:#0B0B0C;--wash:rgba(10, 11, 22, 0.02);--photo:url(photos/skyline-night.jpg);--font-display:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Space Grotesk', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-capsule { --canvas:#0d0d10;--card:rgba(20, 20, 24, 0.92);--line:#353538;--line-width:1px;--ink-strong:#FFFFFF;--ink:#bdbdbe;--ink-muted:#ababab;--ink-faint:#a1a1a2;--accent:#9FA6B2;--on-accent:#0B0B0C;--wash:rgba(13, 13, 16, 0.33);--photo:url(photos/capsule.jpg);--font-display:'Manrope', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Manrope', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-capsule { --canvas:#0c0c14;--card:rgba(21, 21, 36, 0.92);--line:#363643;--line-width:1px;--ink-strong:#ffffff;--ink:#bdbdc2;--ink-muted:#ababb0;--ink-faint:#a1a1a7;--accent:#9FA6B2;--on-accent:#0B0B0C;--wash:rgba(12, 12, 20, 0.02);--photo:url(photos/capsule-night.jpg);--font-display:'Manrope', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Manrope', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-toscane { --canvas:#f3e0dd;--card:rgba(255, 247, 242, 0.88);--line:#b8b0ab;--line-width:1px;--ink-strong:#33261B;--ink:#4b3f35;--ink-muted:#594f47;--ink-faint:#625852;--accent:#b26954;--on-accent:#0B0B0C;--wash:rgba(243, 224, 221, 0.36);--photo:url(photos/toscane.jpg);--font-display:'Fraunces', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-toscane { --canvas:#281f1e;--card:rgba(55, 43, 42, 0.88);--line:#554b4a;--line-width:1px;--ink-strong:#e7e5e4;--ink:#d9d6d5;--ink-muted:#ccc8c7;--ink-faint:#c1bdbd;--accent:#b7725e;--on-accent:#0B0B0C;--wash:rgba(40, 31, 30, 0.02);--photo:url(photos/toscane-night.jpg);--font-display:'Fraunces', Georgia, 'Times New Roman', serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-contact { --canvas:#080707;--card:rgba(15, 15, 15, 1);--line:#51504f;--line-width:2px;--ink-strong:#F2F0EC;--ink:#bcbab7;--ink-muted:#979694;--ink-faint:#8c8b8a;--accent:#B9BEC7;--on-accent:#0B0B0C;--wash:rgba(8, 7, 7, 0.02);--photo:url(photos/contact.jpg);--font-display:'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-contact { --canvas:#140e0e;--card:rgba(35, 25, 25, 1);--line:#5c5454;--line-width:2px;--ink-strong:#fdfdfd;--ink:#c9c6c6;--ink-muted:#9d9999;--ink-faint:#999494;--accent:#B9BEC7;--on-accent:#0B0B0C;--wash:rgba(20, 14, 14, 0.02);--photo:url(photos/contact-night.jpg);--font-display:'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;--font-body:'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="light"] #s-loggia { --canvas:#ede6db;--card:rgba(252, 248, 241, 1);--line:#959792;--line-width:2px;--ink-strong:#1F2A26;--ink:#3a433e;--ink-muted:#545b57;--ink-faint:#616662;--accent:#2c6862;--on-accent:#FFFFFF;--wash:rgba(237, 230, 219, 0.54);--photo:url(photos/loggia.jpg);--font-display:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+  [data-appearance="dark"] #s-loggia { --canvas:#27241f;--card:rgba(55, 50, 42, 1);--line:#696660;--line-width:2px;--ink-strong:#e4e5e5;--ink:#dddede;--ink-muted:#b9b8b6;--ink-faint:#b0afad;--accent:#6b9591;--on-accent:#0B0B0C;--wash:rgba(39, 36, 31, 0.02);--photo:url(photos/loggia-night.jpg);--font-display:'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;--font-body:'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif }
+</style>
+</head>
+<body>
+<main class="sc-wrap">
+  <div class="sc-head">
+    <div>
+      <h1>Thirty styles, one card</h1>
+      <p class="sc-lede">Every style's own page, with the card that already ships sitting on it, in that style's own colours.</p>
+    </div>
+    <div class="sc-switches">
+      <div class="segmented" role="group" aria-label="Appearance">
+        <button type="button" class="segmented__btn" data-set="appearance" data-value="light" aria-pressed="true">Light</button>
+        <button type="button" class="segmented__btn" data-set="appearance" data-value="dark" aria-pressed="false">Dark</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Background">
+        <button type="button" class="segmented__btn" data-set="wallpaper" data-value="colour" aria-pressed="true">Colour</button>
+        <button type="button" class="segmented__btn" data-set="wallpaper" data-value="photo" aria-pressed="false">Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sc-grid">
+    <article class="sc-tile" id="s-navy-gold" data-name="Navy and Gold">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Navy and Gold, the shipped card">
+      <defs><clipPath id="clip-navy-gold"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-navy-gold)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Navy and Gold</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-midnight-silk" data-name="Midnight Silk">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Midnight Silk, the shipped card">
+      <defs><clipPath id="clip-midnight-silk"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-midnight-silk)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Midnight Silk</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-bordeaux" data-name="Bordeaux">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Bordeaux, the shipped card">
+      <defs><clipPath id="clip-bordeaux"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-bordeaux)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Bordeaux</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-poppy-blue" data-name="Poppy Blue">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Poppy Blue, the shipped card">
+      <defs><clipPath id="clip-poppy-blue"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-poppy-blue)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Poppy Blue</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-ultraviolet" data-name="Ultraviolet">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Ultraviolet, the shipped card">
+      <defs><clipPath id="clip-ultraviolet"><path d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/>
+      <g clip-path="url(#clip-ultraviolet)"><path class="sc-edge" d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Ultraviolet</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-cyber-teal" data-name="Cyber Teal">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Cyber Teal, the shipped card">
+      <defs><clipPath id="clip-cyber-teal"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-cyber-teal)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Cyber Teal</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-broadsheet" data-name="Broadsheet">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Broadsheet, the shipped card">
+      <defs><clipPath id="clip-broadsheet"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-broadsheet)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Broadsheet</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile sc-nophoto" id="s-spoorboekje" data-name="Spoorboekje">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Spoorboekje, the shipped card">
+      <defs><clipPath id="clip-spoorboekje"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-spoorboekje)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Spoorboekje</b><span>Shipped card · colour only</span></p>
+</article>
+    <article class="sc-tile" id="s-rijksmuseum" data-name="Rijksmuseum">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Rijksmuseum, the shipped card">
+      <defs><clipPath id="clip-rijksmuseum"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-rijksmuseum)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Rijksmuseum</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-station-sign" data-name="Station Sign">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Station Sign, the shipped card">
+      <defs><clipPath id="clip-station-sign"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-station-sign)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Station Sign</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile sc-nophoto" id="s-tram" data-name="Default">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Default, the shipped card">
+      <defs><clipPath id="clip-tram"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-tram)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Default</b><span>Shipped card · colour only</span></p>
+</article>
+    <article class="sc-tile" id="s-obsidian" data-name="Obsidian">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Obsidian, the shipped card">
+      <defs><clipPath id="clip-obsidian"><path d="M0 0 H440 V280 H0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M0 0 H440 V280 H0 Z"/>
+      <g clip-path="url(#clip-obsidian)"><path class="sc-edge" d="M0 0 H440 V280 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Obsidian</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile sc-nophoto" id="s-contrast" data-name="Contrast">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Contrast, the shipped card">
+      <defs><clipPath id="clip-contrast"><path d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/>
+      <g clip-path="url(#clip-contrast)"><path class="sc-edge" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Contrast</b><span>Shipped card · colour only</span></p>
+</article>
+    <article class="sc-tile sc-nophoto" id="s-night-aa" data-name="Night AA">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Night AA, the shipped card">
+      <defs><clipPath id="clip-night-aa"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-night-aa)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Night AA</b><span>Shipped card · colour only</span></p>
+</article>
+    <article class="sc-tile" id="s-sage" data-name="Sage">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Sage, the shipped card">
+      <defs><clipPath id="clip-sage"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-sage)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Sage</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-mustard" data-name="Mustard">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Mustard, the shipped card">
+      <defs><clipPath id="clip-mustard"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-mustard)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Mustard</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-terminal" data-name="Terminal">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Terminal, the shipped card">
+      <defs><clipPath id="clip-terminal"><path d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/>
+      <g clip-path="url(#clip-terminal)"><path class="sc-edge" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Terminal</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile sc-nophoto" id="s-blueprint" data-name="Blueprint">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Blueprint, the shipped card">
+      <defs><clipPath id="clip-blueprint"><path d="M0 0 H440 V280 H0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M0 0 H440 V280 H0 Z"/>
+      <g clip-path="url(#clip-blueprint)"><path class="sc-edge" d="M0 0 H440 V280 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Blueprint</b><span>Shipped card · colour only</span></p>
+</article>
+    <article class="sc-tile" id="s-marble" data-name="Marble">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Marble, the shipped card">
+      <defs><clipPath id="clip-marble"><path d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/>
+      <g clip-path="url(#clip-marble)"><path class="sc-edge" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Marble</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-arches" data-name="Arches">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Arches, the shipped card">
+      <defs><clipPath id="clip-arches"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-arches)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Arches</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-summit" data-name="Summit">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Summit, the shipped card">
+      <defs><clipPath id="clip-summit"><path d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/>
+      <g clip-path="url(#clip-summit)"><path class="sc-edge" d="M28 0 H412 A28 28 0 0 1 440 28 V252 A28 28 0 0 1 412 280 H28 A28 28 0 0 1 0 252 V28 A28 28 0 0 1 28 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Summit</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-cloudbank" data-name="Cloudbank">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Cloudbank, the shipped card">
+      <defs><clipPath id="clip-cloudbank"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-cloudbank)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Cloudbank</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-riviera" data-name="Riviera">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Riviera, the shipped card">
+      <defs><clipPath id="clip-riviera"><path d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/>
+      <g clip-path="url(#clip-riviera)"><path class="sc-edge" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Riviera</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-palazzo" data-name="Palazzo">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Palazzo, the shipped card">
+      <defs><clipPath id="clip-palazzo"><path d="M14 0 H426 A14 14 0 0 1 440 14 V266 A14 14 0 0 1 426 280 H14 A14 14 0 0 1 0 266 V14 A14 14 0 0 1 14 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M14 0 H426 A14 14 0 0 1 440 14 V266 A14 14 0 0 1 426 280 H14 A14 14 0 0 1 0 266 V14 A14 14 0 0 1 14 0 Z"/>
+      <g clip-path="url(#clip-palazzo)"><path class="sc-edge" d="M14 0 H426 A14 14 0 0 1 440 14 V266 A14 14 0 0 1 426 280 H14 A14 14 0 0 1 0 266 V14 A14 14 0 0 1 14 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Palazzo</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-storm-tide" data-name="Storm Tide">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Storm Tide, the shipped card">
+      <defs><clipPath id="clip-storm-tide"><path d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/>
+      <g clip-path="url(#clip-storm-tide)"><path class="sc-edge" d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Storm Tide</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-skyline" data-name="Skyline">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Skyline, the shipped card">
+      <defs><clipPath id="clip-skyline"><path d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/>
+      <g clip-path="url(#clip-skyline)"><path class="sc-edge" d="M40.6 0 H399.4 A40.6 40.6 0 0 1 440 40.6 V239.4 A40.6 40.6 0 0 1 399.4 280 H40.6 A40.6 40.6 0 0 1 0 239.4 V40.6 A40.6 40.6 0 0 1 40.6 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Skyline</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-capsule" data-name="Capsule">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Capsule, the shipped card">
+      <defs><clipPath id="clip-capsule"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-capsule)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Capsule</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-toscane" data-name="Toscane">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Toscane, the shipped card">
+      <defs><clipPath id="clip-toscane"><path d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/>
+      <g clip-path="url(#clip-toscane)"><path class="sc-edge" d="M56 0 H384 A56 56 0 0 1 440 56 V224 A56 56 0 0 1 384 280 H56 A56 56 0 0 1 0 224 V56 A56 56 0 0 1 56 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Toscane</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-contact" data-name="Contact">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Contact, the shipped card">
+      <defs><clipPath id="clip-contact"><path d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/>
+      <g clip-path="url(#clip-contact)"><path class="sc-edge" d="M8.4 0 H431.6 A8.4 8.4 0 0 1 440 8.4 V271.6 A8.4 8.4 0 0 1 431.6 280 H8.4 A8.4 8.4 0 0 1 0 271.6 V8.4 A8.4 8.4 0 0 1 8.4 0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Contact</b><span>Shipped card</span></p>
+</article>
+    <article class="sc-tile" id="s-loggia" data-name="Loggia">
+  <div class="sc-scene">
+    <div class="sc-paper"></div>
+    <div class="sc-photo"></div>
+    <svg class="sc-card" viewBox="0 0 440 280" role="img" aria-label="Loggia, the shipped card">
+      <defs><clipPath id="clip-loggia"><path d="M0 0 H440 V280 H0 Z"/></clipPath></defs>
+      <path class="sc-fill" d="M0 0 H440 V280 H0 Z"/>
+      <g clip-path="url(#clip-loggia)"><path class="sc-edge" d="M0 0 H440 V280 H0 Z"/></g>
+      <text class="sc-eyebrow" x="64" y="100">VOLGENDE TRET</text>
+      <text class="sc-title" x="64" y="136">Amsterdam Zuid</text>
+      <text class="sc-sub" x="64" y="156">Utrecht Centraal · spoor 4</text>
+      <rect class="sc-pill" x="64" y="174" width="78" height="26" rx="13"/>
+      <text class="sc-pill-label" x="103" y="191" text-anchor="middle">Direct</text>
+      <text class="sc-time" x="376" y="191" text-anchor="end">09:12</text>
+    </svg>
+  </div>
+  <p class="sc-meta"><b>Loggia</b><span>Shipped card</span></p>
+</article>
+  </div>
+</main>
+<script>
+  for (const button of document.querySelectorAll('.segmented__btn')) {
+    button.addEventListener('click', () => {
+      const group = button.closest('.segmented');
+      for (const sibling of group.querySelectorAll('.segmented__btn')) sibling.setAttribute('aria-pressed', String(sibling === button));
+      document.documentElement.dataset[button.dataset.set] = button.dataset.value;
+    });
+  }
+</script>
+</body>
+</html>
