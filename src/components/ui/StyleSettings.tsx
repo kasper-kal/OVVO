@@ -6,6 +6,7 @@ import {
   STYLES,
   STYLE_GROUPS,
   styleById,
+  styleDisplayFamily,
   stylePalette,
   stylePhotograph,
   stylePhotoPath,
@@ -208,7 +209,9 @@ export function StyleSettings() {
                         <span style={{ background: colours.card }} />
                         <span style={{ background: colours.accent }} />
                       </span>
-                      <span className="style-tile__name">{name(style)}</span>
+                      <span className="style-tile__name" style={{ fontFamily: styleDisplayFamily(style) }}>
+                        {name(style)}
+                      </span>
                     </button>
                   );
                 })}

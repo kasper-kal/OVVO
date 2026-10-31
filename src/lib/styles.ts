@@ -248,6 +248,18 @@ export function photoScrim(picture: StylePhoto, appearance: Appearance): number 
  * Default (`tram`) is `soft`, which is exactly the values this file used before shapes existed, so
  * the app's own look did not move.
  */
+/**
+ * **The face a style's name is written in, for any screen that shows several styles at once.**
+ *
+ * The picker set every tile's name in the interface's own font, so only the colours changed from
+ * tile to tile. The steerer asked for each name to wear its style's own display face instead — the
+ * same size, the same weight, only the lettering changes — which is the one part of a style a small
+ * colour swatch cannot show.
+ */
+export function styleDisplayFamily(style: StyleDef): string {
+  return FONT_STACKS[style.display];
+}
+
 export type ShapeId = 'soft' | 'square' | 'round' | 'pill' | 'line' | 'plate' | 'arch';
 
 interface Shape {
