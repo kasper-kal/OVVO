@@ -51,6 +51,10 @@ export const FONT_STACKS = {
   work: "'Work Sans', 'Helvetica Neue', Arial, system-ui, sans-serif",
   figtree: "'Figtree', 'Helvetica Neue', Arial, system-ui, sans-serif",
   inter: "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
+  /* The one face in the catalogue with nothing sensible behind it: a browser that refuses the
+     download has no display gothic installed, so it draws the nearest thing to a Halloween poster
+     and the page is still readable. */
+  creepster: "'Creepster', 'Chiller', 'Bradley Hand', cursive",
 } as const;
 
 export type FontId = keyof typeof FONT_STACKS;
@@ -73,6 +77,7 @@ export const FONT_FAMILIES: Record<FontId, string> = {
   work: 'Work Sans',
   figtree: 'Figtree',
   inter: 'Inter',
+  creepster: 'Creepster',
 };
 
 /* ------------------------------------------------------------------ the shape of a style */
@@ -384,6 +389,8 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'sinterklaas': 'round',
   'new-year': 'line',
   'easter': 'soft',
+  /* The roundest corners and the most see-through cards, which is what a lantern in the dark is. */
+  'halloween': 'arch',
 };
 
 /** The shape a style draws, for anything that previews it (the picker's swatches). */
@@ -450,6 +457,9 @@ const DISPLAY_TYPE: Partial<Record<FontId, { size: string; weight: string; leadi
   outfit: { size: '30px', weight: '700', leading: '1.12', tracking: '-0.01em' },
   manrope: { size: '29px', weight: '800', leading: '1.12', tracking: '-0.02em' },
   figtree: { size: '29px', weight: '800', leading: '1.2', tracking: '-0.02em' },
+  /* One weight, and a fat one: set at the app's 800 it would be a fake bold on top of an already
+     heavy face. Larger than the rest, because a poster face at 29px reads as a label. */
+  creepster: { size: '33px', weight: '400', leading: '1.1', tracking: '0.01em' },
 };
 
 /**
@@ -1344,6 +1354,28 @@ export const STYLES: StyleDef[] = [
     display: 'instrument',
     sub: 'playfair',
     body: 'figtree',
+    ui: 'work',
+  },
+  /*
+   * **Halloween.** A carved lantern on a black doorstep: the page is the night, the cards the smoke
+   * off the candle, the words the bone of the mask and the accent the pumpkin itself.
+   *
+   * The headings are the one novelty face in the catalogue, Creepster, and it is deliberately the
+   * only place it is allowed: a sentence set in it is unreadable, a two-word title in it is the
+   * whole joke. The subtitle stays a sharp serif and the body a plain sans, so nothing a traveller
+   * has to read (a time, a platform, a line number) is ever dressed up.
+   */
+  {
+    id: 'halloween',
+    name: 'Halloween',
+    nameNl: 'Halloween',
+    group: 'holidays',
+    light: ['#0B0709', '#1A1116', '#F7EFE4', '#FF7A1A'],
+    photo: { scrim: 0.3, scrimNight: 0.06, glass: true },
+    shape: 'arch',
+    display: 'creepster',
+    sub: 'fraunces',
+    body: 'inter',
     ui: 'work',
   },
 ];

@@ -27,13 +27,14 @@ interface HolidayRule {
 }
 
 /*
- * Kept in calendar order, which is also the order the year draws them: New Year, Easter,
+ * Kept in calendar order, which is also the order the year draws them: New Year, Easter, Halloween,
  * Sinterklaas, Christmas. The reader below takes the soonest, so the order is documentation rather
  * than logic.
  */
 const RULES: HolidayRule[] = [
   { styleId: 'new-year', fixed: { month: 0, day: 1 } },
   { styleId: 'easter', easter: true },
+  { styleId: 'halloween', fixed: { month: 9, day: 31 } },
   { styleId: 'sinterklaas', fixed: { month: 11, day: 5 } },
   { styleId: 'christmas', fixed: { month: 11, day: 25 } },
 ];

@@ -37,6 +37,7 @@ remains.
 | Pro             | `pro.jpg`             |              |                   |
 | Christmas       | `christmas.jpg`       | Easter       | `easter.jpg`      |
 | Sinterklaas     | `sinterklaas.jpg`     | New Year     | `new-year.jpg`    |
+| Halloween       | `halloween.jpg`       |              |                   |
 
 **All Black** is the one exception. It exists as the plainest reading answer, and a photograph behind
 the page is the one thing that can put a bright patch under ink meant to be read flat, so it stays

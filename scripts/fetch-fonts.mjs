@@ -42,6 +42,8 @@ const FAMILIES = [
   'work: Work Sans|400;600',
   'figtree: Figtree|400;700',
   'inter: Inter|400;600',
+  /* One weight, and it is a display face only: Halloween's headings, never a sentence. */
+  'creepster: Creepster|400',
 ];
 
 const UA =
