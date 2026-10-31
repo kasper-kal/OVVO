@@ -11,8 +11,6 @@ import { DISRUPTIONS } from '../data/disruptions';
 import { STOPS } from '../data/stops';
 
 import { useT } from '../lib/useT';
-import { useFormat } from '../lib/useFormat';
-import { useMinuteNow } from '../lib/useMinuteNow';
 
 /** How long the home screen has to be held before it opens its customising mode. */
 const HOLD_MS = 1000;
@@ -186,26 +184,24 @@ export function HomePage() {
    * battery climbing back above 12%) puts the whole layout back exactly as it was.
    */
   /*
-   * **The last percent leaves one card.**
+   * **The last percent leaves the planner.**
    *
-   * Super keeps the three cards that answer "when does the bus go". At 1% even the planner goes: a
-   * traveller at one percent is going somewhere they already know, and two stop searches to say so
-   * is the most work the screen can ask for. What is left is the departures card, and if that card
-   * is not in the layout the first essential one stands in rather than an empty screen.
+   * Super keeps the three cards that answer "when does the bus go". At 1% the departure board is
+   * the card to drop, not the planner: the stop in front of you already shows when its bus goes,
+   * and the one thing a phone at one percent cannot tell you by looking up is **the route to
+   * somewhere you are not standing**. So the planner is what is left, and if it is missing from
+   * the layout the first essential card stands in rather than an empty screen.
    */
   const thinning = (power.mode === 'super' || power.mode === 'last') && !editing;
   const lastDrop = power.mode === 'last' && !editing;
-  /* The clock the times are frozen on: `useMinuteNow` stops at this mode (see `lib/power.ts`). */
-  const clockNow = useMinuteNow();
-  const fmt = useFormat();
   const visible = useMemo(() => {
     const all = order
       .map((id) => widgetById(id))
       .filter((widget): widget is NonNullable<typeof widget> => Boolean(widget));
     if (!thinning) return all;
     if (lastDrop) {
-      const departures = all.filter((widget) => widget.id === 'next-departures');
-      return departures.length ? departures : all.filter((widget) => widget.essential).slice(0, 1);
+      const planner = all.filter((widget) => widget.id === 'planner');
+      return planner.length ? planner : all.filter((widget) => widget.essential).slice(0, 1);
     }
     const essential = all.filter((widget) => widget.essential);
     /* The planner cannot be removed, so this is never empty in practice; keeping the first card
@@ -1158,8 +1154,7 @@ export function HomePage() {
             */}
           {lastDrop
             ? t(
-                'Only the next departures are drawn, and the times are from {time}. Everything else comes back when this device is charged.',
-                { time: fmt.time(clockNow) },
+                'Only the planner is drawn, the clock is stopped, and everything else comes back when this device is charged.',
               )
             : t(
                 'Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.',

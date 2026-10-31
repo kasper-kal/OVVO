@@ -483,8 +483,8 @@ const NL: Record<string, string> = {
   'Super energy saving is on.': 'Maximale energiebesparing staat aan.',
   'Last drop': 'Laatste druppel',
   'Last drop is on, with 1% left.': 'De laatste druppel staat aan, met 1% over.',
-  'Only the next departures are drawn, and the times are from {time}. Everything else comes back when this device is charged.':
-    'Alleen de eerstvolgende vertrektijden worden getoond, en de tijden zijn van {time}. Al het andere komt terug zodra dit apparaat aan de lader ligt.',
+  'Only the planner is drawn, the clock is stopped, and everything else comes back when this device is charged.':
+    'Alleen de planner wordt getoond, de klok staat stil, en al het andere komt terug zodra dit apparaat aan de lader ligt.',
   '{cards} come back when this device is charged.':
     '{cards} komen terug zodra dit apparaat aan de lader ligt.',
   'Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.':

@@ -13,10 +13,12 @@
  *     `essential` in `widgets/registry.tsx`).
  *   • **last** at **1% or less** — the last drop, which is super and then one thing more: the clock
  *     stops. The times on screen keep the minute they were read in, so nothing wakes the page once
- *     a minute for a number nobody asked to change, and the home screen is **one card**, the next
- *     departures from the station it is tied to. No planner: at one percent the traveller is going
- *     somewhere they already know. There is no way back inside the app — a control everyone presses
- *     out of habit is the same as no mode at all — so it ends only on a charger or above 3%.
+ *     a minute for a number nobody asked to change, and the home screen is **one card: the
+ *     planner**. A board says when the bus goes from the stop you are standing at, which you can
+ *     read off the stop itself; the route to somewhere else is the thing a phone at one percent
+ *     cannot show you by looking around. There is no way back inside the app — a control everyone
+ *     presses out of habit is the same as no mode at all — so it ends only on a charger or above
+ *     3%.
  *
  * Above the threshold the app goes back exactly as it was: these are states the browser reports,
  * not preferences, so nothing is stored and nothing has to be undone by hand. Plugging the phone
