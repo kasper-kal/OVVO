@@ -18,13 +18,35 @@ import { msToNextMinute, nowMinutes } from './format';
  * mount: a clock that re-reads at :37 past is wrong for up to 59 seconds at the top of every
  * minute, and a departure due "now" would appear a minute late. Re-armed from the callback, so it
  * stays aligned after a slow tick, a sleeping tab, or a clock that was changed under it.
+ *
+ * ## The clock can be stopped
+ *
+ * At the final percent (`lib/power.ts`, `last`) the app is one card with times on it, and a timer
+ * waking the page once a minute to redraw a number that nobody asked to change is exactly the sort
+ * of spending that mode exists to stop. `setClockFrozen(true)` stops every clock in the app at
+ * once; the minute they stopped on is the minute every screen keeps showing. Thawing reads the
+ * clock immediately, so a charger never leaves a screen a minute behind.
  */
+
+let frozen = false;
+const listeners = new Set<() => void>();
+
+/** Stop or restart every clock in the app. Called from `AppState` when the power mode changes. */
+export function setClockFrozen(next: boolean): void {
+  if (frozen === next) return;
+  frozen = next;
+  listeners.forEach((listener) => listener());
+}
+
 export function useMinuteNow(): number {
   const [minutes, setMinutes] = useState(() => nowMinutes());
 
   useEffect(() => {
     let timer = 0;
     const arm = () => {
+      window.clearTimeout(timer);
+      /* A frozen clock has nothing to wake for. Thawing arrives through `listeners`. */
+      if (frozen) return;
       timer = window.setTimeout(() => {
         setMinutes(nowMinutes());
         arm();
@@ -34,6 +56,11 @@ export function useMinuteNow(): number {
       window.clearTimeout(timer);
       timer = 0;
     };
+    const sync = () => {
+      setMinutes(nowMinutes());
+      arm();
+    };
+    listeners.add(sync);
     arm();
     /*
      * **A clock nobody can see does not need to be kept.**
@@ -53,13 +80,13 @@ export function useMinuteNow(): number {
         disarm();
         return;
       }
-      setMinutes(nowMinutes());
       disarm();
       arm();
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => {
       disarm();
+      listeners.delete(sync);
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);

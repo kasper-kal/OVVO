@@ -20,6 +20,7 @@ import {
 } from '../lib/approximateLocation';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
+import { setClockFrozen } from '../lib/useMinuteNow';
 import { applyStyle, FONT_FAMILIES, styleById, stylePhotograph, stylePhotoPath, type StyleDef } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
@@ -421,7 +422,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * re-run a request that is already in flight; leaving super re-runs it, because `mode` is in
      * the list.
      */
-    if (power.mode === 'super') {
+    if ((power.mode === 'super' || power.mode === 'last')) {
       setApproximateLocationPending(false);
       return undefined;
     }
@@ -481,6 +482,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   useEffect(() => {
     document.documentElement.dataset.power = power.mode;
+    /*
+     * **At the last percent the clock stops too.** A minute timer is a wake, a re-render and a
+     * repaint for a number that has nowhere to go: the mode leaves one card on screen and the
+     * times it shows are the times it read on the way in. Every clock in the app listens to the
+     * same switch (`lib/useMinuteNow.ts`), so this is the whole of it, and a charger starts them
+     * again with the minute read at once rather than a minute late.
+     */
+    setClockFrozen(power.mode === 'last');
   }, [power.mode]);
 
   /*
@@ -533,7 +542,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * appearance in the same frame the cards come back.
    */
   const appearance: 'light' | 'dark' =
-    power.mode === 'super'
+    (power.mode === 'super' || power.mode === 'last')
       ? 'dark'
       : settings.theme === 'system'
         ? systemDark
@@ -563,7 +572,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const photographAllowed =
     Boolean(stylePhotograph(style)) &&
     !settings.photoColourOnly.includes(style.id) &&
-    power.mode !== 'super';
+    (power.mode !== 'super' && power.mode !== 'last');
 
   const painted = useRef<{ id: string } | null>(null);
 

@@ -193,7 +193,7 @@ export function JourneyDetailPage() {
           </Button>
         ) : null}
         {/* At a tenth of a battery the map is closed everywhere, so the way in goes with it. */}
-        {power.mode === 'super' ? null : (
+        {(power.mode === 'super' || power.mode === 'last') ? null : (
           <Link to={`/map?journey=${journey.id}`} className="btn" aria-label={t('Show on map')}>
             <Icon name="map" size={16} />
             {t('Map')}

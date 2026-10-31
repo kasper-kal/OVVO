@@ -41,7 +41,7 @@ export function StyleSettings() {
   const current = styleById(settings.styleId);
   const palette = stylePalette(current, appearance);
   const picture = stylePhotograph(current);
-  const savingMode = power.mode === 'super';
+  const savingMode = (power.mode === 'super' || power.mode === 'last');
   const photographChosen = !settings.photoColourOnly.includes(current.id);
 
   /*

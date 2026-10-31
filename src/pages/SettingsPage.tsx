@@ -201,9 +201,11 @@ export function SettingsPage() {
    * rather than naming a mode that is deliberately not in force.
    */
   const batteryModeLabel =
-    power.mode === 'super'
-      ? t('Super saving')
-      : power.mode === 'save'
+    power.mode === 'last'
+      ? t('Last drop')
+      : power.mode === 'super'
+        ? t('Super saving')
+        : power.mode === 'save'
         ? t('Saving')
         : power.charging
           ? t('Charging')
@@ -325,7 +327,9 @@ export function SettingsPage() {
               </div>
               <p className="field__hint">
                 {power.supported
-                  ? t('Automatic: movement goes at 20%, and at 10% only what you need to catch a bus is drawn. Plugging in turns it off.')
+                  ? t(
+                      'Automatic: movement goes at 20%, at 10% only what you need to catch a bus is drawn, and at 1% one card is left. Plugging in turns it off.',
+                    )
                   : t('This browser does not report the battery, so the full interface is always drawn.')}
               </p>
             </div>

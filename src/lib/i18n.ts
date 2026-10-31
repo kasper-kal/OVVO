@@ -472,8 +472,8 @@ const NL: Record<string, string> = {
   'This browser cannot resize an image.': 'Deze browser kan geen afbeelding verkleinen.',
   /* Battery saving, which is a reading rather than a switch (see `lib/power.ts`). */
   'Battery saving': 'Batterijbesparing',
-  'Automatic: movement goes at 20%, and at 10% only what you need to catch a bus is drawn. Plugging in turns it off.':
-    'Automatisch: beweging valt weg bij 20%, en bij 10% wordt alleen getoond wat je nodig hebt om een bus te halen. Aan de lader gaat het uit.',
+  'Automatic: movement goes at 20%, at 10% only what you need to catch a bus is drawn, and at 1% one card is left. Plugging in turns it off.':
+    'Automatisch: beweging valt weg bij 20%, bij 10% wordt alleen getoond wat je nodig hebt om een bus te halen, en bij 1% blijft er één kaart over. Aan de lader gaat het uit.',
   'This browser does not report the battery, so the full interface is always drawn.':
     'Deze browser geeft het batterijniveau niet door, dus de volledige interface blijft altijd zichtbaar.',
   'Super saving': 'Maximaal sparen',
@@ -481,6 +481,10 @@ const NL: Record<string, string> = {
   Charging: 'Aan de lader',
   'Not reported': 'Niet doorgegeven',
   'Super energy saving is on.': 'Maximale energiebesparing staat aan.',
+  'Last drop': 'Laatste druppel',
+  'Last drop is on, with 1% left.': 'De laatste druppel staat aan, met 1% over.',
+  'Only the next departures are drawn, and the times are from {time}. Everything else comes back when this device is charged.':
+    'Alleen de eerstvolgende vertrektijden worden getoond, en de tijden zijn van {time}. Al het andere komt terug zodra dit apparaat aan de lader ligt.',
   '{cards} come back when this device is charged.':
     '{cards} komen terug zodra dit apparaat aan de lader ligt.',
   'Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.':

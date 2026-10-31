@@ -176,7 +176,7 @@ body {
 
 /* Saving mode draws the colour instead of the picture (`applyStyle` writes `colour`), and this
    layer leaves with it rather than staying behind as a photograph nobody asked for. */
-:root[data-power='super'] body::before {
+:root:is([data-power='super'], [data-power='last']) body::before {
   display: none;
 }
 
@@ -1430,9 +1430,9 @@ svg.map-canvas {
  * box-shadow (see `.when-field__group` in `components.css`), and an interface with no visible
  * focus is not a saving, it is a wall. `*:not(:focus-visible)` keeps exactly that one.
  */
-:root[data-power='super'] *,
-:root[data-power='super'] *::before,
-:root[data-power='super'] *::after {
+:root:is([data-power='super'], [data-power='last']) *,
+:root:is([data-power='super'], [data-power='last']) *::before,
+:root:is([data-power='super'], [data-power='last']) *::after {
   animation: none !important;
   animation-delay: 0ms !important;
   transition: none !important;
@@ -1445,9 +1445,9 @@ svg.map-canvas {
 
 /* Shadows, with that one focus ring left alone — and nothing else, so a focused control is as
    still as every other one. */
-:root[data-power='super'] *:not(:focus-visible),
-:root[data-power='super'] *::before,
-:root[data-power='super'] *::after {
+:root:is([data-power='super'], [data-power='last']) *:not(:focus-visible),
+:root:is([data-power='super'], [data-power='last']) *::before,
+:root:is([data-power='super'], [data-power='last']) *::after {
   box-shadow: none !important;
 }
 
@@ -1465,8 +1465,8 @@ svg.map-canvas {
  * even in the frame before the palette is re-derived. Nothing is deleted: leaving super, or plugging
  * the phone in, paints the traveller's own picture again.
  */
-:root[data-power='super'][data-background='photo'] body,
-:root[data-power='super'][data-background='photo'] .fullscreen {
+:root:is([data-power='super'], [data-power='last'])[data-background='photo'] body,
+:root:is([data-power='super'], [data-power='last'])[data-background='photo'] .fullscreen {
   background-image: none;
 }
 
@@ -1475,15 +1475,15 @@ svg.map-canvas {
  * and the colour swatches — so flattening the tokens does not reach them. Named here so that
  * "no movement" in super is a fact about every control and not about the well-behaved ones.
  */
-:root[data-power='super'] .home-menu .home-menu__row:active,
-:root[data-power='super'] .colour-screen__swatch:hover {
+:root:is([data-power='super'], [data-power='last']) .home-menu .home-menu__row:active,
+:root:is([data-power='super'], [data-power='last']) .colour-screen__swatch:hover {
   transform: none;
 }
 
 /* The ring that holds the results list's place: still, and still a ring — the shape of waiting
    without the turning (the same form the reduced-motion switch gives it). */
 :root[data-power='save'] .spinner__ring,
-:root[data-power='super'] .spinner__ring {
+:root:is([data-power='super'], [data-power='last']) .spinner__ring {
   animation: none !important;
 }
 
@@ -1497,13 +1497,13 @@ svg.map-canvas {
  * page is broken, which is a worse trade than the animation.
  */
 :root[data-power='save'] .skeleton,
-:root[data-power='super'] .skeleton {
+:root:is([data-power='super'], [data-power='last']) .skeleton {
   animation: none !important;
   background: var(--skeleton-fill) !important;
 }
 
 :root[data-power='save'] .skeleton::after,
-:root[data-power='super'] .skeleton::after {
+:root:is([data-power='super'], [data-power='last']) .skeleton::after {
   content: none !important;
 }
 
@@ -1517,19 +1517,35 @@ svg.map-canvas {
  * with it, dimming the home screen enough for the panel to read. Everything else the blanket rule
  * covers; these two are only here for the colour.
  */
-:root[data-power='super'] .home-menu__scrim {
+:root:is([data-power='super'], [data-power='last']) .home-menu__scrim {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   background: color-mix(in srgb, var(--canvas-base) 62%, transparent);
 }
 
-:root[data-power='super'] .home-menu {
+:root:is([data-power='super'], [data-power='last']) .home-menu {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   background: var(--l2-bg);
   box-shadow: none;
 }
 
+
+/* ------------------------------------------------------------ last drop (1%) */
+/*
+ * **The final percent is super, and then the pictures go too.**
+ *
+ * Everything the 10% rules take away is written above for both modes at once (:is() selects
+ * super and last), so this block holds only what is new at 1%: every picture in the app,
+ * including the install card's own icon. An image is a decode held in memory and a composite
+ * behind everything that passes over it, and at one percent the departure row is the only thing
+ * worth drawing. Glyphs stay: they are inline SVG, and a mode picture is how a row is scanned
+ * rather than read.
+ */
+:root[data-power='last'] img,
+:root[data-power='last'] .install-banner {
+  display: none !important;
+}
 
 /* ------------------------------------------------------------------ Placeholders */
 /*
@@ -1555,7 +1571,7 @@ svg.map-canvas {
     --app-bg-wash: rgb(252 251 250 / 0.18);
   }
 
-  :root[data-power='super'] .home-menu__scrim {
+  :root:is([data-power='super'], [data-power='last']) .home-menu__scrim {
     background: var(--canvas-base);
   }
 }
@@ -1626,5 +1642,4 @@ svg.map-canvas {
   ::view-transition-new(root) {
     animation: none;
   }
-}
 }

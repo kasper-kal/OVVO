@@ -363,7 +363,7 @@
  * Save mode is deliberately left out: at 20% the interface is stilled, but it is still an
  * interface, and the 1ms step it gets in `base.css` is enough.
  */
-:root[data-power='super'] {
+:root:is([data-power='super'], [data-power='last']) {
   --press-scale: 1;
   --hover-scale: 1;
   --hover-lift: 0px;
