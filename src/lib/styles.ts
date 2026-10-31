@@ -393,6 +393,14 @@ const SUB_TYPE: Partial<Record<FontId, { size: string; weight: string }>> = {
   newsreader: { size: '18px', weight: '700' },
 };
 
+/**
+ * **A display face carries its own four numbers.**
+ *
+ * A serif and a wide sans cannot share one size, weight and leading: Cormorant Garamond at 800 is a
+ * slab, Instrument Serif at 800 is a bruise, and a serif's smaller x-height at the same size reads
+ * as a weak title beside Default's. Only the faces that need their own numbers are listed; a face
+ * that is absent keeps the app's original values, which is why Default does not move by a pixel.
+ */
 const DISPLAY_TYPE: Partial<Record<FontId, { size: string; weight: string; leading: string; tracking: string }>> = {
   /* Serifs with a small x-height: larger, lighter, and opened up rather than squeezed. */
   cormorant: { size: '32.5px', weight: '600', leading: '1.06', tracking: '0em' },
@@ -407,105 +415,6 @@ const DISPLAY_TYPE: Partial<Record<FontId, { size: string; weight: string; leadi
   outfit: { size: '30px', weight: '700', leading: '1.12', tracking: '-0.01em' },
   manrope: { size: '29px', weight: '800', leading: '1.12', tracking: '-0.02em' },
   figtree: { size: '29px', weight: '800', leading: '1.2', tracking: '-0.02em' },
-};
-
-const SUB_FONTS: Record<string, FontId> = {
-  'emerald-brass': 'playfair',
-  oxblood: 'lora',
-  bordeaux: 'playfair',
-  pearl: 'newsreader',
-  broadsheet: 'lora',
-  salon: 'playfair',
-  monocle: 'fraunces',
-  literair: 'newsreader',
-  rijksmuseum: 'cormorant',
-  '1974': 'archivo',
-  'station-sign': 'archivo',
-  spoorboekje: 'archivo',
-  polder: 'work',
-  nightbus: 'mono',
-  obsidian: 'grotesk',
-  'deep-sea': 'grotesk',
-  ink: 'mono',
-  contrast: 'archivo',
-  'night-aa': 'archivo',
-  terminal: 'mono',
-  blueprint: 'mono',
-  signal: 'mono',
-  marble: 'lora',
-  arches: 'cormorant',
-  silk: 'lora',
-  ember: 'fraunces',
-  frost: 'grotesk',
-  graphite: 'mono',
-  lacquer: 'playfair',
-  bokeh: 'outfit',
-  'poppy-blue': 'outfit',
-  bubblegum: 'outfit',
-  'cyber-teal': 'grotesk',
-  electric: 'grotesk',
-  vermilion: 'archivo',
-  'klein-blue': 'archivo',
-  mustard: 'fraunces',
-  forest: 'lora',
-  sunlight: 'lora',
-  sage: 'work',
-  linen: 'lora',
-  mist: 'work',
-  blush: 'fraunces',
-  plaster: 'archivo',
-};
-
-/**
- * **The reading face, style by style.** A style that sets its titles in a serif usually keeps a
- * plainer face for body text; a style that sets everything in one family says so by leaving this
- * empty. Again, absent means the interface face, which is Default's answer.
- */
-const BODY_FONTS: Record<string, FontId> = {
-  'navy-gold': 'plex',
-  'emerald-brass': 'work',
-  oxblood: 'work',
-  'midnight-silk': 'plex',
-  bordeaux: 'work',
-  broadsheet: 'work',
-  salon: 'lora',
-  monocle: 'work',
-  literair: 'newsreader',
-  rijksmuseum: 'work',
-  '1974': 'archivo',
-  'station-sign': 'work',
-  spoorboekje: 'archivo',
-  nightbus: 'plex',
-  obsidian: 'grotesk',
-  'deep-sea': 'plex',
-  ink: 'plex',
-  terminal: 'plex',
-  blueprint: 'plex',
-  signal: 'plex',
-  marble: 'lora',
-  arches: 'lora',
-  silk: 'lora',
-  ember: 'lora',
-  frost: 'grotesk',
-  graphite: 'plex',
-  lacquer: 'work',
-  bokeh: 'manrope',
-  'poppy-blue': 'figtree',
-  bubblegum: 'manrope',
-  'cyber-teal': 'figtree',
-  electric: 'grotesk',
-  vermilion: 'archivo',
-  'klein-blue': 'work',
-  mustard: 'fraunces',
-  forest: 'lora',
-  sunlight: 'lora',
-  sage: 'work',
-  linen: 'lora',
-  mist: 'work',
-  blush: 'manrope',
-  plaster: 'archivo',
-  contrast: 'work',
-  'night-aa': 'work',
 };
 
 /**
@@ -553,11 +462,12 @@ export interface StyleDef {
   /**
    * **Section and card headings.** A look with a serif title and a sans subtitle is a different
    * look from one set entirely in the same face, so the middle layer is its own font rather than
-   * inheriting the body's.
+   * inheriting the body's. Required: every style names all three, and `styles-audit` fails a style
+   * that draws the whole page in one family.
    */
-  sub?: FontId;
+  sub: FontId;
   /** **Everything you read a sentence in**: body text, labels, buttons and fields. */
-  body?: FontId;
+  body: FontId;
   ui: FontId;
   /**
    * A style's own scrim and card treatment, for the ten that authored one. Absent means the
@@ -590,8 +500,9 @@ export const STYLES: StyleDef[] = [
     photo: { scrim: 0.44, scrimNight: 0.02, glass: true },
     /* The same face as Midnight Silk: the owner prefers it to Cormorant here, and the two styles
        were already sharing the same reading face, so the whole of Navy's type now matches. */
-    sub: 'instrument',
+    sub: 'cormorant',
     display: 'instrument',
+    body: 'work',
     ui: 'inter',
   },
   {
@@ -602,6 +513,8 @@ export const STYLES: StyleDef[] = [
     light: ['#1A1410', '#2A211A', '#F3EADC', '#CBAE7E'],
     photo: { scrim: 0.43, scrimNight: 0.02, glass: true },
     display: 'instrument',
+    body: 'work',
+    sub: 'lora',
     ui: 'inter',
   },
   {
@@ -612,6 +525,8 @@ export const STYLES: StyleDef[] = [
     light: ['#291116', '#4c1a24', '#F7EFE9', '#D8B46A'],
     photo: { scrim: 0.02, scrimNight: 0.02, glass: true },
     display: 'cormorant',
+    body: 'work',
+    sub: 'playfair',
     ui: 'figtree',
   },
   /* ------------------------------------------------------------------ modern */
@@ -623,6 +538,8 @@ export const STYLES: StyleDef[] = [
     light: ['#c9dbf0', '#e6f0fa', '#0F2A44', '#e25138'],
     photo: { scrim: 0.5, scrimNight: 0.06, glass: false },
     display: 'grotesk',
+    body: 'figtree',
+    sub: 'outfit',
     ui: 'inter',
   },
   {
@@ -633,6 +550,8 @@ export const STYLES: StyleDef[] = [
     light: ['#dccef7', '#f1eaff', '#241247', '#5935b5'],
     photo: { scrim: 0.57, scrimNight: 0.02, glass: false },
     display: 'manrope',
+    body: 'plex',
+    sub: 'grotesk',
     ui: 'inter',
   },
   {
@@ -643,6 +562,8 @@ export const STYLES: StyleDef[] = [
     light: ['#bde2e9', '#e2f8fa', '#05322F', '#065f70'],
     photo: { scrim: 0.52, scrimNight: 0.02, glass: false },
     display: 'grotesk',
+    body: 'figtree',
+    sub: 'manrope',
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ editorial */
@@ -654,6 +575,8 @@ export const STYLES: StyleDef[] = [
     light: ['#eae4dc', '#fbfaf6', '#141110', '#8b603a'],
     photo: { scrim: 0.45, scrimNight: 0.02, glass: false },
     display: 'newsreader',
+    body: 'work',
+    sub: 'lora',
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ dutch */
@@ -664,6 +587,8 @@ export const STYLES: StyleDef[] = [
     group: 'dutch',
     light: ['#F1E1B8', '#FBF2D9', '#2A1C10', '#B33A2B'],
     display: 'archivo',
+    body: 'work',
+    sub: 'grotesk',
     ui: 'inter',
   },
   {
@@ -674,6 +599,8 @@ export const STYLES: StyleDef[] = [
     light: ['#d8dfba', '#f6f6dd', '#14243A', '#1d3d68'],
     photo: { scrim: 0.48, scrimNight: 0.02, glass: false },
     display: 'cormorant',
+    body: 'work',
+    sub: 'lora',
     ui: 'inter',
   },
   {
@@ -684,6 +611,8 @@ export const STYLES: StyleDef[] = [
     light: ['#120f29', '#1f2a73', '#EEF3FA', '#f2b562'],
     photo: { scrim: 0.36, scrimNight: 0.02, glass: true },
     display: 'archivo',
+    body: 'work',
+    sub: 'outfit',
     ui: 'plex',
   },
   {
@@ -817,6 +746,8 @@ export const STYLES: StyleDef[] = [
       },
     },
     display: 'jakarta',
+    body: 'inter',
+    sub: 'inter',
     ui: 'inter',
   },
 
@@ -829,6 +760,8 @@ export const STYLES: StyleDef[] = [
     light: ['#111112', '#17171a', '#F2F0EC', '#8FB8FF'],
     photo: { scrim: 0.02, scrimNight: 0.02, glass: true },
     display: 'inter',
+    body: 'plex',
+    sub: 'grotesk',
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ reading */
@@ -839,6 +772,8 @@ export const STYLES: StyleDef[] = [
     group: 'reading',
     light: ['#FFFFFF', '#FFFFFF', '#000000', '#0033CC'],
     display: 'inter',
+    body: 'work',
+    sub: 'archivo',
     ui: 'inter',
   },
   {
@@ -848,6 +783,8 @@ export const STYLES: StyleDef[] = [
     group: 'reading',
     light: ['#000000', '#0E0E0E', '#FFFFFF', '#FFD400'],
     display: 'inter',
+    body: 'work',
+    sub: 'archivo',
     ui: 'inter',
   },
 
@@ -860,6 +797,8 @@ export const STYLES: StyleDef[] = [
     light: ['#d1e1d2', '#eff6ee', '#1B2A1B', '#54704e'],
     photo: { scrim: 0.52, scrimNight: 0.02, glass: false },
     display: 'figtree',
+    body: 'work',
+    sub: 'newsreader',
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ loud */
@@ -871,6 +810,8 @@ export const STYLES: StyleDef[] = [
     light: ['#f7dba6', '#fff2cf', '#2A1E02', '#a36c11'],
     photo: { scrim: 0.02, scrimNight: 0.02, glass: false },
     display: 'outfit',
+    body: 'work',
+    sub: 'fraunces',
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ technical */
@@ -882,6 +823,8 @@ export const STYLES: StyleDef[] = [
     light: ['#111310', '#151a14', '#B8FFC0', '#98de67'],
     photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
     display: 'mono',
+    body: 'plex',
+    sub: 'plex',
     ui: 'plex',
   },
   {
@@ -891,6 +834,8 @@ export const STYLES: StyleDef[] = [
     group: 'technical',
     light: ['#D6E2F5', '#EAF1FB', '#0B1A33', '#1D4ED8'],
     display: 'plex',
+    body: 'work',
+    sub: 'mono',
     ui: 'inter',
   },
   /* ------------------------------------------------------------------ photographs */
@@ -901,6 +846,8 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#ebe3d8', '#f6f2ed', '#181513', '#C9BFA9'],
     display: 'cormorant',
+    body: 'work',
+    sub: 'lora',
     ui: 'inter',
     photo: { scrim: 0.02, scrimNight: 0.18, glass: false },
   },
@@ -911,6 +858,8 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#1e1c22', '#24242c', '#EDE8DF', '#b08c61'],
     display: 'playfair',
+    body: 'lora',
+    sub: 'cormorant',
     ui: 'inter',
     photo: { scrim: 0.51, scrimNight: 0.02, glass: true },
   },
@@ -936,7 +885,7 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#142429', '#17313a', '#F4EFE4', '#be9f69'],
     display: 'cormorant',
-    sub: 'plex',
+    sub: 'work',
     body: 'plex',
     ui: 'plex',
     shape: 'soft',
@@ -950,7 +899,7 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#111214', '#1a1c1f', '#F6F6F4', '#C6C9CE'],
     display: 'instrument',
-    sub: 'work',
+    sub: 'manrope',
     body: 'work',
     ui: 'work',
     shape: 'arch',
@@ -964,7 +913,7 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#f1f4df', '#fffff7', '#0C2A36', '#0f5c91'],
     display: 'outfit',
-    sub: 'work',
+    sub: 'fraunces',
     body: 'work',
     ui: 'work',
     shape: 'round',
@@ -992,7 +941,7 @@ export const STYLES: StyleDef[] = [
     light: ['#e0e6e8', '#fafcfc', '#122730', '#375f6f'],
     display: 'lora',
     sub: 'work',
-    body: 'work',
+    body: 'plex',
     ui: 'work',
     shape: 'line',
     photo: { scrim: 0.42, scrimNight: 0.02, glass: false },
@@ -1004,8 +953,8 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#0f101e', '#141727', '#F5F1E8', '#E9A64B'],
     display: 'grotesk',
-    sub: 'grotesk',
-    body: 'grotesk',
+    sub: 'manrope',
+    body: 'inter',
     ui: 'grotesk',
     shape: 'round',
     /* The city lights are the point of the picture, so the wash stays off them. */
@@ -1018,8 +967,8 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#0d0d10', '#141418', '#FFFFFF', '#9FA6B2'],
     display: 'manrope',
-    sub: 'manrope',
-    body: 'manrope',
+    sub: 'grotesk',
+    body: 'inter',
     ui: 'manrope',
     shape: 'pill',
     photo: { scrim: 0.33, scrimNight: 0.02, glass: true },
@@ -1044,7 +993,7 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#080707', '#0f0f0f', '#F2F0EC', '#B9BEC7'],
     display: 'newsreader',
-    sub: 'plex',
+    sub: 'archivo',
     body: 'plex',
     ui: 'plex',
     shape: 'line',
@@ -1058,7 +1007,7 @@ export const STYLES: StyleDef[] = [
     group: 'photo',
     light: ['#ede6db', '#fcf8f1', '#1F2A26', '#2c6862'],
     display: 'archivo',
-    sub: 'work',
+    sub: 'cormorant',
     body: 'work',
     ui: 'work',
     shape: 'square',
@@ -1520,16 +1469,16 @@ export function styleTokens(
         }),
 
     /* The section face's own size and weight, for the serif sub-faces only. */
-    ...(style.id === DEFAULT_STYLE_ID || !SUB_TYPE[style.sub ?? SUB_FONTS[style.id] ?? style.ui]
+    ...(style.id === DEFAULT_STYLE_ID || !SUB_TYPE[style.sub]
       ? {}
       : {
-          '--section-size': SUB_TYPE[style.sub ?? SUB_FONTS[style.id] ?? style.ui]!.size,
-          '--section-weight': SUB_TYPE[style.sub ?? SUB_FONTS[style.id] ?? style.ui]!.weight,
+          '--section-size': SUB_TYPE[style.sub]!.size,
+          '--section-weight': SUB_TYPE[style.sub]!.weight,
         }),
 
-    '--font-stack': FONT_STACKS[style.body ?? BODY_FONTS[style.id] ?? style.ui],
-    '--font-body': FONT_STACKS[style.body ?? BODY_FONTS[style.id] ?? style.ui],
-    '--font-sub': FONT_STACKS[style.sub ?? SUB_FONTS[style.id] ?? style.ui],
+    '--font-stack': FONT_STACKS[style.body],
+    '--font-body': FONT_STACKS[style.body],
+    '--font-sub': FONT_STACKS[style.sub],
     '--font-display': FONT_STACKS[style.display],
   };
 

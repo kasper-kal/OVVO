@@ -251,7 +251,32 @@ while ((match = entryPattern.exec(registry))) {
     light: tuple(match[4]),
     night: match[5] ? tuple(match[5]) : null,
     pinned: readPinned(slice),
+    faces: {
+      display: slice.match(/display:\s*'([a-z-]+)'/)?.[1] ?? null,
+      sub: slice.match(/sub:\s*'([a-z-]+)'/)?.[1] ?? null,
+      body: slice.match(/body:\s*'([a-z-]+)'/)?.[1] ?? null,
+    },
   });
+}
+
+/*
+ * **Three faces, named by the style itself.**
+ *
+ * The faces used to live in two tables keyed by style id, and the catalogue was renamed around
+ * them: eleven styles fell through to the UI face, so their subtitle tier was their body tier, and
+ * two styles drew every word in one family. A look that names one face looks like no look at all.
+ * The gate now reads the style blocks, so every style must name a display, a subtitle and a body
+ * face, and at least two of them must differ.
+ */
+const faceless = styles.filter((style) => !style.faces.display || !style.faces.sub || !style.faces.body);
+const monotone = styles.filter(
+  (style) => style.faces.display && new Set([style.faces.display, style.faces.sub, style.faces.body]).size < 2,
+);
+if (faceless.length > 0 || monotone.length > 0) {
+  console.error('\nstyles-audit: every style must name three faces\n');
+  for (const style of faceless) console.error(`  ${style.id}: display ${style.faces.display}, subtitle ${style.faces.sub}, body ${style.faces.body}`);
+  for (const style of monotone) console.error(`  ${style.id}: one face for the whole page`);
+  process.exit(1);
 }
 
 if (styles.length < 20) {
