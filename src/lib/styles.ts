@@ -738,6 +738,30 @@ export const STYLES: StyleDef[] = [
     sub: 'outfit',
     ui: 'manrope',
   },
+  /*
+   * **Nostalgia.**
+   *
+   * The platform at dusk as it is remembered rather than as it looks now: the green enamel of an
+   * old station's pillars and signs, the warm cream of a paper ticket, and one amber lamp still
+   * burning. No blue and no chrome. The pictures people feel this about were printed in warm ink on
+   * cheap paper that has yellowed, not in the cool grey of the phone they are holding.
+   *
+   * Dark on purpose, like Nachtnet, but a different dark: that one is the last bus still running,
+   * this one is standing under the canopy afterwards, when the platform has emptied and the lamps
+   * are the only warm thing left.
+   */
+  {
+    id: 'nostalgia',
+    name: 'Nostalgia',
+    nameNl: 'Nostalgie',
+    group: 'dutch',
+    light: ['#121511', '#1F241C', '#F0E7D3', '#D9A05B'],
+    shape: 'soft',
+    display: 'fraunces',
+    body: 'work',
+    sub: 'lora',
+    ui: 'inter',
+  },
   {
     id: 'tram',
     name: 'Default',
