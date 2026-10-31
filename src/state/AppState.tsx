@@ -20,7 +20,7 @@ import {
 } from '../lib/approximateLocation';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
-import { applyStyle, styleById, stylePhotograph, stylePhotoPath, type Appearance } from '../lib/styles';
+import { applyStyle, styleById, stylePhotograph, stylePhotoPath } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
 import {
@@ -36,12 +36,6 @@ import {
 } from './types';
 
 /* ------------------------------------------------------------- changing a style, as one movement */
-
-/** How long the page is covered before the new look is written, and how long the cover takes to lift. */
-const STYLE_COVER_MS = 150;
-const STYLE_REVEAL_MS = 260;
-
-const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 /**
  * **Fetch and decode a picture before the page admits it exists.**
@@ -546,54 +540,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
     !settings.photoColourOnly.includes(style.id) &&
     power.mode !== 'super';
 
-  const painted = useRef<{ id: string; appearance: Appearance; highContrast: boolean; photo: boolean } | null>(null);
-  const veil = useRef(0);
+  const painted = useRef<{ id: string } | null>(null);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const next = { id: style.id, appearance, highContrast: settings.highContrast, photo: photographAllowed };
-    const previous = painted.current;
+    const next = { id: style.id };
     const paint = () => {
       applyStyle({ style, appearance, highContrast: settings.highContrast, photo: photographAllowed });
       painted.current = next;
     };
+    const pictures = photographAllowed ? [stylePhotoPath(style.id, appearance)] : [];
+    const changedStyle = painted.current !== null && painted.current.id !== style.id;
+    const startViewTransition = (
+      document as Document & { startViewTransition?: (update: () => void | Promise<void>) => unknown }
+    ).startViewTransition;
 
-    veil.current += 1;
-    const token = veil.current;
-
-    /*
-     * **A style change is one movement, not five at once.**
-     *
-     * The old code wrote the whole palette and the new picture in the same frame, and the browser
-     * then had to fetch and decode the photo, swap eight fonts and repaint every card while the
-     * traveller was already looking at it: the picture popped in late, and for that moment the page
-     * was half the old look and half the new one. Reported as *"the images load in an ugly way,
-     * stuff hides for a few seconds"*.
-     *
-     * So a change of style is covered for a beat first. The page fades to its own canvas colour,
-     * the incoming picture is fetched and decoded behind that cover, and only then is the new look
-     * written. The cover then lifts off the finished page. Nothing is seen halfway. The whole move
-     * is about four tenths of a second, and it is skipped entirely when motion is reduced or when
-     * nothing but the appearance, the contrast or the picture's permission changed.
-     */
-    const cover = previous !== null && previous.id !== style.id && !settings.reduceMotion;
-    if (!cover) {
-      delete root.dataset.styleVeil;
+    /* A new appearance, a contrast switch or a picture's permission: nothing to cross-fade. */
+    if (!changedStyle) {
       paint();
       return;
     }
 
-    root.dataset.styleVeil = 'cover';
-    const pictures = photographAllowed ? [stylePhotoPath(style.id, appearance)] : [];
-    void (async () => {
-      await Promise.all([wait(STYLE_COVER_MS), ...pictures.map(preloadPhoto)]);
-      if (veil.current !== token) return;
+    /*
+     * **The crossfade is the browser's, not a colour laid over the page.**
+     *
+     * The first attempt at this covered the page with its own flat colour for a beat and lifted it
+     * again. Reported as *"very clunky and animation less"*, and rightly: a page that blinks to
+     * beige and back is not a transition, it is two jumps with a pause in the middle.
+     *
+     * So the swap goes through the browser's own view transition. The old page is photographed, the
+     * new one is painted, and the two are animated over each other as a real dissolve — photo,
+     * lettering, cards and all — with no intermediate colour and nothing hidden. The incoming
+     * picture is fetched and decoded *inside* the update, before the new snapshot is taken, which is
+     * what stops it appearing a moment after everything else.
+     *
+     * Where the browser has no view transitions, or motion is reduced, the picture is still decoded
+     * before the look is written: no dissolve, but no late pop either.
+     */
+    if (!startViewTransition || settings.reduceMotion) {
+      void Promise.all(pictures.map(preloadPhoto)).then(paint);
+      return;
+    }
+
+    startViewTransition.call(document, async () => {
+      await Promise.all(pictures.map(preloadPhoto));
       paint();
-      root.dataset.styleVeil = 'reveal';
-      await wait(STYLE_REVEAL_MS);
-      if (veil.current !== token) return;
-      delete root.dataset.styleVeil;
-    })();
+    });
   }, [style, appearance, settings.highContrast, photographAllowed, settings.reduceMotion]);
 
 

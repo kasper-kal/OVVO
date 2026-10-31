@@ -1583,35 +1583,43 @@ svg.map-canvas {
 /* ------------------------------------------------------------------ changing a style */
 
 /*
- * **The cover a style change rides behind.**
+ * **A style change dissolves; it does not blink.**
  *
- * `AppState` writes `data-style-veil="cover"` before it touches a token, waits for the incoming
- * picture to decode, writes the new look, then turns the attribute to `reveal` and removes it. This
- * is the cover itself: the page's own canvas colour, over everything, on a pseudo-element so no
- * element in the app has to know it exists.
+ * `AppState` hands the swap to the browser's view transition, so these are the two snapshots it
+ * animates: the page as it was and the page as it now is. The default dissolve is a touch quick and
+ * a touch linear for a whole page changing at once, so it is given a little more time and an ease
+ * that starts and ends softly.
  *
- * It is a colour and not a blur or a spinner on purpose. A style change is a change of *page*, so
- * the honest intermediate state is the page's colour with nothing on it — not the old look smeared,
- * and not a loading screen for something that takes a tenth of a second.
+ * The first version of this covered the page with its own flat colour instead, which read as a
+ * blink rather than a move (reported: *"very clunky and animation less"*). Nothing here hides the
+ * page: both frames are always on screen, one fading into the other.
  */
-:root[data-style-veil] body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 900;
-  pointer-events: none;
-  background: var(--app-bg-colour, var(--canvas-base));
-  opacity: 0;
-  transition: opacity 260ms ease;
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-name: style-fade-out;
 }
 
-:root[data-style-veil='cover'] body::after {
-  opacity: 1;
-  transition-duration: 150ms;
+::view-transition-new(root) {
+  animation-name: style-fade-in;
+}
+
+@keyframes style-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes style-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root[data-style-veil] body::after {
-    transition: none;
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }
