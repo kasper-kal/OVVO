@@ -20,7 +20,7 @@ import {
 } from '../lib/approximateLocation';
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
-import { applyStyle, styleById, stylePhotograph } from '../lib/styles';
+import { applyStyle, styleById, stylePhotograph, stylePhotoPath, type Appearance } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
 import {
@@ -34,6 +34,39 @@ import {
   type Settings,
   type UserLocation,
 } from './types';
+
+/* ------------------------------------------------------------- changing a style, as one movement */
+
+/** How long the page is covered before the new look is written, and how long the cover takes to lift. */
+const STYLE_COVER_MS = 150;
+const STYLE_REVEAL_MS = 260;
+
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+/**
+ * **Fetch and decode a picture before the page admits it exists.**
+ *
+ * `new Image()` plus `decode()` is the pair that matters: a loaded file is bytes, a decoded file is
+ * pixels the browser can paint in the same frame it is asked for one. Either way it never holds the
+ * page for longer than a moment, and a file that is not there is not an error here — `applyStyle`
+ * owns that answer.
+ */
+function preloadPhoto(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const image = new Image();
+    image.onload = done;
+    image.onerror = done;
+    image.src = src;
+    void image.decode?.().then(done, done);
+    window.setTimeout(done, 1200);
+  });
+}
 
 export interface Toast {
   id: string;
@@ -513,14 +546,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
     !settings.photoColourOnly.includes(style.id) &&
     power.mode !== 'super';
 
+  const painted = useRef<{ id: string; appearance: Appearance; highContrast: boolean; photo: boolean } | null>(null);
+  const veil = useRef(0);
+
   useEffect(() => {
-    applyStyle({
-      style,
-      appearance,
-      highContrast: settings.highContrast,
-      photo: photographAllowed,
-    });
-  }, [style, appearance, settings.highContrast, photographAllowed]);
+    const root = document.documentElement;
+    const next = { id: style.id, appearance, highContrast: settings.highContrast, photo: photographAllowed };
+    const previous = painted.current;
+    const paint = () => {
+      applyStyle({ style, appearance, highContrast: settings.highContrast, photo: photographAllowed });
+      painted.current = next;
+    };
+
+    veil.current += 1;
+    const token = veil.current;
+
+    /*
+     * **A style change is one movement, not five at once.**
+     *
+     * The old code wrote the whole palette and the new picture in the same frame, and the browser
+     * then had to fetch and decode the photo, swap eight fonts and repaint every card while the
+     * traveller was already looking at it: the picture popped in late, and for that moment the page
+     * was half the old look and half the new one. Reported as *"the images load in an ugly way,
+     * stuff hides for a few seconds"*.
+     *
+     * So a change of style is covered for a beat first. The page fades to its own canvas colour,
+     * the incoming picture is fetched and decoded behind that cover, and only then is the new look
+     * written. The cover then lifts off the finished page. Nothing is seen halfway. The whole move
+     * is about four tenths of a second, and it is skipped entirely when motion is reduced or when
+     * nothing but the appearance, the contrast or the picture's permission changed.
+     */
+    const cover = previous !== null && previous.id !== style.id && !settings.reduceMotion;
+    if (!cover) {
+      delete root.dataset.styleVeil;
+      paint();
+      return;
+    }
+
+    root.dataset.styleVeil = 'cover';
+    const pictures = photographAllowed ? [stylePhotoPath(style.id, appearance)] : [];
+    void (async () => {
+      await Promise.all([wait(STYLE_COVER_MS), ...pictures.map(preloadPhoto)]);
+      if (veil.current !== token) return;
+      paint();
+      root.dataset.styleVeil = 'reveal';
+      await wait(STYLE_REVEAL_MS);
+      if (veil.current !== token) return;
+      delete root.dataset.styleVeil;
+    })();
+  }, [style, appearance, settings.highContrast, photographAllowed, settings.reduceMotion]);
 
 
   /* The document's own language, so screen readers, hyphenation and the browser's spelling all

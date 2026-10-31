@@ -1579,3 +1579,39 @@ svg.map-canvas {
   padding-left: var(--pad-page);
   padding-right: var(--pad-page);
 }
+
+/* ------------------------------------------------------------------ changing a style */
+
+/*
+ * **The cover a style change rides behind.**
+ *
+ * `AppState` writes `data-style-veil="cover"` before it touches a token, waits for the incoming
+ * picture to decode, writes the new look, then turns the attribute to `reveal` and removes it. This
+ * is the cover itself: the page's own canvas colour, over everything, on a pseudo-element so no
+ * element in the app has to know it exists.
+ *
+ * It is a colour and not a blur or a spinner on purpose. A style change is a change of *page*, so
+ * the honest intermediate state is the page's colour with nothing on it — not the old look smeared,
+ * and not a loading screen for something that takes a tenth of a second.
+ */
+:root[data-style-veil] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  pointer-events: none;
+  background: var(--app-bg-colour, var(--canvas-base));
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+:root[data-style-veil='cover'] body::after {
+  opacity: 1;
+  transition-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style-veil] body::after {
+    transition: none;
+  }
+}
