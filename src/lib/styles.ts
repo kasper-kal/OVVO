@@ -663,6 +663,33 @@ export const STYLES: StyleDef[] = [
     sub: 'grotesk',
     ui: 'inter',
   },
+
+  /*
+   * **Retro.**
+   *
+   * From the owner's three reference images: a beige desktop with orange title bars and black
+   * outlines, an amber terminal glowing in a cream shell, and a lime-on-violet nineties poster. What
+   * they share is the machine-coloured beige of a computer from before phones, so that is the page;
+   * the cream of a window is the card, the near-black of every outline is the ink, and the orange of
+   * the title bar is the accent.
+   *
+   * The accent is a burnt orange rather than the bright one in the picture: a bright orange measured
+   * under three to one on this beige, which is a mark you cannot see. The corners are the squarest
+   * shape in the catalogue with a three-pixel rule, because a window from that era had square
+   * corners and a border you could actually see.
+   */
+  {
+    id: 'retro',
+    name: 'Retro',
+    nameNl: 'Retro',
+    group: 'cream',
+    shape: 'plate',
+    light: ['#E9C3A4', '#F7EDE1', '#241C15', '#B8501B'],
+    display: 'plex',
+    body: 'work',
+    sub: 'mono',
+    ui: 'plex',
+  },
   /*
    * **Perron.**
    *
