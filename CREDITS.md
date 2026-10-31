@@ -32,7 +32,7 @@ picture can be swapped without hunting through the code.
 | `contact.jpg` | Contact | Two hands reaching, greyscale on black. |
 | `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. |
 | `nostalgia.jpg` | Nostalgia | The platform at Haarlem station after dark, lamps under the old iron roof. |
-| `nachtnet.jpg` | Nachtnet | A glass tower at dusk, blue-violet sky and amber office lights. |
+| `nachtnet.jpg` | — not in use | A glass tower at dusk, blue-violet sky and amber office lights. Kept after the Nachtnet style was scrapped. |
 | `night-aa.jpg` | All Black | Glossy black curves lit from behind, no subject but the sheen. |
 
 Each one also ships as `<id>-night.jpg`, cut from the same upload for the dark appearance. The cut is

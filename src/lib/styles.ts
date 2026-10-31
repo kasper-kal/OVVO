@@ -720,32 +720,6 @@ export const STYLES: StyleDef[] = [
     ui: 'inter',
   },
   /*
-   * **Nachtnet.**
-   *
-   * The night bus and the last train: a near-black blue page, warm white lettering, and the amber of
-   * a stop that is still lit. It is the one style here that starts dark on purpose rather than
-   * turning over at night, because the thing it is named after only runs after dark.
-   */
-  {
-    id: 'nachtnet',
-    name: 'Nachtnet',
-    nameNl: 'Nachtnet',
-    group: 'dutch',
-    light: ['#0E1526', '#18213A', '#F3EFE5', '#F0B429'],
-    /*
-     * **The photograph is a glass tower at dusk**, blue-violet sky with the office lights amber in
-     * the glass: the two colours this style is made of, caught in one picture. Its top is the
-     * brightest sky in the set, so the wash is the one measured to hold the warm white name at the
-     * 3:1 floor for large text, and no more.
-     */
-    photo: { scrim: 0.27, scrimNight: 0.02, glass: false },
-    shape: 'pill',
-    display: 'figtree',
-    body: 'manrope',
-    sub: 'outfit',
-    ui: 'manrope',
-  },
-  /*
    * **Nostalgia.**
    *
    * The platform at dusk as it is remembered rather than as it looks now: the green enamel of an
@@ -753,9 +727,8 @@ export const STYLES: StyleDef[] = [
    * burning. No blue and no chrome. The pictures people feel this about were printed in warm ink on
    * cheap paper that has yellowed, not in the cool grey of the phone they are holding.
    *
-   * Dark on purpose, like Nachtnet, but a different dark: that one is the last bus still running,
-   * this one is standing under the canopy afterwards, when the platform has emptied and the lamps
-   * are the only warm thing left.
+   * Dark on purpose, and warm rather than cold: the lamps under the canopy after the last train
+   * has gone, when the platform has emptied and they are the only warm thing left.
    */
   {
     id: 'nostalgia',
