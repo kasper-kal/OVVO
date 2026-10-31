@@ -699,6 +699,12 @@ export const STYLES: StyleDef[] = [
     group: 'black',
     light: ['#141210', '#241E18', '#F0E7D3', '#D9A05B'],
     /*
+     * **Its own night, a step down from its own day.** The derived cut is a fixed near-black, and
+     * this page is already nearly black, so the derivation came out *lighter* than the day and the
+     * gate refused it. The night is written out instead: the same browns, taken down one notch.
+     */
+    night: ['#100E0C', '#1C1712', '#F3ECDA', '#E0A664'],
+    /*
      * **Quieter lines than the shape asks for.** `soft` derives its hairlines at 1.7:1, which on a
      * page this dark draws a bright outline round every card — a box, where the idea is old paper
      * laid on a table (reported as "*too heavy to give nostalgia*"). These sit just above the 1.2:1
