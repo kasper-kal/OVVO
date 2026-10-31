@@ -19,6 +19,10 @@ Here are the rules:
 
 10. NEVER blame a stale build, a stale deploy, a cache or an old copy of the site for a problem you cannot reproduce. If what you measure and what the user sees disagree, the truth is that you have not reproduced their steps yet. Never say it again: reproduce first, then fix what you actually saw.
 
+11. The corner gallery is guarded, and the guard is not optional. After ANY change to a card shape, a caption or the gallery page, run `node scripts/corners.mjs` and fix what it reports before saying the change is done. When a shape is approved, run `node scripts/corners.mjs --save`. If the page is ever overwritten, run `node scripts/corners.mjs --restore`; NEVER rebuild a corner shape by hand or from memory.
+
+12. NEVER ask permission to commit. When a change is finished and its checks pass, make the commit yourself, with a message that says why, and tell the steerer in one line that you did it. Do not commit half-finished work, and never commit secrets.
+
 ## How the rules are enforced
 
 Pass these three gates on **every** turn, in this order. If one is missed, stop and fix it before sending the final message — never send first and explain afterwards.
@@ -37,8 +41,20 @@ Pass these three gates on **every** turn, in this order. If one is missed, stop 
 - Never claim a check, measurement, screenshot or preview you did not actually run. Report failures and limitations as failures and limitations.
 - Do not hand authorised work back to the user with "say the word"; carry out what was asked and report the result.
 
+## The corner gallery
+
+The corner mockups live in `.logs/mock/index.html`, which git ignores, so that page is never the only copy of anything. The approved page and the nine shapes it draws are saved in `design/corners-gallery.html` and `design/corners.json`, both tracked by git.
+
+Run `node scripts/corners.mjs` after every change to the gallery or to any card shape. It fails, and names the card, when a shape is missing, when an unapproved shape appears, when a caption has drifted, when a card is not symmetrical on both axes, when the pinches differ in depth, or when cards 6 and 7 start their corner cut in different places. Each of those has already cost a round of work.
+
+Run `node scripts/corners.mjs --save` once a shape is approved, so the approved page and the shape list become the new baseline.
+
+Run `node scripts/corners.mjs --restore` when the page is lost or overwritten: it puts the approved copy back in a second. Rebuilding shapes by hand, or from memory of an earlier version, is what turned a stray overwrite into an hour of work, and it produced shapes that did not match what had been approved.
+
+After a restore, the app itself is untouched: this guard covers the mockup gallery only.
+
 ## Working agreements
 
 - Follow the instruction exactly; do not invent scope, and do not ask for permission that has already been given.
 - Keep replies short, honest and free of padding.
-- Never commit secrets. When asked to commit and push, do both and confirm the remote matches.
+- Never commit secrets. Commit finished, checked work without asking first, and say that you did; push only when the steerer asks for a push.
