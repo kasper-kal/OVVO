@@ -599,7 +599,7 @@ export const STYLES: StyleDef[] = [
     name: 'Midnight Silk',
     nameNl: 'Middernachtzijde',
     group: 'luxe',
-    light: ['#1b141e', '#241b2c', '#EFE9DC', '#baa382'],
+    light: ['#1A1410', '#2A211A', '#F3EADC', '#CBAE7E'],
     photo: { scrim: 0.43, scrimNight: 0.02, glass: true },
     display: 'instrument',
     ui: 'inter',
