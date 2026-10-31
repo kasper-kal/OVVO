@@ -33,10 +33,10 @@ remains.
 | Palazzo         | `palazzo.jpg`         | Storm Tide   | `storm-tide.jpg`  |
 | Skyline         | `skyline.jpg`         |                 |                     |
 | Toscane         | `toscane.jpg`         | Contact      | `contact.jpg`     |
-| Loggia          | `loggia.jpg`          |              |                   |
-| Nostalgia       | `nostalgia.jpg`       | Evening Glass| `avondglas.jpg`   |
+| Loggia          | `loggia.jpg`          |              |                   || Nostalgia       | `nostalgia.jpg`       | Evening Glass| `avondglas.jpg`   |
 | Pro             | `pro.jpg`             |              |                   |
-|                 |                 |              |                   |
+| Christmas       | `christmas.jpg`       | Easter       | `easter.jpg`      |
+| Sinterklaas     | `sinterklaas.jpg`     | New Year     | `new-year.jpg`    |
 
 **All Black** is the one exception. It exists as the plainest reading answer, and a photograph behind
 the page is the one thing that can put a bright patch under ink meant to be read flat, so it stays

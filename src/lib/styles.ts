@@ -193,7 +193,7 @@ export interface StylePhoto {
  * defaults below, chosen from its own page: a dark page keeps its cards translucent, a pale page
  * gets solid cards and a slightly heavier wash, because the ink on a pale page is the dark one.
  */
-const PHOTO_FREE = new Set(['night-aa', 'christmas', 'sinterklaas', 'new-year', 'easter']);
+const PHOTO_FREE = new Set(['night-aa']);
 
 /**
  * **Styles whose photograph is dark in the band the page's own name sits in.**
@@ -1229,13 +1229,19 @@ export const STYLES: StyleDef[] = [
   /*
    * **Christmas.** The tree in shade, a candle's light and one brass bauble. The page is the pine at
    * night, the cards the same pine a shade up, the words the candle and the accent the bauble.
+   *
+   * **Its photograph is the tree in the Galeries Lafayette,** and the palette was pulled to it once
+   * the picture arrived: the page is the near-black sky above the tree with the pine kept in it, the
+   * accent is the gold of the lights rather than a brass that had to be guessed at. The lights are
+   * the brightest thing in the frame, so the wash is a shade heavier than the default.
    */
   {
     id: 'christmas',
     name: 'Christmas',
     nameNl: 'Kerstmis',
     group: 'green',
-    light: ['#0E2318', '#163425', '#F7EFE0', '#D9A441'],
+    light: ['#0B1A12', '#16291C', '#F8EEDA', '#D8A84C'],
+    photo: { scrim: 0.34, scrimNight: 0.05, glass: true },
     shape: 'arch',
     display: 'playfair',
     sub: 'instrument',
@@ -1245,13 +1251,19 @@ export const STYLES: StyleDef[] = [
   /*
    * **Sinterklaas.** Brown paper, spice and marzipan: the page is a December evening, the cards the
    * paper of a wrapped parcel, the words the marzipan inside it and the accent the pepernoot.
+   *
+   * **Its photograph is the bishop on the white horse, puppets at his shoulder,** and the palette now
+   * leans on what is in it: the page is the red of his robe taken down to a tobacco brown, the accent
+   * the gold on his mitre. The horse is the one white shape in a dark frame and the words have to
+   * survive it, so the wash is the heaviest of the four.
    */
   {
     id: 'sinterklaas',
     name: 'Sinterklaas',
     nameNl: 'Sinterklaas',
     group: 'wine',
-    light: ['#2A140C', '#3A1D12', '#F8E7CB', '#D9A24B'],
+    light: ['#2A100A', '#3D1B10', '#F8E8CC', '#D5A24D'],
+    photo: { scrim: 0.28, scrimNight: 0.05, glass: true },
     shape: 'round',
     display: 'cormorant',
     sub: 'newsreader',
@@ -1261,13 +1273,19 @@ export const STYLES: StyleDef[] = [
   /*
    * **New Year.** The sky just after midnight, the smoke still hanging and the last spark falling:
    * the page is the sky, the cards the smoke, the words the champagne and the accent the spark.
+   *
+   * **Its photograph is fireworks over the rooftops,** so the page stopped being a blue-black and
+   * became the warm black the sky in the picture actually is, and the accent is the gold of the burst
+   * rather than a champagne that came close. Almost the whole frame is night, which is why this one
+   * needs the lightest wash of the four.
    */
   {
     id: 'new-year',
     name: 'New Year',
     nameNl: 'Oud en nieuw',
     group: 'black',
-    light: ['#08080F', '#14141F', '#F6F2E6', '#E8C15A'],
+    light: ['#0A0806', '#171210', '#F7F1E4', '#E7BE58'],
+    photo: { scrim: 0.26, scrimNight: 0.04, glass: true },
     shape: 'line',
     display: 'outfit',
     sub: 'grotesk',
@@ -1277,13 +1295,19 @@ export const STYLES: StyleDef[] = [
   /*
    * **Easter.** Pale cloth, a shell and the first green: the page is the cloth, the cards the shell,
    * the words the garden in shade and the accent the leaf that has just opened.
+   *
+   * **Its photograph is a rabbit in a basket of pastel eggs,** which is a bright, busy picture under
+   * a pale page, so this is the one of the four that keeps solid cards: the dark ink sits on the card
+   * and the wash carries the rest. The page warmed toward the wicker, and the accent is the green of
+   * the sprig in its mouth.
    */
   {
     id: 'easter',
     name: 'Easter',
     nameNl: 'Pasen',
     group: 'cream',
-    light: ['#F1EEE1', '#FBF8EE', '#24301F', '#6F8F5A'],
+    light: ['#F2EDE1', '#FDFAF3', '#26301F', '#7C9A62'],
+    photo: { scrim: 0.34, scrimNight: 0.08, glass: false },
     shape: 'soft',
     display: 'instrument',
     sub: 'playfair',
