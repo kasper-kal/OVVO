@@ -625,11 +625,40 @@ export const STYLES: StyleDef[] = [
   },
   /* ------------------------------------------------------------------ dutch */
   {
+    /*
+     * **The yellow timetable book.**
+     *
+     * A spoorboekje is the printed timetable of the whole railway, published once a year: a thick
+     * book of station names down the left and clock times across the page. From the mid sixties to
+     * 2010 it was the one object that carried the NS house style into every house, and that style is
+     * two colours and nothing else: the **signal yellow** of the cover and the **dark blue** of the
+     * lettering. The body of the book is plain white paper.
+     *
+     * The palette here used to be parchment and rust, which is a book about trains from a century
+     * earlier and not the spoorboekje at all (reported: "you don't know what a spoorboekje is"). So
+     * the page is the cover, the cards are its pages, the ink is the blue the times are set in, and
+     * the accent is the red NS used for the notes under a table.
+     */
     id: 'spoorboekje',
     name: 'Spoorboekje',
     nameNl: 'Spoorboekje',
     group: 'dutch',
-    light: ['#F1E1B8', '#FBF2D9', '#2A1C10', '#B33A2B'],
+    light: ['#FFC917', '#FFFCF0', '#001D52', '#C8102E'],
+    /*
+     * **The quiet ink and the rule are the book's own, not a mix toward its paper.**
+     *
+     * `styleTokens` builds `--ink-muted` and the hairline by stepping the ink a few percent toward
+     * the card, which is right on a page and a card of the same family. Here the page is a signal
+     * yellow and the card is paper, so the same step landed at 3.87:1 for the muted ink and 1.16:1
+     * for the rule — both under the line. A printed timetable does not have "a blue faded toward
+     * paper" anyway: its small type is the blue, set smaller. So the two are written out.
+     */
+    pinned: {
+      light: {
+        '--ink-muted': '#33507D',
+        '--border-hairline': '#8F9CB0',
+      },
+    },
     display: 'archivo',
     body: 'work',
     sub: 'grotesk',
@@ -648,11 +677,23 @@ export const STYLES: StyleDef[] = [
     ui: 'inter',
   },
   {
+    /*
+     * **Named for the picture it is worn with.**
+     *
+     * The photograph is a train standing at a platform at dusk: a pale sky going apricot at the
+     * horizon over a blue and cream train, its lamps already lit. Nothing in it is a station sign, so
+     * the name said one thing and the wallpaper another (reported).
+     *
+     * It is the **blue hour** — that short window after sunset when the sky is still blue and the
+     * lamps are on — so that is the name, in both languages, and the palette is read off the picture:
+     * the deep sky at the top as the page, the train's blue as the cards, the warm white of its body
+     * as the ink, and the apricot of the horizon and the lamps as the accent.
+     */
     id: 'station-sign',
-    name: 'Station Sign',
-    nameNl: 'Stationsbord',
+    name: 'Blue Hour',
+    nameNl: 'Blauw uur',
     group: 'dutch',
-    light: ['#120f29', '#1f2a73', '#EEF3FA', '#f2b562'],
+    light: ['#101A33', '#1B2E52', '#F3EEE6', '#E8A05A'],
     photo: { scrim: 0.16, scrimNight: 0.02, glass: true },
     display: 'archivo',
     body: 'work',
@@ -872,11 +913,24 @@ export const STYLES: StyleDef[] = [
     ui: 'plex',
   },
   {
+    /*
+     * **A cyanotype, not a blue-ish page.**
+     *
+     * A blueprint is a drawing reproduced on light-sensitive paper: the sheet is washed in Prussian
+     * blue and the lines come out **white**. It is a dark, blue, technical surface, and that is the
+     * whole look. The palette here was a pale blue page with dark navy ink, which is a pencil sketch
+     * on tinted paper — the reverse of the thing it is named after ("what the hell is Blueprint even
+     * supposed to be").
+     *
+     * So the page is the sheet, the cards are the sheet a shade lighter, the ink is the chalk line,
+     * and the accent is the cyan a fresh print has before it fades. The mono sub-face and the Plex
+     * display were already the drawing's lettering and stay.
+     */
     id: 'blueprint',
     name: 'Blueprint',
     nameNl: 'Blauwdruk',
     group: 'technical',
-    light: ['#D6E2F5', '#EAF1FB', '#0B1A33', '#1D4ED8'],
+    light: ['#0F3A69', '#1A4C81', '#EAF2FB', '#8FD3FF'],
     display: 'plex',
     body: 'work',
     sub: 'mono',

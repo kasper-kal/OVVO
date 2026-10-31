@@ -14,7 +14,7 @@ picture can be swapped without hunting through the code.
 | `cyber-teal.jpg` | Cyber Teal | A teal glass tower photographed from below. |
 | `broadsheet.jpg` | Broadsheet | A pile of old newspaper front pages. |
 | `rijksmuseum.jpg` | Rijksmuseum | The museum in evening light against a deep blue sky. |
-| `station-sign.jpg` | Station Sign | A Dutch train at sunset on a platform. |
+| `station-sign.jpg` | Blue Hour | A Dutch train at dusk on a platform, the sky still blue above an apricot horizon and the lamps already on. |
 | `obsidian.jpg` | Obsidian | Black fractured rock. |
 | `sage.jpg` | Sage | Soft green hills under a white sky. |
 | `mustard.jpg` | Mustard | Two hands reaching across a field of orange. |
