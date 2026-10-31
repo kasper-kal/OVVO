@@ -1187,6 +1187,87 @@ export const STYLES: StyleDef[] = [
     /* A bright sky and green leaves directly under the page title: the heaviest of the pale five. */
     photo: { scrim: 0.24, scrimNight: 0.02, glass: false },
   },
+
+  /* ------------------------------------------------------------------ read off the new pictures */
+  /*
+   * **Fog.** A grey tower going up into weather, with one warm window near the ground. The page is
+   * the fog, the cards are the tower's own grey a step lighter, the words are the pale sky and the
+   * accent is that lit window, which is the only warm thing in the frame.
+   */
+  {
+    id: 'fog',
+    name: 'Fog',
+    nameNl: 'Nevel',
+    group: 'black',
+    light: ['#232527', '#2E3134', '#E9E7E3', '#E08A2E'],
+    display: 'archivo',
+    sub: 'plex',
+    body: 'work',
+    ui: 'inter',
+  },
+  /*
+   * **Courtyard.** A brick building curling in on itself, pale teal glass against rust. The page is
+   * the brick in shade, the cards the same brick in light, the words the pale morning sky and the
+   * accent the glass, which is the one cool colour in the picture.
+   */
+  {
+    id: 'binnenplaats',
+    name: 'Courtyard',
+    nameNl: 'Binnenplaats',
+    group: 'wine',
+    light: ['#2B1518', '#3D1E22', '#F6E7DC', '#7FD3E0'],
+    display: 'fraunces',
+    sub: 'newsreader',
+    body: 'figtree',
+    ui: 'manrope',
+  },
+  /*
+   * **Travertine.** Carved stone, cut by shadow, no colour in it but the warmth of the stone. The
+   * page is the stone in shade, the cards the stone in sun, the words the deepest cut and the accent
+   * the shadow under the cornice.
+   */
+  {
+    id: 'travertine',
+    name: 'Travertine',
+    nameNl: 'Travertijn',
+    group: 'cream',
+    light: ['#E8E3DA', '#F7F4EE', '#2A2521', '#8A7052'],
+    display: 'cormorant',
+    sub: 'playfair',
+    body: 'lora',
+    ui: 'inter',
+  },
+  /*
+   * **Arena.** Weathered stone arches under a storm. The page is the ash sky, the cards the stone,
+   * the words the pale grit of the ruin and the accent the sunlit edge of an arch.
+   */
+  {
+    id: 'arena',
+    name: 'Arena',
+    nameNl: 'Arena',
+    group: 'black',
+    light: ['#1C1A19', '#272421', '#E3DACD', '#C09A6E'],
+    display: 'lora',
+    sub: 'newsreader',
+    body: 'work',
+    ui: 'plex',
+  },
+  /*
+   * **Chrome.** Liquid metal folded over black leather: no hue at all, only light. The page is the
+   * black under the metal, the cards the metal in shadow, the words the highlight and the accent the
+   * polished edge itself.
+   */
+  {
+    id: 'chrome',
+    name: 'Chrome',
+    nameNl: 'Chroom',
+    group: 'black',
+    light: ['#0B0B0D', '#17181B', '#EEF1F4', '#9FB0BE'],
+    display: 'manrope',
+    sub: 'grotesk',
+    body: 'jakarta',
+    ui: 'inter',
+  },
 ];
 
 /** The app's own look — the cream page, white cards, obsidian ink and coral. */

@@ -43,3 +43,8 @@ their own colour.
 All ten of the first upload are 736 pixels wide, portrait, between 18 and 367 KB. The later upload
 carried some larger files, up to 1536 pixels wide; they are kept as uploaded, and only the style in
 use is ever fetched.
+| `fog.jpg` | Fog | A grey tower rising into fog, one warm window near the ground. |
+| `binnenplaats.jpg` | Courtyard | A brick courtyard curling in on itself, teal glass against rust. |
+| `travertine.jpg` | Travertine | Carved stone and deep shadow, no colour but the warmth of the stone. |
+| `arena.jpg` | Arena | Weathered stone arches under a storm sky. |
+| `chrome.jpg` | Chrome | Folded chrome over black leather. |

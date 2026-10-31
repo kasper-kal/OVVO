@@ -38,6 +38,9 @@ remains.
 | Pro             | `pro.jpg`             |              |                   |
 | Perron          | `perron.jpg`          |              |                   |
 
+| Fog             | `fog.jpg`             | Courtyard    | `binnenplaats.jpg` |
+| Travertine      | `travertine.jpg`      | Arena        | `arena.jpg`        |
+| Chrome          | `chrome.jpg`          |              |                    |
 **Contrast** and **All Black** are the two exceptions. They exist as the plainest reading answer, and
 a photograph behind the page is the one thing that can put a bright patch under dark ink, so they
 stay flat. A file named after either of them is simply ignored.
