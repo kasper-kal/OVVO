@@ -205,17 +205,18 @@ body {
  * was tried twice and painted nothing either time: at `z-index: -1` it landed behind the wallpaper
  * layer, and at `0` — with the head isolated and its children lifted above it — it still did not
  * show, so the name stayed on the photograph (measured 2.57:1 on Ultraviolet, plainly unreadable).
- * An element's own background always paints. The padding is given back as a negative margin, so the
- * name still starts on the page's own left edge and nothing below it moves.
- *
- * A solid colour rather than a `color-mix`, because an old WebKit drops the mix and would leave the
- * name on the picture — the same reason the wash itself is written as `rgba()`.
+ * An element's own background always paints — but a solid one read as a box laid over the picture,
+ * with an edge all the way round (reported, with that edge circled). The background is therefore the
+ * token `--page-head-wash`: the style's own canvas colour as a radial glow, solid behind the words
+ * and gone before the margin, so there is no edge to see. The padding is given back as a negative
+ * margin, so the name still starts on the page's own left edge and nothing below it moves.
  */
 :root[data-background='photo'] .page-head {
-  padding: 10px 14px 12px;
-  margin: -10px -14px -4px;
-  border-radius: var(--r-card, 28px);
-  background: var(--canvas-base);
+  padding: 12px 16px 16px;
+  margin: -12px -16px -8px;
+  background-image: var(--page-head-wash);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 h1,

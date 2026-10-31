@@ -1486,6 +1486,17 @@ export function styleTokens(
 
     /* The photograph's wash, computed as rgb() so an old WebKit keeps its paint */
     '--app-bg-wash': wash(canvas, picture ? photoScrim(picture, appearance) : 0.55),
+    /*
+     * **The page head's ground, as a glow rather than a plate.**
+     *
+     * The head sits on the photograph, so it needs a ground of its own (see `.page-head` in
+     * `styles/base.css`). A solid one was drawn first and read as a box laid over the picture, with
+     * an edge all the way round (reported, with that edge circled). This is the same colour as a
+     * radial wash that is solid behind the words and gone before it reaches the margin, so there is
+     * no edge to see. Written here, in `rgba()`, for the reason the wash is: a `color-mix` is
+     * dropped by an old WebKit and the words would be left on the picture.
+     */
+    '--page-head-wash': `radial-gradient(105% 52% at 34% 50%, ${wash(canvas, 0.97)} 0%, ${wash(canvas, 0.94)} 40%, ${wash(canvas, 0.6)} 72%, ${wash(canvas, 0)} 100%)`,
     '--page-border': pageHairline,
 
     /* Lettering: the title face, the section face and the reading face */
