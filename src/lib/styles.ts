@@ -353,7 +353,17 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'tram': 'soft',
   'obsidian': 'square',
   'contrast': 'round',
-  'night-aa': 'arch',
+  /*
+   * **The plainest reading answer gets the plainest geometry.**
+   *
+   * This was `arch` — the roundest shape in the catalogue, a 44px corner on every card — and that
+   * was never a judgement about the style: the shapes are spread so two neighbours on a shelf are
+   * never the same, Contrast had already taken `round`, and Night AA was pushed to the far end to
+   * keep the pair apart. On a style whose whole promise is a flat black page and white ink, the
+   * result was the least professional geometry in the app on its most serious look (reported).
+   * Square corners, a rule you can see, flat on the page: print, not a bubble.
+   */
+  'night-aa': 'square',
   'sage': 'pill',
   'mustard': 'soft',
   'terminal': 'round',
