@@ -187,6 +187,17 @@ export interface StylePhoto {
   /**
    * How hard the canvas colour is laid over the picture, as a fraction. A dark photograph with
    * cream ink needs less than a bright one with dark ink, which is why it belongs to the style.
+   *
+   * **The wash is a tint now, not a lid.** It was doing two jobs at once — seating the picture in
+   * the palette *and* keeping the page's own headings readable over it — and the second job was
+   * costing the picture more than half of itself: Ultraviolet laid 57% pale lavender over a night
+   * sky and turned it into milk (reported as *"the lightening ... is so unnecessarily heavy"*), and
+   * it still measured under 2:1 for the quiet ink over the dark half of that photograph, so the
+   * cover was not buying the readability it was paid for.
+   *
+   * The headings keep their own ground instead (`.page-head` in `styles/base.css`), which is what
+   * lets these numbers be what they should always have been: a tint that makes the picture belong to
+   * the style. Roughly half of the old value, per style, so each look keeps the wash it chose.
    */
   scrim: number;
   /**
@@ -222,11 +233,33 @@ export interface StylePhoto {
  */
 const PHOTO_FREE = new Set(['contrast', 'night-aa']);
 
+/**
+ * **Styles whose photograph is dark in the band the page's own name sits in.**
+ *
+ * The head keeps no ground of its own, so its ink has to be read against the picture. Measured over
+ * the top of each style's photograph, under its own wash: these are the ones where the authored ink
+ * loses (as low as **1.55:1** on Ultraviolet, where a dark name sat on a night sky). They take the
+ * style's night ink instead, cut light for exactly this job. Every other photo style keeps its own.
+ */
+const PHOTO_LIGHT_HEAD = new Set([
+  'arches',
+  'broadsheet',
+  'cloudbank',
+  'loggia',
+  'midnight-silk',
+  'navy-gold',
+  'obsidian',
+  'rijksmuseum',
+  'skyline',
+  'terminal',
+  'ultraviolet',
+]);
+
 export function stylePhotograph(style: StyleDef): StylePhoto | null {
   if (PHOTO_FREE.has(style.id)) return null;
   if (style.photo) return style.photo;
   const dark = relativeLuminance(style.light[0]) < 0.35;
-  return { scrim: dark ? 0.52 : 0.6, glass: dark };
+  return { scrim: dark ? 0.23 : 0.27, glass: dark };
 }
 
 /** The wash in force in the appearance on screen. */
@@ -338,11 +371,20 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'broadsheet': 'soft',
   'spoorboekje': 'soft',
   'rijksmuseum': 'arch',
-  'station-sign': 'pill',
   'tram': 'soft',
   'obsidian': 'square',
   'contrast': 'round',
-  'night-aa': 'arch',
+  /*
+   * **The plainest reading answer gets the plainest geometry.**
+   *
+   * This was `arch` — the roundest shape in the catalogue, a 44px corner on every card — and that
+   * was never a judgement about the style: the shapes are spread so two neighbours on a shelf are
+   * never the same, Contrast had already taken `round`, and Night AA was pushed to the far end to
+   * keep the pair apart. On a style whose whole promise is a flat black page and white ink, the
+   * result was the least professional geometry in the app on its most serious look (reported).
+   * Square corners, a rule you can see, flat on the page: print, not a bubble.
+   */
+  'night-aa': 'square',
   'sage': 'pill',
   'mustard': 'soft',
   'terminal': 'round',
@@ -497,7 +539,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Navy en goud',
     group: 'luxe',
     light: ['#121d29', '#1b2e45', '#F4F1EA', '#c0a171'],
-    photo: { scrim: 0.44, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.2, scrimNight: 0.02, glass: true },
     /* The same face as Midnight Silk: the owner prefers it to Cormorant here, and the two styles
        were already sharing the same reading face, so the whole of Navy's type now matches. */
     sub: 'cormorant',
@@ -511,7 +553,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Middernachtzijde',
     group: 'luxe',
     light: ['#1A1410', '#2A211A', '#F3EADC', '#CBAE7E'],
-    photo: { scrim: 0.43, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: true },
     display: 'instrument',
     body: 'work',
     sub: 'lora',
@@ -536,7 +578,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Klaproosblauw',
     group: 'modern',
     light: ['#c9dbf0', '#e6f0fa', '#0F2A44', '#e25138'],
-    photo: { scrim: 0.5, scrimNight: 0.06, glass: false },
+    photo: { scrim: 0.22, scrimNight: 0.06, glass: false },
     display: 'grotesk',
     body: 'figtree',
     sub: 'outfit',
@@ -548,7 +590,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Ultraviolet',
     group: 'modern',
     light: ['#dccef7', '#f1eaff', '#241247', '#5935b5'],
-    photo: { scrim: 0.57, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.26, scrimNight: 0.02, glass: false },
     display: 'manrope',
     body: 'plex',
     sub: 'grotesk',
@@ -560,7 +602,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Cyberteal',
     group: 'modern',
     light: ['#bde2e9', '#e2f8fa', '#05322F', '#065f70'],
-    photo: { scrim: 0.52, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
     display: 'grotesk',
     body: 'figtree',
     sub: 'manrope',
@@ -573,7 +615,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Krant',
     group: 'editorial',
     light: ['#eae4dc', '#fbfaf6', '#141110', '#8b603a'],
-    photo: { scrim: 0.45, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.2, scrimNight: 0.02, glass: false },
     display: 'newsreader',
     body: 'work',
     sub: 'lora',
@@ -581,11 +623,40 @@ export const STYLES: StyleDef[] = [
   },
   /* ------------------------------------------------------------------ dutch */
   {
+    /*
+     * **The yellow timetable book.**
+     *
+     * A spoorboekje is the printed timetable of the whole railway, published once a year: a thick
+     * book of station names down the left and clock times across the page. From the mid sixties to
+     * 2010 it was the one object that carried the NS house style into every house, and that style is
+     * two colours and nothing else: the **signal yellow** of the cover and the **dark blue** of the
+     * lettering. The body of the book is plain white paper.
+     *
+     * The palette here used to be parchment and rust, which is a book about trains from a century
+     * earlier and not the spoorboekje at all (reported: "you don't know what a spoorboekje is"). So
+     * the page is the cover, the cards are its pages, the ink is the blue the times are set in, and
+     * the accent is the red NS used for the notes under a table.
+     */
     id: 'spoorboekje',
     name: 'Spoorboekje',
     nameNl: 'Spoorboekje',
     group: 'dutch',
-    light: ['#F1E1B8', '#FBF2D9', '#2A1C10', '#B33A2B'],
+    light: ['#FFC917', '#FFFCF0', '#001D52', '#C8102E'],
+    /*
+     * **The quiet ink and the rule are the book's own, not a mix toward its paper.**
+     *
+     * `styleTokens` builds `--ink-muted` and the hairline by stepping the ink a few percent toward
+     * the card, which is right on a page and a card of the same family. Here the page is a signal
+     * yellow and the card is paper, so the same step landed at 3.87:1 for the muted ink and 1.16:1
+     * for the rule — both under the line. A printed timetable does not have "a blue faded toward
+     * paper" anyway: its small type is the blue, set smaller. So the two are written out.
+     */
+    pinned: {
+      light: {
+        '--ink-muted': '#33507D',
+        '--border-hairline': '#8F9CB0',
+      },
+    },
     display: 'archivo',
     body: 'work',
     sub: 'grotesk',
@@ -597,23 +668,75 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Rijksmuseum',
     group: 'dutch',
     light: ['#d8dfba', '#f6f6dd', '#14243A', '#1d3d68'],
-    photo: { scrim: 0.48, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.22, scrimNight: 0.02, glass: false },
     display: 'cormorant',
     body: 'work',
     sub: 'lora',
     ui: 'inter',
-  },
+  },  /*
+   * **Sprinter.**
+   *
+   * The commuter train, and the lightest livery on the railway: a body of warm white, a band of
+   * deep blue around the windows, and doors painted the one yellow that is allowed to mean "here".
+   * So the page is the body, the cards are the panels, the ink is the band, and the accent is the
+   * door — the same yellow as the Spoorboekje cover, used for the thing you actually press.
+   */
   {
-    id: 'station-sign',
-    name: 'Station Sign',
-    nameNl: 'Stationsbord',
+    id: 'sprinter',
+    name: 'Sprinter',
+    nameNl: 'Sprinter',
     group: 'dutch',
-    light: ['#120f29', '#1f2a73', '#EEF3FA', '#f2b562'],
-    photo: { scrim: 0.36, scrimNight: 0.02, glass: true },
-    display: 'archivo',
+    light: ['#F4F1E9', '#FFFFFF', '#12305C', '#FFC917'],
+    /*
+     * **A heavier wash than the palette would ask for, because the picture is bright where the name
+     * sits.** The photograph is a train at dusk: pale sky at the top, and the dark window band and
+     * the platform's shadow lower down. Under the default wash the page's own name measured 1.57:1
+     * against those dark patches. Cream at 0.36 lifts the picture to the ink rather than the ink to
+     * the picture, and the photograph still reads as a photograph.
+     */
+    photo: { scrim: 0.36, glass: false },
+    shape: 'round',
+    display: 'outfit',
+    body: 'inter',
+    sub: 'grotesk',
+    ui: 'inter',
+  },
+  /*
+   * **Perron.**
+   *
+   * The platform itself: pale concrete underfoot, the white line at the edge, and the red that marks
+   * where you may not stand. A page with no colour of its own, so the timetable laid on it is the
+   * only thing that catches the eye — which is what a platform is.
+   */
+  {
+    id: 'perron',
+    name: 'Perron',
+    nameNl: 'Perron',
+    group: 'dutch',
+    light: ['#E6E4DE', '#FAF8F3', '#232428', '#B3271E'],
+    display: 'grotesk',
     body: 'work',
+    sub: 'archivo',
+    ui: 'inter',
+  },
+  /*
+   * **Nachtnet.**
+   *
+   * The night bus and the last train: a near-black blue page, warm white lettering, and the amber of
+   * a stop that is still lit. It is the one style here that starts dark on purpose rather than
+   * turning over at night, because the thing it is named after only runs after dark.
+   */
+  {
+    id: 'nachtnet',
+    name: 'Nachtnet',
+    nameNl: 'Nachtnet',
+    group: 'dutch',
+    light: ['#0E1526', '#18213A', '#F3EFE5', '#F0B429'],
+    shape: 'pill',
+    display: 'figtree',
+    body: 'manrope',
     sub: 'outfit',
-    ui: 'plex',
+    ui: 'manrope',
   },
   {
     id: 'tram',
@@ -795,7 +918,7 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Salie',
     group: 'soft',
     light: ['#d1e1d2', '#eff6ee', '#1B2A1B', '#54704e'],
-    photo: { scrim: 0.52, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.23, scrimNight: 0.02, glass: false },
     display: 'figtree',
     body: 'work',
     sub: 'newsreader',
@@ -821,18 +944,31 @@ export const STYLES: StyleDef[] = [
     nameNl: 'Terminal',
     group: 'technical',
     light: ['#111310', '#151a14', '#B8FFC0', '#98de67'],
-    photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.1, scrimNight: 0.02, glass: true },
     display: 'mono',
     body: 'plex',
     sub: 'grotesk',
     ui: 'plex',
   },
   {
+    /*
+     * **A cyanotype, not a blue-ish page.**
+     *
+     * A blueprint is a drawing reproduced on light-sensitive paper: the sheet is washed in Prussian
+     * blue and the lines come out **white**. It is a dark, blue, technical surface, and that is the
+     * whole look. The palette here was a pale blue page with dark navy ink, which is a pencil sketch
+     * on tinted paper — the reverse of the thing it is named after ("what the hell is Blueprint even
+     * supposed to be").
+     *
+     * So the page is the sheet, the cards are the sheet a shade lighter, the ink is the chalk line,
+     * and the accent is the cyan a fresh print has before it fades. The mono sub-face and the Plex
+     * display were already the drawing's lettering and stay.
+     */
     id: 'blueprint',
     name: 'Blueprint',
     nameNl: 'Blauwdruk',
     group: 'technical',
-    light: ['#D6E2F5', '#EAF1FB', '#0B1A33', '#1D4ED8'],
+    light: ['#0F3A69', '#1A4C81', '#EAF2FB', '#8FD3FF'],
     display: 'plex',
     body: 'work',
     sub: 'mono',
@@ -861,7 +997,7 @@ export const STYLES: StyleDef[] = [
     body: 'lora',
     sub: 'cormorant',
     ui: 'inter',
-    photo: { scrim: 0.51, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.23, scrimNight: 0.02, glass: true },
   },
 
   /*
@@ -904,7 +1040,7 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
     shape: 'arch',
     /* White cloud on black is the brightest subject in the set, so it takes the heaviest wash. */
-    photo: { scrim: 0.43, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: true },
   },
   {
     id: 'riviera',
@@ -918,7 +1054,7 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
     shape: 'round',
     /* Solid cards: small print on a busy sea through glass is tiring, whatever the wash. */
-    photo: { scrim: 0.43, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: false },
   },
   {
     id: 'palazzo',
@@ -931,7 +1067,7 @@ export const STYLES: StyleDef[] = [
     body: 'work',
     ui: 'work',
     shape: 'plate',
-    photo: { scrim: 0.39, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.18, scrimNight: 0.02, glass: false },
   },
   {
     id: 'storm-tide',
@@ -944,7 +1080,7 @@ export const STYLES: StyleDef[] = [
     body: 'plex',
     ui: 'work',
     shape: 'line',
-    photo: { scrim: 0.42, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.19, scrimNight: 0.02, glass: false },
   },
   {
     id: 'skyline',
@@ -958,7 +1094,7 @@ export const STYLES: StyleDef[] = [
     ui: 'grotesk',
     shape: 'round',
     /* The city lights are the point of the picture, so the wash stays off them. */
-    photo: { scrim: 0.13, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.08, scrimNight: 0.02, glass: true },
   },
   {
     id: 'capsule',
@@ -971,7 +1107,7 @@ export const STYLES: StyleDef[] = [
     body: 'inter',
     ui: 'manrope',
     shape: 'pill',
-    photo: { scrim: 0.33, scrimNight: 0.02, glass: true },
+    photo: { scrim: 0.15, scrimNight: 0.02, glass: true },
   },
   {
     id: 'toscane',
@@ -984,7 +1120,7 @@ export const STYLES: StyleDef[] = [
     body: 'work',
     ui: 'work',
     shape: 'arch',
-    photo: { scrim: 0.36, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.16, scrimNight: 0.02, glass: false },
   },
   {
     id: 'contact',
@@ -1012,7 +1148,7 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
     shape: 'square',
     /* A bright sky and green leaves directly under the page title: the heaviest of the pale five. */
-    photo: { scrim: 0.54, scrimNight: 0.02, glass: false },
+    photo: { scrim: 0.24, scrimNight: 0.02, glass: false },
   },
 ];
 
@@ -1259,6 +1395,8 @@ export function styleTokens(
   options: StyleTokenOptions = {},
 ): Record<string, string> {
   const { canvas, card, ink, accent } = stylePalette(style, appearance);
+  /* The light half of the style's own ink, for a name set over a dark photograph. */
+  const nightInk = stylePalette(style, 'dark').ink;
   const raised = Boolean(options.highContrast);
   const shape = styleShape(style);
   /*
@@ -1465,6 +1603,16 @@ export function styleTokens(
 
     /* The photograph's wash, computed as rgb() so an old WebKit keeps its paint */
     '--app-bg-wash': wash(canvas, picture ? photoScrim(picture, appearance) : 0.55),
+    /*
+     * **The ink the page's own name is set in, when the name is over a photograph.**
+     *
+     * Nothing is painted behind it (see `.page-head` in `styles/base.css`), so the ink itself has to
+     * survive the picture. Most photographs are dark where the name sits, and a pale style's own ink
+     * is a dark one, which measured 1.55:1 on Ultraviolet — the name was invisible. Those styles take
+     * their own **night** ink here: the same family, cut light, which is what the photo's band can
+     * carry. A pale picture keeps the authored ink (`PHOTO_DARK_HEAD` lists only the ones that flip).
+     */
+    '--page-head-ink': PHOTO_LIGHT_HEAD.has(style.id) ? nightInk : ink,
     '--page-border': pageHairline,
 
     /* Lettering: the title face, the section face and the reading face */
