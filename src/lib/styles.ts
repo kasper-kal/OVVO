@@ -55,6 +55,8 @@ export const FONT_STACKS = {
      download has no display gothic installed, so it draws the nearest thing to a Halloween poster
      and the page is still readable. */
   creepster: "'Creepster', 'Chiller', 'Bradley Hand', cursive",
+  /* A typewriter, not a costume: the Halloween headings that have to be *read* are set in this. */
+  'special-elite': "'Special Elite', 'Courier New', Courier, monospace",
 } as const;
 
 export type FontId = keyof typeof FONT_STACKS;
@@ -78,6 +80,7 @@ export const FONT_FAMILIES: Record<FontId, string> = {
   figtree: 'Figtree',
   inter: 'Inter',
   creepster: 'Creepster',
+  'special-elite': 'Special Elite',
 };
 
 /* ------------------------------------------------------------------ the shape of a style */
@@ -433,6 +436,9 @@ const SUB_TYPE: Partial<Record<FontId, { size: string; weight: string }>> = {
   lora: { size: '17px', weight: '700' },
   fraunces: { size: '17.5px', weight: '700' },
   newsreader: { size: '18px', weight: '700' },
+  /* One weight, distressed outline: the same size as the app's own, set light so the typewriter's
+     inked edges do not close up at heading size. */
+  'special-elite': { size: '18.5px', weight: '400' },
 };
 
 /**
@@ -1374,7 +1380,7 @@ export const STYLES: StyleDef[] = [
     photo: { scrim: 0.3, scrimNight: 0.06, glass: true },
     shape: 'arch',
     display: 'creepster',
-    sub: 'fraunces',
+    sub: 'special-elite',
     body: 'inter',
     ui: 'work',
   },

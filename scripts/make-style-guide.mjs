@@ -17,8 +17,19 @@ const source = raw.replace(/},\s*\{/g, '},\n  {');
 
 /* ---------------------------------------------------------------- the data */
 
+/*
+ * **A family id may carry a hyphen** (`special-elite`), so every font-id pattern here is
+ * `[a-z-]+`. The first version was `[a-z]+`, which quietly failed to collect that stack and then
+ * threw while reading the family off `undefined`, so the printed list stopped building the day a
+ * face arrived with a hyphen in its name.
+ */
+/*
+ * A family id with a hyphen in it cannot be a bare object key, so it is written quoted
+ * (`'special-elite': "..."`) while every other one is bare. The pattern accepts both, or the stack
+ * is collected under a key nothing reads and the page fails while drawing a face it knows.
+ */
 const stacks = Object.fromEntries(
-  [...source.matchAll(/^ {2}([a-z]+): "([^"]+)",$/gm)].map((m) => [m[1], m[2]]),
+  [...source.matchAll(/^ {2}'?([a-z-]+)'?: "([^"]+)",$/gm)].map((m) => [m[1], m[2]]),
 );
 
 const groups = Object.fromEntries(
@@ -32,16 +43,16 @@ const styles = [];
 for (const match of source.matchAll(/\n  \{\n([\s\S]*?)\n  \},/g)) {
   const block = match[1];
   const id = block.match(/id: '([^']+)'/)?.[1];
-  if (!id || !/display: '[a-z]+'/.test(block)) continue;
+  if (!id || !/display: '[a-z-]+'/.test(block)) continue;
   const quad = [...(block.match(/light: \[([^\]]+)\]/)?.[1] ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1]);
   if (quad.length !== 4) continue;
   styles.push({
     id,
     name: block.match(/name: '([^']+)'/)?.[1] ?? id,
     group: block.match(/group: '([a-z]+)'/)?.[1] ?? 'basic',
-    display: block.match(/display: '([a-z]+)'/)?.[1],
-    sub: block.match(/sub: '([a-z]+)'/)?.[1],
-    body: block.match(/body: '([a-z]+)'/)?.[1],
+    display: block.match(/display: '([a-z-]+)'/)?.[1],
+    sub: block.match(/sub: '([a-z-]+)'/)?.[1],
+    body: block.match(/body: '([a-z-]+)'/)?.[1],
     quad,
   });
 }
