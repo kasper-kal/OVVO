@@ -128,26 +128,72 @@ interface BatteryManagerLike {
  *
  * A browser without the API is reported once, as `NO_BATTERY`, and never again.
  */
+/** What the developer panel says the battery is, or null for the device's own reading. */
+export interface BatteryReading {
+  level: number;
+  charging: boolean;
+}
+
+let override: BatteryReading | null = null;
+const overrideListeners = new Set<() => void>();
+
+/**
+ * **Pretend the phone has a different battery, without a second code path.**
+ *
+ * The developer panel's fake battery goes into the same `read()` the device's own events go into,
+ * so 20%, 10%, 1% and the two-point margin are the rules that ship rather than a copy of them kept
+ * beside the panel. Passing null hands the device's reading back on the next event, and on the
+ * next frame for a browser that has no battery at all.
+ */
+export function setBatteryOverride(next: BatteryReading | null): void {
+  override = next;
+  overrideListeners.forEach((listener) => listener());
+}
+
 export function watchBattery(onChange: (state: PowerState) => void): () => void {
   if (typeof navigator === 'undefined') {
     onChange(NO_BATTERY);
     return () => {};
   }
   const nav = navigator as Navigator & { getBattery?: () => Promise<BatteryManagerLike> };
-  if (typeof nav.getBattery !== 'function') {
-    onChange(NO_BATTERY);
-    return () => {};
-  }
 
   let manager: BatteryManagerLike | null = null;
   let mode: PowerMode = 'off';
   let stopped = false;
 
+  /*
+   * One reading, two sources. An override is a fact about the battery as far as this module is
+   * concerned, so it is read exactly as a real one is: through the same hysteresis, with the same
+   * result, and it is reported as `supported` even in a browser that has no battery API, which is
+   * the whole reason the panel exists.
+   */
   const read = () => {
-    if (stopped || !manager) return;
-    mode = powerModeFor(mode, manager.level, manager.charging);
-    onChange({ mode, level: manager.level, charging: manager.charging, supported: true });
+    if (stopped) return;
+    const source = override ?? (manager ? { level: manager.level, charging: manager.charging } : null);
+    if (!source) {
+      onChange(NO_BATTERY);
+      return;
+    }
+    mode = powerModeFor(mode, source.level, source.charging);
+    onChange({ mode, level: source.level, charging: source.charging, supported: true });
   };
+
+  overrideListeners.add(read);
+  if (override) read();
+
+  const stop = () => {
+    stopped = true;
+    overrideListeners.delete(read);
+    if (!manager) return;
+    manager.removeEventListener('levelchange', read);
+    manager.removeEventListener('chargingchange', read);
+  };
+
+  if (typeof nav.getBattery !== 'function') {
+    /* No battery to read: a simulated one is the only reading this browser will ever have. */
+    read();
+    return stop;
+  }
 
   void nav
     .getBattery()
@@ -164,10 +210,5 @@ export function watchBattery(onChange: (state: PowerState) => void): () => void 
       if (!stopped) onChange(NO_BATTERY);
     });
 
-  return () => {
-    stopped = true;
-    if (!manager) return;
-    manager.removeEventListener('levelchange', read);
-    manager.removeEventListener('chargingchange', read);
-  };
+  return stop;
 }

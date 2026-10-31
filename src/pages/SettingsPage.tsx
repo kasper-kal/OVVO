@@ -11,6 +11,7 @@ import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { LANGUAGES } from '../lib/i18n';
+import { clearDevOverrides } from '../lib/dev';
 import type { Stop } from '../data/types';
 import type { Language, ThemeChoice } from '../state/types';
 
@@ -333,6 +334,31 @@ export function SettingsPage() {
                   : t('This browser does not report the battery, so the full interface is always drawn.')}
               </p>
             </div>
+          </Card>
+
+          {/*
+            **The developer panel, behind one switch.**
+
+            It ships because this site has one user and he is the one who tests it. Off is the
+            state a visitor finds, and off is what clears every simulation: the switch is the whole
+            of the safety here, so it is drawn as a switch and not as a link, and the panel itself
+            lives at its own address (see `pages/DeveloperPage.tsx`).
+          */}
+          <Card className="stack">
+            <h2 className="t-section">{t('Developer')}</h2>
+            <Switch
+              checked={settings.developerMode}
+              onChange={(next) => {
+                updateSettings({ developerMode: next });
+                /* Turning the mode off hands the device's own facts back at once: a forgotten
+                   fake battery must not outlive the switch that made it. */
+                if (!next) clearDevOverrides();
+              }}
+              label={t('Developer mode')}
+              description={t(
+                'Adds a panel for changing the date, the battery and the connection, for testing this app.',
+              )}
+            />
           </Card>
 
           {/*

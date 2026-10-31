@@ -10,6 +10,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { useT } from '../../lib/useT';
 import { translate } from '../../lib/i18n';
 import { useApp } from '../../state/AppState';
+import { getDevOverrides } from '../../lib/dev';
 
 /**
  * Application shell.
@@ -83,7 +84,24 @@ export function useNavigation(): NavGroup[] {
    * left in it — otherwise "Yours" would be a heading over an empty list. A charger puts it back,
    * because nothing is stored: the mode is a subtraction, never a change.
    */
-  if ((power.mode !== 'super' && power.mode !== 'last')) return groups;
+  /* The developer panel, when the switch in Settings is on: a way in of its own. */
+  if (settings.developerMode) {
+    groups.push({
+      title: t('Developer'),
+      items: [{ to: '/developer', label: t('Developer panel'), icon: 'settings' }],
+    });
+  }
+
+  /*
+   * **A simulated battery keeps Settings reachable, and nothing else does.**
+   *
+   * The panel exists to put the app at 1%, and the 10% rule takes Settings out of the navigation —
+   * so without this the screen that turns the simulation off would be the one the simulation hides.
+   * While a battery override is set, the two closed entries stay; the rest of the thinning is
+   * untouched, because it is the interface being tested.
+   */
+  const simulating = settings.developerMode && getDevOverrides().battery !== null;
+  if (!(power.mode === 'super' || power.mode === 'last') || simulating) return groups;
   /*
    * Settings and the map, and nothing else. The map was left in the first time this mode was
    * written, on the argument that looking at where a stop is answers the same question the mode

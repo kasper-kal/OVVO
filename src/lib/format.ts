@@ -52,8 +52,28 @@ export function formatDuration(minutes: number, language: Language = 'en'): stri
   return `${h} ${hour} ${m} min`;
 }
 
+/**
+ * **The app's clock, moved by the developer panel.**
+ *
+ * Every time the interface shows comes through this module, so a simulated date is one number here
+ * rather than a second clock threaded through the screens. An offset rather than a frozen time: the
+ * app's own minute timers keep running, aligned to the second they always were, and everything they
+ * read is simply that much later. Zero means the device's own time, which is what ships.
+ */
+let clockOffsetMs = 0;
+
+/** Move the app's clock by this many milliseconds; null puts the device's clock back. */
+export function setClockOffset(offset: number | null): void {
+  clockOffsetMs = offset ?? 0;
+}
+
+/** Now, as the app believes it: the device's time plus the developer panel's offset. */
+export function appNow(): Date {
+  return new Date(Date.now() + clockOffsetMs);
+}
+
 export function todayIso(): string {
-  return toIsoDate(new Date());
+  return toIsoDate(appNow());
 }
 
 export function toIsoDate(date: Date): string {
@@ -93,7 +113,7 @@ export function formatDate(
   language: Language = 'en',
 ): string {
   const date = fromIsoDate(iso);
-  const today = new Date();
+  const today = appNow();
   const isToday = toIsoDate(today) === iso;
   const isTomorrow = addDaysIso(toIsoDate(today), 1) === iso;
   const short = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`;
@@ -106,7 +126,7 @@ export function formatDate(
 }
 
 export function nowMinutes(): number {
-  const now = new Date();
+  const now = appNow();
   return now.getHours() * 60 + now.getMinutes();
 }
 
