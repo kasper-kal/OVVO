@@ -342,6 +342,9 @@ const SHAPE_OVERRIDES: Record<string, ShapeId> = {
   'tram': 'soft',
   'obsidian': 'square',
   'night-aa': 'square',
+  /* Chrome is a material, not a period: the light on the metal is the whole idea, so it wears the
+     app's own soft cards rather than the square ones the black shelf defaults to. */
+  'chrome': 'soft',
   'sage': 'pill',
   'mustard': 'soft',
   'terminal': 'round',
