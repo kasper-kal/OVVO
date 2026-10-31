@@ -43,7 +43,7 @@ The twenty, in the order the picker draws them:
 - **Editorial** — Broadsheet
 - **Dutch** — Spoorboekje, Rijksmuseum, Station Sign
 - **Dark** — Obsidian
-- **Reading** — Contrast, Night AA
+- **Reading** — Contrast, All Black
 - **Soft** — Sage
 - **Loud** — Mustard
 - **Technical** — Terminal, Blueprint

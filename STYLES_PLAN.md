@@ -59,7 +59,7 @@ Not in a style: geometry. Radius, spacing, density and motion stay the app's own
 
 ### 3.2 Photographs come with a style, and are never uploaded
 
-**Changed by the order: nearly every style carries both a photograph and its own colour, not ten.** The folder is `public/style-photos/`, the file is named after the style id, and the Background row appears on every style except **Contrast** and **Night AA**, which stay flat as the plainest reading answer. The paragraphs below still describe how a photograph behaves; read "a style that has one" wherever they say "the ten".
+**Changed by the order: nearly every style carries both a photograph and its own colour, not ten.** The folder is `public/style-photos/`, the file is named after the style id, and the Background row appears on every style except **Contrast** and **All Black**, which stay flat as the plainest reading answer. The paragraphs below still describe how a photograph behaves; read "a style that has one" wherever they say "the ten".
 
 Confirmed: a photo belongs to the style. The traveller cannot add one, crop one, or sample a colour out of one any more. So the photo is authored like every other token: the style names its image, the scrim that keeps the ink readable over it, the card treatment (glass or tinted), and the solid colour the page becomes when the image cannot be drawn.
 
@@ -275,7 +275,7 @@ Light appearance's page and accent unless noted. Font pairs are display plus int
 
 27. **Contrast**. Page `#FFFFFF`, ink `#000000`, accent `#0033CC`. Inter, AAA everywhere.
 28. **Sunlight**. Page `#FFFDF0`, ink `#14110F`, accent `#7A1F00`. Archivo with Inter.
-29. **Night AA**. Page `#000000`, ink `#FFFFFF`, accent `#FFD400`. Inter.
+29. **All Black**. Page `#000000`, ink `#FFFFFF`, accent `#FFD400`. Inter.
 
 **Soft**
 
