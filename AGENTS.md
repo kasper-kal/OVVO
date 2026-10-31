@@ -21,7 +21,7 @@ Here are the rules:
 
 11. NEVER leave finished work only in this workspace. Run `node scripts/keep.mjs --save "<why>"` when a change is finished and its checks pass: it commits the whole project, including the mockup gallery, which git ignores. `--check` reports anything unsaved; `--list` shows the saves; `--restore <path> [--from <sha>]` brings a file or folder back. The corner shapes have a checker on top of that: after ANY change to a card shape, a caption or the gallery page run `node scripts/corners.mjs` and fix what it reports, run `--save` when a shape is approved, run `--restore` when the page is lost, and NEVER rebuild a corner by hand or from memory.
 
-12. NEVER ask permission to commit. When a change is finished and its checks pass, make the commit yourself, with a message that says why, and tell the steerer in one line that you did it. Do not commit half-finished work, and never commit secrets.
+12. NEVER ask permission to commit or to push. When a change is finished and its checks pass, commit it and push it yourself, with a message that says why, and tell the steerer in one line that you did it. A commit that never leaves this workspace can be lost with it, so the push is part of finishing, not a separate favour to ask for. Do not commit half-finished work, and never commit secrets.
 
 ## How the rules are enforced
 
@@ -45,7 +45,7 @@ Pass these three gates on **every** turn, in this order. If one is missed, stop 
 
 Git is the only copy that survives. The sandbox sleeps, the worktree can be replaced, and anything sitting in an ignored folder has no history at all, which is how a day of approved shapes was lost once.
 
-`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
+`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip, and then pushes it to the remote so the copy leaves this workspace. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
 
 `--check` reports anything unsaved, including ignored files that would not be kept. `--list` shows the recent saves. `--restore <path>` brings the newest saved copy of a file or folder back, and `--from <sha>` reaches further back. No timer is involved: the sandbox is asleep between turns, so work is saved when it finishes, not on a clock.
 
@@ -65,4 +65,4 @@ That checker covers the shape of the mockup gallery only. The safety of the work
 
 - Follow the instruction exactly; do not invent scope, and do not ask for permission that has already been given.
 - Keep replies short, honest and free of padding.
-- Never commit secrets. Commit finished, checked work without asking first, and say that you did; push only when the steerer asks for a push.
+- Never commit secrets. Commit and push finished, checked work without asking first, and say that you did.

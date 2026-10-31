@@ -4,6 +4,7 @@
 //   node scripts/keep.mjs --save "why this change is worth keeping"
 //   node scripts/keep.mjs                      same, with an automatic message
 //   node scripts/keep.mjs --check              what is unsaved, including files git ignores
+//   node scripts/keep.mjs --push               send the saves to the remote on their own
 //   node scripts/keep.mjs --list               the last fifteen saves
 //   node scripts/keep.mjs --restore <path>     bring the newest saved copy of a file back
 //   node scripts/keep.mjs --restore <path> --from <sha>   reach further back
@@ -56,6 +57,29 @@ function save(message) {
   console.log(`Saved ${files.length} file${files.length === 1 ? '' : 's'} as ${sha}: ${subject}`);
   for (const file of files.slice(0, 12)) console.log(`  ${file}`);
   if (files.length > 12) console.log(`  and ${files.length - 12} more`);
+  push();
+}
+
+/** Send the saves to the remote: a commit that never leaves this workspace can be lost with it. */
+function push() {
+  let remote = '';
+  try {
+    remote = git(['remote']).trim().split('\n').filter(Boolean)[0] || '';
+  } catch {
+    remote = '';
+  }
+  if (!remote) {
+    console.log('No git remote is configured, so the save stays in this workspace only.');
+    return;
+  }
+  try {
+    git(['push', '-q', '-u', remote, 'HEAD'], { stdio: 'pipe' });
+    console.log(`Pushed to ${remote}.`);
+  } catch (error) {
+    const detail = String(error.stderr || error.message || '').trim().split('\n').pop();
+    console.log(`Saved, but the push failed: ${detail}`);
+    process.exitCode = 1;
+  }
 }
 
 function list() {
@@ -117,12 +141,13 @@ const flag = args[0];
 
 if (flag === '--list') list();
 else if (flag === '--check') check();
+else if (flag === '--push') push();
 else if (flag === '--restore') {
   const path = args[1];
   const fromIndex = args.indexOf('--from');
   restore(path, fromIndex === -1 ? undefined : args[fromIndex + 1]);
 } else if (flag === '--save') save(args.slice(1).join(' '));
 else if (flag) {
-  console.error(`Unknown option ${flag}. Use --save, --check, --list or --restore <path> [--from <sha>].`);
+  console.error(`Unknown option ${flag}. Use --save, --push, --check, --list or --restore <path> [--from <sha>].`);
   process.exit(1);
 } else save();
