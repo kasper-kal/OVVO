@@ -141,9 +141,13 @@ export function DeveloperPage() {
                 <div className="row">
                   <Button
                     variant="ghost"
-                    onClick={() =>
-                      setDevOverrides({ battery: power.level ?? 0.5, charging: power.charging })
-                    }
+                    /*
+                     * Only the level is taken over. The charger is its own switch, and a browser
+                     * that reports no battery is treated by the app as plugged in -- copying that
+                     * would start every simulation in the full interface, so a pretend 4% would
+                     * arrive with saving switched off.
+                     */
+                    onClick={() => setDevOverrides({ battery: power.level ?? 0.5 })}
                   >
                     {t('Pretend a level')}
                   </Button>
