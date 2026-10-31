@@ -27,7 +27,6 @@ picture can be swapped without hunting through the code.
 | `palazzo.jpg` | Palazzo | A stone palace dome with gold ornament against blue sky. |
 | `storm-tide.jpg` | Storm Tide | A painted stormy sea, palette-knife sky. |
 | `skyline.jpg` | Skyline | A city skyline at night with amber windows. |
-| `capsule.jpg` | Capsule | A stack of glossy white pills on black. |
 | `toscane.jpg` | Toscane | The leaning tower, pale marble and terracotta. |
 | `contact.jpg` | Contact | Two hands reaching, greyscale on black. |
 | `loggia.jpg` | Loggia | A stone arch over turquoise sea, sunlight and leaves. |

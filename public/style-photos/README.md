@@ -31,7 +31,7 @@ remains.
 | Arches          | `arches.jpg`          | Summit       | `summit.jpg`      |
 | Cloudbank       | `cloudbank.jpg`       | Riviera      | `riviera.jpg`     |
 | Palazzo         | `palazzo.jpg`         | Storm Tide   | `storm-tide.jpg`  |
-| Skyline         | `skyline.jpg`         | Capsule      | `capsule.jpg`     |
+| Skyline         | `skyline.jpg`         |                 |                     |
 | Toscane         | `toscane.jpg`         | Contact      | `contact.jpg`     |
 | Loggia          | `loggia.jpg`          |              |                   |
 | Nostalgia       | `nostalgia.jpg`       | Evening Glass| `avondglas.jpg`   |

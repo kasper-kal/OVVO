@@ -1204,21 +1204,7 @@ export const STYLES: StyleDef[] = [
     shape: 'round',
     /* The city lights are the point of the picture, so the wash stays off them. */
     photo: { scrim: 0.08, scrimNight: 0.02, glass: true },
-  },
-  {
-    id: 'capsule',
-    name: 'Capsule',
-    nameNl: 'Capsule',
-    group: 'black',
-    light: ['#0d0d10', '#141418', '#FFFFFF', '#9FA6B2'],
-    display: 'manrope',
-    sub: 'grotesk',
-    body: 'inter',
-    ui: 'manrope',
-    shape: 'pill',
-    photo: { scrim: 0.15, scrimNight: 0.02, glass: true },
-  },
-  {
+  },  {
     id: 'toscane',
     name: 'Toscane',
     nameNl: 'Toscane',

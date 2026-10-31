@@ -43,7 +43,7 @@ const DEMOS = [
    so they wear the card that already exists in the app: its own radius, drawn from --shape-scale. */
 const SHIPPED_ROWS = [
   { shape: 'Soft', styles: ['perron', 'skyline'] },
-  { shape: 'Square', styles: ['tram', 'capsule'] },
+  { shape: 'Square', styles: ['tram'] },
   { shape: 'Round', styles: ['obsidian', 'toscane'] },
   { shape: 'Pill', styles: ['contrast', 'contact'] },
   { shape: 'Line', styles: ['night-aa', 'loggia'] },
