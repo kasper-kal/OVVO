@@ -287,7 +287,7 @@ export function WrappedPage() {
           </button>
 
           {last ? (
-            <div className="wrapped-actions">
+            <div className="wrapped-actions wrapped-foot__actions">
               <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
               </Button>

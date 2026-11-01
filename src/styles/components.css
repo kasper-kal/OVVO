@@ -7945,9 +7945,24 @@
   position: relative;
   z-index: 2;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding-top: 10px;
+}
+
+/*
+ * **The last chapter's three controls get a row of their own.**
+ *
+ * Put in one line with the back arrow and the chapter count they wrapped into a ragged two-column
+ * block with the arrow floating beside it, which reads as a mistake at the end of a story that has
+ * been laid out deliberately for nine screens. The actions take a full row under the arrow, and the
+ * count keeps its corner.
+ */
+.wrapped-foot:has(.wrapped-foot__actions) .wrapped-foot__actions {
+  order: 3;
+  flex: 1 1 100%;
+  justify-content: center;
 }
 
 .wrapped-foot .wrapped-actions {
