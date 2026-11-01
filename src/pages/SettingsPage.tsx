@@ -385,8 +385,8 @@ export function SettingsPage() {
             <p className="field__hint">
               {t('The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.')}
             </p>
-            <div>
-              <Link className="style-link" to="/styles">
+            <div className="row">
+              <Link className="btn" to="/styles">
                 {t('Choose a style')}
               </Link>
             </div>
