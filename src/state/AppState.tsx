@@ -25,6 +25,7 @@ import { clearDevOverrides } from '../lib/dev';
 import { applyStyle, FONT_FAMILIES, styleById, stylePhotograph, stylePhotoPath, type StyleDef } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
+import { noteWear, recordBoard, recordHeart, recordRun } from '../lib/wrapped';
 import {
   DEFAULT_SETTINGS,
   migrateSettings,
@@ -466,6 +467,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => writeStored(STORAGE_KEYS.locationConsent, locationConsent), [locationConsent]);
   useEffect(() => writeStored(STORAGE_KEYS.locationFix, userLocation), [userLocation]);
 
+  /*
+   * **The look being worn, counted once a day.** Opening the app is wearing it rather than choosing
+   * it, and a traveller who never opens the look picker still wore one all year — so the count
+   * starts here, not at the picker.
+   */
+  useEffect(() => {
+    noteWear(settings.styleId);
+  }, [settings.styleId]);
+
   /* ------------------------------------------- settings -> document adapters */
   useEffect(() => {
     const root = document.documentElement;
@@ -726,6 +736,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const entry: SearchHistoryEntry = { id, query, at: Date.now() };
       return [entry, ...current.filter((item) => item.id !== id)].slice(0, 12);
     });
+    /*
+     * And the year's own line — the drawer forgets, this does not (`lib/wrapped`). The two ends are
+     * written as the traveller named them and the hour is the hour the journey was asked to start,
+     * which is the hour a December card can honestly talk about.
+     */
+    recordRun({
+      at: Date.now(),
+      from: query.fromLabel ?? query.fromStopId,
+      to: query.toLabel ?? query.toStopId,
+      hour: Math.floor(query.time / 60) % 24,
+    });
   }, []);
 
   const adoptSearch = useCallback((state: PlannerSearchState) => {
@@ -745,7 +766,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppContextValue = {
     settings,
-    updateSettings: (patch) => setSettings((current) => ({ ...current, ...patch })),
+    updateSettings: (patch) => {
+      /* A new look is a day wearing it — one line a day, so two changes in an afternoon are one. */
+      if (patch.styleId && patch.styleId !== settings.styleId) noteWear(patch.styleId);
+      setSettings((current) => ({ ...current, ...patch }));
+    },
     resetSettings: () => setSettings(DEFAULT_SETTINGS),
     appearance,
     reduceMotion,
@@ -764,6 +789,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * of what the message was claiming.
      */
     toggleFavourite: (stopId) => {
+      /* Hearts are counted when one is added. Taking one back is not a second place liked. */
+      if (!favouriteStopIds.includes(stopId)) recordHeart();
       let added = false;
       setFavouriteStopIds((current) => {
         if (current.includes(stopId)) return current.filter((id) => id !== stopId);
@@ -780,6 +807,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * pinned in, which is the order the traveller built. Removal is the same one-way filter.
      */
     toggleBoardStop: (stopId) => {
+      /* A board opened is a line in the year; unpinning one is not. */
+      if (!boardStopIds.includes(stopId)) recordBoard(stopId);
       let added = false;
       setBoardStopIdsState((current) => {
         if (current.includes(stopId)) return current.filter((id) => id !== stopId);

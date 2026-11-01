@@ -132,4 +132,11 @@ export const STORAGE_KEYS = {
    * come back, and clearing the app's stored data brings it back with everything else.
    */
   install: 'install-asked',
+  /*
+   * **The year's tally** (`lib/wrapped`): one line per search run, per board opened, per day a look
+   * was worn, written from the day the tally started so a December card has a year to read. It is
+   * an ordinary slot rather than a device-only one, because a signed-in traveller should find their
+   * year on their other phone, exactly like their favourites.
+   */
+  wrapped: 'wrapped',
 } as const;

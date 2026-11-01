@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { noteRunOutcome } from '../lib/wrapped';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -141,6 +142,25 @@ export function ResultsPage() {
   const searchKey = search
     ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
     : '';
+
+  /*
+   * **The year's line, filled in once the list is there.**
+   *
+   * `startSearch` writes the run knowing only the two ends and the hour. This hands the answer's
+   * own facts to `lib/wrapped` — the changes, how long the first one on the list takes, and the
+   * lines — for the run that was just started. `noteRunOutcome` fills only a run that has no
+   * minutes yet, so a re-render, a filter or a sort cannot count the same list twice.
+   */
+  useEffect(() => {
+    const first = journeys[0];
+    if (!first || !first.legs.length) return;
+    const lines = [...new Set(first.legs.map((leg) => leg.lineNumber).filter((line): line is string => Boolean(line)))];
+    noteRunOutcome({
+      changes: Math.max(0, first.legs.length - 1),
+      minutes: first.legs[first.legs.length - 1].arrival - first.legs[0].departure,
+      lines,
+    });
+  }, [journeys]);
   /*
    * **The hold, from the panel.**
    *
