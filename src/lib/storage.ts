@@ -1,4 +1,10 @@
-/** Thin, failure-tolerant localStorage wrapper. Everything stays on this device. */
+/**
+ * Thin, failure-tolerant localStorage wrapper.
+ *
+ * Values live in this browser first — that is what makes the app work with no account and no
+ * network — and follow the account when one is signed in (`lib/account` sends the whole store as
+ * one document and adopts it when the account has moved on).
+ */
 
 const PREFIX = 'ov-planner:v1:';
 
@@ -13,6 +19,11 @@ export const STORAGE_PREFIX = PREFIX;
  * added next month is synced without anybody remembering to hook it up.
  */
 const listeners = new Set<() => void>();
+
+/** Tell anything listening that values have changed from outside a normal write (a sync landing). */
+export function announceStored(): void {
+  for (const listener of listeners) listener();
+}
 
 export function onStoredChange(listener: () => void): () => void {
   listeners.add(listener);

@@ -9,9 +9,11 @@
  *
  * Three rules keep it honest:
  *
- *   - **The browser's copy wins.** A device that already has an answer keeps it, and the server
- *     only fills in the gaps. Two devices that both have a saved journey end up with both, and
- *     neither device's list is emptied by the other's older one.
+ *   - **The account is the copy that counts, once a device has met it.** A device that has never
+ *     synced keeps what it has and the gaps are filled from the account, so signing in cannot empty
+ *     a phone that was already in use. From then on, when the account has moved on, this device
+ *     adopts it whole: a favourite removed on the other phone is removed here too, instead of being
+ *     quietly pushed back to the server on the next save.
  *   - **A save is never a blind overwrite.** Every save names the revision it was built on, so a
  *     second device arriving a second late is told to merge rather than allowed to erase.
  *   - **Nothing is sent until somebody signs in.** Signed out, the app is exactly what it was: a
@@ -34,7 +36,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth } from './firebase';
-import { STORAGE_PREFIX, onStoredChange } from './storage';
+import { STORAGE_PREFIX, announceStored, onStoredChange } from './storage';
 
 /** Where the address for a half-finished email-link sign-in is kept, while the mail is in flight. */
 const LINK_EMAIL_KEY = STORAGE_PREFIX + 'account-email';
@@ -222,10 +224,26 @@ export function localDoc(): CloudDoc {
   return doc;
 }
 
-/** Fill in what this browser does not already have. Returns whether anything was written. */
-export function applyRemote(doc: CloudDoc): boolean {
+/**
+ * The values that describe *this* device rather than the traveller: where they said the phone may
+ * be, and whether they have already been asked about installing the app. They travel in the
+ * document because it is the simplest thing to send, but they are never taken back from it - an
+ * answer given on a tablet is not an answer given here.
+ */
+const DEVICE_ONLY = new Set(['location-consent', 'location-fix', 'approximate-location', 'install-asked']);
+
+/**
+ * **Read the account's copy into this browser**, either by filling gaps or by adopting it whole.
+ *
+ * `fill` is for the first connection: a device that has been used signed out keeps every answer it
+ * already has. `adopt` is for a device that has synced before and is behind - the account is the
+ * copy that counts, so a removed favourite stays removed instead of being resurrected by an old
+ * local list on the next save.
+ */
+export function applyRemote(doc: CloudDoc, mode: 'fill' | 'adopt' = 'fill'): boolean {
   let changed = false;
   for (const [name, value] of Object.entries(doc)) {
+    if (DEVICE_ONLY.has(name)) continue;
     const key = STORAGE_PREFIX + name;
     let existing: string | null = null;
     try {
@@ -233,14 +251,17 @@ export function applyRemote(doc: CloudDoc): boolean {
     } catch {
       existing = null;
     }
-    if (existing !== null) continue;
+    const next = JSON.stringify(value);
+    if (mode === 'fill' && existing !== null) continue;
+    if (existing === next) continue;
     try {
-      window.localStorage.setItem(key, JSON.stringify(value));
+      window.localStorage.setItem(key, next);
       changed = true;
     } catch {
       /* full or blocked */
     }
   }
+  if (changed) announceStored();
   return changed;
 }
 
@@ -249,6 +270,16 @@ function saveRev(rev: number): void {
     window.localStorage.setItem(REV_KEY, JSON.stringify(rev));
   } catch {
     /* nothing depends on it being stored */
+  }
+}
+
+/** The account's revision this browser last read or wrote, or `null` if it never has. */
+function readRev(): number | null {
+  try {
+    const raw = window.localStorage.getItem(REV_KEY);
+    return raw === null ? null : (JSON.parse(raw) as number);
+  } catch {
+    return null;
   }
 }
 
@@ -288,9 +319,18 @@ export async function syncNow(): Promise<'signed-out' | 'ok' | 'failed'> {
     if (pulled.status !== 200) return 'failed';
 
     const remote = pulled.body;
-    applyRemote(remote.doc ?? {});
+    const known = readRev();
+    const serverRev = remote.rev ?? 0;
+    /*
+     * **Stale here, current there: the account wins.**
+     *
+     * A device that has synced before and is behind adopts the account's copy as it stands, which
+     * is what makes a deletion on one phone a deletion everywhere. A device that has never synced
+     * keeps its own answers and only has gaps filled, so the first sign-in cannot empty it.
+     */
+    applyRemote(remote.doc ?? {}, known !== null && serverRev > known ? 'adopt' : 'fill');
 
-    const saved = await save(remote.rev ?? 0, user);
+    const saved = await save(serverRev, user);
     return saved ? 'ok' : 'failed';
   } catch {
     return 'failed';

@@ -221,7 +221,7 @@ export function SettingsPage() {
       <PageHeader
         title={t('Settings')}
         description={t(
-          'Appearance, defaults and locally stored data. Every change applies immediately and is stored in this browser.',
+          'Appearance, defaults and your saved data. Every change applies immediately, and follows your account when you are signed in.',
         )}
         /* The H1 was a 1×1 sr-only box at every width, so the page opened on RESET TO DEFAULTS
            with nothing above it saying where the traveller was (11.4). */

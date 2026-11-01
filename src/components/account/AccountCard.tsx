@@ -96,7 +96,7 @@ export function AccountCard() {
       ) : account === null ? (
         <div className="row-wrap" style={{ justifyContent: 'space-between' }}>
           <p className="t-sm t-muted" style={{ margin: 0 }}>
-            You are signed out. Your data is saved on this device only.
+            You are signed out. Everything is saved on this device only.
           </p>
           <Link className="btn btn--accent btn--sm" to="/signin" state={{ from: '/settings' }}>
             Sign in
@@ -120,7 +120,7 @@ export function AccountCard() {
 
           {failed ? (
             <p className="t-sm t-muted" style={{ margin: 0 }}>
-              Couldn&rsquo;t sync. Your data is still saved on this device.
+              Couldn&rsquo;t reach your account. Your changes are saved on this device.
             </p>
           ) : null}
           {note ? (
@@ -128,6 +128,11 @@ export function AccountCard() {
               {note}
             </p>
           ) : null}
+
+          <p className="t-sm t-muted" style={{ margin: 0 }}>
+            Your stops, journeys and settings are saved with this account, so they are on your other
+            devices too.
+          </p>
 
           <div className="row-wrap">
             <Button variant="surface" size="sm" onClick={() => fileInput.current?.click()}>
@@ -177,8 +182,8 @@ export function AccountCard() {
         }
       >
         <p className="t-sm">
-          Your saved stops and journeys on this device are not touched. The reset at the foot of
-          this page empties those.
+          Everything saved with the account goes with it. This device keeps its own copy until you
+          empty it with the reset at the foot of this page.
         </p>
       </Dialog>
     </Card>
