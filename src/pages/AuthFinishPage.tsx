@@ -10,13 +10,6 @@ import {
 
 const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as const;
 
-/**
- * **The page the emailed link lands on, and it should feel like one tap.**
- *
- * When the address is remembered the sign-in finishes on its own and the traveller is put on the
- * home screen — no button, no "continue", nothing to read. It only asks for the address when the
- * link was opened somewhere new, which is the case the link exists for.
- */
 export function AuthFinishPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState(() => rememberedLinkEmail());
@@ -49,13 +42,10 @@ export function AuthFinishPage() {
     return (
       <main style={SHELL}>
         <div className="stack-4">
-          <h1 className="t-title">Nothing to finish</h1>
-          <p className="t-sm t-muted">
-            This page completes a sign-in link from your email. Open the link, or sign in another
-            way.
-          </p>
+          <h1 className="t-title">Sign in</h1>
+          <p className="t-sm t-muted">This link is invalid or has expired.</p>
           <p className="t-sm">
-            <Link to="/signin">Sign in</Link>
+            <Link to="/signin">Back to sign in</Link>
           </p>
         </div>
       </main>
@@ -63,9 +53,10 @@ export function AuthFinishPage() {
   }
 
   return (
-    <main className="signin">
+    <main style={SHELL}>
       <div className="stack-4">
-        <h1 className="t-title">{busy ? 'Signing you in' : 'One more step'}</h1>
+        <h1 className="t-title">Sign in</h1>
+        <p className="t-sm t-muted">Confirm the email address this link was sent to.</p>
 
         {problem !== null ? (
           <>
@@ -73,7 +64,7 @@ export function AuthFinishPage() {
               {problem}
             </p>
             <p className="t-sm">
-              <Link to="/signin">Ask for a new link</Link>
+              <Link to="/signin">Back to sign in</Link>
             </p>
           </>
         ) : (
@@ -86,7 +77,7 @@ export function AuthFinishPage() {
               }}
             >
               <label className="field">
-                <span className="field__label">The address the link came to</span>
+                <span className="field__label">Email</span>
                 <input
                   className="input"
                   type="email"
@@ -98,7 +89,7 @@ export function AuthFinishPage() {
                 />
               </label>
               <Button variant="accent" block type="submit" disabled={busy}>
-                {busy ? 'Signing in' : 'Finish signing in'}
+                {busy ? 'Signing in' : 'Sign in'}
               </Button>
             </form>
           </Card>

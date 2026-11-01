@@ -16,16 +16,14 @@ type Mode = 'link' | 'password';
 const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as const;
 
 /**
- * **One field. One button. No decisions.**
+ * **The sign-in screen, in the words every other site already uses.**
  *
- * This screen used to offer three methods, four quiet buttons and three banners at once, which
- * made joining OVVO look like filling in a form at a bank. It is one question now — the email
- * address — and the honest default is the one with no password: type the address, get a link, tap
- * it, done. That is two taps and nothing to invent or forget, and it works the same whether the
- * account is brand new or years old, so there is no "sign in or create an account?" to get wrong.
+ * One field and one button: the default is a link by email, because it asks for nothing to be
+ * invented and works whether the account is new or old. A password is one quiet line away.
  *
- * A password is still there for anyone who wants it, one quiet line away. The reset mail and the
- * account itself are one tap from the thing they belong to, not a menu of their own.
+ * The wording is deliberately ordinary — "Sign in", "Check your email", "Resend email",
+ * "Use a different email" — because a sign-in screen is the last place to be original. Every
+ * sentence here is the sentence a traveller has already read a hundred times elsewhere.
  */
 export function SignInPage() {
   const navigate = useNavigate();
@@ -38,7 +36,8 @@ export function SignInPage() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [offerCreate, setOfferCreate] = useState(false);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ to: string; purpose: 'link' | 'reset' } | null>(null);
+  const [resent, setResent] = useState(false);
 
   const go = async (work: () => Promise<void>, then: () => void) => {
     setBusy(true);
@@ -49,7 +48,6 @@ export function SignInPage() {
       then();
     } catch (error) {
       const code = (error as { code?: string } | null)?.code ?? '';
-      /* The one failure worth a second button: no account on this address yet. */
       setOfferCreate(code === 'auth/user-not-found' || code === 'auth/invalid-credential');
       setProblem(explainAuthError(error));
     } finally {
@@ -59,35 +57,72 @@ export function SignInPage() {
 
   const back = () => navigate(returnTo, { replace: true });
 
-  /* ------------------------------------------------- the link has been sent */
+  /* --------------------------------------------------- email sent, waiting */
 
-  if (sentTo !== null) {
+  if (sent !== null) {
+    const resend = async () => {
+      setBusy(true);
+      setProblem(null);
+      setResent(false);
+      try {
+        if (sent.purpose === 'reset') await sendResetMail(sent.to);
+        else await sendSignInLink(sent.to);
+        setResent(true);
+      } catch (error) {
+        setProblem(explainAuthError(error));
+      } finally {
+        setBusy(false);
+      }
+    };
+
     return (
       <main style={SHELL}>
         <div className="stack-4">
           <div className="stack-1">
             <h1 className="t-title">Check your email</h1>
             <p className="t-sm t-muted">
-              We sent {mode === 'password' ? 'a reset link' : 'a sign-in link'} to <b>{sentTo}</b>.
+              {sent.purpose === 'reset'
+                ? 'We sent a password reset link to '
+                : 'We sent a sign-in link to '}
+              <b>{sent.to}</b>.
             </p>
           </div>
+
           <Card>
             <div className="stack-3">
               <p className="t-sm">
-                {mode === 'password'
-                  ? 'Open it and choose a new password. The link works once.'
-                  : 'Open it on this device and you are in. The link works once, so use it soon.'}
+                {sent.purpose === 'reset'
+                  ? 'Click the link in the email to choose a new password.'
+                  : 'Click the link in the email to sign in. It works once and expires after an hour.'}
               </p>
-              <p className="t-sm t-faint">
-                Nothing arrived? Look in the spam folder, then ask for another one.
-              </p>
+              <p className="t-sm t-muted">Didn&rsquo;t get it? Check your spam folder.</p>
+
+              {resent ? <p className="t-sm t-muted">Email sent again.</p> : null}
+              {problem !== null ? (
+                <p className="t-sm" role="alert" style={{ margin: 0 }}>
+                  {problem}
+                </p>
+              ) : null}
+
               <div className="row-wrap">
-                <Button variant="surface" size="sm" onClick={() => setSentTo(null)}>
-                  Use a different address
+                <Button variant="surface" size="sm" disabled={busy} onClick={() => void resend()}>
+                  {busy ? 'Sending' : 'Resend email'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSent(null);
+                    setResent(false);
+                    setProblem(null);
+                  }}
+                >
+                  Use a different email
                 </Button>
               </div>
             </div>
           </Card>
+
           <p className="t-sm">
             <Link to={returnTo}>Back to OVVO</Link>
           </p>
@@ -96,20 +131,20 @@ export function SignInPage() {
     );
   }
 
-  /* ---------------------------------------------------------------- the form */
+  /* -------------------------------------------------------------- the form */
 
   return (
     <main style={SHELL}>
       <div className="stack-4">
         <div className="stack-1">
           <h1 className="t-title">Sign in</h1>
-          <p className="t-sm t-muted">Your saved stops and journeys follow you to every device.</p>
+          <p className="t-sm t-muted">Sync your stops and journeys across your devices.</p>
         </div>
 
         {!firebaseConfigured ? (
-          <Banner tone="coral" icon="info" title="Sign-in is off in this build">
-            The sign-in keys were missing when this copy was built. Everything else works; it just
-            stays on this device.
+          <Banner tone="coral" icon="info" title="Sign-in is unavailable">
+            This build was published without sign-in keys. Everything else works; your data stays on
+            this device.
           </Banner>
         ) : null}
 
@@ -136,7 +171,7 @@ export function SignInPage() {
                   const address = email.trim();
                   void go(
                     () => sendSignInLink(address),
-                    () => setSentTo(address),
+                    () => setSent({ to: address, purpose: 'link' }),
                   );
                   return;
                 }
@@ -192,12 +227,12 @@ export function SignInPage() {
                     )
                   }
                 >
-                  Make an account with this email
+                  Create account
                 </Button>
               ) : null}
 
               <Button variant="accent" block type="submit" disabled={busy || !firebaseConfigured}>
-                {mode === 'link' ? 'Email me a sign-in link' : 'Sign in'}
+                {busy ? 'Please wait' : mode === 'link' ? 'Send sign-in link' : 'Sign in'}
               </Button>
             </form>
 
@@ -211,21 +246,22 @@ export function SignInPage() {
                   setOfferCreate(false);
                 }}
               >
-                {mode === 'link' ? 'Use a password instead' : 'Email me a link instead'}
+                {mode === 'link' ? 'Use a password instead' : 'Use a sign-in link instead'}
               </Button>
               {mode === 'password' ? (
                 <Button
                   size="sm"
                   variant="ghost"
                   disabled={busy || email.trim().length === 0}
-                  onClick={() =>
+                  onClick={() => {
+                    const address = email.trim();
                     void go(
-                      () => sendResetMail(email),
-                      () => setSentTo(email.trim()),
-                    )
-                  }
+                      () => sendResetMail(address),
+                      () => setSent({ to: address, purpose: 'reset' }),
+                    );
+                  }}
                 >
-                  Forgot password
+                  Forgot password?
                 </Button>
               ) : null}
             </div>

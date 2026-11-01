@@ -127,33 +127,33 @@ export function explainAuthError(error: unknown): string {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-      return 'That email and password do not match an account.';
+      return 'Incorrect email or password.';
     case 'auth/invalid-email':
-      return 'That does not look like an email address.';
+      return 'Enter a valid email address.';
     case 'auth/missing-email':
-      return 'Type your email address first.';
+      return 'Enter your email address.';
     case 'auth/email-already-in-use':
-      return 'That address already has an account. Sign in instead.';
+      return 'An account with this email already exists.';
     case 'auth/weak-password':
-      return 'Use at least six characters for the password.';
+      return 'Password must be at least 6 characters.';
     case 'auth/too-many-requests':
-      return 'Too many tries. Wait a minute, then try again.';
+      return 'Too many attempts. Try again later.';
     case 'auth/popup-closed-by-user':
     case 'auth/cancelled-popup-request':
-      return 'The Google window closed before it finished.';
+      return 'Google sign-in was cancelled.';
     case 'auth/operation-not-allowed':
-      return 'That way of signing in is switched off in Firebase.';
+      return 'This sign-in method is disabled.';
     case 'auth/unauthorized-domain':
-      return 'This address is not allowed in Firebase yet.';
+      return 'This domain is not authorized for sign-in.';
     case 'auth/network-request-failed':
-      return 'No connection to the sign-in service.';
+      return 'Network error. Check your connection.';
     case 'auth/invalid-action-code':
     case 'auth/expired-action-code':
-      return 'That sign-in link has expired. Ask for a new one.';
+      return 'This link is invalid or has expired.';
     case 'no-firebase':
-      return 'This build has no sign-in keys, so signing in is switched off.';
+      return 'Sign-in is unavailable in this build.';
     default:
-      return 'That did not work. Try again in a moment.';
+      return 'Something went wrong. Please try again.';
   }
 }
 

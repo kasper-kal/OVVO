@@ -6,14 +6,6 @@ import { eraseRemote, signOutNow, syncNow, watchAccount } from '../../lib/accoun
 
 type Status = 'idle' | 'syncing' | 'ok' | 'failed';
 
-/**
- * **Three lines, not a paragraph.**
- *
- * This card used to explain the whole arrangement in a screenful of prose. What a traveller wants
- * to know is one thing — am I signed in, and is my stuff safe — so that is all it says. The rest
- * (what signing in buys, what stays local) is said once on the sign-in screen, where it belongs,
- * because that is where the decision is made.
- */
 export function AccountCard() {
   const [email, setEmail] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>('idle');
@@ -35,14 +27,14 @@ export function AccountCard() {
 
   return (
     <Card>
-      <SectionHeading title="Your account" />
+      <SectionHeading title="Account" />
 
       {!firebaseConfigured ? (
-        <p className="t-sm t-muted">Sign-in is off in this build. Your things stay on this device.</p>
+        <p className="t-sm t-muted">Sign-in is unavailable in this build.</p>
       ) : email === null ? (
         <div className="row-wrap">
           <p className="t-sm t-muted" style={{ margin: 0 }}>
-            Not signed in. Everything stays in this browser.
+            You are signed out. Your data is saved on this device only.
           </p>
           <Link className="btn btn--accent" to="/signin" state={{ from: '/settings' }}>
             Sign in
@@ -64,13 +56,7 @@ export function AccountCard() {
               onClick={() => void save()}
               disabled={status === 'syncing'}
             >
-              {status === 'syncing'
-                ? 'Saving'
-                : status === 'ok'
-                  ? 'Saved'
-                  : status === 'failed'
-                    ? 'Try again'
-                    : 'Save now'}
+              {status === 'syncing' ? 'Syncing' : status === 'ok' ? 'Synced' : 'Sync now'}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => void signOutNow()}>
               Sign out
@@ -82,13 +68,13 @@ export function AccountCard() {
                 void eraseRemote();
               }}
             >
-              Remove the server copy
+              Delete cloud data
             </Button>
           </div>
 
           {status === 'failed' ? (
             <p className="t-sm t-muted" style={{ margin: 0 }}>
-              The server did not answer. Your things are still on this device.
+              Couldn&rsquo;t sync. Your data is still saved on this device.
             </p>
           ) : null}
         </div>
