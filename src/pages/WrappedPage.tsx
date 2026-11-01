@@ -9,7 +9,8 @@ import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { playChapter, startSound, stopSound, whenTrackEnds } from '../lib/wrappedSound';
+import { playChapter, scoreTime, startSound, stopSound, whenTrackEnds } from '../lib/wrappedSound';
+import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 
 /** How many dots fly out of the year's total when it lands. */
 const BURST = 14;
@@ -130,7 +131,17 @@ export function WrappedPage() {
   const [dragX, setDragX] = useState(0);
   const dragStart = useRef(0);
 
-  const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id);
+  /*
+   * **The page beats with its own song.**
+   *
+   * Not a timer: the beat index comes from the playing track's clock and the tempo measured from the
+   * audio, so the pulse lands with the music even when the song is not exactly 120. A number now
+   * counts up over two bars of its chapter's song, and the pulse marks each beat underneath it.
+   */
+  const pulse = usePulse(started && sound);
+  const land = barMs(chapter.track) * 2;
+
+  const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
 
   /*
    * **What gets copied is a sentence, not a chapter.**
@@ -162,9 +173,18 @@ export function WrappedPage() {
 
   return (
     <div
-      className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}`}
+      className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}${
+        pulse.fresh && !reduceMotion ? ' is-pulse' : ''
+      }`}
       data-chapter={chapter.id}
-      style={{ '--progress': progress } as CSSProperties}
+      data-beat={pulse.beat}
+      style={
+        {
+          '--progress': progress,
+          '--beat-ms': `${beatMs(chapter.track)}ms`,
+          '--bar-ms': `${barMs(chapter.track)}ms`,
+        } as CSSProperties
+      }
       role="region"
       aria-label={t('OVVO Wrapped {year}', { year })}
       onPointerDown={(event) => {
@@ -486,7 +506,7 @@ export function WrappedPage() {
  *
  * Reduced motion gets the answer immediately, which is the whole point of the setting.
  */
-function useCountUp(target: number, active: boolean, key: string): number {
+function useCountUp(target: number, active: boolean, key: string, duration = 850): number {
   const [value, setValue] = useState(active ? 0 : target);
   useEffect(() => {
     if (!active) {
@@ -495,7 +515,6 @@ function useCountUp(target: number, active: boolean, key: string): number {
     }
     let frame = 0;
     const start = performance.now();
-    const duration = 850;
     const tick = (now: number) => {
       const progress = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - progress, 3);
@@ -504,6 +523,36 @@ function useCountUp(target: number, active: boolean, key: string): number {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [target, active, key]);
+  }, [target, active, key, duration]);
   return value;
+}
+
+/**
+ * **A pulse taken from the song, not from a clock on the wall.**
+ *
+ * It watches where the playing track is and asks the measured grid which beat that is. State only
+ * changes when a beat lands, so the page re-renders twice a beat rather than once a frame, and the
+ * `fresh` flag is what the stylesheet uses to punch a page on the beat.
+ */
+function usePulse(active: boolean): { beat: number; fresh: boolean } {
+  const [state, setState] = useState({ beat: 0, fresh: false });
+  useEffect(() => {
+    if (!active) {
+      setState({ beat: 0, fresh: false });
+      return undefined;
+    }
+    let frame = 0;
+    const tick = () => {
+      const at = scoreTime();
+      if (at) {
+        const { index, phase } = beatAt(at.track, at.seconds);
+        const fresh = phase < 0.16;
+        setState((was) => (was.beat === index && was.fresh === fresh ? was : { beat: index, fresh }));
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [active]);
+  return state;
 }

@@ -9267,3 +9267,55 @@
   height: clamp(120px, 20vh, 180px);
   margin: 0;
 }
+
+
+/* ------------------------------------------------------------------ on the beat */
+
+/*
+ * **Everything that moves, moves with the song.**
+ *
+ * The tempo of each track was measured from the audio (`lib/wrappedBeats`), and the page reads the
+ * playing song's clock: `is-pulse` is on for the first fraction of every beat, `--beat-ms` is one
+ * beat of this chapter's song, and `--bar-ms` is four of them. Nothing here counts time on its own.
+ *
+ * A page does not shudder on every beat, either: the number leans in, the hour's lit bar lifts, the
+ * rings breathe once per beat and the spark on the ring catches. That is enough to feel the music
+ * without turning a story into a strobe.
+ */
+.wrapped-stage .wrapped-big,
+.wrapped-stage .wrapped-days,
+.wrapped-stage .wrapped-bars__bar,
+.wrapped-stage .wrapped-arc__spark {
+  transition: transform 110ms ease-out;
+}
+
+.wrapped-stage.is-pulse .wrapped-big,
+.wrapped-stage.is-pulse .wrapped-days {
+  transform: scale(1.014);
+}
+
+.wrapped-stage.is-pulse .wrapped-bars__bar.is-peak {
+  transform: scaleY(1.07);
+}
+
+.wrapped-stage.is-pulse .wrapped-arc__spark {
+  transform: scale(1.08);
+}
+
+/* The rings push out with the beat rather than at their own pace. */
+.wrapped-stage.is-pulse .wrapped-rings i {
+  animation-duration: var(--beat-ms, 900ms);
+}
+
+/* The train on the rail steps on the bar, so the line moves in time with the song. */
+.wrapped-stage.is-pulse .wrapped-route__train {
+  animation-duration: calc(var(--bar-ms, 2000ms) * 2);
+}
+
+/* Reduced motion is respected: no pulse class is ever added, and this guards a stray one. */
+.wrapped-stage.is-still .wrapped-big,
+.wrapped-stage.is-still .wrapped-days,
+.wrapped-stage.is-still .wrapped-bars__bar,
+.wrapped-stage.is-still .wrapped-arc__spark {
+  transition: none;
+}

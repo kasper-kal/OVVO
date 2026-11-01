@@ -265,6 +265,18 @@ export function whenTrackEnds(handler: (() => void) | null): void {
   onEnd = handler;
 }
 
+/**
+ * Where the playing track is, in seconds, and which track it is.
+ *
+ * The deck puts its movement on this clock rather than on a timer of its own: a beat is only a beat
+ * if it comes from the song that is actually playing. Silence returns nothing, which is how the deck
+ * knows to keep still.
+ */
+export function scoreTime(): { track: Track; seconds: number } | null {
+  if (!playing || !active || !active.track) return null;
+  return { track: active.track, seconds: active.el.currentTime };
+}
+
 /** Whether the score is currently allowed to make a sound. */
 export function soundIsOn(): boolean {
   return playing;
