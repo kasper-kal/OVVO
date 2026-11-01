@@ -1727,7 +1727,15 @@ export function styleTokens(
   const cardEdge = raised
     ? edge(card, ink, 3)
     : style.id === 'tram'
-      ? hairline
+      ? /*
+         * **The token, not a colour computed here.**
+         *
+         * Writing a computed neutral (#c3c3c4 measured) put the cards in a second, greyer line than
+         * the warm hairline the install banner and every field wear (#cdc7b8) — the same fault the
+         * reporter had just named, one layer down. Pointing at the token keeps one hairline in
+         * Default, because it *is* the same value, and a style that rewrites that token moves both.
+         */
+         'var(--border-hairline)'
       : mixHex(card, ink, shape.edge);
 
   /*
