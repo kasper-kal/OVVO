@@ -185,7 +185,7 @@ ${part(
     step(
       '1.5',
       'Your address, and what to do if you cannot see it',
-      `<p>Our app on Cloudflare will be called <b>ovvo</b> once I deploy it, and its public address is that name in front of your account's own subdomain, so it looks like <code>https://ovvo.your-subdomain.workers.dev</code>.</p>
+      `<p>Our app on Cloudflare will be called <b>ovvo-vibecreations</b> once I deploy it, and its public address is that name in front of your account's own subdomain, so it looks like <code>https://ovvo-vibecreations.your-subdomain.workers.dev</code>.</p>
        <p>In the same right-hand panel there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it. Whatever it says, put <b>ovvo</b> in front of it, and that is your address.</p>
        <p>If the panel is not there, and the search box gives you the account ID but no subdomain, stop looking. A brand-new account only receives a subdomain the first time this page is opened, and some layouts never print it. Send me the account ID, and I will read the subdomain from Cloudflare with the token and send you the finished address.</p>
        ${copyIt('Either way it ends in <code>.workers.dev</code>, and nothing has to be deployed for the address to be yours.')}`,
@@ -240,7 +240,7 @@ ${part(
       'Create the project',
       `<p>Click <b>Create a project</b>, or <b>Add project</b> at the top.</p>
        <p>Type a name. <b>OVVO</b> is fine; the name is only what you see in the console.</p>
-       ${copyIt('Click the pencil beside the auto-generated <b>project ID</b> and set it to something clean, for example <code>ovvo-app</code>. It appears in a public web address later and <b>cannot be changed afterwards</b>.')}`,
+       ${copyIt('Click the pencil beside the auto-generated <b>project ID</b> and set it to something clean, for example <code>ovvo-vibecreations</code>. It appears in a public web address later and <b>cannot be changed afterwards</b>.')}`,
     ) +
     step(
       '3.3',
@@ -259,7 +259,7 @@ ${part(
     '4.1',
     'Add a web app',
     `<p>On the project overview page, click the <b>web</b> icon (a small screen with a bracket, labelled <code>&lt;/&gt;</code>).</p>
-     <p>Give it a nickname, for example <b>OVVO web</b>. Leave the Firebase Hosting checkbox <b>unticked</b>: we are not using their hosting.</p>
+     <p>Give it a nickname, for example <b>OVVO</b>. Leave the Firebase Hosting checkbox <b>unticked</b>: we are not using their hosting.</p>
      <p>Click <b>Register app</b>.</p>`,
   ) +
     step(
@@ -351,7 +351,7 @@ ${part(
     '7.2',
     'Add your address',
     `<p>Click <b>Add domain</b> and type the host name only: no <code>https://</code> in front, no slash at the end, no path.</p>
-     ${copyIt('From part 1.5, or from the message I send you: <code>ovvo.your-subdomain.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
+     ${copyIt('From part 1.5, or from the message I send you: <code>ovvo-vibecreations.your-subdomain.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
      <p>If the address I deploy to ever turns out to differ from this one, I tell you, and you change this single line. Nothing else in Firebase has to change.</p>`,
   ) +
     step(
