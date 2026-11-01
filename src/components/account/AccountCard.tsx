@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, SectionHeading } from '../ui/primitives';
+import { Button, Card, Dialog, SectionHeading } from '../ui/primitives';
+import { Avatar } from './Avatar';
 import { firebaseConfigured } from '../../lib/firebase';
-import { signOutNow, watchAccount, syncNow } from '../../lib/account';
+import { deleteAccount, signOutNow, syncNow, watchAccount } from '../../lib/account';
+import { PHOTO_KEY, squarePhoto } from '../../lib/avatar';
+import { readStored, writeStored } from '../../lib/storage';
 
-/** The address on this account, kept in one place so both cards agree about it. */
+type Account = { uid: string; email: string | null; name: string | null };
+
 function useAccount() {
-  const [email, setEmail] = useState<string | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const stop = watchAccount((user) => {
-      setEmail(user?.email ?? null);
+      setAccount(user ? { uid: user.uid, email: user.email, name: user.displayName } : null);
       setFailed(false);
       if (user) {
         void syncNow().then((result) => {
@@ -26,18 +30,59 @@ function useAccount() {
     };
   }, []);
 
-  return { email, failed };
+  return { account, failed };
 }
 
 /**
- * **Who you are, and nothing announcing it.**
+ * **The account card: a face, a name, and the two things a person may want to change.**
  *
- * The "Signed in" pill is gone: a card showing your address does not need a badge telling you the
- * address belongs to you. What is left is the email, and one quiet line if a sync did not reach
- * the server.
+ * The avatar is here because an account without a picture is a nameless grey box in every list
+ * that shows one; every account has a colour and the lucide `user` glyph until a photograph is
+ * chosen, and the photograph is a 256px square kept in this browser's own storage, so the existing
+ * sync carries it to the next device without a new upload service.
+ *
+ * Deleting the account is here too, behind a confirmation, because it is the one irreversible
+ * thing on the screen and it belongs where the account is. What it deletes is said plainly in the
+ * dialog: the account and its copy on the server — not this device's saved stops, which the reset
+ * at the foot of the page empties.
  */
 export function AccountCard() {
-  const { email, failed } = useAccount();
+  const { account, failed } = useAccount();
+  const [photo, setPhoto] = useState<string>(() => readStored(PHOTO_KEY, ''));
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  const choosePhoto = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const square = await squarePhoto(file);
+      setPhoto(square);
+      writeStored(PHOTO_KEY, square);
+      setNote(null);
+    } catch {
+      setNote('That picture could not be read. Try another one.');
+    }
+  };
+
+  const removePhoto = () => {
+    setPhoto('');
+    writeStored(PHOTO_KEY, '');
+    setNote(null);
+  };
+
+  const removeAccount = async () => {
+    setDeleting(true);
+    const result = await deleteAccount();
+    setDeleting(false);
+    setConfirmDelete(false);
+    if (result === 'recent-sign-in') {
+      setNote('For safety, sign out and sign in again, then delete the account.');
+    } else if (result === 'failed') {
+      setNote('The account could not be deleted. Nothing was changed.');
+    }
+  };
 
   return (
     <Card>
@@ -45,7 +90,7 @@ export function AccountCard() {
 
       {!firebaseConfigured ? (
         <p className="t-sm t-muted">Sign-in is unavailable in this build.</p>
-      ) : email === null ? (
+      ) : account === null ? (
         <div className="row-wrap">
           <p className="t-sm t-muted" style={{ margin: 0 }}>
             You are signed out. Your data is saved on this device only.
@@ -55,17 +100,81 @@ export function AccountCard() {
           </Link>
         </div>
       ) : (
-        <div className="stack-2">
-          <p className="t-sm" style={{ margin: 0 }}>
-            {email}
-          </p>
+        <div className="stack-3">
+          <div className="row-3">
+            <Avatar seed={account.uid} photo={photo || null} size={56} />
+            <div className="stack-1">
+              <p className="t-sm" style={{ margin: 0 }}>
+                {account.name ?? account.email}
+              </p>
+              {account.name ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  {account.email}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
           {failed ? (
             <p className="t-sm t-muted" style={{ margin: 0 }}>
               Couldn&rsquo;t sync. Your data is still saved on this device.
             </p>
           ) : null}
+          {note ? (
+            <p className="t-sm" role="alert" style={{ margin: 0 }}>
+              {note}
+            </p>
+          ) : null}
+
+          <div className="row-wrap">
+            <Button variant="surface" size="sm" onClick={() => fileInput.current?.click()}>
+              {photo ? 'Change photo' : 'Add photo'}
+            </Button>
+            {photo ? (
+              <Button variant="ghost" size="sm" onClick={removePhoto}>
+                Remove photo
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(true)}>
+              Delete account
+            </Button>
+          </div>
+
+          <input
+            ref={fileInput}
+            className="sr-only"
+            type="file"
+            accept="image/*"
+            aria-label="Choose a profile picture"
+            onChange={(event) => {
+              void choosePhoto(event.target.files?.[0]);
+              event.target.value = '';
+            }}
+          />
         </div>
       )}
+
+      <Dialog
+        open={confirmDelete}
+        title="Delete this account?"
+        description="The account and the copy of your data on the server are deleted. This cannot be undone."
+        onClose={() => setConfirmDelete(false)}
+        footer={
+          <>
+            <Button variant="accent" icon="trash" disabled={deleting} onClick={() => void removeAccount()}>
+              {deleting ? 'Deleting' : 'Delete account'}
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">
+          Your saved stops and journeys on this device are not touched. The reset at the foot of
+          this page empties those.
+        </p>
+      </Dialog>
     </Card>
   );
 }
@@ -73,22 +182,20 @@ export function AccountCard() {
 /**
  * **Signing out is a foot-of-page act, on the lightest surface there is.**
  *
- * It sits beside the app's reset because that is what it is: a way to leave, not a setting. But it
- * wears the *lighter* of the two surfaces on purpose - the reset button below it wears the accent
- * colour and this panel is the plain raised one - because emptying everything is the heavier
- * decision of the pair, and a quiet act should look quiet. Signing out costs nothing either:
- * everything stays on the device, and signing back in brings it down from the server again.
+ * It sits above the app's reset because that is what it is: a way to leave, not a setting. The
+ * plain raised surface is the lighter of the two on purpose - the reset below it wears the accent
+ * colour - because emptying everything is the heavier decision of the pair.
  */
 export function SignOutPanel() {
-  const { email } = useAccount();
+  const { account } = useAccount();
 
-  if (email === null) return null;
+  if (account === null) return null;
 
   return (
     <Card variant="flat">
       <div className="row-wrap" style={{ justifyContent: 'space-between' }}>
         <p className="t-sm t-muted" style={{ margin: 0 }}>
-          Signed in as {email}
+          Signed in as {account.name ?? account.email}
         </p>
         <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
           Sign out

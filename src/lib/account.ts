@@ -21,6 +21,7 @@
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  deleteUser,
   isSignInWithEmailLink,
   onAuthStateChanged,
   sendPasswordResetEmail,
@@ -128,6 +129,27 @@ export async function finishEmailLink(email: string): Promise<void> {
     window.localStorage.removeItem(LINK_EMAIL_KEY);
   } catch {
     /* nothing to clean up */
+  }
+}
+
+/**
+ * **Deleting the account, in the order that cannot lose anything.**
+ *
+ * The copy on the server goes first and the account goes second. If the second step is refused -
+ * Firebase demands a fresh sign-in for a deletion, which is the right rule - the traveller is told
+ * to sign in again rather than being left with a half-deleted account and no explanation.
+ */
+export async function deleteAccount(): Promise<'ok' | 'recent-sign-in' | 'failed'> {
+  const user = auth()?.currentUser;
+  if (!user) return 'failed';
+
+  await eraseRemote();
+  try {
+    await deleteUser(user);
+    return 'ok';
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code ?? '';
+    return code === 'auth/requires-recent-login' ? 'recent-sign-in' : 'failed';
   }
 }
 
