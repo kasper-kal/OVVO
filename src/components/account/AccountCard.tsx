@@ -1,22 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, Pill, SectionHeading } from '../ui/primitives';
+import { Button, Card, SectionHeading } from '../ui/primitives';
 import { firebaseConfigured } from '../../lib/firebase';
 import { signOutNow, watchAccount, syncNow } from '../../lib/account';
 
-/**
- * **The account card says who you are, and nothing else.**
- *
- * There is no Save button, because there is nothing to save by hand. Every write the app makes is
- * already followed by a sync (`lib/account` watches the storage funnel and sends after a change),
- * and signing in sends the whole document. A control that only repeats what happens anyway is a
- * question the traveller should never have been asked - and renaming it "Sync now" was not a fix,
- * it was the same mistake wearing a new word.
- *
- * What is left is the two facts worth knowing - signed in as whom, and whether the last sync
- * reached the server - plus the one action a person actually wants: sign out.
- */
-export function AccountCard() {
+/** The address on this account, kept in one place so both cards agree about it. */
+function useAccount() {
   const [email, setEmail] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -37,6 +26,19 @@ export function AccountCard() {
     };
   }, []);
 
+  return { email, failed };
+}
+
+/**
+ * **Who you are, and nothing announcing it.**
+ *
+ * The "Signed in" pill is gone: a card showing your address does not need a badge telling you the
+ * address belongs to you. What is left is the email, and one quiet line if a sync did not reach
+ * the server.
+ */
+export function AccountCard() {
+  const { email, failed } = useAccount();
+
   return (
     <Card>
       <SectionHeading title="Account" />
@@ -53,27 +55,45 @@ export function AccountCard() {
           </Link>
         </div>
       ) : (
-        <div className="stack-3">
-          <div className="row-wrap">
-            <Pill tone="sage" dot>
-              Signed in
-            </Pill>
-            <span className="t-sm">{email}</span>
-          </div>
-
+        <div className="stack-2">
+          <p className="t-sm" style={{ margin: 0 }}>
+            {email}
+          </p>
           {failed ? (
             <p className="t-sm t-muted" style={{ margin: 0 }}>
               Couldn&rsquo;t sync. Your data is still saved on this device.
             </p>
           ) : null}
-
-          <div className="row-wrap">
-            <Button variant="ghost" size="sm" onClick={() => void signOutNow()}>
-              Sign out
-            </Button>
-          </div>
         </div>
       )}
+    </Card>
+  );
+}
+
+/**
+ * **Signing out is a foot-of-page act, on the lightest surface there is.**
+ *
+ * It sits beside the app's reset because that is what it is: a way to leave, not a setting. But it
+ * wears the *lighter* of the two surfaces on purpose - the reset button below it wears the accent
+ * colour and this panel is the plain raised one - because emptying everything is the heavier
+ * decision of the pair, and a quiet act should look quiet. Signing out costs nothing either:
+ * everything stays on the device, and signing back in brings it down from the server again.
+ */
+export function SignOutPanel() {
+  const { email } = useAccount();
+
+  if (email === null) return null;
+
+  return (
+    <Card variant="flat">
+      <div className="row-wrap" style={{ justifyContent: 'space-between' }}>
+        <p className="t-sm t-muted" style={{ margin: 0 }}>
+          Signed in as {email}
+        </p>
+        <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
+          Sign out
+        </Button>
+      </div>
     </Card>
   );
 }

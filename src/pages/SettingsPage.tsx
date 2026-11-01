@@ -10,7 +10,7 @@ import { Icon, ModeIcon } from '../components/ui/Icons';
 import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
-import { AccountCard } from '../components/account/AccountCard';
+import { AccountCard, SignOutPanel } from '../components/account/AccountCard';
 import { LANGUAGES } from '../lib/i18n';
 import { clearDevOverrides } from '../lib/dev';
 import type { Stop } from '../data/types';
@@ -668,6 +668,12 @@ export function SettingsPage() {
         with them (`resetLocalData`, `state/AppState.tsx`). It is **one** control, not a second
         button beside an older one doing nearly the same job.
       */}
+      {/*
+        Leaving sits above the reset, and on a lighter surface than it: this one only signs you
+        out (your data stays on the device), while the one below deletes everything.
+      */}
+      <SignOutPanel />
+
       <div className="row-wrap">
         <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
           {t('Reset the app')}
