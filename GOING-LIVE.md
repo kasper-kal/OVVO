@@ -35,15 +35,17 @@ is pasted into this project's secrets, not typed into code.
 | Thing | Value | Notes |
 | --- | --- | --- |
 | Cloudflare account | made by the steerer | Account ID still to come — see "Still missing" |
-| Cloudflare Worker name | `ovvo-vibecreations` | Decides the public address |
-| Public address | `ovvo-vibecreations.<subdomain>.workers.dev` | The subdomain is chosen by Cloudflare |
+| Cloudflare subdomain | `vibecreations` | The steerer's choice, 1 November 2026. Workers sit under it |
+| Cloudflare Worker name | `ovvo` | Decides the first part of the public address |
+| Public address | `ovvo.vibecreations.workers.dev` | Worker name, then the subdomain |
 | Firebase project ID | `ovvo-vibecreations` | Cannot be changed once made |
 | Firebase project name | `OVVO` | Display only |
 | Firebase sign-in domain | `ovvo-vibecreations.firebaseapp.com` | Leave `authDomain` exactly as given |
 | Token name | `OVVO deploy` | Display only |
 
-Rule of thumb: **`ovvo-vibecreations` wherever a machine reads the name**, and plain
-**`OVVO`** wherever it is only something a person sees.
+Rule of thumb, after the subdomain was settled: **`OVVO`** is the name a person sees,
+**`ovvo`** is the short name in front of the address, and **`ovvo-vibecreations`** survives
+only as the Firebase project ID, because that one has to be unique across all of Google.
 
 ## Sign-in
 

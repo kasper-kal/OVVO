@@ -185,8 +185,8 @@ ${part(
     step(
       '1.5',
       'Your address, and what to do if you cannot see it',
-      `<p>Our app on Cloudflare will be called <b>ovvo-vibecreations</b> once I deploy it, and its public address is that name in front of your account's own subdomain, so it looks like <code>https://ovvo-vibecreations.your-subdomain.workers.dev</code>.</p>
-       <p>In the same right-hand panel there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it. Whatever it says, put <b>ovvo-vibecreations</b> in front of it, and that is your address.</p>
+      `<p>Our app on Cloudflare will be called <b>ovvo</b> once I deploy it. Your account's subdomain is <b>vibecreations</b>, so your whole address will be <code>https://ovvo.vibecreations.workers.dev</code>.</p>
+       <p>In the same right-hand panel there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it. Yours says <b>vibecreations</b>, and the app's name sits in front of it, which is how the address above is spelled out.</p>
        <p>If the panel is not there, and the search box gives you the account ID but no subdomain, stop looking. A brand-new account only receives a subdomain the first time this page is opened, and some layouts never print it. Send me the account ID, and I will read the subdomain from Cloudflare with the token and send you the finished address.</p>
        ${copyIt('Either way it ends in <code>.workers.dev</code>, and nothing has to be deployed for the address to be yours.')}`,
     ),
@@ -351,7 +351,7 @@ ${part(
     '7.2',
     'Add your address',
     `<p>Click <b>Add domain</b> and type the host name only: no <code>https://</code> in front, no slash at the end, no path.</p>
-     ${copyIt('From part 1.5, or from the message I send you: <code>ovvo-vibecreations.your-subdomain.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
+     ${copyIt('From part 1.5, or from the message I send you: <code>ovvo.vibecreations.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
      <p>If the address I deploy to ever turns out to differ from this one, I tell you, and you change this single line. Nothing else in Firebase has to change.</p>`,
   ) +
     step(
