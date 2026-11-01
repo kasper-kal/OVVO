@@ -10,7 +10,6 @@ import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
 import {
-  playChapter,
   resumeSound,
   scoreTime,
   soundDiagnostics,
