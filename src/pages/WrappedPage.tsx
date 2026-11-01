@@ -11,17 +11,24 @@ import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
 import { playChapter, startSound, stopSound } from '../lib/wrappedSound';
 
+/** How many dots fly out of the year's total when it lands. */
+const BURST = 14;
+
 /**
  * **OVVO Wrapped: the year as a short film, not a report.**
  *
- * Full screen, one idea at a time, each chapter in its own colour with its own visual: a route that
- * draws itself, twenty-four bars with one hour lit, an arc that fills to the share of journeys that
- * needed no change. Numbers count up as they arrive, the deck advances on a swipe, a tap, the arrow
- * keys or the arrow at the foot, and a progress line at the top says how much of the year is left.
+ * Full screen, one idea at a time, and no two chapters laid out the same way. The year's total is an
+ * enormous number with rings pushing out of it; the line you kept coming back to is a rail down the
+ * screen with a dot running it; your hour is twenty-four bars standing on the floor with one lit and
+ * breathing; the share of journeys with no changes is a ring with the number inside it; the longest
+ * trip is a line shot across the whole width; the look you wore is one huge word. Colour changes with
+ * the chapter, and so does the shape of the page, which is the difference between a story and a
+ * slideshow.
  *
- * Ten chapters is about two and a half minutes of reading, which is the length of a story rather
- * than the length of a form. Nothing is on a timer: the traveller sets the pace, and stopping to
- * look at a number is not punished by the deck moving on without them.
+ * Movement is the story too. Chapters slide in from the side the traveller came from, the deck
+ * follows their thumb while they drag, numbers count, bars grow, the rail draws itself and then runs,
+ * and the ring sweeps. Nothing is on a timer: the traveller sets the pace, and stopping to look at a
+ * number is not punished by the deck moving on without them.
  *
  * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
  * a tap: the cover's Begin is the gesture that starts it, Skip the sound starts the story in
@@ -49,6 +56,7 @@ export function WrappedPage() {
   );
 
   const [index, setIndex] = useState(0);
+  const [dir, setDir] = useState(1);
   const [started, setStarted] = useState(false);
   const [sound, setSound] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -59,21 +67,16 @@ export function WrappedPage() {
   const last = index >= story.length - 1;
   const progress = story.length > 1 ? index / (story.length - 1) : 0;
 
+  /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
     (next: number) => {
-      setIndex(Math.max(0, Math.min(story.length - 1, next)));
+      const target = Math.max(0, Math.min(story.length - 1, next));
+      setDir(target < index ? -1 : 1);
+      setIndex(target);
     },
-    [story.length],
+    [index, story.length],
   );
-  const step = useCallback(
-    (direction: number) => {
-      setIndex((current) => {
-        const next = Math.max(0, Math.min(story.length - 1, current + direction));
-        return next;
-      });
-    },
-    [story.length],
-  );
+  const step = useCallback((direction: number) => go(index + direction), [go, index]);
 
   /*
    * Every chapter brings its own piece of music, crossfading in under the one before it.
@@ -107,6 +110,7 @@ export function WrappedPage() {
   useEffect(() => () => stopSound(), []);
 
   const [drag, setDrag] = useState<number | null>(null);
+  const [dragX, setDragX] = useState(0);
   const dragStart = useRef(0);
 
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id);
@@ -148,15 +152,24 @@ export function WrappedPage() {
       onPointerDown={(event) => {
         dragStart.current = event.clientX;
         setDrag(event.clientX);
+        setDragX(0);
+      }}
+      onPointerMove={(event) => {
+        if (drag === null) return;
+        setDragX(event.clientX - dragStart.current);
       }}
       onPointerUp={(event) => {
         if (drag === null) return;
         const dx = event.clientX - dragStart.current;
         setDrag(null);
+        setDragX(0);
         if (Math.abs(dx) < 60) return;
         step(dx < 0 ? 1 : -1);
       }}
-      onPointerCancel={() => setDrag(null)}
+      onPointerCancel={() => {
+        setDrag(null);
+        setDragX(0);
+      }}
     >
       <span className="wrapped-grain" aria-hidden="true" />
       <span className="wrapped-blob wrapped-blob--a" aria-hidden="true" />
@@ -187,109 +200,155 @@ export function WrappedPage() {
         </button>
       </header>
 
-      <div className="wrapped-body" key={chapter.id}>
-        {chapter.kind === 'cover' ? (
-          <div className="wrapped-cover">
-            <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
-              {t(chapter.kicker)}
-            </span>
-            <h1 className="wrapped-title" style={{ '--i': 1 } as CSSProperties}>
-              {chapter.big}
-            </h1>
-            <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
-              {t(chapter.line)}
-            </p>
-            {demo ? (
-              <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
-                <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
+      {/* The thumb moves the chapter, not just the result: the deck leans with the drag. */}
+      <div
+        className={`wrapped-scene${drag !== null ? ' is-dragging' : ''}`}
+        style={{ '--drag': reduceMotion ? 0 : dragX } as CSSProperties}
+      >
+        <div
+          className={`wrapped-body wrapped-body--${chapter.kind}`}
+          data-chapter={chapter.id}
+          data-dir={dir}
+          key={chapter.id}
+        >
+          {chapter.kind === 'cover' ? (
+            <>
+              <span className="wrapped-orbit" aria-hidden="true" />
+              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+                {t(chapter.kicker)}
+              </span>
+              <h1 className="wrapped-title" style={{ '--i': 1 } as CSSProperties}>
+                {chapter.big}
+              </h1>
+              <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
+                {t(chapter.line)}
               </p>
-            ) : null}
-            <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
-              <Button
-                variant="accent"
-                size="md"
-                onClick={() => {
-                  setStarted(true);
-                  startSound(chapter.track, story[1]?.track);
-                  setSound(true);
-                  go(1);
-                }}
-              >
-                {t('Begin')}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => go(1)}>
-                {t('Skip the sound')}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
-              {t(chapter.kicker)}
-            </span>
-            <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
-              {chapter.count !== undefined ? count : chapter.big}
-            </p>
-            <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
-              {t(chapter.line)}
-            </p>
-            {chapter.kind === 'route' && chapter.route ? (
-              <div className="wrapped-route" style={{ '--i': 3 } as CSSProperties}>
-                <span className="wrapped-route__dot" />
-                <span className="wrapped-route__line" aria-hidden="true" />
-                <span className="wrapped-route__dot wrapped-route__dot--end" />
-                <span className="wrapped-route__from">{chapter.route.from}</span>
-                <span className="wrapped-route__to">{chapter.route.to}</span>
+              {demo ? (
+                <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
+                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
+                </p>
+              ) : null}
+              <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
+                <Button
+                  variant="accent"
+                  size="md"
+                  onClick={() => {
+                    setStarted(true);
+                    startSound(chapter.track, story[1]?.track);
+                    setSound(true);
+                    go(1);
+                  }}
+                >
+                  {t('Begin')}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => go(1)}>
+                  {t('Skip the sound')}
+                </Button>
               </div>
-            ) : null}
-            {chapter.kind === 'bars' && chapter.bars ? (
-              <div className="wrapped-bars" style={{ '--i': 3 } as CSSProperties} aria-hidden="true">
-                {chapter.bars.map((value, hour) => (
-                  <span
-                    key={hour}
-                    className={`wrapped-bars__bar${hour === chapter.peak ? ' is-peak' : ''}`}
-                    style={
-                      {
-                        height: `${Math.max(4, (value / Math.max(1, ...(chapter.bars ?? [1]))) * 100)}%`,
-                        '--i': hour,
-                      } as CSSProperties
-                    }
-                  />
-                ))}
-              </div>
-            ) : null}
-            {chapter.kind === 'arc' ? (
-              <div
-                className="wrapped-arc"
-                style={{ '--arc': chapter.arc ?? 0, '--i': 3 } as CSSProperties}
-                aria-hidden="true"
-              />
-            ) : null}
-            {chapter.chips?.length ? (
-              <ul className="wrapped-chips" style={{ '--i': 3 } as CSSProperties}>
-                {chapter.chips.map((chip) => (
-                  <li key={chip.label} className="wrapped-chip">
-                    <span>{chip.label}</span>
-                    <strong>{chip.detail}</strong>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            {chapter.hearts || chapter.boards ? (
-              <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
-                {t('{hearts} stops hearted, {boards} boards pinned.', {
-                  hearts: chapter.hearts ?? 0,
-                  boards: chapter.boards ?? 0,
-                })}
+            </>
+          ) : (
+            <>
+              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+                {t(chapter.kicker)}
+              </span>
+
+              {chapter.kind === 'arc' ? (
+                <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
+                  <span className="wrapped-arc__spark" aria-hidden="true" />
+                  <p className="wrapped-big wrapped-big--in">{count}%</p>
+                </div>
+              ) : (
+                <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
+                  {chapter.count !== undefined ? count : chapter.big}
+                </p>
+              )}
+
+              {chapter.kind === 'number' ? (
+                <>
+                  <span className="wrapped-rings" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="wrapped-burst" aria-hidden="true">
+                    {Array.from({ length: BURST }, (_, dot) => (
+                      <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                    ))}
+                  </span>
+                </>
+              ) : null}
+
+              {chapter.kind === 'route' && chapter.route ? (
+                <div className="wrapped-route" style={{ '--i': 2 } as CSSProperties}>
+                  <span className="wrapped-route__rail" aria-hidden="true">
+                    <span className="wrapped-route__train" />
+                  </span>
+                  <span className="wrapped-route__from">{chapter.route.from}</span>
+                  <span className="wrapped-route__to">{chapter.route.to}</span>
+                </div>
+              ) : null}
+
+              {chapter.kind === 'bars' && chapter.bars ? (
+                <div className="wrapped-bars" style={{ '--i': 2 } as CSSProperties} aria-hidden="true">
+                  {chapter.bars.map((value, hour) => (
+                    <span
+                      key={hour}
+                      className={`wrapped-bars__bar${hour === chapter.peak ? ' is-peak' : ''}`}
+                      style={
+                        {
+                          height: `${Math.max(4, (value / Math.max(1, ...(chapter.bars ?? [1]))) * 100)}%`,
+                          '--i': hour,
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
+                </div>
+              ) : null}
+
+              {chapter.kind === 'stretch' && chapter.route ? (
+                <div className="wrapped-stretch" style={{ '--i': 2 } as CSSProperties}>
+                  <span className="wrapped-stretch__line" aria-hidden="true" />
+                  <span className="wrapped-stretch__dot" aria-hidden="true" />
+                  <span className="wrapped-stretch__from">{chapter.route.from}</span>
+                  <span className="wrapped-stretch__end">{chapter.route.to}</span>
+                </div>
+              ) : null}
+
+              {chapter.chips?.length ? (
+                <ul className="wrapped-chips">
+                  {chapter.chips.map((chip, position) => (
+                    <li
+                      key={chip.label}
+                      className="wrapped-chip"
+                      style={{ '--i': position } as CSSProperties}
+                    >
+                      <span>{chip.label}</span>
+                      <strong>{chip.detail}</strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
+                {t(chapter.line)}
               </p>
-            ) : null}
-            {chapter.note ? (
-              <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
-                {t(chapter.note)}
-              </p>
-            ) : null}
-          </>
-        )}
+
+              {chapter.hearts || chapter.boards ? (
+                <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
+                  {t('{hearts} stops hearted, {boards} boards pinned.', {
+                    hearts: chapter.hearts ?? 0,
+                    boards: chapter.boards ?? 0,
+                  })}
+                </p>
+              ) : null}
+              {chapter.note ? (
+                <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
+                  {t(chapter.note)}
+                </p>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
 
       {started || chapter.kind !== 'cover' ? (

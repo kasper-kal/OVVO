@@ -21,7 +21,16 @@ import type { Track } from './wrappedSound';
 /** The colour a chapter is painted in. Each is a token, so the look still shows through. */
 export type Tone = 'ink' | 'cream' | 'sage' | 'coral';
 
-export type ChapterKind = 'cover' | 'number' | 'route' | 'bars' | 'arc' | 'chips' | 'close';
+export type ChapterKind =
+  | 'cover'
+  | 'number'
+  | 'route'
+  | 'bars'
+  | 'arc'
+  | 'chips'
+  | 'stretch'
+  | 'word'
+  | 'close';
 
 export interface Chapter {
   id: string;
@@ -178,7 +187,8 @@ export function buildStory({
           kicker: 'The line you kept coming back to',
           big: String(pair.count),
           count: pair.count,
-          line: `${pair.count === 1 ? 'time' : 'times'} from ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
+          /* On the rail the number is far above, so the sentence starts like a sentence. */
+          line: `${pair.count === 1 ? 'Time' : 'Times'} from ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
           route: { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count },
         }
       : null,
@@ -225,18 +235,19 @@ export function buildStory({
     longest.minutes
       ? {
           id: 'longest',
-          kind: 'number',
+          kind: 'stretch',
           tone: 'coral',
           track: 'hip-hop-anthem',
           kicker: 'The long haul',
           big: formatDuration(longest.minutes, language),
           line: `on the way to ${nameOf(longest.to)}, the longest trip you planned.`,
+          route: { from: nameOf(longest.from), to: nameOf(longest.to), count: 1 },
         }
       : null,
     named
       ? {
           id: 'look',
-          kind: 'number',
+          kind: 'word',
           tone: 'cream',
           track: 'dark-trap',
           kicker: 'The look you wore',

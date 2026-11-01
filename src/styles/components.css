@@ -7535,11 +7535,16 @@
 
 /* ========================================================== OVVO Wrapped: the stage
 
-   A full-screen story rather than a card in a column. Each chapter owns the whole window, in one of
-   four tones, so the year changes colour as it is told; everything drawn on top of a tone uses
-   `currentColor`, which is why one set of rules works on the dark chapter and on the cream one.
-   Movement is the story rather than decoration: content rises in a beat after the tone changes, the
-   route draws itself, the bars grow from the floor, the arc sweeps, and a number counts up. */
+   A full-screen story rather than a card in a column, and no two chapters built the same way. Each
+   owns the whole window and its own shape: an enormous number with rings pushing out of it, a rail
+   down the screen with a dot running it, twenty-four bars standing on the floor, a ring with the
+   answer inside it, a line shot across the full width, one huge word. The colour changes with the
+   chapter, and so does the composition, which is the difference between a story and a slideshow.
+
+   Everything drawn on top of a tone uses `currentColor`, so one set of rules works on the dark
+   chapter and on the cream one. Movement is the story rather than decoration: the chapter leans with
+   the thumb, arrives from the side the traveller came from, numbers count up, bars grow, the rail
+   draws and then runs, the ring sweeps. */
 
 .wrapped-stage {
   position: fixed;
@@ -7547,7 +7552,7 @@
   z-index: 89;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   padding: max(env(safe-area-inset-top), 10px) clamp(20px, 6vw, 56px) max(env(safe-area-inset-bottom), 14px);
   transition: background-color 520ms var(--ease-out), color 520ms var(--ease-out);
@@ -7622,15 +7627,13 @@
 
 /* ------------------------------------------------------------------ the top row */
 .wrapped-top {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 3;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 6px 0 10px;
-  background: linear-gradient(to bottom, currentColor 0%, transparent 100%);
-  background: none;
+  flex: none;
 }
 
 .wrapped-close,
@@ -7671,6 +7674,7 @@
   width: calc(var(--progress, 0) * 100%);
   background: currentColor;
   border-radius: 999px;
+  box-shadow: 0 0 12px color-mix(in srgb, currentColor 60%, transparent);
   transition: width 460ms var(--ease-out);
 }
 
@@ -7686,30 +7690,84 @@
   letter-spacing: 0.02em;
 }
 
-/* ---------------------------------------------------------------------- the body */
+/* ------------------------------------------------------------- the scene and the body */
+
+/*
+ * **The chapter leans with the thumb.**
+ *
+ * The body follows the drag at about a third of the finger's travel and takes a degree of tilt with
+ * it, so a swipe reads as moving a thing rather than as waiting for one. On release it springs back
+ * to flat, and the next chapter arrives from the side that was pulled.
+ */
+.wrapped-scene {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  transform: translate3d(calc(var(--drag, 0) * 1px * 0.34), 0, 0) rotate(calc(var(--drag, 0) * 0.012deg));
+  transition: transform 340ms var(--ease-out);
+  will-change: transform;
+}
+
+.wrapped-scene.is-dragging {
+  transition: none;
+}
+
 .wrapped-body {
   position: relative;
   z-index: 1;
   flex: 1;
   display: grid;
   align-content: center;
-  gap: clamp(10px, 2.4vh, 22px);
-  padding: clamp(8px, 3vh, 28px) 0 clamp(6px, 2vh, 20px);
-  min-height: 0;
+  gap: clamp(10px, 2.2vh, 22px);
   width: 100%;
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: clamp(4px, 1.6vh, 18px) 0;
+  min-height: 0;
+  animation: wrapped-in 620ms var(--ease-out) both;
+}
+
+.wrapped-body[data-dir='-1'] {
+  animation-name: wrapped-in-back;
+}
+
+@keyframes wrapped-in {
+  from {
+    opacity: 0;
+    transform: translate3d(12%, 0, 0) scale(0.94);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes wrapped-in-back {
+  from {
+    opacity: 0;
+    transform: translate3d(-12%, 0, 0) scale(0.94);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 
 .wrapped-body > * {
   animation: wrapped-rise 620ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 85ms);
+  animation-delay: calc(var(--i, 0) * 90ms);
 }
 
 @keyframes wrapped-rise {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translateY(26px);
     filter: blur(6px);
   }
   to {
@@ -7737,6 +7795,7 @@
 }
 
 .wrapped-big {
+  position: relative;
   font-size: clamp(46px, 14.5vw, 132px);
   line-height: 0.9;
   letter-spacing: -0.035em;
@@ -7765,17 +7824,6 @@
   opacity: 0.72;
 }
 
-.wrapped-cover {
-  display: grid;
-  gap: clamp(10px, 2.4vh, 22px);
-  align-content: center;
-}
-
-.wrapped-cover .wrapped-title {
-  /* The year, as the thing the story is about: as big as the screen will honestly give it. */
-  font-size: clamp(72px, 30vw, 260px);
-}
-
 .wrapped-actions {
   display: flex;
   flex-wrap: wrap;
@@ -7784,105 +7832,319 @@
   margin-top: 4px;
 }
 
-/* ------------------------------------------------------------------- the visuals */
-.wrapped-route {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  margin-top: clamp(6px, 2vh, 18px);
-  font-size: clamp(12px, 3vw, 14px);
-  font-weight: 650;
+/* ------------------------------------------------------------------------ the cover */
+.wrapped-body--cover {
+  gap: clamp(10px, 2.2vh, 22px);
+  align-content: center;
 }
 
-.wrapped-route__dot {
-  width: 12px;
-  height: 12px;
+.wrapped-body--cover .wrapped-title {
+  /* The year, as the thing the story is about: as big as the screen will honestly give it. */
+  font-size: clamp(76px, 31vw, 280px);
+  animation: wrapped-breathe 7s ease-in-out infinite alternate;
+}
+
+/* One thin ring breathing behind the year, slower than the number itself. */
+.wrapped-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(92vw, 520px);
+  aspect-ratio: 1;
+  margin: -46vmin 0 0 -46vmin;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  pointer-events: none;
+  animation: wrapped-orbit 26s linear infinite;
+}
+
+.wrapped-orbit::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: currentColor;
-  flex: none;
 }
 
-.wrapped-route__dot--end {
-  opacity: 0.5;
+@keyframes wrapped-orbit {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.wrapped-route__line {
+@keyframes wrapped-breathe {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.02);
+  }
+}
+
+/* ---------------------------------------------------------------------- the total */
+.wrapped-body--number {
+  justify-items: center;
+  text-align: center;
+  gap: clamp(10px, 2.6vh, 26px);
+}
+
+.wrapped-body--number .wrapped-big {
+  font-size: clamp(112px, 43vw, 340px);
+  line-height: 0.72;
+  letter-spacing: -0.07em;
+  font-weight: 720;
+}
+
+.wrapped-body--number .wrapped-line {
+  max-width: 24ch;
+  font-size: clamp(17px, 4.6vw, 26px);
+}
+
+/* Everything but the decorations sits above them. */
+.wrapped-body--number > :not(.wrapped-rings):not(.wrapped-burst) {
+  z-index: 1;
+}
+
+/* Three rings pushing out of the number, endlessly, like a pulse. */
+.wrapped-rings {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapped-rings i {
+  position: absolute;
+  width: min(78vw, 440px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: wrapped-ring 4.4s ease-out infinite;
+}
+
+.wrapped-rings i:nth-child(2) {
+  animation-delay: 1.45s;
+}
+
+.wrapped-rings i:nth-child(3) {
+  animation-delay: 2.9s;
+}
+
+@keyframes wrapped-ring {
+  0% {
+    opacity: 0.42;
+    transform: scale(0.5);
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* A burst of dots when the year lands, once, then gone. */
+.wrapped-burst {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapped-burst i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  animation: wrapped-fly 1000ms var(--ease-out) both;
+  animation-delay: calc(260ms + var(--i, 0) * 14ms);
+}
+
+@keyframes wrapped-fly {
+  0% {
+    opacity: 0.9;
+    transform: rotate(calc(var(--i, 0) * 25.71deg)) translateY(-8vmin) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--i, 0) * 25.71deg)) translateY(-52vmin) scale(1);
+  }
+}
+
+/* -------------------------------------------------------------------- the route */
+.wrapped-body--route {
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+  gap: clamp(10px, 2vh, 20px);
+}
+
+/* The rail is a journey, not a ruler down the whole screen: about a third of the page is enough. */
+.wrapped-body--route .wrapped-route {
+  min-height: clamp(180px, 28vh, 340px);
+}
+
+.wrapped-body--route .wrapped-big {
+  font-size: clamp(84px, 32vw, 220px);
+  line-height: 0.8;
+}
+
+/*
+ * **The line as a rail down the screen.**
+ *
+ * Side by side, the two ends were a legend under a number. Down the page they are a journey: it draws
+ * itself from the first stop, then a dot runs it, and the eye travels the same way the traveller did.
+ */
+.wrapped-route {
   position: relative;
-  height: 2px;
-  background: color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 999px;
-  overflow: hidden;
-  animation: wrapped-draw 900ms 220ms var(--ease-out) both;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 0;
+  padding-left: 34px;
+  margin-top: clamp(8px, 2vh, 18px);
 }
 
-.wrapped-route__line::after {
-  content: "";
+.wrapped-route__rail {
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  overflow: hidden;
+}
+
+.wrapped-route__rail::before {
+  content: '';
   position: absolute;
   inset: 0;
   background: currentColor;
-  transform-origin: left center;
-  animation: wrapped-sweep 1200ms 300ms var(--ease-out) both;
+  transform-origin: top center;
+  animation: wrapped-draw-down 1100ms 220ms var(--ease-out) both;
 }
 
-@keyframes wrapped-sweep {
+@keyframes wrapped-draw-down {
   from {
-    transform: scaleX(0);
+    transform: scaleY(0);
   }
   to {
-    transform: scaleX(1);
+    transform: scaleY(1);
   }
 }
 
-@keyframes wrapped-draw {
-  from {
+.wrapped-route__train {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin: 0 0 0 -6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 18%, transparent);
+  opacity: 0;
+  animation: wrapped-run 5s 1400ms cubic-bezier(0.55, 0, 0.4, 1) infinite;
+}
+
+@keyframes wrapped-run {
+  0% {
+    top: 0;
     opacity: 0;
   }
-  to {
+  8% {
     opacity: 1;
+  }
+  74% {
+    top: calc(100% - 12px);
+    opacity: 1;
+  }
+  86%,
+  100% {
+    top: calc(100% - 12px);
+    opacity: 0;
   }
 }
 
 .wrapped-route__from,
 .wrapped-route__to {
-  grid-row: 2;
-  max-width: 40vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0.8;
+  position: relative;
+  font-size: clamp(19px, 5.2vw, 34px);
+  font-weight: 660;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
-.wrapped-route__from {
-  grid-column: 1;
+.wrapped-route__from::before,
+.wrapped-route__to::before {
+  content: '';
+  position: absolute;
+  left: -34px;
+  top: 0.42em;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .wrapped-route__to {
-  grid-column: 3;
-  text-align: right;
+  opacity: 0.62;
+}
+
+.wrapped-route__to::before {
+  background: none;
+  border: 2px solid currentColor;
+}
+
+/* ---------------------------------------------------------------------- the hour */
+.wrapped-body--bars {
+  align-content: space-between;
+  gap: clamp(4px, 1vh, 10px);
+}
+
+.wrapped-body--bars .wrapped-big {
+  font-size: clamp(72px, 26vw, 190px);
+  line-height: 0.82;
+  letter-spacing: -0.055em;
 }
 
 .wrapped-bars {
   display: flex;
   align-items: flex-end;
-  gap: clamp(2px, 0.9vw, 6px);
-  height: clamp(90px, 26vh, 220px);
-  margin-top: clamp(6px, 2vh, 18px);
+  gap: clamp(2px, 0.8vw, 5px);
+  height: clamp(130px, 28vh, 260px);
+  width: 100%;
 }
 
 .wrapped-bars__bar {
   flex: 1;
   min-width: 3px;
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px 4px 0 0;
   background: currentColor;
-  opacity: 0.28;
+  opacity: 0.26;
   transform-origin: bottom center;
-  animation: wrapped-grow 700ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 18ms);
+  animation: wrapped-grow 760ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
 }
 
 .wrapped-bars__bar.is-peak {
   opacity: 1;
+  box-shadow: 0 0 26px color-mix(in srgb, currentColor 50%, transparent);
+  animation:
+    wrapped-grow 760ms var(--ease-out) both,
+    wrapped-bob 2600ms 1300ms ease-in-out infinite;
 }
 
 @keyframes wrapped-grow {
@@ -7894,21 +8156,69 @@
   }
 }
 
+@keyframes wrapped-bob {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.09);
+  }
+}
+
+/* ----------------------------------------------------------------------- the arc */
+.wrapped-body--arc {
+  justify-items: center;
+  text-align: center;
+  gap: clamp(8px, 2vh, 18px);
+}
+
 .wrapped-arc {
-  width: min(58vw, 240px);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(76vw, 360px);
   aspect-ratio: 1;
+  margin: clamp(6px, 2vh, 20px) auto;
+}
+
+.wrapped-arc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
-  margin-top: clamp(4px, 1.6vh, 14px);
-  background: conic-gradient(currentColor calc(var(--arc, 0) * 1turn), transparent 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
-  mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
-  animation: wrapped-arc-in 900ms 160ms var(--ease-out) both;
+  background: conic-gradient(
+    currentColor calc(var(--arc, 0) * 1turn),
+    color-mix(in srgb, currentColor 14%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent 62%, #000 63%);
+  mask: radial-gradient(farthest-side, transparent 62%, #000 63%);
+  animation: wrapped-arc-in 1100ms var(--ease-out) both;
+}
+
+.wrapped-arc__spark {
+  position: absolute;
+  inset: 0;
+  animation: wrapped-arc-in 1100ms var(--ease-out) both;
+}
+
+.wrapped-arc__spark::after {
+  content: '';
+  position: absolute;
+  top: 3.5%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 7px color-mix(in srgb, currentColor 20%, transparent);
 }
 
 @keyframes wrapped-arc-in {
   from {
     opacity: 0;
-    transform: rotate(-90deg) scale(0.86);
+    transform: rotate(-120deg) scale(0.8);
   }
   to {
     opacity: 1;
@@ -7916,28 +8226,215 @@
   }
 }
 
-.wrapped-chips {
+.wrapped-big--in {
+  font-size: clamp(64px, 21vw, 132px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------------- the long haul */
+.wrapped-body--stretch {
+  gap: clamp(12px, 2.6vh, 24px);
+}
+
+.wrapped-body--stretch .wrapped-big {
+  font-size: clamp(64px, 21vw, 190px);
+  line-height: 0.86;
+}
+
+/*
+ * The trip as one line across the whole width: the duration at the left, the destination at the far
+ * end, and a dot that shoots the distance in a second and a half. The line is the point of the
+ * chapter, so it is given the full width of the screen and nothing else on its row.
+ */
+.wrapped-stretch {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  height: 74px;
+  margin-top: clamp(6px, 2vh, 18px);
+}
+
+.wrapped-stretch__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  overflow: hidden;
+}
+
+.wrapped-stretch__line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: left center;
+  animation: wrapped-sweep-across 1500ms 260ms var(--ease-out) both;
+}
+
+@keyframes wrapped-sweep-across {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.wrapped-stretch__dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 8px color-mix(in srgb, currentColor 16%, transparent);
+  animation: wrapped-shoot 1500ms 260ms var(--ease-out) both;
+}
+
+@keyframes wrapped-shoot {
+  from {
+    left: 0;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  to {
+    left: calc(100% - 14px);
+    opacity: 1;
+  }
+}
+
+.wrapped-stretch__from,
+.wrapped-stretch__end {
+  position: absolute;
+  bottom: 0;
+  font-size: clamp(12px, 3vw, 14px);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  opacity: 0.74;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrapped-stretch__from {
+  left: 0;
+}
+
+.wrapped-stretch__end {
+  right: 0;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------------- the look */
+.wrapped-body--word {
+  align-content: center;
+  gap: clamp(10px, 2.2vh, 20px);
+}
+
+.wrapped-body--word .wrapped-big {
+  font-size: clamp(58px, 20vw, 178px);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  font-weight: 700;
+}
+
+/* A rule that draws itself under the look, in the colour of the chapter. */
+.wrapped-body--word .wrapped-big::after {
+  content: '';
+  display: block;
+  height: 6px;
+  margin-top: clamp(10px, 2vh, 18px);
+  background: currentColor;
+  transform-origin: left center;
+  animation: wrapped-sweep-across 900ms 280ms var(--ease-out) both;
+}
+
+/* ----------------------------------------------------------------- the two lists */
+.wrapped-body--chips {
+  align-content: center;
+}
+
+.wrapped-body--chips .wrapped-big {
+  font-size: clamp(44px, 13vw, 112px);
+  line-height: 0.94;
+}
+
+/*
+ * Chips become cards: a list of facts read down the page arrives one at a time instead of all at
+ * once, and each lands from its own side with a half-degree of tilt, which is what makes it feel
+ * dealt rather than printed.
+ */
+.wrapped-chips {
+  display: grid;
+  gap: 10px;
   list-style: none;
-  margin: clamp(4px, 1.6vh, 14px) 0 0;
+  margin: clamp(6px, 2vh, 16px) 0 0;
   padding: 0;
 }
 
 .wrapped-chip {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 9px 14px;
-  border-radius: var(--r-pill, 999px);
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  font-size: clamp(12px, 3vw, 14px);
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  font-size: clamp(14px, 3.6vw, 17px);
+  animation: wrapped-deal 620ms var(--ease-out) both;
+  animation-delay: calc(220ms + var(--i, 0) * 110ms);
+}
+
+.wrapped-chip:nth-child(odd) {
+  animation-name: wrapped-deal-left;
 }
 
 .wrapped-chip strong {
-  font-weight: 680;
+  font-weight: 700;
+  font-size: clamp(18px, 4.6vw, 24px);
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes wrapped-deal {
+  from {
+    opacity: 0;
+    transform: translate3d(18%, 12%, 0) rotate(1.6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wrapped-deal-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-18%, 12%, 0) rotate(-1.6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- the close */
+.wrapped-body--close .wrapped-big {
+  font-size: clamp(56px, 17vw, 168px);
+  line-height: 0.88;
+}
+
+.wrapped-body--close .wrapped-line {
+  font-size: clamp(18px, 4.6vw, 26px);
+  max-width: 22ch;
 }
 
 /* ----------------------------------------------------------------------- the foot */
@@ -7949,6 +8446,7 @@
   align-items: center;
   gap: 12px;
   padding-top: 10px;
+  flex: none;
 }
 
 /*
@@ -8015,24 +8513,14 @@
   .wrapped-line {
     max-width: 30ch;
   }
-}
 
-/*
- * **The app's own buttons, on a stage that is not the app's surface.**
- *
- * `btn--ghost` is drawn for a cream page: no fill, no edge, muted ink. On the dark chapter that is
- * a word the eye has to hunt for, and "Skip the sound" beside Begin was the worst of it. Inside the
- * stage a ghost button takes the chapter's own ink and a faint edge instead, which is the same
- * control saying the same thing in the colour of the screen it is standing on.
- */
-.wrapped-stage .btn--ghost {
-  color: inherit;
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-  background: color-mix(in srgb, currentColor 6%, transparent);
-}
+  .wrapped-body--number .wrapped-line {
+    max-width: 26ch;
+  }
 
-.wrapped-stage .btn--ghost:hover {
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  .wrapped-stretch {
+    height: 96px;
+  }
 }
 
 /* The invitation card on the home screen and in Settings keeps the app's own card shape. */
