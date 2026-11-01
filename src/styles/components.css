@@ -9844,9 +9844,9 @@
 }
 
 .wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
-  width: 4px;
-  height: 4px;
-  opacity: 0.26;
+  width: 5px;
+  height: 5px;
+  opacity: 0.3;
 }
 
 /* Everything the page says sits above its bed. */
@@ -9868,5 +9868,5 @@
 }
 
 .wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
-  opacity: 0.22;
+  opacity: 0.3;
 }
