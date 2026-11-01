@@ -229,6 +229,33 @@ function begin(slot: Slot): void {
 }
 
 /**
+ * **If the song did not start, ask again.**
+ *
+ * A phone refuses a play that arrives while the file is still loading: the element is left paused, the
+ * score says "on", and nothing retries it. The debug view of this deck sounded fine only because it
+ * re-renders twice a second and kept asking; the real page asked once. So the retry lives here now, four
+ * attempts over three seconds, and it stops the moment the player is moving.
+ */
+const retries = new Map<HTMLAudioElement, number>();
+
+function ensurePlaying(slot: Slot): void {
+  const running = retries.get(slot.el);
+  if (running) window.clearTimeout(running);
+  let attempt = 0;
+  const tryAgain = () => {
+    if (!playing || slot !== active) return;
+    if (!slot.el.paused) return;
+    if (attempt >= 4) return;
+    attempt += 1;
+    note(`retry ${attempt} ${slot.track ?? 'none'}`);
+    const started = slot.el.play();
+    if (started) void started.catch(() => undefined);
+    retries.set(slot.el, window.setTimeout(tryAgain, 600 * attempt));
+  };
+  retries.set(slot.el, window.setTimeout(tryAgain, 400));
+}
+
+/**
  * Play a chapter's track, fading the one before it out underneath.
  *
  * `next` is only a hint: the chapter that follows, handed over so it can be warmed while this one
@@ -240,6 +267,7 @@ function spin(track: Track, next?: Track): void {
   if (live) {
     turned = false;
     begin(live);
+    ensurePlaying(live);
     fade(live.el, targetVolume(track), 0.35);
     current = track;
     prefetch(next);
@@ -250,6 +278,7 @@ function spin(track: Track, next?: Track): void {
   if (!incoming) return;
   load(incoming, track);
   begin(incoming);
+  ensurePlaying(incoming);
   fade(incoming.el, targetVolume(track), FADE_IN);
 
   const leaving = active;
@@ -282,6 +311,8 @@ export function startSound(track: Track, next?: Track): void {
 export function stopSound(): void {
   note('stopSound');
   playing = false;
+  retries.forEach((id) => window.clearTimeout(id));
+  retries.clear();
   slots.forEach((slot) => fade(slot.el, 0, 0.15));
   window.setTimeout(() => {
     if (playing) return;
