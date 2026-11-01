@@ -9815,30 +9815,6 @@
   cursor: pointer;
 }
 
-/* --------------------------------------------------------------- page four's dots */
-/*
- * The same field the year's total wears, in ink on paper: the dots are quiet, they thin out at the top
- * and the bottom, and they sit under the words rather than over them.
- */
-.wrapped-stage[data-chapter='origin'] .wrapped-field--bed {
-  grid-template-columns: repeat(10, 1fr);
-  padding: 4% 0;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 82%, transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 82%, transparent);
-}
-
-.wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
-  width: 5px;
-  height: 5px;
-  opacity: 0.3;
-}
-
-/* Everything the page says sits above its bed. */
-.wrapped-stage[data-chapter='origin'] .wrapped-body > *:not(.wrapped-field) {
-  position: relative;
-  z-index: 1;
-}
-
 /*
  * **The cards on page four are paper, not glass.**
  *
@@ -9853,4 +9829,20 @@
 
 .wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
   opacity: 0.3;
+}
+
+/* ---------------------------------------------- the dotted ground, as it always was */
+/*
+ * Lifted unchanged from the version that had it on every chapter: one-pixel dots on a three-pixel grid
+ * at seven percent, fixed under everything. It is a texture, not an ornament, which is why it is
+ * invisible until you look for it and why nothing on the page has to move aside for it.
+ */
+.wrapped-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 0.07;
+  z-index: 0;
 }
