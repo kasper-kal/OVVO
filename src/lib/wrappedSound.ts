@@ -373,6 +373,31 @@ function stopPad(): void {
   pad = null;
 }
 
+/**
+ * **How long each piece runs, measured from the files themselves.**
+ *
+ * A chapter is over when its song is over, and a silent story still has to know when that would have
+ * been. Without it, a phone that refused the first play turned the deck into a slideshow that had to
+ * be swiped, which reads exactly like the missing auto-advance it was.
+ */
+const TRACK_SECONDS: Record<Track, number> = {
+  'acoustic': 14.32,
+  'afrobeat': 14.42,
+  'dark-trap': 20.74,
+  'electro-dance': 20.3,
+  'electropop': 14.81,
+  'hip-hop-anthem': 16.4,
+  'indie-pop': 14.92,
+  'luxury-anthem': 15.61,
+  'melodic-trap': 13.32,
+  'rap-anthem': 13.7,
+};
+
+/** How long a chapter's song runs, in seconds. */
+export function trackSeconds(track: Track): number {
+  return TRACK_SECONDS[track];
+}
+
 /** The chapter that is playing, for the tests and for anyone reading the state. */
 export function currentTrack(): Track | null {
   return current;

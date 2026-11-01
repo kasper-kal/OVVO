@@ -9,7 +9,7 @@ import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { playChapter, scoreTime, startSound, stopSound, whenTrackEnds } from '../lib/wrappedSound';
+import { playChapter, scoreTime, startSound, stopSound, whenTrackEnds, trackSeconds } from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 
 /** How many dots fly out of the year's total when it lands. */
@@ -113,6 +113,22 @@ export function WrappedPage() {
     });
     return () => whenTrackEnds(null);
   }, [go, index, last, started]);
+
+  /*
+   * **The story turns itself in silence too.**
+   *
+   * The song is the clock, and it asks for the next chapter half a second before it ends. But a phone
+   * that refuses to play the first track has no clock at all, and neither has a muted deck: the story
+   * stopped dead on a finished chapter and waited to be swiped. This is the clock for both. It fires a
+   * second after the chapter's song would have ended, so when the music is playing it is always the
+   * music that turns the page and this never gets there first.
+   */
+  useEffect(() => {
+    if (!started || last) return undefined;
+    const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
+    const timer = window.setTimeout(() => go(index + 1), quiet);
+    return () => window.clearTimeout(timer);
+  }, [started, last, chapter.track, index, go]);
 
   /* The keyboard is a reader's way through: arrows, Escape to leave. */
   useEffect(() => {
@@ -244,7 +260,8 @@ export function WrappedPage() {
         <button
           type="button"
           className="wrapped-sound"
-          aria-label={sound ? t('Sound off') : t('Sound on')}
+          aria-pressed={sound}
+          aria-label={sound ? t('Sound on') : t('Sound off')}
           onClick={() => {
             if (sound) {
               stopSound();
@@ -255,7 +272,8 @@ export function WrappedPage() {
             }
           }}
         >
-          <span>{sound ? t('Sound off') : t('Sound on')}</span>
+          <i className="wrapped-sound__led" aria-hidden="true" />
+          <span>{sound ? t('Sound on') : t('Sound off')}</span>
         </button>
       </header>
 
@@ -294,7 +312,15 @@ export function WrappedPage() {
                   onClick={() => {
                     setStarted(true);
                     /* On by default, so Begin starts the score unless it was muted before the tap. */
-                    if (sound) startSound(chapter.track, story[1]?.track);
+                    /*
+                     * **One press, one song.**
+                     *
+                     * Begin used to start the cover's track and hand over to the next chapter's from an
+                     * effect, outside the tap. A phone allows the first play and refuses the second, so the
+                     * room went quiet a second in and only came back when the switch was tapped again. The
+                     * score now opens on the chapter the traveller lands on, in the same gesture.
+                     */
+                    if (sound) startSound(story[1]?.track ?? chapter.track, story[2]?.track);
                     go(1);
                   }}
                 >

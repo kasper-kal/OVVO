@@ -9751,3 +9751,20 @@
   grid-row: 5;
   margin-top: clamp(10px, 2.6vh, 22px);
 }
+
+/* The sound switch shows its state with a light, so "Sound on" is something you can see. */
+.wrapped-sound__led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.wrapped-sound[aria-pressed='false'] .wrapped-sound__led {
+  opacity: 0.32;
+  box-shadow: none;
+}
