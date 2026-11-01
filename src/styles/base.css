@@ -884,7 +884,16 @@ svg.map-canvas {
   gap: var(--s-1);
   padding: 0 var(--s-3);
   background: var(--l2-bg);
-  border-color: var(--border-hairline);
+  /*
+   * **The card's frame, at the card's weight.**
+   *
+   * Edit wore `--border-hairline`, which is the line a field wears so it can be found on a card.
+   * Beside the cards it read as a second, differently coloured outline in the same corner of the
+   * screen (reported). A pill in the header and a card under it are the same mark now: one token,
+   * one weight, and a style that thickens its borders thickens both.
+   */
+  border-width: var(--line-width, 1px);
+  border-color: var(--card-edge, var(--border-hairline));
   color: var(--ink-strong);
   font-family: inherit;
   font-size: var(--fs-sm);

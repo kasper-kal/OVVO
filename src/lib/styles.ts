@@ -1714,7 +1714,21 @@ export function styleTokens(
    * shape's `edge` — around a tenth of the way, so the paper has an edge without being outlined.
    * Raised contrast keeps the old promise at 3:1, which is the one setting that asks for it.
    */
-  const cardEdge = raised ? edge(card, ink, 3) : mixHex(card, ink, shape.edge);
+  /*
+   * **Default's card edge is the line every control wears.**
+   *
+   * Every other style draws its frame from its own surface moved a little toward its ink, which is
+   * quiet on purpose. On Default that mix came out lighter than the hairline, so the cards were the
+   * faintest thing on the page while the header's Edit pill, drawn in the hairline, stood beside
+   * them in a different colour (reported: too light, and the two disagreeing). Only Default moves:
+   * its frame is its own hairline, so a card and a pill are the same mark. Raised contrast still
+   * draws this edge at 3:1, and every other style keeps its shape's own edge.
+   */
+  const cardEdge = raised
+    ? edge(card, ink, 3)
+    : style.id === 'tram'
+      ? hairline
+      : mixHex(card, ink, shape.edge);
 
   /*
    * **The dock is always the dark bar**, whichever page it sits under.

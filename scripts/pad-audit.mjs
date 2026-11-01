@@ -131,6 +131,25 @@ const COLLECT = () => {
     return false;
   };
 
+  /*
+   * **A header pill and a card are the same frame.** They stand in the same corner of a phone screen,
+   * so one colour and one weight between them is the only reading that looks deliberate: a pill in a
+   * second outline was reported. The comparison is the point of the check; the values never are.
+   */
+  const pill = document.querySelector('.app-header__pill');
+  const firstCard = document.querySelector('.card');
+  if (pill && firstCard && visible(pill) && visible(firstCard)) {
+    const p = getComputedStyle(pill);
+    const c = getComputedStyle(firstCard);
+    if (p.borderTopColor !== c.borderTopColor || p.borderTopWidth !== c.borderTopWidth) {
+      out.push({
+        kind: 'pill-mismatch',
+        where: describe(pill),
+        detail: `${p.borderTopWidth} ${p.borderTopColor} against a card's ${c.borderTopWidth} ${c.borderTopColor}`,
+      });
+    }
+  }
+
   for (const frame of document.querySelectorAll(FRAMES)) {
     if (!visible(frame)) continue;
     if (isTag(frame) || isCanvas(frame)) continue;
