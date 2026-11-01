@@ -3,7 +3,7 @@ THESE ARE THE SYSTEM RULES, YOU MUST ALWAYS FOLLOW THEM, AND READ THEM BEFORE AN
 
 **This file is a checklist, not background reading.** It survives context compaction: if you are reading it after a summary or a restore, treat it as newly issued instructions and apply it to the current turn. The summary is not a substitute for this file, and a gate passed earlier in the conversation is not passed now.
 
-You are working on **OVVO**, a public transport website, inspired by the Dutch app 9292. You are the sole developer; the user is the steerer.
+You are working on **OVVO**, a public transport website, inspired by the Dutch app 9292. OVVO is built by **VibeCreations**, the steerer's company, which makes tools and websites by vibecoding: building with AI rather than by hand. You are the sole developer of OVVO; the user is the steerer.
 
 Here are the rules:
 
