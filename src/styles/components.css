@@ -8756,6 +8756,179 @@
   padding-block: 16px;
 }
 
+/* --------------------------------------------------------------------- the voices */
+
+/*
+ * **Ten chapters, not one typeface.**
+ *
+ * The deck spoke in the worn look's fonts from cover to close, which is why ten different screens
+ * read as one screen. Every chapter now borrows a different voice from the app's own font set — a
+ * mono count like a departure display, uppercase station names like a diagram, a serif percentage, a
+ * fashion serif for the look, a typewriter board for the lines — and its own ground, so no two pages
+ * share both the face and the colour.
+ *
+ * These are the app's own downloaded faces, already in `public/fonts`. Each one is fetched only when
+ * its chapter appears.
+ */
+
+.wrapped-stage[data-chapter='cover'] .wrapped-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* The total reads like a departure display: mono numerals, counted. */
+.wrapped-stage[data-chapter='total'] .wrapped-big {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: min(40vw, 260px);
+  letter-spacing: -0.05em;
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-kicker {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.2em;
+}
+
+/* The line you kept becomes a diagram: dark ground, uppercase station names. */
+.wrapped-stage[data-chapter='pair'] {
+  background: #101821;
+  color: #e9eff3;
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-route__from,
+.wrapped-stage[data-chapter='pair'] .wrapped-route__to {
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.015em;
+  font-weight: 700;
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+}
+
+/* Where you set off is warm paper with tickets on it. */
+.wrapped-stage[data-chapter='origin'] {
+  background: #f4ede1;
+  color: #241c14;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-big {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  font-family: 'Work Sans', sans-serif;
+}
+
+/* The hour is a clock face: mono, all of it. */
+.wrapped-stage[data-chapter='hour'] .wrapped-big,
+.wrapped-stage[data-chapter='hour'] .wrapped-ruler {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-line {
+  font-family: 'Figtree', sans-serif;
+}
+
+/* Straight through is an elegant figure: a book serif on near-black plum. */
+.wrapped-stage[data-chapter='direct'] {
+  background: #14111a;
+  color: #f4eef8;
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-big--in {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(76px, 24vw, 160px);
+  letter-spacing: -0.02em;
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-kicker {
+  letter-spacing: 0.24em;
+}
+
+/* The long haul is a heavy grotesque, the way a timetable is. */
+.wrapped-stage[data-chapter='longest'] .wrapped-big {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__from,
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__end {
+  font-family: 'Archivo', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: clamp(11px, 2.9vw, 13px);
+}
+
+/* The look is a fashion page: a high-contrast serif over the photograph. */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(46px, 13vw, 124px);
+  letter-spacing: -0.005em;
+  opacity: 1;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(13px, 3.4vw, 17px);
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+/* Your lines is a station board: typewriter mono on paper. */
+.wrapped-stage[data-chapter='lines'] {
+  background: #f7f5ef;
+  color: #1a1a18;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-big {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chip,
+.wrapped-stage[data-chapter='lines'] .wrapped-line,
+.wrapped-stage[data-chapter='lines'] .wrapped-kicker {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chip strong {
+  font-weight: 600;
+}
+
+/* The close is a quiet book page. */
+.wrapped-stage[data-chapter='close'] .wrapped-big {
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.wrapped-stage[data-chapter='close'] .wrapped-line {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: clamp(19px, 5vw, 27px);
+}
+
+.wrapped-stage[data-chapter='close'] .wrapped-note {
+  font-family: 'Newsreader', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(14px, 3.6vw, 17px);
+}
+
 /* ----------------------------------------------------------------------- the foot */
 .wrapped-foot {
   position: relative;

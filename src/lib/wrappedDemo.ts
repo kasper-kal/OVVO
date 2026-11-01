@@ -80,7 +80,6 @@ export function demoYear(year: number): YearTally {
   /* A look worn most of the year, with two changes of heart in the spring. */
   const wears = [] as YearTally['wears'];
   const looks: Array<[string, number]> = [
-    /* A look with a photograph, so the demo year shows the chapter taking the look's own picture. */
     ['nostalgia', 96],
     ['marble', 38],
     ['arches', 12],
