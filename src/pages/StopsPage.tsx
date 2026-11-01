@@ -17,6 +17,7 @@ import { StopCardSkeletons } from '../components/ui/Skeletons';
 import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import type { PublicMode, Stop } from '../data/types';
+import { Select } from '../components/ui/Select';
 
 type StopsSort = 'nearest' | 'city' | 'name' | 'connections';
 type StopTypeFilter = 'any' | Stop['type'];
@@ -248,7 +249,7 @@ export function StopsPage() {
 
           <label className="field" htmlFor="stops-sort">
             <span className="field__label">{t('Sort by')}</span>
-            <select
+            <Select
               id="stops-sort"
               className="select"
               value={activeSort}
@@ -260,7 +261,7 @@ export function StopsPage() {
               <option value="city">{t('City')}</option>
               <option value="name">{t('Name')}</option>
               <option value="connections">{t('Connections')}</option>
-            </select>
+            </Select>
           </label>
 
           {/* The same chip the results screen uses for its own options panel, on purpose: one
@@ -314,25 +315,25 @@ export function StopsPage() {
             <div className="grid-2">
               <label className="field">
                 <span className="field__label">{t('Region')}</span>
-                <select className="select" value={region} onChange={(event) => writeParams({ region: event.target.value })}>
+                <Select className="select" value={region} onChange={(event) => writeParams({ region: event.target.value })}>
                   <option value="any">{t('All regions')}</option>
                   {regions().map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label className="field">
                 <span className="field__label">{t('City')}</span>
-                <select className="select" value={city} onChange={(event) => writeParams({ city: event.target.value })}>
+                <Select className="select" value={city} onChange={(event) => writeParams({ city: event.target.value })}>
                   <option value="any">{t('All cities')}</option>
                   {cities().map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </div>
 

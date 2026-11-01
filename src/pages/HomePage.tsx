@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card, Dialog } from '../components/ui/primitives';
@@ -11,6 +11,8 @@ import { useDisruptions } from '../lib/useDisruptions';
 import { STOPS } from '../data/stops';
 
 import { useT } from '../lib/useT';
+import { getDevOverrides } from '../lib/dev';
+import { WrappedInvite } from '../components/wrapped/WrappedInvite';
 
 /** How long the home screen has to be held before it opens its customising mode. */
 const HOLD_MS = 1000;
@@ -122,8 +124,7 @@ export function HomePage() {
     setHomeEditing: setEditing,
     homeMenuOpen,
     setHomeMenuOpen,
-    power,
-  } = useApp();
+    power, settings } = useApp();
   const t = useT();
   const [params] = useSearchParams();
   const [addOpen, setAddOpen] = useState(false);
@@ -193,6 +194,16 @@ export function HomePage() {
    * somewhere you are not standing**. So the planner is what is left, and if it is missing from
    * the layout the first essential card stands in rather than an empty screen.
    */
+  /*
+   * **The simulated last drop keeps one small way out of itself.**
+   *
+   * At 1% the app closes Settings and the map, which is the mode, and while that is being simulated
+   * the screen that ends the simulation is behind them. So this screen draws one quiet link to the
+   * workshop instead of keeping a whole menu open: it is only there when the battery is an override
+   * and only when the mode is the last percent, so a real phone at 1% never sees it and the thin
+   * screen still looks like what a thin screen looks like.
+   */
+  const devSimulated = settings.developerMode && getDevOverrides().battery !== null;
   const thinning = (power.mode === 'super' || power.mode === 'last') && !editing;
   const lastDrop = power.mode === 'last' && !editing;
   const visible = useMemo(() => {
@@ -1119,6 +1130,9 @@ export function HomePage() {
         )}`}
       />
 
+      {/* The year, in the season it is worth opening (`WrappedInvite`). */}
+      <WrappedInvite />
+
       {/*
         * A thinned home screen says so.
         *
@@ -1161,6 +1175,13 @@ export function HomePage() {
                 'Only what you need to catch a bus is drawn, the screen is dark to save power, and Settings come back with the rest.',
               )}
         </p>
+      ) : null}
+
+      {lastDrop && devSimulated ? (
+        <Link className="home-dev-link t-sm t-muted" to="/developer">
+          <Icon name="sliders" size={16} />
+          <span>{t('Developer panel')}</span>
+        </Link>
       ) : null}
 
       {visible.length === 0 ? (

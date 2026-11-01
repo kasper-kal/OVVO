@@ -6,6 +6,7 @@ import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
 import { APP_WIRE_BYTES, transferMs } from './lib/link';
 import { getDevOverrides } from './lib/dev';
+import { beginAccountSync } from './lib/account';
 import './styles/tokens.css';
 import './styles/fonts.css';
 import './styles/base.css';
@@ -69,6 +70,16 @@ watchInstallPrompt();
 void installManifest();
 
 /**
+ * **The account starts watching the store before the first screen is drawn.**
+ *
+ * A traveller who is already signed in should find their things on a new device without having to
+ * visit Settings first, and a change made anywhere in the app should reach the server without a
+ * screen having to remember to send it. Both come from one place: `lib/account` follows the
+ * storage funnel and the sign-in state, and sending is its business, not a screen's.
+ */
+void beginAccountSync();
+
+/**
  * **The offline strip keeps its promise across a reload, and the install offer depends on this.**
  *
  * `public/sw.js` keeps the shell, so a page opened with no network draws the app instead of the
@@ -99,6 +110,38 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   void navigator.serviceWorker
     .register('/sw.js', { updateViaCache: 'none' })
     .catch((error) => console.warn('[ovvo] service worker not registered', error));
+}
+
+/**
+ * **An old copy of the app replaces itself, once, instead of living on.**
+ *
+ * The worker keeps the shell so the app opens offline. The cost of that arrived on 1 November 2026:
+ * a browser holding the page from before a deploy kept drawing **the previous build** - old labels,
+ * a settings card that had already been rewritten - because nothing told it a newer one existed.
+ * A reload served the cached page again, so from the outside it looked as if the deploy had not
+ * happened. It had; the page was simply never asked to check.
+ *
+ * Two things fix the cause. On every load the worker is asked to look for a newer version of
+ * itself, and when one takes control the page reloads **once**, so the traveller sees the build
+ * that exists rather than the one in their pocket. The reload only happens when a worker was
+ * already in charge, so a first visit is not reloaded for no reason.
+ */
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  const hadWorker = navigator.serviceWorker.controller !== null;
+  let reloading = false;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadWorker || reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker
+      .getRegistration()
+      .then((registration) => registration?.update().catch(() => {}))
+      .catch(() => {});
+  });
 }
 
 /**

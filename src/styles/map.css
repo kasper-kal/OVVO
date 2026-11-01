@@ -502,7 +502,8 @@
   padding: 0 var(--s-2) 0 var(--s-3);
   background: var(--l1-bg);
   border: var(--l1-border);
-  border-radius: var(--r-input);
+  /* A search box is a capsule, like every other field in the app. */
+  border-radius: var(--r-pill);
   color: var(--ink-muted);
 }
 

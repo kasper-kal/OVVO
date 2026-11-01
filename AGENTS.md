@@ -3,7 +3,7 @@ THESE ARE THE SYSTEM RULES, YOU MUST ALWAYS FOLLOW THEM, AND READ THEM BEFORE AN
 
 **This file is a checklist, not background reading.** It survives context compaction: if you are reading it after a summary or a restore, treat it as newly issued instructions and apply it to the current turn. The summary is not a substitute for this file, and a gate passed earlier in the conversation is not passed now.
 
-You are working on **OVVO**, a public transport website, inspired by the Dutch app 9292. You are the sole developer; the user is the steerer.
+You are working on **OVVO**, a public transport website, inspired by the Dutch app 9292. OVVO is built by **VibeCreations**, the steerer's company, which makes tools and websites by vibecoding: building with AI rather than by hand. You are the sole developer of OVVO; the user is the steerer.
 
 Here are the rules:
 
@@ -63,6 +63,22 @@ That checker covers the shape of the mockup gallery only. The safety of the work
 
 ## Working agreements
 
+- Every decision and fact about putting OVVO on a real account lives in `GOING-LIVE.md`. Read it before touching deploy, sign-in, secrets or the setup tutorial, and add to it the moment something is decided, so a choice made in one chat is not lost by the next.
 - Follow the instruction exactly; do not invent scope, and do not ask for permission that has already been given.
 - Keep replies short, honest and free of padding.
 - Never commit secrets. Commit and push finished, checked work without asking first, and say that you did.
+
+## OVVO Wrapped (planned, not built)
+
+The steerer asked for "a Spotify Wrapped, but for OVVO": a yearly review of the traveller's own year in this app. **Built so far: the tally** (1 November 2026 — `src/lib/wrapped`: one line per search run, per board pinned, per day a look was worn, filed under the calendar year, so 2026 closes at 31 December 2026, 23:59). **Not built: the deck** — there is no screen, route or card yet, and nothing pretends there is.
+
+How it is meant to work, as agreed so far:
+
+- **A tally underneath it.** OVVO keeps a dozen searched pairs and a few saved journeys, which is a drawer rather than a diary. Wrapped needs a small record of its own, written in this browser only: one line per search run (from, to, hour of the day, duration, transfers, lines, delay), one per board opened, one per stop hearted, one per theme worn. Nothing about who the traveller is, and one control that empties the year.
+- **A deck, not a report.** A handful of cards to swipe through, one number and one sentence each, drawn in whatever theme is worn, so the Christmas look gets a Christmas-coloured year. Eight cards at most. Each card answers from the tally and from nothing else.
+- **When it appears.** One card on the home screen from 20 December, at the top of the page on 31 December and in the first week of January, and kept in Settings afterwards under its own year, because a thing the traveller cannot find again is a thing that annoyed them.
+- **The rules it obeys.** Never a made-up number. Never a comparison with other travellers, because there is no data for it and a fake average is the worst kind of lie. Never three searches dressed up as a year: when the tally holds almost nothing, say so plainly instead. When this browser's storage is cleared the year is gone, and the closing card says that in one line rather than pretending.
+
+When OVVO Wrapped is implemented, **delete this whole section**, from the heading above this line to the marker below. It is a note to the developer, not a rule the app follows.
+
+<!-- DELETE THIS SECTION, heading included, once OVVO Wrapped ships -->

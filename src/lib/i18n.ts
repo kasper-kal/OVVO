@@ -222,8 +222,8 @@ const NL: Record<string, string> = {
     'Plan een reis om deze voorkeuren te bekijken.',
 
   /* --------------------------------------------------------------- settings */
-  'Appearance, defaults and locally stored data. Every change applies immediately and is stored in this browser.':
-    'Weergave, standaardwaarden en lokaal opgeslagen gegevens. Elke wijziging geldt meteen en wordt in deze browser bewaard.',
+  'Appearance, defaults and your saved data. Every change applies immediately, and follows your OVVO ID when you are signed in.':
+    'Weergave, standaarden en je opgeslagen gegevens. Elke wijziging geldt meteen en volgt je OVVO ID als je bent ingelogd.',
   Appearance: 'Weergave',
   /* The field under the Appearance heading: it picks a theme, and naming it "Appearance" again
      printed the same word twice on every settings screen. */
@@ -260,20 +260,20 @@ const NL: Record<string, string> = {
   'Reduce motion': 'Minder beweging',
   'Turns off the spring press and hover transitions.':
     'Zet de veer-effecten bij indrukken en aanwijzen uit.',
-  /* The Styles screen: the last English left on a Dutch page. */
-  'Pick a look. Every one is checked for readability.':
-    'Kies een uiterlijk. Elk ervan is op leesbaarheid gecontroleerd.',
-  Styles: 'Stijlen',
+  /* The Themes screen: the last English left on a Dutch page. */
+  'Pick a theme. Every one is checked for readability.':
+    'Kies een thema. Elk ervan is op leesbaarheid gecontroleerd.',
+  Themes: "Thema's",
   'In use': 'In gebruik',
   /* A photograph, not the act of photographing. */
   Photograph: 'Foto',
-  'This style uses its picture.': 'Dit uiterlijk gebruikt zijn foto.',
-  'This style draws its own colour instead of its picture.':
-    'Dit uiterlijk tekent zijn eigen kleur in plaats van zijn foto.',
-  'This style has no picture yet, so it is drawn in its own colour.':
-    'Dit uiterlijk heeft nog geen foto, dus het wordt in zijn eigen kleur getekend.',
-  'Saving battery, so this style draws its colour. The photograph comes back above 10%.':
-    'Om batterij te sparen tekent dit uiterlijk zijn kleur. De foto komt terug boven 10%.',
+  'This theme uses its picture.': 'Dit thema gebruikt zijn foto.',
+  'This theme draws its own colour instead of its picture.':
+    'Dit thema tekent zijn eigen kleur in plaats van zijn foto.',
+  'This theme has no picture yet, so it is drawn in its own colour.':
+    'Dit thema heeft nog geen foto, dus het wordt in zijn eigen kleur getekend.',
+  'Saving battery, so this theme draws its colour. The photograph comes back above 10%.':
+    'Om batterij te sparen tekent dit thema zijn kleur. De foto komt terug boven 10%.',
   /* The seasonal shelf, and the row that is only on the page in the three weeks before a holiday. */
   Upcoming: 'Komt eraan',
   'In {count} days': 'Over {count} dagen',
@@ -1362,7 +1362,7 @@ const NL: Record<string, string> = {
    * place they are written.
    */
   'on time': 'op tijd',
-  'Choose a style': 'Kies een uiterlijk',
+  'Choose a theme': 'Kies een thema',
   /*
    * Counted nouns, with both forms: Dutch does not take an "s", so `plural()` is given the two
    * words rather than appending one.

@@ -188,8 +188,8 @@ export function StyleSettings() {
             label={t('Background')}
             hint={
               photographChosen
-                ? t('This style uses its picture.')
-                : t('This style draws its own colour instead of its picture.')
+                ? t('This theme uses its picture.')
+                : t('This theme draws its own colour instead of its picture.')
             }
           >
             <Segmented
@@ -206,7 +206,7 @@ export function StyleSettings() {
 
       </Card>
 
-      <div className="style-list" role="radiogroup" aria-label={t('Styles')}>
+      <div className="style-list" role="radiogroup" aria-label={t('Themes')}>
         {/*
          * **Upcoming is a shelf, not a card.** It sits first, under the same heading and in the
          * same grid as every other category, and it is simply absent on an ordinary day. The

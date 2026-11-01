@@ -199,38 +199,6 @@ h1,
   min-height: calc(2.5em + 2px);
 }
 
-/*
- * `.style-link` is used by Settings, for the row that opens this screen. It is deliberately not
- * used in this page's header: the shell already draws a back arrow there, and two ways back is one
- * too many.
- */
-.style-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-2);
-  min-height: var(--target-min);
-  padding: 0 var(--s-4);
-  border-radius: var(--r-input);
-  border: 1px solid var(--border-hairline);
-  background: var(--l2-bg);
-  color: var(--ink);
-  font-family: var(--font-stack);
-  font-size: var(--fs-body);
-  font-weight: var(--fw-semibold);
-  text-decoration: none;
-  transition: background var(--t-hover) var(--ease-out);
-}
-
-.style-link:hover {
-  background: var(--l1-bg);
-}
-
-.style-link:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
 /* ------------------------------------------------------------------ the next holiday */
 
 /*

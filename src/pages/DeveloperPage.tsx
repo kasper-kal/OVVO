@@ -1,14 +1,17 @@
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import { Button, Card, Field, Switch } from '../components/ui/primitives';
+import { Button, Card, Field, IconButton, Switch } from '../components/ui/primitives';
 import { useT } from '../lib/useT';
 import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
 import { APP_WIRE_BYTES, transferMs } from '../lib/link';
+import { Icon } from '../components/ui/Icons';
+import { Select } from '../components/ui/Select';
 
 /**
  * The developer panel — what this browser believes about the device.
@@ -34,10 +37,12 @@ import { APP_WIRE_BYTES, transferMs } from '../lib/link';
  *   • **What the app believes.** The mode, the clock, the battery and the connection in one line,
  *     which is what a bug report should be able to copy instead of describe.
  *
- * **The panel is exempt from the mode it creates.** Settings and the map are closed at 10% and 1%,
- * so a fake battery of 1% would otherwise lock the door to the panel that faked it. While a battery
- * override is set, Settings stays reachable (`App.tsx`, `AppShell`), and only then. Nothing else is
- * exempt: the panel is a way to *see* a mode, never a way for the app to behave differently.
+ * **The panel is not reached out of the mode it creates.** At 10% a simulated battery keeps Settings
+ * and the map, so the simulation is ended the ordinary way. At 1% nothing is kept: a last drop with
+ * Settings in its menu is not a last drop, which is what made that one impossible to look at
+ * (reported). Instead the last-drop screen carries one small link to this panel, drawn only while
+ * the battery is simulated (`pages/HomePage`), so the way out exists without pretending the mode is
+ * something other than it is.
  *
  * Nothing here is hidden from the audits and nothing here is translated: it is a tool for one
  * person, it ships because this site has one user, and it is off until the switch in Settings says
@@ -80,16 +85,25 @@ export function DeveloperPage() {
   const [speedDraft, setSpeedDraft] = useState(() => (dev.wifiMbps === null ? '5' : String(dev.wifiMbps)));
 
   /*
-   * **Chasing the speed is a reload, on purpose.**
+   * **Two steps to a speed, because a reload leaves no time to type one.**
    *
-   * A speed only means something on a transfer, and the app's own transfer is the first one: the
-   * reload. Setting a speed therefore reloads the page, so the traveller watches the app arrive
-   * over the link they just claimed instead of having to press refresh themselves afterwards.
+   * Switching the speed on used to reload the page straight away, at whatever number was in the
+   * box, so the field you were about to type into was gone before the first digit (reported). So
+   * turning it on only claims the speed it has — the field appears with it — and nothing is
+   * reloaded until the button inside the field is pressed. That button is the reload: press it and
+   * the app comes back over the link you just chose, which is the whole point of being able to
+   * choose one.
    */
+  const claimSpeed = (next: number) => setDevOverrides({ wifiMbps: next });
   const applySpeed = (next: number | null) => {
-    if (next === dev.wifiMbps) return;
     setDevOverrides({ wifiMbps: next });
     window.location.reload();
+  };
+  /* The field's button and Enter do the same thing: take the number that was typed, at once. */
+  const commitSpeed = () => {
+    const next = Number(speedDraft);
+    if (Number.isFinite(next) && next > 0) applySpeed(next);
+    else setSpeedDraft(String(dev.wifiMbps ?? 5));
   };
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
@@ -265,11 +279,10 @@ export function DeveloperPage() {
               {/*
                 * **One mark, and it is the field's own.**
                 *
-                * This field used to hide the platform's mark and draw our chevron in its lane, the
-                * way the results screen's day fields do. That holds only while the browser obeys
-                * the hiding: where it does not, our chevron and the platform's land a few pixels
-                * apart and the field shows two (reported, rightly). So nothing of ours is drawn
-                * here and nothing is hidden — whatever the field draws is the only mark on it.
+                * For a day this drew an app calendar in the field's right-hand lane. On a browser
+                * that does not honour the hiding of the platform's own glyph - which is most phones
+                * - that is two marks in one field, and it was called out immediately. So nothing of
+                * ours is drawn here: whatever the field draws is the only mark on it.
                 */}
               <div className="dev-datetime">
                 <input
@@ -279,6 +292,15 @@ export function DeveloperPage() {
                   onChange={(event) => applyClock(event.target.value)}
                   aria-label={t('Date and time')}
                 />
+                {/*
+                  The app's own mark, in the lane the stylesheet reserves for it. The browser's own
+                  glyph is still underneath this one - invisible, and still the thing a tap opens -
+                  because Chrome on Android paints that glyph on the field's edge and will not be
+                  moved by any padding.
+                */}
+                <span className="dev-datetime__mark" aria-hidden="true">
+                  <Icon name="chevronDown" size={18} />
+                </span>
               </div>
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
@@ -292,6 +314,25 @@ export function DeveloperPage() {
               >
                 {t('Use the device’s clock')}
               </Button>
+            </div>
+          </Card>
+
+          <Card className="stack">
+            <h2 className="t-section">{t('OVVO Wrapped')}</h2>
+            {/*
+              The deck is built to be read from 20 December. This opens a made-up year — 146
+              journeys, a favourite line, a look worn for months — so the cards can be looked at and
+              argued with in November. Nothing here is stored: `?demo=1` is read into memory by
+              `lib/wrappedDemo` and thrown away when the page closes.
+            */}
+            <p className="t-sm t-muted">
+              {t("Opens the year's deck with a made-up year, without touching your own tally.")}
+            </p>
+            <div className="row-wrap">
+              <Link className="btn btn--accent" to="/wrapped?demo=1">
+                <Icon name="star" size={16} />
+                {t('Open a demo year')}
+              </Link>
             </div>
           </Card>
 
@@ -331,45 +372,60 @@ export function DeveloperPage() {
               onChange={(next) => {
                 const speed = dev.wifiMbps ?? (Number(speedDraft) || 5);
                 setSpeedDraft(String(speed));
-                applySpeed(next ? speed : null);
+                /* On is not applied: the field appears, and its button is what reloads. Off has no
+                   number to type, so it takes effect at once. */
+                if (next) claimSpeed(speed);
+                else applySpeed(null);
               }}
               label={t('Custom WiFi speed')}
               description={t(
-                'A claimed link speed. Setting it reloads the page, and the reload takes as long as the app’s own files would at that speed.',
+                'A claimed link speed. Type it in the field, then press the button in the field to reload over it.',
               )}
             />
             {dev.wifiMbps !== null ? (
               <Field
                 label={t('Speed · {speed} Mbps', { speed: dev.wifiMbps })}
-                hint={t('A reload takes {seconds} seconds at this speed. The article card and the address suggestions wait too; the screens already in the app do not.', {
+                hint={t('Press the button to reload over it: the reload takes {seconds} seconds at this speed. The article card and the address suggestions wait too; the screens already in the app do not.', {
                   seconds: (transferMs(APP_WIRE_BYTES, dev.wifiMbps) / 1000).toFixed(1),
                 })}
               >
-                <input
-                  className="input"
-                  type="number"
-                  inputMode="decimal"
-                  min={0.01}
-                  max={10000}
-                  step={0.01}
-                  value={speedDraft}
-                  onChange={(event) => setSpeedDraft(event.target.value)}
-                  /*
-                   * **A half-typed number is not a speed.** `0.0` on the way to `0.05` would
-                   * otherwise reload the page twice, and the second reload would land on a field
-                   * being typed into. So the draft is local, and the claim is made when the field
-                   * is left or Enter is pressed.
-                   */
-                  onBlur={(event) => {
-                    const next = Number(event.target.value);
-                    if (Number.isFinite(next) && next > 0) applySpeed(next);
-                    else setSpeedDraft(String(dev.wifiMbps ?? 5));
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') event.currentTarget.blur();
-                  }}
-                  aria-label={t('Speed in megabits per second')}
-                />
+                {/*
+                  * **The confirm button sits inside the field, at its right end.**
+                  *
+                  * A speed is a number that has to be typed, so the thing that applies it belongs
+                  * where the number is: a separate row below would be pressed by mistake while
+                  * looking for the box. It is the app's own disc with the app's own tick, sized to
+                  * the field's height, and the field's text is inset far enough that a long number
+                  * never runs underneath it. Enter does the same thing for a keyboard.
+                  */}
+                <div className="dev-speed">
+                  <input
+                    className="input"
+                    type="number"
+                    inputMode="decimal"
+                    min={0.01}
+                    max={10000}
+                    step={0.01}
+                    value={speedDraft}
+                    onChange={(event) => setSpeedDraft(event.target.value)}
+                    /* A draft while typing, applied by the button or Enter — never by a keystroke,
+                       which would reload on `0.0` on the way to `0.05`. */
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        commitSpeed();
+                      }
+                    }}
+                    aria-label={t('Speed in megabits per second')}
+                  />
+                  <IconButton
+                    className="dev-speed__go"
+                    variant="surface"
+                    icon="check"
+                    label={t('Use this speed')}
+                    onClick={commitSpeed}
+                  />
+                </div>
               </Field>
             ) : null}
           </Card>
@@ -394,7 +450,7 @@ export function DeveloperPage() {
               label={t('One alert at a time')}
               hint={t('Every screen shows only this alert, as if it were the only thing wrong today.')}
             >
-              <select
+              <Select
                 className="input"
                 value={dev.calm ? '' : dev.alertId ?? ''}
                 disabled={dev.calm}
@@ -407,7 +463,7 @@ export function DeveloperPage() {
                     {alert.title}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           </Card>
 

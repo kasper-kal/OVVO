@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "deploy": "npm run build && wrangler deploy",
+    "db:init": "wrangler d1 execute ovvo --remote --file schema.sql",
     "build": "tsc --noEmit && node scripts/em-dash-audit.mjs && node scripts/styles-audit.mjs && node scripts/corner-audit.mjs && vite build",
     "check:text": "node scripts/em-dash-audit.mjs",
     "typecheck": "tsc --noEmit",
@@ -20,6 +22,7 @@
     "check:corners": "node scripts/corner-audit.mjs"
   },
   "dependencies": {
+    "firebase": "^13.1.0",
     "lucide-react": "^1.56.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -31,6 +34,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "playwright": "^1.64.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "wrangler": "^4.156.0"
   }
 }

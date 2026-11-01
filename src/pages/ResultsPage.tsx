@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { noteRunOutcome } from '../lib/wrapped';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { searchEntryId, useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -20,6 +21,7 @@ import { useDev } from '../lib/dev';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
+import { Select } from '../components/ui/Select';
 
 /**
  * How far one press of "Earlier" or "Later" moves the window, and how far it may go.
@@ -140,6 +142,25 @@ export function ResultsPage() {
   const searchKey = search
     ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
     : '';
+
+  /*
+   * **The year's line, filled in once the list is there.**
+   *
+   * `startSearch` writes the run knowing only the two ends and the hour. This hands the answer's
+   * own facts to `lib/wrapped` — the changes, how long the first one on the list takes, and the
+   * lines — for the run that was just started. `noteRunOutcome` fills only a run that has no
+   * minutes yet, so a re-render, a filter or a sort cannot count the same list twice.
+   */
+  useEffect(() => {
+    const first = journeys[0];
+    if (!first || !first.legs.length) return;
+    const lines = [...new Set(first.legs.map((leg) => leg.lineNumber).filter((line): line is string => Boolean(line)))];
+    noteRunOutcome({
+      changes: Math.max(0, first.legs.length - 1),
+      minutes: first.legs[first.legs.length - 1].arrival - first.legs[0].departure,
+      lines,
+    });
+  }, [journeys]);
   /*
    * **The hold, from the panel.**
    *
@@ -281,7 +302,7 @@ export function ResultsPage() {
   /*
    * The date and time are the **device's own** pickers, by request.
    *
-   * They were two of the app's own `<select>`s: a list of fourteen days and a list of 288 five-minute steps. That could be read in the app's format, but it asked the traveller to scroll a
+   * They were two of the app's own `<Select>`s: a list of fourteen days and a list of 288 five-minute steps. That could be read in the app's format, but it asked the traveller to scroll a
    * list to answer "when", which is the one question a phone already answers with a calendar and
    * a clock. The native `<input type="date">` and `<input type="time">` open the operating
    * system's own pickers, and they need no JavaScript to do it.
@@ -434,7 +455,7 @@ export function ResultsPage() {
             text node under it, and this one wraps the select itself — so the span alone would give
             the control the name "Sort by Best Fastest Fewest transfers Least walking…".
           */}
-          <select
+          <Select
             id="results-sort"
             className="results-chip__select"
             aria-label={t('Sort by')}
@@ -446,7 +467,7 @@ export function ResultsPage() {
                 {t(option.label)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         {/*

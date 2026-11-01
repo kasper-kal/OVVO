@@ -1,5 +1,5 @@
 /**
- * Build the style list PDF from the app's own definitions.
+ * Build the theme list PDF from the app's own definitions.
  *
  * Reads `src/lib/styles.ts` (the catalogue, the font stacks, the authored quartets), renders the
  * pages with the real faces and the real hexes, and prints them with Chromium. Nothing here is
@@ -133,7 +133,7 @@ const allFamilies = new Set(styles.flatMap((s) => [s.display, s.sub, s.body]));
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
-<title>OVVO style list</title>
+<title>OVVO theme list</title>
 <style>
 ${fontsCss}
 @page { size: A4; margin: 14mm 13mm 16mm; }
@@ -224,7 +224,7 @@ td { padding: 0.9mm 1.6mm 0.9mm 0; border-bottom: 0.2mm solid #ece7dc; vertical-
       )
       .join('')}
   </div>
-  <div class="colophon"><span>OVVO style list</span><span>Generated from the app's own catalogue</span></div>
+  <div class="colophon"><span>OVVO theme list</span><span>Generated from the app's own catalogue</span></div>
 </div>
 
 ${(() => {
@@ -232,7 +232,7 @@ ${(() => {
   for (let index = 0; index < styles.length; index += 2) {
     pages.push(`<div class="page">
       ${styles.slice(index, index + 2).map((style, at) => card(style, at)).join('')}
-      <div class="colophon"><span>OVVO style list</span><span>${index + 1} to ${Math.min(index + 2, styles.length)} of ${styles.length}</span></div>
+      <div class="colophon"><span>OVVO theme list</span><span>${index + 1} to ${Math.min(index + 2, styles.length)} of ${styles.length}</span></div>
     </div>`);
   }
   return pages.join('\n');
@@ -293,16 +293,16 @@ for (const index of [0, 1, 2, 16]) {
 }
 
 await page.pdf({
-  path: path.join(ROOT, 'OVVO-style-list.pdf'),
+  path: path.join(ROOT, 'OVVO-theme-list.pdf'),
   format: 'A4',
   printBackground: true,
   displayHeaderFooter: true,
   headerTemplate: '<div></div>',
   footerTemplate:
-    '<div style="width:100%;font:7.5pt Inter,sans-serif;color:#8a8a90;padding:0 13mm;display:flex;justify-content:space-between;"><span>OVVO · style list</span><span class="pageNumber"></span></div>',
+    '<div style="width:100%;font:7.5pt Inter,sans-serif;color:#8a8a90;padding:0 13mm;display:flex;justify-content:space-between;"><span>OVVO · theme list</span><span class="pageNumber"></span></div>',
   margin: { top: '14mm', bottom: '16mm', left: '13mm', right: '13mm' },
 });
 
 await browser.close();
 await unlink(path.join(ROOT, 'public/__style-report.html'));
-console.log('pdf written: OVVO-style-list.pdf');
+console.log('pdf written: OVVO-theme-list.pdf');

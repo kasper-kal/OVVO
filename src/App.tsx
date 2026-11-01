@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SkeletonDemoPage } from './pages/SkeletonDemoPage';
 import { ResultsPage } from './pages/ResultsPage';
+import { WrappedPage } from './pages/WrappedPage';
 import { JourneyDetailPage } from './pages/JourneyDetailPage';
 import { MapPage } from './pages/MapPage';
 import { StopsPage } from './pages/StopsPage';
@@ -18,6 +19,8 @@ import { StylesPage } from './pages/StylesPage';
 import { ReviewLayer } from './review/ReviewLayer';
 import { DeveloperRoute } from './pages/DeveloperPage';
 import { getDevOverrides } from './lib/dev';
+import { SignInPage } from './pages/SignInPage';
+import { AuthFinishPage } from './pages/AuthFinishPage';
 
 /**
  * **Every screen is in this one file, and that is the fix for the half second.**
@@ -56,13 +59,15 @@ import { getDevOverrides } from './lib/dev';
 function SettingsRoute() {
   const { power, settings } = useApp();
   /*
-   * **A simulated battery keeps this door open, and only a simulated one.**
+   * **A simulated tenth keeps this door open; a simulated last percent does not.**
    *
-   * The developer panel can put the app at 1%, and Settings is closed at 1% — which would lock the
-   * panel that did it out of the screen where it is switched off. So while a battery override is
-   * set, the way in stays open; the moment it is handed back, the rule is exactly what it was.
+   * At 10% a battery override keeps Settings reachable, so the simulation can be ended the ordinary
+   * way. At 1% it must not: Settings sitting in a last drop's menu is what made the last drop
+   * impossible to look at (reported). The way out of that one is the small link on the last-drop
+   * screen itself, and only while the battery is simulated.
    */
-  const simulating = settings.developerMode && getDevOverrides().battery !== null;
+  const simulating =
+    settings.developerMode && getDevOverrides().battery !== null && power.mode === 'super';
   if ((power.mode === 'super' || power.mode === 'last') && !simulating) {
     return <Navigate to="/" replace />;
   }
@@ -115,6 +120,15 @@ export default function App() {
             */}
           {import.meta.env.DEV ? <Route path="/skeleton" element={<SkeletonDemoPage />} /> : null}
 
+          {/*
+            **Signing in is a door, not a section.** `/signin` and the page the emailed link lands
+            on both sit outside the shell on purpose: there is no navigation to browse while
+            half-way through signing in, and a dock under a sign-in form invites a traveller to
+            leave mid-way with a half-made account.
+          */}
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/auth/finish" element={<AuthFinishPage />} />
+
           <Route
             path="*"
             element={
@@ -122,6 +136,7 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
+                  <Route path="/wrapped" element={<WrappedPage />} />
                   {/* One search, in full: everything a reload or a pasted link must put back —
                       see `lib/searchLink`. `/results` alone still works and says there is nothing
                       to show yet. */}
@@ -140,7 +155,10 @@ export default function App() {
                   <Route path="/developer" element={<DeveloperRoute />} />
                   {/* The look, one level in from Settings: fifty previews do not belong in a
                       list of settings (`pages/StylesPage.tsx`). */}
-                  <Route path="/styles" element={<StylesPage />} />
+                  <Route path="/themes" element={<StylesPage />} />
+                  {/* The screen is called Themes now, so the old address is a redirect rather
+                      than a 404: a bookmark taken before the rename still lands on it. */}
+                  <Route path="/styles" element={<Navigate to="/themes" replace />} />
                   <Route path="/planner" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

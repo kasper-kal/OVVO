@@ -3,7 +3,7 @@ import { styleById, type StyleDef } from './styles';
 /**
  * **The four days the app dresses for, and when the next one is.**
  *
- * The Styles page keeps its Holidays shelf at the bottom all year. This is the one thing that
+ * The Themes page keeps its Holidays shelf at the bottom all year. This is the one thing that
  * changes with the calendar: three weeks before a holiday, that shelf is announced at the top of
  * the page, because a look for a day that is three weeks away is worth finding without scrolling,
  * and a look for a day that is four months away is not.

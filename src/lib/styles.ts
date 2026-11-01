@@ -1,7 +1,7 @@
 /**
  * **A style is a whole answer, not a colour.**
  *
- * This is the replacement for the Colours card (`STYLES_PLAN.md`). The old model let the traveller
+ * This is the replacement for the Colours card (`THEMES_PLAN.md`). The old model let the traveller
  * choose a hex for the page, a hex for every widget and a hex for selected text, and then had to
  * *derive* readable ink out of whatever arrived. An ink ramp can only do so much with a mid grey,
  * and the complaints were always the same shape: a chip whose outline vanished, a label 4.3:1 on
@@ -17,7 +17,7 @@
  * holds at most one file per photo style, named after its id — `marble.jpg`, `arches.jpg` and so
  * on. Nothing is uploaded, cropped or sampled; a missing file is not an error, it is the style
  * wearing its own colour, which every photo style can do on purpose anyway (the **Background** row
- * on the Styles card). See `public/style-photos/README.md` for the naming rule.
+ * on the Themes card). See `public/style-photos/README.md` for the naming rule.
  */
 
 import { contrastRatio, hexToHsv, hsvToHex, readHex, relativeLuminance, toHex } from './colour';
@@ -152,7 +152,7 @@ export const STYLE_GROUPS: StyleGroup[] = [
   /*
    * **Holidays sits at the bottom, and is the one shelf that is about a day rather than a colour.**
    * It holds the four seasonal looks all year, so nothing about them depends on the date; when one
-   * of those days is within three weeks the Styles page announces it at the top (see
+   * of those days is within three weeks the Themes page announces it at the top (see
    * `lib/holidays.ts`) and this shelf is where the look itself lives.
    */
   {
@@ -208,7 +208,7 @@ export interface StylePhoto {
  *
  * One is deliberately left out. **All Black** exists as the answer to "make it as plain as it can
  * be", and a photograph behind the page is the one thing that can put a bright patch under ink meant
- * to be read flat. It stays colour-only, and the Styles card has no Background row for it rather
+ * to be read flat. It stays colour-only, and the Themes card has no Background row for it rather
  * than a switch that cannot keep its promise.
  *
  * The ten that authored their own scrim and card treatment keep them; every other style gets the
@@ -330,7 +330,7 @@ interface Shape {
  * surfaces and the darker hairline already say that, and the extra pixels simply looked like a
  * frame drawn around every card (reported: "all borders so thick on almost every style … I dont
  * want mega thin borders, but not thick ones either like now"). The black shelf falls back to
- * `square`, so its whole column was framed at 2px, which is the shelf the Styles page opens on.
+ * `square`, so its whole column was framed at 2px, which is the shelf the Themes page opens on.
  *
  * What still separates a printed style from a soft one is the *strength* of the same one-pixel
  * line, which is `hair`, and the geometry around it. A border is a border, not an outline.

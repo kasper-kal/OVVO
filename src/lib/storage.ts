@@ -1,6 +1,36 @@
-/** Thin, failure-tolerant localStorage wrapper. Everything stays on this device. */
+/**
+ * Thin, failure-tolerant localStorage wrapper.
+ *
+ * Values live in this browser first — that is what makes the app work with no account and no
+ * network — and follow the account when one is signed in (`lib/account` sends the whole store as
+ * one document and adopts it when the account has moved on).
+ */
 
 const PREFIX = 'ov-planner:v1:';
+
+/** The same prefix, for the one caller that has to read the whole store as a document (`lib/account`). */
+export const STORAGE_PREFIX = PREFIX;
+
+/**
+ * **Every stored write goes through here on its way out.**
+ *
+ * The account sync needs to know that something changed without being told what, or by whom: a
+ * heart, a saved journey, a search, the year's tally. Subscribing to the funnel means a value
+ * added next month is synced without anybody remembering to hook it up.
+ */
+const listeners = new Set<() => void>();
+
+/** Tell anything listening that values have changed from outside a normal write (a sync landing). */
+export function announceStored(): void {
+  for (const listener of listeners) listener();
+}
+
+export function onStoredChange(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 export function readStored<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
@@ -19,6 +49,7 @@ export function writeStored<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    for (const listener of listeners) listener();
   } catch {
     /* storage full or unavailable — the prototype keeps working in memory */
   }
@@ -101,4 +132,11 @@ export const STORAGE_KEYS = {
    * come back, and clearing the app's stored data brings it back with everything else.
    */
   install: 'install-asked',
+  /*
+   * **The year's tally** (`lib/wrapped`): one line per search run, per board opened, per day a look
+   * was worn, written from the day the tally started so a December card has a year to read. It is
+   * an ordinary slot rather than a device-only one, because a signed-in traveller should find their
+   * year on their other phone, exactly like their favourites.
+   */
+  wrapped: 'wrapped',
 } as const;

@@ -1055,7 +1055,17 @@
   padding: 0 var(--s-3);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  /*
+   * **A field is a capsule, because what sits inside it is round.**
+   *
+   * The squircle was the input's shape while every other control in the app - switches, chips,
+   * buttons, the disc inside a field - is a pill. A round button in a rounded rectangle reads as a
+   * circle pushed into a box, which is what was reported as "the search box is square and the button
+   * is round" (the speed field, with its tick disc). Twenty pixels on a 44px box was not even a
+   * squircle: it left flat top and bottom edges and a visibly different end from the disc beside it.
+   * The textarea keeps the squircle below, because a capsule eight lines tall is not a capsule.
+   */
+  border-radius: var(--r-pill);
   color: var(--ink-strong);
   font-size: var(--fs-body);
   font-weight: var(--fw-medium);
@@ -1067,6 +1077,8 @@
   padding: var(--s-3);
   min-height: 88px;
   resize: vertical;
+  /* The one field that is a box rather than a capsule: it holds sentences, not a value. */
+  border-radius: var(--r-input);
 }
 
 .input::placeholder,
@@ -1081,22 +1093,66 @@
 }
 
 /*
- * **A lane for the platform's own picker glyph.**
+ * **The clock field draws its own mark, because a phone will not move its own.**
  *
- * `.input` pads 12px on both sides, which is right for text and too tight for a control whose
- * right-hand end belongs to the browser: the chevron of a `datetime-local` was drawn 12px from the
- * border, hard against the field's rounded corner, and read as a mark sliding off the edge
- * (reported, circled). The reserved strip is the glyph's lane, and the value keeps its own 12px.
- * The results screen's day and time fields opt out further down, because they hide that glyph on
- * purpose and draw the app's own mark in its place.
+ * `input[type=datetime-local]` arrives with the platform's picker glyph, and where that glyph sits
+ * is decided by the engine, not by the field's padding: Chrome for Android paints it on the field's
+ * right edge whatever the padding says. Three attempts to give it air - 12px, 20px, 24px - each
+ * moved the value's inset and left the mark exactly where it was, which is why the same report kept
+ * coming back (the last one naming the browser: Chrome 156 on Android 16).
+ *
+ * So the field hides the platform's glyph and draws the app's own chevron in a lane the layout
+ * controls. The hiding is `opacity: 0` and not `display: none`: the indicator keeps its place, its
+ * size and its click, so a tap on the mark still opens the device's own date and time picker. The
+ * rule is written inside `@supports` so an engine without that selector draws nothing at all and
+ * keeps its own mark - one mark either way, never two.
  */
-.input[type='date'],
-.input[type='time'],
-.input[type='datetime-local'],
-.input[type='month'],
-.input[type='week'] {
-  padding-right: var(--s-8);
+.dev-datetime .input {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* The mark's lane: an 18px chevron, 12px from the edge, and the value kept clear of it. */
+  padding-right: 50px;
 }
+
+.dev-datetime__mark {
+  position: absolute;
+  top: 50%;
+  /* The same lane as the dropdowns' chevron: 12px from the edge, past the pill's curve. */
+  right: 12px;
+  display: none;
+  align-items: center;
+  /* `translate`, not `transform`: a pressed control is free to set its own transform. */
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+@supports selector(::-webkit-calendar-picker-indicator) {
+  /*
+   * **The platform's mark is switched off, not just faded.**
+   *
+   * `opacity: 0` was not enough: Chrome for Android still paints its own chevron beside the app's,
+   * so the field showed two (reported, twice, with a screenshot of a chevron at each end of the
+   * lane). `appearance: none` is the switch that actually removes the control's own furniture. The
+   * field stays a date and time input - a tap still opens the device's picker - it simply arrives
+   * without a mark of its own, which is what leaves room for exactly one.
+   */
+  .dev-datetime .input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .dev-datetime .input::-webkit-calendar-picker-indicator {
+    display: none;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .dev-datetime__mark {
+    display: inline-flex;
+  }
+}
+
 
 /* Focus on a field is the app's own ring, not a border colour: this rule used to set
    `outline: none` and outrank the global `:focus-visible` ring, so the search fields and every
@@ -1114,11 +1170,52 @@
   background: var(--tint-coral);
 }
 
+/*
+ * **The dropdown's box and its mark, kept apart.**
+ *
+ * `Select` renders a `<span>` around the native list so the chevron can be a real element at a
+ * position the layout controls, instead of the platform's own arrow drawn at the field's edge. The
+ * list keeps its own box (`appearance: none` and the pill are on `.select` itself) and the mark
+ * takes the 24px lane the clock field and the results fields use, so every mark in a field is the
+ * same drawing in the same place.
+ */
+.select-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.select-wrap .select {
+  background-image: none;
+  padding-right: 50px;
+}
+
+.select-wrap__mark {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  /* `translate`, not `transform`: a pressed control sets its own transform. */
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
 .select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
     linear-gradient(135deg, var(--ink) 50%, transparent 50%);
-  background-position: calc(100% - 18px) 20px, calc(100% - 13px) 20px;
+  /*
+   * **The chevron is placed by the same rule as every other mark in a field.**
+   *
+   * It was pinned at 18px and 13px from the right edge and 20px from the top, which is inside the
+   * pill's own curve on a 44px field and above the middle on a taller one - so the dropdowns wore a
+   * chevron crowding the rounded end while the clock field beside them wore one 27px in, and the two
+   * read as two different designs (reported, twice, circled). The lane is now 24px from the edge,
+   * which is past the curve, and `center` puts it on the middle of whatever height the field is.
+   */
+  background-position: calc(100% - 29px) center, calc(100% - 24px) center;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   padding-right: var(--s-8);
@@ -1131,7 +1228,7 @@
   gap: var(--s-1);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  border-radius: var(--r-pill);
   padding: 0 var(--s-1) 0 var(--s-3);
   min-height: 52px;
 }
@@ -2502,7 +2599,17 @@
   padding: 0 var(--s-3);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  /*
+   * **A field is a capsule, because what sits inside it is round.**
+   *
+   * The squircle was the input's shape while every other control in the app - switches, chips,
+   * buttons, the disc inside a field - is a pill. A round button in a rounded rectangle reads as a
+   * circle pushed into a box, which is what was reported as "the search box is square and the button
+   * is round" (the speed field, with its tick disc). Twenty pixels on a 44px box was not even a
+   * squircle: it left flat top and bottom edges and a visibly different end from the disc beside it.
+   * The textarea keeps the squircle below, because a capsule eight lines tall is not a capsule.
+   */
+  border-radius: var(--r-pill);
   color: var(--ink-strong);
   font-size: var(--fs-body);
   font-weight: var(--fw-medium);
@@ -2514,6 +2621,8 @@
   padding: var(--s-3);
   min-height: 88px;
   resize: vertical;
+  /* The one field that is a box rather than a capsule: it holds sentences, not a value. */
+  border-radius: var(--r-input);
 }
 
 .input::placeholder,
@@ -2543,11 +2652,52 @@
   background: var(--tint-coral);
 }
 
+/*
+ * **The dropdown's box and its mark, kept apart.**
+ *
+ * `Select` renders a `<span>` around the native list so the chevron can be a real element at a
+ * position the layout controls, instead of the platform's own arrow drawn at the field's edge. The
+ * list keeps its own box (`appearance: none` and the pill are on `.select` itself) and the mark
+ * takes the 24px lane the clock field and the results fields use, so every mark in a field is the
+ * same drawing in the same place.
+ */
+.select-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.select-wrap .select {
+  background-image: none;
+  padding-right: 50px;
+}
+
+.select-wrap__mark {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  /* `translate`, not `transform`: a pressed control sets its own transform. */
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
 .select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
     linear-gradient(135deg, var(--ink) 50%, transparent 50%);
-  background-position: calc(100% - 18px) 20px, calc(100% - 13px) 20px;
+  /*
+   * **The chevron is placed by the same rule as every other mark in a field.**
+   *
+   * It was pinned at 18px and 13px from the right edge and 20px from the top, which is inside the
+   * pill's own curve on a 44px field and above the middle on a taller one - so the dropdowns wore a
+   * chevron crowding the rounded end while the clock field beside them wore one 27px in, and the two
+   * read as two different designs (reported, twice, circled). The lane is now 24px from the edge,
+   * which is past the curve, and `center` puts it on the middle of whatever height the field is.
+   */
+  background-position: calc(100% - 29px) center, calc(100% - 24px) center;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   padding-right: var(--s-8);
@@ -2560,7 +2710,7 @@
   gap: var(--s-1);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  border-radius: var(--r-pill);
   padding: 0 var(--s-1) 0 var(--s-3);
   min-height: 52px;
 }
@@ -3633,9 +3783,73 @@
   display: flex;
 }
 
-.dev-datetime .input {
+/*
+ * **The account's face.** A circle, painted by the component (a photograph or one of ten colours),
+ * so nothing here decides which — only the shape and the cropping. `object-fit` is what keeps a
+ * photograph square inside a round frame without stretching it.
+ */
+.avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--r-circle);
+}
+
+.avatar__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * The developer panel's speed field: the confirm button lives inside it, at the right end.
+ *
+ * A speed is typed, so the control that takes it is in the box being typed into rather than in a
+ * row of its own, where it would be pressed while looking for the field. The text is inset by the
+ * disc's width plus its own gap, so `10000` cannot run under the tick, and the disc is centred on
+ * the field's height so the two cannot sit a pixel apart.
+ */
+.dev-speed {
+  position: relative;
+  display: flex;
+}
+
+/*
+ * **The disc gets air on every side, which the field's height has to provide.**
+ *
+ * A 40px disc in a 44px field leaves 2px above and 2px below, and its own hairline then sits on
+ * the field's edge: it reads as pressed into the corner rather than placed in the box (reported,
+ * circled). The field is 52px tall and the disc keeps its 40px, so there are 6px on all four sides
+ * - the same inset the disc has from the field's right end, which is what makes it look set in.
+ */
+.dev-speed .input {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 52px;
+  padding-right: 56px;
+}
+
+.dev-speed__go {
+  position: absolute;
+  /*
+   * **Centred by the box, not by a transform.**
+   *
+   * This was `top: 50%` plus `transform: translateY(-50%)`, and a press sets its own transform -
+   * so pressing the button threw the centring away and the disc dropped by half its height, out
+   * through the bottom of the field (reported: "when you press it, it moves down for some reason").
+   * Auto margins on a box pinned to both edges centre it without touching `transform` at all, so
+   * the press is free to move it by its own pixel and nothing else.
+   */
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
+  right: 6px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
 }
 
 /*
@@ -6779,7 +6993,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  /* A two-slot capsule: the day and time fields keep their divider, the ends stay round. */
+  border-radius: var(--r-pill);
   background: var(--l2-bg);
   overflow: hidden;
 }
@@ -6816,7 +7031,8 @@
 .when-field__field .input {
   flex: 1 1 auto;
   min-width: 0;
-  padding-right: var(--s-2);
+  /* The mark's lane, the same one every other field gives its mark: 24px from the edge. */
+  padding-right: 50px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -6838,7 +7054,15 @@
 .when-field__glyph {
   position: absolute;
   top: 50%;
-  right: var(--s-2);
+  /*
+   * **The same lane as every other mark in a field.**
+   *
+   * It was 8px from the edge, which on a 52px pill is *inside* the rounded end - the mark sat on
+   * the curve rather than in the field. The results screen's day and time fields were the last
+   * place still drawing their own mark by an older rule; they now use the 24px lane that the
+   * dropdowns and the clock field use, so every mark in the app lands in the same place.
+   */
+  right: 12px;
   display: none;
   align-items: center;
   translate: 0 -50%;
@@ -7285,4 +7509,533 @@
   border-radius: var(--r-compact, 12px);
   background: var(--l1-bg);
   color: var(--ink-strong);
+}
+
+/*
+ * The developer panel's way in from the last percent.
+ *
+ * One line of quiet type with the app's sliders glyph, sitting under the sentence that explains the
+ * thin screen, and only ever drawn while the battery is simulated. It is a small thing on purpose:
+ * the screen is meant to look like a phone at 1%, so this reads as a footnote rather than as a
+ * control. The press target is still a full 44px, because a small-looking link is not the same as a
+ * small target.
+ */
+.home-dev-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--s-2);
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.home-dev-link:hover span {
+  text-decoration: underline;
+}
+
+/* ========================================================== OVVO Wrapped: the stage
+
+   A full-screen story rather than a card in a column. Each chapter owns the whole window, in one of
+   four tones, so the year changes colour as it is told; everything drawn on top of a tone uses
+   `currentColor`, which is why one set of rules works on the dark chapter and on the cream one.
+   Movement is the story rather than decoration: content rises in a beat after the tone changes, the
+   route draws itself, the bars grow from the floor, the arc sweeps, and a number counts up. */
+
+.wrapped-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 89;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: max(env(safe-area-inset-top), 10px) clamp(20px, 6vw, 56px) max(env(safe-area-inset-bottom), 14px);
+  transition: background-color 520ms var(--ease-out), color 520ms var(--ease-out);
+  touch-action: pan-y;
+  isolation: isolate;
+}
+
+.wrapped-stage--ink {
+  background: var(--struct-main, #18181b);
+  color: var(--on-dark, #fcfbfa);
+}
+
+.wrapped-stage--cream {
+  background: var(--l2-bg, #fcfbfa);
+  color: var(--ink-strong, #18181b);
+}
+
+.wrapped-stage--sage {
+  background: var(--tint-sage, #e1eadf);
+  color: #14201a;
+}
+
+.wrapped-stage--coral {
+  background: var(--tint-coral, #ffe8e5);
+  color: #2a1512;
+}
+
+/* Grain and two slow shapes: the texture and the life behind the type. */
+.wrapped-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 0.07;
+  z-index: 0;
+}
+
+.wrapped-blob {
+  position: fixed;
+  width: min(70vmax, 720px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.22;
+  background: radial-gradient(circle, currentColor 0%, transparent 68%);
+  z-index: 0;
+  animation: wrapped-drift 18s ease-in-out infinite alternate;
+}
+
+.wrapped-blob--a {
+  top: -22vmax;
+  right: -26vmax;
+}
+
+.wrapped-blob--b {
+  bottom: -30vmax;
+  left: -24vmax;
+  animation-duration: 24s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes wrapped-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-4vmax, 3vmax, 0) scale(1.12);
+  }
+}
+
+/* ------------------------------------------------------------------ the top row */
+.wrapped-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 10px;
+  background: linear-gradient(to bottom, currentColor 0%, transparent 100%);
+  background: none;
+}
+
+.wrapped-close,
+.wrapped-step {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  transition: background-color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+.wrapped-close:active,
+.wrapped-step:active {
+  transform: scale(0.94);
+}
+
+.wrapped-step:disabled {
+  opacity: 0.3;
+}
+
+.wrapped-track {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  overflow: hidden;
+}
+
+.wrapped-track__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--progress, 0) * 100%);
+  background: currentColor;
+  border-radius: 999px;
+  transition: width 460ms var(--ease-out);
+}
+
+.wrapped-sound {
+  flex: none;
+  padding: 8px 12px;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------------- the body */
+.wrapped-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.4vh, 22px);
+  padding: clamp(8px, 3vh, 28px) 0 clamp(6px, 2vh, 20px);
+  min-height: 0;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.wrapped-body > * {
+  animation: wrapped-rise 620ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 85ms);
+}
+
+@keyframes wrapped-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.wrapped-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: clamp(11px, 2.6vw, 13px);
+  font-weight: 700;
+  opacity: 0.68;
+}
+
+.wrapped-title {
+  font-size: clamp(56px, 19vw, 190px);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  font-weight: 700;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.wrapped-big {
+  font-size: clamp(46px, 14.5vw, 132px);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  font-weight: 680;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.wrapped-line {
+  font-size: clamp(17px, 4.4vw, 25px);
+  line-height: 1.28;
+  max-width: 24ch;
+  margin: 0;
+  opacity: 0.94;
+}
+
+.wrapped-note,
+.wrapped-demo,
+.wrapped-aside {
+  font-size: clamp(13px, 3.2vw, 15px);
+  line-height: 1.4;
+  max-width: 40ch;
+  margin: 0;
+  opacity: 0.72;
+}
+
+.wrapped-cover {
+  display: grid;
+  gap: clamp(10px, 2.4vh, 22px);
+  align-content: center;
+}
+
+.wrapped-cover .wrapped-title {
+  /* The year, as the thing the story is about: as big as the screen will honestly give it. */
+  font-size: clamp(72px, 30vw, 260px);
+}
+
+.wrapped-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------------- the visuals */
+.wrapped-route {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: clamp(6px, 2vh, 18px);
+  font-size: clamp(12px, 3vw, 14px);
+  font-weight: 650;
+}
+
+.wrapped-route__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.wrapped-route__dot--end {
+  opacity: 0.5;
+}
+
+.wrapped-route__line {
+  position: relative;
+  height: 2px;
+  background: color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+  animation: wrapped-draw 900ms 220ms var(--ease-out) both;
+}
+
+.wrapped-route__line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: left center;
+  animation: wrapped-sweep 1200ms 300ms var(--ease-out) both;
+}
+
+@keyframes wrapped-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes wrapped-draw {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wrapped-route__from,
+.wrapped-route__to {
+  grid-row: 2;
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.wrapped-route__from {
+  grid-column: 1;
+}
+
+.wrapped-route__to {
+  grid-column: 3;
+  text-align: right;
+}
+
+.wrapped-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(2px, 0.9vw, 6px);
+  height: clamp(90px, 26vh, 220px);
+  margin-top: clamp(6px, 2vh, 18px);
+}
+
+.wrapped-bars__bar {
+  flex: 1;
+  min-width: 3px;
+  border-radius: 3px 3px 0 0;
+  background: currentColor;
+  opacity: 0.28;
+  transform-origin: bottom center;
+  animation: wrapped-grow 700ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 18ms);
+}
+
+.wrapped-bars__bar.is-peak {
+  opacity: 1;
+}
+
+@keyframes wrapped-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.wrapped-arc {
+  width: min(58vw, 240px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  margin-top: clamp(4px, 1.6vh, 14px);
+  background: conic-gradient(currentColor calc(var(--arc, 0) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
+  mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
+  animation: wrapped-arc-in 900ms 160ms var(--ease-out) both;
+}
+
+@keyframes wrapped-arc-in {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+.wrapped-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: clamp(4px, 1.6vh, 14px) 0 0;
+  padding: 0;
+}
+
+.wrapped-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  font-size: clamp(12px, 3vw, 14px);
+}
+
+.wrapped-chip strong {
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------------------- the foot */
+.wrapped-foot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+/*
+ * **The last chapter's three controls get a row of their own.**
+ *
+ * Put in one line with the back arrow and the chapter count they wrapped into a ragged two-column
+ * block with the arrow floating beside it, which reads as a mistake at the end of a story that has
+ * been laid out deliberately for nine screens. The actions take a full row under the arrow, and the
+ * count keeps its corner.
+ */
+.wrapped-foot:has(.wrapped-foot__actions) .wrapped-foot__actions {
+  order: 3;
+  flex: 1 1 100%;
+  justify-content: center;
+}
+
+.wrapped-foot .wrapped-actions {
+  margin: 0;
+}
+
+.wrapped-step--next {
+  margin-left: auto;
+}
+
+.wrapped-count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+  margin-left: auto;
+}
+
+.wrapped-foot:has(.wrapped-step--next) .wrapped-count {
+  margin-left: 0;
+}
+
+.wrapped-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(env(safe-area-inset-bottom), 18px);
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: var(--r-pill, 999px);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------- fewer moving parts */
+.wrapped-stage.is-still *,
+:root[data-motion='reduced'] .wrapped-stage * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (min-width: 900px) {
+  .wrapped-body {
+    gap: 26px;
+  }
+
+  .wrapped-line {
+    max-width: 30ch;
+  }
+}
+
+/*
+ * **The app's own buttons, on a stage that is not the app's surface.**
+ *
+ * `btn--ghost` is drawn for a cream page: no fill, no edge, muted ink. On the dark chapter that is
+ * a word the eye has to hunt for, and "Skip the sound" beside Begin was the worst of it. Inside the
+ * stage a ghost button takes the chapter's own ink and a faint edge instead, which is the same
+ * control saying the same thing in the colour of the screen it is standing on.
+ */
+.wrapped-stage .btn--ghost {
+  color: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.wrapped-stage .btn--ghost:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* The invitation card on the home screen and in Settings keeps the app's own card shape. */
+.wrapped-invite .empty__icon {
+  background: var(--accent-soft, var(--surface-sunken, transparent));
 }

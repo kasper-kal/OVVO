@@ -10,6 +10,8 @@ import { Icon, ModeIcon } from '../components/ui/Icons';
 import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
+import { AccountCard, SignOutPanel } from '../components/account/AccountCard';
+import { WrappedInvite } from '../components/wrapped/WrappedInvite';
 import { LANGUAGES } from '../lib/i18n';
 import { clearDevOverrides } from '../lib/dev';
 import type { Stop } from '../data/types';
@@ -220,7 +222,7 @@ export function SettingsPage() {
       <PageHeader
         title={t('Settings')}
         description={t(
-          'Appearance, defaults and locally stored data. Every change applies immediately and is stored in this browser.',
+          'Appearance, defaults and your saved data. Every change applies immediately, and follows your account when you are signed in.',
         )}
         /* The H1 was a 1×1 sr-only box at every width, so the page opened on RESET TO DEFAULTS
            with nothing above it saying where the traveller was (11.4). */
@@ -231,6 +233,15 @@ export function SettingsPage() {
           </Button>
         }
       />
+
+      {/*
+        **The account opens the page.** It is the one thing here that is not about how the app
+        looks: whether the traveller's things follow them to another device. Appearance, defaults
+        and the reset all sit below it.
+      */}
+      <AccountCard />
+
+      <WrappedInvite place="settings" />
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="stack-4">
@@ -369,13 +380,13 @@ export function SettingsPage() {
           </Card>
 
           {/*
-            **Styles, as a row that opens a screen.** The grid of fifty looks is too much to stand
+            **Themes, as a row that opens a screen.** The grid of fifty looks is too much to stand
             in the middle of a list of settings, so Settings names the look in force and one
             control opens the picker (`pages/StylesPage.tsx`).
           */}
           <Card className="stack">
             <div className="between">
-              <h2 className="t-section">{t('Styles')}</h2>
+              <h2 className="t-section">{t('Themes')}</h2>
               <span className="t-strong t-sm">
                 {settings.language === 'nl'
                   ? styleById(settings.styleId).nameNl
@@ -385,9 +396,9 @@ export function SettingsPage() {
             <p className="field__hint">
               {t('The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.')}
             </p>
-            <div>
-              <Link className="style-link" to="/styles">
-                {t('Choose a style')}
+            <div className="row">
+              <Link className="btn" to="/themes">
+                {t('Choose a theme')}
               </Link>
             </div>
           </Card>
@@ -660,6 +671,12 @@ export function SettingsPage() {
         with them (`resetLocalData`, `state/AppState.tsx`). It is **one** control, not a second
         button beside an older one doing nearly the same job.
       */}
+      {/*
+        Leaving sits above the reset, and on a lighter surface than it: this one only signs you
+        out (your data stays on the device), while the one below deletes everything.
+      */}
+      <SignOutPanel />
+
       <div className="row-wrap">
         <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
           {t('Reset the app')}

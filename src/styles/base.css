@@ -1172,14 +1172,29 @@ svg.map-canvas {
  * obsidian for the dock's own active pill, so a traveller's colour is visible here too and a
  * near-black one is the lightened cut rather than an invisible line.
  */
+/*
+ * **The strip can close its own height.**
+ *
+ * It is a one-row grid whose row is either `1fr` or nothing: a bar that only faded would leave its
+ * 40-odd pixels of empty space behind for the rest of the visit, and one that was removed from the
+ * page outright is the jump that was reported. The padding moved onto the inner row for the same
+ * reason — a padded box cannot be 0px tall — so the space it gives back is the space it had taken,
+ * and the page below travels up with it instead of snapping.
+ */
 .offline-bar {
   position: sticky;
   top: 0;
   z-index: 60;
+  display: grid;
+  grid-template-rows: 1fr;
   background: var(--struct-main);
   color: var(--on-dark);
   border-bottom: 2px solid var(--accent-on-dock);
-  padding: var(--s-2) var(--s-3);
+  padding: 0;
+  transition:
+    grid-template-rows 240ms var(--ease-out),
+    opacity 200ms var(--ease-out),
+    border-bottom-width 240ms var(--ease-out);
 }
 
 .offline-bar__inner {
@@ -1188,8 +1203,32 @@ svg.map-canvas {
   gap: var(--s-2);
   max-width: var(--shell-max);
   margin: 0 auto;
+  padding: var(--s-2) var(--s-3);
   font-size: var(--fs-body);
   line-height: 1.4;
+  /* A row that can go to nothing: without both of these the content keeps its height and the bar
+     simply fades in place. */
+  min-height: 0;
+  overflow: hidden;
+  /* The padding shrinks with the row, or the strip stops 16px short of gone and hangs as a sliver
+     of empty dark. */
+  transition: padding 240ms var(--ease-out);
+}
+
+/* On its way out: the row closes, the rule under it goes, and the whole thing fades a little
+   sooner than the height, so the movement is read as leaving rather than as shrinking. */
+.offline-bar--leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  border-bottom-width: 0;
+}
+
+.offline-bar--leaving .offline-bar__inner {
+  padding-block: 0;
+}
+
+:root[data-motion='reduced'] .offline-bar {
+  transition: none;
 }
 
 .offline-bar__icon {

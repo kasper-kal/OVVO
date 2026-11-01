@@ -10,6 +10,7 @@ import { Chip, Field, Panel, Switch } from '../ui/primitives';
 import { useT } from '../../lib/useT';
 import { Icon, ModeIcon } from '../ui/Icons';
 import type { TravelMode } from '../../data/types';
+import { Select } from '../ui/Select';
 
 /**
  * The single source of truth for every travel-preference control in the app.
@@ -110,7 +111,7 @@ export function PreferencesControls({
           label={t('Maximum number of transfers')}
           hint={withHints ? t('Counts changes between services, not walking links.') : undefined}
         >
-          <select
+          <Select
             className="select"
             /*
               The field's label is a `<label>` with no `htmlFor`, so this control had no name at
@@ -127,7 +128,7 @@ export function PreferencesControls({
                 {t(option.label)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
       </div>
 
