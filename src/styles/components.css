@@ -1095,7 +1095,18 @@
 .input[type='datetime-local'],
 .input[type='month'],
 .input[type='week'] {
-  padding-right: var(--s-8);
+  /*
+   * **The gap the platform's mark needs, and the end of it.**
+   *
+   * The mark is drawn inside the field's padding, so the padding is the only thing that can move
+   * it. This was 12px on both sides, which put the glyph hard against the rounded corner; a wider
+   * lane pushed the *value* away from the mark and left the mark where it was; and drawing our own
+   * mark instead produced two of them on a phone (1 November 2026, twice). The answer is the plain
+   * one: the lane matches the field's own 12px, so the value starts 12px from one end and the mark
+   * ends 12px from the other, and the platform's own inset sits inside that. Nothing is invented
+   * and nothing is doubled.
+   */
+  padding-right: var(--s-3);
 }
 
 
@@ -3623,21 +3634,11 @@
 }
 
 /*
- * The developer panel's date and time field, and **the one mark on it, drawn by this app.**
+ * The developer panel's date and time field.
  *
- * The platform's own mark is positioned by the platform, and no rule can hold it: it is drawn in
- * the field's shadow tree, where a margin does nothing (`margin-inline-end` on the picker button
- * is ignored by Blink — measured, 0px). So it sat in the reserved lane wherever the browser felt
- * like putting it, and on a phone it landed on the field's rounded end with its focus ring cut by
- * the border — the "mark sliding off the edge" this lane was first added to end, back again
- * (reported 1 November 2026).
- *
- * The app draws the mark now, in a lane the app owns, at the same 12px from the edge the value
- * starts from. The platform's button keeps its place, its size and its tap — its glyph is only
- * made invisible — so the device's own calendar still opens. Where a browser has no hook for that
- * (Firefox), the app draws nothing and the platform's mark is left exactly as it was: the gate
- * below is the `@supports` query, the same one the results screen's day and time fields use, so
- * there is never a second mark.
+ * The field keeps the mark the platform draws for it, and the app paints none of its own: hiding
+ * the platform's mark is only safe while the browser obeys, and where it does not the field ends
+ * up with two marks in one lane. One mark, whichever one it is, is the rule here.
  */
 .dev-datetime {
   position: relative;

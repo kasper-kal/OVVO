@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card, Field, IconButton, Switch } from '../components/ui/primitives';
-import { Icon } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
@@ -275,15 +274,12 @@ export function DeveloperPage() {
               label={t('Date and time')}
             >
               {/*
-                * **One mark, and it is ours.**
+                * **One mark, and it is the field's own.**
                 *
-                * The platform positions its own picker button, and no rule can move it: a margin
-                * on that pseudo-element is ignored (measured at 0px in Chromium), so on a phone the
-                * glyph and its focus ring ended up on the field's rounded end. The app draws the
-                * mark now, 12px inside the edge, and the platform's button stays underneath with
-                * its glyph made invisible — so the tap still opens the device's calendar. Where the
-                * hiding is not supported the app draws nothing and the platform's mark stands
-                * alone; the gate lives in `components.css` (`.dev-datetime__glyph`).
+                * For a day this drew an app calendar in the field's right-hand lane. On a browser
+                * that does not honour the hiding of the platform's own glyph - which is most phones
+                * - that is two marks in one field, and it was called out immediately. So nothing of
+                * ours is drawn here: whatever the field draws is the only mark on it.
                 */}
               <div className="dev-datetime">
                 <input
@@ -293,9 +289,6 @@ export function DeveloperPage() {
                   onChange={(event) => applyClock(event.target.value)}
                   aria-label={t('Date and time')}
                 />
-                <span className="dev-datetime__glyph" aria-hidden="true">
-                  <Icon name="calendar" size={18} />
-                </span>
               </div>
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
