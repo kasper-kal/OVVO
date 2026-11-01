@@ -63,6 +63,7 @@ That checker covers the shape of the mockup gallery only. The safety of the work
 
 ## Working agreements
 
+- Every decision and fact about putting OVVO on a real account lives in `GOING-LIVE.md`. Read it before touching deploy, sign-in, secrets or the setup tutorial, and add to it the moment something is decided, so a choice made in one chat is not lost by the next.
 - Follow the instruction exactly; do not invent scope, and do not ask for permission that has already been given.
 - Keep replies short, honest and free of padding.
 - Never commit secrets. Commit and push finished, checked work without asking first, and say that you did.
