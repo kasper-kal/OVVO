@@ -34,10 +34,12 @@ import { APP_WIRE_BYTES, transferMs } from '../lib/link';
  *   • **What the app believes.** The mode, the clock, the battery and the connection in one line,
  *     which is what a bug report should be able to copy instead of describe.
  *
- * **The panel is exempt from the mode it creates.** Settings and the map are closed at 10% and 1%,
- * so a fake battery of 1% would otherwise lock the door to the panel that faked it. While a battery
- * override is set, Settings stays reachable (`App.tsx`, `AppShell`), and only then. Nothing else is
- * exempt: the panel is a way to *see* a mode, never a way for the app to behave differently.
+ * **The panel is not reached out of the mode it creates.** At 10% a simulated battery keeps Settings
+ * and the map, so the simulation is ended the ordinary way. At 1% nothing is kept: a last drop with
+ * Settings in its menu is not a last drop, which is what made that one impossible to look at
+ * (reported). Instead the last-drop screen carries one small link to this panel, drawn only while
+ * the battery is simulated (`pages/HomePage`), so the way out exists without pretending the mode is
+ * something other than it is.
  *
  * Nothing here is hidden from the audits and nothing here is translated: it is a tool for one
  * person, it ships because this site has one user, and it is off until the switch in Settings says

@@ -95,14 +95,20 @@ export function useNavigation(): NavGroup[] {
    */
 
   /*
-   * **A simulated battery keeps Settings reachable, and nothing else does.**
+   * **A simulated tenth keeps Settings reachable; a simulated last percent does not.**
    *
-   * The panel exists to put the app at 1%, and the 10% rule takes Settings out of the navigation —
-   * so without this the screen that turns the simulation off would be the one the simulation hides.
-   * While a battery override is set, the two closed entries stay; the rest of the thinning is
-   * untouched, because it is the interface being tested.
+   * The panel can put the app at 10% and at 1%, and both rules take Settings out of the navigation,
+   * so a simulation would otherwise hide the screen that ends it. At 10% the two closed entries
+   * (Settings and the map) therefore stay while a battery override is set: the tenth is a display
+   * mode, and the workshop is simply left inside it.
+   *
+   * At 1% that would stop being a simulation at all — a last drop with Settings in the menu is not
+   * a last drop (reported). So the last percent closes it like the real thing does, and its own
+   * screen carries a small way into the panel (`pages/HomePage`). Nothing else is exempt either
+   * way: the rest of the thinning is the interface being tested.
    */
-  const simulating = settings.developerMode && getDevOverrides().battery !== null;
+  const simulating =
+    settings.developerMode && getDevOverrides().battery !== null && power.mode === 'super';
   if (!(power.mode === 'super' || power.mode === 'last') || simulating) return groups;
   /*
    * Settings and the map, and nothing else. The map was left in the first time this mode was

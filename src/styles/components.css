@@ -7316,3 +7316,25 @@
   background: var(--l1-bg);
   color: var(--ink-strong);
 }
+
+/*
+ * The developer panel's way in from the last percent.
+ *
+ * One line of quiet type with the app's sliders glyph, sitting under the sentence that explains the
+ * thin screen, and only ever drawn while the battery is simulated. It is a small thing on purpose:
+ * the screen is meant to look like a phone at 1%, so this reads as a footnote rather than as a
+ * control. The press target is still a full 44px, because a small-looking link is not the same as a
+ * small target.
+ */
+.home-dev-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--s-2);
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.home-dev-link:hover span {
+  text-decoration: underline;
+}

@@ -56,13 +56,15 @@ import { getDevOverrides } from './lib/dev';
 function SettingsRoute() {
   const { power, settings } = useApp();
   /*
-   * **A simulated battery keeps this door open, and only a simulated one.**
+   * **A simulated tenth keeps this door open; a simulated last percent does not.**
    *
-   * The developer panel can put the app at 1%, and Settings is closed at 1% — which would lock the
-   * panel that did it out of the screen where it is switched off. So while a battery override is
-   * set, the way in stays open; the moment it is handed back, the rule is exactly what it was.
+   * At 10% a battery override keeps Settings reachable, so the simulation can be ended the ordinary
+   * way. At 1% it must not: Settings sitting in a last drop's menu is what made the last drop
+   * impossible to look at (reported). The way out of that one is the small link on the last-drop
+   * screen itself, and only while the battery is simulated.
    */
-  const simulating = settings.developerMode && getDevOverrides().battery !== null;
+  const simulating =
+    settings.developerMode && getDevOverrides().battery !== null && power.mode === 'super';
   if ((power.mode === 'super' || power.mode === 'last') && !simulating) {
     return <Navigate to="/" replace />;
   }
