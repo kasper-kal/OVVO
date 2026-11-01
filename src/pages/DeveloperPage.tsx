@@ -4,6 +4,7 @@ import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card, Field, Switch } from '../components/ui/primitives';
 import { useT } from '../lib/useT';
+import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
@@ -212,13 +213,27 @@ export function DeveloperPage() {
             <Field
               label={t('Date and time')}
             >
-              <input
-                className="input"
-                type="datetime-local"
-                value={clockField}
-                onChange={(event) => applyClock(event.target.value)}
-                aria-label={t('Date and time')}
-              />
+              {/*
+                * **The chevron the field had, drawn by the app.**
+                *
+                * The platform's own mark is hidden and the app's chevron takes its place in the
+                * same lane, which is what the results screen's day field already does. Only the
+                * room around the field was meant to change; hiding the platform mark and drawing
+                * ours is what makes that true, because no browser can then swap the shape under the
+                * traveller when the field's room changes (reported, rightly).
+                */}
+              <div className="dev-datetime">
+                <input
+                  className="input"
+                  type="datetime-local"
+                  value={clockField}
+                  onChange={(event) => applyClock(event.target.value)}
+                  aria-label={t('Date and time')}
+                />
+                <span className="dev-datetime__glyph" aria-hidden="true">
+                  <Icon name="chevronDown" size={18} />
+                </span>
+              </div>
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
             <div className="row">

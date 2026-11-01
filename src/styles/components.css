@@ -3622,6 +3622,46 @@
 }
 
 /*
+ * The developer panel's date and time field.
+ *
+ * The platform's mark is hidden and the app's own chevron sits in the same lane, the way the
+ * results screen's day field does. Only the room around the field was ever meant to change: this
+ * keeps the mark itself the app's drawing, so it cannot take a different shape when the field's
+ * room changes.
+ */
+.dev-datetime {
+  position: relative;
+  display: flex;
+}
+
+.dev-datetime .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dev-datetime__glyph {
+  position: absolute;
+  top: 50%;
+  right: var(--s-3);
+  display: none;
+  align-items: center;
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+@supports selector(::-webkit-calendar-picker-indicator) {
+  .dev-datetime input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .dev-datetime__glyph {
+    display: inline-flex;
+  }
+}
+
+/*
  * The developer panel's level slider: the knob reaches the ends of its rail.
  *
  * A native range puts the knob's centre half a thumb inside the track at its minimum, so 0% drew a
