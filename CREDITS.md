@@ -79,19 +79,19 @@ use is ever fetched.
 
 ## Levels
 
-Measured as the average level of each whole file, then trimmed so the score holds one volume. The
-range was nineteen decibels before and a fraction of one after, which is why a chapter used to arrive
-louder than the one before it.
+Measured as the average level of each whole file, then trimmed so the score holds one volume, at
+-22 dB. The range was nineteen decibels before and is a fraction of one after, which is why a chapter
+used to arrive louder than the one before it.
 
 | File | Average before | Trim | Average after |
 | ---- | -------------- | ---- | ------------- |
-| `luxury-anthem.mp3` | -14.7 dB | 0.68 | -18.0 dB |
-| `electro-dance.mp3` | -14.5 dB | 0.67 | -18.0 dB |
-| `afrobeat.mp3` | -9.0 dB | 0.35 | -18.1 dB |
-| `indie-pop.mp3` | -28.3 dB | 3.27 | -18.0 dB |
-| `electropop.mp3` | -18.6 dB | 1.07 | -18.0 dB |
-| `melodic-trap.mp3` | -9.5 dB | 0.38 | -17.9 dB |
-| `hip-hop-anthem.mp3` | -13.5 dB | 0.6 | -17.9 dB |
-| `dark-trap.mp3` | -19.1 dB | 1.14 | -18.0 dB |
-| `rap-anthem.mp3` | -10.2 dB | 0.41 | -17.9 dB |
-| `acoustic.mp3` | -15.7 dB | 0.77 | -18.0 dB |
+| `luxury-anthem.mp3` | -14.7 dB | 0.432 | -22.0 dB |
+| `electro-dance.mp3` | -14.5 dB | 0.422 | -22.0 dB |
+| `afrobeat.mp3` | -9.0 dB | 0.224 | -22.0 dB |
+| `indie-pop.mp3` | -28.3 dB | 2.065 | -22.0 dB |
+| `electropop.mp3` | -18.6 dB | 0.676 | -22.0 dB |
+| `melodic-trap.mp3` | -9.5 dB | 0.237 | -22.0 dB |
+| `hip-hop-anthem.mp3` | -13.5 dB | 0.376 | -22.0 dB |
+| `dark-trap.mp3` | -19.1 dB | 0.716 | -22.0 dB |
+| `rap-anthem.mp3` | -10.2 dB | 0.257 | -22.0 dB |
+| `acoustic.mp3` | -15.7 dB | 0.484 | -22.0 dB |

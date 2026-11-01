@@ -48,8 +48,8 @@ const LEVEL = 0.55;
  *
  * The ten pieces were not mastered together. Measured as an average level over each whole file, the
  * quietest sat at -28 dB and the loudest at -9 dB: nineteen decibels apart, which is not a nuance,
- * it is one chapter shouting and the next whispering. These trims bring all of them to -18 dB, so
- * the story changes colour between chapters and never changes volume.
+ * it is one chapter shouting and the next whispering. These trims bring all of them to -22 dB, low
+ * enough that the score sits under the words on a phone speaker rather than beside them.
  *
  * Measured by decoding each file and taking the average level of the whole thing, which is what
  * "average decibel" means and what the audit in `CREDITS.md` records. The biggest single correction
@@ -57,16 +57,16 @@ const LEVEL = 0.55;
  * scale after the trim, so nothing clips.
  */
 const TRIM: Record<Track, number> = {
-  'luxury-anthem': 0.68,
-  'electro-dance': 0.67,
-  'afrobeat': 0.35,
-  'indie-pop': 3.27,
-  'electropop': 1.07,
-  'melodic-trap': 0.38,
-  'hip-hop-anthem': 0.6,
-  'dark-trap': 1.14,
-  'rap-anthem': 0.41,
-  'acoustic': 0.77,
+  'luxury-anthem': 0.432,
+  'electro-dance': 0.422,
+  'afrobeat': 0.224,
+  'indie-pop': 2.065,
+  'electropop': 0.676,
+  'melodic-trap': 0.237,
+  'hip-hop-anthem': 0.376,
+  'dark-trap': 0.716,
+  'rap-anthem': 0.257,
+  'acoustic': 0.484,
 };
 const FADE_IN = 0.9;
 const FADE_OUT = 0.7;
