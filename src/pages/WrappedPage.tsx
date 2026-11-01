@@ -52,7 +52,7 @@ const BURST = 14;
  * silence, and the switch in the corner silences it for the session.
  */
 export function WrappedPage() {
-  const { settings, reduceMotion } = useApp();
+  const { settings } = useApp();
   const t = useT();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -175,10 +175,10 @@ export function WrappedPage() {
    */
   const beat = useBeatAnchor(started && sound, chapter.track, chapter.id);
   const armed = beat !== null && beat.key === chapter.id;
-  const onBeat = armed && !reduceMotion;
+  const onBeat = armed;
   const land = barMs(chapter.track) * 2;
 
-  const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
+  const count = useCountUp(chapter.count ?? 0, started, chapter.id, land);
 
   /*
    * **The share is the card, not the words.**
@@ -208,9 +208,7 @@ export function WrappedPage() {
 
   return (
     <div
-      className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}${
-        onBeat ? ' is-beat' : ''
-      }`}
+      className={`wrapped-stage wrapped-stage--${chapter.tone}${onBeat ? ' is-beat' : ''}`}
       data-chapter={chapter.id}
       style={
         {
@@ -330,7 +328,7 @@ export function WrappedPage() {
       {/* The thumb moves the chapter, not just the result: the deck leans with the drag. */}
       <div
         className={`wrapped-scene${drag !== null ? ' is-dragging' : ''}`}
-        style={{ '--drag': reduceMotion ? 0 : dragX } as CSSProperties}
+        style={{ '--drag': dragX } as CSSProperties}
       >
         <div
           className={`wrapped-body wrapped-body--${chapter.kind}`}

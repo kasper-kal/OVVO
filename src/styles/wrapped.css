@@ -800,19 +800,19 @@
   opacity: 0.5;
 }
 
-/* --------------------------------------------------------------- still, if asked */
+/* ------------------------------------------------------------- motion, always */
 
-/* Reduced motion is an accessibility setting, and it outranks the story's own tempo. */
-.wrapped-stage.is-still *,
-.wrapped-stage.is-still *::before,
-.wrapped-stage.is-still *::after {
-  animation: none !important;
-  transition-duration: 1ms !important;
-}
-
-.wrapped-stage.is-still .wrapped-aurora {
-  opacity: 0.35;
-}
+/*
+ * **The story does not stop for a battery.**
+ *
+ * There used to be a "still" form of the deck here, switched on by the Reduce motion setting. It read
+ * as considerate and it was a mistake: the deck is movement, and a deck with its loops frozen on their
+ * final frames is not a quieter story, it is a broken one. So the deck is now exempt from every
+ * reduction in the app — the switch in Settings, the twenty-percent saving mode, the ten-percent one —
+ * and the exclusion itself lives in `base.css` and `components.css`, where those reductions are set.
+ *
+ * The rest of OVVO still honours all three. The deck is one screen of ten chapters, watched on purpose,
+ * and it is the only place in the app where the motion is the content.
 
 /* ==========================================================================
  * **The corrections after looking at all ten on a phone.**
