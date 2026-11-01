@@ -7584,7 +7584,9 @@
   letter-spacing: 0.08em;
   font-size: 12px;
   font-weight: 650;
-  color: var(--ink-muted);
+  /* Inherited on purpose: a dark card brings its own ink with it, and naming a colour here is what
+     painted near-black on near-black the first time this deck was drawn. */
+  opacity: 0.72;
 }
 
 .wrapped__big {
@@ -7592,21 +7594,20 @@
   line-height: 0.92;
   letter-spacing: -0.035em;
   font-weight: 680;
-  color: var(--ink);
+  /* Inherited, so the number is the card's own ink rather than the page's. */
   overflow-wrap: anywhere;
 }
 
 .wrapped__line {
   font-size: 17px;
   line-height: 1.35;
-  color: var(--ink);
   max-width: 34ch;
 }
 
 .wrapped__note {
   font-size: 13px;
   line-height: 1.4;
-  color: var(--ink-muted);
+  opacity: 0.72;
   max-width: 40ch;
 }
 
