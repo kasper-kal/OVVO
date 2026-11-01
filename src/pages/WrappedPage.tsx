@@ -102,8 +102,20 @@ export function WrappedPage() {
    */
   useEffect(() => {
     if (!started) return;
-    playChapter(chapter.track, story[index + 1]?.track);
-  }, [index, started, chapter.track, story]);
+    /*
+     * **There is one way to start the score, and this is it.**
+     *
+     * Begin started a song itself, the switch started one itself, and this effect started one on every
+     * chapter change: three doors into the same room, and on the steerer's phone only the switch's door
+     * made a sound. They are one door now. Starting the story sets `started`, the switch turns `sound`
+     * over, and what is applied here is exactly what the switch has always done.
+     */
+    if (!sound) {
+      stopSound();
+      return;
+    }
+    startSound(chapter.track, story[index + 1]?.track);
+  }, [index, started, sound, chapter.track, story]);
 
   /*
    * **The story keeps time with the music.**
@@ -252,7 +264,6 @@ export function WrappedPage() {
         if (!started) {
           if (!forward) return;
           setStarted(true);
-          if (sound) startSound(story[1]?.track ?? chapter.track, story[2]?.track);
           go(1);
           return;
         }
@@ -316,15 +327,7 @@ export function WrappedPage() {
           type="button"
           className="wrapped-sound"
           aria-label={sound ? t('Sound off') : t('Sound on')}
-          onClick={() => {
-            if (sound) {
-              stopSound();
-              setSound(false);
-            } else {
-              startSound(chapter.track, story[index + 1]?.track);
-              setSound(true);
-            }
-          }}
+          onClick={() => setSound((on) => !on)}
         >
           <span>{sound ? t('Sound off') : t('Sound on')}</span>
         </button>
@@ -370,7 +373,6 @@ export function WrappedPage() {
                      * room went quiet a second in and only came back when the switch was tapped again. The
                      * score now opens on the chapter the traveller lands on, in the same gesture.
                      */
-                    if (sound) startSound(story[1]?.track ?? chapter.track, story[2]?.track);
                     go(1);
                   }}
                 >

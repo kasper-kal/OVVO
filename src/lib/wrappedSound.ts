@@ -133,6 +133,22 @@ function makeSlot(): Slot {
   el.preload = 'auto';
   el.setAttribute('playsinline', '');
   el.volume = 0;
+  /*
+   * **The player is in the page, and invisible.**
+   *
+   * An audio element that exists only in memory is refused by some phone browsers — the classic reason a
+   * score plays on a desktop and is silent on a phone. It is a one-pixel, transparent element at the end
+   * of the body: present for the browser, invisible to the traveller, and never in the way of a tap.
+   */
+  el.setAttribute('aria-hidden', 'true');
+  el.style.position = 'fixed';
+  el.style.left = '0';
+  el.style.bottom = '0';
+  el.style.width = '1px';
+  el.style.height = '1px';
+  el.style.opacity = '0';
+  el.style.pointerEvents = 'none';
+  if (typeof document !== 'undefined' && document.body) document.body.appendChild(el);
   const slot: Slot = { el, track: null };
   /*
    * The page turns just before the song does.
