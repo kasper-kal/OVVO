@@ -12,6 +12,17 @@
  * one property that makes the number mean anything.
  */
 
+/**
+ * **What the app itself weighs, so a reload can be timed honestly.**
+ *
+ * A reload is the one navigation that downloads OVVO: the script and the stylesheet, and nothing
+ * else, because every screen is already inside them. The browser gets them compressed, so the
+ * number below is the gzipped size of the production build's JavaScript and CSS, measured with
+ * `gzip -9` over `dist/assets` (249 kB at the time of writing). It is a fact about the build, not a
+ * guess: re-measure it when the bundle grows enough to matter, and the waits below follow.
+ */
+export const APP_WIRE_BYTES = 248_644;
+
 /** A single megabit, in bytes. */
 const BYTES_PER_MEGABIT = 1_000_000 / 8;
 

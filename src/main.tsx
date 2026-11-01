@@ -4,6 +4,8 @@ import App from './App';
 import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
+import { APP_WIRE_BYTES, transferMs } from './lib/link';
+import { getDevOverrides } from './lib/dev';
 import './styles/tokens.css';
 import './styles/fonts.css';
 import './styles/base.css';
@@ -112,7 +114,23 @@ document.getElementById('too-old')?.remove();
 const container = document.getElementById('root');
 if (!container) throw new Error('Root container missing from index.html');
 
-createRoot(container).render(
+/**
+ * **The claimed link speed, at the one moment a page really downloads this app.**
+ *
+ * Moving between screens costs nothing: every screen is already in the bundle, so a tap is drawn in
+ * the frame it happens in and no speed can slow it down. A *reload* is different. It asks the host
+ * for the app again, and on a slow connection that request is the long one — so when the panel
+ * claims a speed, the wait here is the time the bundle it just downloaded would have taken at that
+ * speed (`APP_WIRE_BYTES`), counted from the start of the navigation and not from this line.
+ *
+ * The mark in `index.html` stays up for the whole wait, which is exactly what a reload on that link
+ * looks like: the page arrives, the drawing is already there, and the app itself takes its time.
+ * Nothing else in the app waits for a speed it did not earn (see `lib/link`).
+ */
+const bootWait = Math.max(0, transferMs(APP_WIRE_BYTES, getDevOverrides().wifiMbps) - performance.now());
+
+function mount(): void {
+  createRoot(container as HTMLElement).render(
   <StrictMode>
     {/*
       The outermost boundary, outside the app's state provider and its router on purpose: the
@@ -124,6 +142,11 @@ createRoot(container).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+  /* Two frames, so the mark leaves a screen the app has actually painted rather than one it is
+     still assembling. */
+  window.requestAnimationFrame(() => window.requestAnimationFrame(takeDownSplash));
+}
 
 /*
  * **The mark in `index.html` is taken down by the app, once the app has drawn.**
@@ -154,6 +177,5 @@ function takeDownSplash(): void {
   }, remaining);
 }
 
-/* Two frames, so the mark leaves a screen the app has actually painted rather than one it is
-   still assembling. */
-window.requestAnimationFrame(() => window.requestAnimationFrame(takeDownSplash));
+if (bootWait > 0) window.setTimeout(mount, bootWait);
+else mount();

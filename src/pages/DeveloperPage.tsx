@@ -8,7 +8,7 @@ import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
-import { transferMs } from '../lib/link';
+import { APP_WIRE_BYTES, transferMs } from '../lib/link';
 
 /**
  * The developer panel — what this browser believes about the device.
@@ -22,8 +22,11 @@ import { transferMs } from '../lib/link';
  *     the steerer asked: a day, an hour and a minute chosen in one go instead of in two fields that
  *     can disagree. It moves the app's clock as an offset, so the app's minute timers keep running.
  *   • **The connection.** Pulling a cable is not a way to test the offline strip on a phone, and
- *     no link can be made slow on demand either, so the speed is claimed here: every screen you
- *     open waits for its weight at that speed, and the journey list and article card for theirs.
+ *     no link can be made slow on demand either, so the speed is claimed here. Setting it reloads
+ *     the page, and the reload waits as long as the app's own files would take at that speed — a
+ *     reload is the one navigation that downloads the app, so it is the one that has a real cost.
+ *     The two things the app fetches while it runs, the article card and the address suggestions,
+ *     wait too; the screens already in the bundle do not, and say so.
  *   • **The network.** A calm day, or one alert on its own, and the number the boards roll from,
  *     so a row that was reported can be found again instead of hunted for.
  *   • **The way in.** A hold over the results long enough to be looked at, and the focus ring kept
@@ -75,6 +78,19 @@ export function DeveloperPage() {
    * and only a finished, positive one is handed to the app.
    */
   const [speedDraft, setSpeedDraft] = useState(() => (dev.wifiMbps === null ? '5' : String(dev.wifiMbps)));
+
+  /*
+   * **Chasing the speed is a reload, on purpose.**
+   *
+   * A speed only means something on a transfer, and the app's own transfer is the first one: the
+   * reload. Setting a speed therefore reloads the page, so the traveller watches the app arrive
+   * over the link they just claimed instead of having to press refresh themselves afterwards.
+   */
+  const applySpeed = (next: number | null) => {
+    if (next === dev.wifiMbps) return;
+    setDevOverrides({ wifiMbps: next });
+    window.location.reload();
+  };
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
   /*
@@ -303,27 +319,30 @@ export function DeveloperPage() {
             {/*
               **A link speed, exact and in megabits, because that is the number a connection has.**
 
-              The app cannot be given a slow connection by pulling anything: what it can do is wait
-              as long as a given speed would take to bring the answer it is about to show. The
-              journeys hold for the size of the list, the article card for the size of the summary,
-              so a short answer is still quick and a long one is not. Below a hundredth of a megabit
-              the wait is minutes, which is the point of being able to type an exact number.
+              The app cannot be given a slow connection by pulling anything, so the speed is claimed
+              and then spent on the transfers that really happen: the reload that follows this
+              change (`src/main.tsx`, sized by the build's own compressed weight), the article card
+              and the address suggestions. A number is typed here rather than chosen, because the
+              interesting speeds are low: below a hundredth of a megabit the reload is half a
+              minute, which is the sort of link a report is usually about.
             */}
             <Switch
               checked={dev.wifiMbps !== null}
               onChange={(next) => {
                 const speed = dev.wifiMbps ?? (Number(speedDraft) || 5);
                 setSpeedDraft(String(speed));
-                setDevOverrides({ wifiMbps: next ? speed : null });
+                applySpeed(next ? speed : null);
               }}
               label={t('Custom WiFi speed')}
-              description={t('A claimed link speed. It changes the two things this app really fetches, and nothing else.')}
+              description={t(
+                'A claimed link speed. Setting it reloads the page, and the reload takes as long as the app’s own files would at that speed.',
+              )}
             />
             {dev.wifiMbps !== null ? (
               <Field
                 label={t('Speed · {speed} Mbps', { speed: dev.wifiMbps })}
-                hint={t('Only the article card and the address suggestions come over the wire, so only they wait. An answer of 1 kB takes {seconds} seconds at this speed.', {
-                  seconds: (transferMs(1_000, dev.wifiMbps) / 1000).toFixed(2),
+                hint={t('A reload takes {seconds} seconds at this speed. The article card and the address suggestions wait too; the screens already in the app do not.', {
+                  seconds: (transferMs(APP_WIRE_BYTES, dev.wifiMbps) / 1000).toFixed(1),
                 })}
               >
                 <input
@@ -334,11 +353,20 @@ export function DeveloperPage() {
                   max={10000}
                   step={0.01}
                   value={speedDraft}
-                  onChange={(event) => {
-                    const raw = event.target.value;
-                    setSpeedDraft(raw);
-                    const next = Number(raw);
-                    if (Number.isFinite(next) && next > 0) setDevOverrides({ wifiMbps: next });
+                  onChange={(event) => setSpeedDraft(event.target.value)}
+                  /*
+                   * **A half-typed number is not a speed.** `0.0` on the way to `0.05` would
+                   * otherwise reload the page twice, and the second reload would land on a field
+                   * being typed into. So the draft is local, and the claim is made when the field
+                   * is left or Enter is pressed.
+                   */
+                  onBlur={(event) => {
+                    const next = Number(event.target.value);
+                    if (Number.isFinite(next) && next > 0) applySpeed(next);
+                    else setSpeedDraft(String(dev.wifiMbps ?? 5));
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') event.currentTarget.blur();
                   }}
                   aria-label={t('Speed in megabits per second')}
                 />
