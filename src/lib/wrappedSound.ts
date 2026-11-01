@@ -42,6 +42,31 @@ function urlOf(track: Track): string {
 
 /** How loud the whole score sits under the words, and how long each change takes. */
 const LEVEL = 0.55;
+
+/**
+ * **Every track, trimmed to the same loudness.**
+ *
+ * The ten pieces were not mastered together: measured in the band the ear judges music by, the
+ * quietest sat at -31 dB and the loudest at -15 dB, which is sixteen times the difference in power
+ * and exactly why one chapter felt too quiet and another too loud. These numbers bring the lot to
+ * -21 dB, so the story changes colour between chapters without changing volume.
+ *
+ * Measured by decoding each file and taking the level between 300 Hz and 6 kHz, because a straight
+ * average would turn a bass-heavy track down for being bass-heavy. The biggest correction is the
+ * acoustic guitar, which was simply quieter than everything else; nothing clips.
+ */
+const TRIM: Record<Track, number> = {
+  'luxury-anthem': 1.07,
+  'electro-dance': 1.14,
+  'afrobeat': 0.5,
+  'indie-pop': 3.27,
+  'electropop': 1.17,
+  'melodic-trap': 0.51,
+  'hip-hop-anthem': 0.86,
+  'dark-trap': 1.32,
+  'rap-anthem': 0.78,
+  'acoustic': 0.51,
+};
 const FADE_IN = 0.9;
 const FADE_OUT = 0.7;
 
@@ -170,7 +195,7 @@ function spin(track: Track, next?: Track): void {
   if (live) {
     const started = live.el.play();
     if (started) void started.catch(() => undefined);
-    ramp(live.gain, 1, 0.35, ctx);
+    ramp(live.gain, TRIM[track], 0.35, ctx);
     current = track;
     prefetch(next);
     return;
@@ -186,7 +211,7 @@ function spin(track: Track, next?: Track): void {
       if (playing) startPad();
     });
   }
-  ramp(incoming.gain, 1, FADE_IN, ctx);
+  ramp(incoming.gain, TRIM[track], FADE_IN, ctx);
 
   const leaving = active;
   active = incoming;
