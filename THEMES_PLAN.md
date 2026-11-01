@@ -1,4 +1,7 @@
-# STYLES_PLAN
+# THEMES_PLAN
+
+> The screen this plans is called **Themes** now. It was called Styles when the plan was written,
+> and the words below are kept as they were: read "style" as "theme".
 
 Status: **planning only. Nothing here is built yet.**
 
@@ -36,7 +39,7 @@ That last part is the source of the contrast complaints: an ink ramp can only do
 
 ## 3. The shape of the replacement
 
-**Settings > Styles**, top level, replacing the Colours card. **Twenty styles at the very least.** A style is a whole answer, not a colour: page, cards, accent and its ink, hairlines, tinted pills, selection colour, a font pairing, and optionally a photograph, in both appearances. There is no picker behind it.
+**Settings > Themes**, top level, replacing the Colours card. **Twenty styles at the very least.** A style is a whole answer, not a colour: page, cards, accent and its ink, hairlines, tinted pills, selection colour, a font pairing, and optionally a photograph, in both appearances. There is no picker behind it.
 
 The rule that ends the contrast problem: **the traveller picks a look, so every ink is authored for the surface it sits on instead of being calculated from a colour somebody chose.**
 
@@ -176,7 +179,7 @@ This is the point of the change, so it is a gate, not a promise.
 - `scripts/styles-audit.mjs`, wired into `npm run build`.
 
 **Phase 2: the settings surface**
-- `Settings > Styles` at top level, replacing the Colours card: a grid of preview cards (page, card, accent, the style's own type, its name, and a sliver of its photograph if it has one), grouped, the current one marked.
+- `Settings > Themes` at top level, replacing the Colours card: a grid of preview cards (page, card, accent, the style's own type, its name, and a sliver of its photograph if it has one), grouped, the current one marked.
 - Selecting applies instantly.
 - A photo style brings one extra row: **Background**, Photograph or Colour, remembered per style.
 - Names and one-line descriptions in English and Dutch.

@@ -580,7 +580,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       '/disruptions': 'Disruptions',
       '/preferences': 'Travel preferences',
       '/settings': 'Settings',
-      '/styles': 'Styles',
+      '/themes': 'Themes',
     };
     /*
      * `/results/<id>` is the results screen too, and it was the one route missing from this list:

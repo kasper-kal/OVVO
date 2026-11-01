@@ -369,13 +369,13 @@ export function SettingsPage() {
           </Card>
 
           {/*
-            **Styles, as a row that opens a screen.** The grid of fifty looks is too much to stand
+            **Themes, as a row that opens a screen.** The grid of fifty looks is too much to stand
             in the middle of a list of settings, so Settings names the look in force and one
             control opens the picker (`pages/StylesPage.tsx`).
           */}
           <Card className="stack">
             <div className="between">
-              <h2 className="t-section">{t('Styles')}</h2>
+              <h2 className="t-section">{t('Themes')}</h2>
               <span className="t-strong t-sm">
                 {settings.language === 'nl'
                   ? styleById(settings.styleId).nameNl
@@ -386,8 +386,8 @@ export function SettingsPage() {
               {t('The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.')}
             </p>
             <div className="row">
-              <Link className="btn" to="/styles">
-                {t('Choose a style')}
+              <Link className="btn" to="/themes">
+                {t('Choose a theme')}
               </Link>
             </div>
           </Card>

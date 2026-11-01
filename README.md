@@ -95,6 +95,7 @@ allow-list is never `true`, so an unknown `Host` still gets a 403.
 | `/disruptions`, `/disruptions/:id` | Service alerts with filters, detail, advice, navigation |
 | `/preferences` | Travel preferences with a live preview of their effect |
 | `/settings` | Display settings, location access, planner defaults and local data management |
+| `/themes` | Themes: fifty whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. `/styles` redirects here |
 
 No route scrolls sideways: every screen is checked for horizontal overflow from 320px up.
 

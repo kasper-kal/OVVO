@@ -17,6 +17,7 @@ answers rather than what it once did. Regenerate it after adding a stop or an al
 | `/disruptions` | All delays, cancellations and planned works |
 | `/preferences` | Travel preferences — walking, transfers, luggage |
 | `/settings` | Settings — language, appearance, colour, background, storage |
+| `/themes` | Themes, the look of the whole app (the old `/styles` address redirects here) |
 | `/planner` | Not a screen: sends you to Home |
 | `/journey/<journey id>` | One journey, opened from the results list (see below) |
 | `/stops/<stop id>` | One stop (61 of them, listed below) |

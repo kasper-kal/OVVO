@@ -39,7 +39,7 @@ export interface Settings {
    * lettering: the page, the cards, the ink ramp, the accent, the selection and the two fonts.
    *
    * It replaced the three colour settings below, which are kept in storage for one version so a
-   * rollback loses nothing — nothing reads them now (`STYLES_PLAN.md` §3.4). A style is a finished
+   * rollback loses nothing — nothing reads them now (`THEMES_PLAN.md` §3.4). A style is a finished
    * answer rather than a colour, which is what ended the contrast problem: every ink is authored
    * against the surface it is drawn on instead of being derived from somebody's hex.
    */
@@ -49,7 +49,7 @@ export interface Settings {
    *
    * A list rather than a boolean because the answer belongs to each style: Marble set to Colour
    * stays colour when the traveller visits Arches and comes back. The saving modes ignore it — at
-   * 10% of a battery no picture is drawn whatever this says — and the Styles card says so.
+   * 10% of a battery no picture is drawn whatever this says — and the Themes card says so.
    */
   photoColourOnly: string[];
   /**

@@ -3,7 +3,7 @@ import { StyleSettings } from '../components/ui/StyleSettings';
 import { useT } from '../lib/useT';
 
 /**
- * **Styles has a screen of its own.**
+ * **Themes has a screen of its own.**
  *
  * It lived inside Settings for one round and that was wrong for the reason Settings is a list:
  * fifty previews in the middle of it turn two short columns into a wall, and every other setting
@@ -19,8 +19,8 @@ export function StylesPage() {
   return (
     <div className="stack-6">
       <PageHeader
-        title={t('Styles')}
-        description={t('Pick a look. Every one is checked for readability.')}
+        title={t('Themes')}
+        description={t('Pick a theme. Every one is checked for readability.')}
         showTitle
       />
       <StyleSettings />

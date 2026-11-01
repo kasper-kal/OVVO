@@ -142,7 +142,10 @@ export default function App() {
                   <Route path="/developer" element={<DeveloperRoute />} />
                   {/* The look, one level in from Settings: fifty previews do not belong in a
                       list of settings (`pages/StylesPage.tsx`). */}
-                  <Route path="/styles" element={<StylesPage />} />
+                  <Route path="/themes" element={<StylesPage />} />
+                  {/* The screen is called Themes now, so the old address is a redirect rather
+                      than a 404: a bookmark taken before the rename still lands on it. */}
+                  <Route path="/styles" element={<Navigate to="/themes" replace />} />
                   <Route path="/planner" element={<Navigate to="/" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
