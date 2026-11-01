@@ -52,6 +52,12 @@ Turned on in Firebase: **Google**, **Email/Password**, and **Email link (passwor
 All three are the steerer's decision, taken 1 November 2026. More providers can be added at
 any time — clicking Done in the console locks nothing, and existing accounts keep working.
 
+**The Google consent screen is already done.** Found on 1 November 2026 to be in production
+already, user type External, no test users, no sign-ins yet. So the whole "set up the consent
+screen" part of the tutorial is behind us: there is no Get Started button to look for, and
+nothing needs publishing. The "0 users / 100 user cap" on that page does not apply to ordinary
+Google sign-in, because we ask only for name and email.
+
 Two consequences to keep in mind when the sign-in screens are built, so they do not surprise
 anyone later:
 
