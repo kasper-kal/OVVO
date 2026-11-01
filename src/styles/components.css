@@ -3711,16 +3711,25 @@
   display: flex;
 }
 
+/*
+ * **The disc gets air on every side, which the field's height has to provide.**
+ *
+ * A 40px disc in a 44px field leaves 2px above and 2px below, and its own hairline then sits on
+ * the field's edge: it reads as pressed into the corner rather than placed in the box (reported,
+ * circled). The field is 52px tall and the disc keeps its 40px, so there are 6px on all four sides
+ * - the same inset the disc has from the field's right end, which is what makes it look set in.
+ */
 .dev-speed .input {
   flex: 1 1 auto;
   min-width: 0;
-  padding-right: 52px;
+  min-height: 52px;
+  padding-right: 56px;
 }
 
 .dev-speed__go {
   position: absolute;
   top: 50%;
-  right: 4px;
+  right: 6px;
   width: 40px;
   height: 40px;
   min-height: 40px;
