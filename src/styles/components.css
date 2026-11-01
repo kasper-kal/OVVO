@@ -7533,118 +7533,476 @@
   text-decoration: underline;
 }
 
-/* ============================================================== OVVO Wrapped: the deck
+/* ========================================================== OVVO Wrapped: the stage
 
-   One card at a time, in the look the traveller is wearing: every colour here is a token, so the
-   Christmas look draws a Christmas card and the plain one draws a plain card. The big number is the
-   only thing on the deck allowed to be loud, and the movement is one card arriving — not a carousel
-   that slides, because a slide asks the eye to follow and a fade asks it to read. */
+   A full-screen story rather than a card in a column. Each chapter owns the whole window, in one of
+   four tones, so the year changes colour as it is told; everything drawn on top of a tone uses
+   `currentColor`, which is why one set of rules works on the dark chapter and on the cream one.
+   Movement is the story rather than decoration: content rises in a beat after the tone changes, the
+   route draws itself, the bars grow from the floor, the arc sweeps, and a number counts up. */
 
-.wrapped {
+.wrapped-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 89;
   display: flex;
   flex-direction: column;
-  gap: var(--s-4);
-  outline: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: max(env(safe-area-inset-top), 10px) clamp(20px, 6vw, 56px) max(env(safe-area-inset-bottom), 14px);
+  transition: background-color 520ms var(--ease-out), color 520ms var(--ease-out);
+  touch-action: pan-y;
+  isolation: isolate;
 }
 
-.wrapped:focus-visible {
-  outline: 2px solid var(--accent, currentColor);
-  outline-offset: 6px;
-  border-radius: var(--r-card);
+.wrapped-stage--ink {
+  background: var(--struct-main, #18181b);
+  color: var(--on-dark, #fcfbfa);
 }
 
-.wrapped__card {
+.wrapped-stage--cream {
+  background: var(--l2-bg, #fcfbfa);
+  color: var(--ink-strong, #18181b);
+}
+
+.wrapped-stage--sage {
+  background: var(--tint-sage, #e1eadf);
+  color: #14201a;
+}
+
+.wrapped-stage--coral {
+  background: var(--tint-coral, #ffe8e5);
+  color: #2a1512;
+}
+
+/* Grain and two slow shapes: the texture and the life behind the type. */
+.wrapped-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 0.07;
+  z-index: 0;
+}
+
+.wrapped-blob {
+  position: fixed;
+  width: min(70vmax, 720px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.22;
+  background: radial-gradient(circle, currentColor 0%, transparent 68%);
+  z-index: 0;
+  animation: wrapped-drift 18s ease-in-out infinite alternate;
+}
+
+.wrapped-blob--a {
+  top: -22vmax;
+  right: -26vmax;
+}
+
+.wrapped-blob--b {
+  bottom: -30vmax;
+  left: -24vmax;
+  animation-duration: 24s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes wrapped-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-4vmax, 3vmax, 0) scale(1.12);
+  }
+}
+
+/* ------------------------------------------------------------------ the top row */
+.wrapped-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
-  flex-direction: column;
-  gap: var(--s-3);
-  min-height: 320px;
-  justify-content: center;
-  padding: var(--s-6);
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 10px;
+  background: linear-gradient(to bottom, currentColor 0%, transparent 100%);
+  background: none;
+}
+
+.wrapped-close,
+.wrapped-step {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  transition: background-color 160ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+.wrapped-close:active,
+.wrapped-step:active {
+  transform: scale(0.94);
+}
+
+.wrapped-step:disabled {
+  opacity: 0.3;
+}
+
+.wrapped-track {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
   overflow: hidden;
-  animation: wrapped-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.wrapped--still .wrapped__card {
-  animation: none;
+.wrapped-track__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--progress, 0) * 100%);
+  background: currentColor;
+  border-radius: 999px;
+  transition: width 460ms var(--ease-out);
 }
 
-@keyframes wrapped-in {
+.wrapped-sound {
+  flex: none;
+  padding: 8px 12px;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------------- the body */
+.wrapped-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.4vh, 22px);
+  padding: clamp(8px, 3vh, 28px) 0 clamp(6px, 2vh, 20px);
+  min-height: 0;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.wrapped-body > * {
+  animation: wrapped-rise 620ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 85ms);
+}
+
+@keyframes wrapped-rise {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.985);
+    transform: translateY(22px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: none;
+    filter: none;
   }
 }
 
-.wrapped__kicker {
+.wrapped-kicker {
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 12px;
-  font-weight: 650;
-  /* Inherited on purpose: a dark card brings its own ink with it, and naming a colour here is what
-     painted near-black on near-black the first time this deck was drawn. */
-  opacity: 0.72;
+  letter-spacing: 0.16em;
+  font-size: clamp(11px, 2.6vw, 13px);
+  font-weight: 700;
+  opacity: 0.68;
 }
 
-.wrapped__big {
-  font-size: clamp(56px, 17vw, 104px);
-  line-height: 0.92;
+.wrapped-title {
+  font-size: clamp(56px, 19vw, 190px);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  font-weight: 700;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.wrapped-big {
+  font-size: clamp(46px, 14.5vw, 132px);
+  line-height: 0.9;
   letter-spacing: -0.035em;
   font-weight: 680;
-  /* Inherited, so the number is the card's own ink rather than the page's. */
+  margin: 0;
+  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
-.wrapped__line {
-  font-size: 17px;
-  line-height: 1.35;
-  max-width: 34ch;
+.wrapped-line {
+  font-size: clamp(17px, 4.4vw, 25px);
+  line-height: 1.28;
+  max-width: 24ch;
+  margin: 0;
+  opacity: 0.94;
 }
 
-.wrapped__note {
-  font-size: 13px;
+.wrapped-note,
+.wrapped-demo,
+.wrapped-aside {
+  font-size: clamp(13px, 3.2vw, 15px);
   line-height: 1.4;
-  opacity: 0.72;
   max-width: 40ch;
+  margin: 0;
+  opacity: 0.72;
 }
 
-.wrapped__dots {
+.wrapped-cover {
+  display: grid;
+  gap: clamp(10px, 2.4vh, 22px);
+  align-content: center;
+}
+
+.wrapped-cover .wrapped-title {
+  /* The year, as the thing the story is about: as big as the screen will honestly give it. */
+  font-size: clamp(72px, 30vw, 260px);
+}
+
+.wrapped-actions {
   display: flex;
-  gap: 8px;
-  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
 }
 
-.wrapped__dot {
-  width: 8px;
-  height: 8px;
+/* ------------------------------------------------------------------- the visuals */
+.wrapped-route {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: clamp(6px, 2vh, 18px);
+  font-size: clamp(12px, 3vw, 14px);
+  font-weight: 650;
+}
+
+.wrapped-route__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.wrapped-route__dot--end {
+  opacity: 0.5;
+}
+
+.wrapped-route__line {
+  position: relative;
+  height: 2px;
+  background: color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 999px;
-  border: 0;
-  padding: 0;
-  background: var(--ink-muted);
-  opacity: 0.35;
-  transition: opacity 160ms ease, width 160ms ease, background-color 160ms ease;
+  overflow: hidden;
+  animation: wrapped-draw 900ms 220ms var(--ease-out) both;
 }
 
-.wrapped__dot[aria-current='true'] {
-  width: 22px;
+.wrapped-route__line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: left center;
+  animation: wrapped-sweep 1200ms 300ms var(--ease-out) both;
+}
+
+@keyframes wrapped-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes wrapped-draw {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wrapped-route__from,
+.wrapped-route__to {
+  grid-row: 2;
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.wrapped-route__from {
+  grid-column: 1;
+}
+
+.wrapped-route__to {
+  grid-column: 3;
+  text-align: right;
+}
+
+.wrapped-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(2px, 0.9vw, 6px);
+  height: clamp(90px, 26vh, 220px);
+  margin-top: clamp(6px, 2vh, 18px);
+}
+
+.wrapped-bars__bar {
+  flex: 1;
+  min-width: 3px;
+  border-radius: 3px 3px 0 0;
+  background: currentColor;
+  opacity: 0.28;
+  transform-origin: bottom center;
+  animation: wrapped-grow 700ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 18ms);
+}
+
+.wrapped-bars__bar.is-peak {
   opacity: 1;
-  background: var(--accent, var(--ink));
 }
 
-.wrapped__controls {
-  justify-content: center;
+@keyframes wrapped-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
 
-.wrapped__invite .empty__icon,
+.wrapped-arc {
+  width: min(58vw, 240px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  margin-top: clamp(4px, 1.6vh, 14px);
+  background: conic-gradient(currentColor calc(var(--arc, 0) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
+  mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
+  animation: wrapped-arc-in 900ms 160ms var(--ease-out) both;
+}
+
+@keyframes wrapped-arc-in {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+.wrapped-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: clamp(4px, 1.6vh, 14px) 0 0;
+  padding: 0;
+}
+
+.wrapped-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: var(--r-pill, 999px);
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  font-size: clamp(12px, 3vw, 14px);
+}
+
+.wrapped-chip strong {
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------------------- the foot */
+.wrapped-foot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.wrapped-foot .wrapped-actions {
+  margin: 0;
+}
+
+.wrapped-step--next {
+  margin-left: auto;
+}
+
+.wrapped-count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+  margin-left: auto;
+}
+
+.wrapped-foot:has(.wrapped-step--next) .wrapped-count {
+  margin-left: 0;
+}
+
+.wrapped-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(env(safe-area-inset-bottom), 18px);
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: var(--r-pill, 999px);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------- fewer moving parts */
+.wrapped-stage.is-still *,
+:root[data-motion='reduced'] .wrapped-stage * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (min-width: 900px) {
+  .wrapped-body {
+    gap: 26px;
+  }
+
+  .wrapped-line {
+    max-width: 30ch;
+  }
+}
+
+/* The invitation card on the home screen and in Settings keeps the app's own card shape. */
 .wrapped-invite .empty__icon {
   background: var(--accent-soft, var(--surface-sunken, transparent));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wrapped__card {
-    animation: none;
-  }
 }

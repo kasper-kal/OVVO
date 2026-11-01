@@ -1,39 +1,39 @@
-import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
-import { PageHeader } from '../components/layout/AppShell';
-import { Button, Card, Dialog } from '../components/ui/primitives';
+import { Button, Dialog } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
-import { buildDeck } from '../lib/wrappedDeck';
+import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
+import { chime, startSound, stopSound } from '../lib/wrappedSound';
 
 /**
- * **OVVO Wrapped: the year, as a deck rather than a report.**
+ * **OVVO Wrapped: the year as a short film, not a report.**
  *
- * One card at a time, one number and one sentence, in whatever look the traveller is wearing — so
- * the Christmas look gets a Christmas-coloured year. Swipe, tap, or the arrow keys move through it;
- * the dots at the foot are a position and a way back, not a menu.
+ * Full screen, one idea at a time, each chapter in its own colour with its own visual: a route that
+ * draws itself, twenty-four bars with one hour lit, an arc that fills to the share of journeys that
+ * needed no change. Numbers count up as they arrive, the deck advances on a swipe, a tap, the arrow
+ * keys or the arrow at the foot, and a progress line at the top says how much of the year is left.
  *
- * It reads `lib/wrapped` (what the year actually holds) and `lib/wrappedDeck` (what each card says),
- * and it writes nothing of its own except the one control that empties the year. `?demo=1` reads a
- * made-up year instead, built in memory by `lib/wrappedDemo`, so the deck can be looked at in
- * November without touching what really happened.
+ * Ten chapters is about two and a half minutes of reading, which is the length of a story rather
+ * than the length of a form. Nothing is on a timer: the traveller sets the pace, and stopping to
+ * look at a number is not punished by the deck moving on without them.
+ *
+ * Sound is synthesised (`lib/wrappedSound`), never a recording, and never before a tap: the cover's
+ * button is the gesture that starts it, and the switch beside it silences it for the session.
  */
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
   const t = useT();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const demo = params.get('demo') === '1';
   const now = appNow();
 
-  /*
-   * Which year the address is about: the one it names, or the year a card would be offered for
-   * today. In the first week of January that is the year that just ended, which is the whole point
-   * of opening it then.
-   */
   const year = useMemo(() => {
     const named = Number(params.get('year'));
     if (Number.isInteger(named) && named > 2000) return named;
@@ -42,116 +42,285 @@ export function WrappedPage() {
   }, [params, now]);
 
   const tally = useMemo(() => (demo ? demoYear(year) : tallyFor(year)), [demo, year]);
-  const cards = useMemo(
-    () => buildDeck({ year, tally, language: settings.language }),
+  const story = useMemo(
+    () => buildStory({ year, tally, language: settings.language }),
     [year, tally, settings.language],
   );
 
   const [index, setIndex] = useState(0);
-  const card = cards[Math.min(index, cards.length - 1)];
-  const last = index >= cards.length - 1;
+  const [started, setStarted] = useState(false);
+  const [sound, setSound] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const step = (direction: 1 | -1) => {
-    setIndex((current) => Math.max(0, Math.min(cards.length - 1, current + direction)));
+  const chapter: Chapter = story[Math.min(index, story.length - 1)];
+  const last = index >= story.length - 1;
+  const progress = story.length > 1 ? index / (story.length - 1) : 0;
+
+  const go = useCallback(
+    (next: number) => {
+      setIndex(Math.max(0, Math.min(story.length - 1, next)));
+    },
+    [story.length],
+  );
+  const step = useCallback(
+    (direction: number) => {
+      setIndex((current) => {
+        const next = Math.max(0, Math.min(story.length - 1, current + direction));
+        return next;
+      });
+    },
+    [story.length],
+  );
+
+  /* Every chapter announces itself once, quietly, in the score rather than in the layout. */
+  useEffect(() => {
+    if (!started) return;
+    chime(index);
+  }, [index, started]);
+
+  /* The keyboard is a reader's way through: arrows, Escape to leave. */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        step(1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        step(-1);
+      } else if (event.key === 'Escape') {
+        navigate('/');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate, step]);
+
+  /* Closing the deck closes the score with it; nothing keeps playing behind another screen. */
+  useEffect(() => () => stopSound(), []);
+
+  const [drag, setDrag] = useState<number | null>(null);
+  const dragStart = useRef(0);
+
+  const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id);
+
+  const share = async () => {
+    const route = story.find((item) => item.kind === 'route');
+    const text = t('In {year} I planned {count} journeys with OVVO.{route}', {
+      year,
+      count: tally.runs.length,
+      route: route?.line ? ` ${route.line}` : '',
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2600);
+    } catch {
+      setCopied(false);
+    }
   };
 
   return (
-    <div className="stack-6">
-      <PageHeader
-        title={t('OVVO Wrapped')}
-        description={
-          demo
-            ? t('A made-up year, for looking at the deck. Nothing here is yours.')
-            : t('Your {year} in journeys you planned.', { year })
-        }
-        showTitle
-      />
+    <div
+      className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}`}
+      style={{ '--progress': progress } as CSSProperties}
+      role="region"
+      aria-label={t('OVVO Wrapped {year}', { year })}
+      onPointerDown={(event) => {
+        dragStart.current = event.clientX;
+        setDrag(event.clientX);
+      }}
+      onPointerUp={(event) => {
+        if (drag === null) return;
+        const dx = event.clientX - dragStart.current;
+        setDrag(null);
+        if (Math.abs(dx) < 60) return;
+        step(dx < 0 ? 1 : -1);
+      }}
+      onPointerCancel={() => setDrag(null)}
+    >
+      <span className="wrapped-grain" aria-hidden="true" />
+      <span className="wrapped-blob wrapped-blob--a" aria-hidden="true" />
+      <span className="wrapped-blob wrapped-blob--b" aria-hidden="true" />
 
-      {demo ? (
-        <p className="t-sm t-muted" role="note">
-          {t('Demo year: ')}
-          <strong>{t('none of this is real')}</strong>
-          {t(', and none of it is stored.')}
-        </p>
-      ) : null}
-
-      <div
-        className={`wrapped${reduceMotion ? ' wrapped--still' : ''}`}
-        role="group"
-        aria-roledescription={t('card deck')}
-        aria-label={t('OVVO Wrapped, {year}', { year })}
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowRight') {
-            event.preventDefault();
-            step(1);
-          } else if (event.key === 'ArrowLeft') {
-            event.preventDefault();
-            step(-1);
-          }
-        }}
-      >
-        <Card
-          key={card.id}
-          className="wrapped__card"
-          variant={card.tone === 'ink' ? 'obsidian' : 'raised'}
-          aria-live="polite"
+      <header className="wrapped-top">
+        <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
+          <Icon name="close" size={20} />
+        </button>
+        <div className="wrapped-track" aria-hidden="true">
+          <span className="wrapped-track__fill" />
+        </div>
+        <button
+          type="button"
+          className="wrapped-sound"
+          aria-pressed={sound}
+          onClick={() => {
+            if (sound) {
+              stopSound();
+              setSound(false);
+            } else {
+              startSound();
+              setSound(true);
+            }
+          }}
         >
-          <span className="wrapped__kicker">{t(card.kicker)}</span>
-          <span className="wrapped__big">{card.big}</span>
-          <p className="wrapped__line">{t(card.line)}</p>
-          {card.note ? <p className="wrapped__note">{t(card.note)}</p> : null}
-        </Card>
+          <span>{sound ? t('Sound on') : t('Sound off')}</span>
+        </button>
+      </header>
 
-        <div className="wrapped__dots" aria-label={t('Cards')}>
-          {cards.map((item, position) => (
-            <button
-              key={item.id}
-              type="button"
-              className="wrapped__dot"
-              aria-current={position === index ? 'true' : undefined}
-              aria-label={t('Card {number} of {total}', { number: position + 1, total: cards.length })}
-              onClick={() => setIndex(position)}
-            />
-          ))}
-        </div>
-
-        <div className="row-wrap wrapped__controls">
-          <Button size="sm" onClick={() => step(-1)} disabled={index === 0}>
-            {t('Back')}
-          </Button>
-          <Button size="sm" onClick={() => step(1)} disabled={last}>
-            {t('Next')}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setIndex(cards.length - 1)} disabled={last}>
-            {t('Skip to the end')}
-          </Button>
-        </div>
+      <div className="wrapped-body" key={chapter.id}>
+        {chapter.kind === 'cover' ? (
+          <div className="wrapped-cover">
+            <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+              {t(chapter.kicker)}
+            </span>
+            <h1 className="wrapped-title" style={{ '--i': 1 } as CSSProperties}>
+              {chapter.big}
+            </h1>
+            <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
+              {t(chapter.line)}
+            </p>
+            {demo ? (
+              <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
+                <strong>{t('Demo year')}</strong> {t('none of this is real, and none of it is stored.')}
+              </p>
+            ) : null}
+            <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
+              <Button
+                variant="accent"
+                size="md"
+                onClick={() => {
+                  setStarted(true);
+                  startSound();
+                  setSound(true);
+                  go(1);
+                }}
+              >
+                {t('Begin')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => go(1)}>
+                {t('Skip the sound')}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+              {t(chapter.kicker)}
+            </span>
+            <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
+              {chapter.count !== undefined ? count : chapter.big}
+            </p>
+            <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
+              {t(chapter.line)}
+            </p>
+            {chapter.kind === 'route' && chapter.route ? (
+              <div className="wrapped-route" style={{ '--i': 3 } as CSSProperties}>
+                <span className="wrapped-route__dot" />
+                <span className="wrapped-route__line" aria-hidden="true" />
+                <span className="wrapped-route__dot wrapped-route__dot--end" />
+                <span className="wrapped-route__from">{chapter.route.from}</span>
+                <span className="wrapped-route__to">{chapter.route.to}</span>
+              </div>
+            ) : null}
+            {chapter.kind === 'bars' && chapter.bars ? (
+              <div className="wrapped-bars" style={{ '--i': 3 } as CSSProperties} aria-hidden="true">
+                {chapter.bars.map((value, hour) => (
+                  <span
+                    key={hour}
+                    className={`wrapped-bars__bar${hour === chapter.peak ? ' is-peak' : ''}`}
+                    style={
+                      {
+                        height: `${Math.max(4, (value / Math.max(1, ...(chapter.bars ?? [1]))) * 100)}%`,
+                        '--i': hour,
+                      } as CSSProperties
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
+            {chapter.kind === 'arc' ? (
+              <div
+                className="wrapped-arc"
+                style={{ '--arc': chapter.arc ?? 0, '--i': 3 } as CSSProperties}
+                aria-hidden="true"
+              />
+            ) : null}
+            {chapter.chips?.length ? (
+              <ul className="wrapped-chips" style={{ '--i': 3 } as CSSProperties}>
+                {chapter.chips.map((chip) => (
+                  <li key={chip.label} className="wrapped-chip">
+                    <span>{chip.label}</span>
+                    <strong>{chip.detail}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {chapter.hearts || chapter.boards ? (
+              <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
+                {t('{hearts} stops hearted, {boards} boards pinned.', {
+                  hearts: chapter.hearts ?? 0,
+                  boards: chapter.boards ?? 0,
+                })}
+              </p>
+            ) : null}
+            {chapter.note ? (
+              <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
+                {t(chapter.note)}
+              </p>
+            ) : null}
+          </>
+        )}
       </div>
 
-      {last ? (
-        <Card className="stack">
-          <h2 className="t-section">{t('This year is yours')}</h2>
-          <p className="t-sm t-muted">
-            {t(
-              'It lives with your saved stops and journeys, so it follows your OVVO ID to another device. Emptying it cannot be undone.',
-            )}
-          </p>
-          {cleared ? (
-            <p className="t-sm" role="status">
-              <Icon name="check" size={14} /> {t('The year has been emptied.')}
-            </p>
-          ) : (
-            <div className="row-wrap">
-              <Button icon="trash" size="sm" disabled={demo} onClick={() => setConfirmClear(true)}>
-                {t('Empty this year')}
+      {started || chapter.kind !== 'cover' ? (
+        <footer className="wrapped-foot">
+          <button
+            type="button"
+            className="wrapped-step"
+            onClick={() => step(-1)}
+            disabled={index === 0}
+            aria-label={t('Previous chapter')}
+          >
+            <Icon name="chevronLeft" size={20} />
+          </button>
+
+          {last ? (
+            <div className="wrapped-actions">
+              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
+                {copied ? t('Copied') : t('Copy my year')}
               </Button>
-              {demo ? <span className="t-sm t-muted">{t('Nothing to empty in a demo year.')}</span> : null}
+              <Button variant="ghost" size="sm" onClick={() => go(0)}>
+                {t('Start again')}
+              </Button>
+              {demo ? null : (
+                <Button variant="ghost" size="sm" icon="trash" onClick={() => setConfirmClear(true)}>
+                  {t('Empty this year')}
+                </Button>
+              )}
             </div>
+          ) : (
+            <button
+              type="button"
+              className="wrapped-step wrapped-step--next"
+              onClick={() => step(1)}
+              aria-label={t('Next chapter')}
+            >
+              <Icon name="chevronRight" size={20} />
+            </button>
           )}
-        </Card>
+
+          <span className="wrapped-count" aria-live="polite">
+            {index + 1} / {story.length}
+          </span>
+        </footer>
+      ) : null}
+
+      {cleared ? (
+        <p className="wrapped-toast" role="status">
+          <Icon name="check" size={14} /> {t('The year has been emptied.')}
+        </p>
       ) : null}
 
       <Dialog
@@ -170,7 +339,7 @@ export function WrappedPage() {
                 clearTally();
                 setCleared(true);
                 setConfirmClear(false);
-                setIndex(0);
+                go(0);
               }}
             >
               {t('Empty the year')}
@@ -183,4 +352,35 @@ export function WrappedPage() {
       />
     </div>
   );
+}
+
+/**
+ * **A number that arrives rather than appearing.**
+ *
+ * Over just under a second, eased so it slows as it lands: the eye follows the count and reads the
+ * final figure as the end of a movement. It runs again for each chapter (keyed on `id`), because a
+ * figure that arrived once and stayed would be the same number nine times.
+ *
+ * Reduced motion gets the answer immediately, which is the whole point of the setting.
+ */
+function useCountUp(target: number, active: boolean, key: string): number {
+  const [value, setValue] = useState(active ? 0 : target);
+  useEffect(() => {
+    if (!active) {
+      setValue(target);
+      return undefined;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const duration = 850;
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, active, key]);
+  return value;
 }

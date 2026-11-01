@@ -1,57 +1,60 @@
 /**
- * **The deck: eight cards, each answering from the tally and from nothing else.**
+ * **The story: the year told in chapters rather than in cards.**
  *
- * Every card here is a number the year really holds and one sentence about it. Nothing is compared
- * with other travellers, because there is no data for that and a made-up average is the worst kind
- * of lie; nothing is extrapolated; and when the year holds almost nothing the deck says so in one
- * card instead of dressing three searches up as a story.
+ * A deck of eight answers read as a dashboard: same shape, same type, a number and a line. This is
+ * the same year told as a short film. Each chapter is one idea, one number, one sentence, and a
+ * visual that only that chapter has: a route that draws itself, an hour of the day lit up, an arc
+ * that fills to a share, a line that stretches to a long journey.
  *
- * The sentences are written here rather than scattered through the screen, so what a card claims
- * can be read in one place and checked against `lib/wrapped` — the module that wrote the year down.
+ * Every figure comes from `lib/wrapped` and from nothing else. Nothing is compared with other
+ * travellers, nothing is extrapolated, and an almost empty year gets one honest chapter instead of
+ * nine dressed up ones.
  */
 
+import { getStop } from '../data/stops';
+import type { Language } from '../state/types';
 import { formatDuration } from './format';
 import { styleById } from './styles';
 import type { YearTally } from './wrapped';
-import type { Language } from '../state/types';
 
-export interface DeckCard {
+/** The colour a chapter is painted in. Each is a token, so the look still shows through. */
+export type Tone = 'ink' | 'cream' | 'sage' | 'coral';
+
+export type ChapterKind = 'cover' | 'number' | 'route' | 'bars' | 'arc' | 'chips' | 'close';
+
+export interface Chapter {
   id: string;
+  kind: ChapterKind;
+  tone: Tone;
   /** The small line above the number. */
   kicker: string;
-  /** The one big thing the card says. */
+  /** What the chapter says, large. */
   big: string;
-  /** The sentence under it, in plain words. */
+  /** When the big thing is a number, it counts up to this instead of appearing. */
+  count?: number;
+  /** The sentence under it. */
   line: string;
-  /** An optional second line, for the closing card and its honesty. */
+  /** An optional quieter line, for the closing chapter. */
   note?: string;
-  /** `ink` draws the card on the app's dark surface. Alternating is the whole of the deck's colour. */
-  tone?: 'ink';
+  /** A route to draw: two ends and how many times it was planned. */
+  route?: { from: string; to: string; count: number };
+  /** Twenty-four hours, each with how many journeys asked to leave in it. */
+  bars?: number[];
+  /** Which hour is the tallest, so the bar can be picked out. */
+  peak?: number;
+  /** 0–1, how much of the arc is filled. */
+  arc?: number;
+  /** Short labelled facts, for the chapters that are lists. */
+  chips?: { label: string; detail: string }[];
+  hearts?: number;
+  boards?: number;
 }
 
-/** The busiest few of something, largest first. */
-function top<T extends string | number>(counts: Map<T, number>): { value: T; count: number } | null {
-  let best: { value: T; count: number } | null = null;
-  for (const [value, count] of counts) {
-    if (!best || count > best.count) best = { value, count };
-  }
-  return best;
-}
+/** How many journeys are enough to make a story. */
+export const DECK_MIN_RUNS = 5;
 
-function bump<T extends string | number>(counts: Map<T, number>, value: T): void {
-  counts.set(value, (counts.get(value) ?? 0) + 1);
-}
+const nameOf = (id: string): string => getStop(id)?.name ?? id;
 
-/** A stop id or a label, made readable without the app's stop table. */
-function readable(end: string): string {
-  const known = end
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-  return known.replace(/^Schiphol Airport$/, 'Schiphol Airport');
-}
-
-/** The look's own name, or nothing when the style is not one this build knows. */
 function lookName(id: string): string | null {
   try {
     const style = styleById(id) as { name?: string } | null | undefined;
@@ -61,10 +64,14 @@ function lookName(id: string): string | null {
   }
 }
 
-/** How many journeys are enough to make a story. Below this the deck says so plainly instead. */
-export const DECK_MIN_RUNS = 5;
+function topEntries<T extends string>(counts: Map<T, number>, limit: number): Array<{ value: T; count: number }> {
+  return [...counts.entries()]
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
 
-export function buildDeck({
+export function buildStory({
   year,
   tally,
   language,
@@ -72,109 +79,168 @@ export function buildDeck({
   year: number;
   tally: YearTally;
   language: Language;
-}): DeckCard[] {
+}): Chapter[] {
   const runs = [...tally.runs].sort((a, b) => a.at - b.at);
 
   if (runs.length < DECK_MIN_RUNS) {
     return [
       {
+        id: 'cover',
+        kind: 'cover',
+        tone: 'ink',
+        kicker: 'OVVO Wrapped',
+        big: String(year),
+        line: 'Your year in journeys you planned.',
+      },
+      {
         id: 'thin',
+        kind: 'close',
+        tone: 'cream',
         kicker: String(year),
         big: String(runs.length),
+        count: runs.length,
         line:
           runs.length === 1
             ? 'journey planned this year. That is not a year to make a story of yet.'
             : 'journeys planned this year. That is not a year to make a story of yet.',
-        note: 'Nothing has been invented to fill the space.',
+        note: 'Nothing has been invented to fill the space. Plan a few more and come back.',
       },
     ];
   }
 
   const pairs = new Map<string, number>();
   const origins = new Map<string, number>();
-  const hours = new Map<number, number>();
+  const hours = new Array<number>(24).fill(0);
   const looks = new Map<string, number>();
+  const lines = new Map<string, number>();
   let direct = 0;
   let longest = runs[0];
 
   for (const run of runs) {
-    bump(pairs, `${run.from}→${run.to}`);
-    bump(origins, run.from);
-    bump(hours, run.hour);
+    pairs.set(`${run.from}→${run.to}`, (pairs.get(`${run.from}→${run.to}`) ?? 0) + 1);
+    origins.set(run.from, (origins.get(run.from) ?? 0) + 1);
+    hours[Math.max(0, Math.min(23, run.hour))] += 1;
     if ((run.changes ?? 1) === 0) direct += 1;
     if ((run.minutes ?? 0) > (longest.minutes ?? 0)) longest = run;
+    for (const line of run.lines ?? []) lines.set(line, (lines.get(line) ?? 0) + 1);
   }
-  for (const wear of tally.wears) bump(looks, wear.id);
+  for (const wear of tally.wears) looks.set(wear.id, (looks.get(wear.id) ?? 0) + 1);
 
-  const pair = top(pairs);
-  const origin = top(origins);
-  const hour = top(hours);
-  const look = top(looks);
-  const [pairFrom, pairTo] = (pair?.value ?? '').split('→');
-  const lookNamed = look ? lookName(look.value) : null;
+  const [pair] = topEntries(pairs, 1);
+  const [pairFrom, pairTo] = (pair?.value ?? '→').split('→');
+  const originList = topEntries(origins, 3);
+  const peak = hours.indexOf(Math.max(...hours));
+  const lookList = topEntries(looks, 1);
+  const wearDays = lookList[0]?.count ?? 0;
+  const named = lookList[0] ? lookName(lookList[0].value) : null;
+  const lineList = topEntries(lines, 3);
+  const directShare = runs.length ? direct / runs.length : 0;
+  const directPct = Math.round(directShare * 100);
 
-  const cards: Array<DeckCard | null> = [
+  const story: Array<Chapter | null> = [
     {
-      id: 'count',
+      id: 'cover',
+      kind: 'cover',
+      tone: 'ink',
+      kicker: 'OVVO Wrapped',
+      big: String(year),
+      line: 'Your year in journeys you planned.',
+    },
+    {
+      id: 'total',
+      kind: 'number',
       tone: 'ink',
       kicker: 'The year in one number',
       big: String(runs.length),
+      count: runs.length,
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
     },
     pair
       ? {
           id: 'pair',
-          kicker: 'Your own line',
+          kind: 'route',
+          tone: 'coral',
+          kicker: 'The line you kept coming back to',
           big: String(pair.count),
-          line: `${pair.count === 1 ? 'time' : 'times'} you planned ${readable(pairFrom ?? '')} → ${readable(pairTo ?? '')}.`,
+          count: pair.count,
+          line: `${pair.count === 1 ? 'time' : 'times'} from ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
+          route: { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count },
         }
       : null,
-    origin
+    originList.length
       ? {
           id: 'origin',
-          tone: 'ink',
+          kind: 'chips',
+          tone: 'cream',
           kicker: 'Where you set off',
-          big: String(origin.count),
-          line: `journeys began at ${readable(origin.value)}.`,
-        }
-      : null,
-    hour
-      ? {
-          id: 'hour',
-          kicker: 'Your hour',
-          big: `${hour.value < 10 ? '0' : ''}${hour.value}:00`,
-          line: `${hour.count === 1 ? 'journey' : 'journeys'} asked to leave in that hour, more than any other.`,
+          big: nameOf(originList[0].value),
+          line: `${originList[0].count} ${originList[0].count === 1 ? 'journey began' : 'journeys began'} here.`,
+          chips: originList.slice(1).map((item) => ({
+            label: nameOf(item.value),
+            detail: `${item.count}`,
+          })),
         }
       : null,
     {
+      id: 'hour',
+      kind: 'bars',
+      tone: 'sage',
+      kicker: 'Your hour',
+      big: `${peak < 10 ? '0' : ''}${peak}:00`,
+      line: `${hours[peak]} ${hours[peak] === 1 ? 'journey' : 'journeys'} asked to leave in that hour, more than any other.`,
+      bars: hours,
+      peak,
+    },
+    {
       id: 'direct',
+      kind: 'arc',
       tone: 'ink',
       kicker: 'Straight through',
-      big: String(direct),
+      big: `${directPct}%`,
+      count: directPct,
       line:
         direct === 1
-          ? 'journey with no changes at all.'
-          : `journeys with no changes at all, out of ${runs.length}.`,
+          ? 'of your journeys had no changes at all. One clean run.'
+          : `of your journeys had no changes at all. ${direct} of ${runs.length}.`,
+      arc: directShare,
     },
     longest.minutes
       ? {
           id: 'longest',
+          kind: 'number',
+          tone: 'coral',
           kicker: 'The long haul',
           big: formatDuration(longest.minutes, language),
-          line: `on the way to ${readable(longest.to)}, the longest trip you planned.`,
+          line: `on the way to ${nameOf(longest.to)}, the longest trip you planned.`,
         }
       : null,
-    lookNamed
+    named
       ? {
           id: 'look',
-          tone: 'ink',
+          kind: 'number',
+          tone: 'cream',
           kicker: 'The look you wore',
-          big: String(look?.count ?? 0),
-          line: `${(look?.count ?? 0) === 1 ? 'day' : 'days'} wearing ${lookNamed}.`,
+          big: named,
+          line: `${wearDays} ${wearDays === 1 ? 'day' : 'days'} in this look.`,
+        }
+      : null,
+    lineList.length
+      ? {
+          id: 'lines',
+          kind: 'chips',
+          tone: 'sage',
+          kicker: 'Your lines',
+          big: lineList[0].value,
+          line: lineList[0].count === 1 ? 'journey on it.' : 'journeys on it.',
+          chips: lineList.slice(1).map((item) => ({ label: item.value, detail: `${item.count}` })),
+          hearts: tally.hearts,
+          boards: tally.boards.length,
         }
       : null,
     {
       id: 'close',
+      kind: 'close',
+      tone: 'ink',
       kicker: String(year),
       big: 'That was the year.',
       line: 'Every number here comes from journeys you planned in this app, and nothing else.',
@@ -182,5 +248,5 @@ export function buildDeck({
     },
   ];
 
-  return cards.filter((card): card is DeckCard => Boolean(card));
+  return story.filter((chapter): chapter is Chapter => Boolean(chapter));
 }
