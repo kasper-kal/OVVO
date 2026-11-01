@@ -105,13 +105,25 @@ export function WrappedPage() {
 
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id);
 
+  /*
+   * **What gets copied is a sentence, not a chapter.**
+   *
+   * It used to be glued together from a chapter's own line, which is written to sit under a big
+   * number ("21") and therefore leaves the number out: the copy read "times from Amsterdam Centraal
+   * to Haarlem Station." with nothing in front of it. A share is read on its own, in somebody else's
+   * chat, so it says everything it needs in one line.
+   */
   const share = async () => {
     const route = story.find((item) => item.kind === 'route');
-    const text = t('In {year} I planned {count} journeys with OVVO.{route}', {
-      year,
-      count: tally.runs.length,
-      route: route?.line ? ` ${route.line}` : '',
-    });
+    const text = route?.route
+      ? t('In {year} I planned {count} journeys with OVVO. {times} of them were {from} to {to}.', {
+          year,
+          count: tally.runs.length,
+          times: route.route.count,
+          from: route.route.from,
+          to: route.route.to,
+        })
+      : t('In {year} I planned {count} journeys with OVVO.', { year, count: tally.runs.length });
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
