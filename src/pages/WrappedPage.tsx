@@ -9,7 +9,7 @@ import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { chime, startSound, stopSound } from '../lib/wrappedSound';
+import { playChapter, startSound, stopSound } from '../lib/wrappedSound';
 
 /**
  * **OVVO Wrapped: the year as a short film, not a report.**
@@ -23,8 +23,9 @@ import { chime, startSound, stopSound } from '../lib/wrappedSound';
  * than the length of a form. Nothing is on a timer: the traveller sets the pace, and stopping to
  * look at a number is not punished by the deck moving on without them.
  *
- * Sound is synthesised (`lib/wrappedSound`), never a recording, and never before a tap: the cover's
- * button is the gesture that starts it, and the switch beside it silences it for the session.
+ * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
+ * a tap: the cover's Begin is the gesture that starts it, Skip the sound starts the story in
+ * silence, and the switch in the corner silences it for the session.
  */
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
@@ -74,11 +75,16 @@ export function WrappedPage() {
     [story.length],
   );
 
-  /* Every chapter announces itself once, quietly, in the score rather than in the layout. */
+  /*
+   * Every chapter brings its own piece of music, crossfading in under the one before it.
+   *
+   * The chapter after this one is handed over as a hint, so it is already on the phone by the time
+   * the traveller swipes: the story should never wait for a song.
+   */
   useEffect(() => {
     if (!started) return;
-    chime(index);
-  }, [index, started]);
+    playChapter(chapter.track, story[index + 1]?.track);
+  }, [index, started, chapter.track, story]);
 
   /* The keyboard is a reader's way through: arrows, Escape to leave. */
   useEffect(() => {
@@ -172,7 +178,7 @@ export function WrappedPage() {
               stopSound();
               setSound(false);
             } else {
-              startSound();
+              startSound(chapter.track, story[index + 1]?.track);
               setSound(true);
             }
           }}
@@ -204,7 +210,7 @@ export function WrappedPage() {
                 size="md"
                 onClick={() => {
                   setStarted(true);
-                  startSound();
+                  startSound(chapter.track, story[1]?.track);
                   setSound(true);
                   go(1);
                 }}

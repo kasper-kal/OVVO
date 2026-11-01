@@ -1,31 +1,68 @@
 /**
- * **The soundtrack, made where it is needed.**
+ * **The score: one track per chapter, and never a track before a tap.**
  *
- * A Wrapped with a score needs music, and OVVO ships no audio files: a licensed track is not ours to
- * ship, and half a megabyte of mp3 for one screen is a poor trade on a phone opening a timetable.
+ * Ten short pieces live in `public/music`, one for each chapter of the story. They are the steerer's
+ * own licensed music, so the deck can carry a real score instead of the synthesised pad it opened
+ * with, and the whole set is 3.2 MB, which is a fair trade for the one screen in OVVO that is meant
+ * to feel like an event.
  *
- * So the sound is synthesised, in the browser, from nothing: a slow pad that holds under the whole
- * story and one short chime as each chapter arrives, both tuned to a pentatonic scale so no two
- * chapters can ever clash. It costs no bytes, works offline, and stops the moment the deck closes.
+ * Three things make it behave rather than play:
  *
- * Three rules it keeps: **nothing plays before a tap** (the deck asks, the answer is the gesture the
- * browser needs), **the traveller can silence it** and that choice holds for the session, and
- * **nothing is written to storage** — sound is not a preference about the app, it is a switch on
- * one screen.
+ * - **Two players, not ten.** A chapter change starts the incoming track on the idle element and
+ *   fades the playing one out under it, so the music bends into the next chapter instead of stopping
+ *   and starting. The idle element is then loaded with the chapter after that, so by the time the
+ *   traveller swipes, their next song is already on the phone.
+ * - **Nothing plays before a tap.** Browsers refuse audio without a gesture, and the cover is the
+ *   right place to ask: Begin starts the story and the score together, Skip the sound starts only
+ *   the story.
+ * - **A missing track is not a silent story.** If a file will not load or play, the deck falls back
+ *   to the quiet synthesised pad it used before, so the room is never dead.
  */
+
+/** The chapters' tracks, named after the music rather than after the chapter, so they can be swapped. */
+export type Track =
+  | 'luxury-anthem'
+  | 'electro-dance'
+  | 'afrobeat'
+  | 'indie-pop'
+  | 'electropop'
+  | 'melodic-trap'
+  | 'hip-hop-anthem'
+  | 'dark-trap'
+  | 'rap-anthem'
+  | 'acoustic';
+
+/** Where a track is fetched from. Files sit in `public/music`, so the base is the app's own. */
+function urlOf(track: Track): string {
+  return `${import.meta.env.BASE_URL}music/${track}.mp3`;
+}
+
+/** How loud the whole score sits under the words, and how long each change takes. */
+const LEVEL = 0.55;
+const FADE_IN = 0.9;
+const FADE_OUT = 0.7;
+
+interface Slot {
+  el: HTMLAudioElement;
+  gain: GainNode;
+  /** What is loaded in this element, so a prefetched track is not fetched twice. */
+  track: Track | null;
+}
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
+let slots: Slot[] = [];
+let active: Slot | null = null;
+let current: Track | null = null;
+let playing = false;
+let broken = false;
 let pad: { stop: () => void } | null = null;
-let muted = false;
-
-/** The pentatonic scale the whole score is drawn from: no note in it can sound wrong with another. */
-const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
 
 function audio(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (context) return context;
-  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctor =
+    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;
   try {
     context = new Ctor();
@@ -34,21 +71,188 @@ function audio(): AudioContext | null {
     return null;
   }
   master = context.createGain();
-  master.gain.value = muted ? 0 : 0.5;
+  master.gain.value = 0;
   master.connect(context.destination);
   return context;
 }
 
-/** A note of the scale, `index` steps up from the root, as a frequency in hertz. */
+/**
+ * One player: an audio element with its own gain, wired into the shared master.
+ *
+ * The element is routed through the graph rather than turned down with `volume`, because a gain
+ * ramp is smooth to the ear and `volume` is not: the two players have to cross without a click.
+ */
+function makeSlot(ctx: AudioContext, bus: GainNode): Slot {
+  const el = new Audio();
+  el.loop = true;
+  el.preload = 'auto';
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  ctx.createMediaElementSource(el).connect(gain);
+  gain.connect(bus);
+  const slot: Slot = { el, gain, track: null };
+  el.addEventListener('error', () => {
+    broken = true;
+    if (playing) startPad();
+  });
+  slots = [...slots, slot];
+  return slot;
+}
+
+function ensureSlots(): Slot[] {
+  const ctx = audio();
+  if (!ctx || !master) return [];
+  if (slots.length === 0) makeSlot(ctx, master);
+  if (slots.length === 1) makeSlot(ctx, master);
+  return slots;
+}
+
+/** Load a track into a player, unless it is already there. */
+function load(slot: Slot, track: Track): void {
+  if (slot.track === track) return;
+  slot.track = track;
+  slot.el.src = urlOf(track);
+}
+
+/** The player a new track should use: one that already holds it, or the one that is not playing. */
+function pick(track: Track): Slot | null {
+  const ready = ensureSlots();
+  if (ready.length === 0) return null;
+  const holds = ready.find((slot) => slot !== active && slot.track === track);
+  if (holds) return holds;
+  const idle = ready.find((slot) => slot !== active);
+  if (idle) return idle;
+  const ctx = audio();
+  return ctx && master ? makeSlot(ctx, master) : null;
+}
+
+/** Quietly fetch the chapter after this one, so the next swipe has nothing to wait for. */
+function prefetch(next: Track | undefined): void {
+  if (!next) return;
+  const ready = ensureSlots();
+  const idle = ready.find((slot) => slot !== active);
+  if (idle) load(idle, next);
+}
+
+function ramp(gain: GainNode, to: number, seconds: number, ctx: AudioContext): void {
+  const now = ctx.currentTime;
+  gain.gain.cancelScheduledValues(now);
+  gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, to), now + seconds);
+}
+
+/**
+ * Play a chapter's track, fading the one before it out underneath.
+ *
+ * `next` is only a hint: the chapter that follows, handed over so it can be warmed while this one
+ * plays. Missing it costs a little waiting, never a wrong song.
+ */
+function spin(track: Track, next?: Track): void {
+  const ctx = audio();
+  if (!ctx || !master) return;
+  if (ctx.state === 'suspended') void ctx.resume();
+  if (broken) {
+    startPad();
+    return;
+  }
+
+  /* A track already in the live player (rounding a chapter twice, or coming back from silence). */
+  const live = active && active.track === track ? active : null;
+  if (live) {
+    const started = live.el.play();
+    if (started) void started.catch(() => undefined);
+    ramp(live.gain, 1, 0.35, ctx);
+    current = track;
+    prefetch(next);
+    return;
+  }
+
+  const incoming = pick(track);
+  if (!incoming) return;
+  load(incoming, track);
+  const started = incoming.el.play();
+  if (started) {
+    void started.catch(() => {
+      broken = true;
+      if (playing) startPad();
+    });
+  }
+  ramp(incoming.gain, 1, FADE_IN, ctx);
+
+  const leaving = active;
+  active = incoming;
+  current = track;
+  playing = true;
+
+  if (leaving && leaving !== incoming) {
+    ramp(leaving.gain, 0.0001, FADE_OUT, ctx);
+    /* Fade first, stop after: stopping on the same beat as the fade leaves a hole in the middle. */
+    window.setTimeout(() => {
+      if (active !== leaving) {
+        leaving.el.pause();
+        leaving.track = null;
+      }
+    }, 1200);
+  }
+
+  window.setTimeout(() => prefetch(next), 1000);
+}
+
+/** Ask for the score. Must be called from a gesture: a browser will not start audio without one. */
+export function startSound(track: Track, next?: Track): void {
+  const ctx = audio();
+  if (!ctx || !master) return;
+  if (ctx.state === 'suspended') void ctx.resume();
+  playing = true;
+  stopPad();
+  ramp(master, LEVEL, 0.6, ctx);
+  spin(track, next);
+}
+
+/** Silence it for the session, and leave nothing playing behind another screen. */
+export function stopSound(): void {
+  playing = false;
+  if (context && master) ramp(master, 0.0001, 0.15, context);
+  window.setTimeout(() => {
+    if (playing) return;
+    slots.forEach((slot) => slot.el.pause());
+    stopPad();
+  }, 260);
+}
+
+/** Whether the score is currently allowed to make a sound. */
+export function soundIsOn(): boolean {
+  return playing;
+}
+
+/**
+ * A chapter arrived: move the score to its track.
+ *
+ * Silent unless the traveller has asked for sound, so the cover's Begin and the switch in the corner
+ * are the only two ways music ever starts, and swiping before choosing either stays quiet.
+ */
+export function playChapter(track: Track, next?: Track): void {
+  if (!playing) return;
+  spin(track, next);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * The fallback: the quiet pad the deck used before it had music.
+ * Two detuned sines under a half-closed filter, tuned so it never clashes with itself.
+ * ------------------------------------------------------------------------------------------- */
+
+/** The pentatonic scale the pad is drawn from: no note in it can sound wrong with another. */
+const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
+
 function note(index: number, root = 220): number {
   const step = SCALE[index % SCALE.length] + 12 * Math.floor(index / SCALE.length);
   return root * Math.pow(2, step / 12);
 }
 
-/** The pad: two quiet, slightly detuned sines and a filter opened only a little. */
 function startPad(): void {
   const ctx = audio();
   if (!ctx || !master || pad) return;
+  if (master.gain.value < 0.05) ramp(master, LEVEL, 0.6, ctx);
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const filter = ctx.createBiquadFilter();
@@ -66,7 +270,6 @@ function startPad(): void {
     return osc;
   });
 
-  /* Two seconds to arrive, so it is under the cover before the story starts. */
   gain.gain.setTargetAtTime(0.09, ctx.currentTime, 0.8);
   pad = {
     stop: () => {
@@ -77,54 +280,13 @@ function startPad(): void {
   };
 }
 
-/** Ask for sound. Must be called from a gesture: a browser will not start audio without one. */
-export function startSound(): void {
-  const ctx = audio();
-  if (!ctx) return;
-  if (ctx.state === 'suspended') void ctx.resume();
-  muted = false;
-  if (master) master.gain.setTargetAtTime(0.5, ctx.currentTime, 0.1);
-  startPad();
+function stopPad(): void {
+  if (!pad) return;
+  pad.stop();
+  pad = null;
 }
 
-/** Silence it, and remember that for this session. */
-export function stopSound(): void {
-  muted = true;
-  if (context && master) master.gain.setTargetAtTime(0, context.currentTime, 0.08);
-  if (pad) {
-    pad.stop();
-    pad = null;
-  }
-}
-
-/** Whether the score is currently allowed to make a sound. */
-export function soundIsOn(): boolean {
-  return !muted;
-}
-
-/**
- * One chime, as a chapter arrives.
- *
- * Three short notes, rising with the story: the same figure each time, so the sound is a signature
- * rather than a jingle per screen, and the pitch climbs a step as the year is told.
- */
-export function chime(chapter: number): void {
-  const ctx = audio();
-  if (!ctx || !master || muted) return;
-  const start = ctx.currentTime + 0.02;
-  const base = 2 + chapter;
-
-  for (let voice = 0; voice < 3; voice += 1) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = voice === 2 ? 'triangle' : 'sine';
-    osc.frequency.value = note(base + voice * 2, 440);
-    gain.gain.setValueAtTime(0, start + voice * 0.07);
-    gain.gain.linearRampToValueAtTime(0.16 - voice * 0.03, start + voice * 0.07 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + voice * 0.07 + 0.9);
-    osc.connect(gain);
-    gain.connect(master);
-    osc.start(start + voice * 0.07);
-    osc.stop(start + voice * 0.07 + 1);
-  }
+/** The chapter that is playing, for the tests and for anyone reading the state. */
+export function currentTrack(): Track | null {
+  return current;
 }

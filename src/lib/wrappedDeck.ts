@@ -16,6 +16,7 @@ import type { Language } from '../state/types';
 import { formatDuration } from './format';
 import { styleById } from './styles';
 import type { YearTally } from './wrapped';
+import type { Track } from './wrappedSound';
 
 /** The colour a chapter is painted in. Each is a token, so the look still shows through. */
 export type Tone = 'ink' | 'cream' | 'sage' | 'coral';
@@ -26,6 +27,14 @@ export interface Chapter {
   id: string;
   kind: ChapterKind;
   tone: Tone;
+  /**
+   * The piece of music under this chapter.
+   *
+   * Chosen by mood rather than by order, so the story leans where it should: the cover opens on the
+   * grandest track, the line you kept coming back to gets the warmest groove, the look you wore gets
+   * the darkest one, and the last screen resolves on an acoustic guitar instead of a drop.
+   */
+  track: Track;
   /** The small line above the number. */
   kicker: string;
   /** What the chapter says, large. */
@@ -88,6 +97,7 @@ export function buildStory({
         id: 'cover',
         kind: 'cover',
         tone: 'ink',
+        track: 'luxury-anthem',
         kicker: 'OVVO Wrapped',
         big: String(year),
         line: 'Your year in journeys you planned.',
@@ -96,6 +106,8 @@ export function buildStory({
         id: 'thin',
         kind: 'close',
         tone: 'cream',
+        /* A thin year gets the quietest piece there is: no fanfare for a story that has not happened. */
+        track: 'acoustic',
         kicker: String(year),
         big: String(runs.length),
         count: runs.length,
@@ -142,6 +154,7 @@ export function buildStory({
       id: 'cover',
       kind: 'cover',
       tone: 'ink',
+      track: 'luxury-anthem',
       kicker: 'OVVO Wrapped',
       big: String(year),
       line: 'Your year in journeys you planned.',
@@ -150,6 +163,7 @@ export function buildStory({
       id: 'total',
       kind: 'number',
       tone: 'ink',
+      track: 'electro-dance',
       kicker: 'The year in one number',
       big: String(runs.length),
       count: runs.length,
@@ -160,6 +174,7 @@ export function buildStory({
           id: 'pair',
           kind: 'route',
           tone: 'coral',
+          track: 'afrobeat',
           kicker: 'The line you kept coming back to',
           big: String(pair.count),
           count: pair.count,
@@ -172,6 +187,7 @@ export function buildStory({
           id: 'origin',
           kind: 'chips',
           tone: 'cream',
+          track: 'indie-pop',
           kicker: 'Where you set off',
           big: nameOf(originList[0].value),
           line: `${originList[0].count} ${originList[0].count === 1 ? 'journey began' : 'journeys began'} here.`,
@@ -185,6 +201,7 @@ export function buildStory({
       id: 'hour',
       kind: 'bars',
       tone: 'sage',
+      track: 'electropop',
       kicker: 'Your hour',
       big: `${peak < 10 ? '0' : ''}${peak}:00`,
       line: `${hours[peak]} ${hours[peak] === 1 ? 'journey' : 'journeys'} asked to leave in that hour, more than any other.`,
@@ -195,6 +212,7 @@ export function buildStory({
       id: 'direct',
       kind: 'arc',
       tone: 'ink',
+      track: 'melodic-trap',
       kicker: 'Straight through',
       big: `${directPct}%`,
       count: directPct,
@@ -209,6 +227,7 @@ export function buildStory({
           id: 'longest',
           kind: 'number',
           tone: 'coral',
+          track: 'hip-hop-anthem',
           kicker: 'The long haul',
           big: formatDuration(longest.minutes, language),
           line: `on the way to ${nameOf(longest.to)}, the longest trip you planned.`,
@@ -219,6 +238,7 @@ export function buildStory({
           id: 'look',
           kind: 'number',
           tone: 'cream',
+          track: 'dark-trap',
           kicker: 'The look you wore',
           big: named,
           line: `${wearDays} ${wearDays === 1 ? 'day' : 'days'} in this look.`,
@@ -229,6 +249,7 @@ export function buildStory({
           id: 'lines',
           kind: 'chips',
           tone: 'sage',
+          track: 'rap-anthem',
           kicker: 'Your lines',
           big: lineList[0].value,
           line: lineList[0].count === 1 ? 'journey on it.' : 'journeys on it.',
@@ -241,6 +262,7 @@ export function buildStory({
       id: 'close',
       kind: 'close',
       tone: 'ink',
+      track: 'acoustic',
       kicker: String(year),
       big: 'That was the year.',
       line: 'Every number here comes from journeys you planned in this app, and nothing else.',
