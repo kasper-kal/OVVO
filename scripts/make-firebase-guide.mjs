@@ -135,7 +135,7 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
     <div class="cover__fact"><b>2</b><span>free accounts</span></div>
   </div>
   <ul class="cover__list">
-    <li><i>1</i><span>Make a Cloudflare account and claim your workers.dev address. First, because everything else asks for it.</span></li>
+    <li><i>1</i><span>Make a Cloudflare account, copy the account ID, and find or ask for your workers.dev address.</span></li>
     <li><i>2</i><span>Copy the account ID and make one scoped token, the only secret in this guide.</span></li>
     <li><i>3</i><span>Make a Firebase project, so a traveller can sign in with an email or a Google account.</span></li>
     <li><i>4</i><span>Register the web app and copy six public values, which is all I need from Firebase.</span></li>
@@ -152,34 +152,35 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 
 ${part(
   1,
-  'Claim your address on Cloudflare',
-  'This is first because two later parts ask for your workers.dev address, and you cannot type an address into Firebase before it exists. Ten minutes here and every later part has its value ready. No card, and nothing to pay.',
+  'Make the Cloudflare account',
+  'Start here, because everything else needs something from this dashboard: the account ID now, and later the address Firebase has to trust. No card, and nothing to pay.',
   step(
     '1.1',
     'Make the account',
-    `${where('https://dash.cloudflare.com/sign-up — an email and a password is all it asks for.')}
+    `${where('https://dash.cloudflare.com/sign-up \u2014 an email and a password is all it asks for.')}
      <p>Confirm the email they send you, then sign in to the dashboard.</p>`,
   ) +
     step(
       '1.2',
-      'Find your subdomain',
-      `${where('In the left sidebar, click <b>Workers &amp; Pages</b>. On the right of that page, in a panel headed with your account name, there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it.')}
-       <p>If you have never used Cloudflare, it will say you need to choose one. Click <b>Change</b>, type a name you are happy to see in public — <b>yourname</b> is good — and save it.</p>
-       ${warn('A subdomain can be changed later, but that changes the address, and the address is what Firebase is told to trust. Pick it once, now, and leave it.')}`,
+      'If your page does not match the screenshots, widen it',
+      `<p>Cloudflare redesigned this page, and it hides its right-hand panel on a narrow window or a phone. On a laptop at full width you should see, beside the usage figures, a panel holding <b>Account details</b> and <b>Your subdomain</b>.</p>
+       <p>If yours shows only <b>Create application</b>, a search box and <b>No projects found</b>, nothing is wrong with your account: you are seeing the narrow layout. Widen the window, or use a computer rather than a phone.</p>
+       ${warn('Do not create an application just to make the panel appear. You never need to deploy anything; that is my job, and the account ID below works without it.')}`,
     ) +
     step(
       '1.3',
-      'Write down your address',
-      `<p>Our app on Cloudflare is called <b>ovvo</b>, and a Cloudflare app's public address is its name in front of your subdomain. So yours will be:</p>
-       <div class="big">https://ovvo.<i>your-subdomain</i>.workers.dev</div>
-       <p>If you choose the subdomain <code>ovvo</code>, the address becomes <code>https://ovvo.ovvo.workers.dev</code>. That is correct, just ugly. Choosing your own name avoids it.</p>
-       ${copyIt('Write the whole address down where you can find it in part 7. Nothing needs to be deployed for the address to be yours.')}`,
+      'Copy your account ID',
+      `<p>This works on every layout. Press <b>Ctrl</b> and <b>K</b> together, or <b>Cmd</b> and <b>K</b> on a Mac, to open the dashboard search. Type <b>Copy account ID</b> and choose the result. It is now on your clipboard.</p>
+       ${where('The same string sits in the address bar: the long line of letters and numbers directly after <code>dash.cloudflare.com/</code> is your account ID.')}
+       ${copyIt('The account ID is <b>not</b> a secret. It goes in the paste in part 8.')}`,
     ) +
     step(
       '1.4',
-      'Copy the account ID',
-      `${where('The same panel on <b>Workers &amp; Pages</b> shows <b>Account ID</b> with a copy icon: a long string of letters and numbers.')}
-       ${copyIt('The account ID is <b>not</b> a secret. It goes in the paste in part 8.')}`,
+      'Your address, and what to do if you cannot see it',
+      `<p>Our app on Cloudflare will be called <b>ovvo</b>, and its public address is that name in front of your account's own subdomain: <code>https://ovvo.your-subdomain.workers.dev</code>.</p>
+       <p>If your page shows a line called <b>Your subdomain</b> with a <b>Change</b> link beside it, write down what it says and put ovvo in front. That is your address, and part 7 needs it.</p>
+       <p>If you cannot see that line, do not go hunting for it. A brand-new account only receives a subdomain the first time this page is opened, and some layouts never show it at all. Send me the account ID instead, and I will read the subdomain from Cloudflare with the token and send you the finished address.</p>
+       ${copyIt('Either way the address ends in <code>.workers.dev</code>, and nothing has to be deployed for it to be yours.')}`,
     ),
 )}
 
@@ -335,7 +336,7 @@ ${part(
     '7.2',
     'Add your address',
     `<p>Click <b>Add domain</b> and type the host name only: no <code>https://</code> in front, no slash at the end, no path.</p>
-     ${copyIt('From part 1.3, <code>ovvo.your-subdomain.workers.dev</code> goes in the box. If your address is <code>https://ovvo.ovvo.workers.dev</code>, you type <code>ovvo.ovvo.workers.dev</code>.')}
+     ${copyIt('From part 1.4, or from the message I send you: <code>ovvo.your-subdomain.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
      <p>If the address I deploy to ever turns out to differ from this one, I tell you, and you change this single line. Nothing else in Firebase has to change.</p>`,
   ) +
     step(
@@ -358,7 +359,7 @@ ${part(
   `<div class="form">
      <h3>Copy this, fill it in, send it</h3>
      <p>Leave a line blank if you have not done that part yet. I will tell you what is missing rather than guessing.</p>
-     <div class="paste">workers.dev address (part 1.3):
+     <div class="paste">workers.dev address (part 1.4, or the one I sent you):
 
 Cloudflare account ID (part 1.4):
 
@@ -394,6 +395,7 @@ ${part(
   `<ul class="check">
      <li>On Cloudflare, <b>Workers &amp; Pages</b> shows your subdomain, and it matches the address you sent.</li>
      <li>The token exists in the token list and is called OVVO deploy.</li>
+     <li>You copied the account ID with Ctrl+K, or from the address bar, rather than hunting a panel.</li>
      <li>Under this project's Settings → Secrets, both names appear with a value set.</li>
      <li>In <b>Authentication → Sign-in method</b>, Email/Password and Google both show as Enabled.</li>
      <li>In <b>Authentication → Settings → Authorized domains</b>, your address and <code>localhost</code> are both listed.</li>
