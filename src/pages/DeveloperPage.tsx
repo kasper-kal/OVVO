@@ -4,7 +4,6 @@ import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card, Field, Switch } from '../components/ui/primitives';
 import { useT } from '../lib/useT';
-import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
@@ -248,13 +247,13 @@ export function DeveloperPage() {
               label={t('Date and time')}
             >
               {/*
-                * **The chevron the field had, drawn by the app.**
+                * **One mark, and it is the field's own.**
                 *
-                * The platform's own mark is hidden and the app's chevron takes its place in the
-                * same lane, which is what the results screen's day field already does. Only the
-                * room around the field was meant to change; hiding the platform mark and drawing
-                * ours is what makes that true, because no browser can then swap the shape under the
-                * traveller when the field's room changes (reported, rightly).
+                * This field used to hide the platform's mark and draw our chevron in its lane, the
+                * way the results screen's day fields do. That holds only while the browser obeys
+                * the hiding: where it does not, our chevron and the platform's land a few pixels
+                * apart and the field shows two (reported, rightly). So nothing of ours is drawn
+                * here and nothing is hidden — whatever the field draws is the only mark on it.
                 */}
               <div className="dev-datetime">
                 <input
@@ -264,9 +263,6 @@ export function DeveloperPage() {
                   onChange={(event) => applyClock(event.target.value)}
                   aria-label={t('Date and time')}
                 />
-                <span className="dev-datetime__glyph" aria-hidden="true">
-                  <Icon name="chevronDown" size={18} />
-                </span>
               </div>
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>

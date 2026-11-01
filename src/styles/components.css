@@ -3624,10 +3624,9 @@
 /*
  * The developer panel's date and time field.
  *
- * The platform's mark is hidden and the app's own chevron sits in the same lane, the way the
- * results screen's day field does. Only the room around the field was ever meant to change: this
- * keeps the mark itself the app's drawing, so it cannot take a different shape when the field's
- * room changes.
+ * The field keeps the mark the platform draws for it, and the app paints none of its own: hiding
+ * the platform's mark is only safe while the browser obeys, and where it does not the field ends
+ * up with two marks in one lane. One mark, whichever one it is, is the rule here.
  */
 .dev-datetime {
   position: relative;
@@ -3637,28 +3636,6 @@
 .dev-datetime .input {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.dev-datetime__glyph {
-  position: absolute;
-  top: 50%;
-  right: var(--s-3);
-  display: none;
-  align-items: center;
-  translate: 0 -50%;
-  color: var(--ink-muted);
-  pointer-events: none;
-}
-
-@supports selector(::-webkit-calendar-picker-indicator) {
-  .dev-datetime input::-webkit-calendar-picker-indicator {
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .dev-datetime__glyph {
-    display: inline-flex;
-  }
 }
 
 /*
