@@ -26,6 +26,11 @@ const BURST = 14;
  * the chapter, and so does the shape of the page, which is the difference between a story and a
  * slideshow.
  *
+ * Ten chapters, not ten pages. There is no progress bar and no "4 / 10": those two things made the
+ * deck read as one document with a page count, and every screen walked in with the same slide. Each
+ * chapter now carries its own numeral in its own type, and each one enters its own way — a wipe, a
+ * rise from the floor, a deal, a zoom, a cut.
+ *
  * Movement is the story too, and it runs on the song rather than beside it: the cover's dot goes
  * round its ring once a bar, the year's journeys fill in on the beat, the rail's train steps down it,
  * the tickets lift in turn, the hours light one after another, the dial turns, the long haul's dot
@@ -69,7 +74,6 @@ export function WrappedPage() {
 
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
   const last = index >= story.length - 1;
-  const progress = story.length > 1 ? index / (story.length - 1) : 0;
 
   /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
@@ -185,7 +189,6 @@ export function WrappedPage() {
       data-chapter={chapter.id}
       style={
         {
-          '--progress': progress,
           '--beat-ms': `${beatMs(chapter.track)}ms`,
           '--bar-ms': `${barMs(chapter.track)}ms`,
           '--phase': `${armed && beat ? beat.phase : 0}ms`,
@@ -232,9 +235,6 @@ export function WrappedPage() {
         <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
           <Icon name="close" size={20} />
         </button>
-        <div className="wrapped-track" aria-hidden="true">
-          <span className="wrapped-track__fill" />
-        </div>
         {/*
           * The switch says what a thumb will get, not what is already true: while the score plays it
           * reads "Sound off". Naming the state instead made a button that said "Sound on" and turned
@@ -459,9 +459,15 @@ export function WrappedPage() {
 
       {started || chapter.kind !== 'cover' ? (
         <footer className="wrapped-foot">
-          <span className="wrapped-count" aria-live="polite">
-            {index + 1} / {story.length}
-          </span>
+          {chapter.kind === 'cover' ? null : (
+            <span
+              className="wrapped-chapter"
+              role="status"
+              aria-label={t('Chapter {n} of {total}', { n: index + 1, total: story.length })}
+            >
+              {String(index + 1).padStart(2, '0')}
+            </span>
+          )}
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
