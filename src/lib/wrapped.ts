@@ -51,7 +51,7 @@ export interface YearTally {
   version: 1;
   runs: YearRun[];
   wears: YearWear[];
-  /** Boards opened, as the stop and the moment. */
+  /** Boards pinned, as the stop and the moment. */
   boards: { at: number; stopId: string }[];
   /** Stops hearted. A count, because a heart is one act and the list already exists elsewhere. */
   hearts: number;
@@ -111,7 +111,7 @@ export function noteRunOutcome(outcome: { changes: number; minutes: number; line
   writeTally({ ...tally, runs });
 }
 
-/** A board opened. Bounded to the same lid as the runs, one entry per open. */
+/** A board pinned. Bounded to the same lid as the runs, one entry per pin. */
 export function recordBoard(stopId: string): void {
   const tally = readTally();
   writeTally({ ...tally, boards: [...tally.boards, { at: Date.now(), stopId }].slice(-MAX_RUNS) });

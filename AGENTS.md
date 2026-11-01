@@ -70,7 +70,7 @@ That checker covers the shape of the mockup gallery only. The safety of the work
 
 ## OVVO Wrapped (planned, not built)
 
-The steerer asked for "a Spotify Wrapped, but for OVVO": a yearly review of the traveller's own year in this app. It is **planned and not implemented**. Nothing described here exists in the code yet, and no screen, route or stored record pretends it does.
+The steerer asked for "a Spotify Wrapped, but for OVVO": a yearly review of the traveller's own year in this app. **Built so far: the tally** (1 November 2026 — `src/lib/wrapped`: one line per search run, per board pinned, per day a look was worn, filed under the calendar year, so 2026 closes at 31 December 2026, 23:59). **Not built: the deck** — there is no screen, route or card yet, and nothing pretends there is.
 
 How it is meant to work, as agreed so far:
 

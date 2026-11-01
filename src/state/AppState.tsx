@@ -807,7 +807,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * pinned in, which is the order the traveller built. Removal is the same one-way filter.
      */
     toggleBoardStop: (stopId) => {
-      /* A board opened is a line in the year; unpinning one is not. */
+      /* A board pinned is a line in the year; unpinning one is not. */
       if (!boardStopIds.includes(stopId)) recordBoard(stopId);
       let added = false;
       setBoardStopIdsState((current) => {
