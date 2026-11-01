@@ -183,7 +183,7 @@ export function WrappedPage() {
             </p>
             {demo ? (
               <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
-                <strong>{t('Demo year')}</strong> {t('none of this is real, and none of it is stored.')}
+                <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
               </p>
             ) : null}
             <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>

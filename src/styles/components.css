@@ -8002,6 +8002,24 @@
   }
 }
 
+/*
+ * **The app's own buttons, on a stage that is not the app's surface.**
+ *
+ * `btn--ghost` is drawn for a cream page: no fill, no edge, muted ink. On the dark chapter that is
+ * a word the eye has to hunt for, and "Skip the sound" beside Begin was the worst of it. Inside the
+ * stage a ghost button takes the chapter's own ink and a faint edge instead, which is the same
+ * control saying the same thing in the colour of the screen it is standing on.
+ */
+.wrapped-stage .btn--ghost {
+  color: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.wrapped-stage .btn--ghost:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
 /* The invitation card on the home screen and in Settings keeps the app's own card shape. */
 .wrapped-invite .empty__icon {
   background: var(--accent-soft, var(--surface-sunken, transparent));
