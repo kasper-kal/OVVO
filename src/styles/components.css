@@ -9073,3 +9073,154 @@
 .wrapped-invite .empty__icon {
   background: var(--accent-soft, var(--surface-sunken, transparent));
 }
+
+
+/* --------------------------------------------------- six faults, six repairs */
+
+/*
+ * Six things the steerer circled on his own phone, each fixed where it happens rather than on a
+ * shared style: the cover's font and its grey, the empty middles of the origins and the lines, the
+ * graph that did not move, the long haul's huge clipped number and its band of nothing, and the
+ * sentence lying on top of the look's days.
+ */
+
+/* 1 · The cover: the year in a clean grotesque, and words you can read. */
+.wrapped-stage[data-chapter='cover'] .wrapped-title {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.84;
+}
+
+.wrapped-stage[data-chapter='cover'] .wrapped-kicker {
+  opacity: 1;
+}
+
+.wrapped-stage[data-chapter='cover'] .wrapped-demo {
+  opacity: 0.94;
+}
+
+/* What is not the accent button is white and underlined, never a grey whisper. */
+.wrapped-stage .wrapped-actions button:not([class*='accent']) {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 2 · Page 4: the three origins are tickets that fill the page, with the count as the figure. */
+.wrapped-stage[data-chapter='origin'] .wrapped-chips {
+  align-self: stretch;
+  align-content: space-between;
+  gap: clamp(10px, 3vh, 26px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: clamp(14px, 3.6vw, 20px) clamp(16px, 4.6vw, 22px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip span {
+  font-size: clamp(13px, 3.4vw, 15px);
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip strong {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: clamp(34px, 10vw, 54px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 3 · Page 5: the graph takes the middle of the page, and light moves across it. */
+.wrapped-stage[data-chapter='hour'] .wrapped-bars {
+  height: 100%;
+  max-height: 54vh;
+  overflow: hidden;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars__bar {
+  opacity: 0.34;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(234, 241, 233, 0.3), transparent);
+  animation: wrapped-scan 6s linear infinite;
+}
+
+@keyframes wrapped-scan {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.wrapped-stage.is-still[data-chapter='hour'] .wrapped-bars::after {
+  animation: none;
+  opacity: 0;
+}
+
+/* 4 · Page 7: no clipped number, no band of nothing, and the trip runs across the middle. */
+.wrapped-stage[data-chapter='longest']::before {
+  display: none;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-big {
+  font-size: min(17vw, 104px);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch {
+  align-self: center;
+  height: clamp(140px, 26vh, 240px);
+  margin: clamp(8px, 2vh, 18px) 0;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
+  top: 50%;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__from,
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__end {
+  bottom: auto;
+  top: calc(50% + 18px);
+  opacity: 0.85;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - 34px);
+  height: 22px;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 14px);
+  opacity: 0.35;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 8px, transparent 8px);
+  mask-image: linear-gradient(to bottom, #000 0 8px, transparent 8px);
+}
+
+/* 5 · Page 9: the board fills the page instead of three rows on the floor. */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-self: stretch;
+  align-content: space-between;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: clamp(16px, 4.4vh, 30px) 2px;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span,
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: clamp(18px, 5vw, 24px);
+}

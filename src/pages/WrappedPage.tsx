@@ -391,8 +391,8 @@ export function WrappedPage() {
                 </ul>
               ) : null}
 
-              {/* The rail prints its own two stations, so it has no sentence to add. */}
-              {chapter.kind === 'route' ? null : (
+              {/* The rail prints its own two stations, and the look prints its own days. */}
+              {chapter.kind === 'route' || chapter.kind === 'word' ? null : (
                 <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
                   {t(chapter.line)}
                 </p>
