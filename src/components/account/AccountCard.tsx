@@ -202,16 +202,15 @@ export function SignOutPanel() {
 
   if (account === null) return null;
 
+  /*
+   * The button stands on the page itself: it is one action, and a card drawn around a single
+   * button is a backdrop that says "this is a section" about something that is not one.
+   */
   return (
-    <Card variant="flat">
-      {/*
-        One control and nothing beside it: who is signed in is already said by the face and the name
-        at the top of the page, so repeating it here was a line of text to read past on the way to
-        the only thing this card offers.
-      */}
+    <div className="row-wrap">
       <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
         Sign out
       </Button>
-    </Card>
+    </div>
   );
 }
