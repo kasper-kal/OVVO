@@ -317,13 +317,13 @@ export function DeveloperPage() {
                 setDevOverrides({ wifiMbps: next ? speed : null });
               }}
               label={t('Custom WiFi speed')}
-              description={t('A claimed link speed: every screen you open waits for its weight at this speed.')}
+              description={t('A claimed link speed. It changes the two things this app really fetches, and nothing else.')}
             />
             {dev.wifiMbps !== null ? (
               <Field
                 label={t('Speed · {speed} Mbps', { speed: dev.wifiMbps })}
-                hint={t('A 45 kB screen takes {seconds} seconds at this speed, and the journey list and the article card their own size.', {
-                  seconds: (transferMs(45_000, dev.wifiMbps) / 1000).toFixed(2),
+                hint={t('Only the article card and the address suggestions come over the wire, so only they wait. An answer of 1 kB takes {seconds} seconds at this speed.', {
+                  seconds: (transferMs(1_000, dev.wifiMbps) / 1000).toFixed(2),
                 })}
               >
                 <input

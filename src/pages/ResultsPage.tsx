@@ -17,7 +17,6 @@ import { useFormat } from '../lib/useFormat';
 import { decodeSearchLink, encodeSearchLink } from '../lib/searchLink';
 import { useT } from '../lib/useT';
 import { useDev } from '../lib/dev';
-import { byteLength, transferMs } from '../lib/link';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
@@ -144,16 +143,13 @@ export function ResultsPage() {
   /*
    * **The hold, from the panel.**
    *
-   * The slow switch is a plain two seconds. The link speed is the honest one: the wait is the time
-   * this answer's own bytes would take over the claimed link, so a short list is a short wait and a
-   * long one is a long wait, and the two controls cannot ask for different things.
+   * A plain two seconds, and only from the switch that says it wants one. The claimed link speed is
+   * deliberately not part of this: these journeys were worked out in the browser from a timetable
+   * already on the device, no byte of them came over a wire, and making them wait for a speed would
+   * be a claim about the network that is not true.
    */
   const dev = useDev();
-  const answerBytes = useMemo(
-    () => (journeys.length ? byteLength(JSON.stringify(journeys)) : 0),
-    [journeys],
-  );
-  const holdMs = Math.max(dev.slow ? SLOW_HOLD_MS : HOLD_MS, transferMs(answerBytes, dev.wifiMbps));
+  const holdMs = dev.slow ? SLOW_HOLD_MS : HOLD_MS;
   const [planning, setPlanning] = useState(power.mode === 'off' && holdIsRunning(searchKey));
   useEffect(() => {
     if (savingRef.current) {
