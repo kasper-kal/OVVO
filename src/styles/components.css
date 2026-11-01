@@ -9854,3 +9854,19 @@
   position: relative;
   z-index: 1;
 }
+
+/*
+ * **The cards on page four are paper, not glass.**
+ *
+ * The dot bed is the page's ground, so the cards have to be opaque for it to read as a ground: left
+ * translucent, the dots showed through them and crossed the station names, which is a texture landing
+ * on top of the words it was meant to sit under. Solid paper keeps the dots in the margins, where they
+ * belong, and the cards keep their tint and their shadow by being a shade off the page.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  background: color-mix(in srgb, #f4ede1 94%, #241c14 6%);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
+  opacity: 0.22;
+}
