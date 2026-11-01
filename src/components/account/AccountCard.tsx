@@ -36,15 +36,16 @@ function useAccount() {
 /**
  * **The account card: a face, a name, and the two things a person may want to change.**
  *
- * The avatar is here because an account without a picture is a nameless grey box in every list
- * that shows one; every account has a colour and the lucide `user` glyph until a photograph is
- * chosen, and the photograph is a 256px square kept in this browser's own storage, so the existing
- * sync carries it to the next device without a new upload service.
+ * The card is `stack`, which is the whole of the spacing story here: a card is a plain block, so
+ * without it the heading and the row under it sit flush against each other and the avatar's circle
+ * starts exactly where the word "Account" ends - which is what was reported as the card looking
+ * broken (the avatar drawn over the title, the address floating beside it, one button shaped and the
+ * next one bare text).
  *
- * Deleting the account is here too, behind a confirmation, because it is the one irreversible
- * thing on the screen and it belongs where the account is. What it deletes is said plainly in the
- * dialog: the account and its copy on the server — not this device's saved stops, which the reset
- * at the foot of the page empties.
+ * The two lines beside the face are the name and then the address under it, muted, because they are
+ * two different facts and only the first is the person's own. The buttons are the same kind of
+ * thing as each other - the picture actions in a row of their own, and the one irreversible act
+ * below them, away from the rest.
  */
 export function AccountCard() {
   const { account, failed } = useAccount();
@@ -85,26 +86,28 @@ export function AccountCard() {
   };
 
   return (
-    <Card>
+    <Card className="stack">
       <SectionHeading title="Account" />
 
       {!firebaseConfigured ? (
-        <p className="t-sm t-muted">Sign-in is unavailable in this build.</p>
+        <p className="t-sm t-muted" style={{ margin: 0 }}>
+          Sign-in is unavailable in this build.
+        </p>
       ) : account === null ? (
-        <div className="row-wrap">
+        <div className="row-wrap" style={{ justifyContent: 'space-between' }}>
           <p className="t-sm t-muted" style={{ margin: 0 }}>
             You are signed out. Your data is saved on this device only.
           </p>
-          <Link className="btn btn--accent" to="/signin" state={{ from: '/settings' }}>
+          <Link className="btn btn--accent btn--sm" to="/signin" state={{ from: '/settings' }}>
             Sign in
           </Link>
         </div>
       ) : (
-        <div className="stack-3">
+        <>
           <div className="row-3">
-            <Avatar seed={account.uid} photo={photo || null} size={56} />
-            <div className="stack-1">
-              <p className="t-sm" style={{ margin: 0 }}>
+            <Avatar seed={account.uid} photo={photo || null} size={48} />
+            <div className="stack-1" style={{ minWidth: 0 }}>
+              <p className="t-strong" style={{ margin: 0 }}>
                 {account.name ?? account.email}
               </p>
               {account.name ? (
@@ -128,16 +131,13 @@ export function AccountCard() {
 
           <div className="row-wrap">
             <Button variant="surface" size="sm" onClick={() => fileInput.current?.click()}>
-              {photo ? 'Change photo' : 'Add photo'}
+              {photo ? 'Change photo' : 'Add a photo'}
             </Button>
             {photo ? (
               <Button variant="ghost" size="sm" onClick={removePhoto}>
                 Remove photo
               </Button>
             ) : null}
-            <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(true)}>
-              Delete account
-            </Button>
           </div>
 
           <input
@@ -151,7 +151,13 @@ export function AccountCard() {
               event.target.value = '';
             }}
           />
-        </div>
+
+          <div className="row-wrap">
+            <Button variant="ghost" size="sm" icon="trash" onClick={() => setConfirmDelete(true)}>
+              Delete account
+            </Button>
+          </div>
+        </>
       )}
 
       <Dialog
