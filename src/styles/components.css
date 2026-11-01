@@ -9768,3 +9768,65 @@
   opacity: 0.32;
   box-shadow: none;
 }
+
+/* ==========================================================================
+ * **The bar at the top, and the page as two halves.**
+ *
+ * One segment per chapter: the ones behind you are solid, the one you are on fills as its own song
+ * plays, and the ones ahead are quiet. The tap halves below it are not drawn at all — the whole page
+ * is the target, and a faint edge on each side would only add two boxes to a screen that is meant to
+ * be one picture.
+ * ========================================================================== */
+
+.wrapped-progress {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: none;
+  gap: 4px;
+  margin: 0 0 clamp(8px, 1.6vh, 14px);
+}
+
+.wrapped-progress__seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 24%, transparent);
+}
+
+.wrapped-progress__seg.is-done {
+  background: currentColor;
+}
+
+.wrapped-progress__seg i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: currentColor;
+  animation: wrapped-progress-fill var(--len, 15s) linear forwards;
+}
+
+@keyframes wrapped-progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/*
+ * The bar is the story's clock, so it is exempt from the app's motion reductions like the rest of the
+ * deck: a three-pixel line filling is not a movement anybody needs protecting from, and a bar stuck
+ * empty is a bar that lies about where the story is.
+ */
+.wrapped-stage.is-still .wrapped-progress__seg i,
+:root[data-motion='reduced'] .wrapped-stage .wrapped-progress__seg i {
+  animation: wrapped-progress-fill var(--len, 15s) linear forwards !important;
+}
+
+/* The page is one target: the halves are only ever touched, never seen. */
+.wrapped-scene {
+  cursor: pointer;
+}

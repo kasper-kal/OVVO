@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
@@ -150,10 +150,6 @@ export function WrappedPage() {
   /* Closing the deck closes the score with it; nothing keeps playing behind another screen. */
   useEffect(() => () => stopSound(), []);
 
-  const [drag, setDrag] = useState<number | null>(null);
-  const [dragX, setDragX] = useState(0);
-  const dragStart = useRef(0);
-
   /*
    * **Where the song is, read once and then left to the browser.**
    *
@@ -213,26 +209,28 @@ export function WrappedPage() {
       }
       role="region"
       aria-label={t('OVVO Wrapped {year}', { year })}
-      onPointerDown={(event) => {
-        dragStart.current = event.clientX;
-        setDrag(event.clientX);
-        setDragX(0);
-      }}
-      onPointerMove={(event) => {
-        if (drag === null) return;
-        setDragX(event.clientX - dragStart.current);
-      }}
-      onPointerUp={(event) => {
-        if (drag === null) return;
-        const dx = event.clientX - dragStart.current;
-        setDrag(null);
-        setDragX(0);
-        if (Math.abs(dx) < 60) return;
-        step(dx < 0 ? 1 : -1);
-      }}
-      onPointerCancel={() => {
-        setDrag(null);
-        setDragX(0);
+      /*
+        * **A tap, not a swipe.**
+        *
+        * The deck asked for a horizontal drag to move on, which is a gesture nobody discovers and one
+        * that a scroll-happy thumb fights. Now the page itself is two buttons: the left half goes back,
+        * the right half of the middle goes forward. Anything that is really a control - the close
+        * button, the sound switch, Begin, the actions on the cover and the closing page, the bar at the
+        * top - is left alone, so a tap on a button is still a tap on that button.
+        */
+      onClick={(event) => {
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('button, a, input, textarea, select, [role="button"], .wrapped-progress')) return;
+        const forward = event.clientX >= window.innerWidth / 2;
+        /* The cover is where the story is asked to begin, so its right half starts it. */
+        if (!started) {
+          if (!forward) return;
+          setStarted(true);
+          if (sound) startSound(story[1]?.track ?? chapter.track, story[2]?.track);
+          go(1);
+          return;
+        }
+        step(forward ? 1 : -1);
       }}
     >
       {/* The look's own photograph, behind everything, when that look has one. */}
@@ -247,6 +245,27 @@ export function WrappedPage() {
           }}
         />
       ) : null}
+
+      {/*
+        * **Where you are, in ten pieces.**
+        *
+        * A story needs a map at the top: one segment per chapter, the ones behind you filled, and the
+        * chapter you are on filling as its song plays, so the bar is the story's own clock rather than a
+        * decoration that says the same thing twice. It is not a control: the page itself is.
+        */}
+      <nav className="wrapped-progress" aria-hidden="true">
+        {story.map((item, at) => (
+          <span
+            key={item.id}
+            className={`wrapped-progress__seg${at < index ? ' is-done' : ''}${at === index ? ' is-now' : ''}`}
+          >
+            {/* The chapter you are on fills as its song plays, and not a moment before Begin. */}
+            {at === index && started ? (
+              <i key={`${item.id}-${index}`} style={{ '--len': `${trackSeconds(chapter.track)}s` } as CSSProperties} />
+            ) : null}
+          </span>
+        ))}
+      </nav>
 
       <header className="wrapped-top">
         <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
@@ -277,11 +296,8 @@ export function WrappedPage() {
         </button>
       </header>
 
-      {/* The thumb moves the chapter, not just the result: the deck leans with the drag. */}
-      <div
-        className={`wrapped-scene${drag !== null ? ' is-dragging' : ''}`}
-        style={{ '--drag': reduceMotion ? 0 : dragX } as CSSProperties}
-      >
+      {/* The keyboard is a reader's way through: arrows, Escape to leave. */}
+      <div className="wrapped-scene">
         <div
           className={`wrapped-body wrapped-body--${chapter.kind}`}
           data-chapter={chapter.id}
