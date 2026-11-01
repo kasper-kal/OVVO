@@ -199,14 +199,14 @@ export function SignOutPanel() {
 
   return (
     <Card variant="flat">
-      <div className="row-wrap" style={{ justifyContent: 'space-between' }}>
-        <p className="t-sm t-muted" style={{ margin: 0 }}>
-          Signed in as {account.name ?? account.email}
-        </p>
-        <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
-          Sign out
-        </Button>
-      </div>
+      {/*
+        One control and nothing beside it: who is signed in is already said by the face and the name
+        at the top of the page, so repeating it here was a line of text to read past on the way to
+        the only thing this card offers.
+      */}
+      <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
+        Sign out
+      </Button>
     </Card>
   );
 }
