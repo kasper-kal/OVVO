@@ -17,6 +17,7 @@ import { useFormat } from '../lib/useFormat';
 import { decodeSearchLink, encodeSearchLink } from '../lib/searchLink';
 import { useT } from '../lib/useT';
 import { useDev } from '../lib/dev';
+import { byteLength, transferMs } from '../lib/link';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
@@ -140,9 +141,19 @@ export function ResultsPage() {
   const searchKey = search
     ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
     : '';
-  /* The panel's slow switch, which lengthens the hold this screen already has. */
+  /*
+   * **The hold, from the panel.**
+   *
+   * The slow switch is a plain two seconds. The link speed is the honest one: the wait is the time
+   * this answer's own bytes would take over the claimed link, so a short list is a short wait and a
+   * long one is a long wait, and the two controls cannot ask for different things.
+   */
   const dev = useDev();
-  const holdMs = dev.slow ? SLOW_HOLD_MS : HOLD_MS;
+  const answerBytes = useMemo(
+    () => (journeys.length ? byteLength(JSON.stringify(journeys)) : 0),
+    [journeys],
+  );
+  const holdMs = Math.max(dev.slow ? SLOW_HOLD_MS : HOLD_MS, transferMs(answerBytes, dev.wifiMbps));
   const [planning, setPlanning] = useState(power.mode === 'off' && holdIsRunning(searchKey));
   useEffect(() => {
     if (savingRef.current) {

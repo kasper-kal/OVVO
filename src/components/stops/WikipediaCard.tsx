@@ -3,6 +3,8 @@ import { Card } from '../ui/primitives';
 import { Icon } from '../ui/Icons';
 import { useApp } from '../../state/AppState';
 import { useT } from '../../lib/useT';
+import { useDev } from '../../lib/dev';
+import { byteLength, transferMs } from '../../lib/link';
 import {
   cachedWikipediaSummary,
   fetchWikipediaSummary,
@@ -27,6 +29,12 @@ export function WikipediaCard({ stopId }: { stopId: string }) {
   const { settings, power } = useApp();
   const language = settings.language;
   const t = useT();
+  /*
+   * The panel's link speed, if it has one. This is the app's one real request, so it is the one place
+   * a claimed speed can be applied to bytes that actually arrived: the card waits as long as the
+   * answer it is about to show would have taken to download, and then draws it.
+   */
+  const { wifiMbps } = useDev();
   /*
    * **At a tenth of a battery, this card is not asked for at all.**
    *
@@ -54,12 +62,21 @@ export function WikipediaCard({ stopId }: { stopId: string }) {
     /* The previous language's paragraph is not this one's: clear it before asking again. */
     setSummary(null);
     fetchWikipediaSummary(stopId, language).then((next) => {
-      if (live && next) setSummary(next);
+      if (!live || !next) return;
+      const wait = transferMs(byteLength(JSON.stringify(next)), wifiMbps);
+      if (wait === 0) {
+        setSummary(next);
+        return;
+      }
+      /* The bytes are here; the wait is what the claimed link would have taken to deliver them. */
+      window.setTimeout(() => {
+        if (live) setSummary(next);
+      }, wait);
     });
     return () => {
       live = false;
     };
-  }, [stopId, language, superSaving]);
+  }, [stopId, language, superSaving, wifiMbps]);
 
   if (superSaving || !summary) return null;
 

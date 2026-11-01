@@ -9,6 +9,7 @@ import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
+import { transferMs } from '../lib/link';
 
 /**
  * The developer panel — what this browser believes about the device.
@@ -21,7 +22,9 @@ import { DISRUPTIONS } from '../data/disruptions';
  *   • **The clock.** One field, `datetime-local`, so the picker is the device's own calendar, as
  *     the steerer asked: a day, an hour and a minute chosen in one go instead of in two fields that
  *     can disagree. It moves the app's clock as an offset, so the app's minute timers keep running.
- *   • **The connection.** Pulling a cable is not a way to test the offline strip on a phone.
+ *   • **The connection.** Pulling a cable is not a way to test the offline strip on a phone, and
+ *     no link can be made slow on demand either, so the speed is claimed here and the waits are
+ *     the time the answer's own bytes would take at it.
  *   • **The network.** A calm day, or one alert on its own, and the number the boards roll from,
  *     so a row that was reported can be found again instead of hunted for.
  *   • **The way in.** A hold over the results long enough to be looked at, and the focus ring kept
@@ -68,6 +71,11 @@ export function DeveloperPage() {
    * value being written to the app's clock. It starts on the time the app is actually showing.
    */
   const [clockField, setClockField] = useState(() => dateTimeValue(appNow()));
+  /*
+   * The speed field's own draft, like the clock's: a number being typed is allowed to be half-typed,
+   * and only a finished, positive one is handed to the app.
+   */
+  const [speedDraft, setSpeedDraft] = useState(() => (dev.wifiMbps === null ? '5' : String(dev.wifiMbps)));
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
   /*
@@ -296,6 +304,50 @@ export function DeveloperPage() {
               label={t('Slow it down')}
               description={t('The results hold their loading shape for two seconds instead of a quarter of one.')}
             />
+            {/*
+              **A link speed, exact and in megabits, because that is the number a connection has.**
+
+              The app cannot be given a slow connection by pulling anything: what it can do is wait
+              as long as a given speed would take to bring the answer it is about to show. The
+              journeys hold for the size of the list, the article card for the size of the summary,
+              so a short answer is still quick and a long one is not. Below a hundredth of a megabit
+              the wait is minutes, which is the point of being able to type an exact number.
+            */}
+            <Switch
+              checked={dev.wifiMbps !== null}
+              onChange={(next) => {
+                const speed = dev.wifiMbps ?? (Number(speedDraft) || 5);
+                setSpeedDraft(String(speed));
+                setDevOverrides({ wifiMbps: next ? speed : null });
+              }}
+              label={t('Custom WiFi speed')}
+              description={t('A claimed link speed, in megabits, for the waits to be measured against.')}
+            />
+            {dev.wifiMbps !== null ? (
+              <Field
+                label={t('Speed · {speed} Mbps', { speed: dev.wifiMbps })}
+                hint={t('A 30 kB answer takes {seconds} seconds at this speed.', {
+                  seconds: (transferMs(30_000, dev.wifiMbps) / 1000).toFixed(2),
+                })}
+              >
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  min={0.01}
+                  max={10000}
+                  step={0.01}
+                  value={speedDraft}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    setSpeedDraft(raw);
+                    const next = Number(raw);
+                    if (Number.isFinite(next) && next > 0) setDevOverrides({ wifiMbps: next });
+                  }}
+                  aria-label={t('Speed in megabits per second')}
+                />
+              </Field>
+            ) : null}
           </Card>
 
           <Card className="stack">
@@ -412,6 +464,12 @@ export function DeveloperPage() {
               <span className="field__label">{t('Connection')}</span>
               <span className="t-strong t-sm">
                 {dev.offline === null ? t('From the device') : dev.offline ? t('Offline') : t('Online')}
+              </span>
+            </div>
+            <div className="between">
+              <span className="field__label">{t('Speed')}</span>
+              <span className="t-strong t-sm">
+                {dev.wifiMbps === null ? t('Not simulated') : `${dev.wifiMbps} Mbps`}
               </span>
             </div>
             <div className="row">

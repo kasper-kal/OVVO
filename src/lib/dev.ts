@@ -46,6 +46,8 @@ export interface DevOverrides {
   rollVariant: number;
   /** True when the results hold their loading shape long enough to be looked at. */
   slow: boolean;
+  /** The link speed the app believes it has, in megabits per second, or null for no claim. */
+  wifiMbps: number | null;
   /** True when every focused control wears the focus ring, not only the keyboard's own. */
   focusRings: boolean;
 }
@@ -60,6 +62,7 @@ export const NO_OVERRIDES: DevOverrides = {
   alertId: null,
   rollVariant: 0,
   slow: false,
+  wifiMbps: null,
   focusRings: false,
 };
 
