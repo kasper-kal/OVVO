@@ -8577,6 +8577,174 @@
   max-width: 22ch;
 }
 
+/* ------------------------------------------------------------------ the surfaces */
+
+/*
+ * **Every chapter brings its own surface, not just its own layout.**
+ *
+ * The deck used to be four tints of one page: same grain, same glow, same cream behind every screen.
+ * A chapter is now allowed to change the ground it stands on — a field of dots, a transit grid, a
+ * night skyline, an actual photograph — which is the difference between ten slides and ten rooms.
+ */
+
+/* The year drawn as itself: one dot for every journey planned, behind the number counting them. */
+.wrapped-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4% 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%, #000 74%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 16%, #000 74%, transparent);
+}
+
+.wrapped-field i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  animation: wrapped-pop 520ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 3ms);
+}
+
+@keyframes wrapped-pop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.wrapped-stage[data-chapter='total'] {
+  background-image: radial-gradient(120% 55% at 50% 100%, color-mix(in srgb, currentColor 14%, transparent), transparent 72%);
+}
+
+/* The rail chapter stands on a transit map: a faint grid, like the paper in a station. */
+.wrapped-stage[data-chapter='pair']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to right, color-mix(in srgb, currentColor 7%, transparent) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(to bottom, color-mix(in srgb, currentColor 7%, transparent) 0 1px, transparent 1px 46px);
+}
+
+/* The hour goes to night and becomes a skyline: buildings, one of them lit, on a true horizon. */
+.wrapped-stage[data-chapter='hour'] {
+  background: #101a15;
+  color: #eaf1e9;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-grain {
+  opacity: 0.05;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars {
+  position: relative;
+  border-bottom: 2px solid color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars__bar {
+  border-radius: 2px 2px 0 0;
+  opacity: 0.3;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars__bar.is-peak {
+  opacity: 1;
+  box-shadow: 0 0 44px rgba(234, 241, 233, 0.35);
+}
+
+.wrapped-ruler {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+.wrapped-ruler i {
+  font-style: normal;
+}
+
+/* The look's chapter wears the look: its photograph, full bleed, with the words knocked out on it. */
+.wrapped-photo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wrapped-stage[data-chapter='look'] {
+  background: #14100e;
+  color: #fff;
+}
+
+.wrapped-stage[data-chapter='look']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.1) 42%, rgba(0, 0, 0, 0.84));
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker,
+.wrapped-stage[data-chapter='look'] .wrapped-line,
+.wrapped-stage[data-chapter='look'] .wrapped-count {
+  opacity: 0.9;
+}
+
+/* The lines chapter reads as a departure board: rows, rules, counts on the right. */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: 13px 2px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0;
+  background: none;
+  letter-spacing: 0.06em;
+}
+
+/* The origins chapter is a stack of tickets, stepping in from the left. */
+.wrapped-body[data-chapter='origin'] .wrapped-chips {
+  gap: 7px;
+}
+
+.wrapped-body[data-chapter='origin'] .wrapped-chip {
+  border-radius: 14px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.07);
+}
+
+.wrapped-body[data-chapter='origin'] .wrapped-chip:nth-child(2) {
+  margin-left: 18px;
+}
+
+.wrapped-body[data-chapter='origin'] .wrapped-chip:nth-child(3) {
+  margin-left: 36px;
+}
+
+/* The long haul is a boarding pass: departure and arrival either side of a perforation. */
+.wrapped-body[data-chapter='longest'] .wrapped-stretch {
+  border-block: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
+  padding-block: 16px;
+}
+
 /* ----------------------------------------------------------------------- the foot */
 .wrapped-foot {
   position: relative;

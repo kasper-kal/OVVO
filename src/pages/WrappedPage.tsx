@@ -163,6 +163,7 @@ export function WrappedPage() {
   return (
     <div
       className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}`}
+      data-chapter={chapter.id}
       style={{ '--progress': progress } as CSSProperties}
       role="region"
       aria-label={t('OVVO Wrapped {year}', { year })}
@@ -287,6 +288,14 @@ export function WrappedPage() {
                 </p>
               ) : null}
 
+              {chapter.kind === 'number' && chapter.dots ? (
+                <span className="wrapped-field" aria-hidden="true">
+                  {Array.from({ length: Math.min(chapter.dots, 700) }, (_, dot) => (
+                    <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                  ))}
+                </span>
+              ) : null}
+
               {chapter.kind === 'number' ? (
                 <>
                   <span className="wrapped-rings" aria-hidden="true">
@@ -324,7 +333,15 @@ export function WrappedPage() {
               ) : null}
 
               {chapter.kind === 'bars' && chapter.bars ? (
-                <div className="wrapped-bars" style={{ '--i': 2 } as CSSProperties} aria-hidden="true">
+                <>
+                  <span className="wrapped-ruler" aria-hidden="true">
+                    <i>00</i>
+                    <i>06</i>
+                    <i>12</i>
+                    <i>18</i>
+                    <i>23</i>
+                  </span>
+                  <div className="wrapped-bars" style={{ '--i': 1 } as CSSProperties} aria-hidden="true">
                   {chapter.bars.map((value, hour) => (
                     <span
                       key={hour}
@@ -337,7 +354,8 @@ export function WrappedPage() {
                       }
                     />
                   ))}
-                </div>
+                  </div>
+                </>
               ) : null}
 
               {chapter.kind === 'stretch' && chapter.route ? (
@@ -362,6 +380,18 @@ export function WrappedPage() {
                     </li>
                   ))}
                 </ul>
+              ) : null}
+
+              {chapter.kind === 'word' && chapter.photo ? (
+                <img
+                  className="wrapped-photo"
+                  src={chapter.photo}
+                  alt=""
+                  aria-hidden="true"
+                  onError={(event) => {
+                    event.currentTarget.style.display = 'none';
+                  }}
+                />
               ) : null}
 
               {/* The rail prints its own two stations, so it has no sentence to add. */}

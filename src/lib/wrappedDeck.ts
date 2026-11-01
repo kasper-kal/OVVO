@@ -14,7 +14,7 @@
 import { getStop } from '../data/stops';
 import type { Language } from '../state/types';
 import { formatDuration } from './format';
-import { styleById } from './styles';
+import { styleById, stylePhotoPath } from './styles';
 import type { YearTally } from './wrapped';
 import type { Track } from './wrappedSound';
 
@@ -66,6 +66,10 @@ export interface Chapter {
   chips?: { label: string; detail: string }[];
   hearts?: number;
   boards?: number;
+  /** One dot per journey, for the chapter that counts them. */
+  dots?: number;
+  /** The photograph of the look that was worn, when that look has one. */
+  photo?: string;
 }
 
 /** How many journeys are enough to make a story. */
@@ -176,6 +180,8 @@ export function buildStory({
       kicker: 'The year in one number',
       big: String(runs.length),
       count: runs.length,
+      /* The year drawn as itself: one dot per journey, behind the number that counts them. */
+      dots: runs.length,
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
     },
     pair
@@ -258,6 +264,8 @@ export function buildStory({
           /* The days are the number the chapter turns on, so they get the size a number gets. */
           count: wearDays,
           line: 'in this look.',
+          /* The page wears the look too: its own photograph, full bleed, behind the words. */
+          photo: lookList[0] ? stylePhotoPath(lookList[0].value) : undefined,
         }
       : null,
     lineList.length
