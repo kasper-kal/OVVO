@@ -257,7 +257,7 @@ export function WrappedPage() {
                   <span className="wrapped-arc__spark" aria-hidden="true" />
                   <p className="wrapped-big wrapped-big--in">{count}%</p>
                 </div>
-              ) : (
+              ) : chapter.kind === 'route' ? null : (
                 <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
                   {chapter.kind === 'word' || chapter.count === undefined ? chapter.big : count}
                 </p>
@@ -285,10 +285,21 @@ export function WrappedPage() {
                 </>
               ) : null}
 
+              {/*
+                * The markers are children of the rail, not of the labels: drawn on the labels they
+                * were placed from a different origin and sat four pixels off the line, which is the
+                * kind of thing nobody notices until somebody does.
+                */}
               {chapter.kind === 'route' && chapter.route ? (
                 <div className="wrapped-route" style={{ '--i': 2 } as CSSProperties}>
                   <span className="wrapped-route__rail" aria-hidden="true">
                     <span className="wrapped-route__train" />
+                  </span>
+                  <span className="wrapped-route__dot wrapped-route__dot--start" aria-hidden="true" />
+                  <span className="wrapped-route__dot wrapped-route__dot--end" aria-hidden="true" />
+                  <span className="wrapped-route__count">
+                    {count}
+                    <i>{t(chapter.line)}</i>
                   </span>
                   <span className="wrapped-route__from">{chapter.route.from}</span>
                   <span className="wrapped-route__to">{chapter.route.to}</span>
@@ -336,9 +347,12 @@ export function WrappedPage() {
                 </ul>
               ) : null}
 
-              <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
-                {t(chapter.line)}
-              </p>
+              {/* The rail prints its own two stations, so it has no sentence to add. */}
+              {chapter.kind === 'route' ? null : (
+                <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
+                  {t(chapter.line)}
+                </p>
+              )}
 
               {chapter.hearts || chapter.boards ? (
                 <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>

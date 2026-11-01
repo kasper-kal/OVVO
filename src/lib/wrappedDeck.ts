@@ -187,8 +187,11 @@ export function buildStory({
           kicker: 'The line you kept coming back to',
           big: String(pair.count),
           count: pair.count,
-          /* On the rail the number is far above, so the sentence starts like a sentence. */
-          line: `${pair.count === 1 ? 'Time' : 'Times'} from ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
+          /*
+           * The two stations are printed on the rail itself, huge, so the sentence would only say
+           * them again. The count keeps its unit and nothing else is repeated.
+           */
+          line: pair.count === 1 ? 'time' : 'times',
           route: { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count },
         }
       : null,
