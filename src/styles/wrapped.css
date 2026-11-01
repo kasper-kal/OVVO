@@ -104,7 +104,7 @@
   line-height: 0.94;
 }
 
-.wrapped-stage[data-chapter='word'] .wrapped-big {
+.wrapped-stage[data-chapter='look'] .wrapped-big {
   font-size: clamp(56px, 17vw, 140px);
   line-height: 0.9;
 }
@@ -844,7 +844,7 @@
   text-wrap: balance;
 }
 
-.wrapped-stage[data-chapter='word'] .wrapped-big,
+.wrapped-stage[data-chapter='look'] .wrapped-big,
 .wrapped-stage[data-chapter='lines'] .wrapped-big {
   font-size: clamp(40px, 13.5vw, 112px);
   line-height: 0.92;
@@ -928,7 +928,7 @@
  * by a grid row, which turned three ranks into three empty boxes: they hug their content now and sit
  * on the floor of the chapter, with the sentence directly under them.
  */
-.wrapped-stage[data-chapter='word'] .wrapped-big {
+.wrapped-stage[data-chapter='look'] .wrapped-big {
   font-size: clamp(34px, 11vw, 92px);
   line-height: 0.94;
   white-space: normal;
@@ -948,4 +948,19 @@
 .wrapped-stage[data-chapter='origin'] .wrapped-chip,
 .wrapped-stage[data-chapter='lines'] .wrapped-chip {
   min-height: 0;
+}
+
+/*
+ * **The right selector, at last.**
+ *
+ * Everything above addressed this chapter as `'word'`, which is what the chapter *is*, not what it is
+ * called: the attribute on the page carries the id, `'look'`, so every rule written for the word never
+ * matched and the title kept the huge size meant for a three-digit number. Nine letters at that size
+ * ran off the right edge of the phone, which looked like a broken font and was a broken selector.
+ */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-size: clamp(36px, 13vw, 104px);
+  line-height: 0.94;
+  max-width: 100%;
+  white-space: normal;
 }
