@@ -59,7 +59,8 @@ export function WrappedPage() {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [started, setStarted] = useState(false);
-  const [sound, setSound] = useState(false);
+  /* The score is on by default: Begin plays it unless the traveller has muted it first. */
+  const [sound, setSound] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -229,10 +230,15 @@ export function WrappedPage() {
         <div className="wrapped-track" aria-hidden="true">
           <span className="wrapped-track__fill" />
         </div>
+        {/*
+          * The switch says what a thumb will get, not what is already true: while the score plays it
+          * reads "Sound off". Naming the state instead made a button that said "Sound on" and turned
+          * the music off, which reads as broken even though it was doing what it was told.
+          */}
         <button
           type="button"
           className="wrapped-sound"
-          aria-pressed={sound}
+          aria-label={sound ? t('Sound off') : t('Sound on')}
           onClick={() => {
             if (sound) {
               stopSound();
@@ -243,7 +249,7 @@ export function WrappedPage() {
             }
           }}
         >
-          <span>{sound ? t('Sound on') : t('Sound off')}</span>
+          <span>{sound ? t('Sound off') : t('Sound on')}</span>
         </button>
       </header>
 
@@ -281,16 +287,26 @@ export function WrappedPage() {
                   size="md"
                   onClick={() => {
                     setStarted(true);
-                    startSound(chapter.track, story[1]?.track);
-                    setSound(true);
+                    /* On by default, so Begin starts the score unless it was muted before the tap. */
+                    if (sound) startSound(chapter.track, story[1]?.track);
                     go(1);
                   }}
                 >
                   {t('Begin')}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => go(1)}>
-                  {t('Skip the sound')}
-                </Button>
+                {sound ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSound(false);
+                      setStarted(true);
+                      go(1);
+                    }}
+                  >
+                    {t('Skip the sound')}
+                  </Button>
+                ) : null}
               </div>
             </>
           ) : (
