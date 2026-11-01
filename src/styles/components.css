@@ -8020,35 +8020,44 @@
   }
 }
 
+/*
+ * **The train fits inside the station, and its light does not bleed.**
+ *
+ * It used to be the same size as the end marker with a hard six-pixel ring of colour around it, so on
+ * arrival that ring sat on top of the hollow station dot and read as a stripe bleeding out of it. The
+ * travelling dot is now eight pixels — exactly the hole left by the twelve-pixel marker's two-pixel
+ * border — and its glow is a soft blur rather than a hard ring, so the light falls inside the station
+ * instead of across it.
+ */
 .wrapped-route__train {
   position: absolute;
   left: 50%;
-  top: 0;
-  width: 12px;
-  height: 12px;
-  margin: 0 0 0 -6px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  margin: 0 0 0 -4px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 18%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, currentColor 45%, transparent);
   opacity: 0;
   animation: wrapped-run 5s 1400ms cubic-bezier(0.55, 0, 0.4, 1) infinite;
 }
 
 @keyframes wrapped-run {
   0% {
-    top: 0;
+    top: -4px;
     opacity: 0;
   }
   8% {
     opacity: 1;
   }
   74% {
-    top: calc(100% - 12px);
+    top: calc(100% - 4px);
     opacity: 1;
   }
   86%,
   100% {
-    top: calc(100% - 12px);
+    top: calc(100% - 4px);
     opacity: 0;
   }
 }
@@ -9346,12 +9355,18 @@
   opacity: 1;
 }
 
+/*
+ * The rail is inset six pixels top and bottom inside the panel the station markers sit in, so a dot
+ * placed from the rail's own box lands six pixels off the station it is supposed to settle into. The
+ * four-pixel overhang is that inset cancelled out, and it is the difference between the dot arriving
+ * at the station and arriving just above it.
+ */
 @keyframes wrapped-glide-down {
   from {
-    top: 0;
+    top: -4px;
   }
   to {
-    top: calc(100% - 12px);
+    top: calc(100% - 4px);
   }
 }
 
