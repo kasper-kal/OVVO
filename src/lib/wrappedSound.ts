@@ -251,12 +251,13 @@ function spin(track: Track, next?: Track): void {
 
   if (leaving && leaving !== incoming) {
     ramp(leaving.gain, 0.0001, FADE_OUT, ctx);
+    const leavingTrack = leaving.track;
     /* Fade first, stop after: stopping on the same beat as the fade leaves a hole in the middle. */
     window.setTimeout(() => {
-      if (active !== leaving) {
-        leaving.el.pause();
-        leaving.track = null;
-      }
+      /* Only if this player still holds the song it was playing: the prefetch may have taken it. */
+      if (active === leaving || leaving.track !== leavingTrack) return;
+      leaving.el.pause();
+      leaving.track = null;
     }, 1200);
   }
 

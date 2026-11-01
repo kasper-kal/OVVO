@@ -281,14 +281,18 @@ export function WrappedPage() {
           <Icon name="close" size={20} />
         </button>
         {/*
-          * The switch says what a thumb will get, not what is already true: while the score plays it
-          * reads "Sound off". Naming the state instead made a button that said "Sound on" and turned
-          * the music off, which reads as broken even though it was doing what it was told.
-          */}
+          * **The switch says what is true, with a light that cannot be misread.**
+          *
+          * It used to name the tap instead, reading "Sound off" while the score was playing. Read as a
+          * state, that made a traveller tap it -- which silenced the music -- and then Begin started the
+          * story in silence, because the score had been turned off before the first screen. The words
+          * now describe the score, the light beside them shows it, and `aria-pressed` says it out loud.
+        */}
         <button
           type="button"
           className="wrapped-sound"
-          aria-label={sound ? t('Sound off') : t('Sound on')}
+          aria-pressed={sound}
+          aria-label={sound ? t('Sound on') : t('Sound off')}
           onClick={() => {
             if (sound) {
               stopSound();
@@ -299,7 +303,8 @@ export function WrappedPage() {
             }
           }}
         >
-          <span>{sound ? t('Sound off') : t('Sound on')}</span>
+          <i className="wrapped-sound__led" aria-hidden="true" />
+          <span>{sound ? t('Sound on') : t('Sound off')}</span>
         </button>
       </header>
 
@@ -338,7 +343,14 @@ export function WrappedPage() {
                   onClick={() => {
                     setStarted(true);
                     /* On by default, so Begin starts the score unless it was muted before the tap. */
-                    if (sound) startSound(chapter.track, story[1]?.track);
+                    /*
+                     * **The score starts on the chapter you land on.**
+                     *
+                     * Begin used to start the cover's track and then turn the page, whose effect started
+                     * the first chapter's track a moment later: two songs fetched, one faded out before a
+                     * note of it was heard, and a race for the same two players. One press, one song.
+                     */
+                    if (sound) startSound(story[1]?.track ?? chapter.track, story[2]?.track);
                     go(1);
                   }}
                 >

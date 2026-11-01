@@ -964,3 +964,31 @@
   max-width: 100%;
   white-space: normal;
 }
+
+/*
+ * **A switch that cannot be misread.**
+ *
+ * The words say what the score is doing, and the small light beside them says it again for anyone who
+ * reads a button as a label. It was the other way round: the button named the tap, so a traveller who
+ * read "Sound off" as a state silenced the story before it began.
+ */
+.wrapped-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.wrapped-sound__led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(247 244 239 / 0.28);
+  transition:
+    background-color 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
+}
+
+.wrapped-sound[aria-pressed='true'] .wrapped-sound__led {
+  background: rgb(var(--glow-c));
+  box-shadow: 0 0 10px rgb(var(--glow-c) / 0.9);
+}
