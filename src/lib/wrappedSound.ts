@@ -41,25 +41,28 @@ function urlOf(track: Track): string {
 /**
  * **Every track, brought to the same average decibel.**
  *
- * The ten pieces were not mastered together: measured as an average level over each whole file, the
- * quietest sat at -28 dB and the loudest at -9 dB. These trims bring them all to about -22 dB, low
- * enough that the score sits under the words on a phone speaker rather than beside them.
+ * **Loud enough to be music.** The ten pieces were not mastered together, and the first version of this
+ * table brought them all to -22 dBFS and then turned the whole score down another five decibels. Measured
+ * on a phone that is about -27 dBFS, which is not a quiet score, it is a score that sounds like nothing at
+ * all: the report said "playing", and the speaker said silence. Every file is now brought to -16 dBFS,
+ * a normal listening level, and the extra master turn-down is gone. The three quiet files were lifted in
+ * the files themselves, where a boost above full volume is possible.
  */
 const TRIM: Record<Track, number> = {
-  'luxury-anthem': 0.432,
-  'electro-dance': 0.422,
-  'afrobeat': 0.224,
-  'indie-pop': 2.065,
-  'electropop': 0.676,
-  'melodic-trap': 0.237,
-  'hip-hop-anthem': 0.376,
-  'dark-trap': 0.716,
-  'rap-anthem': 0.257,
-  'acoustic': 0.484,
+  'luxury-anthem': 0.859,
+  'electro-dance': 0.839,
+  'afrobeat': 0.461,
+  'indie-pop': 1,
+  'electropop': 1,
+  'melodic-trap': 0.475,
+  'hip-hop-anthem': 0.75,
+  'dark-trap': 1,
+  'rap-anthem': 0.5,
+  'acoustic': 0.945,
 };
 
 /** How far under the phone's own volume the whole score sits. */
-const LEVEL = 0.55;
+const LEVEL = 1;
 const FADE_IN = 0.9;
 const FADE_OUT = 0.7;
 
@@ -83,6 +86,15 @@ let current: Track | null = null;
 let playing = false;
 let onEnd: (() => void) | null = null;
 let turned = false;
+/** The last few things the score was asked to do, newest last, for the report. */
+const calls: string[] = [];
+
+function note(line: string): void {
+  const at = typeof performance !== 'undefined' ? (performance.now() / 1000).toFixed(1) : '0';
+  calls.push(`${at}s ${line}`);
+  if (calls.length > 6) calls.shift();
+}
+
 /** The last thing a play() said when it would not start, for the report. */
 let refusal: string | null = null;
 
@@ -178,13 +190,24 @@ function prefetch(next: Track | undefined): void {
   if (idle) load(idle, next);
 }
 
-/** Start a player, and remember what it said if it would not. */
+/**
+ * **Start a player, but never a player that is already starting.**
+ *
+ * Begin starts the chapter's song, and the chapter's own effect asks the score for that same song a
+ * moment later. Both calls used to go through `play()`, and a phone aborts the first play when a second
+ * arrives on the same element while it is still loading: the element ends up stopped while the score's
+ * state says "on". That is why the music only arrived after the switch had been tapped off and on — the
+ * second tap was the first play that nothing interrupted.
+ */
 function begin(slot: Slot): void {
+  note(`play ${slot.track ?? 'none'}${slot.el.paused ? '' : ' (already playing)'}`);
+  if (!slot.el.paused) return;
   slot.el.volume = 0;
   const started = slot.el.play();
   if (started) {
     void started.catch((error: unknown) => {
       refusal = String((error as Error)?.name || error);
+      note(`refused: ${refusal}`);
     });
   }
 }
@@ -234,12 +257,14 @@ function spin(track: Track, next?: Track): void {
 
 /** Ask for the score. Must be called from a gesture: a browser will not start audio without one. */
 export function startSound(track: Track, next?: Track): void {
+  note(`startSound ${track}`);
   playing = true;
   spin(track, next);
 }
 
 /** Silence it for the session, and leave nothing playing behind another screen. */
 export function stopSound(): void {
+  note('stopSound');
   playing = false;
   slots.forEach((slot) => fade(slot.el, 0, 0.15));
   window.setTimeout(() => {
@@ -281,6 +306,7 @@ export function soundIsOn(): boolean {
  * are the only two ways music ever starts.
  */
 export function playChapter(track: Track, next?: Track): void {
+  note(`playChapter ${track}${playing ? '' : ' (silent)'}`);
   if (!playing) return;
   spin(track, next);
 }
@@ -293,6 +319,7 @@ export function playChapter(track: Track, next?: Track): void {
  * sounding starts the chapter the traveller is on, in that touch, if it is not already playing.
  */
 export function resumeSound(track: Track, next?: Track): void {
+  note(`resume ${track}`);
   if (!playing) return;
   const live = active;
   if (live && live.track === track && !live.el.paused && live.el.currentTime > 0.4) return;
@@ -319,6 +346,7 @@ export function soundDiagnostics(): string[] {
     lines.push('player: none');
   }
   lines.push(`refused: ${refusal ?? 'no'}`);
+  calls.slice(-4).forEach((line) => lines.push(line));
   return lines;
 }
 
