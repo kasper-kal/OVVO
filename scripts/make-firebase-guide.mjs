@@ -153,34 +153,42 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 ${part(
   1,
   'Make the Cloudflare account',
-  'Start here, because everything else needs something from this dashboard: the account ID now, and later the address Firebase has to trust. No card, and nothing to pay.',
+  'Everything else needs something from this dashboard: the account ID now, and later the address Firebase has to trust. This part goes one screen at a time, and says what you should be looking at before it asks you for anything.',
   step(
     '1.1',
-    'Make the account',
-    `${where('https://dash.cloudflare.com/sign-up \u2014 an email and a password is all it asks for.')}
-     <p>Confirm the email they send you, then sign in to the dashboard.</p>`,
+    'Make the account, and land on the dashboard',
+    `${where('https://dash.cloudflare.com/sign-up')}
+     <p>An email and a password is all it asks for. Confirm the email they send, then sign in.</p>
+     <p>Signing in puts you on the dashboard home page, with the Cloudflare logo top left and a list of menu items down the left side. That page is where every later step begins.</p>`,
   ) +
     step(
       '1.2',
-      'If your page does not match the screenshots, widen it',
-      `<p>Cloudflare redesigned this page, and it hides its right-hand panel on a narrow window or a phone. On a laptop at full width you should see, beside the usage figures, a panel holding <b>Account details</b> and <b>Your subdomain</b>.</p>
-       <p>If yours shows only <b>Create application</b>, a search box and <b>No projects found</b>, nothing is wrong with your account: you are seeing the narrow layout. Widen the window, or use a computer rather than a phone.</p>
-       ${warn('Do not create an application just to make the panel appear. You never need to deploy anything; that is my job, and the account ID below works without it.')}`,
+      'Open the Workers & Pages page',
+      `<p>In the left-hand list of menu items, click <b>Workers &amp; Pages</b>. It sits under Compute, above R2.</p>
+       ${where('On a narrow window or a phone that list is hidden behind the three-line menu icon in the top-left corner. Tap it, then choose <b>Workers &amp; Pages</b>.')}
+       <p>You are on the right page when you see the heading <b>Workers &amp; Pages</b>, a blue <b>Create application</b> button, and a row of usage figures including <b>Requests today</b>.</p>`,
     ) +
     step(
       '1.3',
-      'Copy your account ID',
-      `<p>This works on every layout. Press <b>Ctrl</b> and <b>K</b> together, or <b>Cmd</b> and <b>K</b> on a Mac, to open the dashboard search. Type <b>Copy account ID</b> and choose the result. It is now on your clipboard.</p>
-       ${where('The same string sits in the address bar: the long line of letters and numbers directly after <code>dash.cloudflare.com/</code> is your account ID.')}
-       ${copyIt('The account ID is <b>not</b> a secret. It goes in the paste in part 8.')}`,
+      'What that page should show, and why it looks empty',
+      `<p>Under the usage figures there is a search box, and under that, <b>No projects found</b>. That is what a new account looks like, and it is not an error: nothing has been put on Cloudflare yet, and nothing needs to be.</p>
+       <p>On a wide window there is also a panel down the right-hand side, holding <b>Account details</b> and <b>Your subdomain</b>. If that panel is missing, the window is narrow: widen it, or move to a laptop. Nothing about your account is broken.</p>
+       ${warn('Do not click <b>Create application</b> to make the panel appear. You never deploy anything yourself in this plan; that is my job, and every value below can be found without it.')}`,
     ) +
     step(
       '1.4',
+      'Copy your account ID',
+      `<p>Look in the right-hand panel for <b>Account ID</b> and click the copy icon beside it. It is a long line of letters and numbers.</p>
+       ${where('If the panel is not on your screen, press <b>Ctrl</b> and <b>K</b> together, or <b>Cmd</b> and <b>K</b> on a Mac, to open the dashboard search, type <b>Copy account ID</b>, and choose the result. The same string sits in the address bar, directly after <code>dash.cloudflare.com/</code>.')}
+       ${copyIt('The account ID is <b>not</b> a secret. It goes in the paste in part 8.')}`,
+    ) +
+    step(
+      '1.5',
       'Your address, and what to do if you cannot see it',
-      `<p>Our app on Cloudflare will be called <b>ovvo</b>, and its public address is that name in front of your account's own subdomain: <code>https://ovvo.your-subdomain.workers.dev</code>.</p>
-       <p>If your page shows a line called <b>Your subdomain</b> with a <b>Change</b> link beside it, write down what it says and put ovvo in front. That is your address, and part 7 needs it.</p>
-       <p>If you cannot see that line, do not go hunting for it. A brand-new account only receives a subdomain the first time this page is opened, and some layouts never show it at all. Send me the account ID instead, and I will read the subdomain from Cloudflare with the token and send you the finished address.</p>
-       ${copyIt('Either way the address ends in <code>.workers.dev</code>, and nothing has to be deployed for it to be yours.')}`,
+      `<p>Our app on Cloudflare will be called <b>ovvo</b> once I deploy it, and its public address is that name in front of your account's own subdomain, so it looks like <code>https://ovvo.your-subdomain.workers.dev</code>.</p>
+       <p>In the same right-hand panel there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it. Whatever it says, put <b>ovvo</b> in front of it, and that is your address.</p>
+       <p>If the panel is not there, and the search box gives you the account ID but no subdomain, stop looking. A brand-new account only receives a subdomain the first time this page is opened, and some layouts never print it. Send me the account ID, and I will read the subdomain from Cloudflare with the token and send you the finished address.</p>
+       ${copyIt('Either way it ends in <code>.workers.dev</code>, and nothing has to be deployed for the address to be yours.')}`,
     ),
 )}
 
@@ -336,7 +344,7 @@ ${part(
     '7.2',
     'Add your address',
     `<p>Click <b>Add domain</b> and type the host name only: no <code>https://</code> in front, no slash at the end, no path.</p>
-     ${copyIt('From part 1.4, or from the message I send you: <code>ovvo.your-subdomain.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
+     ${copyIt('From part 1.5, or from the message I send you: <code>ovvo.your-subdomain.workers.dev</code> goes in the box, with no <code>https://</code> in front.')}
      <p>If the address I deploy to ever turns out to differ from this one, I tell you, and you change this single line. Nothing else in Firebase has to change.</p>`,
   ) +
     step(
@@ -359,7 +367,7 @@ ${part(
   `<div class="form">
      <h3>Copy this, fill it in, send it</h3>
      <p>Leave a line blank if you have not done that part yet. I will tell you what is missing rather than guessing.</p>
-     <div class="paste">workers.dev address (part 1.4, or the one I sent you):
+     <div class="paste">workers.dev address (part 1.5, or the one I sent you):
 
 Cloudflare account ID (part 1.4):
 
