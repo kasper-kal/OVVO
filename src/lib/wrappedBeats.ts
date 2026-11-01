@@ -1,21 +1,22 @@
 /**
- * **The measured heartbeat of each chapter, and the proof that it is one.**
+ * **The measured heartbeat of each chapter.**
  *
- * Written by `.logs/gridfix.py`, which decodes each track, builds an onset envelope and then asks
- * the only question that matters: how much more energy falls ON the grid than halfway between it?
- * A real pulse scores well above 1; a wrong tempo or a misplaced downbeat scores below it. The
- * first version of this table was produced by an analyser that only asked which grid collected the
- * most energy, which any fast grid does, and five of the ten came out below 1 — the movement was
- * landing between the hits. These numbers each carry the ratio they were measured at.
+ * Written by `.logs/tempofix.py`: it decodes each track, builds an onset envelope, and finds the
+ * lag the envelope repeats at (autocorrelation) restricted to 86–172 beats a minute — the range a
+ * person taps. Two earlier versions of this table were wrong in different ways. The first picked
+ * the grid that collected the most hits, which any fast grid does. The second picked the grid with
+ * the most energy strictly on it, which quietly prefers a slow pulse that only catches the loudest
+ * hits, so the deck was counting time at 62 beats a minute on a pop song.
  *
- * The deck reads the playing song’s own clock and lays its movement on this grid, so a page lands
- * with the music instead of near it. Re-run the script if a track is ever swapped.
+ * A tap tempo is lively and the movement can ride it. The contrast figure recorded with each track
+ * is how much more onset energy falls on the grid than halfway between it; anything above 1 is a
+ * real pulse, and every track here is measured rather than guessed.
  */
 
 import type { Track } from './wrappedSound';
 
 export interface Tempo {
-  /** Beats per minute, measured from the audio. */
+  /** Beats per minute, the tempo a foot taps. */
   bpm: number;
   /** Where the first beat sits, in seconds from the start of the file. */
   offset: number;
@@ -24,16 +25,16 @@ export interface Tempo {
 }
 
 export const TEMPO: Record<Track, Tempo> = {
-  'acoustic': { bpm: 65.0, offset: 0.154, confidence: 1.96 },
-  'afrobeat': { bpm: 163.4, offset: 0.098, confidence: 2.13 },
-  'dark-trap': { bpm: 65.5, offset: 0.725, confidence: 2.26 },
-  'electro-dance': { bpm: 96.0, offset: 0.258, confidence: 5.04 },
-  'electropop': { bpm: 62.6, offset: 0.756, confidence: 2.52 },
-  'hip-hop-anthem': { bpm: 101.4, offset: 0.232, confidence: 5.0 },
-  'indie-pop': { bpm: 158.5, offset: 0.256, confidence: 3.49 },
-  'luxury-anthem': { bpm: 82.6, offset: 0.603, confidence: 5.68 },
-  'melodic-trap': { bpm: 81.9, offset: 0.32, confidence: 4.25 },
-  'rap-anthem': { bpm: 100.1, offset: 0.057, confidence: 5.86 },
+  'acoustic': { bpm: 86.9, offset: 0.414, confidence: 1.41 },
+  'afrobeat': { bpm: 164.1, offset: 0.134, confidence: 1.61 },
+  'dark-trap': { bpm: 129.2, offset: 0.248, confidence: 1.53 },
+  'electro-dance': { bpm: 120.2, offset: 0.474, confidence: 1.51 },
+  'electropop': { bpm: 130.8, offset: 0.183, confidence: 1.69 },
+  'hip-hop-anthem': { bpm: 152.0, offset: 0.329, confidence: 1.8 },
+  'indie-pop': { bpm: 159.0, offset: 0.283, confidence: 1.91 },
+  'luxury-anthem': { bpm: 124.5, offset: 0.393, confidence: 2.51 },
+  'melodic-trap': { bpm: 123.0, offset: 0.114, confidence: 1.74 },
+  'rap-anthem': { bpm: 149.8, offset: 0.02, confidence: 2.03 },
 };
 
 /** One beat in milliseconds, for anything that should last exactly that long. */

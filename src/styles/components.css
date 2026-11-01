@@ -8626,24 +8626,32 @@
  */
 
 /* The year drawn as itself: one dot for every journey planned, behind the number counting them. */
+/*
+ * **The year is a field of journeys, not a dotted rule.**
+ *
+ * The dots were laid out in a wrapping flex row under a mask that faded everything above and below the
+ * middle, so a hundred and forty-six journeys drew one thin line of twenty-four dots across the
+ * screen — the emptiest thing in the deck, with a ring around it and nothing inside. A fixed grid of
+ * twelve columns fills the page with them instead, so the whole screen is the year and the number
+ * sits on top of it.
+ */
 .wrapped-field {
   position: absolute;
   inset: 0;
   z-index: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 4% 0;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-content: space-evenly;
+  justify-items: center;
+  padding: 6% 0;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%, #000 74%, transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 16%, #000 74%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
 }
 
 .wrapped-field i {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: currentColor;
   opacity: 0.5;
@@ -9258,55 +9266,66 @@
  * still: one sits under a photograph, and the other has finished speaking.
  */
 
-/* Page 1 · the ring's dot lands a quarter of the turn on every beat. */
+/*
+ * **Two movements, and nothing else: things glide on the bar, things pop on the beat.**
+ *
+ * The first version of this was a twitch — a class flipped on for a slice of every beat. The second
+ * was a set of mechanical ticks: a quarter turn per beat, a step down the rail, a walk across the
+ * bars. Each of those is technically in time and looks like a machine. What a body recognises as music
+ * is two things only: something travelling evenly and arriving on the downbeat, and something giving a
+ * short push that settles. So there are exactly two keyframes here, and every chapter uses one or
+ * both of them.
+ *
+ * A *glide* lasts one bar and is eased so it arrives exactly as the bar closes. A *pop* lasts one beat
+ * and is over in its first quarter, which is what makes it read as a hit instead of a bounce.
+ */
+
+/* Page 1 · the dot travels the ring once a bar and arrives where it started as the bar closes. */
 .wrapped-stage.is-beat:not(.is-still) .wrapped-orbit {
-  animation: wrapped-orbit-step var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation: wrapped-orbit var(--bar-ms, 2400ms) linear infinite;
   animation-delay: calc(-1 * var(--bar-phase, 0ms));
 }
 
-@keyframes wrapped-orbit-step {
-  0% {
-    rotate: 0deg;
-  }
-  25% {
-    rotate: 90deg;
-  }
-  50% {
-    rotate: 180deg;
-  }
-  75% {
-    rotate: 270deg;
-  }
-  100% {
-    rotate: 360deg;
-  }
-}
-
 /*
- * Page 2 · a dozen journeys land on every beat.
+ * Page 2 · the field is all there, and the beat lights it up.
  *
- * Twelve dots is enough that the wave is unmistakable on a beat without the field filling in one go:
- * a hundred and forty-six at twelve a beat is a little over twelve beats, which is shorter than the
- * song, so the year is complete before the chapter ends.
+ * Fading each dot in from nothing left the screen nearly empty for the first seconds of the chapter,
+ * which is the emptiest state the deck can be in. The whole year is faint from the first frame and the
+ * beat brings twelve journeys forward at a time, so the page is full and still moving.
  */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-field i {
-  opacity: 0;
+  opacity: 0.14;
   animation: wrapped-fill var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) both;
   animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 12);
 }
 
 @keyframes wrapped-fill {
   from {
-    opacity: 0;
-    transform: scale(0.3);
+    opacity: 0.14;
+    scale: 0.72;
   }
   to {
-    opacity: 0.78;
-    transform: none;
+    opacity: 0.62;
+    scale: 1;
   }
 }
 
-/* The rings over the total push out on the bar instead of on their own private clock. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-big {
+  animation: wrapped-pop var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms));
+}
+
+@keyframes wrapped-pop {
+  0% {
+    scale: 1.035;
+  }
+  26%,
+  100% {
+    scale: 1;
+  }
+}
+
+/* The three rings still push out over a whole bar, so the page breathes instead of flickering. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i {
   animation-duration: var(--bar-ms, 2400ms);
   animation-delay: calc(-1 * var(--bar-phase, 0ms));
@@ -9320,32 +9339,23 @@
   animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) * 2 / 3);
 }
 
-/* Page 3 · the train walks a quarter of the rail on every beat. */
+/* Page 3 · the train travels the rail across a bar, and comes back up on the next one. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__train {
-  animation: wrapped-stride var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation: wrapped-glide-down var(--bar-ms, 2400ms) cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
   animation-delay: calc(-1 * var(--bar-phase, 0ms));
   opacity: 1;
 }
 
-@keyframes wrapped-stride {
-  0% {
+@keyframes wrapped-glide-down {
+  from {
     top: 0;
   }
-  25% {
-    top: calc(25% - 3px);
-  }
-  50% {
-    top: calc(50% - 6px);
-  }
-  75% {
-    top: calc(75% - 9px);
-  }
-  100% {
+  to {
     top: calc(100% - 12px);
   }
 }
 
-/* Page 4 · one ticket lifts on each beat, and settles before the next one. */
+/* Page 4 · one ticket lifts on each beat, and is back down before the next one lands. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip {
   animation-name: wrapped-deal, wrapped-lift;
   animation-duration: 620ms, calc(var(--beat-ms, 500ms) * 3);
@@ -9363,8 +9373,7 @@
 
 /*
  * The lift uses `translate`, not `transform`: the ticket is dealt in with `transform`, and a second
- * animation on the same property would fight the first and win, so the entry would vanish. Two
- * properties, two animations, no argument.
+ * animation on the same property would fight the first and win, so the entry would vanish.
  */
 @keyframes wrapped-lift {
   0% {
@@ -9379,121 +9388,93 @@
   }
 }
 
-/* Page 5 · an hour lights on every beat, two at a time, all the way round the clock. */
+/* Page 5 · the whole graph pushes up on the beat, together, the way a speaker moves. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='hour'] .wrapped-bars__bar {
-  animation-name: wrapped-grow, wrapped-walk;
-  animation-duration: 760ms, calc(var(--beat-ms, 500ms) * 12);
-  animation-timing-function: var(--ease-out), linear;
+  animation-name: wrapped-grow, wrapped-bar-beat;
+  animation-duration: 760ms, var(--beat-ms, 500ms);
+  animation-timing-function: var(--ease-out), cubic-bezier(0.2, 0.9, 0.25, 1);
   animation-iteration-count: 1, infinite;
   animation-fill-mode: both, none;
   animation-delay:
     calc(var(--i, 0) * 22ms),
-    calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 2);
+    calc(-1 * var(--beat-phase, 0ms));
 }
 
-@keyframes wrapped-walk {
+@keyframes wrapped-bar-beat {
   0% {
-    opacity: 1;
+    scale: 1 1.06;
   }
-  6% {
-    opacity: 1;
-  }
-  14%,
+  26%,
   100% {
-    opacity: 0.3;
+    scale: 1 1;
   }
 }
 
-/* Page 6 · the dial's filled stripe ticks a quarter turn on every beat. */
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc::before {
-  animation: wrapped-dial var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+/* Page 6 · the marker travels the dial once a bar, and the dial itself gives a push on each beat. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc__spark {
+  animation: wrapped-ring-travel var(--bar-ms, 2400ms) linear infinite;
   animation-delay: calc(-1 * var(--bar-phase, 0ms));
 }
 
-@keyframes wrapped-dial {
-  0% {
+@keyframes wrapped-ring-travel {
+  from {
     rotate: 0deg;
   }
-  25% {
-    rotate: 90deg;
-  }
-  50% {
-    rotate: 180deg;
-  }
-  75% {
-    rotate: 270deg;
-  }
-  100% {
+  to {
     rotate: 360deg;
   }
 }
 
-/* Page 7 · the dot steps a quarter of the line on every beat. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc::before {
+  animation: wrapped-ring-beat var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms));
+}
+
+@keyframes wrapped-ring-beat {
+  0% {
+    scale: 1.012;
+  }
+  26%,
+  100% {
+    scale: 1;
+  }
+}
+
+/* Page 7 · the dot travels the whole trip across a bar, and returns on the next one. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='longest'] .wrapped-stretch__dot {
-  animation: wrapped-patrol var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation: wrapped-glide-across var(--bar-ms, 2400ms) cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
   animation-delay: calc(-1 * var(--bar-phase, 0ms));
   opacity: 1;
 }
 
-@keyframes wrapped-patrol {
-  0% {
+@keyframes wrapped-glide-across {
+  from {
     left: 0;
   }
-  25% {
-    left: calc(25% - 3.5px);
-  }
-  50% {
-    left: calc(50% - 7px);
-  }
-  75% {
-    left: calc(75% - 10.5px);
-  }
-  100% {
+  to {
     left: calc(100% - 14px);
   }
 }
 
 /*
- * Page 9 · the board counts.
+ * Page 9 · the board counts, and each count lands on its own beat.
  *
- * A gradient wash across the rows was the cheap bit: it moved, but it measured nothing. Each row now
- * runs a rule under itself on its own beat, in turn, while its number counts up on its own bar — so
- * the board is tallying the lines it is showing, on the beat.
+ * A gradient wash across the rows was the cheap bit: it moved, but it measured nothing and it looked
+ * like a shine on plastic. The rows count up from zero instead — one row per bar — and the number
+ * that has just landed gives a push on its beat.
  */
-.wrapped-body[data-chapter='lines'] .wrapped-chip {
-  position: relative;
-  overflow: hidden;
-}
-
-.wrapped-body[data-chapter='lines'] .wrapped-chip::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left center;
-}
-
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip::before {
-  animation: wrapped-row-tick var(--beat-ms, 500ms) linear infinite;
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip strong {
+  animation: wrapped-count-pop var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
   animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
 }
 
-@keyframes wrapped-row-tick {
+@keyframes wrapped-count-pop {
   0% {
-    transform: scaleX(0);
-    opacity: 1;
+    scale: 1.1;
   }
-  72% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
+  24%,
   100% {
-    transform: scaleX(1);
-    opacity: 0;
+    scale: 1;
   }
 }
 
