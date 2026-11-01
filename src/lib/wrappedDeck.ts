@@ -25,6 +25,8 @@ export interface DeckCard {
   line: string;
   /** An optional second line, for the closing card and its honesty. */
   note?: string;
+  /** `ink` draws the card on the app's dark surface. Alternating is the whole of the deck's colour. */
+  tone?: 'ink';
 }
 
 /** The busiest few of something, largest first. */
@@ -114,6 +116,7 @@ export function buildDeck({
   const cards: Array<DeckCard | null> = [
     {
       id: 'count',
+      tone: 'ink',
       kicker: 'The year in one number',
       big: String(runs.length),
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
@@ -129,6 +132,7 @@ export function buildDeck({
     origin
       ? {
           id: 'origin',
+          tone: 'ink',
           kicker: 'Where you set off',
           big: String(origin.count),
           line: `journeys began at ${readable(origin.value)}.`,
@@ -139,11 +143,12 @@ export function buildDeck({
           id: 'hour',
           kicker: 'Your hour',
           big: `${hour.value < 10 ? '0' : ''}${hour.value}:00`,
-          line: `${hour.count === 1 ? 'journey' : 'journeys'} asked to leave in that hour — more than any other.`,
+          line: `${hour.count === 1 ? 'journey' : 'journeys'} asked to leave in that hour, more than any other.`,
         }
       : null,
     {
       id: 'direct',
+      tone: 'ink',
       kicker: 'Straight through',
       big: String(direct),
       line:
@@ -156,12 +161,13 @@ export function buildDeck({
           id: 'longest',
           kicker: 'The long haul',
           big: formatDuration(longest.minutes, language),
-          line: `on the way to ${readable(longest.to)} — the longest trip you planned.`,
+          line: `on the way to ${readable(longest.to)}, the longest trip you planned.`,
         }
       : null,
     lookNamed
       ? {
           id: 'look',
+          tone: 'ink',
           kicker: 'The look you wore',
           big: String(look?.count ?? 0),
           line: `${(look?.count ?? 0) === 1 ? 'day' : 'days'} wearing ${lookNamed}.`,
@@ -172,7 +178,7 @@ export function buildDeck({
       kicker: String(year),
       big: 'That was the year.',
       line: 'Every number here comes from journeys you planned in this app, and nothing else.',
-      note: 'OVVO counts what you planned, not what you caught — it never sees you get on.',
+      note: 'OVVO counts what you planned, not what you caught. It never sees you get on.',
     },
   ];
 

@@ -71,7 +71,7 @@ export function WrappedPage() {
 
       {demo ? (
         <p className="t-sm t-muted" role="note">
-          {t('Demo year — ')}
+          {t('Demo year: ')}
           <strong>{t('none of this is real')}</strong>
           {t(', and none of it is stored.')}
         </p>
@@ -93,7 +93,12 @@ export function WrappedPage() {
           }
         }}
       >
-        <Card key={card.id} className="wrapped__card" variant="raised" aria-live="polite">
+        <Card
+          key={card.id}
+          className="wrapped__card"
+          variant={card.tone === 'ink' ? 'obsidian' : 'raised'}
+          aria-live="polite"
+        >
           <span className="wrapped__kicker">{t(card.kicker)}</span>
           <span className="wrapped__big">{card.big}</span>
           <p className="wrapped__line">{t(card.line)}</p>
@@ -153,7 +158,7 @@ export function WrappedPage() {
         open={confirmClear}
         title={t('Empty {year}?', { year })}
         description={t(
-          'Every journey, board and look this year is deleted from your tally. What is already saved — your stops and journeys — stays.',
+          'Every journey, board and look this year is deleted from your tally. What is already saved, your stops and journeys, stays.',
         )}
         onClose={() => setConfirmClear(false)}
         footer={
