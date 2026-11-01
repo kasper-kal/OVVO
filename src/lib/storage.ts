@@ -2,6 +2,25 @@
 
 const PREFIX = 'ov-planner:v1:';
 
+/** The same prefix, for the one caller that has to read the whole store as a document (`lib/account`). */
+export const STORAGE_PREFIX = PREFIX;
+
+/**
+ * **Every stored write goes through here on its way out.**
+ *
+ * The account sync needs to know that something changed without being told what, or by whom: a
+ * heart, a saved journey, a search, the year's tally. Subscribing to the funnel means a value
+ * added next month is synced without anybody remembering to hook it up.
+ */
+const listeners = new Set<() => void>();
+
+export function onStoredChange(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
 export function readStored<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -19,6 +38,7 @@ export function writeStored<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    for (const listener of listeners) listener();
   } catch {
     /* storage full or unavailable — the prototype keeps working in memory */
   }

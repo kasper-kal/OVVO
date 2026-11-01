@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ovvo",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ovvo",
+      "database_id": "ba996f68-d067-46b6-8ea4-3dc05ce38acc"
+    }
+  ],
+  "vars": {
+    "FIREBASE_PROJECT_ID": "ovvo-vibecreations"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

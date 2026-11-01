@@ -18,6 +18,8 @@ import { StylesPage } from './pages/StylesPage';
 import { ReviewLayer } from './review/ReviewLayer';
 import { DeveloperRoute } from './pages/DeveloperPage';
 import { getDevOverrides } from './lib/dev';
+import { SignInPage } from './pages/SignInPage';
+import { AuthFinishPage } from './pages/AuthFinishPage';
 
 /**
  * **Every screen is in this one file, and that is the fix for the half second.**
@@ -116,6 +118,15 @@ export default function App() {
             * meant the preview opened on a lab rather than on the app.
             */}
           {import.meta.env.DEV ? <Route path="/skeleton" element={<SkeletonDemoPage />} /> : null}
+
+          {/*
+            **Signing in is a door, not a section.** `/signin` and the page the emailed link lands
+            on both sit outside the shell on purpose: there is no navigation to browse while
+            half-way through signing in, and a dock under a sign-in form invites a traveller to
+            leave mid-way with a half-made account.
+          */}
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/auth/finish" element={<AuthFinishPage />} />
 
           <Route
             path="*"

@@ -6,6 +6,7 @@ import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
 import { APP_WIRE_BYTES, transferMs } from './lib/link';
 import { getDevOverrides } from './lib/dev';
+import { beginAccountSync } from './lib/account';
 import './styles/tokens.css';
 import './styles/fonts.css';
 import './styles/base.css';
@@ -67,6 +68,16 @@ watchInstallPrompt();
  * the file is genuinely unusable.
  */
 void installManifest();
+
+/**
+ * **The account starts watching the store before the first screen is drawn.**
+ *
+ * A traveller who is already signed in should find their things on a new device without having to
+ * visit Settings first, and a change made anywhere in the app should reach the server without a
+ * screen having to remember to send it. Both come from one place: `lib/account` follows the
+ * storage funnel and the sign-in state, and sending is its business, not a screen's.
+ */
+void beginAccountSync();
 
 /**
  * **The offline strip keeps its promise across a reload, and the install offer depends on this.**

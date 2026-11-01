@@ -10,6 +10,7 @@ import { Icon, ModeIcon } from '../components/ui/Icons';
 import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
+import { AccountCard } from '../components/account/AccountCard';
 import { LANGUAGES } from '../lib/i18n';
 import { clearDevOverrides } from '../lib/dev';
 import type { Stop } from '../data/types';
@@ -660,6 +661,12 @@ export function SettingsPage() {
         with them (`resetLocalData`, `state/AppState.tsx`). It is **one** control, not a second
         button beside an older one doing nearly the same job.
       */}
+      {/*
+        The account sits above the reset, because it is the one thing on this screen that is not
+        about how the app looks: whether the traveller's things follow them to another device.
+      */}
+      <AccountCard />
+
       <div className="row-wrap">
         <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
           {t('Reset the app')}

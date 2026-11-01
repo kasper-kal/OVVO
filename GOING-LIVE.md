@@ -115,3 +115,30 @@ the site's address and it does not exist until the Cloudflare side is named.
 - Deploy the Worker and open the address before promising the steerer it works.
 - Test sign-in on a second device, and with storage cleared, before saying the year survives.
 - Then: OVVO Wrapped (planned, not built — see `AGENTS.md`).
+
+
+## What is live now (1 November 2026)
+
+- **Address:** https://ovvo.vibecreations.workers.dev. Worker name `ovvo`, account subdomain
+  `vibecreations`.
+- **One deploy carries everything.** `worker/index.js` answers `/api/*` itself and hands every
+  other request to the built site. Config: `wrangler.jsonc`.
+- **Database:** Cloudflare D1, name `ovvo`, id `ba996f68-d067-46b6-8ea4-3dc05ce38acc`. One table,
+  `travel_sync` (`schema.sql`), one row per signed-in traveller, `rev` for safe two-device saves.
+- **Sign-in:** Firebase, three ways: Google, email and password, and a link by email. Screens are
+  `/signin` and `/auth/finish` (the page the emailed link lands on).
+- **The server checks sign-ins itself.** `worker/auth.js` verifies Firebase's signature against
+  Google's published keys, so no server secret exists and the Admin SDK is not needed.
+- **Deploying:** `npm run deploy` (build, then `wrangler deploy`). `npm run db:init` applies the
+  schema to the live database. The token and account id live in `.env`, which git ignores.
+- **How syncing behaves:** the browser's copy always wins; the server only fills in keys this
+  device does not have. A save names the revision it was built on, so a second device merges
+  instead of erasing.
+- **Checked live:** home page renders, `/signin` draws all three methods, Settings shows the
+  account card, `/api/health` answers 200, `/api/me` answers 401 without a token, a request from
+  another origin is refused with 403, and `travel_sync` exists in the live database.
+- **Not checked yet:** a real sign-in end to end, which needs the steerer's own account in a
+  browser. That is the next thing to do together.
+- **The cost of it:** the Firebase sign-in code adds about 230 kB (gzipped) to the bundle, because
+  every screen ships in one file by design. Worth splitting out later if first load is measured to
+  suffer on a phone.
