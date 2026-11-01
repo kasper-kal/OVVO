@@ -15,13 +15,28 @@ import { useOnline } from '../../lib/useOnline';
  * goes away by itself when the connection returns — with one short confirmation so the change is
  * not silent.
  *
+ * **Both ends are a movement, not a swap.** It arrives by dropping in from above, and it leaves by
+ * sliding back up and closing its own height on the way, so the page below follows it instead of
+ * jumping 40-odd pixels the instant the connection returns. The strip therefore stays in the page
+ * for the length of that movement after it has decided to go (`LEAVE_MS`), which is the one thing
+ * an ordinary conditional render cannot do: unmounting on the first frame is exactly the snap that
+ * was reported as ugly.
+ *
  * It is `role="status"` and polite: both the loss and the return are announced once, without
  * interrupting whatever the traveller is doing.
  */
+/**
+ * How long the strip takes to leave. The stylesheet closes its height over this same figure, so the
+ * element outlives its own movement by exactly as long as the movement lasts and no longer.
+ */
+const LEAVE_MS = 260;
+
 export function OfflineBar() {
   const online = useOnline();
   const t = useT();
   const [back, setBack] = useState(false);
+  /* True while the strip is on its way out, which is a render it has to survive. */
+  const [leaving, setLeaving] = useState(false);
   /*
    * Whether a worker has the shell, so a reload with no network will draw the app.
    *
@@ -39,10 +54,30 @@ export function OfflineBar() {
     const was = seen.current;
     seen.current = online;
     if (was || !online) return undefined;
-    /* Came back: say so for four seconds, then let the screen be quiet again. */
+    /* Came back: say so for four seconds, then slide out of the page. */
+    setLeaving(false);
     setBack(true);
-    const timer = window.setTimeout(() => setBack(false), 4000);
+    const timer = window.setTimeout(() => setLeaving(true), 4000);
     return () => window.clearTimeout(timer);
+  }, [online]);
+
+  /*
+   * The going is a movement with a beginning and an end: the strip is asked to leave, the stylesheet
+   * closes its height over `LEAVE_MS`, and only then is it taken out of the page. A fresh visit
+   * offline during that beat cancels the exit rather than fighting it, because a strip that is
+   * leaving while the connection drops again would be the one state this bar must never show.
+   */
+  useEffect(() => {
+    if (!leaving) return undefined;
+    const timer = window.setTimeout(() => {
+      setBack(false);
+      setLeaving(false);
+    }, LEAVE_MS);
+    return () => window.clearTimeout(timer);
+  }, [leaving]);
+
+  useEffect(() => {
+    if (!online) setLeaving(false);
   }, [online]);
 
   if (online && !back) return null;
@@ -67,7 +102,11 @@ export function OfflineBar() {
   }
 
   return (
-    <div className="offline-bar offline-bar--back" role="status" aria-live="polite">
+    <div
+      className={`offline-bar offline-bar--back${leaving ? ' offline-bar--leaving' : ''}`}
+      role="status"
+      aria-live="polite"
+    >
       <span className="offline-bar__inner">
         <span className="offline-bar__icon" aria-hidden="true">
           <Icon name="check" size={18} />
