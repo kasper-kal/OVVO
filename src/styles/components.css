@@ -1108,10 +1108,13 @@
    * **The lane is wider than the text inset on purpose.** Twelve pixels is the text inset and the
    * whole of the rounded end: the field is a 44px pill with a 20px radius, so a mark 12px from the
    * edge sat *in the curve* and read as sliding off the field (reported again, circled, with the
-   * clock on a phone). Twenty pixels puts the mark on the straight part of the edge, where a mark
-   * belongs, and leaves the value its own 12px on the other side.
+   * clock on a phone). The lane is the text inset plus the inner gap - twenty pixels, on the
+   * straight part of the edge - and the value keeps its own twelve on the other side. There is no
+   * `--s-5` in this theme (the steps go 12, 16, 24), so this is written as the sum rather than a
+   * name that does not exist, which is a mistake that computes to zero and looks like no padding at
+   * all.
    */
-  padding-right: var(--s-5);
+  padding-right: calc(var(--s-3) + var(--s-2));
 }
 
 /*
