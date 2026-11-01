@@ -93,6 +93,7 @@ let slots: Slot[] = [];
 let active: Slot | null = null;
 let current: Track | null = null;
 let playing = false;
+let broken = false;
 let pad: { stop: () => void } | null = null;
 let onEnd: (() => void) | null = null;
 /** Whether this track has already asked for the next chapter, so it only ever asks once. */
@@ -132,8 +133,8 @@ function makeSlot(ctx: AudioContext, bus: GainNode): Slot {
   ctx.createMediaElementSource(el).connect(gain);
   gain.connect(bus);
   const slot: Slot = { el, gain, track: null };
-  /* A file that will not load falls back to the quiet pad for this chapter only. */
   el.addEventListener('error', () => {
+    broken = true;
     if (playing) startPad();
   });
   /*
@@ -214,14 +215,10 @@ function spin(track: Track, next?: Track): void {
   const ctx = audio();
   if (!ctx || !master) return;
   if (ctx.state === 'suspended') void ctx.resume();
-  /*
-   * **A chapter that cannot load does not end the score.**
-   *
-   * There used to be a `broken` flag here, set once and never cleared: the first failed fetch swapped
-   * every later chapter for the quiet fallback pad, and a pad never ends, so the deck stopped turning
-   * its own pages from that point to the last. A chapter now falls back for itself, and the next one
-   * asks for its own file.
-   */
+  if (broken) {
+    startPad();
+    return;
+  }
 
   /* A track already in the live player (rounding a chapter twice, or coming back from silence). */
   const live = active && active.track === track ? active : null;
@@ -241,6 +238,7 @@ function spin(track: Track, next?: Track): void {
   const started = incoming.el.play();
   if (started) {
     void started.catch(() => {
+      broken = true;
       if (playing) startPad();
     });
   }
@@ -253,13 +251,12 @@ function spin(track: Track, next?: Track): void {
 
   if (leaving && leaving !== incoming) {
     ramp(leaving.gain, 0.0001, FADE_OUT, ctx);
-    const leavingTrack = leaving.track;
     /* Fade first, stop after: stopping on the same beat as the fade leaves a hole in the middle. */
     window.setTimeout(() => {
-      /* Only if this player still holds the song it was playing: the prefetch may have taken it. */
-      if (active === leaving || leaving.track !== leavingTrack) return;
-      leaving.el.pause();
-      leaving.track = null;
+      if (active !== leaving) {
+        leaving.el.pause();
+        leaving.track = null;
+      }
     }, 1200);
   }
 
@@ -379,43 +376,4 @@ function stopPad(): void {
 /** The chapter that is playing, for the tests and for anyone reading the state. */
 export function currentTrack(): Track | null {
   return current;
-}
-
-/**
- * **How far through this chapter's song the deck is.**
- *
- * The segments at the top of the story fill with the music rather than with a timer, because the song
- * is what ends the chapter. Nothing is returned before a tap, or while the score is muted, or before a
- * file has said how long it is: a segment that guesses would be a progress bar that lies.
- */
-export function scoreProgress(): number | null {
-  if (!playing || !active) return null;
-  const { duration, currentTime } = active.el;
-  if (!Number.isFinite(duration) || duration <= 0) return null;
-  return Math.min(1, Math.max(0, currentTime / duration));
-}
-
-/**
- * **How long each piece runs, measured from the files themselves.**
- *
- * Needed because a chapter is over when its song is over, and a silent story still has to know when
- * that would have been. Without it, turning the sound off turned the deck into a slideshow that had
- * to be swiped, which reads exactly like a missing auto-advance.
- */
-const TRACK_SECONDS: Record<Track, number> = {
-  'acoustic': 14.32,
-  'afrobeat': 14.42,
-  'dark-trap': 20.74,
-  'electro-dance': 20.3,
-  'electropop': 14.81,
-  'hip-hop-anthem': 16.4,
-  'indie-pop': 14.92,
-  'luxury-anthem': 15.61,
-  'melodic-trap': 13.32,
-  'rap-anthem': 13.7,
-};
-
-/** How long a chapter's song runs, in seconds. */
-export function trackSeconds(track: Track): number {
-  return TRACK_SECONDS[track];
 }

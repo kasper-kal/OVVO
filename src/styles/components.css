@@ -9063,11 +9063,11 @@
 }
 
 /* ------------------------------------------------------------- fewer moving parts */
-/*
- * **No rule of this file stills the deck.** There was one here, aimed straight at it, and together
- * with the blanket rules in `base.css` it was what took the story apart on a low battery. The deck is
- * exempt from every reduction in the app; the reasons are written at the top of `styles/wrapped.css`.
- */
+.wrapped-stage.is-still *,
+:root[data-motion='reduced'] .wrapped-stage * {
+  animation: none !important;
+  transition: none !important;
+}
 
 @media (min-width: 900px) {
   .wrapped-body {

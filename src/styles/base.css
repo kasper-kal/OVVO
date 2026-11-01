@@ -1440,19 +1440,7 @@ svg.map-canvas {
  * movement stilled the app while the setting said "Full": two answers, and the media query won
  * without the screen admitting it. `state/AppState.tsx` resolves the two into one attribute now.
  */
-/*
- * **The Wrapped deck is exempt, on purpose.**
- *
- * The deck is not an interface that happens to move: the movement *is* the thing, and stilling it does
- * not make it quieter, it takes it apart. A 1ms step is worse than no animation at all here — every
- * loop in the story runs forever, so a 1ms duration with a single iteration freezes each one on its
- * last frame, and the page arrives with its lights in the wrong places.
- *
- * So the deck keeps its motion whatever asked for less: the switch in Settings, a battery saver at
- * twenty percent, the deepest saving mode at ten. Everything outside the deck is stilled exactly as
- * before; this is one subtree, named, and nothing else.
- */
-:root[data-motion='reduced'] *:not(.wrapped-stage, .wrapped-stage *) {
+:root[data-motion='reduced'] * {
   animation-duration: 1ms !important;
   transition-duration: 1ms !important;
 }
@@ -1478,9 +1466,9 @@ svg.map-canvas {
  * merely busy for the half second it was timed lost every transition while Settings said "Full".
  * The measurement is gone, so the switch and the battery are the only two answers.
  */
-:root[data-power='save'] *:not(.wrapped-stage, .wrapped-stage *),
-:root[data-power='save'] *:not(.wrapped-stage, .wrapped-stage *)::before,
-:root[data-power='save'] *:not(.wrapped-stage, .wrapped-stage *)::after {
+:root[data-power='save'] *,
+:root[data-power='save'] *::before,
+:root[data-power='save'] *::after {
   animation-duration: 1ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
@@ -1506,9 +1494,9 @@ svg.map-canvas {
  * box-shadow (see `.when-field__group` in `components.css`), and an interface with no visible
  * focus is not a saving, it is a wall. `*:not(:focus-visible)` keeps exactly that one.
  */
-:root:is([data-power='super'], [data-power='last']) *:not(.wrapped-stage, .wrapped-stage *),
-:root:is([data-power='super'], [data-power='last']) *:not(.wrapped-stage, .wrapped-stage *)::before,
-:root:is([data-power='super'], [data-power='last']) *:not(.wrapped-stage, .wrapped-stage *)::after {
+:root:is([data-power='super'], [data-power='last']) *,
+:root:is([data-power='super'], [data-power='last']) *::before,
+:root:is([data-power='super'], [data-power='last']) *::after {
   animation: none !important;
   animation-delay: 0ms !important;
   transition: none !important;
@@ -1521,9 +1509,9 @@ svg.map-canvas {
 
 /* Shadows, with that one focus ring left alone — and nothing else, so a focused control is as
    still as every other one. */
-:root:is([data-power='super'], [data-power='last']) *:not(.wrapped-stage, .wrapped-stage *):not(:focus-visible),
-:root:is([data-power='super'], [data-power='last']) *:not(.wrapped-stage, .wrapped-stage *)::before,
-:root:is([data-power='super'], [data-power='last']) *:not(.wrapped-stage, .wrapped-stage *)::after {
+:root:is([data-power='super'], [data-power='last']) *:not(:focus-visible),
+:root:is([data-power='super'], [data-power='last']) *::before,
+:root:is([data-power='super'], [data-power='last']) *::after {
   box-shadow: none !important;
 }
 
