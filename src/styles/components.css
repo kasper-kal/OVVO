@@ -9103,6 +9103,7 @@
 /* What is not the accent button is white and underlined, never a grey whisper. */
 .wrapped-stage .wrapped-actions button:not([class*='accent']) {
   opacity: 1;
+  color: inherit;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
