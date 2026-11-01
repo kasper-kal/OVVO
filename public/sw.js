@@ -34,7 +34,7 @@
  * `v2` drops the old cache on activate, so a phone carrying a poisoned one is clean once, and the
  * two rules below make sure it cannot happen again.
  */
-const CACHE = 'ovvo-shell-v2';
+const CACHE = 'ovvo-shell-v3';
 const SHELL = ['/', '/index.html', '/favicon.svg'];
 
 /**
@@ -78,7 +78,8 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      /* `no-store`, so a navigation cannot be answered by the HTTP cache either. */
+      fetch(request, { cache: 'no-store' })
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();

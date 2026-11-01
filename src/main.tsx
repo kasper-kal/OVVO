@@ -113,6 +113,35 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 }
 
 /**
+ * **An old copy of the app replaces itself, once, instead of living on.**
+ *
+ * The worker keeps the shell so the app opens offline. The cost of that arrived on 1 November 2026:
+ * a browser holding the page from before a deploy kept drawing **the previous build** - old labels,
+ * a settings card that had already been rewritten - because nothing told it a newer one existed.
+ * A reload served the cached page again, so from the outside it looked as if the deploy had not
+ * happened. It had; the page was simply never asked to check.
+ *
+ * Two things fix the cause. On every load the worker is asked to look for a newer version of
+ * itself, and when one takes control the page reloads **once**, so the traveller sees the build
+ * that exists rather than the one in their pocket. The reload only happens when a worker was
+ * already in charge, so a first visit is not reloaded for no reason.
+ */
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  const hadWorker = navigator.serviceWorker.controller !== null;
+  let reloading = false;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadWorker || reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.getRegistration().then((registration) => registration?.update());
+  });
+}
+
+/**
  * **The "browser is too old" note is taken down by the app itself.**
  *
  * `index.html` shows it when its own check says this browser cannot read the bundle. The check is
