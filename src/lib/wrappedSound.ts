@@ -377,3 +377,17 @@ function stopPad(): void {
 export function currentTrack(): Track | null {
   return current;
 }
+
+/**
+ * **How far through this chapter's song the deck is.**
+ *
+ * The segments at the top of the story fill with the music rather than with a timer, because the song
+ * is what ends the chapter. Nothing is returned before a tap, or while the score is muted, or before a
+ * file has said how long it is: a segment that guesses would be a progress bar that lies.
+ */
+export function scoreProgress(): number | null {
+  if (!playing || !active) return null;
+  const { duration, currentTime } = active.el;
+  if (!Number.isFinite(duration) || duration <= 0) return null;
+  return Math.min(1, Math.max(0, currentTime / duration));
+}

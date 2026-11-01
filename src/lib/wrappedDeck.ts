@@ -290,7 +290,7 @@ export function buildStory({
       kicker: String(year),
       big: 'That was the year.',
       line: 'Every number here comes from journeys you planned in this app, and nothing else.',
-      note: 'OVVO counts what you planned, not what you caught. It never sees you get on.',
+      note: 'OVVO counts what you planned, not what you caught.',
     },
   ];
 

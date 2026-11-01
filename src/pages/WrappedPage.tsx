@@ -9,7 +9,15 @@ import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { playChapter, scoreTime, startSound, stopSound, whenTrackEnds } from '../lib/wrappedSound';
+import {
+  playChapter,
+  scoreProgress,
+  scoreTime,
+  startSound,
+  stopSound,
+  whenTrackEnds,
+} from '../lib/wrappedSound';
+import { cardData, shareCardImage, type CardData } from '../lib/wrappedCard';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 
 /** How many dots fly out of the year's total when it lands. */
@@ -70,7 +78,7 @@ export function WrappedPage() {
   const [sound, setSound] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [shareState, setShareState] = useState<'idle' | 'busy' | 'done'>('idle');
 
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
   const last = index >= story.length - 1;
@@ -154,32 +162,30 @@ export function WrappedPage() {
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
 
   /*
-   * **What gets copied is a sentence, not a chapter.**
+   * **The share is the card, not the words.**
    *
-   * It used to be glued together from a chapter's own line, which is written to sit under a big
-   * number ("21") and therefore leaves the number out: the copy read "times from Amsterdam Centraal
-   * to Haarlem Station." with nothing in front of it. A share is read on its own, in somebody else's
-   * chat, so it says everything it needs in one line.
+   * It used to copy a sentence to the clipboard, which nobody pastes anywhere. The last screen now
+   * draws the year as a 1080-wide picture and hands that to the phone's share sheet, with a download
+   * behind it for a browser that cannot share files. The figures are the ones the chapters printed,
+   * so the picture and the screen never disagree.
    */
-  const share = async () => {
-    const route = story.find((item) => item.kind === 'route');
-    const text = route?.route
-      ? t('In {year} I planned {count} journeys with OVVO. {times} of them were {from} to {to}.', {
-          year,
-          count: tally.runs.length,
-          times: route.route.count,
-          from: route.route.from,
-          to: route.route.to,
-        })
-      : t('In {year} I planned {count} journeys with OVVO.', { year, count: tally.runs.length });
+  const card = useMemo(() => cardData(story, year), [story, year]);
+
+  const shareYear = async () => {
+    if (shareState === 'busy') return;
+    setShareState('busy');
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2600);
+      await shareCardImage(card);
+      setShareState('done');
+      window.setTimeout(() => setShareState('idle'), 2800);
     } catch {
-      setCopied(false);
+      setShareState('idle');
     }
   };
+
+  /* The segment for this chapter fills with the song; written to the node, never through state. */
+  const progress = useRef<HTMLElement | null>(null);
+  useSegmentFill(progress, started && !last);
 
   return (
     <div
@@ -211,25 +217,63 @@ export function WrappedPage() {
         const dx = event.clientX - dragStart.current;
         setDrag(null);
         setDragX(0);
-        if (Math.abs(dx) < 60) return;
-        step(dx < 0 ? 1 : -1);
+        if (Math.abs(dx) >= 60) {
+          step(dx < 0 ? 1 : -1);
+          return;
+        }
+        /*
+         * **A tap is a tap to move.**
+         *
+         * Every story a traveller has ever held moves on a tap: the right of the screen goes on, the
+         * left goes back. The deck only listened for a swipe, so a tap did nothing and the story felt
+         * stuck between the two. The cover is the exception, because Begin is the gesture that starts
+         * the score and a tap that skips it would start the story in silence.
+         */
+        if (chapter.kind === 'cover') return;
+        const target = event.target;
+        if (target instanceof Element && target.closest('button, a, input, select, textarea, [role="button"]')) {
+          return;
+        }
+        step(event.clientX < window.innerWidth * 0.28 ? -1 : 1);
       }}
       onPointerCancel={() => {
         setDrag(null);
         setDragX(0);
       }}
     >
+      {/*
+        * Ten segments: how long the story is, how far in you are, and how much of this chapter's song
+        * is left. The old deck removed the count when it removed the progress bar, which left the
+        * story with no sense of its own length.
+        */}
+      <nav className="wrapped-progress" ref={progress} aria-hidden="true">
+        {story.map((item, which) => (
+          <i
+            key={item.id}
+            className={which < index ? 'is-done' : which === index ? 'is-now' : undefined}
+          />
+        ))}
+      </nav>
+
+      {/* One continuous light under every chapter: it drifts and breathes for as long as the chapter runs. */}
+      <span className="wrapped-aurora" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+
       {/* The look's own photograph, behind everything, when that look has one. */}
       {chapter.kind === 'word' && chapter.photo ? (
-        <img
-          className="wrapped-photo"
-          src={chapter.photo}
-          alt=""
-          aria-hidden="true"
-          onError={(event) => {
-            event.currentTarget.style.display = 'none';
-          }}
-        />
+        <span className="wrapped-photo-wrap" aria-hidden="true">
+          <img
+            className="wrapped-photo"
+            src={chapter.photo}
+            alt=""
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }}
+          />
+        </span>
       ) : null}
 
       <header className="wrapped-top">
@@ -300,19 +344,6 @@ export function WrappedPage() {
                 >
                   {t('Begin')}
                 </Button>
-                {sound ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSound(false);
-                      setStarted(true);
-                      go(1);
-                    }}
-                  >
-                    {t('Skip the sound')}
-                  </Button>
-                ) : null}
               </div>
             </>
           ) : (
@@ -385,12 +416,13 @@ export function WrappedPage() {
 
               {chapter.kind === 'bars' && chapter.bars ? (
                 <>
+                  {/* The same twenty-four columns as the pillars, so no label floats off its hour. */}
                   <span className="wrapped-ruler" aria-hidden="true">
-                    <i>00</i>
-                    <i>06</i>
-                    <i>12</i>
-                    <i>18</i>
-                    <i>23</i>
+                    {[0, 6, 12, 18, 23].map((hour) => (
+                      <i key={hour} style={{ gridColumnStart: hour + 1 } as CSSProperties}>
+                        {String(hour).padStart(2, '0')}
+                      </i>
+                    ))}
                   </span>
                   <div className="wrapped-bars" style={{ '--i': 1 } as CSSProperties} aria-hidden="true">
                   {chapter.bars.map((value, hour) => (
@@ -453,6 +485,9 @@ export function WrappedPage() {
                   {t(chapter.note)}
                 </p>
               ) : null}
+
+              {/* The last screen is the thing you can send, laid out the way the shared picture is. */}
+              {chapter.kind === 'close' ? <SummaryCard data={card} /> : null}
             </>
           )}
         </div>
@@ -472,8 +507,8 @@ export function WrappedPage() {
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
-              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
-                {copied ? t('Copied') : t('Copy my year')}
+              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void shareYear()}>
+                {shareState === 'done' ? t('Saved') : t('Share my year')}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => go(0)}>
                 {t('Start again')}
@@ -655,8 +690,64 @@ function Chip({
 
   return (
     <li className="wrapped-chip" style={{ '--i': index } as CSSProperties}>
-      <span>{label}</span>
+      <span className="wrapped-chip__rank">{String(index + 2).padStart(2, '0')}</span>
+      <span className="wrapped-chip__name">{label}</span>
       <strong>{numeric ? (counting ? shown : target) : detail}</strong>
     </li>
+  );
+}
+
+/**
+ * **The segment fills with the song.**
+ *
+ * Reading the audio sixty times a second and putting the answer in React state would re-render the
+ * whole story sixty times a second. This writes one custom property straight onto the node instead,
+ * which is a single style write, and the stylesheet does the rest.
+ */
+function useSegmentFill(ref: { current: HTMLElement | null }, active: boolean): void {
+  useEffect(() => {
+    if (!active) return undefined;
+    let frame = 0;
+    const tick = () => {
+      const node = ref.current;
+      if (node) {
+        const percent = scoreProgress();
+        node.style.setProperty('--p', percent === null ? '0' : percent.toFixed(4));
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [active, ref]);
+}
+
+/**
+ * **The card you can send.**
+ *
+ * The same four figures the chapters printed, on the same dark ground, laid out in the shape of the
+ * picture the share button draws. What the traveller sees on the last screen is a preview of what
+ * lands in their camera roll, rather than a goodbye paragraph with a button under it.
+ */
+function SummaryCard({ data }: { data: CardData }) {
+  return (
+    <div className="wrapped-card">
+      <span className="wrapped-card__brand">OVVO Wrapped {data.year}</span>
+      <span className="wrapped-card__tag">{data.archetype}</span>
+      {data.route ? (
+        <span className="wrapped-card__rail">
+          <i />
+          <b>{data.route.from}</b>
+          <b>{data.route.to}</b>
+        </span>
+      ) : null}
+      <ul className="wrapped-card__stats">
+        {data.stats.map((stat) => (
+          <li key={stat.label}>
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
