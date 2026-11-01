@@ -1210,6 +1210,9 @@ svg.map-canvas {
      simply fades in place. */
   min-height: 0;
   overflow: hidden;
+  /* The padding shrinks with the row, or the strip stops 16px short of gone and hangs as a sliver
+     of empty dark. */
+  transition: padding 240ms var(--ease-out);
 }
 
 /* On its way out: the row closes, the rule under it goes, and the whole thing fades a little
@@ -1218,6 +1221,10 @@ svg.map-canvas {
   grid-template-rows: 0fr;
   opacity: 0;
   border-bottom-width: 0;
+}
+
+.offline-bar--leaving .offline-bar__inner {
+  padding-block: 0;
 }
 
 :root[data-motion='reduced'] .offline-bar {
