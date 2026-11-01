@@ -9,6 +9,7 @@ import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
 import { APP_WIRE_BYTES, transferMs } from '../lib/link';
+import { Icon } from '../components/ui/Icons';
 
 /**
  * The developer panel — what this browser believes about the device.
@@ -289,6 +290,15 @@ export function DeveloperPage() {
                   onChange={(event) => applyClock(event.target.value)}
                   aria-label={t('Date and time')}
                 />
+                {/*
+                  The app's own mark, in the lane the stylesheet reserves for it. The browser's own
+                  glyph is still underneath this one - invisible, and still the thing a tap opens -
+                  because Chrome on Android paints that glyph on the field's edge and will not be
+                  moved by any padding.
+                */}
+                <span className="dev-datetime__mark" aria-hidden="true">
+                  <Icon name="chevronDown" size={18} />
+                </span>
               </div>
             </Field>
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
