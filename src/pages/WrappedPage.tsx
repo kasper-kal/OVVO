@@ -259,9 +259,16 @@ export function WrappedPage() {
                 </div>
               ) : (
                 <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
-                  {chapter.count !== undefined ? count : chapter.big}
+                  {chapter.kind === 'word' || chapter.count === undefined ? chapter.big : count}
                 </p>
               )}
+
+              {chapter.kind === 'word' && chapter.count !== undefined ? (
+                <p className="wrapped-days" style={{ '--i': 2 } as CSSProperties}>
+                  {count}
+                  <span>{chapter.count === 1 ? t('day') : t('days')}</span>
+                </p>
+              ) : null}
 
               {chapter.kind === 'number' ? (
                 <>

@@ -8031,7 +8031,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: currentColor;
+  background: repeating-linear-gradient(to bottom, currentColor 0 9px, transparent 9px 18px);
   transform-origin: top center;
   animation: wrapped-draw-down 1100ms 220ms var(--ease-out) both;
 }
@@ -8336,25 +8336,41 @@
 /* ---------------------------------------------------------------------- the look */
 .wrapped-body--word {
   align-content: center;
-  gap: clamp(10px, 2.2vh, 20px);
+  gap: clamp(4px, 1.2vh, 12px);
 }
 
+/*
+ * **The look as a stamp and a number.**
+ *
+ * The name is the chapter's title and takes the width it needs; the days are what the chapter is
+ * actually measuring, so they get the enormous type, with the word "days" riding their baseline. One
+ * composition, two weights of voice, and nothing else on the screen.
+ */
 .wrapped-body--word .wrapped-big {
-  font-size: clamp(58px, 20vw, 178px);
-  line-height: 0.88;
-  letter-spacing: -0.045em;
-  font-weight: 700;
+  font-size: clamp(40px, 12.5vw, 104px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  font-weight: 680;
+  opacity: 0.92;
 }
 
-/* A rule that draws itself under the look, in the colour of the chapter. */
-.wrapped-body--word .wrapped-big::after {
-  content: '';
-  display: block;
-  height: 6px;
-  margin-top: clamp(10px, 2vh, 18px);
-  background: currentColor;
-  transform-origin: left center;
-  animation: wrapped-sweep-across 900ms 280ms var(--ease-out) both;
+.wrapped-days {
+  display: flex;
+  align-items: baseline;
+  gap: 0.16em;
+  margin: clamp(2px, 1vh, 8px) 0 0;
+  font-size: clamp(96px, 33vw, 300px);
+  line-height: 0.78;
+  letter-spacing: -0.06em;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapped-days span {
+  font-size: 0.2em;
+  letter-spacing: -0.01em;
+  font-weight: 650;
+  opacity: 0.66;
 }
 
 /* ----------------------------------------------------------------- the two lists */

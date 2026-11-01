@@ -252,7 +252,9 @@ export function buildStory({
           track: 'dark-trap',
           kicker: 'The look you wore',
           big: named,
-          line: `${wearDays} ${wearDays === 1 ? 'day' : 'days'} in this look.`,
+          /* The days are the number the chapter turns on, so they get the size a number gets. */
+          count: wearDays,
+          line: 'in this look.',
         }
       : null,
     lineList.length
