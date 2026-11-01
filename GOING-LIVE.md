@@ -144,3 +144,18 @@ the site's address and it does not exist until the Cloudflare side is named.
 - **The cost of it:** the Firebase sign-in code adds about 230 kB (gzipped) to the bundle, because
   every screen ships in one file by design. Worth splitting out later if first load is measured to
   suffer on a phone.
+
+## How account data is kept (1 November 2026)
+
+Signed out, every value lives in this browser only — that is unchanged, and the account card says so.
+
+Signed in, the whole store is one document per account in D1 (`travel_sync`), pushed automatically
+1.5 seconds after any change and pulled on every page load. **The account is the copy that counts**
+once a device has met it: a device that is behind adopts the account's document as it stands, so a
+favourite or journey removed on one phone is removed on the other instead of being resurrected by an
+old local list. A device that has never synced only has its gaps filled, so the first sign-in can
+never empty a phone that was already in use. Two exceptions travel in the document but are never
+taken back from it, because they describe the device and not the traveller: `location-consent`,
+`location-fix`, `approximate-location` and `install-asked`.
+
+Deleting the account erases that document first, then the account itself.
