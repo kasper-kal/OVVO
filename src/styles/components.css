@@ -3735,13 +3735,23 @@
 
 .dev-speed__go {
   position: absolute;
-  top: 50%;
+  /*
+   * **Centred by the box, not by a transform.**
+   *
+   * This was `top: 50%` plus `transform: translateY(-50%)`, and a press sets its own transform -
+   * so pressing the button threw the centring away and the disc dropped by half its height, out
+   * through the bottom of the field (reported: "when you press it, it moves down for some reason").
+   * Auto margins on a box pinned to both edges centre it without touching `transform` at all, so
+   * the press is free to move it by its own pixel and nothing else.
+   */
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
   right: 6px;
   width: 40px;
   height: 40px;
   min-height: 40px;
   padding: 0;
-  transform: translateY(-50%);
 }
 
 /*
