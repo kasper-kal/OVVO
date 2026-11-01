@@ -1055,7 +1055,17 @@
   padding: 0 var(--s-3);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  /*
+   * **A field is a capsule, because what sits inside it is round.**
+   *
+   * The squircle was the input's shape while every other control in the app - switches, chips,
+   * buttons, the disc inside a field - is a pill. A round button in a rounded rectangle reads as a
+   * circle pushed into a box, which is what was reported as "the search box is square and the button
+   * is round" (the speed field, with its tick disc). Twenty pixels on a 44px box was not even a
+   * squircle: it left flat top and bottom edges and a visibly different end from the disc beside it.
+   * The textarea keeps the squircle below, because a capsule eight lines tall is not a capsule.
+   */
+  border-radius: var(--r-pill);
   color: var(--ink-strong);
   font-size: var(--fs-body);
   font-weight: var(--fw-medium);
@@ -1067,6 +1077,8 @@
   padding: var(--s-3);
   min-height: 88px;
   resize: vertical;
+  /* The one field that is a box rather than a capsule: it holds sentences, not a value. */
+  border-radius: var(--r-input);
 }
 
 .input::placeholder,
@@ -1159,7 +1171,7 @@
   gap: var(--s-1);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  border-radius: var(--r-pill);
   padding: 0 var(--s-1) 0 var(--s-3);
   min-height: 52px;
 }
@@ -2530,7 +2542,17 @@
   padding: 0 var(--s-3);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  /*
+   * **A field is a capsule, because what sits inside it is round.**
+   *
+   * The squircle was the input's shape while every other control in the app - switches, chips,
+   * buttons, the disc inside a field - is a pill. A round button in a rounded rectangle reads as a
+   * circle pushed into a box, which is what was reported as "the search box is square and the button
+   * is round" (the speed field, with its tick disc). Twenty pixels on a 44px box was not even a
+   * squircle: it left flat top and bottom edges and a visibly different end from the disc beside it.
+   * The textarea keeps the squircle below, because a capsule eight lines tall is not a capsule.
+   */
+  border-radius: var(--r-pill);
   color: var(--ink-strong);
   font-size: var(--fs-body);
   font-weight: var(--fw-medium);
@@ -2542,6 +2564,8 @@
   padding: var(--s-3);
   min-height: 88px;
   resize: vertical;
+  /* The one field that is a box rather than a capsule: it holds sentences, not a value. */
+  border-radius: var(--r-input);
 }
 
 .input::placeholder,
@@ -2588,7 +2612,7 @@
   gap: var(--s-1);
   background: var(--l2-bg);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  border-radius: var(--r-pill);
   padding: 0 var(--s-1) 0 var(--s-3);
   min-height: 52px;
 }
@@ -6871,7 +6895,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--r-input);
+  /* A two-slot capsule: the day and time fields keep their divider, the ends stay round. */
+  border-radius: var(--r-pill);
   background: var(--l2-bg);
   overflow: hidden;
 }
