@@ -7581,51 +7581,6 @@
   color: #2a1512;
 }
 
-/* Grain and two slow shapes: the texture and the life behind the type. */
-.wrapped-grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(currentColor 1px, transparent 1px);
-  background-size: 3px 3px;
-  opacity: 0.07;
-  z-index: 0;
-}
-
-.wrapped-blob {
-  position: fixed;
-  width: min(70vmax, 720px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(70px);
-  opacity: 0.22;
-  background: radial-gradient(circle, currentColor 0%, transparent 68%);
-  z-index: 0;
-  animation: wrapped-drift 18s ease-in-out infinite alternate;
-}
-
-.wrapped-blob--a {
-  top: -22vmax;
-  right: -26vmax;
-}
-
-.wrapped-blob--b {
-  bottom: -30vmax;
-  left: -24vmax;
-  animation-duration: 24s;
-  animation-direction: alternate-reverse;
-}
-
-@keyframes wrapped-drift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(-4vmax, 3vmax, 0) scale(1.12);
-  }
-}
-
 /* ------------------------------------------------------------------ the top row */
 .wrapped-top {
   position: relative;
@@ -8579,6 +8534,96 @@
 .wrapped-body--close .wrapped-line {
   font-size: clamp(18px, 4.6vw, 26px);
   max-width: 22ch;
+}
+
+/* ------------------------------------------------------------------ the grounds */
+
+/*
+ * **One ground per chapter, and nothing painted on top of all of them.**
+ *
+ * A dotted grain and two blurred glows sat over every page, so every page had the same texture and read
+ * as the same page with different words. Nothing is shared now: the cover is a warm corner of light, the
+ * line you kept is a transit grid on blue-black, the origins are paper with a band under the tickets, the
+ * hour is a night skyline, straight through is a plum glow behind a dial, the long haul is coral with a
+ * band across the top, the look is its photograph, your lines is a plain board, and the close is a
+ * vignette. The only dots left in the deck are the ones that mean a journey.
+ */
+
+.wrapped-stage[data-chapter='cover'] { background: #0d0d0f; }
+
+.wrapped-stage[data-chapter='cover']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 78% at 84% 96%, #4a3567 0%, transparent 62%);
+}
+
+.wrapped-stage[data-chapter='total'] { background: #0f0f13; }
+
+.wrapped-stage[data-chapter='pair'] { background: #0e1620; }
+
+.wrapped-stage[data-chapter='origin'] { background: #f4ede1; }
+
+.wrapped-stage[data-chapter='origin']::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34vh;
+  z-index: 0;
+  pointer-events: none;
+  background: #e8d9c4;
+}
+
+.wrapped-stage[data-chapter='hour'] { background: #0c1411; }
+
+.wrapped-stage[data-chapter='direct'] { background: #131019; }
+
+.wrapped-stage[data-chapter='direct']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(90% 60% at 50% 42%, #2b2040 0%, transparent 70%);
+}
+
+.wrapped-stage[data-chapter='longest'] { background: #fbe7e2; }
+
+.wrapped-stage[data-chapter='longest']::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 9vh;
+  z-index: 0;
+  pointer-events: none;
+  background: #2a1512;
+}
+
+.wrapped-stage[data-chapter='lines'] { background: #f7f5ef; }
+
+.wrapped-stage[data-chapter='close'] { background: #0b0b0d; }
+
+.wrapped-stage[data-chapter='close']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(110% 70% at 50% 110%, #26262b 0%, transparent 68%);
+}
+
+/* A chapter's own content always sits above its ground. */
+.wrapped-stage[data-chapter] .wrapped-top,
+.wrapped-stage[data-chapter] .wrapped-body,
+.wrapped-stage[data-chapter] .wrapped-foot {
+  position: relative;
+  z-index: 2;
 }
 
 /* ------------------------------------------------------------------ the surfaces */

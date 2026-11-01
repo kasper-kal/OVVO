@@ -189,10 +189,6 @@ export function WrappedPage() {
         setDragX(0);
       }}
     >
-      <span className="wrapped-grain" aria-hidden="true" />
-      <span className="wrapped-blob wrapped-blob--a" aria-hidden="true" />
-      <span className="wrapped-blob wrapped-blob--b" aria-hidden="true" />
-
       {/* The look's own photograph, behind everything, when that look has one. */}
       {chapter.kind === 'word' && chapter.photo ? (
         <img
