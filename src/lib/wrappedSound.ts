@@ -95,6 +95,9 @@ let playing = false;
 let broken = false;
 let pad: { stop: () => void } | null = null;
 let onEnd: (() => void) | null = null;
+/** The last thing a play() said when it would not start, for the report. */
+let refusal: string | null = null;
+
 /** Whether this track has already asked for the next chapter, so it only ever asks once. */
 let turned = false;
 
@@ -224,7 +227,9 @@ function spin(track: Track, next?: Track): void {
   if (live) {
     turned = false;
     const started = live.el.play();
-    if (started) void started.catch(() => undefined);
+    if (started) void started.catch((error: unknown) => {
+      refusal = String((error as Error)?.name || error);
+    });
     ramp(live.gain, TRIM[track], 0.35, ctx);
     current = track;
     prefetch(next);
@@ -236,9 +241,15 @@ function spin(track: Track, next?: Track): void {
   load(incoming, track);
   const started = incoming.el.play();
   if (started) {
-    void started.catch(() => {
-      broken = true;
-      if (playing) startPad();
+    void started.catch((error: unknown) => {
+      /*
+       * **A refused play is a permission, not a verdict on the file.**
+       *
+       * This used to set the `broken` flag, which swapped every later chapter for the fallback pad: one
+       * refusal on a phone and the score was finished for the visit. It is recorded now, so the report
+       * can name it, and the next touch plays again.
+       */
+      refusal = String((error as Error)?.name || error);
     });
   }
   ramp(incoming.gain, TRIM[track], FADE_IN, ctx);
@@ -264,6 +275,8 @@ function spin(track: Track, next?: Track): void {
 
 /** Ask for the score. Must be called from a gesture: a browser will not start audio without one. */
 export function startSound(track: Track, next?: Track): void {
+  /* A gesture is a fresh chance: an earlier refusal must not silence this one. */
+  broken = false;
   const ctx = audio();
   if (!ctx || !master) return;
   if (ctx.state === 'suspended') void ctx.resume();
@@ -318,7 +331,13 @@ export function warmSound(): void {
   const ctx = audio();
   if (!ctx) return;
   if (ctx.state === 'suspended') void ctx.resume();
-  ensureSlots();
+  /*
+   * **Only the context, never the players.**
+   *
+   * Building the two players here means routing an element that has no file through the graph, which on
+   * a phone is exactly how a score comes out silent with its clock running. The players are made when a
+   * track is loaded, in the same touch that asks for it.
+   */
 }
 
 /**
@@ -333,7 +352,13 @@ export function resumeSound(track: Track, next?: Track): void {
   const ctx = audio();
   if (!ctx || !master) return;
   if (ctx.state === 'suspended') void ctx.resume();
-  if (ctx.state !== 'running') return;
+  /*
+   * **No waiting for the context to announce itself.**
+   *
+   * This used to bail out unless the context was already `running`, which is precisely the state it is
+   * not in when a phone has refused the first play. Resuming is a request; the play that follows is what
+   * makes it true.
+   */
   const live = active;
   if (live && live.track === track && !live.el.paused && live.el.currentTime > 0.4) return;
   /* A refusal is not a verdict on the file: the next touch is a fresh chance to play it. */
@@ -430,6 +455,29 @@ const TRACK_SECONDS: Record<Track, number> = {
 /** How long a chapter's song runs, in seconds. */
 export function trackSeconds(track: Track): number {
   return TRACK_SECONDS[track];
+}
+
+/**
+ * **What the score is actually doing, in words, for a phone I cannot hear.**
+ *
+ * Shown behind `?sound=debug`. It answers the three questions that separate the causes: is there a
+ * context and is it running, is the player moving, and did a play get refused and by what name.
+ */
+export function soundDiagnostics(): string[] {
+  const lines: string[] = [];
+  lines.push(`context: ${context ? context.state : 'not made'}`);
+  lines.push(`score: ${playing ? 'on' : 'off'}`);
+  lines.push(`level: ${master ? master.gain.value.toFixed(2) : 'none'}`);
+  lines.push(`track: ${active?.track ?? 'none'}`);
+  if (active) {
+    const el = active.el;
+    lines.push(`player: ${el.paused ? 'paused' : 'playing'} at ${el.currentTime.toFixed(1)}s`);
+    lines.push(`ready: ${el.readyState}${el.error ? ` error ${el.error.code}` : ''}`);
+  } else {
+    lines.push('player: none');
+  }
+  lines.push(`refused: ${refusal ?? 'no'}`);
+  return lines;
 }
 
 /** The chapter that is playing, for the tests and for anyone reading the state. */

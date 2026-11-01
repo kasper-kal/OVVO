@@ -9846,3 +9846,23 @@
   opacity: 0.07;
   z-index: 0;
 }
+
+/* The sound report: small, plain, and only there when it is asked for. */
+.wrapped-diag {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}

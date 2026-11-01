@@ -13,6 +13,7 @@ import {
   playChapter,
   resumeSound,
   scoreTime,
+  soundDiagnostics,
   startSound,
   stopSound,
   trackSeconds,
@@ -137,6 +138,20 @@ export function WrappedPage() {
     const timer = window.setTimeout(() => go(index + 1), quiet);
     return () => window.clearTimeout(timer);
   }, [started, last, chapter.track, index, go]);
+
+  /* A report on the score, for a phone that cannot be debugged from here. */
+  const showDiagnostics = useMemo(
+    () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sound') === 'debug',
+    [],
+  );
+  const [diagnostics, setDiagnostics] = useState<string[]>([]);
+  useEffect(() => {
+    if (!showDiagnostics) return undefined;
+    const tick = () => setDiagnostics(soundDiagnostics());
+    tick();
+    const id = window.setInterval(tick, 500);
+    return () => window.clearInterval(id);
+  }, [showDiagnostics]);
 
   /* The keyboard is a reader's way through: arrows, Escape to leave. */
   useEffect(() => {
@@ -279,6 +294,14 @@ export function WrappedPage() {
           </span>
         ))}
       </nav>
+
+      {showDiagnostics ? (
+        <div className="wrapped-diag" aria-live="polite">
+          {diagnostics.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
+        </div>
+      ) : null}
 
       <header className="wrapped-top">
         <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
