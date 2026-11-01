@@ -3650,26 +3650,6 @@
   min-width: 0;
 }
 
-.dev-datetime__glyph {
-  position: absolute;
-  top: 50%;
-  right: var(--s-3);
-  display: none;
-  align-items: center;
-  translate: 0 -50%;
-  color: var(--ink-muted);
-  pointer-events: none;
-}
-
-@supports selector(::-webkit-calendar-picker-indicator) {
-  .dev-datetime .input::-webkit-calendar-picker-indicator {
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .dev-datetime__glyph {
-    display: inline-flex;
-  }
 }
 
 /*
