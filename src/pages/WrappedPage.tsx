@@ -271,15 +271,16 @@ export function WrappedPage() {
           <Icon name="close" size={20} />
         </button>
         {/*
-          * The switch says what a thumb will get, not what is already true: while the score plays it
-          * reads "Sound off". Naming the state instead made a button that said "Sound on" and turned
-          * the music off, which reads as broken even though it was doing what it was told.
+          * **The switch says what a thumb will get, not what is already true.**
+          *
+          * While the score is playing it reads "Sound off", because that is what pressing it does. The
+          * steerer asked for it this way, and he is right that it is the plainer reading: a control that
+          * describes its own action needs no legend, and no coloured light beside it either.
           */}
         <button
           type="button"
           className="wrapped-sound"
-          aria-pressed={sound}
-          aria-label={sound ? t('Sound on') : t('Sound off')}
+          aria-label={sound ? t('Sound off') : t('Sound on')}
           onClick={() => {
             if (sound) {
               stopSound();
@@ -290,8 +291,7 @@ export function WrappedPage() {
             }
           }}
         >
-          <i className="wrapped-sound__led" aria-hidden="true" />
-          <span>{sound ? t('Sound on') : t('Sound off')}</span>
+          <span>{sound ? t('Sound off') : t('Sound on')}</span>
         </button>
       </header>
 
