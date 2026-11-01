@@ -1127,7 +1127,22 @@
 }
 
 @supports selector(::-webkit-calendar-picker-indicator) {
+  /*
+   * **The platform's mark is switched off, not just faded.**
+   *
+   * `opacity: 0` was not enough: Chrome for Android still paints its own chevron beside the app's,
+   * so the field showed two (reported, twice, with a screenshot of a chevron at each end of the
+   * lane). `appearance: none` is the switch that actually removes the control's own furniture. The
+   * field stays a date and time input - a tap still opens the device's picker - it simply arrives
+   * without a mark of its own, which is what leaves room for exactly one.
+   */
+  .dev-datetime .input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   .dev-datetime .input::-webkit-calendar-picker-indicator {
+    display: none;
     opacity: 0;
     cursor: pointer;
   }
