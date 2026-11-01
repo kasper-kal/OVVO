@@ -3639,6 +3639,36 @@
 }
 
 /*
+ * The developer panel's speed field: the confirm button lives inside it, at the right end.
+ *
+ * A speed is typed, so the control that takes it is in the box being typed into rather than in a
+ * row of its own, where it would be pressed while looking for the field. The text is inset by the
+ * disc's width plus its own gap, so `10000` cannot run under the tick, and the disc is centred on
+ * the field's height so the two cannot sit a pixel apart.
+ */
+.dev-speed {
+  position: relative;
+  display: flex;
+}
+
+.dev-speed .input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 52px;
+}
+
+.dev-speed__go {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  transform: translateY(-50%);
+}
+
+/*
  * The developer panel's level slider: the knob reaches the ends of its rail.
  *
  * A native range puts the knob's centre half a thumb inside the track at its minimum, so 0% drew a
