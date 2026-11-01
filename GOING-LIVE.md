@@ -117,6 +117,8 @@ the site's address and it does not exist until the Cloudflare side is named.
 - Then: OVVO Wrapped (planned, not built — see `AGENTS.md`).
 
 
+**Everything needed to run this without me is in [HANDOVER.md](HANDOVER.md)** — accounts, names, ids, the commands, and what happens if something is lost.
+
 ## What is live now (1 November 2026)
 
 - **Address:** https://ovvo.vibecreations.workers.dev. Worker name `ovvo`, account subdomain
