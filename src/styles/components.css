@@ -9225,3 +9225,45 @@
 .wrapped-body[data-chapter='lines'] .wrapped-chip strong {
   font-size: clamp(18px, 5vw, 24px);
 }
+
+
+/* ---------------------------------------- the middles, done properly this time */
+
+/*
+ * Spreading rows with `space-between` in a tall region pushed the tickets on page 4 and the board
+ * rows on page 9 to the top and bottom edges and left the hole they were meant to fill. Each row now
+ * takes an equal share of the height and centres its own contents, so the list is the page.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-chips,
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-self: stretch;
+  align-content: stretch;
+  grid-auto-rows: 1fr;
+  gap: clamp(8px, 2vh, 16px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  justify-content: center;
+  gap: 6px;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  align-items: center;
+  padding: clamp(18px, 5vh, 40px) 2px;
+}
+
+/*
+ * Page 7's line sat in a row that stretched to the bottom of the screen, so the sentence drifted
+ * away from the trip it describes. The four things now sit together in the middle, evenly spaced.
+ */
+.wrapped-body--stretch {
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+  gap: clamp(16px, 3.2vh, 32px);
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch {
+  align-self: stretch;
+  height: clamp(120px, 20vh, 180px);
+  margin: 0;
+}
