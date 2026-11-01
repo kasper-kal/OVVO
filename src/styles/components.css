@@ -8701,7 +8701,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.1) 42%, rgba(0, 0, 0, 0.84));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.12) 38%, rgba(0, 0, 0, 0.92));
 }
 
 .wrapped-stage[data-chapter='look'] .wrapped-top,
@@ -8712,9 +8712,23 @@
 }
 
 .wrapped-stage[data-chapter='look'] .wrapped-kicker,
-.wrapped-stage[data-chapter='look'] .wrapped-line,
 .wrapped-stage[data-chapter='look'] .wrapped-count {
   opacity: 0.9;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-line {
+  opacity: 1;
+  color: #fff;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(20px, 5.4vw, 30px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #fff;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  opacity: 0.8;
 }
 
 /* The lines chapter reads as a departure board: rows, rules, counts on the right. */
@@ -8781,8 +8795,8 @@
 .wrapped-stage[data-chapter='total'] .wrapped-big {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-weight: 600;
-  font-size: min(40vw, 260px);
-  letter-spacing: -0.05em;
+  font-size: min(35vw, 230px);
+  letter-spacing: -0.055em;
 }
 
 .wrapped-stage[data-chapter='total'] .wrapped-kicker {
