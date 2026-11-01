@@ -75,8 +75,12 @@ account, and phone sign-in costs per message.
 
 ## Secrets and values
 
-Nothing secret is ever written into a file in this project, a commit, or a chat message. They
-go in **Settings → Secrets**, and the build reads them from there.
+**There is no Settings → Secrets screen** in the steerer's client. He said so on 1 November 2026,
+and he was right; that instruction was mine and it was wrong.
+
+They go in **`.env`** in the project root, which `.gitignore` now excludes. `.env` is a note to
+the build on this machine, and **Cloudflare never reads it**: the Firebase values reach the site
+by being baked into the built code, and the token never reaches the site at all.
 
 Expected names:
 

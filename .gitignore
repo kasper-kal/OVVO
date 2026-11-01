@@ -7,3 +7,8 @@ dist/
 
 # Working screenshots from a chat session, not deliverables.
 artifacts/
+
+# Local settings and secrets, never committed
+.env
+.env.local
+.env.*.local
