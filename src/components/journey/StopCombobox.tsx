@@ -10,6 +10,14 @@ import { useT } from '../../lib/useT';
 import { Pill } from '../ui/primitives';
 import type { Stop } from '../../data/types';
 
+/**
+ * The panel's own edges, counted the way the cap counts them: the padding above the first row plus
+ * its border, and the padding under the last one. They live here rather than inside the measurement
+ * because the "more rows than fit" test reads them too.
+ */
+const PANEL_ABOVE_ROWS = 10;
+const PANEL_BELOW_ROWS = 8;
+
 interface Props {
   id: string;
   label: string;
@@ -216,8 +224,8 @@ export function StopCombobox({
        */
       const rows = Array.from(rootRef.current?.querySelectorAll<HTMLElement>('.suggestion') ?? []);
       /* The panel's own edges: 8px above the rows, a 1px border each side, 8px under the last row. */
-      const above_rows = 10;
-      const below_rows = 8;
+      const above_rows = PANEL_ABOVE_ROWS;
+      const below_rows = PANEL_BELOW_ROWS;
       /*
        * **The list always hangs downwards.**
        *
@@ -339,6 +347,27 @@ export function StopCombobox({
     const ranked = rankStops(query, favouriteStopIds, { origin: nearestOrigin });
     return filter ? ranked.filter(filter) : ranked;
   }, [query, favouriteStopIds, filter, nearestOrigin]);
+
+  /*
+   * **Whether the panel is missing its bottom padding is re-decided whenever the list changes.**
+   *
+   * `suggestions--more` takes the 8px under the last row away, because a scrollport clips at its
+   * padding box and that padding becomes a window onto the top of the next row. The flag used to be
+   * set once, when the list opened — and the list opens on an empty field, where every stop in the
+   * country is a row and the panel is certainly too small for them. Typing then narrowed it to a
+   * single result and nothing re-decided, so one row sat flush against the panel's own edge with no
+   * padding under it, which is the shape reported as "the bottom padding issue is back". Rows are
+   * measured here rather than the scrollport, so dropping the padding cannot feed back into the
+   * measurement and flip the flag on and off.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const list = rootRef.current?.querySelector<HTMLElement>('.suggestions');
+    if (!list) return;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>('.suggestion'));
+    const total = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0);
+    setMore(rows.length > 0 && total + PANEL_ABOVE_ROWS + PANEL_BELOW_ROWS > cap);
+  }, [open, suggestions.length, cap]);
 
   /*
    * The stop whose code and modes are shown in the hint line under the field.
