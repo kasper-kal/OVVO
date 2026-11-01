@@ -26,10 +26,10 @@ const BURST = 14;
  * the chapter, and so does the shape of the page, which is the difference between a story and a
  * slideshow.
  *
- * Ten chapters, not ten pages. There is no progress bar and no "4 / 10": those two things made the
- * deck read as one document with a page count, and every screen walked in with the same slide. Each
- * chapter now carries its own numeral in its own type, and each one enters its own way — a wipe, a
- * rise from the floor, a deal, a zoom, a cut.
+ * Ten chapters, not ten pages. The progress bar went, because a bar across the top is a document; the
+ * count stayed, because a traveller wants to know how far in they are. Each chapter carries its own
+ * number in its own type, and each one enters its own way — a wipe, a rise from the floor, a deal, a
+ * zoom, a cut.
  *
  * Movement is the story too, and it runs on the song rather than beside it: the cover's dot goes
  * round its ring once a bar, the year's journeys fill in on the beat, the rail's train steps down it,
@@ -466,7 +466,7 @@ export function WrappedPage() {
               role="status"
               aria-label={t('Chapter {n} of {total}', { n: index + 1, total: story.length })}
             >
-              {String(index + 1).padStart(2, '0')}
+              {String(index + 1).padStart(2, '0')} / {story.length}
             </span>
           )}
 

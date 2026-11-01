@@ -7582,13 +7582,25 @@
 }
 
 /* ------------------------------------------------------------------ the top row */
+/*
+ * **The corner is the app's corner, not the deck's.**
+ *
+ * Every other screen puts its way back in a 44px disc whose left edge is the page gutter, 12px from
+ * the edge of a phone, with its top 20px down. The deck drew its own: padding of its own, so the X
+ * landed at 23.4px across and 16px down — a thumb's width right of the arrow it replaces, and four
+ * pixels high, on the one screen a traveller arrives at from a button they have used a hundred times.
+ * The row is now pulled out to that gutter and stepped down to that line, so the X and the arrow
+ * beside it are the same control in the same place.
+ */
 .wrapped-top {
   position: relative;
   z-index: 3;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 0 10px;
+  margin-inline: calc(12px - var(--pad-x));
+  margin-top: max(0px, calc(20px - max(env(safe-area-inset-top), 10px)));
+  padding: 0 0 10px;
   flex: none;
 }
 
@@ -9303,18 +9315,18 @@
  * beat brings twelve journeys forward at a time, so the page is full and still moving.
  */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-field i {
-  opacity: 0.14;
+  opacity: 0.32;
   animation: wrapped-fill var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) both;
   animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 12);
 }
 
 @keyframes wrapped-fill {
   from {
-    opacity: 0.14;
+    opacity: 0.32;
     scale: 0.72;
   }
   to {
-    opacity: 0.62;
+    opacity: 0.8;
     scale: 1;
   }
 }
@@ -9513,12 +9525,20 @@
   margin-left: auto;
 }
 
+/*
+ * **The counter is back.**
+ *
+ * Removing the "4 / 10" was my call and it was wrong: the number of the chapter is not the same thing
+ * as a page count, and taking it away left the story with no sense of how far in it was. It is back as
+ * a chapter count in the chapter's own face — "04 / 10" — with the tracking pulled in so it reads as
+ * one figure rather than two letters spaced apart.
+ */
 .wrapped-chapter {
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
-  opacity: 0.55;
+  opacity: 0.62;
 }
 
 /* A chapter puts its number where that chapter wants it, not where a reader would expect a page. */
