@@ -155,18 +155,11 @@ export default {
         return json({ error: 'server' }, 500);
       }
     }
-    const response = await env.ASSETS.fetch(request);
     /*
-     * **The page is never cached, so a deploy is never invisible.**
-     *
-     * The built files carry a hash in their names and can be cached for ever; the page that names
-     * them cannot. A cached copy of the page is a browser loading last week's bundle and drawing
-     * last week's labels with no way to tell - which is exactly what happened on 1 November 2026.
+     * Assets answer before this Worker does (only `/api/*` is routed here first), so a header set
+     * on the page here would never be sent. The page is served with `max-age=0, must-revalidate`
+     * by Cloudflare, which is the right answer, and the offline copy is handled in `public/sw.js`.
      */
-    const type = response.headers.get('content-type') ?? '';
-    if (!type.includes('text/html')) return response;
-    const fresh = new Response(response.body, response);
-    fresh.headers.set('cache-control', 'no-store');
-    return fresh;
+    return env.ASSETS.fetch(request);
   },
 };
