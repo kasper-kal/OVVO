@@ -54,7 +54,7 @@ export function WrappedPage() {
   const t = useT();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const demo = params.get('demo') === '1';
+  const askedForDemo = params.get('demo') === '1';
   const now = appNow();
 
   const year = useMemo(() => {
@@ -64,7 +64,17 @@ export function WrappedPage() {
     return yearOf(now.getTime());
   }, [params, now]);
 
-  const tally = useMemo(() => (demo ? demoYear(year) : tallyFor(year)), [demo, year]);
+  /*
+   * **An empty year opens the example year, and says so.**
+   *
+   * The steerer's own 2026 holds nothing yet, so the honest two-card deck was the only thing he ever
+   * saw, and he asked for the deck he liked instead of it. So: no journeys in the real year, and the
+   * plain address shows the demo year — with the cover's "Demo year: none of this is real" line on it,
+   * so nothing pretends to be his. A year with journeys in it still shows his own, untouched.
+   */
+  const realTally = useMemo(() => tallyFor(year), [year]);
+  const demo = askedForDemo || realTally.runs.length === 0;
+  const tally = useMemo(() => (demo ? demoYear(year) : realTally), [demo, year, realTally]);
   const story = useMemo(
     () => buildStory({ year, tally, language: settings.language }),
     [year, tally, settings.language],
