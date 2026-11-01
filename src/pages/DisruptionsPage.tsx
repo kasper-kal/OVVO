@@ -18,6 +18,7 @@ import { useT } from '../lib/useT';
 import { alertWords } from '../lib/disruptionText';
 import type { Disruption, DisruptionSeverity, DisruptionType, PublicMode } from '../data/types';
 import { modeLabel } from '../data/preferences';
+import { Select } from '../components/ui/Select';
 
 const SEVERITY_LABEL: Record<DisruptionSeverity, string> = {
   info: 'Information',
@@ -198,7 +199,7 @@ export function DisruptionsPage() {
 
           <label className="field" htmlFor="alerts-sort">
             <span className="field__label">{t('Sort by')}</span>
-            <select
+            <Select
               id="alerts-sort"
               className="select"
               value={activeSort}
@@ -211,7 +212,7 @@ export function DisruptionsPage() {
               <option value="nearest" disabled={!nearestOrigin}>
                 {t('Nearest')}
               </option>
-            </select>
+            </Select>
           </label>
 
           {/* The same chip the stops list and the results screen use, on purpose: one pattern for

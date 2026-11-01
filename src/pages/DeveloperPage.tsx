@@ -10,6 +10,7 @@ import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
 import { APP_WIRE_BYTES, transferMs } from '../lib/link';
 import { Icon } from '../components/ui/Icons';
+import { Select } from '../components/ui/Select';
 
 /**
  * The developer panel — what this browser believes about the device.
@@ -429,7 +430,7 @@ export function DeveloperPage() {
               label={t('One alert at a time')}
               hint={t('Every screen shows only this alert, as if it were the only thing wrong today.')}
             >
-              <select
+              <Select
                 className="input"
                 value={dev.calm ? '' : dev.alertId ?? ''}
                 disabled={dev.calm}
@@ -442,7 +443,7 @@ export function DeveloperPage() {
                     {alert.title}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           </Card>
 

@@ -1170,6 +1170,38 @@
   background: var(--tint-coral);
 }
 
+/*
+ * **The dropdown's box and its mark, kept apart.**
+ *
+ * `Select` renders a `<span>` around the native list so the chevron can be a real element at a
+ * position the layout controls, instead of the platform's own arrow drawn at the field's edge. The
+ * list keeps its own box (`appearance: none` and the pill are on `.select` itself) and the mark
+ * takes the 24px lane the clock field and the results fields use, so every mark in a field is the
+ * same drawing in the same place.
+ */
+.select-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.select-wrap .select {
+  background-image: none;
+  padding-right: 50px;
+}
+
+.select-wrap__mark {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  /* `translate`, not `transform`: a pressed control sets its own transform. */
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
 .select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
@@ -2618,6 +2650,38 @@
 .input[aria-invalid='true'] {
   border-color: var(--accent-primary);
   background: var(--tint-coral);
+}
+
+/*
+ * **The dropdown's box and its mark, kept apart.**
+ *
+ * `Select` renders a `<span>` around the native list so the chevron can be a real element at a
+ * position the layout controls, instead of the platform's own arrow drawn at the field's edge. The
+ * list keeps its own box (`appearance: none` and the pill are on `.select` itself) and the mark
+ * takes the 24px lane the clock field and the results fields use, so every mark in a field is the
+ * same drawing in the same place.
+ */
+.select-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.select-wrap .select {
+  background-image: none;
+  padding-right: 50px;
+}
+
+.select-wrap__mark {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  /* `translate`, not `transform`: a pressed control sets its own transform. */
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
 }
 
 .select {

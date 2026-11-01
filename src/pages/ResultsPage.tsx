@@ -20,6 +20,7 @@ import { useDev } from '../lib/dev';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
+import { Select } from '../components/ui/Select';
 
 /**
  * How far one press of "Earlier" or "Later" moves the window, and how far it may go.
@@ -281,7 +282,7 @@ export function ResultsPage() {
   /*
    * The date and time are the **device's own** pickers, by request.
    *
-   * They were two of the app's own `<select>`s: a list of fourteen days and a list of 288 five-minute steps. That could be read in the app's format, but it asked the traveller to scroll a
+   * They were two of the app's own `<Select>`s: a list of fourteen days and a list of 288 five-minute steps. That could be read in the app's format, but it asked the traveller to scroll a
    * list to answer "when", which is the one question a phone already answers with a calendar and
    * a clock. The native `<input type="date">` and `<input type="time">` open the operating
    * system's own pickers, and they need no JavaScript to do it.
@@ -434,7 +435,7 @@ export function ResultsPage() {
             text node under it, and this one wraps the select itself — so the span alone would give
             the control the name "Sort by Best Fastest Fewest transfers Least walking…".
           */}
-          <select
+          <Select
             id="results-sort"
             className="results-chip__select"
             aria-label={t('Sort by')}
@@ -446,7 +447,7 @@ export function ResultsPage() {
                 {t(option.label)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         {/*
