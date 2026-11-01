@@ -191,7 +191,8 @@ export function WrappedPage() {
         {
           '--beat-ms': `${beatMs(chapter.track)}ms`,
           '--bar-ms': `${barMs(chapter.track)}ms`,
-          '--phase': `${armed && beat ? beat.phase : 0}ms`,
+          '--beat-phase': `${armed && beat ? beat.beatPhase : 0}ms`,
+          '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
         } as CSSProperties
       }
       role="region"
@@ -420,14 +421,14 @@ export function WrappedPage() {
               {chapter.chips?.length ? (
                 <ul className="wrapped-chips">
                   {chapter.chips.map((chip, position) => (
-                    <li
+                    <Chip
                       key={chip.label}
-                      className="wrapped-chip"
-                      style={{ '--i': position } as CSSProperties}
-                    >
-                      <span>{chip.label}</span>
-                      <strong>{chip.detail}</strong>
-                    </li>
+                      label={chip.label}
+                      detail={chip.detail}
+                      index={position}
+                      counting={chapter.id === 'lines'}
+                      rowDelay={position * barMs(chapter.track)}
+                    />
                   ))}
                 </ul>
               ) : null}
@@ -570,8 +571,8 @@ function useBeatAnchor(
   active: boolean,
   track: Chapter['track'],
   key: string,
-): { key: string; phase: number } | null {
-  const [anchor, setAnchor] = useState<{ key: string; phase: number } | null>(null);
+): { key: string; beatPhase: number; barPhase: number } | null {
+  const [anchor, setAnchor] = useState<{ key: string; beatPhase: number; barPhase: number } | null>(null);
   useEffect(() => {
     if (!active) {
       setAnchor(null);
@@ -583,8 +584,14 @@ function useBeatAnchor(
       if (stop) return;
       const at = scoreTime();
       if (at && at.track === track && at.seconds > 0.04) {
-        const { phase } = beatAt(track, at.seconds);
-        setAnchor({ key, phase: phase * beatMs(track) });
+        const { index, phase } = beatAt(track, at.seconds);
+        const beat = beatMs(track);
+        setAnchor({
+          key,
+          beatPhase: phase * beat,
+          /* Which beat of the bar we are in, so a movement can tick a quarter turn per beat. */
+          barPhase: ((index % 4) + phase) * beat,
+        });
         return;
       }
       frame = requestAnimationFrame(find);
@@ -596,4 +603,60 @@ function useBeatAnchor(
     };
   }, [active, track, key]);
   return anchor;
+}
+
+/**
+ * **A board row that counts its own number.**
+ *
+ * The board's counts used to be printed and left there, so the one chapter about lines did not count
+ * anything while every other chapter's figure climbed. Each row now counts up on its own bar, one row
+ * after another, so the board fills in time with the music instead of arriving finished. A row that
+ * is not a number (a name, a platform) is printed as it always was.
+ */
+function Chip({
+  label,
+  detail,
+  index,
+  counting,
+  rowDelay,
+}: {
+  label: string;
+  detail: string;
+  index: number;
+  counting: boolean;
+  rowDelay: number;
+}) {
+  const target = Number(detail);
+  const numeric = Number.isFinite(target) && detail.trim() !== '';
+  /* A counting row starts at zero; a printed row starts at its number. */
+  const [shown, setShown] = useState(counting && numeric ? 0 : numeric ? target : 0);
+
+  useEffect(() => {
+    if (!counting || !numeric) {
+      setShown(numeric ? target : 0);
+      return undefined;
+    }
+    let frame = 0;
+    let started = 0;
+    const tick = (now: number) => {
+      if (!started) started = now;
+      const progress = Math.min(1, (now - started) / 620);
+      setShown(Math.round(target * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    const timer = window.setTimeout(() => {
+      frame = requestAnimationFrame(tick);
+    }, rowDelay);
+    return () => {
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
+  }, [counting, numeric, target, rowDelay]);
+
+  return (
+    <li className="wrapped-chip" style={{ '--i': index } as CSSProperties}>
+      <span>{label}</span>
+      <strong>{numeric ? (counting ? shown : target) : detail}</strong>
+    </li>
+  );
 }

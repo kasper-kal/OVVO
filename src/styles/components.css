@@ -9258,17 +9258,41 @@
  * still: one sits under a photograph, and the other has finished speaking.
  */
 
-/* Page 1 · the ring's dot goes round once every two bars. */
+/* Page 1 · the ring's dot lands a quarter of the turn on every beat. */
 .wrapped-stage.is-beat:not(.is-still) .wrapped-orbit {
-  animation-duration: calc(var(--bar-ms, 2000ms) * 2);
-  animation-delay: calc(-1 * var(--phase, 0ms));
+  animation: wrapped-orbit-step var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
 }
 
-/* Page 2 · one dot per journey, lighting in a wave that keeps time with the beat. */
+@keyframes wrapped-orbit-step {
+  0% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: 90deg;
+  }
+  50% {
+    rotate: 180deg;
+  }
+  75% {
+    rotate: 270deg;
+  }
+  100% {
+    rotate: 360deg;
+  }
+}
+
+/*
+ * Page 2 · a dozen journeys land on every beat.
+ *
+ * Twelve dots is enough that the wave is unmistakable on a beat without the field filling in one go:
+ * a hundred and forty-six at twelve a beat is a little over twelve beats, which is shorter than the
+ * song, so the year is complete before the chapter ends.
+ */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-field i {
   opacity: 0;
-  animation: wrapped-fill 620ms linear both;
-  animation-delay: calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 6);
+  animation: wrapped-fill var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 12);
 }
 
 @keyframes wrapped-fill {
@@ -9284,54 +9308,53 @@
 
 /* The rings over the total push out on the bar instead of on their own private clock. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i {
-  animation-duration: calc(var(--bar-ms, 2000ms) * 2);
-  animation-delay: calc(-1 * var(--phase, 0ms));
+  animation-duration: var(--bar-ms, 2400ms);
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
 }
 
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(2) {
-  animation-delay: calc(-1 * var(--phase, 0ms) + var(--bar-ms, 2000ms) * 2 / 3);
+  animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) / 3);
 }
 
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(3) {
-  animation-delay: calc(-1 * var(--phase, 0ms) + var(--bar-ms, 2000ms) * 4 / 3);
+  animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) * 2 / 3);
 }
 
-/* Page 3 · the train walks the rail, one bar per quarter of the way down. */
+/* Page 3 · the train walks a quarter of the rail on every beat. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__train {
-  animation: wrapped-stride calc(var(--bar-ms, 2000ms) * 4) linear infinite;
-  animation-delay: calc(-1 * var(--phase, 0ms));
+  animation: wrapped-stride var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
   opacity: 1;
 }
 
 @keyframes wrapped-stride {
   0% {
     top: 0;
-    opacity: 0;
   }
-  5% {
-    opacity: 1;
+  25% {
+    top: calc(25% - 3px);
   }
-  90% {
-    top: calc(100% - 12px);
-    opacity: 1;
+  50% {
+    top: calc(50% - 6px);
   }
-  97%,
+  75% {
+    top: calc(75% - 9px);
+  }
   100% {
     top: calc(100% - 12px);
-    opacity: 0;
   }
 }
 
-/* Page 4 · the tickets lift in turn, one per beat, so a still page breathes with the song. */
+/* Page 4 · one ticket lifts on each beat, and settles before the next one. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip {
   animation-name: wrapped-deal, wrapped-lift;
   animation-duration: 620ms, calc(var(--beat-ms, 500ms) * 3);
-  animation-timing-function: var(--ease-out), ease-in-out;
+  animation-timing-function: var(--ease-out), cubic-bezier(0.2, 0.9, 0.25, 1);
   animation-iteration-count: 1, infinite;
   animation-fill-mode: both, none;
   animation-delay:
     calc(220ms + var(--i, 0) * 110ms),
-    calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+    calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
 }
 
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip:nth-child(odd) {
@@ -9347,108 +9370,133 @@
   0% {
     translate: 0 0;
   }
-  22% {
-    translate: 0 -7px;
+  10% {
+    translate: 0 -8px;
   }
-  45%,
+  34%,
   100% {
     translate: 0 0;
   }
 }
 
-/* Page 5 · the hours light one after another, one bar per beat, all the way round the clock. */
+/* Page 5 · an hour lights on every beat, two at a time, all the way round the clock. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='hour'] .wrapped-bars__bar {
   animation-name: wrapped-grow, wrapped-walk;
-  animation-duration: 760ms, calc(var(--beat-ms, 500ms) * 24);
+  animation-duration: 760ms, calc(var(--beat-ms, 500ms) * 12);
   animation-timing-function: var(--ease-out), linear;
   animation-iteration-count: 1, infinite;
   animation-fill-mode: both, none;
   animation-delay:
     calc(var(--i, 0) * 22ms),
-    calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+    calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 2);
 }
 
 @keyframes wrapped-walk {
   0% {
     opacity: 1;
   }
-  7% {
+  6% {
     opacity: 1;
   }
-  17%,
+  14%,
   100% {
     opacity: 0.3;
   }
 }
 
-/* Page 6 · the filled part of the dial turns with the music. */
+/* Page 6 · the dial's filled stripe ticks a quarter turn on every beat. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc::before {
-  animation: wrapped-dial calc(var(--bar-ms, 2000ms) * 2) linear infinite;
-  animation-delay: calc(-1 * var(--phase, 0ms));
+  animation: wrapped-dial var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
 }
 
 @keyframes wrapped-dial {
-  to {
+  0% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: 90deg;
+  }
+  50% {
+    rotate: 180deg;
+  }
+  75% {
+    rotate: 270deg;
+  }
+  100% {
     rotate: 360deg;
   }
 }
 
-/* Page 7 · the dot patrols the long haul's line, out and back, on the bar. */
+/* Page 7 · the dot steps a quarter of the line on every beat. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='longest'] .wrapped-stretch__dot {
-  animation: wrapped-patrol calc(var(--bar-ms, 2000ms) * 2) linear infinite alternate;
-  animation-delay: calc(-1 * var(--phase, 0ms));
+  animation: wrapped-patrol var(--bar-ms, 2400ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
   opacity: 1;
 }
 
 @keyframes wrapped-patrol {
-  from {
+  0% {
     left: 0;
   }
-  to {
+  25% {
+    left: calc(25% - 3.5px);
+  }
+  50% {
+    left: calc(50% - 7px);
+  }
+  75% {
+    left: calc(75% - 10.5px);
+  }
+  100% {
     left: calc(100% - 14px);
   }
 }
 
-/* Page 9 · a sweep of light crosses each board row in turn. */
+/*
+ * Page 9 · the board counts.
+ *
+ * A gradient wash across the rows was the cheap bit: it moved, but it measured nothing. Each row now
+ * runs a rule under itself on its own beat, in turn, while its number counts up on its own bar — so
+ * the board is tallying the lines it is showing, on the beat.
+ */
 .wrapped-body[data-chapter='lines'] .wrapped-chip {
   position: relative;
   overflow: hidden;
 }
 
-.wrapped-body[data-chapter='lines'] .wrapped-chip::after {
+.wrapped-body[data-chapter='lines'] .wrapped-chip::before {
   content: '';
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, currentColor 18%, transparent),
-    transparent
-  );
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip::after {
-  animation: wrapped-sweep calc(var(--beat-ms, 500ms) * 3) linear infinite;
-  animation-delay: calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip::before {
+  animation: wrapped-row-tick var(--beat-ms, 500ms) linear infinite;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
 }
 
-@keyframes wrapped-sweep {
+@keyframes wrapped-row-tick {
   0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  6% {
+    transform: scaleX(0);
     opacity: 1;
   }
-  45%,
+  72% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
   100% {
-    transform: translateX(100%);
+    transform: scaleX(1);
     opacity: 0;
   }
 }
+
 /* ----------------------------------------------------- ten chapters, not ten pages */
 
 /*
