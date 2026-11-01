@@ -1113,8 +1113,15 @@
    * `--s-5` in this theme (the steps go 12, 16, 24), so this is written as the sum rather than a
    * name that does not exist, which is a mistake that computes to zero and looks like no padding at
    * all.
+   *
+   * **Twenty pixels was still on the curve, because twenty IS the radius.** The field is a pill:
+   * its rounded end is a quarter circle of `--r-input` (20px), so a mark brought in by exactly 20px
+   * comes to rest on the point where the straight edge ends and the curve begins - close to the
+   * edge however much air the padding claims to give (reported again after that change). The lane is
+   * 24px, four clear pixels past the curve, and it is a literal rather than `--s-6` because the
+   * compact density steps that token down to 16px, which would put the mark back inside the curve.
    */
-  padding-right: calc(var(--s-3) + var(--s-2));
+  padding-right: 24px;
 }
 
 /*
