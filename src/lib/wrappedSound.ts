@@ -71,6 +71,15 @@ const TRIM: Record<Track, number> = {
 const FADE_IN = 0.9;
 const FADE_OUT = 0.7;
 
+/**
+ * How long before a song ends the deck turns the page.
+ *
+ * Half a second, so the next chapter is already arriving as the last bar of the song lands instead of
+ * after a beat of silence. The old version waited for `ended`, which on a phone sounds like the music
+ * stopped and then, a moment later, the screen caught up.
+ */
+const TURN_EARLY = 0.5;
+
 interface Slot {
   el: HTMLAudioElement;
   gain: GainNode;
@@ -87,6 +96,8 @@ let playing = false;
 let broken = false;
 let pad: { stop: () => void } | null = null;
 let onEnd: (() => void) | null = null;
+/** Whether this track has already asked for the next chapter, so it only ever asks once. */
+let turned = false;
 
 function audio(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -126,8 +137,25 @@ function makeSlot(ctx: AudioContext, bus: GainNode): Slot {
     broken = true;
     if (playing) startPad();
   });
+  /*
+   * The page turns just before the song does.
+   *
+   * `timeupdate` fires several times a second, which is fine-grained enough to catch the last half
+   * second, and it works while the tab is in front. `ended` stays as the fallback for a browser that
+   * skips the last update, and the `turned` flag makes sure one song never asks twice.
+   */
+  el.addEventListener('timeupdate', () => {
+    if (slot !== active || !playing || turned) return;
+    const { duration, currentTime } = el;
+    if (!Number.isFinite(duration) || duration <= TURN_EARLY) return;
+    if (currentTime >= duration - TURN_EARLY) {
+      turned = true;
+      onEnd?.();
+    }
+  });
   el.addEventListener('ended', () => {
-    if (slot !== active || !playing) return;
+    if (slot !== active || !playing || turned) return;
+    turned = true;
     onEnd?.();
   });
   slots = [...slots, slot];
@@ -147,6 +175,7 @@ function load(slot: Slot, track: Track): void {
   if (slot.track === track) return;
   slot.track = track;
   slot.el.src = urlOf(track);
+  turned = false;
 }
 
 /** The player a new track should use: one that already holds it, or the one that is not playing. */
@@ -194,6 +223,7 @@ function spin(track: Track, next?: Track): void {
   /* A track already in the live player (rounding a chapter twice, or coming back from silence). */
   const live = active && active.track === track ? active : null;
   if (live) {
+    turned = false;
     const started = live.el.play();
     if (started) void started.catch(() => undefined);
     ramp(live.gain, TRIM[track], 0.35, ctx);

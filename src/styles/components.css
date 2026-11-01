@@ -9135,7 +9135,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 3 · Page 5: the graph takes the middle of the page, and light moves across it. */
+/* 3 · Page 5: the graph takes the middle of the page, and nothing is painted behind it. */
 .wrapped-stage[data-chapter='hour'] .wrapped-bars {
   height: 100%;
   max-height: 54vh;
@@ -9144,29 +9144,6 @@
 
 .wrapped-stage[data-chapter='hour'] .wrapped-bars__bar {
   opacity: 0.34;
-}
-
-.wrapped-stage[data-chapter='hour'] .wrapped-bars::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(234, 241, 233, 0.3), transparent);
-  animation: wrapped-scan 6s linear infinite;
-}
-
-@keyframes wrapped-scan {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-.wrapped-stage.is-still[data-chapter='hour'] .wrapped-bars::after {
-  animation: none;
-  opacity: 0;
 }
 
 /* 4 · Page 7: no clipped number, no band of nothing, and the trip runs across the middle. */
@@ -9272,50 +9249,214 @@
 /* ------------------------------------------------------------------ on the beat */
 
 /*
- * **Everything that moves, moves with the song.**
+ * **One hand-written movement per page, timed from the song.**
  *
- * The tempo of each track was measured from the audio (`lib/wrappedBeats`), and the page reads the
- * playing song's clock: `is-pulse` is on for the first fraction of every beat, `--beat-ms` is one
- * beat of this chapter's song, and `--bar-ms` is four of them. Nothing here counts time on its own.
+ * The first attempt punched the page twice a second: a class flipped on for a slice of every beat and
+ * everything that moved jumped a pixel or two. That is a twitch, and it read as badly as it measured.
+ * This is the other way round. Every moving thing on the deck has a single animation written here by
+ * hand, and the only thing the music supplies is its timing: `--beat-ms` is one beat of this track,
+ * `--bar-ms` is four of them, and `--phase` is how far into a beat the song already was when the page
+ * arrived, so the animation opens in step rather than from zero.
  *
- * A page does not shudder on every beat, either: the number leans in, the hour's lit bar lifts, the
- * rings breathe once per beat and the spark on the ring catches. That is enough to feel the music
- * without turning a story into a strobe.
+ * The animations are laid down once and then left alone. The browser runs them itself, on the
+ * compositor, at screen rate, which is what makes them smooth; the tempo underneath them was measured
+ * from each file (`lib/wrappedBeats`), so what the eye sees still lands with what the ear hears.
+ *
+ * Each page moves in its own way, because ten identical pulses is the same page ten times: a dot goes
+ * round the cover's ring, the year's journeys fill in on the beat, the rail's train walks down it, the
+ * tickets lift in turn, the hours light one after another, the dial turns, the long haul's dot patrols
+ * its line, and the board catches a sweep of light. The look and the closing screen are deliberately
+ * still: one sits under a photograph, and the other has finished speaking.
  */
-.wrapped-stage .wrapped-big,
-.wrapped-stage .wrapped-days,
-.wrapped-stage .wrapped-bars__bar,
-.wrapped-stage .wrapped-arc__spark {
-  transition: transform 110ms ease-out;
-}
 
-.wrapped-stage.is-pulse .wrapped-big,
-.wrapped-stage.is-pulse .wrapped-days {
-  transform: scale(1.014);
-}
-
-.wrapped-stage.is-pulse .wrapped-bars__bar.is-peak {
-  transform: scaleY(1.07);
-}
-
-.wrapped-stage.is-pulse .wrapped-arc__spark {
-  transform: scale(1.08);
-}
-
-/* The rings push out with the beat rather than at their own pace. */
-.wrapped-stage.is-pulse .wrapped-rings i {
-  animation-duration: var(--beat-ms, 900ms);
-}
-
-/* The train on the rail steps on the bar, so the line moves in time with the song. */
-.wrapped-stage.is-pulse .wrapped-route__train {
+/* Page 1 · the ring's dot goes round once every two bars. */
+.wrapped-stage.is-beat:not(.is-still) .wrapped-orbit {
   animation-duration: calc(var(--bar-ms, 2000ms) * 2);
+  animation-delay: calc(-1 * var(--phase, 0ms));
 }
 
-/* Reduced motion is respected: no pulse class is ever added, and this guards a stray one. */
-.wrapped-stage.is-still .wrapped-big,
-.wrapped-stage.is-still .wrapped-days,
-.wrapped-stage.is-still .wrapped-bars__bar,
-.wrapped-stage.is-still .wrapped-arc__spark {
-  transition: none;
+/* Page 2 · one dot per journey, lighting in a wave that keeps time with the beat. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-field i {
+  opacity: 0;
+  animation: wrapped-fill 620ms linear both;
+  animation-delay: calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 6);
+}
+
+@keyframes wrapped-fill {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0.78;
+    transform: none;
+  }
+}
+
+/* The rings over the total push out on the bar instead of on their own private clock. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i {
+  animation-duration: calc(var(--bar-ms, 2000ms) * 2);
+  animation-delay: calc(-1 * var(--phase, 0ms));
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(2) {
+  animation-delay: calc(-1 * var(--phase, 0ms) + var(--bar-ms, 2000ms) * 2 / 3);
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(3) {
+  animation-delay: calc(-1 * var(--phase, 0ms) + var(--bar-ms, 2000ms) * 4 / 3);
+}
+
+/* Page 3 · the train walks the rail, one bar per quarter of the way down. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__train {
+  animation: wrapped-stride calc(var(--bar-ms, 2000ms) * 4) linear infinite;
+  animation-delay: calc(-1 * var(--phase, 0ms));
+  opacity: 1;
+}
+
+@keyframes wrapped-stride {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  90% {
+    top: calc(100% - 12px);
+    opacity: 1;
+  }
+  97%,
+  100% {
+    top: calc(100% - 12px);
+    opacity: 0;
+  }
+}
+
+/* Page 4 · the tickets lift in turn, one per beat, so a still page breathes with the song. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip {
+  animation-name: wrapped-deal, wrapped-lift;
+  animation-duration: 620ms, calc(var(--beat-ms, 500ms) * 3);
+  animation-timing-function: var(--ease-out), ease-in-out;
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: both, none;
+  animation-delay:
+    calc(220ms + var(--i, 0) * 110ms),
+    calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip:nth-child(odd) {
+  animation-name: wrapped-deal-left, wrapped-lift;
+}
+
+/*
+ * The lift uses `translate`, not `transform`: the ticket is dealt in with `transform`, and a second
+ * animation on the same property would fight the first and win, so the entry would vanish. Two
+ * properties, two animations, no argument.
+ */
+@keyframes wrapped-lift {
+  0% {
+    translate: 0 0;
+  }
+  22% {
+    translate: 0 -7px;
+  }
+  45%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* Page 5 · the hours light one after another, one bar per beat, all the way round the clock. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='hour'] .wrapped-bars__bar {
+  animation-name: wrapped-grow, wrapped-walk;
+  animation-duration: 760ms, calc(var(--beat-ms, 500ms) * 24);
+  animation-timing-function: var(--ease-out), linear;
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: both, none;
+  animation-delay:
+    calc(var(--i, 0) * 22ms),
+    calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+}
+
+@keyframes wrapped-walk {
+  0% {
+    opacity: 1;
+  }
+  7% {
+    opacity: 1;
+  }
+  17%,
+  100% {
+    opacity: 0.3;
+  }
+}
+
+/* Page 6 · the filled part of the dial turns with the music. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc::before {
+  animation: wrapped-dial calc(var(--bar-ms, 2000ms) * 2) linear infinite;
+  animation-delay: calc(-1 * var(--phase, 0ms));
+}
+
+@keyframes wrapped-dial {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Page 7 · the dot patrols the long haul's line, out and back, on the bar. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='longest'] .wrapped-stretch__dot {
+  animation: wrapped-patrol calc(var(--bar-ms, 2000ms) * 2) linear infinite alternate;
+  animation-delay: calc(-1 * var(--phase, 0ms));
+  opacity: 1;
+}
+
+@keyframes wrapped-patrol {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - 14px);
+  }
+}
+
+/* Page 9 · a sweep of light crosses each board row in turn. */
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  position: relative;
+  overflow: hidden;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, currentColor 18%, transparent),
+    transparent
+  );
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip::after {
+  animation: wrapped-sweep calc(var(--beat-ms, 500ms) * 3) linear infinite;
+  animation-delay: calc(-1 * var(--phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+}
+
+@keyframes wrapped-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  45%,
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }

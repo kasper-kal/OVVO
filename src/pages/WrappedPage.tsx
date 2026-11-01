@@ -26,10 +26,12 @@ const BURST = 14;
  * the chapter, and so does the shape of the page, which is the difference between a story and a
  * slideshow.
  *
- * Movement is the story too. Chapters slide in from the side the traveller came from, the deck
- * follows their thumb while they drag, numbers count, bars grow, the rail draws itself and then runs,
- * and the ring sweeps. Nothing is on a timer: the traveller sets the pace, and stopping to look at a
- * number is not punished by the deck moving on without them.
+ * Movement is the story too, and it runs on the song rather than beside it: the cover's dot goes
+ * round its ring once a bar, the year's journeys fill in on the beat, the rail's train steps down it,
+ * the tickets lift in turn, the hours light one after another, the dial turns, the long haul's dot
+ * patrols its line and the board catches a little light. Each of those is one hand-written animation
+ * timed from the tempo measured in the audio, so it is smooth instead of a twitch per beat, and two
+ * chapters are left deliberately still.
  *
  * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
  * a tap: the cover's Begin is the gesture that starts it, Skip the sound starts the story in
@@ -133,13 +135,16 @@ export function WrappedPage() {
   const dragStart = useRef(0);
 
   /*
-   * **The page beats with its own song.**
+   * **Where the song is, read once and then left to the browser.**
    *
-   * Not a timer: the beat index comes from the playing track's clock and the tempo measured from the
-   * audio, so the pulse lands with the music even when the song is not exactly 120. A number now
-   * counts up over two bars of its chapter's song, and the pulse marks each beat underneath it.
+   * `--beat-ms` and `--bar-ms` are this chapter's measured tempo, and `--phase` is how far into a
+   * beat the music already was when the chapter arrived, so its animations open in step instead of
+   * from zero. The engine is not asked again: the stylesheet's animations run on their own, which is
+   * the difference between movement and a page twitching twice a second.
    */
-  const pulse = usePulse(started && sound);
+  const beat = useBeatAnchor(started && sound, chapter.track, chapter.id);
+  const armed = beat !== null && beat.key === chapter.id;
+  const onBeat = armed && !reduceMotion;
   const land = barMs(chapter.track) * 2;
 
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
@@ -175,15 +180,15 @@ export function WrappedPage() {
   return (
     <div
       className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}${
-        pulse.fresh && !reduceMotion ? ' is-pulse' : ''
+        onBeat ? ' is-beat' : ''
       }`}
       data-chapter={chapter.id}
-      data-beat={pulse.beat}
       style={
         {
           '--progress': progress,
           '--beat-ms': `${beatMs(chapter.track)}ms`,
           '--bar-ms': `${barMs(chapter.track)}ms`,
+          '--phase': `${armed && beat ? beat.phase : 0}ms`,
         } as CSSProperties
       }
       role="region"
@@ -544,31 +549,45 @@ function useCountUp(target: number, active: boolean, key: string, duration = 850
 }
 
 /**
- * **A pulse taken from the song, not from a clock on the wall.**
+ * **Where the song is, sampled once per chapter.**
  *
- * It watches where the playing track is and asks the measured grid which beat that is. State only
- * changes when a beat lands, so the page re-renders twice a beat rather than once a frame, and the
- * `fresh` flag is what the stylesheet uses to punch a page on the beat.
+ * The measure is taken at the moment the music is genuinely playing, not when the chapter mounted: a
+ * page laid down a frame early would open its animations a frame out of step. What comes back is how
+ * far into a beat the track already was, in milliseconds, which the stylesheet turns into a negative
+ * delay so every animation starts in phase.
+ *
+ * It is deliberately not a loop. Asking the audio where it is sixty times a second and re-timing the
+ * page from the answer is what made the first version stutter: every sample landed a few milliseconds
+ * from the last, and the movement chased the error instead of riding the music.
  */
-function usePulse(active: boolean): { beat: number; fresh: boolean } {
-  const [state, setState] = useState({ beat: 0, fresh: false });
+function useBeatAnchor(
+  active: boolean,
+  track: Chapter['track'],
+  key: string,
+): { key: string; phase: number } | null {
+  const [anchor, setAnchor] = useState<{ key: string; phase: number } | null>(null);
   useEffect(() => {
     if (!active) {
-      setState({ beat: 0, fresh: false });
+      setAnchor(null);
       return undefined;
     }
     let frame = 0;
-    const tick = () => {
+    let stop = false;
+    const find = () => {
+      if (stop) return;
       const at = scoreTime();
-      if (at) {
-        const { index, phase } = beatAt(at.track, at.seconds);
-        const fresh = phase < 0.16;
-        setState((was) => (was.beat === index && was.fresh === fresh ? was : { beat: index, fresh }));
+      if (at && at.track === track && at.seconds > 0.04) {
+        const { phase } = beatAt(track, at.seconds);
+        setAnchor({ key, phase: phase * beatMs(track) });
+        return;
       }
-      frame = requestAnimationFrame(tick);
+      frame = requestAnimationFrame(find);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [active]);
-  return state;
+    frame = requestAnimationFrame(find);
+    return () => {
+      stop = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [active, track, key]);
+  return anchor;
 }
