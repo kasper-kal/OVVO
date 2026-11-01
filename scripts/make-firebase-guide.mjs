@@ -198,6 +198,7 @@ ${part(
       'Give it exactly three permissions',
       `<p>Under <b>Permissions</b>, add these three rows one at a time, each with <b>Account</b> as the scope and your account chosen under <b>Include</b>:</p>
        <p><b>Workers Scripts → Edit</b>, then <b>D1 → Edit</b>, then <b>Account Settings → Read</b>.</p>
+       <p>Those three cover the whole of what I need: the site itself, the database that will hold the year, and the account details that tie them together. You do not run any commands at any point, and you never need to open a terminal.</p>
        ${warn('The ready-made "Edit Cloudflare Workers" template does <b>not</b> include D1. If you pick it, the deploy fails later with a permission error that looks unrelated, so build the custom token instead.')}`,
     ) +
     step(
@@ -334,7 +335,8 @@ ${part(
     '7.2',
     'Add your address',
     `<p>Click <b>Add domain</b> and type the host name only: no <code>https://</code> in front, no slash at the end, no path.</p>
-     ${copyIt('From part 1.3, <code>ovvo.your-subdomain.workers.dev</code> goes in the box. If your address is <code>https://ovvo.ovvo.workers.dev</code>, you type <code>ovvo.ovvo.workers.dev</code>.')}`,
+     ${copyIt('From part 1.3, <code>ovvo.your-subdomain.workers.dev</code> goes in the box. If your address is <code>https://ovvo.ovvo.workers.dev</code>, you type <code>ovvo.ovvo.workers.dev</code>.')}
+     <p>If the address I deploy to ever turns out to differ from this one, I tell you, and you change this single line. Nothing else in Firebase has to change.</p>`,
   ) +
     step(
     '7.3',
@@ -396,6 +398,7 @@ ${part(
      <li>In <b>Authentication → Sign-in method</b>, Email/Password and Google both show as Enabled.</li>
      <li>In <b>Authentication → Settings → Authorized domains</b>, your address and <code>localhost</code> are both listed.</li>
      <li>In the Google console, <b>Google Auth platform → Audience</b> says <b>In production</b>, not Testing.</li>
+     <li>The address you typed into Firebase is character for character the one on the first line of your paste.</li>
      <li>In Firebase, <b>Project settings → General</b> still shows your web app and the config block opens.</li>
    </ul>
    <p style="margin-top:3mm">Then, once I have the first version up, the real test is four actions on your own phone: sign in with an email and password, sign out, sign in with Google, and confirm the year on screen is still the same year.</p>`,
