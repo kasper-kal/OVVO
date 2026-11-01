@@ -84,7 +84,7 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .cover__note { margin-top: auto; border-top: 0.3mm solid #cdc7b8; padding-top: 3mm; font-size: 8pt; color: #66666d; }
 
 .part { page-break-inside: avoid; margin: 0 0 7mm; padding-top: 1mm; }
-.part__head { border-top: 0.8mm solid #18181b; padding-top: 3mm; margin-bottom: 4mm; }
+.part__head { border-top: 0.8mm solid #18181b; padding-top: 3mm; margin-bottom: 4mm; page-break-after: avoid; }
 .part__kicker { font-size: 7.4pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8a90; }
 .part__lede { color: #55555c; margin: 0; max-width: 150mm; }
 
@@ -334,7 +334,7 @@ ${part(
 ${part(
   7,
   'Allow your address to start a sign-in',
-  'Firebase refuses to begin a sign-in from an address it does not know, even a perfectly good one. The address you need is the one you wrote down in part 1.3.',
+  'Firebase refuses to begin a sign-in from an address it does not know, even a perfectly good one. The address you need is the one you wrote down in part 1.5.',
   step(
     '7.1',
     'Find the list',
