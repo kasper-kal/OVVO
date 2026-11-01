@@ -141,8 +141,12 @@ export function DeveloperPage() {
                 </div>
                 <div className="row">
                   <Button
-                    variant="ghost"
                     /*
+                     * The same surface as "Put everything back": a white pill with the app's
+                     * hairline, so the two stand-alone actions on this screen read alike
+                     * (reported). It was a ghost button -- no fill, no edge -- which read as a line
+                     * of text rather than as something to press.
+                     *
                      * Only the level is taken over. The charger is its own switch, and a browser
                      * that reports no battery is treated by the app as plugged in -- copying that
                      * would start every simulation in the full interface, so a pretend 4% would
@@ -238,7 +242,6 @@ export function DeveloperPage() {
             <span className="t-sm t-muted">{t('The app is showing {time}.', { time: clockLabel })}</span>
             <div className="row">
               <Button
-                variant="ghost"
                 icon="refresh"
                 onClick={() => {
                   setDevOverrides({ clockOffset: null });
