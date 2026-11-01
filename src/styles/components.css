@@ -6967,7 +6967,8 @@
 .when-field__field .input {
   flex: 1 1 auto;
   min-width: 0;
-  padding-right: var(--s-2);
+  /* The mark's lane, the same one every other field gives its mark: 24px from the edge. */
+  padding-right: 50px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -6989,7 +6990,15 @@
 .when-field__glyph {
   position: absolute;
   top: 50%;
-  right: var(--s-2);
+  /*
+   * **The same lane as every other mark in a field.**
+   *
+   * It was 8px from the edge, which on a 52px pill is *inside* the rounded end - the mark sat on
+   * the curve rather than in the field. The results screen's day and time fields were the last
+   * place still drawing their own mark by an older rule; they now use the 24px lane that the
+   * dropdowns and the clock field use, so every mark in the app lands in the same place.
+   */
+  right: 24px;
   display: none;
   align-items: center;
   translate: 0 -50%;
