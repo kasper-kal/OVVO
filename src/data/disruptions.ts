@@ -235,24 +235,45 @@ export const DISRUPTIONS: Disruption[] = [
   },
 ];
 
-const disruptionMap = new Map(DISRUPTIONS.map((d) => [d.id, d]));
+/*
+ * **The alerts the app is actually showing, which the developer panel can narrow.**
+ *
+ * A network with nothing wrong with it, and a network with one alert on it, are two states this
+ * app has always had data for and no way to stand in: the list is a fixed set, so every board, every
+ * journey and every screen carries the same fourteen alerts every day. `setDevDisruptions` is how
+ * the panel hands over a different answer — none at all for a calm day, or one alert on its own —
+ * and every reader here goes through `disruptions()` rather than the raw list, so the screens and
+ * the data cannot disagree about what is happening.
+ *
+ * Null is the shipped network. Nothing outside the panel ever sets it.
+ */
+let devList: Disruption[] | null = null;
+
+export function setDevDisruptions(next: Disruption[] | null): void {
+  devList = next;
+}
+
+/** Every alert in force, as the app currently believes it. */
+export function disruptions(): Disruption[] {
+  return devList ?? DISRUPTIONS;
+}
 
 export function getDisruption(id: string | undefined): Disruption | undefined {
-  return id ? disruptionMap.get(id) : undefined;
+  return id ? disruptions().find((d) => d.id === id) : undefined;
 }
 
 export function disruptionsForStop(stopId: string): Disruption[] {
-  return DISRUPTIONS.filter((d) => d.affectedStopIds.includes(stopId));
+  return disruptions().filter((d) => d.affectedStopIds.includes(stopId));
 }
 
 export function disruptionsForLine(lineId: string): Disruption[] {
-  return DISRUPTIONS.filter((d) => d.affectedLineIds.includes(lineId));
+  return disruptions().filter((d) => d.affectedLineIds.includes(lineId));
 }
 
 /** The alert that applies to a concrete leg, if any. */
 export function disruptionForLeg(lineId: string | undefined, fromStopId: string, toStopId: string): Disruption | undefined {
   if (!lineId) return undefined;
-  return DISRUPTIONS.find(
+  return disruptions().find(
     (d) =>
       d.affectedLineIds.includes(lineId) &&
       d.affectedStopIds.some((s) => s === fromStopId || s === toStopId),

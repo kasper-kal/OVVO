@@ -364,6 +364,22 @@ svg.map-canvas {
 }
 
 /*
+ * **The developer panel's keyboard inspection: the ring on whatever holds focus.**
+ *
+ * `:focus-visible` is the browser deciding whether the ring is wanted — right for a traveller, and
+ * unhelpful for a review, where a ring can only be looked at while you are trusting it to appear.
+ * With the panel's switch on, every focused control wears it: the ring is the app's own
+ * (`--focus-ring`, 2px), and `!important` is the point rather than a shortcut, because the fields
+ * and the chips set `outline: none` on focus and would otherwise outrank it. Nothing is on unless
+ * `lib/dev` writes `data-focus="always"`, which only the panel's switch does.
+ */
+:root[data-focus='always'] :where(a, button, input, select, textarea, [tabindex]):focus {
+  outline: 2px solid var(--focus-ring) !important;
+  outline-offset: 2px !important;
+  border-radius: var(--r-compact);
+}
+
+/*
  * **A sheet's panel takes the focus without wearing a ring.**
  *
  * Both overlay containers (`ui/primitives` `Dialog` and `ui/FullScreen`) put the keyboard on the

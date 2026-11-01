@@ -150,6 +150,21 @@ export function setBatteryOverride(next: BatteryReading | null): void {
   overrideListeners.forEach((listener) => listener());
 }
 
+/**
+ * **And the browser with no battery at all.**
+ *
+ * Safari and Firefox do not have `navigator.getBattery`, and this app has a whole state for that:
+ * Settings names it instead of pretending a mode is on, and the interface stays full. A Chromium
+ * browser cannot be made to forget the API from the address bar, so the panel says it here, in the
+ * one place the reading comes from.
+ */
+let absent = false;
+
+export function setBatteryAbsent(next: boolean): void {
+  absent = next;
+  overrideListeners.forEach((listener) => listener());
+}
+
 export function watchBattery(onChange: (state: PowerState) => void): () => void {
   if (typeof navigator === 'undefined') {
     onChange(NO_BATTERY);
@@ -169,6 +184,10 @@ export function watchBattery(onChange: (state: PowerState) => void): () => void 
    */
   const read = () => {
     if (stopped) return;
+    if (absent) {
+      onChange(NO_BATTERY);
+      return;
+    }
     const source = override ?? (manager ? { level: manager.level, charging: manager.charging } : null);
     if (!source) {
       onChange(NO_BATTERY);

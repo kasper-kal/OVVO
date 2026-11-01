@@ -8,6 +8,7 @@ import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
+import { DISRUPTIONS } from '../data/disruptions';
 
 /**
  * The developer panel — what this browser believes about the device.
@@ -21,6 +22,10 @@ import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
  *     the steerer asked: a day, an hour and a minute chosen in one go instead of in two fields that
  *     can disagree. It moves the app's clock as an offset, so the app's minute timers keep running.
  *   • **The connection.** Pulling a cable is not a way to test the offline strip on a phone.
+ *   • **The network.** A calm day, or one alert on its own, and the number the boards roll from,
+ *     so a row that was reported can be found again instead of hunted for.
+ *   • **The way in.** A hold over the results long enough to be looked at, and the focus ring kept
+ *     on every control, because both are things to look at rather than to use.
  *   • **What the app believes.** The mode, the clock, the battery and the connection in one line,
  *     which is what a bug report should be able to copy instead of describe.
  *
@@ -152,7 +157,7 @@ export function DeveloperPage() {
                      * would start every simulation in the full interface, so a pretend 4% would
                      * arrive with saving switched off.
                      */
-                    onClick={() => setDevOverrides({ battery: power.level ?? 0.5 })}
+                    onClick={() => setDevOverrides({ battery: power.level ?? 0.5, noBattery: false })}
                   >
                     {t('Pretend a level')}
                   </Button>
@@ -205,6 +210,23 @@ export function DeveloperPage() {
                 </div>
               </>
             )}
+            {/*
+              **The browser with no battery, which a browser on this machine cannot be.**
+
+              Safari and Firefox have no battery API, and the app has a state for that: no level,
+              no mode, the full interface, and Settings naming the fact. A Chromium browser cannot
+              be made to forget the API, so the panel says it here. Pressing to pretend a level
+              takes this back off, because otherwise the two switches would disagree about whether
+              there is a number to read.
+            */}
+            <Switch
+              checked={dev.noBattery}
+              onChange={(next) =>
+                setDevOverrides(next ? { noBattery: true, battery: null } : { noBattery: false })
+              }
+              label={t('A browser with no battery')}
+              description={t('No level, no mode, and the full interface: what Safari and Firefox see.')}
+            />
           </Card>
 
           <Card className="stack">
@@ -261,6 +283,101 @@ export function DeveloperPage() {
               label={t('Pretend to be offline')}
               description={t('The offline strip and the not-live boards appear, without touching the network.')}
             />
+            {/*
+              **A hold that can be watched.**
+
+              The results screen holds its list's place for a quarter of a second while a search
+              lands. That is the right length to use the app and the wrong length to look at it: the
+              cards are there before the eye has found them. This is the same hold, at two seconds.
+            */}
+            <Switch
+              checked={dev.slow}
+              onChange={(next) => setDevOverrides({ slow: next })}
+              label={t('Slow it down')}
+              description={t('The results hold their loading shape for two seconds instead of a quarter of one.')}
+            />
+          </Card>
+
+          <Card className="stack">
+            <h2 className="t-section">{t('Alerts')}</h2>
+            {/*
+              **The two states the app has data for and no way to stand in.**
+
+              Every screen carries the same fourteen alerts every day, so neither a network with
+              nothing wrong with it nor a single alert on its own can be looked at. The calm day
+              comes first and takes the list away entirely; the picker is for looking at one alert
+              as if it were the only thing wrong, on the boards and the journeys too.
+            */}
+            <Switch
+              checked={dev.calm}
+              onChange={(next) => setDevOverrides({ calm: next, alertId: null })}
+              label={t('A calm day')}
+              description={t('Every alert is gone: the quiet boards, the quiet journeys, and an empty list.')}
+            />
+            <Field
+              label={t('One alert at a time')}
+              hint={t('Every screen shows only this alert, as if it were the only thing wrong today.')}
+            >
+              <select
+                className="input"
+                value={dev.calm ? '' : dev.alertId ?? ''}
+                disabled={dev.calm}
+                onChange={(event) => setDevOverrides({ alertId: event.target.value || null })}
+                aria-label={t('One alert at a time')}
+              >
+                <option value="">{t('All alerts')}</option>
+                {DISRUPTIONS.map((alert) => (
+                  <option key={alert.id} value={alert.id}>
+                    {alert.title}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </Card>
+
+          <Card className="stack">
+            <h2 className="t-section">{t('Board')}</h2>
+            {/*
+              **The same board twice.**
+
+              Whether a row is late, cancelled or standing at another platform is rolled from the
+              things that name the departure, so it is stable — but there is no way to ask for the
+              drawing that showed a cancellation, and a reported row has to be hunted for. One
+              number names one drawing of the whole network, and it is kept with the other
+              overrides, so it survives the reload that reproduces the report.
+            */}
+            <Field
+              label={t('Variant · {number}', { number: dev.rollVariant })}
+              hint={t(
+                'Note the number and the same rows come back: the delays, the cancellations and the platforms.',
+              )}
+            >
+              <div className="row">
+                <Button onClick={() => setDevOverrides({ rollVariant: dev.rollVariant + 1 })}>
+                  {t('Roll again')}
+                </Button>
+                <Button onClick={() => setDevOverrides({ rollVariant: 0 })}>
+                  {t('The first roll')}
+                </Button>
+              </div>
+            </Field>
+          </Card>
+
+          <Card className="stack">
+            <h2 className="t-section">{t('Keyboard')}</h2>
+            {/*
+              **A ring on everything focused, for looking rather than for using.**
+
+              `:focus-visible` is the browser guessing whether a ring is wanted, which is right for
+              a traveller and useless for a review: the ring can only be seen while you trust it to
+              appear. With this on, the app's own ring is drawn on whatever holds focus.
+            */}
+            <Switch
+              checked={dev.focusRings}
+              onChange={(next) => setDevOverrides({ focusRings: next })}
+              label={t('Show the focus ring everywhere')}
+              description={t('Every focused control wears the ring, not only the ones the keyboard reached.')}
+            />
           </Card>
 
           <Card className="stack">
@@ -268,9 +385,11 @@ export function DeveloperPage() {
             <div className="between">
               <span className="field__label">{t('Battery')}</span>
               <span className="t-strong t-sm">
-                {dev.battery === null
-                  ? t('From the device')
-                  : `${percent}%${dev.charging ? ` · ${t('Charging')}` : ''}`}
+                {dev.noBattery
+                  ? t('Not reported')
+                  : dev.battery === null
+                    ? t('From the device')
+                    : `${percent}%${dev.charging ? ` · ${t('Charging')}` : ''}`}
               </span>
             </div>
             <div className="between">

@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from 'react';
 import { readStored, writeStored } from './storage';
 import { setClockOffset } from './format';
-import { setBatteryOverride } from './power';
+import { setBatteryAbsent, setBatteryOverride } from './power';
+import { setRollVariant } from './random';
+import { DISRUPTIONS, setDevDisruptions } from '../data/disruptions';
 
 /**
  * **What this browser pretends the device is.**
@@ -34,6 +36,18 @@ export interface DevOverrides {
   clockOffset: number | null;
   /** True when the app should behave as if the network is gone; null for the browser's answer. */
   offline: boolean | null;
+  /** True when the app should behave as if the browser cannot report a battery at all. */
+  noBattery: boolean;
+  /** True for a network with nothing wrong with it: every alert gone. */
+  calm: boolean;
+  /** The one alert the app shows, or null for the whole list. */
+  alertId: string | null;
+  /** Which drawing of the network's rolls is in force. Zero is the app's own. */
+  rollVariant: number;
+  /** True when the results hold their loading shape long enough to be looked at. */
+  slow: boolean;
+  /** True when every focused control wears the focus ring, not only the keyboard's own. */
+  focusRings: boolean;
 }
 
 export const NO_OVERRIDES: DevOverrides = {
@@ -41,6 +55,12 @@ export const NO_OVERRIDES: DevOverrides = {
   charging: false,
   clockOffset: null,
   offline: null,
+  noBattery: false,
+  calm: false,
+  alertId: null,
+  rollVariant: 0,
+  slow: false,
+  focusRings: false,
 };
 
 /** The storage slot, read through the same guard as every other slot. */
@@ -60,6 +80,30 @@ function apply(): void {
   setBatteryOverride(
     state.battery === null ? null : { level: state.battery, charging: state.charging },
   );
+  setBatteryAbsent(state.noBattery);
+  setRollVariant(state.rollVariant);
+  /*
+   * **Nothing wrong with the network, or one thing wrong with it.**
+   *
+   * Both are the same list the screens read, narrowed before it leaves this module: an empty list
+   * for a calm day, a single alert when one is being looked at, and null for the shipped network.
+   * The boards and journeys read it through `disruptions()`, so they cannot go on delaying a service
+   * for an alert that the alert list no longer shows.
+   */
+  setDevDisruptions(
+    state.calm
+      ? []
+      : state.alertId
+        ? DISRUPTIONS.filter((alert) => alert.id === state.alertId)
+        : null,
+  );
+  /*
+   * The focus switch is a stylesheet question, so it is written where the stylesheet reads it — one
+   * attribute, the same way the appearance and the battery mode are handed over.
+   */
+  if (typeof document !== 'undefined') {
+    document.documentElement.dataset.focus = state.focusRings ? 'always' : 'normal';
+  }
 }
 
 function emit(): void {

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../components/layout/AppShell';
-import { DISRUPTIONS, DISRUPTION_TYPE_LABELS, getDisruption } from '../data/disruptions';
+import { DISRUPTION_TYPE_LABELS, getDisruption } from '../data/disruptions';
+import { useDisruptions } from '../lib/useDisruptions';
 import { getLine } from '../data/network';
 import { getStop, stopLabel } from '../data/stops';
 import { StopLink } from '../components/stops/StopLink';
@@ -23,6 +24,8 @@ export function DisruptionDetailPage() {
   const format = useFormat();
   const t = useT();
   const alert = getDisruption(disruptionId);
+  /* The list the screen is showing, which is the one the arrows step through. */
+  const alerts = useDisruptions();
   /*
    * **One Plan control per stop, and the choice behind it.**
    *
@@ -57,9 +60,9 @@ export function DisruptionDetailPage() {
 
   /* The alert's own words, in the interface's language (`lib/disruptionText`). */
   const words = alertWords(t, alert);
-  const index = DISRUPTIONS.findIndex((item) => item.id === alert.id);
-  const previous = DISRUPTIONS[(index - 1 + DISRUPTIONS.length) % DISRUPTIONS.length];
-  const next = DISRUPTIONS[(index + 1) % DISRUPTIONS.length];
+  const index = alerts.findIndex((item) => item.id === alert.id);
+  const previous = alerts[(index - 1 + alerts.length) % alerts.length];
+  const next = alerts[(index + 1) % alerts.length];
   const affectedStops = alert.affectedStopIds.map((id) => getStop(id)).filter(Boolean);
   const affectedLines = alert.affectedLineIds.map((id) => getLine(id)).filter(Boolean);
 

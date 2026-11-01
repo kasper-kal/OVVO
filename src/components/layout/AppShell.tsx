@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type MouseEvent
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
-import { DISRUPTIONS } from '../../data/disruptions';
+import { useDisruptions } from '../../lib/useDisruptions';
 import { InstallBanner } from '../ui/InstallBanner';
 import { LocationPermission } from '../location/LocationPermission';
 import { OfflineBar } from './OfflineBar';
@@ -36,6 +36,8 @@ interface NavGroup {
 /** The navigation, in the language the traveller chose. */
 export function useNavigation(): NavGroup[] {
   const { settings, power } = useApp();
+  /* The alerts count the screens are showing, so a calm day has no badge to contradict it. */
+  const alerts = useDisruptions();
   const t = (key: string) => translate(settings.language, key);
   const groups: NavGroup[] = [
     {
@@ -62,7 +64,7 @@ export function useNavigation(): NavGroup[] {
           to the list from the menu as well — and the entry carries the count the header shows,
           so the two agree about how many alerts there are.
         */
-        { to: '/disruptions', label: t('Disruptions'), icon: 'alert', hint: t('Delays, cancellations and planned works'), badge: DISRUPTIONS.length },
+        { to: '/disruptions', label: t('Disruptions'), icon: 'alert', hint: t('Delays, cancellations and planned works'), badge: alerts.length },
       ],
     },
     {
@@ -455,7 +457,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigationType = useNavigationType();
   const t = useT();
-  const alertCount = DISRUPTIONS.length;
+  const alertCount = useDisruptions().length;
   const headerBack = useHeaderBack();
   const { homeEditing, setHomeEditing, homeMenuOpen, setHomeMenuOpen, power } = useApp();
   /*

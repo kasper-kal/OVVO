@@ -20,8 +20,30 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
+/**
+ * **Which variation of the rolls this app is drawing.**
+ *
+ * Delays, cancellations and platforms are rolled from the things that identify a departure (the
+ * line, the direction, the stop, the planned minute), which makes them stable between reloads and
+ * refreshes — but also makes the one board that showed a cancelled Sprinter a board you cannot ask
+ * for again, and a reported row a row that has to be hunted for.
+ *
+ * The developer panel's number is folded into every seed, so one number names one version of the
+ * whole network: note it, and the same rows come back on any reload, on any device. Zero is the
+ * app's own drawing, the one it had before the panel could ask.
+ */
+let rollVariant = 0;
+
+export function setRollVariant(next: number): void {
+  rollVariant = Math.max(0, Math.round(Number.isFinite(next) ? next : 0));
+}
+
+export function getRollVariant(): number {
+  return rollVariant;
+}
+
 export function seededRandom(...parts: (string | number)[]): () => number {
-  return mulberry32(hashString(parts.join('|')));
+  return mulberry32(hashString([...parts, `v${rollVariant}`].join('|')));
 }
 
 export function pick<T>(rng: () => number, items: readonly T[]): T {
