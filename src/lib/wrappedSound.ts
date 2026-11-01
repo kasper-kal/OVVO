@@ -306,6 +306,41 @@ export function scoreTime(): { track: Track; seconds: number } | null {
   return { track: active.track, seconds: active.el.currentTime };
 }
 
+/**
+ * **Warm the graph on the first touch, before anything asks it to play.**
+ *
+ * On a phone the audio graph is built lazily, and building it *at the same moment* as the first play is
+ * what leaves the score silent while the story runs: the element is playing, the clock is moving, and
+ * nothing comes out. Creating the context and its two players on a plain touch means the first chapter
+ * only ever has to start a song in a graph that already exists.
+ */
+export function warmSound(): void {
+  const ctx = audio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') void ctx.resume();
+  ensureSlots();
+}
+
+/**
+ * **Play it again, from the next touch.**
+ *
+ * A phone that refused a play leaves the story running in silence, and the only way back was to tap the
+ * sound switch off and on. This is that repair, without the dance: a touch while the score should be
+ * sounding starts the chapter the traveller is on, in that touch, if it is not already playing.
+ */
+export function resumeSound(track: Track, next?: Track): void {
+  if (!playing) return;
+  const ctx = audio();
+  if (!ctx || !master) return;
+  if (ctx.state === 'suspended') void ctx.resume();
+  if (ctx.state !== 'running') return;
+  const live = active;
+  if (live && live.track === track && !live.el.paused && live.el.currentTime > 0.4) return;
+  /* A refusal is not a verdict on the file: the next touch is a fresh chance to play it. */
+  broken = false;
+  spin(track, next);
+}
+
 /** Whether the score is currently allowed to make a sound. */
 export function soundIsOn(): boolean {
   return playing;

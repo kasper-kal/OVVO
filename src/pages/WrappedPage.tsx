@@ -9,7 +9,16 @@ import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { playChapter, scoreTime, startSound, stopSound, whenTrackEnds, trackSeconds } from '../lib/wrappedSound';
+import {
+  playChapter,
+  resumeSound,
+  scoreTime,
+  startSound,
+  stopSound,
+  trackSeconds,
+  warmSound,
+  whenTrackEnds,
+} from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 
 /** How many dots fly out of the year's total when it lands. */
@@ -217,6 +226,11 @@ export function WrappedPage() {
         * button, the sound switch, Begin, the actions on the cover and the closing page, the bar at the
         * top - is left alone, so a tap on a button is still a tap on that button.
         */
+      /* Every touch warms the audio graph, and repairs a score that never started. */
+      onPointerDown={() => {
+        warmSound();
+        if (started && sound) resumeSound(chapter.track, story[index + 1]?.track);
+      }}
       onClick={(event) => {
         const target = event.target as HTMLElement | null;
         if (target?.closest('button, a, input, textarea, select, [role="button"], .wrapped-progress')) return;
