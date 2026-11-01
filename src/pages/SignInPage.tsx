@@ -225,7 +225,7 @@ export function SignInPage() {
                     )
                   }
                 >
-                  Forgot the password
+                  Forgot password
                 </Button>
               ) : null}
             </div>
