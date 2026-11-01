@@ -23,8 +23,8 @@ import { transferMs } from '../lib/link';
  *     the steerer asked: a day, an hour and a minute chosen in one go instead of in two fields that
  *     can disagree. It moves the app's clock as an offset, so the app's minute timers keep running.
  *   • **The connection.** Pulling a cable is not a way to test the offline strip on a phone, and
- *     no link can be made slow on demand either, so the speed is claimed here and the waits are
- *     the time the answer's own bytes would take at it.
+ *     no link can be made slow on demand either, so the speed is claimed here: every screen you
+ *     open waits for its weight at that speed, and the journey list and article card for theirs.
  *   • **The network.** A calm day, or one alert on its own, and the number the boards roll from,
  *     so a row that was reported can be found again instead of hunted for.
  *   • **The way in.** A hold over the results long enough to be looked at, and the focus ring kept
@@ -321,13 +321,13 @@ export function DeveloperPage() {
                 setDevOverrides({ wifiMbps: next ? speed : null });
               }}
               label={t('Custom WiFi speed')}
-              description={t('A claimed link speed, in megabits, for the waits to be measured against.')}
+              description={t('A claimed link speed: every screen you open waits for its weight at this speed.')}
             />
             {dev.wifiMbps !== null ? (
               <Field
                 label={t('Speed · {speed} Mbps', { speed: dev.wifiMbps })}
-                hint={t('A 30 kB answer takes {seconds} seconds at this speed.', {
-                  seconds: (transferMs(30_000, dev.wifiMbps) / 1000).toFixed(2),
+                hint={t('A 45 kB screen takes {seconds} seconds at this speed, and the journey list and the article card their own size.', {
+                  seconds: (transferMs(45_000, dev.wifiMbps) / 1000).toFixed(2),
                 })}
               >
                 <input

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
 import { useDisruptions } from '../../lib/useDisruptions';
+import { LinkHold } from './LinkHold';
 import { InstallBanner } from '../ui/InstallBanner';
 import { LocationPermission } from '../location/LocationPermission';
 import { OfflineBar } from './OfflineBar';
@@ -746,9 +747,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               until it is reset, so arriving on a *different* screen remounts it and starts clean
               — otherwise one broken screen would hold every screen after it.
             */}
-            <ErrorBoundary key={location.pathname} variant="inline">
-              {children}
-            </ErrorBoundary>
+            {/*
+              **The claimed link speed, around the screens rather than inside one of them.**
+
+              The hold sits outside the keyed boundary on purpose: the boundary remounts on every
+              address change, and a hold that remounted with it would forget the wait it was in the
+              middle of. With no speed set it draws its children and nothing else (`layout/LinkHold`).
+            */}
+            <LinkHold>
+              <ErrorBoundary key={location.pathname} variant="inline">
+                {children}
+              </ErrorBoundary>
+            </LinkHold>
           </main>
         </div>
 
