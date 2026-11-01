@@ -1102,11 +1102,36 @@
    * it. This was 12px on both sides, which put the glyph hard against the rounded corner; a wider
    * lane pushed the *value* away from the mark and left the mark where it was; and drawing our own
    * mark instead produced two of them on a phone (1 November 2026, twice). The answer is the plain
-   * one: the lane matches the field's own 12px, so the value starts 12px from one end and the mark
-   * ends 12px from the other, and the platform's own inset sits inside that. Nothing is invented
-   * and nothing is doubled.
+   * one: the lane is the field's own, so the value starts from one end and the mark ends before the
+   * other. Nothing is invented and nothing is doubled.
+   *
+   * **The lane is wider than the text inset on purpose.** Twelve pixels is the text inset and the
+   * whole of the rounded end: the field is a 44px pill with a 20px radius, so a mark 12px from the
+   * edge sat *in the curve* and read as sliding off the field (reported again, circled, with the
+   * clock on a phone). Twenty pixels puts the mark on the straight part of the edge, where a mark
+   * belongs, and leaves the value its own 12px on the other side.
    */
-  padding-right: var(--s-3);
+  padding-right: var(--s-5);
+}
+
+/*
+ * **The mark is given a box, where the engine will take one.**
+ *
+ * The platform draws the picker glyph at whatever size its own stylesheet says, which is how a
+ * larger default on a phone reached past the padding and out over the field's edge. Twenty pixels
+ * square and no margin of its own fixes the size, so the same lane holds it on every engine that
+ * styles `::-webkit-calendar-picker-indicator`; where an engine ignores this, nothing is hidden and
+ * the browser's own glyph is left exactly as it was.
+ */
+.input[type='date']::-webkit-calendar-picker-indicator,
+.input[type='time']::-webkit-calendar-picker-indicator,
+.input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.input[type='month']::-webkit-calendar-picker-indicator,
+.input[type='week']::-webkit-calendar-picker-indicator {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 0 2px 0 0;
 }
 
 
