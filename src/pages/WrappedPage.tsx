@@ -9,7 +9,7 @@ import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { playChapter, startSound, stopSound } from '../lib/wrappedSound';
+import { playChapter, startSound, stopSound, whenTrackEnds } from '../lib/wrappedSound';
 
 /** How many dots fly out of the year's total when it lands. */
 const BURST = 14;
@@ -88,6 +88,23 @@ export function WrappedPage() {
     if (!started) return;
     playChapter(chapter.track, story[index + 1]?.track);
   }, [index, started, chapter.track, story]);
+
+  /*
+   * **The story keeps time with the music.**
+   *
+   * Every chapter is scored, so its song is its clock: when the song ends the deck turns the page by
+   * itself, which is what makes the story watchable without touching it. Swiping still works and
+   * jumps the story ahead of the score; muting stops the clock, because the song is what was doing
+   * the counting. A song that will not load never ends, so that chapter waits for a swipe rather
+   * than racing past unseen.
+   */
+  useEffect(() => {
+    whenTrackEnds(() => {
+      if (!started || last) return;
+      go(index + 1);
+    });
+    return () => whenTrackEnds(null);
+  }, [go, index, last, started]);
 
   /* The keyboard is a reader's way through: arrows, Escape to leave. */
   useEffect(() => {
@@ -374,15 +391,9 @@ export function WrappedPage() {
 
       {started || chapter.kind !== 'cover' ? (
         <footer className="wrapped-foot">
-          <button
-            type="button"
-            className="wrapped-step"
-            onClick={() => step(-1)}
-            disabled={index === 0}
-            aria-label={t('Previous chapter')}
-          >
-            <Icon name="chevronLeft" size={20} />
-          </button>
+          <span className="wrapped-count" aria-live="polite">
+            {index + 1} / {story.length}
+          </span>
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
@@ -398,20 +409,7 @@ export function WrappedPage() {
                 </Button>
               )}
             </div>
-          ) : (
-            <button
-              type="button"
-              className="wrapped-step wrapped-step--next"
-              onClick={() => step(1)}
-              aria-label={t('Next chapter')}
-            >
-              <Icon name="chevronRight" size={20} />
-            </button>
-          )}
-
-          <span className="wrapped-count" aria-live="polite">
-            {index + 1} / {story.length}
-          </span>
+          ) : null}
         </footer>
       ) : null}
 

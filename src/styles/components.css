@@ -8607,19 +8607,14 @@
   margin: 0;
 }
 
-.wrapped-step--next {
-  margin-left: auto;
-}
-
+/*
+ * **No arrows.** The story pages itself when a song ends, and a swipe does the same thing by hand, so
+ * the foot holds only where you are, and at the end, what you can do with the year.
+ */
 .wrapped-count {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  opacity: 0.6;
-  margin-left: auto;
-}
-
-.wrapped-foot:has(.wrapped-step--next) .wrapped-count {
-  margin-left: 0;
+  opacity: 0.55;
 }
 
 .wrapped-toast {

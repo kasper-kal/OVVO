@@ -17,6 +17,9 @@
  *   the story.
  * - **A missing track is not a silent story.** If a file will not load or play, the deck falls back
  *   to the quiet synthesised pad it used before, so the room is never dead.
+ * - **The track is the clock.** Each chapter is scored, so its song ending is the signal that the
+ *   chapter is over: the deck listens for that and turns the page by itself. Muting stops the clock,
+ *   because the song is what was doing the counting.
  */
 
 /** The chapters' tracks, named after the music rather than after the chapter, so they can be swapped. */
@@ -57,6 +60,7 @@ let current: Track | null = null;
 let playing = false;
 let broken = false;
 let pad: { stop: () => void } | null = null;
+let onEnd: (() => void) | null = null;
 
 function audio(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -84,7 +88,8 @@ function audio(): AudioContext | null {
  */
 function makeSlot(ctx: AudioContext, bus: GainNode): Slot {
   const el = new Audio();
-  el.loop = true;
+  /* A chapter's song plays once: its end is what tells the deck to turn the page. */
+  el.loop = false;
   el.preload = 'auto';
   const gain = ctx.createGain();
   gain.gain.value = 0;
@@ -94,6 +99,10 @@ function makeSlot(ctx: AudioContext, bus: GainNode): Slot {
   el.addEventListener('error', () => {
     broken = true;
     if (playing) startPad();
+  });
+  el.addEventListener('ended', () => {
+    if (slot !== active || !playing) return;
+    onEnd?.();
   });
   slots = [...slots, slot];
   return slot;
@@ -218,6 +227,16 @@ export function stopSound(): void {
     slots.forEach((slot) => slot.el.pause());
     stopPad();
   }, 260);
+}
+
+/**
+ * Called when the chapter's song reaches its end.
+ *
+ * One handler at a time, set by the deck while it is on screen and cleared when it leaves, so a
+ * finished track can never turn a page behind a closed story.
+ */
+export function whenTrackEnds(handler: (() => void) | null): void {
+  onEnd = handler;
 }
 
 /** Whether the score is currently allowed to make a sound. */
