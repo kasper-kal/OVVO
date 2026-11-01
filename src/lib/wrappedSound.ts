@@ -44,28 +44,29 @@ function urlOf(track: Track): string {
 const LEVEL = 0.55;
 
 /**
- * **Every track, trimmed to the same loudness.**
+ * **Every track, brought to the same average decibel.**
  *
- * The ten pieces were not mastered together: measured in the band the ear judges music by, the
- * quietest sat at -31 dB and the loudest at -15 dB, which is sixteen times the difference in power
- * and exactly why one chapter felt too quiet and another too loud. These numbers bring the lot to
- * -21 dB, so the story changes colour between chapters without changing volume.
+ * The ten pieces were not mastered together. Measured as an average level over each whole file, the
+ * quietest sat at -28 dB and the loudest at -9 dB: nineteen decibels apart, which is not a nuance,
+ * it is one chapter shouting and the next whispering. These trims bring all of them to -18 dB, so
+ * the story changes colour between chapters and never changes volume.
  *
- * Measured by decoding each file and taking the level between 300 Hz and 6 kHz, because a straight
- * average would turn a bass-heavy track down for being bass-heavy. The biggest correction is the
- * acoustic guitar, which was simply quieter than everything else; nothing clips.
+ * Measured by decoding each file and taking the average level of the whole thing, which is what
+ * "average decibel" means and what the audit in `CREDITS.md` records. The biggest single correction
+ * is the track under chapter four, which was quietly mastered; every peak still sits well under full
+ * scale after the trim, so nothing clips.
  */
 const TRIM: Record<Track, number> = {
-  'luxury-anthem': 1.07,
-  'electro-dance': 1.14,
-  'afrobeat': 0.5,
+  'luxury-anthem': 0.68,
+  'electro-dance': 0.67,
+  'afrobeat': 0.35,
   'indie-pop': 3.27,
-  'electropop': 1.17,
-  'melodic-trap': 0.51,
-  'hip-hop-anthem': 0.86,
-  'dark-trap': 1.32,
-  'rap-anthem': 0.78,
-  'acoustic': 0.51,
+  'electropop': 1.07,
+  'melodic-trap': 0.38,
+  'hip-hop-anthem': 0.6,
+  'dark-trap': 1.14,
+  'rap-anthem': 0.41,
+  'acoustic': 0.77,
 };
 const FADE_IN = 0.9;
 const FADE_OUT = 0.7;
