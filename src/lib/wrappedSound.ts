@@ -13,8 +13,7 @@
  *   and starting. The idle element is then loaded with the chapter after that, so by the time the
  *   traveller swipes, their next song is already on the phone.
  * - **Nothing plays before a tap.** Browsers refuse audio without a gesture, and the cover is the
- *   right place to ask: Begin starts the story and the score together, Skip the sound starts only
- *   the story.
+ *   right place to ask: Begin starts the story and the score together, the corner switch turns the score off before it begins.
  * - **A missing track is not a silent story.** If a file will not load or play, the deck falls back
  *   to the quiet synthesised pad it used before, so the room is never dead.
  * - **The track is the clock.** Each chapter is scored, so its song ending is the signal that the

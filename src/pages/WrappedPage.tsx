@@ -39,8 +39,7 @@ const BURST = 14;
  * chapters are left deliberately still.
  *
  * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
- * a tap: the cover's Begin is the gesture that starts it, Skip the sound starts the story in
- * silence, and the switch in the corner silences it for the session.
+ * a tap: the cover's Begin is the gesture that starts it, the corner switch starts it without the score.
  */
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
