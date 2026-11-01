@@ -79,15 +79,15 @@ export function AccountCard() {
     setDeleting(false);
     setConfirmDelete(false);
     if (result === 'recent-sign-in') {
-      setNote('For safety, sign out and sign in again, then delete the account.');
+      setNote('For safety, sign out and sign in again, then delete your OVVO ID.');
     } else if (result === 'failed') {
-      setNote('The account could not be deleted. Nothing was changed.');
+      setNote('Your OVVO ID could not be deleted. Nothing was changed.');
     }
   };
 
   return (
     <Card className="stack">
-      <SectionHeading title="Account" />
+      <SectionHeading title="OVVO ID" />
 
       {!firebaseConfigured ? (
         <p className="t-sm t-muted" style={{ margin: 0 }}>
@@ -120,7 +120,7 @@ export function AccountCard() {
 
           {failed ? (
             <p className="t-sm t-muted" style={{ margin: 0 }}>
-              Couldn&rsquo;t reach your account. Your changes are saved on this device.
+              Couldn&rsquo;t reach your OVVO ID. Your changes are saved on this device.
             </p>
           ) : null}
           {note ? (
@@ -130,7 +130,7 @@ export function AccountCard() {
           ) : null}
 
           <p className="t-sm t-muted" style={{ margin: 0 }}>
-            Your stops, journeys and settings are saved with this account, so they are on your other
+            Your stops, journeys and settings are saved with this OVVO ID, so they are on your other
             devices too.
           </p>
 
@@ -159,7 +159,7 @@ export function AccountCard() {
 
           <div className="row-wrap">
             <Button variant="ghost" size="sm" icon="trash" onClick={() => setConfirmDelete(true)}>
-              Delete account
+              Delete OVVO ID
             </Button>
           </div>
         </>
@@ -167,13 +167,13 @@ export function AccountCard() {
 
       <Dialog
         open={confirmDelete}
-        title="Delete this account?"
-        description="The account and the copy of your data on the server are deleted. This cannot be undone."
+        title="Delete this OVVO ID?"
+        description="Your OVVO ID and the copy of your data on the server are deleted. This cannot be undone."
         onClose={() => setConfirmDelete(false)}
         footer={
           <>
             <Button variant="accent" icon="trash" disabled={deleting} onClick={() => void removeAccount()}>
-              {deleting ? 'Deleting' : 'Delete account'}
+              {deleting ? 'Deleting' : 'Delete OVVO ID'}
             </Button>
             <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
               Cancel
@@ -182,7 +182,7 @@ export function AccountCard() {
         }
       >
         <p className="t-sm">
-          Everything saved with the account goes with it. This device keeps its own copy until you
+          Everything saved with your OVVO ID goes with it. This device keeps its own copy until you
           empty it with the reset at the foot of this page.
         </p>
       </Dialog>

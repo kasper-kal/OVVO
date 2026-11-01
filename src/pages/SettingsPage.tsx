@@ -11,6 +11,7 @@ import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { AccountCard, SignOutPanel } from '../components/account/AccountCard';
+import { WrappedInvite } from '../components/wrapped/WrappedInvite';
 import { LANGUAGES } from '../lib/i18n';
 import { clearDevOverrides } from '../lib/dev';
 import type { Stop } from '../data/types';
@@ -239,6 +240,8 @@ export function SettingsPage() {
         and the reset all sit below it.
       */}
       <AccountCard />
+
+      <WrappedInvite place="settings" />
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="stack-4">

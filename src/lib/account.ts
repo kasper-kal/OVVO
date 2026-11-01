@@ -173,7 +173,7 @@ export function explainAuthError(error: unknown): string {
     case 'auth/missing-email':
       return 'Enter your email address.';
     case 'auth/email-already-in-use':
-      return 'An account with this email already exists.';
+      return 'An OVVO ID with this email already exists.';
     case 'auth/weak-password':
       return 'Password must be at least 6 characters.';
     case 'auth/too-many-requests':

@@ -222,8 +222,8 @@ const NL: Record<string, string> = {
     'Plan een reis om deze voorkeuren te bekijken.',
 
   /* --------------------------------------------------------------- settings */
-  'Appearance, defaults and your saved data. Every change applies immediately, and follows your account when you are signed in.':
-    'Weergave, standaarden en je opgeslagen gegevens. Elke wijziging geldt meteen en volgt je account als je bent ingelogd.',
+  'Appearance, defaults and your saved data. Every change applies immediately, and follows your OVVO ID when you are signed in.':
+    'Weergave, standaarden en je opgeslagen gegevens. Elke wijziging geldt meteen en volgt je OVVO ID als je bent ingelogd.',
   Appearance: 'Weergave',
   /* The field under the Appearance heading: it picks a theme, and naming it "Appearance" again
      printed the same word twice on every settings screen. */

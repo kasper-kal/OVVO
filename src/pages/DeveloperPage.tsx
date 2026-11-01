@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useApp } from '../state/AppState';
@@ -313,6 +314,25 @@ export function DeveloperPage() {
               >
                 {t('Use the device’s clock')}
               </Button>
+            </div>
+          </Card>
+
+          <Card className="stack">
+            <h2 className="t-section">{t('OVVO Wrapped')}</h2>
+            {/*
+              The deck is built to be read from 20 December. This opens a made-up year — 146
+              journeys, a favourite line, a look worn for months — so the cards can be looked at and
+              argued with in November. Nothing here is stored: `?demo=1` is read into memory by
+              `lib/wrappedDemo` and thrown away when the page closes.
+            */}
+            <p className="t-sm t-muted">
+              {t("Opens the year's deck with a made-up year, without touching your own tally.")}
+            </p>
+            <div className="row-wrap">
+              <Link className="btn btn--accent" to="/wrapped?demo=1">
+                <Icon name="star" size={16} />
+                {t('Open a demo year')}
+              </Link>
             </div>
           </Card>
 

@@ -12,6 +12,7 @@ import { STOPS } from '../data/stops';
 
 import { useT } from '../lib/useT';
 import { getDevOverrides } from '../lib/dev';
+import { WrappedInvite } from '../components/wrapped/WrappedInvite';
 
 /** How long the home screen has to be held before it opens its customising mode. */
 const HOLD_MS = 1000;
@@ -1128,6 +1129,9 @@ export function HomePage() {
           },
         )}`}
       />
+
+      {/* The year, in the season it is worth opening (`WrappedInvite`). */}
+      <WrappedInvite />
 
       {/*
         * A thinned home screen says so.
