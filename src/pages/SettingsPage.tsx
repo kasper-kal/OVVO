@@ -11,6 +11,7 @@ import { paletteFor } from '../lib/palette';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { LANGUAGES } from '../lib/i18n';
+import { clearDevOverrides } from '../lib/dev';
 import type { Stop } from '../data/types';
 import type { Language, ThemeChoice } from '../state/types';
 
@@ -333,6 +334,38 @@ export function SettingsPage() {
                   : t('This browser does not report the battery, so the full interface is always drawn.')}
               </p>
             </div>
+          </Card>
+
+          {/*
+            **Developer mode, and the way into its panel, in one card of its own.**
+
+            The panel had a group of its own in the menu, which made a screen for one person a
+            fixture of every visitor's navigation. It is reached from here now: the switch says the
+            mode is on, and the button opens the panel, so the two are never a page apart.
+          */}
+          <Card className="stack">
+            <h2 className="t-section">{t('Developer')}</h2>
+            <Switch
+              checked={settings.developerMode}
+              onChange={(next) => {
+                updateSettings({ developerMode: next });
+                /* Turning the mode off hands the device's own facts back at once: a forgotten
+                   fake battery must not outlive the switch that made it. */
+                if (!next) clearDevOverrides();
+              }}
+              label={t('Developer mode')}
+              description={t(
+                'Adds a panel for changing the date, the battery and the connection, for testing this app.',
+              )}
+            />
+            {settings.developerMode ? (
+              <div className="row">
+                <Link className="btn" to="/developer">
+                  <Icon name="terminal" size={16} />
+                  {t('Open the Developer panel')}
+                </Link>
+              </div>
+            ) : null}
           </Card>
 
           {/*

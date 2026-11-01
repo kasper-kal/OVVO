@@ -7,7 +7,7 @@ import { Button, Card, Dialog } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { WIDGETS, WIDGET_CATEGORIES, widgetById } from '../widgets/registry';
 import { NETWORK } from '../data/network';
-import { DISRUPTIONS } from '../data/disruptions';
+import { useDisruptions } from '../lib/useDisruptions';
 import { STOPS } from '../data/stops';
 
 import { useT } from '../lib/useT';
@@ -106,6 +106,7 @@ function counted(t: (key: string, vars?: Record<string, string | number>) => str
 }
 
 export function HomePage() {
+  const alerts = useDisruptions();
   const {
     homeWidgets,
     addHomeWidget,
@@ -1113,7 +1114,7 @@ export function HomePage() {
           {
             stops: counted(t, STOPS.length, '{count} stop', '{count} stops'),
             services: counted(t, NETWORK.length, '{count} service', '{count} services'),
-            alerts: counted(t, DISRUPTIONS.length, '{count} alert', '{count} alerts'),
+            alerts: counted(t, alerts.length, '{count} alert', '{count} alerts'),
           },
         )}`}
       />

@@ -21,6 +21,7 @@ import {
 import { DEFAULT_HOME_WIDGETS, REQUIRED_WIDGETS, migrateHomeWidgets } from '../widgets/defaults';
 import { NO_BATTERY, watchBattery, type PowerState } from '../lib/power';
 import { setClockFrozen } from '../lib/useMinuteNow';
+import { clearDevOverrides } from '../lib/dev';
 import { applyStyle, FONT_FAMILIES, styleById, stylePhotograph, stylePhotoPath, type StyleDef } from '../lib/styles';
 import { resetInstallOffer } from '../lib/install';
 import { translate } from '../lib/i18n';
@@ -972,6 +973,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
      */
     resetLocalData: () => {
       clearStored();
+      /* The simulated battery, clock and connection are stored data too, and this is the one
+         control whose whole job is to forget everything this browser knows. */
+      clearDevOverrides();
       setSettings(DEFAULT_SETTINGS);
       setPreferences(DEFAULT_PREFERENCES);
       setFavouriteStopIds([]);

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, type MouseEvent
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
-import { DISRUPTIONS } from '../../data/disruptions';
+import { useDisruptions } from '../../lib/useDisruptions';
 import { InstallBanner } from '../ui/InstallBanner';
 import { LocationPermission } from '../location/LocationPermission';
 import { OfflineBar } from './OfflineBar';
@@ -10,6 +10,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { useT } from '../../lib/useT';
 import { translate } from '../../lib/i18n';
 import { useApp } from '../../state/AppState';
+import { getDevOverrides } from '../../lib/dev';
 
 /**
  * Application shell.
@@ -35,6 +36,8 @@ interface NavGroup {
 /** The navigation, in the language the traveller chose. */
 export function useNavigation(): NavGroup[] {
   const { settings, power } = useApp();
+  /* The alerts count the screens are showing, so a calm day has no badge to contradict it. */
+  const alerts = useDisruptions();
   const t = (key: string) => translate(settings.language, key);
   const groups: NavGroup[] = [
     {
@@ -61,7 +64,7 @@ export function useNavigation(): NavGroup[] {
           to the list from the menu as well — and the entry carries the count the header shows,
           so the two agree about how many alerts there are.
         */
-        { to: '/disruptions', label: t('Disruptions'), icon: 'alert', hint: t('Delays, cancellations and planned works'), badge: DISRUPTIONS.length },
+        { to: '/disruptions', label: t('Disruptions'), icon: 'alert', hint: t('Delays, cancellations and planned works'), badge: alerts.length },
       ],
     },
     {
@@ -83,7 +86,24 @@ export function useNavigation(): NavGroup[] {
    * left in it — otherwise "Yours" would be a heading over an empty list. A charger puts it back,
    * because nothing is stored: the mode is a subtraction, never a change.
    */
-  if ((power.mode !== 'super' && power.mode !== 'last')) return groups;
+  /*
+   * **The panel is reached from Settings, not from the menu.**
+   *
+   * It had a group of its own here, which put a screen built for one person in everybody's
+   * navigation. The switch that turns the mode on and the button that opens the panel now sit
+   * together in a card on Settings, so the menu is the app's own screens and nothing else.
+   */
+
+  /*
+   * **A simulated battery keeps Settings reachable, and nothing else does.**
+   *
+   * The panel exists to put the app at 1%, and the 10% rule takes Settings out of the navigation —
+   * so without this the screen that turns the simulation off would be the one the simulation hides.
+   * While a battery override is set, the two closed entries stay; the rest of the thinning is
+   * untouched, because it is the interface being tested.
+   */
+  const simulating = settings.developerMode && getDevOverrides().battery !== null;
+  if (!(power.mode === 'super' || power.mode === 'last') || simulating) return groups;
   /*
    * Settings and the map, and nothing else. The map was left in the first time this mode was
    * written, on the argument that looking at where a stop is answers the same question the mode
@@ -430,7 +450,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigationType = useNavigationType();
   const t = useT();
-  const alertCount = DISRUPTIONS.length;
+  const alertCount = useDisruptions().length;
   const headerBack = useHeaderBack();
   const { homeEditing, setHomeEditing, homeMenuOpen, setHomeMenuOpen, power } = useApp();
   /*

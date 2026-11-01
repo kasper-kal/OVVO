@@ -291,7 +291,7 @@ export function DeparturesPage() {
               <span className="t-sm t-muted">
                 {manualRefresh
                   ? t('Updates only when you tap Refresh')
-                  : t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
+                  : t('Auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
               </span>
             </div>
           </div>
@@ -501,7 +501,7 @@ export function DeparturesPage() {
                 : ''}
               {manualRefresh
                 ? t('Updates only when you tap Refresh')
-                : t('auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
+                : t('Auto-refresh every {seconds}s', { seconds: BOARD_REFRESH_SECONDS })}
             </span>
           </div>
 

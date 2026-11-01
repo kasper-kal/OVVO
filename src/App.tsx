@@ -16,6 +16,8 @@ import { PreferencesPage } from './pages/PreferencesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { StylesPage } from './pages/StylesPage';
 import { ReviewLayer } from './review/ReviewLayer';
+import { DeveloperRoute } from './pages/DeveloperPage';
+import { getDevOverrides } from './lib/dev';
 
 /**
  * **Every screen is in this one file, and that is the fix for the half second.**
@@ -52,8 +54,18 @@ import { ReviewLayer } from './review/ReviewLayer';
  * subtraction from the interface and leaving it restores the screen exactly.
  */
 function SettingsRoute() {
-  const { power } = useApp();
-  if ((power.mode === 'super' || power.mode === 'last')) return <Navigate to="/" replace />;
+  const { power, settings } = useApp();
+  /*
+   * **A simulated battery keeps this door open, and only a simulated one.**
+   *
+   * The developer panel can put the app at 1%, and Settings is closed at 1% — which would lock the
+   * panel that did it out of the screen where it is switched off. So while a battery override is
+   * set, the way in stays open; the moment it is handed back, the rule is exactly what it was.
+   */
+  const simulating = settings.developerMode && getDevOverrides().battery !== null;
+  if ((power.mode === 'super' || power.mode === 'last') && !simulating) {
+    return <Navigate to="/" replace />;
+  }
   return <SettingsPage />;
 }
 
@@ -123,6 +135,9 @@ export default function App() {
                   <Route path="/disruptions/:disruptionId" element={<DisruptionDetailPage />} />
                   <Route path="/preferences" element={<PreferencesPage />} />
                   <Route path="/settings" element={<SettingsRoute />} />
+                  {/* The developer panel: one switch in Settings opens it, and its own route
+                      checks that switch rather than trusting the link (`pages/DeveloperPage`). */}
+                  <Route path="/developer" element={<DeveloperRoute />} />
                   {/* The look, one level in from Settings: fifty previews do not belong in a
                       list of settings (`pages/StylesPage.tsx`). */}
                   <Route path="/styles" element={<StylesPage />} />

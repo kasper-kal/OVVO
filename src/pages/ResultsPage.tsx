@@ -16,6 +16,7 @@ import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } fro
 import { useFormat } from '../lib/useFormat';
 import { decodeSearchLink, encodeSearchLink } from '../lib/searchLink';
 import { useT } from '../lib/useT';
+import { useDev } from '../lib/dev';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { PublicMode, SortMode } from '../data/types';
@@ -32,6 +33,12 @@ const WINDOW_LIMIT_MINUTES = 240;
 
 /** How long the results screen holds its list's place for a new search, in milliseconds. */
 const HOLD_MS = 260;
+
+/**
+ * The same hold with the developer panel's slow switch on: long enough to read the loading shape
+ * and to see the cards land, instead of a quarter of a second that is gone before it is looked at.
+ */
+const SLOW_HOLD_MS = 2200;
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: 'best', label: 'Best' },
@@ -133,6 +140,16 @@ export function ResultsPage() {
   const searchKey = search
     ? `${search.query.fromLabel ?? search.query.fromStopId}|${search.query.toLabel ?? search.query.toStopId}|${search.query.date}|${search.query.time}|${search.query.timeMode}`
     : '';
+  /*
+   * **The hold, from the panel.**
+   *
+   * A plain two seconds, and only from the switch that says it wants one. The claimed link speed is
+   * deliberately not part of this: these journeys were worked out in the browser from a timetable
+   * already on the device, no byte of them came over a wire, and making them wait for a speed would
+   * be a claim about the network that is not true.
+   */
+  const dev = useDev();
+  const holdMs = dev.slow ? SLOW_HOLD_MS : HOLD_MS;
   const [planning, setPlanning] = useState(power.mode === 'off' && holdIsRunning(searchKey));
   useEffect(() => {
     if (savingRef.current) {
@@ -156,11 +173,11 @@ export function ResultsPage() {
       const timer = window.setTimeout(() => setPlanning(false), left);
       return () => window.clearTimeout(timer);
     }
-    heldSearch = { key: searchKey, until: now + HOLD_MS };
+    heldSearch = { key: searchKey, until: now + holdMs };
     setPlanning(true);
-    const timer = window.setTimeout(() => setPlanning(false), HOLD_MS);
+    const timer = window.setTimeout(() => setPlanning(false), holdMs);
     return () => window.clearTimeout(timer);
-  }, [searchKey]);
+  }, [searchKey, holdMs]);
   /* The battery reading lands after the first render; this ends a hold that started before it was
      known, and never starts one (so plugging in does not replay it over a list that is there). */
   useEffect(() => {

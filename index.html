@@ -135,10 +135,13 @@
 
         window.__ovvoSplash = Date.now();
 
+        /* Ninety seconds, not fifteen: the app itself now holds this mark while a claimed slow
+           link is delivering the bundle (see `src/main.tsx`), and a low speed can mean half a
+           minute. The timer is still only for a bundle that never arrives at all. */
         setTimeout(function () {
           var splash = document.getElementById('splash');
           if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
-        }, 15000);
+        }, 90000);
       })();
     </script>
     <!--

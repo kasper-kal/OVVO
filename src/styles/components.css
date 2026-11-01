@@ -1080,6 +1080,24 @@
   border-color: var(--ink-faint);
 }
 
+/*
+ * **A lane for the platform's own picker glyph.**
+ *
+ * `.input` pads 12px on both sides, which is right for text and too tight for a control whose
+ * right-hand end belongs to the browser: the chevron of a `datetime-local` was drawn 12px from the
+ * border, hard against the field's rounded corner, and read as a mark sliding off the edge
+ * (reported, circled). The reserved strip is the glyph's lane, and the value keeps its own 12px.
+ * The results screen's day and time fields opt out further down, because they hide that glyph on
+ * purpose and draw the app's own mark in its place.
+ */
+.input[type='date'],
+.input[type='time'],
+.input[type='datetime-local'],
+.input[type='month'],
+.input[type='week'] {
+  padding-right: var(--s-8);
+}
+
 /* Focus on a field is the app's own ring, not a border colour: this rule used to set
    `outline: none` and outrank the global `:focus-visible` ring, so the search fields and every
    select were the only controls without the shared 2px coral mark (2.6, 4.5, 6.7, 7.3, 10.1) —
@@ -3601,6 +3619,37 @@
   border-radius: var(--r-circle);
   background: var(--accent-primary);
   border: 2px solid var(--surface-raised);
+}
+
+/*
+ * The developer panel's date and time field.
+ *
+ * The field keeps the mark the platform draws for it, and the app paints none of its own: hiding
+ * the platform's mark is only safe while the browser obeys, and where it does not the field ends
+ * up with two marks in one lane. One mark, whichever one it is, is the rule here.
+ */
+.dev-datetime {
+  position: relative;
+  display: flex;
+}
+
+.dev-datetime .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/*
+ * The developer panel's level slider: the knob reaches the ends of its rail.
+ *
+ * A native range puts the knob's centre half a thumb inside the track at its minimum, so 0% drew a
+ * knob floating away from the start of a rail with nothing to its left, which reads as a control
+ * that is not actually at its minimum (reported). The input is widened by one thumb and pulled out
+ * by half of it either side, so 0 puts the knob's centre on the left end and 100 puts it on the
+ * right. The card's own padding absorbs the overhang.
+ */
+.range--flush input[type='range'] {
+  width: calc(100% + 26px);
+  margin-inline: -13px;
 }
 
 /* -------------------------------------------------------------- Mode badges */

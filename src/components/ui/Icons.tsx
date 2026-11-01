@@ -86,6 +86,7 @@ import {
   SquareParking,
   Star,
   Sun,
+  Terminal,
   Ticket,
   Toilet,
   TrainFront,
@@ -301,6 +302,14 @@ const GLYPHS = {
   sun: Sun,
   swap: ArrowUpDown,
   taxi: Car,
+  /*
+   * **A developer panel** — Lucide's `Terminal`: the window with a prompt and a cursor in it.
+   *
+   * The panel wore `settings`, which is the gear the Settings screen already owns, so the
+   * navigation offered two identical gears for two different screens. This one is drawn nowhere
+   * else in the app, and it says what the panel is: instruments, not preferences.
+   */
+  terminal: Terminal,
   ticket: Ticket,
   toilet: Toilet,
   train: TrainFront,

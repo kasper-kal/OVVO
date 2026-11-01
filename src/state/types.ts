@@ -127,6 +127,17 @@ export interface Settings {
   primaryColour: string;
   /** The widgets' colour **in the dark appearance** (`lib/palette.ts`). */
   primaryColourDark: string;
+  /**
+   * Whether the developer panel exists in this browser.
+   *
+   * Off by default and off for everyone who has not asked for it, which is the whole of what makes
+   * it safe to ship: the switch is one word in Settings, and everything it opens reads from one
+   * store that is cleared the moment the switch goes off. It is not a hidden door — the panel's
+   * address is redirected home while this is false — and it is not a second interface either: the
+   * panel changes what the app *believes*, and the app draws itself from those beliefs exactly as
+   * it does on a real phone.
+   */
+  developerMode: boolean;
   /** Which option the planner starts with. */
   defaultTimeMode: TimeMode;
   /** Prefilled origin for the planner. */
@@ -172,6 +183,7 @@ export const DEFAULT_SETTINGS: Settings = {
   primaryColourDark: '',
   defaultTimeMode: 'depart',
   defaultOriginStopId: null,
+  developerMode: false,
 };
 
 /**

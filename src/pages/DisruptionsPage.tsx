@@ -3,7 +3,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import { DISRUPTIONS, DISRUPTION_TYPE_LABELS } from '../data/disruptions';
+import { DISRUPTION_TYPE_LABELS } from '../data/disruptions';
+import { useDisruptions } from '../lib/useDisruptions';
 import { getLine } from '../data/network';
 import { distanceFromPosition, getStop, stopLabel } from '../data/stops';
 import { PT_LABEL_ORDER } from '../lib/boardHelpers';
@@ -40,6 +41,7 @@ export function typeLabel(type: DisruptionType) {
 
 export function DisruptionsPage() {
   const t = useT();
+  const alerts = useDisruptions();
   const [params, setParams] = useSearchParams();
   const { favouriteStopIds, nearestOrigin } = useApp();
   const lineFilter = params.get('line');
@@ -71,7 +73,7 @@ export function DisruptionsPage() {
     const severityRank: Record<DisruptionSeverity, number> = { severe: 0, warning: 1, info: 2 };
     const normalised = textQuery.trim().toLowerCase();
     const stopTerm = stopQuery.trim().toLowerCase();
-    return DISRUPTIONS.filter((alert) => {
+    return alerts.filter((alert) => {
       if (lineFilter && !alert.affectedLineIds.includes(lineFilter)) return false;
       if (types.length && !types.includes(alert.type)) return false;
       if (severities.length && !severities.includes(alert.severity)) return false;
@@ -106,7 +108,7 @@ export function DisruptionsPage() {
       }
       return severityRank[a.severity] - severityRank[b.severity];
     });
-  }, [types, severities, modes, stopQuery, textQuery, favouritesOnly, activeSort, lineFilter, favouriteStopIds, nearestOrigin, t]);
+  }, [types, severities, modes, stopQuery, textQuery, favouritesOnly, activeSort, lineFilter, favouriteStopIds, nearestOrigin, t, alerts]);
 
   /** True while any filter is off its default, which is when a reset has something to do. */
   const filtered = Boolean(

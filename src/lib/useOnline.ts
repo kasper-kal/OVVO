@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useDev } from './dev';
 
 /**
  * Whether the browser has a network, as the browser itself reports it.
@@ -14,8 +15,15 @@ import { useEffect, useState } from 'react';
  * so "the browser thinks it is online" is a strong enough signal to *stop* warning, while a
  * false negative (a wrong "you're offline") would be the only real cost, and it clears itself the
  * moment the browser fires `online`.
+ *
+ * **And the developer panel may overrule it.** Pulling a cable is not a way to test the offline
+ * strip on a phone with no cable, so the panel's answer, when it has one, is this hook's answer.
+ * It is read from one store rather than plumbed through the app, so every screen that asks whether
+ * there is a network gets the same reply, and turning the simulation off returns the browser's own
+ * answer in the same frame.
  */
 export function useOnline(): boolean {
+  const dev = useDev();
   const [online, setOnline] = useState(() =>
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
@@ -32,5 +40,5 @@ export function useOnline(): boolean {
       window.removeEventListener('offline', down);
     };
   }, []);
-  return online;
+  return dev.offline === null ? online : !dev.offline;
 }

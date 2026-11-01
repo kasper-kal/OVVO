@@ -21,6 +21,8 @@ import { Button, IconButton } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { PickerRowSkeletons } from '../ui/Skeletons';
 import { useT } from '../../lib/useT';
+import { useDev } from '../../lib/dev';
+import { byteLength, transferMs } from '../../lib/link';
 import type { Stop } from '../../data/types';
 import type { UserLocation } from '../../state/types';
 
@@ -212,6 +214,14 @@ export function StopPicker({
    * Silent on failure, like the reverse lookup: no network, no results, and the stop list below is
    * exactly what it was before this existed.
    */
+  /*
+   * **The claimed link speed, on the one list here that is really fetched.**
+   *
+   * These rows come from the map database, so they are the one thing in this picker the wire
+   * carries: at a slow claimed speed they land later and the held rows stay up until they do. With
+   * no speed claimed `transferMs` answers zero and the rows are drawn on the frame they arrive.
+   */
+  const { wifiMbps } = useDev();
   useEffect(() => {
     if (!typing || query.trim().length < ADDRESS_MIN_LENGTH) {
       setAddresses([]);
@@ -219,19 +229,30 @@ export function StopPicker({
       return undefined;
     }
     let cancelled = false;
+    let landing: number | undefined;
     setAddressPending(true);
     const timer = window.setTimeout(() => {
       searchAddresses(query).then((hits) => {
         if (cancelled) return;
-        setAddresses(hits);
-        setAddressPending(false);
+        const wait = transferMs(byteLength(JSON.stringify(hits)), wifiMbps);
+        if (wait === 0) {
+          setAddresses(hits);
+          setAddressPending(false);
+          return;
+        }
+        /* The answer is here; this is what the claimed link would have taken to deliver it. */
+        landing = window.setTimeout(() => {
+          setAddresses(hits);
+          setAddressPending(false);
+        }, wait);
       });
     }, ADDRESS_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      if (landing !== undefined) window.clearTimeout(landing);
     };
-  }, [query, typing]);
+  }, [query, typing, wifiMbps]);
 
   /*
    * One list, one highlight: the addresses the map database returned, then the stops. An address

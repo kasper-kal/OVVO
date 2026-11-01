@@ -1714,7 +1714,29 @@ export function styleTokens(
    * shape's `edge` — around a tenth of the way, so the paper has an edge without being outlined.
    * Raised contrast keeps the old promise at 3:1, which is the one setting that asks for it.
    */
-  const cardEdge = raised ? edge(card, ink, 3) : mixHex(card, ink, shape.edge);
+  /*
+   * **Default's card edge is the line every control wears.**
+   *
+   * Every other style draws its frame from its own surface moved a little toward its ink, which is
+   * quiet on purpose. On Default that mix came out lighter than the hairline, so the cards were the
+   * faintest thing on the page while the header's Edit pill, drawn in the hairline, stood beside
+   * them in a different colour (reported: too light, and the two disagreeing). Only Default moves:
+   * its frame is its own hairline, so a card and a pill are the same mark. Raised contrast still
+   * draws this edge at 3:1, and every other style keeps its shape's own edge.
+   */
+  const cardEdge = raised
+    ? edge(card, ink, 3)
+    : style.id === 'tram'
+      ? /*
+         * **The token, not a colour computed here.**
+         *
+         * Writing a computed neutral (#c3c3c4 measured) put the cards in a second, greyer line than
+         * the warm hairline the install banner and every field wear (#cdc7b8) — the same fault the
+         * reporter had just named, one layer down. Pointing at the token keeps one hairline in
+         * Default, because it *is* the same value, and a style that rewrites that token moves both.
+         */
+         'var(--border-hairline)'
+      : mixHex(card, ink, shape.edge);
 
   /*
    * **The dock is always the dark bar**, whichever page it sits under.
