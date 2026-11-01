@@ -9830,3 +9830,27 @@
 .wrapped-scene {
   cursor: pointer;
 }
+
+/* --------------------------------------------------------------- page four's dots */
+/*
+ * The same field the year's total wears, in ink on paper: the dots are quiet, they thin out at the top
+ * and the bottom, and they sit under the words rather than over them.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-field--bed {
+  grid-template-columns: repeat(10, 1fr);
+  padding: 4% 0;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 82%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 82%, transparent);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
+  width: 4px;
+  height: 4px;
+  opacity: 0.26;
+}
+
+/* Everything the page says sits above its bed. */
+.wrapped-stage[data-chapter='origin'] .wrapped-body > *:not(.wrapped-field) {
+  position: relative;
+  z-index: 1;
+}

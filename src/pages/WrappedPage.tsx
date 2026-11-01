@@ -350,6 +350,21 @@ export function WrappedPage() {
                 {t(chapter.kicker)}
               </span>
 
+              {/*
+                * **Page four wears the dot bed again.**
+                *
+                * Every chapter used to sit on one dotted ground, and it was taken away when each page got
+                * its own surface, on the argument that one texture over ten screens made them one page.
+                * That argument was about the whole deck; this page is one page, and the dots belong to it.
+                */}
+              {chapter.id === 'origin' ? (
+                <span className="wrapped-field wrapped-field--bed" aria-hidden="true">
+                  {Array.from({ length: 60 }, (_, dot) => (
+                    <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                  ))}
+                </span>
+              ) : null}
+
               {chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
                   <span className="wrapped-arc__spark" aria-hidden="true" />
