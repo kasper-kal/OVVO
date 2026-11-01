@@ -186,7 +186,7 @@ ${part(
       '1.5',
       'Your address, and what to do if you cannot see it',
       `<p>Our app on Cloudflare will be called <b>ovvo-vibecreations</b> once I deploy it, and its public address is that name in front of your account's own subdomain, so it looks like <code>https://ovvo-vibecreations.your-subdomain.workers.dev</code>.</p>
-       <p>In the same right-hand panel there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it. Whatever it says, put <b>ovvo</b> in front of it, and that is your address.</p>
+       <p>In the same right-hand panel there is a line called <b>Your subdomain</b> with a <b>Change</b> link beside it. Whatever it says, put <b>ovvo-vibecreations</b> in front of it, and that is your address.</p>
        <p>If the panel is not there, and the search box gives you the account ID but no subdomain, stop looking. A brand-new account only receives a subdomain the first time this page is opened, and some layouts never print it. Send me the account ID, and I will read the subdomain from Cloudflare with the token and send you the finished address.</p>
        ${copyIt('Either way it ends in <code>.workers.dev</code>, and nothing has to be deployed for the address to be yours.')}`,
     ),
