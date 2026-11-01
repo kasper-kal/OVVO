@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Banner, Button, Card } from '../components/ui/primitives';
+import { Button, Card } from '../components/ui/primitives';
 import {
   explainAuthError,
   finishEmailLink,
@@ -8,16 +8,14 @@ import {
   rememberedLinkEmail,
 } from '../lib/account';
 
+const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as const;
+
 /**
- * **The page the emailed link lands on.**
+ * **The page the emailed link lands on, and it should feel like one tap.**
  *
- * Firebase's link comes back here with a one-time code in the address. Two things can be true and
- * both are handled: this browser remembers which address the mail was sent to, or it does not —
- * a link opened on another device, which is the whole point of a link. In the second case the
- * page asks for the address before it finishes, which is what Firebase requires anyway.
- *
- * It is finished once and then replaced, so a back button does not arrive at a dead sign-in and
- * does not fake a second one.
+ * When the address is remembered the sign-in finishes on its own and the traveller is put on the
+ * home screen — no button, no "continue", nothing to read. It only asks for the address when the
+ * link was opened somewhere new, which is the case the link exists for.
  */
 export function AuthFinishPage() {
   const navigate = useNavigate();
@@ -39,66 +37,73 @@ export function AuthFinishPage() {
     }
   };
 
-  /*
-   * **The remembered address finishes on its own.** One less tap for the ordinary case, and no
-   * write during render: it happens once, after the first paint.
-   */
+  /* Once, after the first paint: the link is single-use, so a second run would fail. */
   useEffect(() => {
     const remembered = rememberedLinkEmail();
     if (!linkIsPresent || remembered.length === 0) return;
     void finish(remembered);
-    // Intentionally once: the link is single-use and re-running would fail the second time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!linkIsPresent) {
     return (
-      <div className="stack-4" style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 64px' }}>
-        <h1 className="t-title">This page finishes a sign-in link</h1>
-        <p className="t-sm t-muted">
-          It is reached from the email OVVO sends, and there is nothing to do here on its own.
-        </p>
-        <p className="t-sm">
-          <Link to="/signin">Sign in another way</Link>
-        </p>
-      </div>
+      <main style={SHELL}>
+        <div className="stack-4">
+          <h1 className="t-title">Nothing to finish</h1>
+          <p className="t-sm t-muted">
+            This page completes a sign-in link from your email. Open the link, or sign in another
+            way.
+          </p>
+          <p className="t-sm">
+            <Link to="/signin">Sign in</Link>
+          </p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="stack-4" style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 64px' }}>
-      <h1 className="t-title">Finish signing in</h1>
+    <main className="signin">
+      <div className="stack-4">
+        <h1 className="t-title">{busy ? 'Signing you in' : 'One more step'}</h1>
 
-      {problem ? (
-        <Banner tone="coral" icon="info" title="That link did not work">
-          {problem}
-        </Banner>
-      ) : null}
-
-      <Card>
-        <form
-          className="stack-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void finish(email);
-          }}
-        >
-          <label className="field">
-            <span className="field__label">The address the link was sent to</span>
-            <input
-              className="input"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </label>
-          <Button variant="primary" type="submit" block disabled={busy}>
-            {busy ? 'Signing in' : 'Finish signing in'}
-          </Button>
-        </form>
-      </Card>
-    </div>
+        {problem !== null ? (
+          <>
+            <p className="t-sm" role="alert" style={{ margin: 0 }}>
+              {problem}
+            </p>
+            <p className="t-sm">
+              <Link to="/signin">Ask for a new link</Link>
+            </p>
+          </>
+        ) : (
+          <Card>
+            <form
+              className="stack-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void finish(email);
+              }}
+            >
+              <label className="field">
+                <span className="field__label">The address the link came to</span>
+                <input
+                  className="input"
+                  type="email"
+                  autoComplete="email"
+                  autoFocus
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </label>
+              <Button variant="accent" block type="submit" disabled={busy}>
+                {busy ? 'Signing in' : 'Finish signing in'}
+              </Button>
+            </form>
+          </Card>
+        )}
+      </div>
+    </main>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Banner, Button, Card } from '../components/ui/primitives';
 import { firebaseConfigured } from '../lib/firebase';
 import {
@@ -11,174 +11,231 @@ import {
   signInWithPassword,
 } from '../lib/account';
 
-type Method = 'password' | 'create' | 'link';
+type Mode = 'link' | 'password';
+
+const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as const;
 
 /**
- * **One screen, three ways in, and the same box for each.**
+ * **One field. One button. No decisions.**
  *
- * Google, an email and password, or a link in the post. The three are the steerer's choice
- * (1 November 2026) and each is a real path through Firebase, not a picture of one: the password
- * box signs in or makes an account, the link sends mail and the finish page completes it.
+ * This screen used to offer three methods, four quiet buttons and three banners at once, which
+ * made joining OVVO look like filling in a form at a bank. It is one question now — the email
+ * address — and the honest default is the one with no password: type the address, get a link, tap
+ * it, done. That is two taps and nothing to invent or forget, and it works the same whether the
+ * account is brand new or years old, so there is no "sign in or create an account?" to get wrong.
  *
- * The words on this screen are English only. The rest of the app is translated (`lib/i18n`); this
- * one is new, and saying so is better than half a translation.
+ * A password is still there for anyone who wants it, one quiet line away. The reset mail and the
+ * account itself are one tap from the thing they belong to, not a menu of their own.
  */
 export function SignInPage() {
   const navigate = useNavigate();
-  const [method, setMethod] = useState<Method>('password');
+  const location = useLocation();
+  const returnTo = (location.state as { from?: string } | null)?.from ?? '/';
+
+  const [mode, setMode] = useState<Mode>('link');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const [note, setNote] = useState<string | null>(null);
+  const [offerCreate, setOfferCreate] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
-  const run = async (work: () => Promise<void>, done?: string) => {
+  const go = async (work: () => Promise<void>, then: () => void) => {
     setBusy(true);
     setProblem(null);
-    setNote(null);
+    setOfferCreate(false);
     try {
       await work();
-      if (done) setNote(done);
-      else navigate('/', { replace: true });
+      then();
     } catch (error) {
+      const code = (error as { code?: string } | null)?.code ?? '';
+      /* The one failure worth a second button: no account on this address yet. */
+      setOfferCreate(code === 'auth/user-not-found' || code === 'auth/invalid-credential');
       setProblem(explainAuthError(error));
     } finally {
       setBusy(false);
     }
   };
 
-  return (
-    <div className="stack-4" style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 64px' }}>
-      <div className="stack-1">
-        <h1 className="t-title">Sign in</h1>
-        <p className="t-sm t-muted">
-          Your saved stops, journeys and searches then follow you to every device, and survive a
-          browser being cleared.
-        </p>
-      </div>
+  const back = () => navigate(returnTo, { replace: true });
 
-      {!firebaseConfigured ? (
-        <Banner tone="coral" icon="info" title="Sign-in is off in this build">
-          The sign-in keys were missing when this copy was built. Everything else works; it just
-          stays on this device.
-        </Banner>
-      ) : null}
+  /* ------------------------------------------------- the link has been sent */
 
-      {problem ? (
-        <Banner tone="coral" icon="info" title="That did not work">
-          {problem}
-        </Banner>
-      ) : null}
-      {note ? (
-        <Banner tone="sage" icon="info" title="Check your post">
-          {note}
-        </Banner>
-      ) : null}
-
-      <Card>
-        <div className="stack-3">
-          <Button
-            variant="primary"
-            block
-            disabled={busy || !firebaseConfigured}
-            onClick={() => void run(() => signInWithGoogle())}
-          >
-            Continue with Google
-          </Button>
-
-          <p className="t-sm t-faint" style={{ textAlign: 'center' }}>
-            or use an email address
+  if (sentTo !== null) {
+    return (
+      <main style={SHELL}>
+        <div className="stack-4">
+          <div className="stack-1">
+            <h1 className="t-title">Check your email</h1>
+            <p className="t-sm t-muted">
+              We sent {mode === 'password' ? 'a reset link' : 'a sign-in link'} to <b>{sentTo}</b>.
+            </p>
+          </div>
+          <Card>
+            <div className="stack-3">
+              <p className="t-sm">
+                {mode === 'password'
+                  ? 'Open it and choose a new password. The link works once.'
+                  : 'Open it on this device and you are in. The link works once, so use it soon.'}
+              </p>
+              <p className="t-sm t-faint">
+                Nothing arrived? Look in the spam folder, then ask for another one.
+              </p>
+              <div className="row-wrap">
+                <Button variant="surface" size="sm" onClick={() => setSentTo(null)}>
+                  Use a different address
+                </Button>
+              </div>
+            </div>
+          </Card>
+          <p className="t-sm">
+            <Link to={returnTo}>Back to OVVO</Link>
           </p>
+        </div>
+      </main>
+    );
+  }
 
-          <form
-            className="stack-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (method === 'link') {
-                void run(() => sendSignInLink(email), `A sign-in link is on its way to ${email}.`);
-                return;
-              }
-              void run(() =>
-                method === 'create' ? createAccount(email, password) : signInWithPassword(email, password),
-              );
-            }}
-          >
-            <label className="field">
-              <span className="field__label">Email address</span>
-              <input
-                className="input"
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </label>
+  /* ---------------------------------------------------------------- the form */
 
-            {method !== 'link' ? (
+  return (
+    <main style={SHELL}>
+      <div className="stack-4">
+        <div className="stack-1">
+          <h1 className="t-title">Sign in</h1>
+          <p className="t-sm t-muted">Your saved stops and journeys follow you to every device.</p>
+        </div>
+
+        {!firebaseConfigured ? (
+          <Banner tone="coral" icon="info" title="Sign-in is off in this build">
+            The sign-in keys were missing when this copy was built. Everything else works; it just
+            stays on this device.
+          </Banner>
+        ) : null}
+
+        <Card>
+          <div className="stack-3">
+            <Button
+              variant="primary"
+              block
+              disabled={busy || !firebaseConfigured}
+              onClick={() => void go(() => signInWithGoogle(), back)}
+            >
+              Continue with Google
+            </Button>
+
+            <p className="t-sm t-faint" style={{ textAlign: 'center', margin: 0 }}>
+              or
+            </p>
+
+            <form
+              className="stack-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (mode === 'link') {
+                  const address = email.trim();
+                  void go(
+                    () => sendSignInLink(address),
+                    () => setSentTo(address),
+                  );
+                  return;
+                }
+                void go(
+                  () => signInWithPassword(email, password),
+                  back,
+                );
+              }}
+            >
               <label className="field">
-                <span className="field__label">Password</span>
+                <span className="field__label">Email</span>
                 <input
                   className="input"
-                  type="password"
-                  autoComplete={method === 'create' ? 'new-password' : 'current-password'}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  minLength={6}
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  autoFocus
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   required
                 />
               </label>
-            ) : null}
 
-            <Button variant="accent" block type="submit" disabled={busy || !firebaseConfigured}>
-              {method === 'link'
-                ? 'Send me a sign-in link'
-                : method === 'create'
-                  ? 'Make my account'
-                  : 'Sign in'}
-            </Button>
-          </form>
+              {mode === 'password' ? (
+                <label className="field">
+                  <span className="field__label">Password</span>
+                  <input
+                    className="input"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </label>
+              ) : null}
 
-          <div className="row-wrap">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setMethod(method === 'link' ? 'password' : 'link');
-                setProblem(null);
-                setNote(null);
-              }}
-            >
-              {method === 'link' ? 'Use a password instead' : 'Email me a link instead'}
-            </Button>
-            {method === 'password' ? (
-              <Button size="sm" variant="ghost" onClick={() => setMethod('create')}>
-                I do not have an account
+              {problem !== null ? (
+                <p className="t-sm" role="alert" style={{ margin: 0 }}>
+                  {problem}
+                </p>
+              ) : null}
+
+              {offerCreate ? (
+                <Button
+                  variant="surface"
+                  block
+                  disabled={busy || email.trim().length === 0 || password.length < 6}
+                  onClick={() =>
+                    void go(
+                      () => createAccount(email, password),
+                      back,
+                    )
+                  }
+                >
+                  Make an account with this email
+                </Button>
+              ) : null}
+
+              <Button variant="accent" block type="submit" disabled={busy || !firebaseConfigured}>
+                {mode === 'link' ? 'Email me a sign-in link' : 'Sign in'}
               </Button>
-            ) : null}
-            {method === 'create' ? (
-              <Button size="sm" variant="ghost" onClick={() => setMethod('password')}>
-                I already have an account
-              </Button>
-            ) : null}
-            {method === 'password' ? (
+            </form>
+
+            <div className="row-wrap">
               <Button
                 size="sm"
                 variant="ghost"
-                disabled={busy || email.trim().length === 0}
-                onClick={() => void run(() => sendResetMail(email), 'A reset link is on its way.')}
+                onClick={() => {
+                  setMode(mode === 'link' ? 'password' : 'link');
+                  setProblem(null);
+                  setOfferCreate(false);
+                }}
               >
-                Forgot the password
+                {mode === 'link' ? 'Use a password instead' : 'Email me a link instead'}
               </Button>
-            ) : null}
+              {mode === 'password' ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={busy || email.trim().length === 0}
+                  onClick={() =>
+                    void go(
+                      () => sendResetMail(email),
+                      () => setSentTo(email.trim()),
+                    )
+                  }
+                >
+                  Forgot the password
+                </Button>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <p className="t-sm t-muted">
-        <Link to="/">Back to OVVO</Link>
-      </p>
-    </div>
+        <p className="t-sm">
+          <Link to={returnTo}>Back to OVVO</Link>
+        </p>
+      </div>
+    </main>
   );
 }
