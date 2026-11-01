@@ -1081,67 +1081,48 @@
 }
 
 /*
- * **A lane for the platform's own picker glyph.**
+ * **The clock field draws its own mark, because a phone will not move its own.**
  *
- * `.input` pads 12px on both sides, which is right for text and too tight for a control whose
- * right-hand end belongs to the browser: the chevron of a `datetime-local` was drawn 12px from the
- * border, hard against the field's rounded corner, and read as a mark sliding off the edge
- * (reported, circled). The reserved strip is the glyph's lane, and the value keeps its own 12px.
- * The results screen's day and time fields opt out further down, because they hide that glyph on
- * purpose and draw the app's own mark in its place.
+ * `input[type=datetime-local]` arrives with the platform's picker glyph, and where that glyph sits
+ * is decided by the engine, not by the field's padding: Chrome for Android paints it on the field's
+ * right edge whatever the padding says. Three attempts to give it air - 12px, 20px, 24px - each
+ * moved the value's inset and left the mark exactly where it was, which is why the same report kept
+ * coming back (the last one naming the browser: Chrome 156 on Android 16).
+ *
+ * So the field hides the platform's glyph and draws the app's own chevron in a lane the layout
+ * controls. The hiding is `opacity: 0` and not `display: none`: the indicator keeps its place, its
+ * size and its click, so a tap on the mark still opens the device's own date and time picker. The
+ * rule is written inside `@supports` so an engine without that selector draws nothing at all and
+ * keeps its own mark - one mark either way, never two.
  */
-.input[type='date'],
-.input[type='time'],
-.input[type='datetime-local'],
-.input[type='month'],
-.input[type='week'] {
-  /*
-   * **The gap the platform's mark needs, and the end of it.**
-   *
-   * The mark is drawn inside the field's padding, so the padding is the only thing that can move
-   * it. This was 12px on both sides, which put the glyph hard against the rounded corner; a wider
-   * lane pushed the *value* away from the mark and left the mark where it was; and drawing our own
-   * mark instead produced two of them on a phone (1 November 2026, twice). The answer is the plain
-   * one: the lane is the field's own, so the value starts from one end and the mark ends before the
-   * other. Nothing is invented and nothing is doubled.
-   *
-   * **The lane is wider than the text inset on purpose.** Twelve pixels is the text inset and the
-   * whole of the rounded end: the field is a 44px pill with a 20px radius, so a mark 12px from the
-   * edge sat *in the curve* and read as sliding off the field (reported again, circled, with the
-   * clock on a phone). The lane is the text inset plus the inner gap - twenty pixels, on the
-   * straight part of the edge - and the value keeps its own twelve on the other side. There is no
-   * `--s-5` in this theme (the steps go 12, 16, 24), so this is written as the sum rather than a
-   * name that does not exist, which is a mistake that computes to zero and looks like no padding at
-   * all.
-   *
-   * **Twenty pixels was still on the curve, because twenty IS the radius.** The field is a pill:
-   * its rounded end is a quarter circle of `--r-input` (20px), so a mark brought in by exactly 20px
-   * comes to rest on the point where the straight edge ends and the curve begins - close to the
-   * edge however much air the padding claims to give (reported again after that change). The lane is
-   * 24px, four clear pixels past the curve, and it is a literal rather than `--s-6` because the
-   * compact density steps that token down to 16px, which would put the mark back inside the curve.
-   */
-  padding-right: 24px;
+.dev-datetime .input {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* The mark's lane: an 18px chevron, 18px from the edge, and the value kept clear of it. */
+  padding-right: 44px;
 }
 
-/*
- * **The mark is given a box, where the engine will take one.**
- *
- * The platform draws the picker glyph at whatever size its own stylesheet says, which is how a
- * larger default on a phone reached past the padding and out over the field's edge. Twenty pixels
- * square and no margin of its own fixes the size, so the same lane holds it on every engine that
- * styles `::-webkit-calendar-picker-indicator`; where an engine ignores this, nothing is hidden and
- * the browser's own glyph is left exactly as it was.
- */
-.input[type='date']::-webkit-calendar-picker-indicator,
-.input[type='time']::-webkit-calendar-picker-indicator,
-.input[type='datetime-local']::-webkit-calendar-picker-indicator,
-.input[type='month']::-webkit-calendar-picker-indicator,
-.input[type='week']::-webkit-calendar-picker-indicator {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  margin: 0 2px 0 0;
+.dev-datetime__mark {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  display: none;
+  align-items: center;
+  /* `translate`, not `transform`: a pressed control is free to set its own transform. */
+  translate: 0 -50%;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+@supports selector(::-webkit-calendar-picker-indicator) {
+  .dev-datetime .input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .dev-datetime__mark {
+    display: inline-flex;
+  }
 }
 
 
@@ -3678,11 +3659,6 @@
 .dev-datetime {
   position: relative;
   display: flex;
-}
-
-.dev-datetime .input {
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 /*
