@@ -15,6 +15,7 @@ import {
   scoreTime,
   startSound,
   stopSound,
+  trackSeconds,
   whenTrackEnds,
 } from '../lib/wrappedSound';
 import { cardData, shareCardImage, type CardData } from '../lib/wrappedCard';
@@ -121,6 +122,24 @@ export function WrappedPage() {
     });
     return () => whenTrackEnds(null);
   }, [go, index, last, started]);
+
+  /*
+   * **The story turns itself in silence too.**
+   *
+   * The song is the clock, and it asks for the next chapter half a second before it ends. But a muted
+   * deck had no clock at all: with the sound off the story stopped dead on a finished chapter and
+   * waited to be swiped, which from the sofa looks exactly like the auto-advance having been removed.
+   * This is the clock for a silent story, and for a chapter whose file will not load.
+   *
+   * It fires a second after the chapter's song would have ended, so when the music is playing it is
+   * always the music that turns the page and this never gets there first.
+   */
+  useEffect(() => {
+    if (!started || last) return undefined;
+    const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
+    const timer = window.setTimeout(() => go(index + 1), quiet);
+    return () => window.clearTimeout(timer);
+  }, [started, last, chapter.track, index, go]);
 
   /* The keyboard is a reader's way through: arrows, Escape to leave. */
   useEffect(() => {
