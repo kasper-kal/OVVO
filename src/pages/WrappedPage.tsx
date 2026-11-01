@@ -342,19 +342,7 @@ export function WrappedPage() {
                 >
                   {t('Begin')}
                 </Button>
-                {sound ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSound(false);
-                      setStarted(true);
-                      go(1);
-                    }}
-                  >
-                    {t('Skip the sound')}
-                  </Button>
-                ) : null}
+                {/* The cover asks one thing. The score has its own switch in the corner. */}
               </div>
             </>
           ) : (
