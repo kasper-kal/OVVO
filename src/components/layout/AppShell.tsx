@@ -86,20 +86,13 @@ export function useNavigation(): NavGroup[] {
    * left in it — otherwise "Yours" would be a heading over an empty list. A charger puts it back,
    * because nothing is stored: the mode is a subtraction, never a change.
    */
-  /* The developer panel, when the switch in Settings is on: a way in of its own. */
-  if (settings.developerMode) {
-    groups.push({
-      title: t('Developer'),
-      /*
-        Its own glyph, not Settings'.
-
-        The panel wore `settings` because it was opened from Settings, and in the navigation that
-        put two identical gears a few lines apart for two different screens (reported). A command
-        prompt is what a developer panel is, and nothing else in the app draws one.
-      */
-      items: [{ to: '/developer', label: t('Developer panel'), icon: 'terminal' }],
-    });
-  }
+  /*
+   * **The panel is reached from Settings, not from the menu.**
+   *
+   * It had a group of its own here, which put a screen built for one person in everybody's
+   * navigation. The switch that turns the mode on and the button that opens the panel now sit
+   * together in a card on Settings, so the menu is the app's own screens and nothing else.
+   */
 
   /*
    * **A simulated battery keeps Settings reachable, and nothing else does.**

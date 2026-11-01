@@ -334,19 +334,16 @@ export function SettingsPage() {
                   : t('This browser does not report the battery, so the full interface is always drawn.')}
               </p>
             </div>
-            {/*
-              **The developer panel, behind one switch — and no card of its own.**
+          </Card>
 
-              It ships because this site has one user and he is the one who tests it. Off is the
-              state a visitor finds, and off is what clears every simulation: the switch is the
-              whole of the safety here, so it is drawn as a switch and not as a link, and the panel
-              itself lives at its own address (see `pages/DeveloperPage.tsx`).
+          {/*
+            **Developer mode, and the way into its panel, in one card of its own.**
 
-              It sat in a card by itself, which drew a heading and a frame around a single control
-              — a section that says "Developer" and holds one switch reads as a section that is
-              missing the rest of itself. It belongs with the other settings for this copy of the
-              app, so it is the last section of this card instead (reported).
-            */}
+            The panel had a group of its own in the menu, which made a screen for one person a
+            fixture of every visitor's navigation. It is reached from here now: the switch says the
+            mode is on, and the button opens the panel, so the two are never a page apart.
+          */}
+          <Card className="stack">
             <h2 className="t-section">{t('Developer')}</h2>
             <Switch
               checked={settings.developerMode}
@@ -361,6 +358,14 @@ export function SettingsPage() {
                 'Adds a panel for changing the date, the battery and the connection, for testing this app.',
               )}
             />
+            {settings.developerMode ? (
+              <div className="row">
+                <Link className="btn" to="/developer">
+                  <Icon name="terminal" size={16} />
+                  {t('Open the Developer panel')}
+                </Link>
+              </div>
+            ) : null}
           </Card>
 
           {/*
