@@ -193,6 +193,19 @@ export function WrappedPage() {
       <span className="wrapped-blob wrapped-blob--a" aria-hidden="true" />
       <span className="wrapped-blob wrapped-blob--b" aria-hidden="true" />
 
+      {/* The look's own photograph, behind everything, when that look has one. */}
+      {chapter.kind === 'word' && chapter.photo ? (
+        <img
+          className="wrapped-photo"
+          src={chapter.photo}
+          alt=""
+          aria-hidden="true"
+          onError={(event) => {
+            event.currentTarget.style.display = 'none';
+          }}
+        />
+      ) : null}
+
       <header className="wrapped-top">
         <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
           <Icon name="close" size={20} />
@@ -380,18 +393,6 @@ export function WrappedPage() {
                     </li>
                   ))}
                 </ul>
-              ) : null}
-
-              {chapter.kind === 'word' && chapter.photo ? (
-                <img
-                  className="wrapped-photo"
-                  src={chapter.photo}
-                  alt=""
-                  aria-hidden="true"
-                  onError={(event) => {
-                    event.currentTarget.style.display = 'none';
-                  }}
-                />
               ) : null}
 
               {/* The rail prints its own two stations, so it has no sentence to add. */}

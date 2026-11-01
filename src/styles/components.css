@@ -8159,9 +8159,13 @@
  * baseline under them. Where every other chapter puts its number at the top, this one puts it last.
  */
 .wrapped-body--bars {
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   align-content: stretch;
   gap: clamp(6px, 1.2vh, 12px);
+}
+
+.wrapped-body--bars .wrapped-ruler {
+  order: 3;
 }
 
 .wrapped-body--bars .wrapped-kicker {
@@ -8176,14 +8180,14 @@
 }
 
 .wrapped-body--bars .wrapped-bars {
-  order: 3;
+  order: 4;
   align-self: end;
   height: 100%;
   max-height: 46vh;
 }
 
 .wrapped-body--bars .wrapped-big {
-  order: 4;
+  order: 5;
   font-size: min(27vw, 170px);
   line-height: 0.78;
   letter-spacing: -0.06em;
@@ -8695,9 +8699,16 @@
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.1) 42%, rgba(0, 0, 0, 0.84));
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-top,
+.wrapped-stage[data-chapter='look'] .wrapped-foot,
+.wrapped-stage[data-chapter='look'] .wrapped-body {
+  position: relative;
+  z-index: 2;
 }
 
 .wrapped-stage[data-chapter='look'] .wrapped-kicker,
