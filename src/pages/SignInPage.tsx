@@ -33,6 +33,8 @@ export function SignInPage() {
   const [mode, setMode] = useState<Mode>('link');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [offerCreate, setOfferCreate] = useState(false);
@@ -215,20 +217,54 @@ export function SignInPage() {
                 </p>
               ) : null}
 
+              {/*
+                * **Making an account asks for a name.** The first name is required and the second
+                * is not, and these boxes only appear once a sign-in has told us there is no
+                * account on this address - so nobody is asked for a name on the way into an
+                * account that already exists.
+                */}
               {offerCreate ? (
-                <Button
-                  variant="surface"
-                  block
-                  disabled={busy || email.trim().length === 0 || password.length < 6}
-                  onClick={() =>
-                    void go(
-                      () => createAccount(email, password),
-                      back,
-                    )
-                  }
-                >
-                  Create account
-                </Button>
+                <div className="stack-3">
+                  <label className="field">
+                    <span className="field__label">First name</span>
+                    <input
+                      className="input"
+                      name="given-name"
+                      autoComplete="given-name"
+                      value={firstName}
+                      onChange={(event) => setFirstName(event.target.value)}
+                      required
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field__label">Last name (optional)</span>
+                    <input
+                      className="input"
+                      name="family-name"
+                      autoComplete="family-name"
+                      value={lastName}
+                      onChange={(event) => setLastName(event.target.value)}
+                    />
+                  </label>
+                  <Button
+                    variant="surface"
+                    block
+                    disabled={
+                      busy ||
+                      email.trim().length === 0 ||
+                      password.length < 6 ||
+                      firstName.trim().length === 0
+                    }
+                    onClick={() =>
+                      void go(
+                        () => createAccount(email, password, firstName, lastName),
+                        back,
+                      )
+                    }
+                  >
+                    Create account
+                  </Button>
+                </div>
               ) : null}
 
               <Button variant="accent" block type="submit" disabled={busy || !firebaseConfigured}>
@@ -244,6 +280,8 @@ export function SignInPage() {
                   setMode(mode === 'link' ? 'password' : 'link');
                   setProblem(null);
                   setOfferCreate(false);
+                  setFirstName('');
+                  setLastName('');
                 }}
               >
                 {mode === 'link' ? 'Use a password instead' : 'Use a sign-in link instead'}

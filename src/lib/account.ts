@@ -29,6 +29,7 @@ import {
   signInWithEmailLink,
   signInWithPopup,
   signOut,
+  updateProfile,
   type User,
 } from 'firebase/auth';
 import { auth } from './firebase';
@@ -65,8 +66,23 @@ export async function signInWithPassword(email: string, password: string): Promi
   await signInWithEmailAndPassword(needAuth(), email.trim(), password);
 }
 
-export async function createAccount(email: string, password: string): Promise<void> {
-  await createUserWithEmailAndPassword(needAuth(), email.trim(), password);
+/**
+ * **Making an account asks a name, because a name is what the account is for.**
+ *
+ * The first name is required and the second is not, exactly as asked. Both go into the account's
+ * own display name rather than into a table of ours: Firebase keeps it with the account, so it
+ * follows the traveller to the next device without a column, a migration or a second place to keep
+ * it in step.
+ */
+export async function createAccount(
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+): Promise<void> {
+  const credential = await createUserWithEmailAndPassword(needAuth(), email.trim(), password);
+  const name = [firstName.trim(), lastName.trim()].filter((part) => part.length > 0).join(' ');
+  if (name.length > 0) await updateProfile(credential.user, { displayName: name });
 }
 
 export async function sendResetMail(email: string): Promise<void> {
