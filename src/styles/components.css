@@ -9705,3 +9705,49 @@
   font-family: 'Newsreader', Georgia, serif;
   font-size: 15px;
 }
+
+/* ------------------------------------------------------------- the lines chapter */
+/*
+ * **A page whose rows were pulled a screen apart.**
+ *
+ * Each of the chapter's rows was given an equal share of the whole page, so "700" and "800" sat alone
+ * in acres of paper with nothing but a count beside them, and the sentence that belongs to the line
+ * name fell to the bottom, away from the name. The name, its rule and its sentence now sit together at
+ * the top, the runners-up follow as compact rows, and the tally keeps the foot of the page.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto max-content minmax(0, 1fr);
+  align-content: start;
+  gap: clamp(8px, 1.6vh, 14px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-kicker {
+  grid-row: 1;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-big {
+  grid-row: 2;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-line {
+  grid-row: 3;
+  max-width: 26ch;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-row: 4;
+  align-self: stretch;
+  align-content: start;
+  grid-auto-rows: auto;
+  gap: 0;
+  margin-top: clamp(6px, 1.8vh, 16px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: clamp(12px, 2.4vh, 18px) 0;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-aside {
+  grid-row: 5;
+  align-self: end;
+}

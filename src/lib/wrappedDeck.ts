@@ -276,8 +276,18 @@ export function buildStory({
           track: 'rap-anthem',
           kicker: 'Your lines',
           big: lineList[0].value,
-          line: lineList[0].count === 1 ? 'journey on it.' : 'journeys on it.',
-          chips: lineList.slice(1).map((item) => ({ label: item.value, detail: `${item.count}` })),
+          /* The count belongs to the line above it, so it is in the sentence, not left out of it. */
+          line:
+            lineList[0].count === 1
+              ? '1 journey on it.'
+              : `${lineList[0].count} journeys on it.`,
+          /* A bare "22" on a board row is not an answer: the row says what the number counts. */
+          chips: lineList
+            .slice(1)
+            .map((item) => ({
+              label: item.value,
+              detail: item.count === 1 ? '1 journey' : `${item.count} journeys`,
+            })),
           hearts: tally.hearts,
           boards: tally.boards.length,
         }
