@@ -195,26 +195,33 @@ ${part(
 ${part(
   2,
   'Make the deploy token',
-  'One token, three permissions, and the only secret in the whole guide. It lets me put the site and the database up without you having to run anything.',
+  'One token, three permissions, and the only secret in the whole guide. It lets me put the site and the database up without you running anything, and the link below fills the form in for you so you never have to hunt for a permission name.',
   step(
     '2.1',
-    'Find the token page',
-    `${where('Click your profile icon, top right, then <b>Profile</b>, then <b>API tokens</b> in the left menu. On the newer dashboard it is <b>Manage Account</b> → <b>Account API tokens</b>.')}
-     <p>Click <b>Create Token</b>, then at the bottom of the template list click <b>Create Custom Token</b>, and name it <b>OVVO deploy</b>.</p>`,
+    'Open the token page',
+    `${where('Click the profile icon in the top-right corner, choose <b>My Profile</b>, then <b>API Tokens</b> in the left-hand menu.')}
+     <p>You should see a page headed <b>API Tokens</b> with a blue <b>Create Token</b> button and, above it, a list of tokens you may already have. An empty list is normal.</p>`,
   ) +
     step(
       '2.2',
-      'Give it exactly three permissions',
-      `<p>Under <b>Permissions</b>, add these three rows one at a time, each with <b>Account</b> as the scope and your account chosen under <b>Include</b>:</p>
-       <p><b>Workers Scripts → Edit</b>, then <b>D1 → Edit</b>, then <b>Account Settings → Read</b>.</p>
-       <p>Those three cover the whole of what I need: the site itself, the database that will hold the year, and the account details that tie them together. You do not run any commands at any point, and you never need to open a terminal.</p>
-       ${warn('The ready-made "Edit Cloudflare Workers" template does <b>not</b> include D1. If you pick it, the deploy fails later with a permission error that looks unrelated, so build the custom token instead.')}`,
+      'Open this address: it chooses the three permissions for you',
+      `<p>Copy the whole line below into your address bar. It opens that same Create Token page with <b>Workers Scripts Edit</b>, <b>D1 Edit</b> and <b>Account Settings Read</b> already filled in, and the token already named <b>OVVO deploy</b>.</p>
+       <p style="word-break:break-all;font-size:2.5mm"><code>https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=%5B%7B%22key%22%3A%22workers_scripts%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22d1%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_settings%22%2C%22type%22%3A%22read%22%7D%5D&accountId=%2A&zoneId=all&name=OVVO%20deploy</code></p>
+       <p>Check the page shows three permission rows and the name <b>OVVO deploy</b>, then jump to 2.4. If the rows came up empty, do 2.3 first.</p>
+       ${copyIt('Why a link: the permission names are not printed on that page. Each one lives inside a dropdown that only appears when you click the permission box, so searching the page with Ctrl and F finds nothing. That is what happened when you looked for Workers Scripts.')}`,
     ) +
     step(
       '2.3',
-      'Copy it once, and put it where secrets go',
-      `<p>Click <b>Continue to summary</b>, then <b>Create Token</b>. The value is shown <b>once</b> and starts with <code>cfut_</code>.</p>
-       <p>Paste it into this project under <b>Settings → Secrets</b>, as a secret named <code>CLOUDFLARE_API_TOKEN</code>. Add <code>CLOUDFLARE_ACCOUNT_ID</code> there too, with the account ID from part 1.</p>
+      'Only if the rows came up empty: add the three by hand',
+      `<p>Click the first permission box. A list drops down. Type <b>Workers Scripts</b> into it, the list narrows as you type, and choose the one that offers <b>Edit</b>. Set the left-hand box of that row to <b>Account</b>, and the right-hand box to <b>Edit</b>.</p>
+       <p>Click <b>Add more</b> and repeat for <b>D1 → Edit</b>, then once more for <b>Account Settings → Read</b>.</p>
+       ${warn('Do not pick the ready-made "Edit Cloudflare Workers" template. It has no D1 permission, and the deploy then fails much later with an error that looks unrelated.')}`,
+    ) +
+    step(
+      '2.4',
+      'Create it once, and put it where secrets go',
+      `<p>Click <b>Continue to summary</b>, read the three permissions back, then click <b>Create Token</b>. The value appears <b>once</b>, and starts with <code>cfut_</code>.</p>
+       <p>Paste it into this project under <b>Settings → Secrets</b> as <code>CLOUDFLARE_API_TOKEN</code>, and add <code>CLOUDFLARE_ACCOUNT_ID</code> beside it with the account ID from part 1.4.</p>
        ${warn('Never paste the token into a chat message, a document, a screenshot or a code file. If it lands somewhere it should not, delete it in the token list and make a new one; nothing is lost by that.')}`,
     ),
 )}
