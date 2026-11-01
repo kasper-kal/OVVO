@@ -233,6 +233,13 @@ export function SettingsPage() {
         }
       />
 
+      {/*
+        **The account opens the page.** It is the one thing here that is not about how the app
+        looks: whether the traveller's things follow them to another device. Appearance, defaults
+        and the reset all sit below it.
+      */}
+      <AccountCard />
+
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="stack-4">
           <Card className="stack">
@@ -661,12 +668,6 @@ export function SettingsPage() {
         with them (`resetLocalData`, `state/AppState.tsx`). It is **one** control, not a second
         button beside an older one doing nearly the same job.
       */}
-      {/*
-        The account sits above the reset, because it is the one thing on this screen that is not
-        about how the app looks: whether the traveller's things follow them to another device.
-      */}
-      <AccountCard />
-
       <div className="row-wrap">
         <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
           {t('Reset the app')}
