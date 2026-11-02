@@ -10127,3 +10127,24 @@
 @keyframes wrapped-ch-settle {
   from { opacity: 0; transform: translateY(10px); }
 }
+
+/*
+ * 14 · The count on the look keeps its colour and its glow.
+ *
+ * Lifting the veil off the words was right — they were being read through a black wash — but the wash was
+ * also what gave "96 days" its warm, softly lit tint, and taking it away left plain white under a hard
+ * black halo, which is the flatness the steerer noticed. The number is warm ivory again, lit from behind
+ * by a soft cream glow and grounded by a faint shadow, so it sits in the photograph instead of on it.
+ */
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #f4e6d1;
+  text-shadow:
+    0 0 72px rgba(255, 223, 176, 0.34),
+    0 14px 52px rgba(0, 0, 0, 0.52);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  color: #e9d7ba;
+  opacity: 0.88;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.48);
+}
