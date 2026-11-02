@@ -75,12 +75,31 @@ export async function passkeyStatus(): Promise<{ available: boolean; max: number
 function browserRefusal(error: unknown): never {
   const name = (error as { name?: string } | null)?.name ?? '';
   if (name === 'NotAllowedError' || name === 'AbortError') fail('passkey/cancelled');
-  if (name === 'InvalidStateError') fail('passkey/exists');
+  if (name === 'InvalidStateError') fail('passkey/on-this-device');
   if (name === 'NotSupportedError' || name === 'SecurityError') fail('passkey/unsupported');
   fail('passkey/failed');
 }
 
 type Options = { id: string; options: unknown };
+
+/**
+ * **Turning a passkey into a session, and saying so when Firebase refuses.**
+ *
+ * Firebase refusing the token means passkeys are not switched on for this site, which is a fact
+ * about the site rather than a mistake by the traveller. Saying "that did not work" here is how a
+ * switched-off feature comes to look like a broken one.
+ */
+async function adoptCustomToken(token: string): Promise<UserCredential> {
+  try {
+    return await signInWithCustomToken(needAuth(), token);
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code ?? '';
+    if (code === 'auth/invalid-custom-token' || code === 'auth/invalid-credential') {
+      fail('passkey/not-configured');
+    }
+    fail('passkey/session');
+  }
+}
 
 /** Add a passkey to the account that is signed in now. */
 export async function addPasskey(label: string): Promise<void> {
@@ -116,9 +135,9 @@ export async function createAccountWithPasskey(firstName: string, lastName: stri
     { id: start.id, response, label: 'This device' },
     false,
   );
-  if (!done.customToken) fail('passkey/failed');
+  if (!done.customToken) fail('passkey/not-configured');
 
-  const credential: UserCredential = await signInWithCustomToken(needAuth(), done.customToken);
+  const credential: UserCredential = await adoptCustomToken(done.customToken);
   /*
    * The name travels inside the token, and Firebase adopts it on the way in. This is the belt to
    * that pair of braces: if the account arrives without a name for any reason, it is set here, so
@@ -147,8 +166,8 @@ export async function signInWithPasskey(): Promise<void> {
     { id: start.id, response },
     false,
   );
-  if (!done.customToken) fail('passkey/failed');
-  await signInWithCustomToken(needAuth(), done.customToken);
+  if (!done.customToken) fail('passkey/not-configured');
+  await adoptCustomToken(done.customToken);
 }
 
 /** The passkeys this account holds, newest last. */
@@ -190,8 +209,11 @@ export function explainPasskeyError(error: unknown): string {
       return 'That was cancelled. Nothing was changed.';
     case 'passkey/unsupported':
       return 'This browser cannot make a passkey. Try another browser, or sign in the usual way.';
+    case 'passkey/on-this-device':
     case 'passkey/exists':
-      return 'This device already has a passkey for your OVVO ID.';
+      return 'This device already has a passkey for OVVO. To add another, open OVVO on your other phone or computer and press Generate a new Passkey there.';
+    case 'passkey/session':
+      return 'Your passkey was accepted but the sign-in did not finish. Try again.';
     case 'passkey/limit':
       return 'You already have the most passkeys allowed. Remove one before adding another.';
     case 'passkey/challenge':

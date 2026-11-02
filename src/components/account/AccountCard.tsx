@@ -8,6 +8,7 @@ import {
   addPasskey,
   explainPasskeyError,
   listPasskeys,
+  passkeyStatus,
   passkeysSupported,
   removePasskey,
   type PasskeyInfo,
@@ -93,26 +94,41 @@ export function AccountCard() {
   const [deleting, setDeleting] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
+  const [passkeysOn, setPasskeysOn] = useState(false);
   const [passkeyNote, setPasskeyNote] = useState<string | null>(null);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const canUsePasskeys = passkeysSupported();
   const uid = account?.uid ?? null;
 
-  /* The list is read whenever the account changes hands, so it is never another person's. */
+  /*
+   * **Whether passkeys are on is asked before anything is shown.** A switched-off feature that
+   * draws a button is a broken feature; a switched-off feature that says so is a fact.
+   *
+   * The list is read whenever the account changes hands, so it is never another person's.
+   */
   useEffect(() => {
     if (uid === null || !canUsePasskeys) {
       setPasskeys([]);
+      setPasskeysOn(false);
       return;
     }
     let alive = true;
-    void listPasskeys()
-      .then((result) => {
-        if (alive) setPasskeys(result.passkeys);
-      })
-      .catch(() => {
-        if (alive) setPasskeys([]);
-      });
+    void passkeyStatus().then((status) => {
+      if (!alive) return;
+      setPasskeysOn(status.available);
+      if (!status.available) {
+        setPasskeys([]);
+        return;
+      }
+      void listPasskeys()
+        .then((result) => {
+          if (alive) setPasskeys(result.passkeys);
+        })
+        .catch(() => {
+          if (alive) setPasskeys([]);
+        });
+    });
     return () => {
       alive = false;
     };
@@ -246,10 +262,15 @@ export function AccountCard() {
                 Passkeys
               </p>
 
-              {passkeys.length === 0 ? (
+              {!passkeysOn ? (
                 <p className="t-sm t-muted" style={{ margin: 0 }}>
-                  No passkey yet. Add one and you can sign in on this device with your face,
-                  fingerprint or PIN instead of a password.
+                  Passkeys are not switched on for OVVO yet. When they are, you can sign in with
+                  your face, fingerprint or PIN instead of a password.
+                </p>
+              ) : passkeys.length === 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  No passkey is saved with your OVVO ID yet. Add one here and you can sign in on this
+                  device with your face, fingerprint or PIN instead of a password.
                 </p>
               ) : (
                 <div className="stack-1">
@@ -284,12 +305,19 @@ export function AccountCard() {
                 <Button
                   variant="surface"
                   size="sm"
-                  disabled={passkeyBusy}
+                  disabled={passkeyBusy || !passkeysOn}
                   onClick={() => void generatePasskey()}
                 >
                   {passkeyBusy ? 'Waiting for your device' : 'Generate a new Passkey'}
                 </Button>
               </div>
+
+              {passkeysOn ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  One passkey per device, and five in all. To add another, open OVVO on your other
+                  phone or computer and press Generate a new Passkey there.
+                </p>
+              ) : null}
 
               {passkeys.length === 1 ? (
                 <p className="t-sm t-muted" style={{ margin: 0 }}>

@@ -169,14 +169,14 @@ export default defineConfig(({ mode }) => {
       strictPort: false,
       allowedHosts: allowlist,
       /*
-       * **`/api` belongs to the Worker, in development too.**
+       * **`/api` is deliberately not proxied here.**
        *
-       * The page is served by Vite and the API by `wrangler dev`; without this line every
-       * `/api/...` call in development is answered by Vite with a 404, so passkeys and sync could
-       * only ever be tried against the deployed site. Nothing is proxied when no Worker is running:
-       * the call fails in the same way it failed before.
+       * A local Worker has its own scratch database, and a passkey made against it is a real key on
+       * the device that opens nothing anywhere else. That is exactly how a preview came to create a
+       * passkey and then show an empty list: the key was real, the account was in a throwaway copy.
+       * Without a proxy the preview says plainly that the site cannot be reached, and every passkey
+       * is made against the one database that matters.
        */
-      proxy: { '/api': 'http://127.0.0.1:8787' },
     },
     preview: {
       host: '0.0.0.0',
