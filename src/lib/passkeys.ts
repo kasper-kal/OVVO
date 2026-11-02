@@ -53,15 +53,32 @@ async function post<T>(path: string, body: unknown, signedIn: boolean): Promise<
   return data;
 }
 
-/** Whether the site has passkeys switched on, and how many devices one account may have. */
-export async function passkeyStatus(): Promise<{ available: boolean; max: number }> {
+/**
+ * Whether the site has passkeys switched on, and how many devices one account may have.
+ *
+ * **`known` is the difference between "off" and "I did not manage to ask".** This used to answer
+ * `available: false` for every failure, and the account card drew that as "Passkeys are not switched
+ * on for OVVO yet" with the button greyed out. So one dropped request, or an ad-blocker eating
+ * `/api/*`, told a traveller a working feature did not exist and gave them nothing to press
+ * (reported: "still not possible" while the route answered `available: true`). A failed read now
+ * says so, and leaves the button usable so the real attempt can decide.
+ */
+export async function passkeyStatus(): Promise<{
+  available: boolean;
+  max: number;
+  known: boolean;
+}> {
   try {
     const response = await fetch('/api/passkey/status', { headers: { accept: 'application/json' } });
-    if (!response.ok) return { available: false, max: 0 };
+    if (!response.ok) return { available: false, max: 0, known: false };
     const body = (await response.json()) as { available?: boolean; max?: number };
-    return { available: Boolean(body.available), max: typeof body.max === 'number' ? body.max : 5 };
+    return {
+      available: Boolean(body.available),
+      max: typeof body.max === 'number' ? body.max : 5,
+      known: true,
+    };
   } catch {
-    return { available: false, max: 0 };
+    return { available: false, max: 0, known: false };
   }
 }
 
