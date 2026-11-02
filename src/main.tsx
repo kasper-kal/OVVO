@@ -34,6 +34,7 @@ function translateLegacyHash() {
 }
 
 translateLegacyHash();
+watchSplash();
 
 /**
  * **The app restores scroll itself, so the browser must not.**
@@ -154,6 +155,42 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
  */
 document.getElementById('too-old')?.remove();
 
+/**
+ * **The mark never sits there without saying anything.**
+ *
+ * The splash is taken down by the app once it has drawn, and `index.html` removes it after ninety
+ * seconds as a last resort. Neither helps somebody looking at a logo now: the first says nothing
+ * until the wait is over, and the second arrives long after a person has decided the site is broken.
+ * This is the sentence in between. If the app has not drawn after twenty seconds, the mark gains one
+ * line and a Reload button, so a stuck start is something to read instead of something to wait out.
+ *
+ * It writes its own styles rather than borrowing the app's: this runs when the app is the thing that
+ * has not arrived, so nothing here may depend on it.
+ */
+function watchSplash(): void {
+  window.setTimeout(() => {
+    const splash = document.getElementById('splash');
+    const root = document.getElementById('root');
+    if (!splash || (root && root.childElementCount > 0)) return;
+    const note = document.createElement('div');
+    note.setAttribute('role', 'status');
+    /* The splash itself lets taps through, so this line has to take its own back for the button. */
+    note.style.cssText =
+      'position:absolute;bottom:12vh;left:24px;right:24px;text-align:center;font-family:system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.45;color:#3f3c37;pointer-events:auto;';
+    const line = document.createElement('p');
+    line.style.margin = '0 0 12px';
+    line.textContent = 'OVVO has not finished opening. Reloading the page usually starts it.';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Reload';
+    button.style.cssText =
+      'padding:10px 20px;border-radius:999px;border:1px solid #c9c5bb;background:#ffffff;color:#18181b;font:inherit;font-weight:600;';
+    button.addEventListener('click', () => window.location.reload());
+    note.append(line, button);
+    splash.appendChild(note);
+  }, 20000);
+}
+
 const container = document.getElementById('root');
 if (!container) throw new Error('Root container missing from index.html');
 
@@ -178,7 +215,21 @@ if (!container) throw new Error('Root container missing from index.html');
  * blink. The claimed speed is clamped in the panel, and the wait is clamped here as well, so a stale
  * stored value cannot produce the same silence.
  */
+/*
+ * **A claimed slow link is a wait, not a lockout.**
+ *
+ * The arithmetic is exact, and at the slowest speed the panel allows it says three minutes and
+ * twenty seconds. Held in full, that is a logo standing still on a site that is otherwise instant,
+ * which reads as a page that has failed rather than one that is slow.
+ *
+ * Reproduced on the live site on 2 November 2026: a remembered claim of 0.01 Mbps kept the mark up
+ * past thirty seconds with nothing drawn behind it, and reloading could not get past it, because
+ * the claim is remembered across reloads by design (`lib/dev`). The mark is now held for at most
+ * eight seconds, and the claimed speed still slows every other wait it was written for.
+ */
+const MAX_BOOT_WAIT_MS = 8000;
 const bootWait = Math.min(
+  MAX_BOOT_WAIT_MS,
   MAX_TIMER_MS - 1,
   Math.max(0, transferMs(APP_WIRE_BYTES, getDevOverrides().wifiMbps) - performance.now()),
 );
