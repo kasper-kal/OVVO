@@ -1887,6 +1887,46 @@
 }
 
 /*
+ * **The sort's field is the chip, not a field inside a chip.**
+ *
+ * `Select` wraps a native `<select>` that this file dresses as a field: a 44px capsule with its own
+ * `--l2-bg` fill, its own hairline and its own font weight. Put inside the sort chip that drew a
+ * *second* capsule inside the first — a lighter box with an edge of its own, sitting inside the
+ * pill's curve and cutting its ends at a different angle, beside three controls that were one shape
+ * (reported: "looks super weird and inconsistent with the rest of the website", circled). It also
+ * made the sort 46px tall while its neighbours were 44, because a 44px field inside a bordered pill
+ * adds the pill's two pixels.
+ *
+ * So inside the chip the field is only the words and the mark: no box, no fill, no edge, no minimum
+ * height, and the chip's own type. The mark takes the lane the chip gives it, in the chip's ink.
+ */
+.results-chip--sort .select-wrap {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Three classes, because the field's own rule is written twice in this file and the second copy
+   would win on order alone. */
+.results-chip--sort .select-wrap .select {
+  min-height: 0;
+  padding: 0 26px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  background-image: none;
+  color: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+/* The mark sits at the chip's own right padding, not 12px inside a box that is no longer drawn. */
+.results-chip--sort .select-wrap__mark {
+  right: 0;
+  color: var(--ink-strong);
+}
+
+/*
  * From 720 the bar is one line again: the sort goes back beside the chips it is a chip with, so the
  * grid gives way to a row and each control takes its own width.
  */
