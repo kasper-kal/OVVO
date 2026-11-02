@@ -10402,3 +10402,54 @@
   text-transform: none;
   text-align: right;
 }
+
+/* ==========================================================================
+ * **The rail hands the paper page over, instead of dragging it through grey.**
+ * ========================================================================== */
+
+/*
+ * 17 · The fourth page to the fifth was the turn that looked wrong.
+ *
+ * Page four is a near-black line down the screen, page five is warm paper with tickets on it. The
+ * ground was given 900ms to make that change, and a fade between #0e1620 and #f4ede1 does not travel
+ * through either of them: it travels through grey. Frames taken at 111, 203 and 311ms show exactly
+ * that, and they show two more things arriving too early to belong to the new page: the paper band
+ * across the bottom third, painted at full strength over the dark ground, and the dot bed on top of it.
+ *
+ * Four changes, and only on this page:
+ *   - the ground changes in a quarter of a second, so the grey is a blink rather than the turn;
+ *   - the paper band fades up under the words instead of appearing behind them;
+ *   - the dot bed fades up with it, so the texture never sits on a dark page;
+ *   - the words rise into place rather than dealing in from the side with a tilt, because a tilted
+ *     page of text is the part that reads as broken rather than as moving.
+ */
+.wrapped-stage[data-chapter='origin'] {
+  transition: background-color 240ms var(--ease-out), color 240ms var(--ease-out);
+}
+
+.wrapped-stage[data-chapter='origin']::before {
+  animation: wrapped-paper-in 420ms var(--ease-out) both;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-grain {
+  animation: wrapped-grain-in 420ms var(--ease-out) both;
+}
+
+.wrapped-body[data-chapter='origin'] {
+  animation: wrapped-paper-rise 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes wrapped-paper-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes wrapped-grain-in {
+  from { opacity: 0; }
+  to { opacity: 0.09; }
+}
+
+@keyframes wrapped-paper-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
