@@ -468,8 +468,18 @@ export function WrappedPage() {
 
               {chapter.kind === 'number' && chapter.dots ? (
                 <span className="wrapped-field" aria-hidden="true">
+                  {/* One row of twelve lands on every beat, so the year fills in time with the song
+                      rather than all at once behind the number. */}
                   {Array.from({ length: Math.min(chapter.dots, 700) }, (_, dot) => (
-                    <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                    <i
+                      key={dot}
+                      style={
+                        {
+                          '--i': dot,
+                          animationDelay: `${Math.floor(dot / 12) * beatMs(chapter.track)}ms`,
+                        } as CSSProperties
+                      }
+                    />
                   ))}
                 </span>
               ) : null}

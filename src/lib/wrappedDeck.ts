@@ -162,6 +162,43 @@ export function buildStory({
   const directShare = runs.length ? direct / runs.length : 0;
   const directPct = Math.round(directShare * 100);
 
+  /*
+   * **The character the year gives you.**
+   *
+   * A year of numbers is a spreadsheet; the same year with a name is a story about a person. Every
+   * figure below is already in the tally, and the persona is the one habit that stands out most —
+   * the latest hour, the same pair, the same platform, the fewest changes — rather than a label
+   * invented for the mood. The strongest evidence wins, and a year too even to have a habit says so
+   * instead of being given a flattering one.
+   */
+  const nightRuns = runs.filter((run) => run.hour >= 20 || run.hour < 6).length;
+  const uniqueOrigins = origins.size;
+  const clock = `${peak < 10 ? '0' : ''}${peak}:00`;
+  const habits = [
+    { name: 'The Night Owl Express', share: nightRuns / runs.length, floor: 0.18,
+      line: `${nightRuns} of ${runs.length} journeys set off in the evening, after the day was done.` },
+    { name: `${clock} Regular`, share: pair ? pair.count / runs.length : 0, floor: 0.4,
+      line: `${pair?.count ?? 0} of them the same pair of stations, over and over, like a heartbeat.` },
+    { name: 'The Station Collector', share: uniqueOrigins / 6, floor: 0.66,
+      line: `${uniqueOrigins} different stations set you off this year.` },
+    { name: 'The Straight-Through Type', share: directShare, floor: 0.6,
+      line: `${directPct}% of your journeys had no change at all. You pick the line that stays on the rails.` },
+    { name: `${clock} Regular`, share: runs.length ? hours[peak] / runs.length : 0, floor: 0.2,
+      line: `${hours[peak]} journeys left in the ${clock} hour, more than any other hour of the week.` },
+  ];
+  const strongest = habits
+    .filter((habit) => habit.share >= habit.floor)
+    .sort((a, b) => b.share - a.share)[0];
+  const persona = strongest ?? {
+    name: 'The Steady Traveller',
+    line: 'No single habit owns this year: you went when the day asked, and kept moving.',
+  };
+
+  /* The hours that went into the journeys, which is the one number a year can be proud of. */
+  const totalMinutes = runs.reduce((sum, run) => sum + (run.minutes ?? 0), 0);
+  const totalHours = Math.round(totalMinutes / 60);
+  const workingDays = Math.round(totalHours / 8);
+
   const story: Array<Chapter | null> = [
     {
       id: 'cover',
@@ -228,6 +265,15 @@ export function buildStory({
       peak,
     },
     {
+      id: 'persona',
+      kind: 'word',
+      tone: 'ink',
+      track: 'hip-hop-anthem',
+      kicker: 'Your travel personality',
+      big: persona.name,
+      line: persona.line,
+    },
+    {
       id: 'direct',
       kind: 'arc',
       tone: 'ink',
@@ -292,6 +338,22 @@ export function buildStory({
           boards: tally.boards.length,
         }
       : null,
+    totalMinutes > 0
+      ? {
+          id: 'hours',
+          kind: 'number',
+          tone: 'coral',
+          track: 'electro-dance',
+          kicker: 'The time you gave the journey',
+          big: String(totalHours),
+          count: totalHours,
+          line:
+            totalHours === 1
+              ? 'hour in transit this year.'
+              : `hours in transit this year${workingDays >= 1 ? `, ${workingDays} full working days of it` : ''}.`,
+          dots: runs.length,
+        }
+      : null,
     {
       id: 'close',
       kind: 'close',
@@ -299,8 +361,9 @@ export function buildStory({
       track: 'acoustic',
       kicker: String(year),
       big: 'That was the year.',
-      line: 'Every number here comes from journeys you planned in this app, and nothing else.',
-      note: 'OVVO counts what you planned, not what you caught. It never sees you get on.',
+      line: 'Every number here is yours: the journeys you planned in OVVO this year, and nothing else.',
+      /* The last line is a door, not a disclaimer: the deck used to end by apologising for itself. */
+      note: 'See you next December for the next one.',
     },
   ];
 
