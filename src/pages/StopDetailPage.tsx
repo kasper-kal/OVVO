@@ -366,7 +366,9 @@ export function StopDetailPage() {
                 {t('Open the full board')}
               </Link>
             </div>
-            <BoardList departures={board} limit={6} />
+            {/* No `limit`: the board draws its whole window. It used to open on six rows behind a
+                "Show 5 more" button, which the steerer crossed out as a button nobody needs. */}
+            <BoardList departures={board} />
           </Card>
           ) : null}
 

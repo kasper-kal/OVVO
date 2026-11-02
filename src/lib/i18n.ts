@@ -1148,6 +1148,8 @@ const NL: Record<string, string> = {
   "Plan a journey to {stop}": "Plan een reis naar {stop}",
   "Show only the next departures": "Toon alleen de eerstvolgende vertrekken",
   "{shown} of {total} departures in this window": "{shown} van {total} vertrekken in dit venster",
+  /* The board holds nothing back now, so the foot counts what is there instead of what is left. */
+  '{total} departures in this window': '{total} vertrekken in dit venster',
   "This line has no departures left today at this stop.": "Deze lijn heeft vandaag geen vertrekken meer bij deze halte.",
   "Route": "Route",
   "Every saved search is removed from this browser. Pins, saved journeys and preferences stay as they are.": "Elke bewaarde zoekopdracht wordt uit deze browser verwijderd. Pinnen, bewaarde reizen en voorkeuren blijven zoals ze zijn.",
