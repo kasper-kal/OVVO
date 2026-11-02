@@ -1,109 +1,87 @@
 /**
- * **The story: the year told in chapters rather than in cards.**
+ * **The story: ten screens, one object, one sentence each.**
  *
- * A deck of eight answers read as a dashboard: same shape, same type, a number and a line. This is
- * the same year told as a short film. Each chapter is one idea, one number, one sentence, and a
- * visual that only that chapter has: a route that draws itself, an hour of the day lit up, an arc
- * that fills to a share, a line that stretches to a long journey.
+ * The deck used to be a dashboard wearing a film's clothes: twelve chapters, each with a kicker, a
+ * huge figure and a label under it. This is the rebuild described in `WRAPPED-REBUILD.md`. Every
+ * screen carries one sentence, one line under it, and a pose for the one object the whole story is
+ * drawn with. The colour changes at the boundary between acts, never between pages.
  *
- * Every figure comes from `lib/wrapped` and from nothing else. Nothing is compared with other
- * travellers, nothing is extrapolated, and an almost empty year gets one honest chapter instead of
- * nine dressed up ones.
+ * Nothing here invents a figure. Each chapter is filled from `YearTally` and from nothing else, and
+ * a year too thin for a story still gets two honest screens instead of ten dressed up ones.
  */
 
 import { MAP_POINT } from '../data/map';
 import { getStop } from '../data/stops';
 import type { Language } from '../state/types';
-import { formatDuration } from './format';
+import { formatDuration, pad } from './format';
 import { styleById } from './styles';
 import type { YearTally } from './wrapped';
-import type { Track } from './wrappedSound';
 
-/** The colour a chapter is painted in. Each is a token, so the look still shows through. */
-export type Tone = 'ink' | 'cream' | 'sage' | 'coral';
+/** The three acts, and the only three hues the film uses. */
+export type Act = 1 | 2 | 3;
 
-export type ChapterKind =
+/** The six poses of the Fold. Each is a fold of the same ribbon, never a new object. */
+export type PoseId = 'tunnel' | 'fan' | 'wall' | 'slice' | 'lane' | 'burst';
+
+export type ChapterId =
   | 'cover'
-  | 'number'
-  | 'route'
-  | 'bars'
-  | 'arc'
-  | 'chips'
-  | 'stretch'
-  | 'word'
+  | 'total'
+  | 'pair'
+  | 'hour'
+  | 'direct'
+  | 'longest'
   | 'map'
-  | 'pass'
+  | 'look'
+  | 'hours'
   | 'close';
 
-export interface Chapter {
-  id: string;
-  kind: ChapterKind;
-  tone: Tone;
-  /**
-   * The piece of music under this chapter.
-   *
-   * Chosen by mood rather than by order, so the story leans where it should: the cover opens on the
-   * grandest track, the line you kept coming back to gets the warmest groove, the look you wore gets
-   * the darkest one, and the last screen resolves on an acoustic guitar instead of a drop.
-   */
-  track: Track;
-  /** The small line above the number. */
-  kicker: string;
-  /** What the chapter says, large. */
-  big: string;
-  /** When the big thing is a number, it counts up to this instead of appearing. */
-  count?: number;
-  /** The sentence under it. */
-  line: string;
-  /** An optional quieter line, for the closing chapter. */
-  note?: string;
-  /** A route to draw: two ends and how many times it was planned. */
-  route?: { from: string; to: string; count: number };
-  /** Twenty-four hours, each with how many journeys asked to leave in it. */
-  bars?: number[];
-  /** Which hour is the tallest, so the bar can be picked out. */
-  peak?: number;
-  /** 0–1, how much of the arc is filled. */
-  arc?: number;
-  /** Short labelled facts, for the chapters that are lists. */
-  chips?: { label: string; detail: string }[];
-  hearts?: number;
-  boards?: number;
-  /** One dot per journey, for the chapter that counts them. */
-  dots?: number;
-  /** One block per working day's worth of hours, for the chapter that counts the time. */
-  blocks?: number;
-  /** A look's own four colours, so the page wears it instead of photographing it. */
-  swatches?: string[];
-  /** The photograph of the look that was worn, when that look has one. */
-  photo?: string;
-  /**
-   * The year drawn as a map.
-   *
-   * Every line is a pair the traveller actually planned, plotted from the same schematic coordinates
-   * the home map uses, so the shape on the page is the shape of their year rather than a decoration
-   * shaped like a map. `count` is how many times that pair was planned, so the busiest line can be
-   * drawn heavier than the rest.
-   */
-  map?: {
-    routes: { x1: number; y1: number; x2: number; y2: number; count: number }[];
-    stops: { x: number; y: number }[];
-    /** The stations worth naming: the ends of the three pairs planned most often. */
-    labels: { x: number; y: number; name: string }[];
-  };
-  /**
-   * The personality as a thing you could hold: a year pass with the name on it.
-   *
-   * The name alone on a page was a label. A pass carries the reason it was issued, the year it is
-   * good for and the three facts it was earned with, which is the difference between being called
-   * something and being shown why.
-   */
-  pass?: { name: string; evidence: string; facts: string[] };
-  /** The closing page says the year is the example one, without opening with a disclaimer. */
-  demoNote?: boolean;
+export interface StoryRoute {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  count: number;
 }
 
-/** How many journeys are enough to make a story. */
+export interface StoryStop {
+  x: number;
+  y: number;
+}
+
+export interface StoryLabel {
+  x: number;
+  y: number;
+  name: string;
+}
+
+export interface Chapter {
+  id: ChapterId;
+  act: Act;
+  pose: PoseId;
+  /** The sentence on the page. At most nine words, figure already inside it. */
+  sentence: string;
+  /** The one line under it. At most twelve words. */
+  caption: string;
+  /** The figure inside the sentence, when there is one, so it can be counted up as it lands. */
+  figure?: { value: number; from?: number; suffix?: string };
+  /** How long the page stands, in milliseconds. Absent on the cover and the close. */
+  hold?: number;
+  /** The share text for this page. Absent means this page has no share control. */
+  share?: string;
+  /** The look's own four colours, on the look page only. */
+  wear?: [string, string, string, string];
+  /** The year's routes, on the map page only. */
+  map?: {
+    routes: StoryRoute[];
+    stops: StoryStop[];
+    labels: StoryLabel[];
+    topOrigin: string;
+  };
+  /** Twenty four hours of journeys, on the hours page only. */
+  hours?: { bars: number[]; peak: number };
+}
+
+/** How many journeys are enough to make a story. Below this, the deck tells the truth in two cards. */
 export const DECK_MIN_RUNS = 5;
 
 const nameOf = (id: string): string => getStop(id)?.name ?? id;
@@ -117,11 +95,56 @@ function lookName(id: string): string | null {
   }
 }
 
+function lookColours(id: string): [string, string, string, string] | null {
+  try {
+    const style = styleById(id) as { light?: string[] } | null | undefined;
+    const quad = style?.light;
+    if (!quad || quad.length !== 4) return null;
+    return [quad[0], quad[1], quad[2], quad[3]];
+  } catch {
+    return null;
+  }
+}
+
 function topEntries<T extends string>(counts: Map<T, number>, limit: number): Array<{ value: T; count: number }> {
   return [...counts.entries()]
     .map(([value, count]) => ({ value, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
+}
+
+/** The name of the habit the year shows, said as one short line rather than a badge. */
+function habitCaption({
+  nightRuns,
+  runs,
+  pairCount,
+  uniqueOrigins,
+  directShare,
+  peakCount,
+}: {
+  nightRuns: number;
+  runs: number;
+  pairCount: number;
+  uniqueOrigins: number;
+  directShare: number;
+  peakCount: number;
+}): string {
+  /*
+   * A habit earns the caption only when it clears its own floor comfortably. The hour page is about
+   * the hour, so a year whose habits are ordinary keeps the hour's line instead of being handed a
+   * personality it did not earn.
+   */
+  const habits = [
+    { score: nightRuns / runs / 0.18, line: 'Evening is when the city is yours.' },
+    { score: pairCount / runs / 0.4, line: 'One journey, known by heart.' },
+    { score: Math.min(1, uniqueOrigins / 6) / 0.66, line: 'Your year starts from all of them.' },
+    { score: directShare / 0.6, line: 'You let the changes go.' },
+    { score: peakCount / runs / 0.2, line: 'The city has a schedule. So, apparently, do you.' },
+  ];
+  const strongest = habits.filter((habit) => habit.score >= 1).sort((a, b) => b.score - a.score)[0];
+  return strongest && strongest.score >= 1.8
+    ? strongest.line
+    : 'The city has a schedule. So, apparently, do you.';
 }
 
 export function buildStory({
@@ -135,31 +158,30 @@ export function buildStory({
 }): Chapter[] {
   const runs = [...tally.runs].sort((a, b) => a.at - b.at);
 
+  /*
+   * **A thin year is not a story, and it says so.**
+   *
+   * Two screens, on the same black ground and with the same object, so it still looks like the film
+   * it belongs to. Nothing is padded and no number is invented to fill a page.
+   */
   if (runs.length < DECK_MIN_RUNS) {
     return [
       {
         id: 'cover',
-        kind: 'cover',
-        tone: 'ink',
-        track: 'luxury-anthem',
-        kicker: 'OVVO Wrapped',
-        big: String(year),
-        line: 'Your year in journeys you planned.',
+        act: 1,
+        pose: 'tunnel',
+        sentence: 'OVVO Wrapped',
+        caption: 'Your year, in motion.',
       },
       {
-        id: 'thin',
-        kind: 'close',
-        tone: 'cream',
-        /* A thin year gets the quietest piece there is: no fanfare for a story that has not happened. */
-        track: 'acoustic',
-        kicker: String(year),
-        big: String(runs.length),
-        count: runs.length,
-        line:
-          runs.length === 1
-            ? 'journey planned this year. That is not a year to make a story of yet.'
-            : 'journeys planned this year. That is not a year to make a story of yet.',
-        note: 'Nothing has been invented to fill the space. Plan a few more and come back.',
+        id: 'close',
+        act: 1,
+        pose: 'fan',
+        sentence: runs.length === 0 ? 'No journeys yet.' : `${runs.length} journeys this year.`,
+        caption:
+          runs.length === 0
+            ? 'Plan a few, and this becomes a story.'
+            : 'That is not a year to make a story of yet.',
       },
     ];
   }
@@ -168,75 +190,47 @@ export function buildStory({
   const origins = new Map<string, number>();
   const hours = new Array<number>(24).fill(0);
   const looks = new Map<string, number>();
-  const lines = new Map<string, number>();
   let direct = 0;
   let longest = runs[0];
+  let totalMinutes = 0;
 
   for (const run of runs) {
-    pairs.set(`${run.from}→${run.to}`, (pairs.get(`${run.from}→${run.to}`) ?? 0) + 1);
+    pairs.set(`${run.from}\u2192${run.to}`, (pairs.get(`${run.from}\u2192${run.to}`) ?? 0) + 1);
     origins.set(run.from, (origins.get(run.from) ?? 0) + 1);
     hours[Math.max(0, Math.min(23, run.hour))] += 1;
     if ((run.changes ?? 1) === 0) direct += 1;
     if ((run.minutes ?? 0) > (longest.minutes ?? 0)) longest = run;
-    for (const line of run.lines ?? []) lines.set(line, (lines.get(line) ?? 0) + 1);
+    totalMinutes += run.minutes ?? 0;
   }
   for (const wear of tally.wears) looks.set(wear.id, (looks.get(wear.id) ?? 0) + 1);
 
   const [pair] = topEntries(pairs, 1);
-  const [pairFrom, pairTo] = (pair?.value ?? '→').split('→');
+  const [pairFrom, pairTo] = (pair?.value ?? '\u2192').split('\u2192');
   const originList = topEntries(origins, 3);
   const peak = hours.indexOf(Math.max(...hours));
+  const peakCount = hours[peak] ?? 0;
+  const clock = `${pad(peak)}:00`;
   const lookList = topEntries(looks, 1);
   const wearDays = lookList[0]?.count ?? 0;
-  const named = lookList[0] ? lookName(lookList[0].value) : null;
-  const lineList = topEntries(lines, 3);
-  const directShare = runs.length ? direct / runs.length : 0;
-  const directPct = Math.round(directShare * 100);
-
-  /*
-   * **The character the year gives you.**
-   *
-   * A year of numbers is a spreadsheet; the same year with a name is a story about a person. Every
-   * figure below is already in the tally, and the persona is the one habit that stands out most —
-   * the latest hour, the same pair, the same platform, the fewest changes — rather than a label
-   * invented for the mood. The strongest evidence wins, and a year too even to have a habit says so
-   * instead of being given a flattering one.
-   */
-  const nightRuns = runs.filter((run) => run.hour >= 20 || run.hour < 6).length;
+  const worn = lookList[0] ? lookList[0].value : null;
+  const named = worn ? lookName(worn) : null;
+  const wear = worn ? lookColours(worn) : null;
   const uniqueOrigins = origins.size;
-  const clock = `${peak < 10 ? '0' : ''}${peak}:00`;
-  const habits = [
-    { name: 'The Night Owl Express', share: nightRuns / runs.length, floor: 0.18,
-      line: 'Evening is when the city is yours. The day is done, and you are still moving.' },
-    { name: `${clock} Regular`, share: pair ? pair.count / runs.length : 0, floor: 0.4,
-      line: 'One journey, known by heart. You could plan it with your eyes shut.' },
-    { name: 'The Station Collector', share: uniqueOrigins / 6, floor: 0.66,
-      line: 'Not a station but a circuit: your year starts from all of them.' },
-    { name: 'The Straight-Through Type', share: directShare, floor: 0.6,
-      line: 'You take the line that stays on the rails, and you let the changes go.' },
-    { name: `${clock} Regular`, share: runs.length ? hours[peak] / runs.length : 0, floor: 0.2,
-      line: 'Your day starts at the same minute, without ever making a decision about it.' },
-  ];
-  const strongest = habits
-    .filter((habit) => habit.share >= habit.floor)
-    .sort((a, b) => b.share - a.share)[0];
-  const persona = strongest ?? {
-    name: 'The Steady Traveller',
-    line: 'No single habit owns this year: you went when the day asked, and kept moving.',
-  };
-
-  /* The hours that went into the journeys, which is the one number a year can be proud of. */
-  const totalMinutes = runs.reduce((sum, run) => sum + (run.minutes ?? 0), 0);
+  const directPct = Math.round((direct / runs.length) * 100);
   const totalHours = Math.round(totalMinutes / 60);
-  const workingDays = Math.round(totalHours / 8);
+  const films = Math.max(1, Math.round(totalHours / 1.6));
 
-  /*
-   * **The year, plotted.**
-   *
-   * The seven pairs planned most often, drawn between the schematic positions of their two stations,
-   * plus a dot for every station the year touched. Nothing is placed by hand: a journey that was not
-   * planned cannot appear here, and a station nobody used cannot be a dot.
-   */
+  const nightRuns = runs.filter((run) => run.hour >= 20 || run.hour < 6).length;
+  const captionForHabit = habitCaption({
+    nightRuns,
+    runs: runs.length,
+    pairCount: pair?.count ?? 0,
+    uniqueOrigins,
+    directShare: direct / runs.length,
+    peakCount,
+  });
+
+  /* The year, plotted: only the pairs that were actually planned, on the app's own schematic points. */
   const stationsUsed = new Set<string>();
   for (const run of runs) {
     stationsUsed.add(run.from);
@@ -244,224 +238,155 @@ export function buildStory({
   }
   const mapRoutes = topEntries(pairs, 7)
     .map((entry) => {
-      const [from, to] = entry.value.split('→');
+      const [from, to] = entry.value.split('\u2192');
       const a = MAP_POINT(from);
       const b = MAP_POINT(to);
       if (!a || !b) return null;
       return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, count: entry.count };
     })
-    .filter((line): line is { x1: number; y1: number; x2: number; y2: number; count: number } => Boolean(line));
+    .filter((line): line is StoryRoute => Boolean(line));
   const mapStops = [...stationsUsed]
     .map((id) => MAP_POINT(id))
-    .filter((point): point is { x: number; y: number } => Boolean(point));
-  /* A map with no names is a doodle: the ends of the three busiest routes get printed. */
-  const labelIds: string[] = [];
-  for (const entry of topEntries(pairs, 3)) {
-    for (const id of entry.value.split('\u2192')) {
-      if (!labelIds.includes(id) && labelIds.length < 4) labelIds.push(id);
-    }
-  }
+    .filter((point): point is StoryStop => Boolean(point));
+
+  /* Three names, on the three stops furthest from the middle, so they never pile up. */
+  const centre = mapStops.reduce(
+    (acc, stop) => ({ x: acc.x + stop.x / Math.max(1, mapStops.length), y: acc.y + stop.y / Math.max(1, mapStops.length) }),
+    { x: 0, y: 0 },
+  );
+  const labelIds = [...stationsUsed]
+    .filter((id) => MAP_POINT(id))
+    .sort((a, b) => {
+      const pa = MAP_POINT(a);
+      const pb = MAP_POINT(b);
+      if (!pa || !pb) return 0;
+      return Math.hypot(pb.x - centre.x, pb.y - centre.y) - Math.hypot(pa.x - centre.x, pa.y - centre.y);
+    })
+    .slice(0, 3);
   const mapLabels = labelIds
     .map((id) => {
       const point = MAP_POINT(id);
       return point ? { x: point.x, y: point.y, name: nameOf(id) } : null;
     })
-    .filter((label): label is { x: number; y: number; name: string } => Boolean(label));
+    .filter((label): label is StoryLabel => Boolean(label));
 
   const story: Array<Chapter | null> = [
     {
       id: 'cover',
-      kind: 'cover',
-      tone: 'ink',
-      track: 'luxury-anthem',
-      kicker: 'OVVO Wrapped',
-      big: String(year),
-      line: 'Your year in journeys you planned.',
+      act: 1,
+      pose: 'tunnel',
+      sentence: 'OVVO Wrapped',
+      caption: 'Your year, in motion.',
     },
     {
       id: 'total',
-      kind: 'number',
-      tone: 'ink',
-      track: 'electro-dance',
-      kicker: 'The year in one number',
-      big: String(runs.length),
-      count: runs.length,
-      line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
+      act: 1,
+      pose: 'fan',
+      sentence: `You planned ${runs.length} journeys this year.`,
+      caption: 'Every one of them started with a search.',
+      figure: { value: runs.length },
+      hold: 5200,
+      share: `I planned ${runs.length} journeys in OVVO in ${year}.`,
     },
     pair
       ? {
           id: 'pair',
-          kind: 'route',
-          tone: 'coral',
-          track: 'afrobeat',
-          kicker: 'The line you kept coming back to',
-          big: String(pair.count),
-          count: pair.count,
-          /*
-           * The two stations are printed on the rail itself, huge, so the sentence would only say
-           * them again. The count keeps its unit and nothing else is repeated.
-           */
-          line: pair.count === 1 ? 'time' : 'times',
-          route: { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count },
-        }
-      : null,
-    originList.length
-      ? {
-          id: 'origin',
-          kind: 'chips',
-          tone: 'cream',
-          track: 'indie-pop',
-          kicker: 'Where you set off',
-          big: nameOf(originList[0].value),
-          line: `${originList[0].count} ${originList[0].count === 1 ? 'journey began' : 'journeys began'} here.`,
-          chips: originList.slice(1).map((item) => ({
-            label: nameOf(item.value),
-            detail: `${item.count}`,
-          })),
+          act: 1,
+          pose: 'wall',
+          sentence: `${pair.count} times, ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
+          caption: 'The line you kept coming back to.',
+          figure: { value: pair.count },
+          hold: 5000,
+          share: `${pair.count} of my ${runs.length} journeys in ${year} were ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
         }
       : null,
     {
-      id: 'persona',
-      kind: 'pass',
-      tone: 'ink',
-      track: 'hip-hop-anthem',
-      kicker: 'Your travel personality',
-      big: persona.name,
-      line: persona.line,
-      /* The pass is the page: the name, why it was issued, and what earns it. */
-      pass: {
-        name: persona.name,
-        evidence: persona.line,
-        facts: [
-          `${runs.length} journeys`,
-          `${stationsUsed.size} ${stationsUsed.size === 1 ? 'station' : 'stations'}`,
-          `${totalHours} ${totalHours === 1 ? 'hour' : 'hours'} in transit`,
-        ],
-      },
+      id: 'hour',
+      act: 2,
+      pose: 'fan',
+      sentence: `${clock} is your hour. ${peakCount} journeys left in it.`,
+      caption: captionForHabit,
+      figure: { value: peakCount },
+      hold: 5000,
+      share: `My year in OVVO kept starting at ${clock}. ${peakCount} journeys left in that hour.`,
     },
     {
       id: 'direct',
-      kind: 'arc',
-      tone: 'ink',
-      track: 'melodic-trap',
-      kicker: 'Straight through',
-      big: `${directPct}%`,
-      count: directPct,
-      line:
-        direct === 1
-          ? 'One journey, and it had no changes at all.'
-          : `${direct} of ${runs.length} journeys had no changes at all.`,
-      arc: directShare,
+      act: 2,
+      pose: 'slice',
+      sentence: `${directPct}% of your journeys went straight through.`,
+      caption: `${direct} of ${runs.length}, with no changes at all.`,
+      figure: { value: directPct, suffix: '%' },
+      hold: 5000,
+      share: `${directPct}% of my OVVO journeys in ${year} had no changes.`,
     },
     longest.minutes
       ? {
           id: 'longest',
-          kind: 'stretch',
-          tone: 'coral',
-          track: 'hip-hop-anthem',
-          kicker: 'The long haul',
-          big: formatDuration(longest.minutes, language),
-          line: 'the longest trip you planned this year.',
-          route: { from: nameOf(longest.from), to: nameOf(longest.to), count: 1 },
+          act: 2,
+          pose: 'wall',
+          sentence: `Your longest trip took ${formatDuration(longest.minutes, language)}.`,
+          caption: `${nameOf(longest.from)} to ${nameOf(longest.to)}, with ${
+            longest.changes ?? 0
+          } changes.`,
+          hold: 5200,
+          share: `My longest OVVO trip in ${year}: ${nameOf(longest.from)} to ${nameOf(
+            longest.to,
+          )}, ${formatDuration(longest.minutes, language)}.`,
         }
       : null,
     mapRoutes.length
       ? {
           id: 'map',
-          kind: 'map',
-          tone: 'ink',
-          track: 'afrobeat',
-          kicker: 'The year on the map',
-          big: '',
-          /* The lines are named by the count in the sentence, because a map with a caption is a map. */
-          line: `${mapRoutes.length} ${
-            mapRoutes.length === 1 ? 'route' : 'routes'
-          } across ${stationsUsed.size} stations, drawn only from journeys you planned.`,
-          map: { routes: mapRoutes, stops: mapStops, labels: mapLabels },
+          act: 3,
+          pose: 'lane',
+          sentence: `${mapRoutes.length} routes. ${stationsUsed.size} stations. One year.`,
+          caption: originList.length ? `Most of it began at ${nameOf(originList[0].value)}.` : 'Every line drawn from a journey you planned.',
+          figure: { value: mapRoutes.length },
+          hold: 6000,
+          share: `My ${year} in OVVO: ${mapRoutes.length} routes across ${stationsUsed.size} stations.`,
+          map: {
+            routes: mapRoutes,
+            stops: mapStops,
+            labels: mapLabels,
+            topOrigin: originList.length ? nameOf(originList[0].value) : '',
+          },
         }
       : null,
-    named
+    named && wear
       ? {
           id: 'look',
-          kind: 'word',
-          tone: 'cream',
-          track: 'dark-trap',
-          kicker: 'The look you wore',
-          big: named,
-          /* The days are the number the chapter turns on, so they get the size a number gets. */
-          count: wearDays,
-          line: 'in this look.',
-          /*
-           * **The look is worn, not photographed.**
-           *
-           * This page used to sit on the style's own photograph, and the one in the demo year was a grey
-           * platform at night under grey numbers, which read as a crime podcast rather than as a look.
-           * A look is four colours before it is a picture, so the page paints them instead.
-           */
-          swatches: (() => {
-            const worn = lookList[0] ? styleById(lookList[0].value) : null;
-            return worn ? [...worn.light] : undefined;
-          })(),
+          act: 3,
+          pose: 'slice',
+          sentence: `You wore ${named} for ${wearDays} days.`,
+          caption: 'Long enough to call it a uniform.',
+          figure: { value: wearDays },
+          hold: 5200,
+          share: `I wore ${named} for ${wearDays} days of ${year}.`,
+          wear,
         }
       : null,
-    lineList.length
-      ? {
-          id: 'lines',
-          kind: 'chips',
-          tone: 'sage',
-          track: 'rap-anthem',
-          kicker: 'Your lines',
-          big: lineList[0].value,
-          /* The count belongs to the line above it, so it is in the sentence, not left out of it. */
-          line:
-            lineList[0].count === 1
-              ? '1 journey on it.'
-              : `${lineList[0].count} journeys on it.`,
-          /* A bare "22" on a board row is not an answer: the row says what the number counts. */
-          chips: lineList
-            .slice(1)
-            .map((item) => ({
-              label: item.value,
-              detail: item.count === 1 ? '1 journey' : `${item.count} journeys`,
-            })),
-          hearts: tally.hearts,
-          boards: tally.boards.length,
-        }
-      : null,
-    totalMinutes > 0
+    totalHours > 0
       ? {
           id: 'hours',
-          kind: 'number',
-          tone: 'coral',
-          track: 'electro-dance',
-          kicker: 'The time you gave the journey',
-          big: String(totalHours),
-          count: totalHours,
-          /*
-           * **A flex, not a timesheet.**
-           *
-           * "Twenty full working days" made the year sound like a sentence handed down. The same hours
-           * said as films on the train are the same arithmetic with the lift the page was missing: an
-           * average film is about ninety-six minutes, so the count is the hours divided by 1.6.
-           */
-          line:
-            totalHours === 1
-              ? 'hour in transit this year.'
-              : `hours in transit, which is about ${Math.max(1, Math.round(totalHours / 1.6))} films if the train Wi-Fi holds.`,
-          /* A block a day instead of a dot a journey: the same hour total, drawn a different way. */
-          blocks: Math.min(26, Math.max(1, workingDays)),
+          act: 3,
+          pose: 'fan',
+          sentence: `${totalHours} hours on the move.`,
+          caption: `About ${films} films, if the train Wi-Fi holds.`,
+          figure: { value: totalHours },
+          hold: 5600,
+          share: `${totalHours} hours in transit with OVVO in ${year}. About ${films} films.`,
+          hours: { bars: hours, peak },
         }
       : null,
     {
       id: 'close',
-      kind: 'close',
-      tone: 'ink',
-      track: 'acoustic',
-      kicker: String(year),
-      big: 'That was the year.',
-      line: 'Every number here is yours: the journeys you planned in OVVO this year, and nothing else.',
-      /* The last line is a door, not a disclaimer: the deck used to end by apologising for itself. */
-      note: 'See you next December for the next one.',
+      act: 1,
+      pose: 'burst',
+      sentence: `That was ${year}.`,
+      caption: tally.hearts
+        ? `${tally.hearts} stops hearted along the way. See you next December.`
+        : 'Every number here is yours. See you next December.',
     },
   ];
 

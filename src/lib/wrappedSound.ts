@@ -86,6 +86,40 @@ const AUTO_FADE = 1;
 const TURN_EARLY = 0.5;
 
 /**
+ * **The music runs by act, not by page.**
+ *
+ * A track used to start again on every chapter, which cut a piece every six seconds and left the
+ * beat nowhere near the page. Now an act owns a small playlist and the pages underneath it share
+ * the music: the track changes when the act does, and a page turn never touches it.
+ */
+const ACT_TRACKS: Record<'1' | '2' | '3' | 'close', Track[]> = {
+  '1': ['luxury-anthem', 'electro-dance'],
+  '2': ['afrobeat', 'hip-hop-anthem'],
+  '3': ['melodic-trap', 'dark-trap'],
+  close: ['acoustic'],
+};
+
+export type ActId = 1 | 2 | 3 | 'close';
+
+let currentAct: ActId | null = null;
+let actTrack = 0;
+
+function actList(act: ActId): Track[] {
+  return act === 'close' ? ACT_TRACKS.close : ACT_TRACKS[String(act) as '1' | '2' | '3'];
+}
+
+/** The next piece inside the same act. A page never reaches this; an act does. */
+function turn(): void {
+  if (currentAct) {
+    const list = actList(currentAct);
+    actTrack = (actTrack + 1) % list.length;
+    spin(list[actTrack], undefined, false);
+    return;
+  }
+  onEnd?.();
+}
+
+/**
  * **How much of a song a chapter gets.**
  *
  * Every chapter used to run its whole track, so twelve chapters took over three minutes to walk and
@@ -198,7 +232,7 @@ function makeSlot(): Slot {
   el.addEventListener('ended', () => {
     if (slot !== active || !playing || turned) return;
     turned = true;
-    onEnd?.();
+    turn();
   });
   slots = [...slots, slot];
   return slot;
@@ -233,7 +267,7 @@ function watchEnd(slot: Slot): void {
   if (turned) return;
   if (currentTime >= end - TURN_EARLY) {
     turned = true;
-    onEnd?.();
+    turn();
   }
 }
 
@@ -342,7 +376,7 @@ function ensurePlaying(slot: Slot): void {
  * `next` is only a hint: the chapter that follows, handed over so it can be warmed while this one
  * plays. Missing it costs a little waiting, never a wrong song.
  */
-function spin(track: Track, next?: Track): void {
+function spin(track: Track, next?: Track, bell = false): void {
   /* A track already in the live player (rounding a chapter twice, or coming back from silence). */
   const live = active && active.track === track ? active : null;
   if (live) {
@@ -366,8 +400,8 @@ function spin(track: Track, next?: Track): void {
   active = incoming;
   current = track;
   playing = true;
-  /* The bell belongs to the change of chapter, not to a resumed score. */
-  stationBell();
+  /* The bell belongs to the change of act, not to a page and not to a resumed score. */
+  if (bell) stationBell();
 
   if (leaving && leaving !== incoming) {
     fade(leaving.el, 0, FADE_OUT);
@@ -529,4 +563,47 @@ export function chapterSeconds(track: Track): number {
 /** The chapter that is playing, for the tests and for anyone reading the state. */
 export function currentTrack(): Track | null {
   return current;
+}
+
+/**
+ * **Start an act, from a tap.**
+ *
+ * Begin and the sound switch are the only two gestures that can start the score, so this is called
+ * inside those taps rather than from an effect. The first piece of the act arrives with the bell that
+ * marks a new act.
+ */
+export function startAct(act: ActId): void {
+  note(`startAct ${act}`);
+  playing = true;
+  currentAct = act;
+  actTrack = 0;
+  spin(actList(act)[0], undefined, true);
+}
+
+/**
+ * **Move to another act.**
+ *
+ * Called when the story crosses an act boundary, and by nothing else. A page turn inside an act
+ * leaves the music exactly where it is, which is what keeps the fold's beat and the sentence's
+ * landing on the same clock as the song.
+ */
+export function playAct(act: ActId): void {
+  if (!playing || currentAct === act) return;
+  note(`playAct ${act}`);
+  currentAct = act;
+  actTrack = 0;
+  spin(actList(act)[0], undefined, true);
+}
+
+/** Freeze the score where it is, so a paused story is paused in the ear too. */
+export function pauseScore(): void {
+  slots.forEach((slot) => slot.el.pause());
+}
+
+/** Carry on from where the pause left it, rather than starting the piece again. */
+export function resumeScore(): void {
+  const live = active;
+  if (!playing || !live) return;
+  const started = live.el.play();
+  if (started) void started.catch(() => undefined);
 }
