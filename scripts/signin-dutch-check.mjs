@@ -15,7 +15,13 @@ const base = process.argv[2] ?? 'http://127.0.0.1:3000';
  * Labels are drawn in capitals by CSS, so what a traveller reads is UPPERCASE while the sentence in
  * the dictionary is not. Compare in one case: this check is about the language, not the capitals.
  */
-const WANT = ['Inloggen', 'Doorgaan met Google', 'E-mailadres', 'Terug naar OVVO', 'Nieuw bij OVVO?'];
+const WANT = ['Inloggen', 'Doorgaan met Google', 'E-mailadres', 'Terug naar OVVO'];
+/*
+ * The passkey card is only drawn where the browser and the origin both allow a passkey, so plain
+ * http on a loopback address has nothing there to read. Required where it is offered, reported as
+ * absent where it is not, never counted as a translation failure.
+ */
+const IF_PASSKEY = 'Nieuw bij OVVO?';
 const ALSO = ['Wachtwoord', 'Wachtwoord vergeten?'];
 const SHUN = [
   'Sync your stops and journeys across your devices.',
@@ -67,6 +73,10 @@ try {
   const text = await page.evaluate(() => document.body.innerText);
 
   for (const word of WANT) say(has(text, word), `the sign-in screen says "${word}"`);
+
+  const joinedWithPasskey = /passkey/i.test(text);
+  if (joinedWithPasskey) say(has(text, IF_PASSKEY), `the passkey card says "${IF_PASSKEY}"`);
+  else console.log('skip no passkey card on this origin, so there is no passkey sentence to read');
   for (const word of SHUN) say(!has(text, word), `it no longer says "${word}"`);
 
   /*
