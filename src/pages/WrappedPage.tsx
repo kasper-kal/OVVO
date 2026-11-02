@@ -93,19 +93,17 @@ export function WrappedPage() {
   const last = index >= story.length - 1;
 
   /*
-   * **The corner cannot claim a song is playing when none has started.**
+   * **The cover's own piece, when the traveller asks for it.**
    *
-   * The switch names the action, which is right, but on the cover the action it named was "Sound off"
-   * over a silent page — it read as though the score were already running and the traveller had missed
-   * it. Before Begin the cover offers the choice instead: start muted, or start with the sound on.
+   * Nothing may play before a tap, so the first page was silent and its switch advertised a sound that
+   * was not there. Pressing the switch on the cover is that tap: it starts the cover's own piece and
+   * leaves the score on, so chapter one has a song of its own again. Once the story has begun, the
+   * switch is the plain mute it has always been.
    */
-  const soundLabel = !started
-    ? sound
-      ? t('Start muted')
-      : t('Start with sound')
-    : sound
-      ? t('Sound off')
-      : t('Sound on');
+  const [coverPlaying, setCoverPlaying] = useState(false);
+
+  /* The switch names what a thumb gets: a mute while something is audible, a start while nothing is. */
+  const soundLabel = (started ? sound : coverPlaying && sound) ? t('Sound off') : t('Sound on');
 
   /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
@@ -125,7 +123,7 @@ export function WrappedPage() {
    * the traveller swipes: the story should never wait for a song.
    */
   useEffect(() => {
-    if (!started) return;
+    if (!started && !coverPlaying) return;
     /*
      * **There is one way to start the score, and this is it.**
      *
@@ -139,7 +137,7 @@ export function WrappedPage() {
       return;
     }
     startSound(chapter.track, story[index + 1]?.track);
-  }, [index, started, sound, chapter.track, story]);
+  }, [index, started, sound, chapter.track, story, coverPlaying]);
 
   /*
    * **The story keeps time with the music.**
@@ -351,7 +349,15 @@ export function WrappedPage() {
           type="button"
           className="wrapped-sound"
           aria-label={soundLabel}
-          onClick={() => setSound((on) => !on)}
+          onClick={() => {
+            /* On a cover that has not sung yet, the press starts the song rather than silencing it. */
+            if (!started && !coverPlaying) {
+              setSound(true);
+              setCoverPlaying(true);
+              return;
+            }
+            setSound((on) => !on);
+          }}
         >
           <span>{soundLabel}</span>
         </button>
