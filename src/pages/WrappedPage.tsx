@@ -123,6 +123,18 @@ export function WrappedPage() {
   const [cleared, setCleared] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  /*
+   * **Every page hands its words out one piece at a time.**
+   *
+   * Each chapter used to arrive as one block: the label, the number, the sentence and the rows all
+   * appeared in the same frame behind the page's own entrance, which is what made ten different
+   * layouts read as one wall of text ten times. The pieces are placed in a queue now (the `--i` each
+   * one already carries), and a page marks itself as dealt once it has painted, so the label, then
+   * the number, then the sentence and the rows arrive in that order. The stylesheet does the rest,
+   * and the setting for reduced motion skips the queue entirely.
+   */
+  const [dealt, setDealt] = useState(false);
+
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
   const last = index >= story.length - 1;
 
@@ -214,6 +226,19 @@ export function WrappedPage() {
     }, quiet);
     return () => window.clearTimeout(timer);
   }, [last, chapter.track, index, go]);
+
+  /* Two frames: one to paint the pieces hidden, one to start them. */
+  useEffect(() => {
+    setDealt(false);
+    let second = 0;
+    const first = window.requestAnimationFrame(() => {
+      second = window.requestAnimationFrame(() => setDealt(true));
+    });
+    return () => {
+      window.cancelAnimationFrame(first);
+      window.cancelAnimationFrame(second);
+    };
+  }, [chapter.id]);
 
   /* A report on the score, for a phone that cannot be debugged from here. */
   const showDiagnostics = useMemo(
@@ -428,7 +453,7 @@ export function WrappedPage() {
       {/* The keyboard is a reader's way through: arrows, Escape to leave. */}
       <div className="wrapped-scene">
         <div
-          className={`wrapped-body wrapped-body--${chapter.kind}`}
+          className={`wrapped-body wrapped-body--${chapter.kind}${dealt ? ' is-dealt' : ''}`}
           data-chapter={chapter.id}
           data-dir={dir}
           key={chapter.id}

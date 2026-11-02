@@ -10703,3 +10703,90 @@
 .wrapped-body[data-chapter='lines'] .wrapped-chip {
   align-items: center;
 }
+
+/*
+ * 24 · A page is a few pieces of text arriving, not one block appearing.
+ *
+ * The words on a chapter were all revealed in the same frame. A traveller read four things at once
+ * and the deck answered with four things at once, on every page, which is why ten layouts felt like
+ * one wall. Each direct piece now starts hidden and a little low, and moves up into place on its own
+ * turn: the queue is the number each piece already carried, 110ms apart. The page marks itself
+ * `is-dealt` two frames after it mounts (see `pages/WrappedPage`), so the pieces that were painted
+ * hidden are the ones that move.
+ *
+ * Transitions, not animations, on purpose: several pieces already run an animation of their own on
+ * the beat, and an animation on the same element would have replaced this one instead of joining it.
+ */
+.wrapped-body:not(.wrapped-body--cover) > * {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 460ms var(--ease-out),
+    transform 560ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 110ms);
+}
+
+.wrapped-body.is-dealt:not(.wrapped-body--cover) > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* The pieces that never carried a number get their own place in the queue. */
+.wrapped-body > .wrapped-field {
+  --i: 0;
+}
+
+.wrapped-body > .wrapped-rings,
+.wrapped-body > .wrapped-burst,
+.wrapped-body > .wrapped-ruler {
+  --i: 1;
+}
+
+.wrapped-body > .wrapped-bars {
+  --i: 2;
+}
+
+.wrapped-body > .wrapped-chips {
+  --i: 3;
+}
+
+/* Reduced motion is about movement, and a page that walks its words in is movement. */
+.wrapped-stage.is-still .wrapped-body > * {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/*
+ * 25 · The page's ground was changing while the pieces were arriving.
+ *
+ * Turning from the dark total onto the paper page took most of a second, and that fade passes through
+ * grey, so the label, the name and the ticket were all arriving over a half-lit grey page. It is the
+ * same fault that was fixed on page five; the truth is that every page had it and only one was
+ * reported. The ground now turns in a quarter of a second, before the pieces have finished coming in,
+ * so the reveal happens on the page's own colour instead of on a wash of it.
+ */
+.wrapped-stage {
+  transition: background-color 280ms var(--ease-out), color 280ms var(--ease-out);
+}
+
+/* On the page that names you, the sentence explains the rows, so it follows them. */
+.wrapped-body--name > .wrapped-line {
+  --i: 4;
+}
+
+/*
+ * 26 · The ticket arrived before its rows did.
+ *
+ * The card is the page's paper, and its rows are dealt in on their own beat, but the card was shown
+ * first, so for a moment there was an empty white plate under the name. On this page the card comes
+ * first and the rows follow it, one at a time, which is the order the page says them in anyway, and
+ * the sentence comes last because it is the line that explains them.
+ */
+.wrapped-body--name .wrapped-chip {
+  animation-delay: calc(380ms + var(--i, 0) * 130ms);
+}
+
+.wrapped-body--name > .wrapped-line {
+  --i: 5;
+}
