@@ -84,6 +84,8 @@ export interface Chapter {
   map?: {
     routes: { x1: number; y1: number; x2: number; y2: number; count: number }[];
     stops: { x: number; y: number }[];
+    /** The stations worth naming: the ends of the three pairs planned most often. */
+    labels: { x: number; y: number; name: string }[];
   };
   /**
    * The personality as a thing you could hold: a year pass with the name on it.
@@ -246,6 +248,19 @@ export function buildStory({
   const mapStops = [...stationsUsed]
     .map((id) => MAP_POINT(id))
     .filter((point): point is { x: number; y: number } => Boolean(point));
+  /* A map with no names is a doodle: the ends of the three busiest routes get printed. */
+  const labelIds: string[] = [];
+  for (const entry of topEntries(pairs, 3)) {
+    for (const id of entry.value.split('\u2192')) {
+      if (!labelIds.includes(id) && labelIds.length < 4) labelIds.push(id);
+    }
+  }
+  const mapLabels = labelIds
+    .map((id) => {
+      const point = MAP_POINT(id);
+      return point ? { x: point.x, y: point.y, name: nameOf(id) } : null;
+    })
+    .filter((label): label is { x: number; y: number; name: string } => Boolean(label));
 
   const story: Array<Chapter | null> = [
     {
@@ -369,7 +384,7 @@ export function buildStory({
           line: `${mapRoutes.length} ${
             mapRoutes.length === 1 ? 'route' : 'routes'
           } across ${stationsUsed.size} stations, drawn only from journeys you planned.`,
-          map: { routes: mapRoutes, stops: mapStops },
+          map: { routes: mapRoutes, stops: mapStops, labels: mapLabels },
         }
       : null,
     named

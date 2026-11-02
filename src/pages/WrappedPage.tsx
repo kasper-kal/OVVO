@@ -716,18 +716,35 @@ export function WrappedPage() {
                         style={{ '--i': at } as CSSProperties}
                       />
                     ))}
-                    {chapter.map.routes.map((line, at) => (
-                      <line
-                        key={`route-${at}`}
-                        className={`wrapped-map__route${line.count > 1 ? ' is-often' : ''}`}
-                        x1={line.x1}
-                        y1={line.y1}
-                        x2={line.x2}
-                        y2={line.y2}
-                        style={{ '--i': at } as CSSProperties}
-                      />
-                    ))}
+                    {chapter.map.routes.map((line, at) => {
+                      /*
+                       * **Every route bends, and none of them bends the same way.**
+                       *
+                       * Two straight lines between the same stations lie on top of each other, and the
+                       * year's seventh route then looks like its second. Each line bows out from the
+                       * straight path by a few units, alternating sides, so seven routes read as seven.
+                       */
+                      const dx = line.x2 - line.x1;
+                      const dy = line.y2 - line.y1;
+                      const span = Math.hypot(dx, dy) || 1;
+                      const bow = (at % 2 === 0 ? 1 : -1) * (2.6 + at * 0.55);
+                      const cx = (line.x1 + line.x2) / 2 - (dy / span) * bow;
+                      const cy = (line.y1 + line.y2) / 2 + (dx / span) * bow;
+                      return (
+                        <path
+                          key={`route-${at}`}
+                          className={`wrapped-map__route${line.count > 1 ? ' is-often' : ''}`}
+                          d={`M ${line.x1} ${line.y1} Q ${cx} ${cy} ${line.x2} ${line.y2}`}
+                          style={{ '--i': at } as CSSProperties}
+                        />
+                      );
+                    })}
                   </svg>
+                  <ul className="wrapped-map__names">
+                    {chapter.map.labels.slice(0, 3).map((label) => (
+                      <li key={label.name}>{label.name}</li>
+                    ))}
+                  </ul>
                 </div>
               ) : null}
 
