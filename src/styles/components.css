@@ -10114,3 +10114,72 @@
   from { opacity: 0; transform: translateY(10px); }
 }
 
+
+/*
+ * 16 · The same soft light on every page, in that page's own colour.
+ *
+ * What makes page eight beautiful is not a glow behind the type — it is a wash over it: the photograph's
+ * own light falling across the words so they sit in the picture rather than on it. Each page now has that
+ * same wash in its own material, and never the same twice: warm ink over the year, blue-black down the
+ * rail, platform-green over the hour, violet in the dial, plum on the cover, a warm dark on the close.
+ * The three paper pages are washed in their own paper instead, a pale haze over the ink, which is what sun
+ * on paper does. It sits above the words and below the buttons, and it never takes a tap.
+ */
+.wrapped-stage[data-chapter='cover']::after,
+.wrapped-stage[data-chapter='total']::after,
+.wrapped-stage[data-chapter='pair']::after,
+.wrapped-stage[data-chapter='origin']::after,
+.wrapped-stage[data-chapter='hour']::after,
+.wrapped-stage[data-chapter='direct']::after,
+.wrapped-stage[data-chapter='longest']::after,
+.wrapped-stage[data-chapter='lines']::after,
+.wrapped-stage[data-chapter='close']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* The cover: a plum dusk, deepest at both ends where the page meets the screen. */
+.wrapped-stage[data-chapter='cover']::after {
+  background: linear-gradient(180deg, rgba(26, 16, 38, 0.42) 0%, rgba(26, 16, 38, 0) 44%, rgba(32, 18, 46, 0.55) 100%);
+}
+
+/* The year: a warm ink, so the enormous number sits in the dark rather than on it. */
+.wrapped-stage[data-chapter='total']::after {
+  background: linear-gradient(180deg, rgba(22, 19, 15, 0.40) 0%, rgba(22, 19, 15, 0) 42%, rgba(24, 20, 15, 0.62) 100%);
+}
+
+/* The rail: blue-black at the two ends of the line. */
+.wrapped-stage[data-chapter='pair']::after {
+  background: linear-gradient(180deg, rgba(6, 14, 26, 0.46) 0%, rgba(6, 14, 26, 0) 40%, rgba(6, 14, 26, 0.58) 100%);
+}
+
+/* The hour: the shade of a night sky, heaviest behind the clock. */
+.wrapped-stage[data-chapter='hour']::after {
+  background: linear-gradient(180deg, rgba(6, 18, 14, 0.48) 0%, rgba(6, 18, 14, 0.10) 46%, rgba(6, 18, 14, 0.34) 100%);
+}
+
+/* The dial: violet, gathered at the foot under the sentence. */
+.wrapped-stage[data-chapter='direct']::after {
+  background: linear-gradient(180deg, rgba(14, 9, 22, 0.38) 0%, rgba(14, 9, 22, 0) 44%, rgba(18, 12, 28, 0.62) 100%);
+}
+
+/* The close: the warm dark of a lamp being switched off. */
+.wrapped-stage[data-chapter='close']::after {
+  background: linear-gradient(180deg, rgba(16, 12, 8, 0.40) 0%, rgba(16, 12, 8, 0) 40%, rgba(18, 13, 9, 0.52) 100%);
+}
+
+/* The paper pages are washed in their own paper: sun on a ticket, not shadow on a screen. */
+.wrapped-stage[data-chapter='origin']::after {
+  background: linear-gradient(180deg, rgba(244, 237, 225, 0.55) 0%, rgba(244, 237, 225, 0) 38%, rgba(232, 217, 196, 0.62) 100%);
+}
+
+.wrapped-stage[data-chapter='longest']::after {
+  background: linear-gradient(180deg, rgba(251, 231, 226, 0.60) 0%, rgba(251, 231, 226, 0) 40%, rgba(251, 231, 226, 0.66) 100%);
+}
+
+.wrapped-stage[data-chapter='lines']::after {
+  background: linear-gradient(180deg, rgba(247, 245, 239, 0.55) 0%, rgba(247, 245, 239, 0) 38%, rgba(247, 245, 239, 0.60) 100%);
+}
