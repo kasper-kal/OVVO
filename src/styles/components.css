@@ -11664,3 +11664,14 @@
 .wrapped-body[data-chapter='lines'] .wrapped-aside {
   display: none;
 }
+
+/*
+ * 44 · The board sat at the top of the page with half a screen of paper under it.
+ *
+ * The name and the number belong together at the top, and the two runner-up lines belong with them,
+ * so the block is centred in the page instead of pinned to its ceiling, and the air is shared above
+ * and below rather than all of it landing at the foot.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  align-content: center;
+}
