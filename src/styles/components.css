@@ -10453,3 +10453,253 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
+
+/* ==========================================================================
+ * **Four pages that were boring, empty, or a mess.**
+ * ========================================================================== */
+
+/*
+ * 18 · The year in one number was a dial drawn on top of a field of dots.
+ *
+ * The dots of the year ran straight under the twelve bars and under the number, so the dial read as
+ * more dots rather than as a shape, the month numbers sat in the middle of the field with nothing to
+ * hold them, and the bottom rays reached the giant figure. The dial now has a dark disc of its own to
+ * stand on, it is smaller and sits higher, and the field fades before the number starts, so the page
+ * is three separate things read in order: dial, number, sentence.
+ */
+.wrapped-stage[data-chapter='total'] .wrapped-rings {
+  top: 42%;
+  width: min(58vw, 300px);
+  background: radial-gradient(
+    closest-side,
+    #0f0f13 0 56%,
+    #0f0f13 72%,
+    rgba(15, 15, 19, 0.82) 86%,
+    rgba(15, 15, 19, 0) 100%
+  );
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-rings em {
+  font-size: 8px;
+  opacity: 0.55;
+  letter-spacing: 0.06em;
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-field {
+  -webkit-mask-image: linear-gradient(180deg, #000 0 38%, rgba(0, 0, 0, 0.4) 62%, transparent 82%);
+  mask-image: linear-gradient(180deg, #000 0 38%, rgba(0, 0, 0, 0.4) 62%, transparent 82%);
+}
+
+/*
+ * 19 · The page that names the traveller was a heading, three lines of small print and a lot of air.
+ *
+ * Everything on it was the same weight at the same width, so the eye had no way in and the top half of
+ * the screen was empty. Now the name is the size of a title, the three rows are one paper ticket with
+ * the rows divided inside it, and the stamp behind them is large enough to be the page's ground rather
+ * than a ghost. The sentence stays under the ticket, where it explains the rows instead of competing
+ * with the name.
+ */
+.wrapped-body--name {
+  align-content: center;
+  gap: clamp(10px, 2.4vh, 22px);
+  padding-block: clamp(6px, 3vh, 30px);
+}
+
+.wrapped-body--name .wrapped-big {
+  font-size: clamp(40px, 12.6vw, 108px);
+  line-height: 0.94;
+  letter-spacing: -0.025em;
+}
+
+.wrapped-body--name::before {
+  width: min(88vw, 480px);
+  border-width: 2px;
+  border-color: color-mix(in srgb, currentColor 22%, transparent);
+  animation-duration: 44s;
+}
+
+.wrapped-body--name .wrapped-chips {
+  width: 100%;
+  max-width: 520px;
+  padding: 2px clamp(14px, 4.4vw, 24px);
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+  background: color-mix(in srgb, #ffffff 46%, transparent);
+  box-shadow: 0 14px 34px color-mix(in srgb, currentColor 11%, transparent);
+  margin-top: clamp(4px, 1.4vh, 14px);
+}
+
+.wrapped-body--name .wrapped-chip {
+  border-top-color: color-mix(in srgb, currentColor 16%, transparent);
+  padding: clamp(12px, 2.8vh, 20px) 0;
+}
+
+.wrapped-body--name .wrapped-chip:first-child {
+  border-top: 0;
+}
+
+.wrapped-body--name .wrapped-chip strong {
+  font-size: clamp(15px, 4vw, 19px);
+  font-weight: 700;
+}
+
+.wrapped-body--name .wrapped-line {
+  max-width: 28ch;
+  font-size: clamp(15px, 3.8vw, 19px);
+  opacity: 0.82;
+}
+
+/*
+ * 20 · The look was a photograph with a number on it, and after the count the page was a still.
+ *
+ * A photograph on a phone that does not move reads as a screenshot, and the deck's one page with an
+ * image was the only page that stopped living once its number landed. The picture now drifts and
+ * breathes for as long as the page is up, the look's name sways a few pixels against it, and the day
+ * count keeps a slow breath of its own. Nothing here is quick: it is weather, not animation.
+ */
+.wrapped-photo {
+  transform-origin: 52% 46%;
+  animation: wrapped-photo-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes wrapped-photo-drift {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(-1.4%, -1.8%, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  animation: wrapped-word-sway 17s ease-in-out infinite alternate;
+}
+
+@keyframes wrapped-word-sway {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  transform-origin: left bottom;
+  animation: wrapped-days-breathe 9s ease-in-out infinite alternate;
+}
+
+@keyframes wrapped-days-breathe {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.035;
+  }
+}
+
+.wrapped-stage.is-still .wrapped-photo,
+.wrapped-stage.is-still[data-chapter='look'] .wrapped-big,
+.wrapped-stage.is-still[data-chapter='look'] .wrapped-days {
+  animation: none;
+}
+
+/*
+ * 21 · The lines page was a list of sentences with small numbers beside them.
+ *
+ * The line numbers are the part a traveller recognises, "700" and "800", and they were the smallest
+ * thing on the page while "22 JOURNEYS" took the eye. The hierarchy is the board's now: the line is
+ * set large, the count is a quiet right-hand column, and the rows share the height the page has
+ * instead of huddling in the middle of it. The line numbers also breathe slowly, so a deck with the
+ * sound off is not a still picture.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  align-content: stretch;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-row: 4;
+  align-self: stretch;
+  align-content: center;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: clamp(16px, 3.4vh, 28px) 0;
+  font-size: clamp(11px, 2.9vw, 13px);
+  letter-spacing: 0.14em;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span {
+  font-size: clamp(26px, 8vw, 40px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-transform: none;
+  opacity: 0.92;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: clamp(12px, 3.2vw, 15px);
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-aside {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+.wrapped-stage:not(.is-still) .wrapped-body[data-chapter='lines'] .wrapped-chip span {
+  animation: wrapped-board-glow 6s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i, 0) * 700ms);
+}
+
+@keyframes wrapped-board-glow {
+  from {
+    opacity: 0.66;
+  }
+  to {
+    opacity: 0.98;
+  }
+}
+
+/*
+ * 22 · The year's dots and the year's dial were drawn in the same air.
+ *
+ * The disc under the dial was not enough on its own: the field still ran behind the twelve bars and
+ * the month numbers, so the dial read as a busier patch of dots. The field now keeps to the top of the
+ * page and fades before the dial begins, the bars stop short of the month numbers instead of running
+ * through them, and the three things on the page have three bands: the journeys, the month, the total.
+ */
+.wrapped-stage[data-chapter='total'] .wrapped-field {
+  -webkit-mask-image: linear-gradient(180deg, #000 0 26%, rgba(0, 0, 0, 0.55) 38%, transparent 47%);
+  mask-image: linear-gradient(180deg, #000 0 26%, rgba(0, 0, 0, 0.55) 38%, transparent 47%);
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-rings i {
+  height: 44%;
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-rings em {
+  font-size: 9px;
+  opacity: 0.5;
+  font-weight: 600;
+}
+
+/*
+ * 23 · The board had two rows and half a page of nothing under them.
+ *
+ * The rows were sized by their own text, so the chapter that is about lines was also the emptiest page
+ * in the deck. Each row now takes an equal share of the height the page has, which is what a departure
+ * board does with three departures, and the black space between them becomes the board's rhythm.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-content: stretch;
+  grid-auto-rows: 1fr;
+  min-height: 0;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  align-items: center;
+}
