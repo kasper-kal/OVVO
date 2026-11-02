@@ -85,6 +85,17 @@ const AUTO_FADE = 1;
 /** How long before a song ends the deck turns the page. */
 const TURN_EARLY = 0.5;
 
+/**
+ * **How much of a song a chapter gets.**
+ *
+ * Every chapter used to run its whole track, so twelve chapters took over three minutes to walk and
+ * the steerer called the story slow, which it was. A chapter now plays a little over half its song:
+ * it opens on the part that moves, and it hands over to the next chapter while the last of it is still
+ * there to be faded. Nothing is cut out of the files, so the same music is under the same page, and the
+ * page still ends on its own cadence rather than on a timer.
+ */
+const CUT = 0.56;
+
 /** The volume a chapter's track is faded to: its trim, scaled under the phone's own volume. */
 function targetVolume(track: Track): number {
   return Math.max(0, Math.min(1, TRIM[track] * LEVEL));
@@ -211,17 +222,43 @@ function ensureSlots(): Slot[] {
 function watchEnd(slot: Slot): void {
   if (slot !== active || !playing) return;
   const { duration, currentTime } = slot.el;
-  if (!Number.isFinite(duration) || duration <= TURN_EARLY + AUTO_FADE) return;
-  if (!ducked && currentTime >= duration - TURN_EARLY - AUTO_FADE) {
+  /* The page turns where the cut is, not where the file ends. */
+  const end = duration * CUT;
+  if (!Number.isFinite(duration) || end <= TURN_EARLY + AUTO_FADE) return;
+  if (!ducked && currentTime >= end - TURN_EARLY - AUTO_FADE) {
     ducked = true;
     fade(slot.el, 0, AUTO_FADE);
     note(`fade out ${AUTO_FADE}s before the page`);
   }
   if (turned) return;
-  if (currentTime >= duration - TURN_EARLY) {
+  if (currentTime >= end - TURN_EARLY) {
     turned = true;
     onEnd?.();
   }
+}
+
+/**
+ * **A station bell on every page turn.**
+ *
+ * The deck is a journey, and a journey through Dutch stations has one sound everybody knows: two notes,
+ * high then low, before the announcement. It is a plain audio element like the score, it is quiet, and it
+ * never asks for a gesture of its own, so a phone that refuses it simply has no bell.
+ */
+let bell: HTMLAudioElement | null = null;
+
+function stationBell(): void {
+  if (!playing) return;
+  if (!bell) {
+    bell = new Audio(`${import.meta.env.BASE_URL}music/chime.wav`);
+    bell.preload = 'auto';
+    bell.volume = 0.24;
+  }
+  try {
+    bell.currentTime = 0;
+  } catch {
+    /* Not decoded yet: the first page has no bell, the next one will. */
+  }
+  void bell.play().catch(() => undefined);
 }
 
 /** Load a track into a player, unless it is already there. */
@@ -329,6 +366,8 @@ function spin(track: Track, next?: Track): void {
   active = incoming;
   current = track;
   playing = true;
+  /* The bell belongs to the change of chapter, not to a resumed score. */
+  stationBell();
 
   if (leaving && leaving !== incoming) {
     fade(leaving.el, 0, FADE_OUT);
@@ -358,6 +397,7 @@ export function stopSound(): void {
   retries.forEach((id) => window.clearTimeout(id));
   retries.clear();
   slots.forEach((slot) => fade(slot.el, 0, 0.15));
+  bell?.pause();
   window.setTimeout(() => {
     if (playing) return;
     slots.forEach((slot) => slot.el.pause());
@@ -474,6 +514,16 @@ const TRACK_SECONDS: Record<Track, number> = {
 /** How long a chapter's song runs, in seconds. */
 export function trackSeconds(track: Track): number {
   return TRACK_SECONDS[track];
+}
+
+/**
+ * **How long a chapter actually lasts.**
+ *
+ * The deck's silent clock and its progress bar have to run to the same length the score does, or a muted
+ * story turns its pages later than a heard one and the bar fills past the cut. Both read this.
+ */
+export function chapterSeconds(track: Track): number {
+  return TRACK_SECONDS[track] * CUT;
 }
 
 /** The chapter that is playing, for the tests and for anyone reading the state. */

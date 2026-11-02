@@ -17,7 +17,7 @@ import {
   soundDiagnostics,
   startSound,
   stopSound,
-  trackSeconds,
+  chapterSeconds,
   whenTrackEnds,
 } from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
@@ -176,7 +176,7 @@ export function WrappedPage() {
    */
   useEffect(() => {
     if (last) return undefined;
-    const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
+    const quiet = Math.max(4000, (chapterSeconds(chapter.track) + 1) * 1000);
     const timer = window.setTimeout(() => {
       if (index === 0) setStarted(true);
       go(index + 1);
@@ -235,6 +235,28 @@ export function WrappedPage() {
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
 
   /*
+   * **The map is framed on the year, not on the country.**
+   *
+   * The schematic canvas is a hundred units wide because it draws the whole network; a year with nine
+   * stations on it was a few dots huddled in one corner of a phone. The frame here is the box those
+   * stations actually occupy, padded, so the lines are as large as the page allows and the shape reads
+   * as a journey rather than as dust.
+   */
+  const mapBox = useMemo(() => {
+    const points = chapter.map?.stops ?? [];
+    if (points.length === 0) return { x: 0, y: 0, w: 100, h: 100 };
+    const xs = points.map((point) => point.x);
+    const ys = points.map((point) => point.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const padX = Math.max(9, (maxX - minX) * 0.16);
+    const padY = Math.max(9, (maxY - minY) * 0.16);
+    return { x: minX - padX, y: minY - padY, w: maxX - minX + padX * 2, h: maxY - minY + padY * 2 };
+  }, [chapter.map]);
+
+  /*
    * **What gets copied is a sentence, not a chapter.**
    *
    * It used to be glued together from a chapter's own line, which is written to sit under a big
@@ -260,6 +282,106 @@ export function WrappedPage() {
     } catch {
       setCopied(false);
     }
+  };
+
+  /**
+   * **The year as one picture, 9:16, ready for a story.**
+   *
+   * A copied sentence is a link nobody posts. This draws the year on a phone-sized canvas: the pass at
+   * the top, the route that kept coming back, and the three numbers a year is actually proud of. It is
+   * drawn from the same chapters the deck is reading, so it cannot say anything the deck does not.
+   */
+  const saveCard = async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const card = story.find((item) => item.kind === 'pass')?.pass;
+    const route = story.find((item) => item.kind === 'route')?.route;
+    const hoursChapter = story.find((item) => item.id === 'hours');
+    const stations = new Set(tally.runs.flatMap((run) => [run.from, run.to])).size;
+
+    ctx.fillStyle = '#0d0d0f';
+    ctx.fillRect(0, 0, 1080, 1920);
+    ctx.fillStyle = '#ff6f61';
+    ctx.fillRect(0, 0, 1080, 16);
+
+    const ink = '#f4f1ea';
+    const quiet = '#8e8b86';
+    const soft = '#c9c4bc';
+    const font = (weight: number, size: number) =>
+      `${weight} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+
+    const write = (
+      text: string,
+      x: number,
+      y: number,
+      type: string,
+      colour: string,
+      max = 880,
+      leading = 0,
+    ): number => {
+      ctx.font = type;
+      ctx.fillStyle = colour;
+      const rows: string[] = [];
+      let line = '';
+      for (const word of text.split(' ')) {
+        const next = line ? `${line} ${word}` : word;
+        if (ctx.measureText(next).width > max && line) {
+          rows.push(line);
+          line = word;
+        } else {
+          line = next;
+        }
+      }
+      if (line) rows.push(line);
+      rows.forEach((row, at) => ctx.fillText(row, x, y + at * (leading || 60)));
+      return y + rows.length * (leading || 60);
+    };
+
+    write('OVVO WRAPPED', 96, 190, font(700, 30), '#ff6f61');
+    write(String(year), 96, 300, font(700, 110), ink);
+    let y = write('YOUR TRAVEL PERSONALITY', 96, 470, font(600, 28), quiet);
+    y = write(card?.name ?? '', 96, y + 120, font(800, 100), ink, 880, 112);
+    y = write(card?.evidence ?? '', 96, y + 70, font(400, 40), soft, 880, 54);
+
+    ctx.strokeStyle = 'rgba(244, 241, 234, 0.18)';
+    ctx.setLineDash([12, 14]);
+    ctx.beginPath();
+    ctx.moveTo(96, 1260);
+    ctx.lineTo(984, 1260);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (route) {
+      write(`${route.count} x`, 96, 1370, font(600, 44), '#ff8a7a');
+      write(`${route.from} to ${route.to}`, 96, 1440, font(600, 44), ink, 880, 56);
+    }
+
+    const stats: Array<[string, string]> = [
+      [String(tally.runs.length), 'JOURNEYS'],
+      [String(hoursChapter?.count ?? 0), 'HOURS'],
+      [String(stations), 'STATIONS'],
+    ];
+    stats.forEach(([value, label], at) => {
+      const x = 96 + at * 300;
+      write(value, x, 1660, font(800, 88), ink);
+      write(label, x, 1706, font(600, 24), quiet, 260, 30);
+    });
+    write('Every number from the journeys I planned in OVVO.', 96, 1820, font(400, 28), soft);
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ovvo-wrapped-${year}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 5000);
   };
 
   return (
@@ -351,7 +473,7 @@ export function WrappedPage() {
               * and on every chapter, heard or not.
               */}
             {at === index ? (
-              <i key={`${item.id}-${index}`} style={{ '--len': `${trackSeconds(chapter.track)}s` } as CSSProperties} />
+              <i key={`${item.id}-${index}`} style={{ '--len': `${chapterSeconds(chapter.track)}s` } as CSSProperties} />
             ) : null}
           </span>
         ))}
@@ -444,16 +566,37 @@ export function WrappedPage() {
             </>
           ) : (
             <>
-              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
-                {t(chapter.kicker)}
-              </span>
+              {chapter.kind === 'pass' ? null : (
+                <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+                  {t(chapter.kicker)}
+                </span>
+              )}
+
+              {chapter.kind === 'pass' && chapter.pass ? (
+                <div className="wrapped-pass" style={{ '--i': 1 } as CSSProperties}>
+                  <p className="wrapped-pass__rail">
+                    <span>OVVO Wrapped</span>
+                    <span>{year}</span>
+                  </p>
+                  <h2 className="wrapped-pass__name">{t(chapter.pass.name)}</h2>
+                  <p className="wrapped-pass__why">{t(chapter.pass.evidence)}</p>
+                  <ul className="wrapped-pass__facts">
+                    {chapter.pass.facts.map((fact) => (
+                      <li key={fact}>{fact}</li>
+                    ))}
+                  </ul>
+                  <span className="wrapped-pass__stamp" aria-hidden="true">
+                    {t('Valid all year')}
+                  </span>
+                </div>
+              ) : null}
 
               {chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
                   <span className="wrapped-arc__spark" aria-hidden="true" />
                   <p className="wrapped-big wrapped-big--in">{count}%</p>
                 </div>
-              ) : chapter.kind === 'route' ? null : (
+              ) : chapter.kind === 'route' || chapter.kind === 'map' || chapter.kind === 'pass' ? null : (
                 <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
                   {chapter.kind === 'word' || chapter.count === undefined ? chapter.big : count}
                 </p>
@@ -555,6 +698,39 @@ export function WrappedPage() {
                 </div>
               ) : null}
 
+              {chapter.kind === 'map' && chapter.map ? (
+                <div className="wrapped-map" style={{ '--i': 1 } as CSSProperties}>
+                  <svg
+                    viewBox={`${mapBox.x} ${mapBox.y} ${mapBox.w} ${mapBox.h}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    {chapter.map.stops.map((stop, at) => (
+                      <circle
+                        key={`stop-${at}`}
+                        className="wrapped-map__stop"
+                        cx={stop.x}
+                        cy={stop.y}
+                        r={1.4}
+                        style={{ '--i': at } as CSSProperties}
+                      />
+                    ))}
+                    {chapter.map.routes.map((line, at) => (
+                      <line
+                        key={`route-${at}`}
+                        className={`wrapped-map__route${line.count > 1 ? ' is-often' : ''}`}
+                        x1={line.x1}
+                        y1={line.y1}
+                        x2={line.x2}
+                        y2={line.y2}
+                        style={{ '--i': at } as CSSProperties}
+                      />
+                    ))}
+                  </svg>
+                </div>
+              ) : null}
+
               {chapter.chips?.length ? (
                 <ul className="wrapped-chips">
                   {chapter.chips.map((chip, position) => (
@@ -572,7 +748,9 @@ export function WrappedPage() {
 
               {/* The rail prints its own two stations, and the look prints its own days under its name.
                   Any other word chapter (the travel personality) still needs the sentence that earns it. */}
-              {chapter.kind === 'route' || (chapter.kind === 'word' && chapter.count !== undefined) ? null : (
+              {chapter.kind === 'route' ||
+              chapter.kind === 'pass' ||
+              (chapter.kind === 'word' && chapter.count !== undefined) ? null : (
                 <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
                   {t(chapter.line)}
                 </p>
@@ -610,7 +788,10 @@ export function WrappedPage() {
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
-              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
+              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void saveCard()}>
+                {t('Save my year')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => go(0)}>
