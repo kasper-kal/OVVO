@@ -21994,7 +21994,7 @@ async function registerOptions(request, env, url, claims) {
   const body = await readJson(request);
   const displayName = typeof body.name === "string" ? body.name.trim().slice(0, 60) : "";
   const signedIn = claims !== null;
-  if (!signedIn && !signingConfigured(env)) return json({ error: "not-configured" }, 503);
+  if (!signingConfigured(env)) return json({ error: "not-configured" }, 503);
   let uid;
   let userName;
   let userDisplayName;

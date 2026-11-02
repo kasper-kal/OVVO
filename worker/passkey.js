@@ -139,7 +139,13 @@ async function registerOptions(request, env, url, claims) {
   const body = await readJson(request);
   const displayName = typeof body.name === 'string' ? body.name.trim().slice(0, 60) : '';
   const signedIn = claims !== null;
-  if (!signedIn && !signingConfigured(env)) return json({ error: 'not-configured' }, 503);
+  /*
+   * **A passkey is only worth making when it can sign you in.** The site reports passkeys as off
+   * until the service account key is in place, so nothing may be registered before then either.
+   * Otherwise a traveller ends up with a real key on the device, a list that says the feature is
+   * off, and a sign-in button that is nowhere to be seen.
+   */
+  if (!signingConfigured(env)) return json({ error: 'not-configured' }, 503);
 
   let uid;
   let userName;

@@ -114,21 +114,22 @@ export function AccountCard() {
       return;
     }
     let alive = true;
-    void passkeyStatus().then((status) => {
+    void (async () => {
+      const status = await passkeyStatus();
       if (!alive) return;
       setPasskeysOn(status.available);
-      if (!status.available) {
-        setPasskeys([]);
-        return;
+      /*
+       * **The list is read even when the feature reports itself off.** A passkey made before the
+       * switch was turned on is still a real key on the device, and hiding it is how the card came
+       * to say "no passkeys" to somebody holding one.
+       */
+      try {
+        const result = await listPasskeys();
+        if (alive) setPasskeys(result.passkeys);
+      } catch {
+        if (alive) setPasskeys([]);
       }
-      void listPasskeys()
-        .then((result) => {
-          if (alive) setPasskeys(result.passkeys);
-        })
-        .catch(() => {
-          if (alive) setPasskeys([]);
-        });
-    });
+    })();
     return () => {
       alive = false;
     };
@@ -262,7 +263,7 @@ export function AccountCard() {
                 Passkeys
               </p>
 
-              {!passkeysOn ? (
+              {!passkeysOn && passkeys.length === 0 ? (
                 <p className="t-sm t-muted" style={{ margin: 0 }}>
                   Passkeys are not switched on for OVVO yet. When they are, you can sign in with
                   your face, fingerprint or PIN instead of a password.
@@ -300,6 +301,13 @@ export function AccountCard() {
                   ))}
                 </div>
               )}
+
+              {!passkeysOn && passkeys.length > 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  This passkey is saved with your OVVO ID. It starts signing you in once passkeys
+                  are switched on for OVVO.
+                </p>
+              ) : null}
 
               <div className="row-wrap">
                 <Button

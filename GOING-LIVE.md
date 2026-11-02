@@ -117,6 +117,9 @@ Limits worth naming now:
   and everybody signs in the old way once more.
 - **A passkey-only account has no recovery.** If every device holding it is lost and nothing was
   synced, the account cannot be opened. The card says so whenever there is only one passkey.
+- **A passkey made before the switch is kept.** The sign-in step is the only part that needs
+  the key, so a key already on a device starts working the moment `FIREBASE_SERVICE_ACCOUNT` is
+  set, and the card shows it instead of claiming there is none.
 - **Tested with a simulated key, not a phone.** Chrome's virtual authenticator made a key, signed
   in with it, and the minted token's signature was checked against the matching public key
   (`.logs/passkey-check.cjs`, all nine checks pass). Firebase itself refused the stand-in token, as
