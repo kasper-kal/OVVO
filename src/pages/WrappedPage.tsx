@@ -10,8 +10,10 @@ import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
 import {
+  loopScore,
   resumeSound,
   scoreTime,
+  soundAudible,
   soundDiagnostics,
   startSound,
   stopSound,
@@ -93,17 +95,22 @@ export function WrappedPage() {
   const last = index >= story.length - 1;
 
   /*
-   * **The cover's own piece, when the traveller asks for it.**
+   * **The corner switch tells the truth about the speaker, on every page.**
    *
-   * Nothing may play before a tap, so the first page was silent and its switch advertised a sound that
-   * was not there. Pressing the switch on the cover is that tap: it starts the cover's own piece and
-   * leaves the score on, so chapter one has a song of its own again. Once the story has begun, the
-   * switch is the plain mute it has always been.
+   * The score is on by default, but a phone may refuse to play before a tap, so "on by default" and "making
+   * a sound" are two different things. The cover used to read "Sound on" while the story's music was already
+   * armed — the first page asking for a press the second page never asks for. The switch now follows the
+   * speaker: while music is sounding it says "Sound off", and while it is silent it says "Sound on" and starts
+   * the score in the tap that presses it.
    */
-  const [coverPlaying, setCoverPlaying] = useState(false);
+  const [audible, setAudible] = useState(false);
 
-  /* The switch names what a thumb gets: a mute while something is audible, a start while nothing is. */
-  const soundLabel = (started ? sound : coverPlaying && sound) ? t('Sound off') : t('Sound on');
+  useEffect(() => {
+    const id = window.setInterval(() => setAudible(soundAudible()), 300);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const soundLabel = sound && audible ? t('Sound off') : t('Sound on');
 
   /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
@@ -123,7 +130,6 @@ export function WrappedPage() {
    * the traveller swipes: the story should never wait for a song.
    */
   useEffect(() => {
-    if (!started && !coverPlaying) return;
     /*
      * **There is one way to start the score, and this is it.**
      *
@@ -137,7 +143,9 @@ export function WrappedPage() {
       return;
     }
     startSound(chapter.track, story[index + 1]?.track);
-  }, [index, started, sound, chapter.track, story, coverPlaying]);
+    /* The cover's piece holds until Begin; every page after it plays once and turns itself. */
+    loopScore(!started);
+  }, [index, started, sound, chapter.track, story]);
 
   /*
    * **The story keeps time with the music.**
@@ -361,13 +369,13 @@ export function WrappedPage() {
           className="wrapped-sound"
           aria-label={soundLabel}
           onClick={() => {
-            /* On a cover that has not sung yet, the press starts the song rather than silencing it. */
-            if (!started && !coverPlaying) {
-              setSound(true);
-              setCoverPlaying(true);
+            /* "Sound off" mutes what is playing; "Sound on" starts it, in this tap, on any page. */
+            if (sound && audible) {
+              setSound(false);
               return;
             }
-            setSound((on) => !on);
+            setSound(true);
+            resumeSound(chapter.track, story[index + 1]?.track);
           }}
         >
           <span>{soundLabel}</span>
