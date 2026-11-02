@@ -160,8 +160,11 @@ Three ways in, all switched on under **Authentication → Sign-in method**:
 does. If the address ever changes, that list is the single line to update — the sign-in window
 travels through Firebase's own addresses too, so those two entries stay.
 
-The mails (reset, verification, sign-in link) come from Firebase on a `firebaseapp.com` address.
-Changing the wording is in **Authentication → Templates**.
+The mails (reset, verification, sign-in link) are now sent through **Brevo** from
+`ovvo.vibecreations@outlook.com`, because Firebase's own default sender is a shared
+`firebaseapp.com` address that lands in spam. Changing the wording is in **Authentication →
+Templates**; changing the sender is Brevo's, and the site says the address on its "check your
+email" page so a traveller knows what to look for.
 
 **How the server trusts a sign-in:** it does not call Google on every request. The browser sends a
 signed token, and `worker/auth.js` checks the signature against Google's published keys, plus the

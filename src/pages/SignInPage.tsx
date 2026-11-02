@@ -21,6 +21,16 @@ import {
 
 type Mode = 'link' | 'password';
 
+/**
+ * **The address the sign-in mail actually comes from.**
+ *
+ * The mail is sent by Firebase through Brevo, from a mailbox of VibeCreations' own rather than the
+ * shared no-reply address Firebase uses by default, and that is what stopped it landing in spam.
+ * A traveller who is told the exact sender knows what to look for in a crowded inbox, and knows the
+ * message is ours rather than something that borrowed our name.
+ */
+const MAIL_FROM = 'ovvo.vibecreations@outlook.com';
+
 const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as const;
 
 /**
@@ -141,6 +151,11 @@ export function SignInPage() {
                   ? 'Click the link in the email to choose a new password.'
                   : 'Click the link in the email to sign in. It works once and expires after an hour.'}
               </p>
+              <p className="t-sm t-muted">
+                It comes from <b>{MAIL_FROM}</b>. Adding that address to your contacts keeps it out
+                of spam next time.
+              </p>
+
               <p className="t-sm t-muted">Didn&rsquo;t get it? Check your spam folder.</p>
 
               {resent ? <p className="t-sm t-muted">Email sent again.</p> : null}

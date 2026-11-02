@@ -24,10 +24,10 @@ is pasted into this project's secrets, not typed into code.
 - **D1 for the database.** It lives inside the same Cloudflare account, so there is no second
   signup and no monthly bill.
 - **Firebase Authentication for sign-in.** Google's sign-in service. Cardless and permanently
-  free at our size. It sends its own password reset and sign-in link mail from
-  `firebaseapp.com`; that shared sender is why those mails land in spam, and fixing it needs a
-  domain (see "Why the sign-in mail lands in spam" below). Google sign-in and a password need no
-  mail at all, and both work today.
+  free at our size. Its own mail leaves from a shared `firebaseapp.com` address, which lands in
+  spam, so the mail is now sent through **Brevo** from **`ovvo.vibecreations@outlook.com`** and
+  arrives in the inbox. Cardless, no domain, and it works (see "The sign-in mail no longer lands
+  in spam" below). Google sign-in and a password need no mail at all, and both work today.
 - **No custom domain.** Never. The free address Cloudflare gives us is the address.
 - **No card anywhere.** Every service must have a permanently free plan. A free plan with
   limits is fine; a free trial that ends is not.
@@ -191,13 +191,25 @@ The routes that would fix it, and what each costs:
 | Route | What it gives | What it needs |
 | --- | --- | --- |
 | Firebase custom email domain (Authentication, Templates, edit, *customize domain*) | From `noreply@<our domain>`, action links on that domain, with the TXT and CNAME records Firebase supplies | A domain we own. The records themselves are free |
-| Firebase custom SMTP (a sender such as Postmark or Resend) | The mail leaves through that service, which authenticates it | A domain, and the paid Identity Platform upgrade, which needs a card |
+| Firebase custom SMTP (a sender such as Brevo, Postmark or Resend) | The mail leaves through that service, which authenticates it | **A mailbox, not a domain.** This is the route that worked, with no card (see below) |
 | Mail sent by our own Worker through a sending service | OVVO writes the templates and owns the sender | A domain and an API key. Free at our size, still no card |
 
-**Every route needs a domain**, which the decisions above rule out. Until that changes, some of
-this mail will land in spam and no wording in the templates changes it: the sender is what Gmail
-is judging. We cannot test a mailbox from the build machine either, so this is documented rather
-than measured.
+**This paragraph was wrong, and it is kept so the mistake is visible (corrected 2 November 2026).**
+It said every route needs a domain. The steerer then read it as a challenge, set up **Brevo** as
+Firebase's custom SMTP sender, and sent the mail from a brand new mailbox of VibeCreations' own:
+**`ovvo.vibecreations@outlook.com`**. It arrives in the inbox. Measured by him on a real inbox,
+which is the only place this can be measured, because the build machine has no mailbox.
+
+What that teaches, written down so it is not unlearned: a sending service needs a **mailbox it is
+allowed to send from**, not a domain of our own. The spam verdict was never about DNS records we
+could not publish; it was about a sender address shared with every Firebase project in the world.
+Giving the mail its own address, with a service that authenticates it, was enough. Brevo's free
+plan sends the handful of messages a day this site needs, and no card was entered.
+
+**The exact address is on the screen now.** The "check your email" page tells the traveller it
+comes from `ovvo.vibecreations@outlook.com` (`MAIL_FROM` in `src/pages/SignInPage.tsx`), so they
+know what to look for and know the message is ours. If the sender is ever changed in Brevo or in
+Firebase, that one line changes with it.
 
 What is true without a domain: **Google sign-in and email with a password need no mail** and are
 unaffected. Email link sign-in is the one path that depends on the mail arriving.
