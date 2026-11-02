@@ -22,20 +22,22 @@ import {
 } from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 
-/** How many dots fly out of the year's total when it lands. */
-const BURST = 14;
-
 /*
- * The year dial: twelve bars, one a month, each as long as that month's share of the journeys.
- * Built here rather than in the stylesheet because the lengths are the tally's, not the design's:
- * a quiet February is a short bar and a heavy September reaches almost to the rim, in its own place
- * on the dial, so the shape of the year is read anticlockwise from January at the top.
+ * **The year as twelve bars, one a month.**
+ *
+ * The heights are the tally's, not the design's: a quiet February is a stub and a heavy September
+ * nearly reaches the top, so the shape of the year is read left to right before the number under it
+ * is read at all. A month with nothing in it keeps a three pixel mark, because a bar chart with a
+ * missing month lies about the space between the others.
  */
-function monthShares(months?: number[]): number[] {
+function monthBars(months?: number[]): number[] {
   const counts = months && months.length === 12 ? months : new Array<number>(12).fill(0);
   const max = Math.max(1, ...counts);
-  return counts.map((count) => (count ? Math.max(0.16, count / max) : 0.06));
+  return counts.map((count) => (count ? Math.max(0.06, count / max) : 0.06));
 }
+
+/* The twelve month letters, and Dutch and English share all of them but the first. */
+const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 /**
  * **OVVO Wrapped: the year as a short film, not a report.**
@@ -527,43 +529,19 @@ export function WrappedPage() {
                 </p>
               ) : null}
 
-              {chapter.kind === 'number' && chapter.dots ? (
-                <span className="wrapped-field" aria-hidden="true">
-                  {Array.from({ length: Math.min(chapter.dots, 700) }, (_, dot) => (
-                    <i key={dot} style={{ '--i': dot } as CSSProperties} />
-                  ))}
-                </span>
-              ) : null}
-
               {chapter.kind === 'number' ? (
-                <>
-                  <span className="wrapped-rings" aria-hidden="true">
-                    {monthShares(chapter.months).map((share, month) => (
-                      <i key={month} style={{ '--m': month, '--h': share } as CSSProperties} />
-                    ))}
-                    {/* The month numbers, upright, so the dial is a calendar and not a compass. */}
-                    {Array.from({ length: 12 }, (_, month) => {
-                      const angle = (month / 12) * Math.PI * 2;
-                      return (
-                        <em
-                          key={month}
-                          style={{
-                            left: `${50 - Math.sin(angle) * 53}%`,
-                            top: `${50 - Math.cos(angle) * 53}%`,
-                          }}
-                        >
-                          {month + 1}
-                        </em>
-                      );
-                    })}
-                    <b className="wrapped-rings__hand" />
-                  </span>
-                  <span className="wrapped-burst" aria-hidden="true">
-                    {Array.from({ length: BURST }, (_, dot) => (
-                      <i key={dot} style={{ '--i': dot } as CSSProperties} />
-                    ))}
-                  </span>
-                </>
+                <div className="wrapped-months" aria-hidden="true">
+                  {monthBars(chapter.months).map((bar, month) => (
+                    <span
+                      key={month}
+                      className="wrapped-months__col"
+                      style={{ '--i': month } as CSSProperties}
+                    >
+                      <i style={{ '--h': bar } as CSSProperties} />
+                      <em>{MONTH_LETTERS[month]}</em>
+                    </span>
+                  ))}
+                </div>
               ) : null}
 
               {/*
@@ -632,8 +610,39 @@ export function WrappedPage() {
                       index={position}
                       counting={chapter.id === 'lines'}
                       rowDelay={position * barMs(chapter.track)}
+                      share={
+                        chapter.chips && chapter.chips.length > 1
+                          ? Math.max(0, Math.min(1, (parseInt(chip.detail, 10) || 0) / (parseInt(chapter.chips[0].detail, 10) || 1)))
+                          : 0
+                      }
                     />
                   ))}
+                  {/*
+                    * The board keeps its own tally on the page too. It was a sentence at the foot
+                    * ("23 stops hearted, 0 boards pinned"), which is small print on a page about
+                    * numbers. The two counts are plates in the same grid as the lines now, so the
+                    * page is four figures in two rows: what you rode, and what you kept.
+                    */}
+                  {chapter.id === 'lines' ? (
+                    <>
+                      <Chip
+                        label={String(chapter.hearts ?? 0)}
+                        detail={t('stops hearted')}
+                        index={chapter.chips.length}
+                        counting={false}
+                        rowDelay={0}
+                        share={0}
+                      />
+                      <Chip
+                        label={String(chapter.boards ?? 0)}
+                        detail={t('boards pinned')}
+                        index={chapter.chips.length + 1}
+                        counting={false}
+                        rowDelay={0}
+                        share={0}
+                      />
+                    </>
+                  ) : null}
                 </ul>
               ) : null}
 
@@ -823,12 +832,15 @@ function Chip({
   index,
   counting,
   rowDelay,
+  share = 0,
 }: {
   label: string;
   detail: string;
   index: number;
   counting: boolean;
   rowDelay: number;
+  /* How long this row is against the longest one, for the board's own rule under each line. */
+  share?: number;
 }) {
   const target = Number(detail);
   const numeric = Number.isFinite(target) && detail.trim() !== '';
@@ -858,7 +870,7 @@ function Chip({
   }, [counting, numeric, target, rowDelay]);
 
   return (
-    <li className="wrapped-chip" style={{ '--i': index } as CSSProperties}>
+    <li className="wrapped-chip" style={{ '--i': index, '--share': share } as CSSProperties}>
       <span>{label}</span>
       <strong>{numeric ? (counting ? shown : target) : detail}</strong>
     </li>
