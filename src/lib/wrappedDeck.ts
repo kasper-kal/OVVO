@@ -20,7 +20,7 @@ import type { YearTally } from './wrapped';
 export type Act = 1 | 2 | 3;
 
 /** The six poses of the Fold. Each is a fold of the same ribbon, never a new object. */
-export type PoseId = 'tunnel' | 'fan' | 'wall' | 'slice' | 'lane' | 'burst';
+export type PoseId = 'tunnel' | 'fan' | 'wall' | 'slice' | 'lane' | 'burst' | 'tower' | 'beam';
 
 export type ChapterId =
   | 'cover'
@@ -63,6 +63,8 @@ export interface Chapter {
   caption: string;
   /** The figure inside the sentence, when there is one, so it can be counted up as it lands. */
   figure?: { value: number; from?: number; suffix?: string };
+  /** Where the words sit, so two pages never share a composition. */
+  layout?: 'mid' | 'top' | 'low' | 'left';
   /** How long the page stands, in milliseconds. Absent on the cover and the close. */
   hold?: number;
   /** The share text for this page. Absent means this page has no share control. */
@@ -177,14 +179,16 @@ export function buildStory({
       {
         id: 'cover',
         act: 1,
-        pose: 'tunnel',
+        pose: 'beam',
+      layout: 'mid',
         sentence: 'OVVO Wrapped',
         caption: 'Your year, in motion.',
       },
       {
         id: 'close',
         act: 1,
-        pose: 'fan',
+        pose: 'burst',
+      layout: 'low',
         sentence: runs.length === 0 ? 'No journeys yet.' : `${runs.length} journeys this year.`,
         caption:
           runs.length === 0
@@ -282,14 +286,16 @@ export function buildStory({
     {
       id: 'cover',
       act: 1,
-      pose: 'tunnel',
+      pose: 'beam',
+      layout: 'mid',
       sentence: 'OVVO Wrapped',
       caption: 'Your year, in motion.',
     },
     {
       id: 'total',
       act: 1,
-      pose: 'fan',
+      pose: 'tower',
+      layout: 'left',
       sentence: `You planned ${runs.length} journeys this year.`,
       caption: 'Every one of them started with a search.',
       figure: { value: runs.length },
@@ -301,6 +307,7 @@ export function buildStory({
           id: 'pair',
           act: 1,
           pose: 'wall',
+      layout: 'top',
           sentence: `${pair.count} times, ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
           caption: 'The line you kept coming back to.',
           figure: { value: pair.count },
@@ -312,6 +319,7 @@ export function buildStory({
       id: 'hour',
       act: 2,
       pose: 'fan',
+      layout: 'low',
       sentence: `${clock} is your hour. ${peakCount} journeys left in it.`,
       caption: captionForHabit,
       figure: { value: peakCount },
@@ -322,9 +330,11 @@ export function buildStory({
       id: 'direct',
       act: 2,
       pose: 'slice',
+      layout: 'left',
       sentence: `${directPct}% of your journeys went straight through.`,
       caption: `${direct} of ${runs.length}, with no changes at all.`,
-      figure: { value: directPct, suffix: '%' },
+      /* The sentence already carries the sign, so the counter must not add a second one. */
+      figure: { value: directPct },
       hold: 5000,
       share: `${directPct}% of my OVVO journeys in ${year} had no changes.`,
     },
@@ -332,7 +342,8 @@ export function buildStory({
       ? {
           id: 'longest',
           act: 2,
-          pose: 'wall',
+          pose: 'lane',
+      layout: 'top',
           sentence: `Your longest trip took ${formatDuration(longest.minutes, language)}.`,
           caption: `${nameOf(longest.from)} to ${nameOf(longest.to)}, with ${
             longest.changes ?? 0
@@ -348,6 +359,7 @@ export function buildStory({
           id: 'map',
           act: 3,
           pose: 'lane',
+      layout: 'low',
           sentence: `${mapRoutes.length} routes. ${stationsUsed.size} stations. One year.`,
           caption: originList.length ? `Most of it began at ${nameOf(originList[0].value)}.` : 'Every line drawn from a journey you planned.',
           figure: { value: mapRoutes.length },
@@ -365,7 +377,8 @@ export function buildStory({
       ? {
           id: 'look',
           act: 3,
-          pose: 'slice',
+          pose: 'tower',
+      layout: 'mid',
           sentence: `You wore ${named} for ${wearDays} days.`,
           caption: 'Long enough to call it a uniform.',
           figure: { value: wearDays },
@@ -379,6 +392,7 @@ export function buildStory({
           id: 'hours',
           act: 3,
           pose: 'fan',
+      layout: 'top',
           sentence: `${totalHours} hours on the move.`,
           caption: `About ${films} films, if the train Wi-Fi holds.`,
           figure: { value: totalHours },
@@ -391,6 +405,7 @@ export function buildStory({
       id: 'close',
       act: 1,
       pose: 'burst',
+      layout: 'low',
       sentence: `That was ${year}.`,
       caption: tally.hearts
         ? `${tally.hearts} stops hearted along the way. See you next December.`

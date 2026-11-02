@@ -692,3 +692,41 @@
   opacity: 0;
   animation: wr-label 420ms both;
 }
+
+/* ------------------------------------------------------------------- placement */
+
+/*
+ * Four places for the words. The object is the same ribbon on every page, so the page changes
+ * composition by moving the type and turning the ribbon, not by inventing a new picture.
+ */
+.wr-frame--top {
+  place-items: start center;
+  padding-top: calc(132px + env(safe-area-inset-top));
+}
+
+.wr-frame--low {
+  place-items: end center;
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+
+.wr-frame--left {
+  place-items: center start;
+  padding-left: 26px;
+  padding-right: 26px;
+}
+
+.wr-frame--left .wr-frame__inner {
+  text-align: left;
+}
+
+.wr-frame--left .wr-caption {
+  text-align: left;
+}
+
+.wr-film[data-chapter='total'] .wr-sentence { font-size: clamp(34px, 9.4vw, 48px); }
+.wr-film[data-chapter='pair'] .wr-sentence { font-size: clamp(26px, 7.2vw, 33px); }
+.wr-film[data-chapter='close'] .wr-sentence { font-size: clamp(40px, 11vw, 58px); }
+.wr-film[data-chapter='cover'] .wr-year { font-size: clamp(78px, 25vw, 124px); }
+
+.wr-fold[data-pose='tower'] { animation-name: wr-drift-b; animation-duration: 15.5s; }
+.wr-fold[data-pose='beam'] { animation-name: wr-drift-e; animation-duration: 16s; }

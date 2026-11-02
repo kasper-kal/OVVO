@@ -1,14 +1,13 @@
 /**
  * **The Fold: the one object the whole film is drawn with.**
  *
- * A ribbon of folded card, built from flat SVG bands rather than a 3D engine. It is the only thing
- * on screen that carries colour, and it is the only thing that never stops moving. A page changes by
- * folding this into its next pose, never by sliding a slide.
+ * A ribbon of folded card, built from flat SVG bands. Eight poses, on two axes: horizontal bands
+ * that run like a horizon, and vertical columns that run like a platform edge. Each page picks a
+ * pose and a side of the page for its words, so the deck changes composition rather than merely
+ * changing sentence.
  *
  * The bands are flat fills, not gradients: the deep tone carries the page, the mid tone is the
- * fold's edge and the light tone is the hairline. A gradient on top of a photograph-free black page
- * is how the first rebuild turned into a haze; flat panels keep the edges crisp and the white type
- * legible at every point of the drift.
+ * fold's edge and the light tone is the hairline.
  */
 
 import type { CSSProperties } from 'react';
@@ -20,21 +19,27 @@ const H = 844;
 
 interface Pose {
   id: PoseId;
+  axis: 'h' | 'v';
+  count: number;
+  /** Band thickness as a share of the page's width or height. */
+  thickness: number;
+  /** Where the fold sits, 0 at the left or top, 1 at the right or bottom. */
   hinge: number;
   tilt: number;
-  fold: number;
   spread: number;
   lean: number;
   twist: number;
 }
 
 const POSES: Record<PoseId, Pose> = {
-  tunnel: { id: 'tunnel', hinge: 0.5, tilt: -8, fold: 5, spread: 1.15, lean: 0.2, twist: 0.55 },
-  fan: { id: 'fan', hinge: 0.47, tilt: 14, fold: 4, spread: 0.95, lean: -0.4, twist: 0.3 },
-  wall: { id: 'wall', hinge: 0.55, tilt: -18, fold: 6, spread: 1.2, lean: 0, twist: -0.2 },
-  slice: { id: 'slice', hinge: 0.44, tilt: 26, fold: 3, spread: 1.2, lean: 0.55, twist: 0.7 },
-  lane: { id: 'lane', hinge: 0.58, tilt: 0, fold: 4, spread: 0.6, lean: -0.15, twist: 0.1 },
-  burst: { id: 'burst', hinge: 0.5, tilt: -26, fold: 3, spread: 1.35, lean: 0.3, twist: 1 },
+  tunnel: { id: 'tunnel', axis: 'h', count: 5, thickness: 0.075, hinge: 0.5, tilt: -8, spread: 1.15, lean: 0.2, twist: 0.55 },
+  fan: { id: 'fan', axis: 'h', count: 4, thickness: 0.07, hinge: 0.47, tilt: 14, spread: 0.95, lean: -0.4, twist: 0.3 },
+  wall: { id: 'wall', axis: 'h', count: 6, thickness: 0.08, hinge: 0.55, tilt: -18, spread: 1.2, lean: 0, twist: -0.2 },
+  slice: { id: 'slice', axis: 'h', count: 3, thickness: 0.11, hinge: 0.44, tilt: 26, spread: 1.2, lean: 0.55, twist: 0.7 },
+  lane: { id: 'lane', axis: 'h', count: 2, thickness: 0.14, hinge: 0.58, tilt: 3, spread: 0.6, lean: -0.15, twist: 0.1 },
+  burst: { id: 'burst', axis: 'h', count: 3, thickness: 0.13, hinge: 0.5, tilt: -26, spread: 1.35, lean: 0.3, twist: 1 },
+  tower: { id: 'tower', axis: 'v', count: 5, thickness: 0.07, hinge: 0.5, tilt: 2, spread: 1.1, lean: 0.2, twist: 0.5 },
+  beam: { id: 'beam', axis: 'h', count: 1, thickness: 0.3, hinge: 0.72, tilt: -6, spread: 1, lean: 0, twist: 0 },
 };
 
 interface Panel {
@@ -43,21 +48,16 @@ interface Panel {
   edge: string;
 }
 
-/**
- * The bands, in viewBox units.
- *
- * The height of a fold grows with `spread`, so a wide pose is a thicker ribbon and a narrow one is a
- * thread, while the gaps stay the same. That is what keeps black between the folds on every pose.
- */
-function panelsOf(pose: Pose): Panel[] {
-  const bandHeight = H * 0.075 * (0.8 + pose.spread * 0.5);
+/** Horizontal bands: a horizon folded into strips. */
+function rowsOf(pose: Pose): Panel[] {
+  const bandHeight = H * pose.thickness * (0.8 + pose.spread * 0.5);
   const gap = H * 0.06;
   const step = bandHeight + gap;
-  const span = pose.fold * step - gap;
+  const span = pose.count * step - gap;
   const top = H * pose.hinge - span / 2;
   const slope = Math.tan((pose.tilt * Math.PI) / 180) * bandHeight * 0.85;
 
-  return Array.from({ length: pose.fold }, (_, i) => {
+  return Array.from({ length: pose.count }, (_, i) => {
     const y = top + i * step;
     const lean = pose.lean * 22 * Math.sin((i + 1) * 0.85);
     const offset = pose.twist * i * 7;
@@ -70,6 +70,27 @@ function panelsOf(pose: Pose): Panel[] {
       bottomY - slope
     } L ${x1 - 16} ${bottomY - slope + 2} Z`;
     const edge = `M ${x0} ${topY} L ${x1} ${topY - slope * 2}`;
+    return { face, bevel, edge };
+  });
+}
+
+/** Vertical bands: the same ribbon stood on end, like a platform canopy. */
+function columnsOf(pose: Pose): Panel[] {
+  const bandWidth = W * pose.thickness * (0.8 + pose.spread * 0.5);
+  const gap = W * 0.055;
+  const step = bandWidth + gap;
+  const span = pose.count * step - gap;
+  const left = W * pose.hinge - span / 2;
+  const slope = Math.tan((pose.tilt * Math.PI) / 180) * bandWidth * 0.85;
+
+  return Array.from({ length: pose.count }, (_, i) => {
+    const x = left + i * step;
+    const lean = pose.lean * 18 * Math.sin((i + 1) * 0.9);
+    const y0 = -60 + lean;
+    const y1 = H + 60 + lean;
+    const face = `M ${x} ${y0} L ${x + bandWidth} ${y0 + slope} L ${x + bandWidth} ${y1 + slope} L ${x} ${y1} Z`;
+    const bevel = `M ${x} ${y1 - 18} L ${x + bandWidth} ${y1 + slope - 18} L ${x + bandWidth} ${y1 + slope} L ${x} ${y1} Z`;
+    const edge = `M ${x} ${y0} L ${x + bandWidth} ${y0 + slope}`;
     return { face, bevel, edge };
   });
 }
@@ -95,7 +116,7 @@ interface FoldProps {
 }
 
 export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
-  const active = POSES[pose];
+  const active = POSES[pose] ?? POSES.tunnel;
 
   if (map && map.routes.length > 0) {
     const unit = MAP_BOX.w / 100;
@@ -219,7 +240,7 @@ export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
     );
   }
 
-  const panels = panelsOf(active);
+  const panels = active.axis === 'v' ? columnsOf(active) : rowsOf(active);
   return (
     <div className={`wr-fold${leaving ? ' is-leaving' : ''}`} data-pose={pose} aria-hidden="true">
       <div className="wr-fold__panels">
@@ -228,7 +249,14 @@ export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
             <g key={`panel-${at}`} className="wr-fold__panel" style={{ '--i': at } as CSSProperties}>
               <path d={panel.face} fill={wear ? wear[0] : 'var(--act-deep)'} />
               <path d={panel.bevel} fill={wear ? wear[2] : 'var(--act-mid)'} />
-              <path d={panel.edge} fill="none" stroke={wear ? wear[3] : 'var(--act-light)'} strokeWidth={1.5} vectorEffect="non-scaling-stroke" opacity={0.9} />
+              <path
+                d={panel.edge}
+                fill="none"
+                stroke={wear ? wear[3] : 'var(--act-light)'}
+                strokeWidth={1.5}
+                vectorEffect="non-scaling-stroke"
+                opacity={0.9}
+              />
             </g>
           ))}
         </svg>

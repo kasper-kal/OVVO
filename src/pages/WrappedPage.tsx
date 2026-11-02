@@ -335,7 +335,7 @@ export function WrappedPage() {
         </div>
       ) : null}
 
-      <div className="wr-frame">
+      <div className={`wr-frame${chapter.layout ? ` wr-frame--${chapter.layout}` : ''}`}>
         <div className="wr-frame__inner">
           {chapter.id === 'cover' ? (
             <>
