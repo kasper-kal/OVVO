@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useHistoryBack } from '../components/layout/AppShell';
 import { useApp } from '../state/AppState';
 import { Button, Dialog } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
@@ -53,7 +54,8 @@ const BURST = 14;
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
   const t = useT();
-  const navigate = useNavigate();
+  /* Closing the story returns to the screen it was opened from, not to the home screen. */
+  const leave = useHistoryBack('/');
   const [params] = useSearchParams();
   const askedForDemo = params.get('demo') === '1';
   const now = appNow();
@@ -206,12 +208,13 @@ export function WrappedPage() {
         event.preventDefault();
         step(-1);
       } else if (event.key === 'Escape') {
-        navigate('/');
+        /* Escape is the same door as the X, so it returns the same way. */
+        leave();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [navigate, step]);
+  }, [leave, step]);
 
   /* Closing the deck closes the score with it; nothing keeps playing behind another screen. */
   useEffect(() => () => stopSound(), []);
@@ -363,7 +366,7 @@ export function WrappedPage() {
       ) : null}
 
       <header className="wrapped-top">
-        <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
+        <button type="button" className="wrapped-close" onClick={leave} aria-label={t('Close')}>
           <Icon name="close" size={20} />
         </button>
         {/*
