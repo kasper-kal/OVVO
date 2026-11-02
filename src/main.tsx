@@ -5,7 +5,7 @@ import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
 import { APP_WIRE_BYTES, MAX_TIMER_MS, transferMs } from './lib/link';
-import { getDevOverrides } from './lib/dev';
+import { getDevOverrides, setDevOverrides } from './lib/dev';
 import { beginAccountSync } from './lib/account';
 import './styles/tokens.css';
 import './styles/fonts.css';
@@ -282,5 +282,55 @@ function takeDownSplash(): void {
   }, remaining);
 }
 
-if (bootWait > 0) window.setTimeout(mount, bootWait);
-else mount();
+/**
+ * **"Skip wait", and only while there is a wait to skip.**
+ *
+ * A claimed slow link is held at the start of the app and nowhere else, which is the one moment
+ * there is no screen to reach the panel from: the thing that would switch the claim off is the thing
+ * the claim is holding. So the mark carries the way out. Pressing it clears the stored speed, the
+ * same switch the panel's own control throws, and opens the app at once, so the next reload is
+ * normal as well and a forgotten test value cannot cost two visits.
+ *
+ * It appears only when a speed is claimed (`getDevOverrides().wifiMbps`). With no claim the app has
+ * nothing to wait for, and a button that did nothing would be worse than no button at all.
+ */
+function offerSkipWait(open: () => void): void {
+  if (getDevOverrides().wifiMbps === null) return;
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+
+  /* The mark is decorative and hidden from screen readers; a button inside it would be reachable by
+     keyboard and invisible to a reader, so the mark becomes part of the page for as long as it
+     carries this control. */
+  splash.removeAttribute('aria-hidden');
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Skip wait';
+  /* Positioned and styled here rather than by the app's stylesheet: this is shown while the app is
+     still the thing that has not arrived. The mark lets taps through, so this takes its own back. */
+  button.style.cssText =
+    'position:absolute;bottom:12vh;left:50%;transform:translateX(-50%);padding:11px 22px;border-radius:999px;border:1px solid #c9c5bb;background:#ffffff;color:#18181b;font-family:system-ui,-apple-system,sans-serif;font-size:15px;font-weight:600;line-height:1.2;pointer-events:auto;cursor:pointer;';
+  button.addEventListener('click', () => {
+    setDevOverrides({ wifiMbps: null });
+    open();
+  });
+  splash.appendChild(button);
+}
+
+/* One opening only: the timer and the button can both arrive, and a second `createRoot` on the same
+   container would draw the app twice. */
+let booted = false;
+let bootTimer = 0;
+
+function open(): void {
+  if (booted) return;
+  booted = true;
+  window.clearTimeout(bootTimer);
+  mount();
+}
+
+if (bootWait > 0) {
+  bootTimer = window.setTimeout(open, bootWait);
+  offerSkipWait(open);
+} else open();
