@@ -176,7 +176,7 @@ export function WrappedPage() {
    */
   useEffect(() => {
     if (last) return undefined;
-    const quiet = Math.max(4000, (chapterSeconds(chapter.track) + 1) * 1000);
+    const quiet = Math.max(4200, Math.min(6600, (chapterSeconds(chapter.track) + 1) * 1000));
     const timer = window.setTimeout(() => {
       if (index === 0) setStarted(true);
       go(index + 1);
@@ -430,11 +430,7 @@ export function WrappedPage() {
            * the one thing on the page that is only theirs.
            */
           ...(chapter.swatches
-            ? {
-                background: chapter.swatches[0],
-                color: chapter.swatches[2],
-                '--look-accent': chapter.swatches[3],
-              }
+            ? { '--look-accent': chapter.swatches[3], '--look-page': chapter.swatches[0] }
             : {}),
         } as CSSProperties
       }
@@ -638,8 +634,26 @@ export function WrappedPage() {
               ) : null}
 
               {chapter.kind === 'arc' ? (
-                <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
-                  <span className="wrapped-arc__spark" aria-hidden="true" />
+                <div className="wrapped-arc" style={{ '--i': 1 } as CSSProperties}>
+                  <svg className="wrapped-arc__ring" viewBox="0 0 100 100" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="wrapped-arc-fill" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#ffcbb0" />
+                        <stop offset="58%" stopColor="#ff5c8a" />
+                        <stop offset="100%" stopColor="#a273ff" />
+                      </linearGradient>
+                    </defs>
+                    <circle className="wrapped-arc__track" cx="50" cy="50" r="45" />
+                    <circle
+                      className="wrapped-arc__fill"
+                      cx="50"
+                      cy="50"
+                      r="45"
+                      pathLength={100}
+                      strokeDasharray="100"
+                      strokeDashoffset={100 - (chapter.arc ?? 0) * 100}
+                    />
+                  </svg>
                   <p className="wrapped-big wrapped-big--in">{count}%</p>
                 </div>
               ) : chapter.kind === 'route' || chapter.kind === 'map' || chapter.kind === 'pass' ? null : (
@@ -681,7 +695,7 @@ export function WrappedPage() {
                 </span>
               ) : null}
 
-              {chapter.kind === 'number' ? (
+              {chapter.id === 'total' ? (
                 <>
                   <span className="wrapped-rings" aria-hidden="true">
                     <i />
@@ -760,6 +774,15 @@ export function WrappedPage() {
                     aria-hidden="true"
                     focusable="false"
                   >
+                    <defs>
+                      <filter id="wrapped-glow" x="-60%" y="-60%" width="220%" height="220%">
+                        <feGaussianBlur stdDeviation="0.9" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
                     {chapter.map.stops.map((stop, at) => (
                       <circle
                         key={`stop-${at}`}
@@ -828,22 +851,20 @@ export function WrappedPage() {
               )}
 
               {chapter.hearts || chapter.boards ? (
-                <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
-                  {t('{hearts} stops hearted, {boards} boards pinned.', {
-                    hearts: chapter.hearts ?? 0,
-                    boards: chapter.boards ?? 0,
-                  })}
-                </p>
+                <div className="wrapped-tally" style={{ '--i': 4 } as CSSProperties}>
+                  <span>
+                    <strong>{chapter.hearts ?? 0}</strong>
+                    <i>{t('stops hearted')}</i>
+                  </span>
+                  <span>
+                    <strong>{chapter.boards ?? 0}</strong>
+                    <i>{t('boards pinned')}</i>
+                  </span>
+                </div>
               ) : null}
               {chapter.note ? (
                 <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
                   {t(chapter.note)}
-                </p>
-              ) : null}
-              {/* The year is the example one, and it still says so: on the last page, not the first. */}
-              {chapter.demoNote && demo ? (
-                <p className="wrapped-demo wrapped-demo--quiet" style={{ '--i': 5 } as CSSProperties}>
-                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
                 </p>
               ) : null}
             </>

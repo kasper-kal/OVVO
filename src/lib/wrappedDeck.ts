@@ -286,8 +286,6 @@ export function buildStory({
       kicker: 'The year in one number',
       big: String(runs.length),
       count: runs.length,
-      /* The year drawn as itself: one dot per journey, behind the number that counts them. */
-      dots: runs.length,
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
     },
     pair
@@ -322,17 +320,6 @@ export function buildStory({
           })),
         }
       : null,
-    {
-      id: 'hour',
-      kind: 'bars',
-      tone: 'sage',
-      track: 'electropop',
-      kicker: 'Your hour',
-      big: `${peak < 10 ? '0' : ''}${peak}:00`,
-      line: `${hours[peak]} ${hours[peak] === 1 ? 'journey' : 'journeys'} asked to leave in that hour, more than any other.`,
-      bars: hours,
-      peak,
-    },
     {
       id: 'persona',
       kind: 'pass',
@@ -475,8 +462,6 @@ export function buildStory({
       line: 'Every number here is yours: the journeys you planned in OVVO this year, and nothing else.',
       /* The last line is a door, not a disclaimer: the deck used to end by apologising for itself. */
       note: 'See you next December for the next one.',
-      /* The honesty stays, it just stops opening the party. */
-      demoNote: true,
     },
   ];
 
