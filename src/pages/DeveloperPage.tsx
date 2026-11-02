@@ -9,7 +9,7 @@ import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
-import { APP_WIRE_BYTES, transferMs } from '../lib/link';
+import { APP_WIRE_BYTES, CLAIM_MAX_MBPS, CLAIM_MIN_MBPS, clampSpeed, transferMs } from '../lib/link';
 import { Icon } from '../components/ui/Icons';
 import { Select } from '../components/ui/Select';
 
@@ -94,16 +94,27 @@ export function DeveloperPage() {
    * the app comes back over the link you just chose, which is the whole point of being able to
    * choose one.
    */
-  const claimSpeed = (next: number) => setDevOverrides({ wifiMbps: next });
+  const claimSpeed = (next: number) => setDevOverrides({ wifiMbps: clampSpeed(next) });
   const applySpeed = (next: number | null) => {
     setDevOverrides({ wifiMbps: next });
     window.location.reload();
   };
   /* The field's button and Enter do the same thing: take the number that was typed, at once. */
   const commitSpeed = () => {
-    const next = Number(speedDraft);
-    if (Number.isFinite(next) && next > 0) applySpeed(next);
-    else setSpeedDraft(String(dev.wifiMbps ?? 5));
+    /*
+     * **A typed number is brought inside the field's range before it is believed.**
+     *
+     * `0.00000005` is under the field's own bottom end, and it used to be stored as typed: the wait it
+     * asked for was longer than a browser timer can count, so the timer fired at once and the reload
+     * looked instant. It is now stored as the slowest speed the field offers, and the label says so.
+     */
+    const next = clampSpeed(Number(speedDraft));
+    if (next === null) {
+      setSpeedDraft(String(dev.wifiMbps ?? 5));
+      return;
+    }
+    setSpeedDraft(String(next));
+    applySpeed(next);
   };
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
@@ -380,7 +391,7 @@ export function DeveloperPage() {
             <Switch
               checked={dev.wifiMbps !== null}
               onChange={(next) => {
-                const speed = dev.wifiMbps ?? (Number(speedDraft) || 5);
+                const speed = clampSpeed(dev.wifiMbps ?? Number(speedDraft)) ?? 5;
                 setSpeedDraft(String(speed));
                 /* On is not applied: the field appears, and its button is what reloads. Off has no
                    number to type, so it takes effect at once. */
@@ -413,8 +424,8 @@ export function DeveloperPage() {
                     className="input"
                     type="number"
                     inputMode="decimal"
-                    min={0.01}
-                    max={10000}
+                    min={CLAIM_MIN_MBPS}
+                    max={CLAIM_MAX_MBPS}
                     step={0.01}
                     value={speedDraft}
                     onChange={(event) => setSpeedDraft(event.target.value)}

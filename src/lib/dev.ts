@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { clampSpeed } from './link';
 import { readStored, writeStored } from './storage';
 import { setClockOffset } from './format';
 import { setBatteryAbsent, setBatteryOverride } from './power';
@@ -70,6 +71,8 @@ export const NO_OVERRIDES: DevOverrides = {
 const KEY = 'dev';
 
 let state: DevOverrides = { ...NO_OVERRIDES, ...readStored<Partial<DevOverrides>>(KEY, {}) };
+/* A speed saved before the range existed is brought inside it before anything reads it. */
+state.wifiMbps = clampSpeed(state.wifiMbps);
 const listeners = new Set<() => void>();
 
 /**

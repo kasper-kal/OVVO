@@ -4,7 +4,7 @@ import App from './App';
 import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
-import { APP_WIRE_BYTES, transferMs } from './lib/link';
+import { APP_WIRE_BYTES, MAX_TIMER_MS, transferMs } from './lib/link';
 import { getDevOverrides } from './lib/dev';
 import { beginAccountSync } from './lib/account';
 import './styles/tokens.css';
@@ -170,7 +170,18 @@ if (!container) throw new Error('Root container missing from index.html');
  * looks like: the page arrives, the drawing is already there, and the app itself takes its time.
  * Nothing else in the app waits for a speed it did not earn (see `lib/link`).
  */
-const bootWait = Math.max(0, transferMs(APP_WIRE_BYTES, getDevOverrides().wifiMbps) - performance.now());
+/*
+ * **Cut to what a timer can hold.**
+ *
+ * The arithmetic is exact, and at a speed of 0.00000005 it is longer than 2^31-1 milliseconds, which
+ * a browser's timer overflows into an immediate call: the panel claimed months and the app opened in a
+ * blink. The claimed speed is clamped in the panel, and the wait is clamped here as well, so a stale
+ * stored value cannot produce the same silence.
+ */
+const bootWait = Math.min(
+  MAX_TIMER_MS - 1,
+  Math.max(0, transferMs(APP_WIRE_BYTES, getDevOverrides().wifiMbps) - performance.now()),
+);
 
 function mount(): void {
   createRoot(container as HTMLElement).render(
