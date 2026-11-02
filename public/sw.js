@@ -34,7 +34,7 @@
  * `v2` drops the old cache on activate, so a phone carrying a poisoned one is clean once, and the
  * two rules below make sure it cannot happen again.
  */
-const CACHE = 'ovvo-shell-v3';
+const CACHE = 'ovvo-shell-v4';
 const SHELL = ['/', '/index.html', '/favicon.svg'];
 
 /**
@@ -45,7 +45,18 @@ const SHELL = ['/', '/index.html', '/favicon.svg'];
  */
 const NEVER_CACHE = ['/manifest.json', '/sw.js'];
 
-const isUncached = (url) => NEVER_CACHE.some((each) => url.pathname === each);
+/*
+ * **An answer about the state of the world is not a file, and must never be stored.**
+ *
+ * Everything below is cache-first, so a same-origin `/api/...` response was stored on first read and
+ * served from then on, for good: `/api/passkey/status` answered `{"available":false}` before the
+ * site's signing key was in place, the browser kept that copy, and the account card went on saying
+ * "Passkeys are not switched on for OVVO yet" with a dead button while the route itself was
+ * answering `true` (reported: "still not possible"). The cache name is bumped with this so the copy
+ * already on people's phones is dropped on the next visit.
+ */
+const isUncached = (url) =>
+  NEVER_CACHE.some((each) => url.pathname === each) || url.pathname.startsWith('/api/');
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
