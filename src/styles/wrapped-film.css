@@ -160,7 +160,7 @@
 /* ------------------------------------------------------------------- the map */
 
 .wr-fold--map {
-  inset: 20% 2% 25%;
+  inset: 10% 0 24%;
 }
 
 .wr-fold--map .wr-fold__panels {
@@ -169,8 +169,8 @@
 
 .wr-map__route {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1.5;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2;
   vector-effect: non-scaling-stroke;
   stroke-linecap: round;
   stroke-dasharray: 1;
@@ -180,50 +180,58 @@
 }
 
 .wr-map__route.is-first {
-  stroke: var(--act-mid);
-  stroke-width: 3.4;
+  stroke: var(--act-light);
+  stroke-width: 4;
 }
 
-.wr-map__halo,
-.wr-map__glow {
+/* The country, drawn as a coastline rather than a suggestion. */
+.wr-map__land {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A dark casing under every route, so two routes crossing still read as two routes. */
+.wr-map__casing {
   fill: none;
-  stroke: var(--act-mid);
+  stroke: #000000;
+  stroke-width: 5;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
   opacity: 0;
-  animation: wr-fade 700ms 700ms both;
+  animation: wr-fade 500ms 500ms both;
 }
 
-.wr-map__halo { stroke-width: 7; }
-.wr-map__glow { stroke-width: 3.5; }
-
 @keyframes wr-fade {
-  to { opacity: 0.2; }
+  to { opacity: 1; }
 }
 
 @keyframes wr-draw {
   to { stroke-dashoffset: 0; }
 }
 
-.wr-map__ring {
+
+/*
+ * Fade only. The ring used to scale itself in, and a CSS transform on an SVG circle with a
+ * view-box origin painted the ring at a fraction of the map's size, which read as three giant
+ * hoops over the country. Opacity cannot do that.
+ */
+.wr-map__mark {
   fill: none;
-  stroke: var(--act-mid);
-  stroke-width: 1.8;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1;
   opacity: 0;
-  animation: wr-stop 600ms ease-out both;
-  animation-delay: calc(240ms + var(--i, 0) * 90ms);
+  animation: wr-label 500ms both;
+  animation-delay: calc(240ms + var(--i, 0) * 80ms);
 }
 
 .wr-map__dot {
-  fill: #ffffff;
+  fill: var(--act-light);
   opacity: 0;
-  animation: wr-stop 600ms ease-out both;
-  animation-delay: calc(240ms + var(--i, 0) * 90ms);
-}
-
-@keyframes wr-stop {
-  from { opacity: 0; transform: scale(0.4); }
-  to { opacity: 1; transform: scale(1); }
+  animation: wr-label 500ms both;
+  animation-delay: calc(240ms + var(--i, 0) * 80ms);
 }
 
 .wr-map__tick {
@@ -240,19 +248,20 @@
 
 .wr-map__name {
   position: absolute;
-  transform: translate(-50%, -210%);
-  font-size: 12px;
-  font-weight: 600;
+  transform: translate(-50%, -175%);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1.2;
-  color: var(--wr-text-dim);
+  color: #ffffff;
   white-space: nowrap;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+  text-shadow: 0 1px 6px #000000;
   opacity: 0;
   animation: wr-label 500ms 620ms both;
 }
 
 .wr-map__name.is-right {
-  transform: translate(-100%, -210%);
+  transform: translate(-100%, -175%);
   text-align: right;
 }
 
@@ -286,17 +295,10 @@
 
 /* ------------------------------------------------------------------ the type */
 
-.wr-scrim {
-  position: absolute;
-  left: 50%;
-  top: 51%;
-  width: 130vw;
-  height: 62vh;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.84), rgba(0, 0, 0, 0.56) 52%, transparent 100%);
-}
+/*
+ * No wash, no scrim, no blur under the type. The ground is black and the object is flat colour, so
+ * contrast is a property of the drawing rather than a filter laid over it.
+ */
 
 .wr-frame {
   position: absolute;
@@ -352,7 +354,6 @@
   from {
     opacity: 0;
     transform: scale(0.94);
-    filter: blur(6px);
   }
 }
 
@@ -668,4 +669,26 @@
 .wr-film.is-still .wr-map__dot,
 .wr-film.is-still .wr-map__name {
   animation: none !important;
+}
+
+/* On the map the country takes the top of the page and the sentence sits under it. */
+.wr-film[data-chapter='map'] .wr-frame {
+  place-items: end center;
+  padding-bottom: calc(190px + env(safe-area-inset-bottom));
+}
+
+.wr-film[data-chapter='map'] .wr-frame__inner {
+  width: min(88vw, 350px);
+}
+
+/* Station dots are HTML pixels, so they stay the same size at every map scale. */
+.wr-map__pin {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  background: var(--act-light);
+  box-shadow: 0 0 0 1.5px #000000;
+  opacity: 0;
+  animation: wr-label 420ms both;
 }

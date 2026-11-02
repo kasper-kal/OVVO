@@ -1,10 +1,10 @@
 /**
- * **The card, drawn from the same page it belongs to.**
+ * **The card is a poster, not a screenshot.**
  *
- * A copied sentence is a link nobody posts, so every figure page can make a 9:16 picture of itself.
- * The card is deliberately the page: black, the act's fold at the top and bottom, the same sentence
- * and the same caption in the same order. It cannot say anything the deck does not, because it is
- * handed the chapter's own words.
+ * A 9:16 story graphic: a flat band of the act's colour across the top carrying the year, the
+ * sentence set large and left aligned, the one line under it, and a rule with the mark at the foot.
+ * No gradient, no glass, no washed panel: the same flat rules as the film, so what is posted looks
+ * like what was watched.
  */
 
 import type { Act } from './wrappedDeck';
@@ -17,6 +17,8 @@ const ACT: Record<Act, { light: string; mid: string; deep: string }> = {
 
 const W = 1080;
 const H = 1920;
+const M = 88;
+const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif';
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, max: number): string[] {
   const rows: string[] = [];
@@ -32,38 +34,6 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, max: number): string[
   }
   if (line) rows.push(line);
   return rows;
-}
-
-/** Three folded panels in one corner, so the card carries the object rather than a wash. */
-function band(ctx: CanvasRenderingContext2D, act: Act, atTop: boolean): void {
-  const tone = ACT[act];
-  const panels = [
-    { shift: -120, light: tone.mid, deep: tone.deep },
-    { shift: 120, light: tone.light, deep: tone.mid },
-    { shift: 360, light: tone.mid, deep: tone.deep },
-  ];
-  panels.forEach((panel, index) => {
-    const y0 = atTop ? 0 : H;
-    const y1 = atTop ? 330 : H - 330;
-    const x0 = panel.shift + index * 60;
-    const gradient = ctx.createLinearGradient(x0, y0, x0 + 520, y1);
-    gradient.addColorStop(0, panel.light);
-    gradient.addColorStop(1, panel.deep);
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x0 + 430, y0);
-    ctx.lineTo(x0 + 300, y1);
-    ctx.lineTo(x0 - 220, y1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x0 - 220, y1);
-    ctx.stroke();
-  });
 }
 
 export async function drawCard({
@@ -82,39 +52,50 @@ export async function drawCard({
   canvas.height = H;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  const tone = ACT[act];
+  const font = (weight: number, size: number) => `${weight} ${size}px ${SANS}`;
 
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, W, H);
 
-  band(ctx, act, true);
-  band(ctx, act, false);
+  /* The band: one flat rectangle, the whole width, carrying the year. */
+  ctx.fillStyle = tone.deep;
+  ctx.fillRect(0, 0, W, 380);
+  ctx.fillStyle = tone.mid;
+  ctx.fillRect(0, 380, W, 10);
 
-  ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-  const font = (weight: number, size: number) =>
-    `${weight} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
-
-  ctx.font = font(800, 92);
-  ctx.fillStyle = '#ffffff';
-  const rows = wrap(ctx, sentence, 860);
-  const lineHeight = 104;
-  const startY = 940 - ((rows.length - 1) * lineHeight) / 2;
-  rows.forEach((row, index) => ctx.fillText(row, W / 2, startY + index * lineHeight));
-
-  ctx.font = font(500, 44);
-  ctx.fillStyle = 'rgba(255,255,255,0.72)';
-  const captionRows = wrap(ctx, caption, 780);
-  const captionY = startY + rows.length * lineHeight + 24;
-  captionRows.forEach((row, index) => ctx.fillText(row, W / 2, captionY + index * 58));
-
   ctx.textAlign = 'left';
-  ctx.font = font(800, 40);
+  ctx.fillStyle = tone.light;
+  ctx.font = font(800, 30);
+  ctx.fillText('OVVO WRAPPED', M, 110);
+
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('OVVO', 88, H - 96);
+  ctx.font = font(800, 190);
+  ctx.fillText(String(year), M - 6, 320);
+
+  /* The sentence: the same words as the page, set left and large. */
+  ctx.font = font(800, 96);
+  const rows = wrap(ctx, sentence, W - M * 2);
+  const lineHeight = 108;
+  const blockTop = 380 + 10 + (H - 380 - 10) / 2 - (rows.length * lineHeight) / 2 - 60;
+  rows.forEach((row, index) => ctx.fillText(row, M, blockTop + index * lineHeight));
+
+  const captionY = blockTop + rows.length * lineHeight + 40;
+  ctx.font = font(500, 42);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  wrap(ctx, caption, W - M * 2).forEach((row, index) => ctx.fillText(row, M, captionY + index * 56));
+
+  /* The foot: a rule in the act's light, then the mark and the year. */
+  ctx.fillStyle = tone.mid;
+  ctx.fillRect(M, H - 236, W - M * 2, 4);
+  ctx.font = font(800, 42);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText('OVVO', M, H - 150);
   ctx.textAlign = 'right';
-  ctx.font = font(700, 40);
-  ctx.fillStyle = 'rgba(255,255,255,0.72)';
-  ctx.fillText(String(year), W - 88, H - 96);
+  ctx.font = font(600, 34);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillText(`Wrapped ${year}`, W - M, H - 152);
 
   return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
 }

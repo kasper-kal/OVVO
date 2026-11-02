@@ -1,18 +1,18 @@
 /**
  * **The Fold: the one object the whole film is drawn with.**
  *
- * A ribbon of folded paper, built from flat SVG bands rather than a 3D engine. It is the only thing
+ * A ribbon of folded card, built from flat SVG bands rather than a 3D engine. It is the only thing
  * on screen that carries colour, and it is the only thing that never stops moving. A page changes by
  * folding this into its next pose, never by sliding a slide.
  *
- * The bands are deliberately thin: the black ground has to stay the page, and a wall of colour
- * behind white type is the thing the first version of this rebuild got wrong. What makes it read as
- * folded paper is the gap between the bands, the gradient turning panel by panel, and a hairline of
- * light along each fold.
+ * The bands are flat fills, not gradients: the deep tone carries the page, the mid tone is the
+ * fold's edge and the light tone is the hairline. A gradient on top of a photograph-free black page
+ * is how the first rebuild turned into a haze; flat panels keep the edges crisp and the white type
+ * legible at every point of the drift.
  */
 
-import { useId } from 'react';
 import type { CSSProperties } from 'react';
+import { NL_BOUNDS, NL_OUTLINE } from '../../data/nlGeo';
 import type { PoseId, StoryLabel, StoryRoute, StoryStop } from '../../lib/wrappedDeck';
 
 const W = 390;
@@ -41,7 +41,6 @@ interface Panel {
   face: string;
   bevel: string;
   edge: string;
-  angle: number;
 }
 
 /**
@@ -71,22 +70,19 @@ function panelsOf(pose: Pose): Panel[] {
       bottomY - slope
     } L ${x1 - 16} ${bottomY - slope + 2} Z`;
     const edge = `M ${x0} ${topY} L ${x1} ${topY - slope * 2}`;
-    return { face, bevel, edge, angle: pose.tilt + i * 9 };
+    return { face, bevel, edge };
   });
 }
 
-function mapBox(stops: StoryStop[]): { x: number; y: number; w: number; h: number } {
-  if (stops.length === 0) return { x: 0, y: 0, w: 100, h: 100 };
-  const xs = stops.map((stop) => stop.x);
-  const ys = stops.map((stop) => stop.y);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-  const padX = Math.max(10, (maxX - minX) * 0.16);
-  const padY = Math.max(10, (maxY - minY) * 0.16);
-  return { x: minX - padX, y: minY - padY, w: maxX - minX + padX * 2, h: maxY - minY + padY * 2 };
-}
+/** The country, in the same degree space as the stations, with north up. */
+const MAP_BOX = {
+  x: NL_BOUNDS.west - 0.06,
+  y: -NL_BOUNDS.north - 0.05,
+  w: NL_BOUNDS.east - NL_BOUNDS.west + 0.12,
+  h: NL_BOUNDS.north - NL_BOUNDS.south + 0.1,
+};
+const FLIP = (lat: number): number => -lat;
+const LAND = NL_OUTLINE.map((ring) => ring.map(([lon, lat]) => `${lon},${FLIP(lat)}`).join(' '));
 
 interface FoldProps {
   pose: PoseId;
@@ -99,12 +95,10 @@ interface FoldProps {
 }
 
 export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
-  const uid = useId().replace(/[:]/g, '');
   const active = POSES[pose];
 
   if (map && map.routes.length > 0) {
-    const box = mapBox(map.stops);
-    const unit = box.w / 100;
+    const unit = MAP_BOX.w / 100;
     const centre = map.stops.reduce(
       (acc, stop) => ({
         x: acc.x + stop.x / Math.max(1, map.stops.length),
@@ -118,26 +112,28 @@ export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
         <div className="wr-fold__panels">
           <svg
             className="wr-fold__svg wr-map"
-            viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
+            viewBox={`${MAP_BOX.x} ${MAP_BOX.y} ${MAP_BOX.w} ${MAP_BOX.h}`}
             preserveAspectRatio="xMidYMid meet"
             focusable="false"
           >
+            {LAND.map((points, at) => (
+              <polygon key={`land-${at}`} className="wr-map__land" points={points} />
+            ))}
             {map.routes.map((route, at) => {
-              const dx = route.x2 - route.x1;
-              const dy = route.y2 - route.y1;
+              const x1 = route.x1;
+              const y1 = FLIP(route.y1);
+              const x2 = route.x2;
+              const y2 = FLIP(route.y2);
+              const dx = x2 - x1;
+              const dy = y2 - y1;
               const span = Math.hypot(dx, dy) || 1;
-              const bend = (at === 0 ? 0.1 : at === 1 ? 0.16 : 0.22) * span * (at % 2 === 0 ? 1 : -1);
-              const cx = (route.x1 + route.x2) / 2 - (dy / span) * bend;
-              const cy = (route.y1 + route.y2) / 2 + (dx / span) * bend;
-              const d = `M ${route.x1} ${route.y1} Q ${cx} ${cy} ${route.x2} ${route.y2}`;
+              const bend = (at === 0 ? 0.08 : at === 1 ? 0.13 : 0.18) * span * (at % 2 === 0 ? 1 : -1);
+              const cx = (x1 + x2) / 2 - (dy / span) * bend;
+              const cy = (y1 + y2) / 2 + (dx / span) * bend;
+              const d = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
               return (
                 <g key={`route-${at}`}>
-                  {route.count > 1 ? (
-                    <>
-                      <path className="wr-map__halo" d={d} style={{ '--i': at } as CSSProperties} />
-                      <path className="wr-map__glow" d={d} style={{ '--i': at } as CSSProperties} />
-                    </>
-                  ) : null}
+                  <path className="wr-map__casing" d={d} style={{ '--i': at } as CSSProperties} />
                   <path
                     className={`wr-map__route${at === 0 ? ' is-first' : ''}`}
                     d={d}
@@ -147,40 +143,38 @@ export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
                 </g>
               );
             })}
-            {map.stops.map((stop, at) => (
-              <g
-                key={`stop-${at}`}
-                className="wr-map__stop"
-                style={{ '--i': at } as CSSProperties}
-              >
-                <circle className="wr-map__ring" cx={stop.x} cy={stop.y} r={unit * 2.6} />
-                <circle className="wr-map__dot" cx={stop.x} cy={stop.y} r={unit * 1.1} />
-              </g>
-            ))}
             {map.labels.map((label) => {
               const dx = label.x - centre.x;
               const dy = label.y - centre.y;
               const span = Math.hypot(dx, dy) || 1;
-              const outX = (dx / span) * unit * 5;
-              const outY = (dy / span) * unit * 5;
               return (
                 <line
                   key={`tick-${label.name}`}
                   className="wr-map__tick"
                   x1={label.x}
-                  y1={label.y}
-                  x2={label.x + outX}
-                  y2={label.y + outY}
+                  y1={FLIP(label.y)}
+                  x2={label.x + (dx / span) * unit * 4}
+                  y2={FLIP(label.y) + (dy / span) * unit * 4}
                 />
               );
             })}
           </svg>
           <div className="wr-map__names">
+            {/* Stations are fixed-size dots in HTML: an SVG circle here scaled itself unpredictably. */}
+            {map.stops.map((stop, at) => (
+              <i
+                key={`pin-${at}`}
+                className="wr-map__pin"
+                style={{
+                  left: `${((stop.x - MAP_BOX.x) / MAP_BOX.w) * 100}%`,
+                  top: `${((FLIP(stop.y) - MAP_BOX.y) / MAP_BOX.h) * 100}%`,
+                  animationDelay: `${240 + at * 80}ms`,
+                }}
+              />
+            ))}
             {map.labels.map((label) => {
-              const left = Math.min(88, Math.max(12, ((label.x - box.x) / box.w) * 100));
-              const raw = Math.min(90, Math.max(6, ((label.y - box.y) / box.h) * 100));
-              /* A name under the sentence is a name nobody reads, so the middle band is kept clear. */
-              const top = raw > 38 && raw < 64 ? (raw < 51 ? 34 : 68) : raw;
+              const left = Math.min(84, Math.max(16, ((label.x - MAP_BOX.x) / MAP_BOX.w) * 100));
+              const top = Math.min(88, Math.max(8, ((FLIP(label.y) - MAP_BOX.y) / MAP_BOX.h) * 100));
               return (
                 <span
                   key={label.name}
@@ -230,33 +224,11 @@ export function Fold({ pose, wear, map, hours, leaving = false }: FoldProps) {
     <div className={`wr-fold${leaving ? ' is-leaving' : ''}`} data-pose={pose} aria-hidden="true">
       <div className="wr-fold__panels">
         <svg className="wr-fold__svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
-          <defs>
-            {panels.map((panel, at) => (
-              <linearGradient
-                key={`grad-${at}`}
-                id={`${uid}-g${at}`}
-                x1="0"
-                y1="0"
-                x2="1"
-                y2="1"
-                gradientTransform={`rotate(${panel.angle} 0.5 0.5)`}
-              >
-                {/*
-                  * The look's own four colours, in an order that can be seen: its accent as the light,
-                  * its ink as the middle, its page as the deep. Worn literally, page first, the folds
-                  * were four shades of near black and the page read as empty.
-                  */}
-                <stop offset="0%" style={{ stopColor: wear ? wear[3] : 'var(--act-light)' }} />
-                <stop offset="52%" style={{ stopColor: wear ? wear[2] : 'var(--act-mid)' }} />
-                <stop offset="100%" style={{ stopColor: wear ? wear[0] : 'var(--act-deep)' }} />
-              </linearGradient>
-            ))}
-          </defs>
           {panels.map((panel, at) => (
             <g key={`panel-${at}`} className="wr-fold__panel" style={{ '--i': at } as CSSProperties}>
-              <path d={panel.face} fill={`url(#${uid}-g${at})`} />
-              <path d={panel.bevel} fill={wear ? wear[(at + 2) % 4] : 'var(--act-deep)'} opacity={0.4} />
-              <path d={panel.edge} fill="none" stroke="rgba(255,255,255,0.24)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+              <path d={panel.face} fill={wear ? wear[0] : 'var(--act-deep)'} />
+              <path d={panel.bevel} fill={wear ? wear[2] : 'var(--act-mid)'} />
+              <path d={panel.edge} fill="none" stroke={wear ? wear[3] : 'var(--act-light)'} strokeWidth={1.5} vectorEffect="non-scaling-stroke" opacity={0.9} />
             </g>
           ))}
         </svg>

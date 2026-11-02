@@ -10,7 +10,6 @@
  * a year too thin for a story still gets two honest screens instead of ten dressed up ones.
  */
 
-import { MAP_POINT } from '../data/map';
 import { getStop } from '../data/stops';
 import type { Language } from '../state/types';
 import { formatDuration, pad } from './format';
@@ -85,6 +84,15 @@ export interface Chapter {
 export const DECK_MIN_RUNS = 5;
 
 const nameOf = (id: string): string => getStop(id)?.name ?? id;
+
+/** A station's short name, so a map label reads as a place rather than a heading. */
+const shortLabel = (name: string): string => name.replace(/ (Centraal|Station|Airport)$/, '');
+
+/** A station where it really is, in degrees. The map page draws this, not the schematic canvas. */
+function stationPoint(id: string): { x: number; y: number } | null {
+  const geo = getStop(id)?.geo;
+  return geo ? { x: geo.lon, y: geo.lat } : null;
+}
 
 function lookName(id: string): string | null {
   try {
@@ -230,7 +238,7 @@ export function buildStory({
     peakCount,
   });
 
-  /* The year, plotted: only the pairs that were actually planned, on the app's own schematic points. */
+  /* The year, plotted on the country: only the pairs that were actually planned, at their real stations. */
   const stationsUsed = new Set<string>();
   for (const run of runs) {
     stationsUsed.add(run.from);
@@ -239,14 +247,14 @@ export function buildStory({
   const mapRoutes = topEntries(pairs, 7)
     .map((entry) => {
       const [from, to] = entry.value.split('\u2192');
-      const a = MAP_POINT(from);
-      const b = MAP_POINT(to);
+      const a = stationPoint(from);
+      const b = stationPoint(to);
       if (!a || !b) return null;
       return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, count: entry.count };
     })
     .filter((line): line is StoryRoute => Boolean(line));
   const mapStops = [...stationsUsed]
-    .map((id) => MAP_POINT(id))
+    .map((id) => stationPoint(id))
     .filter((point): point is StoryStop => Boolean(point));
 
   /* Three names, on the three stops furthest from the middle, so they never pile up. */
@@ -255,18 +263,18 @@ export function buildStory({
     { x: 0, y: 0 },
   );
   const labelIds = [...stationsUsed]
-    .filter((id) => MAP_POINT(id))
+    .filter((id) => stationPoint(id))
     .sort((a, b) => {
-      const pa = MAP_POINT(a);
-      const pb = MAP_POINT(b);
+      const pa = stationPoint(a);
+      const pb = stationPoint(b);
       if (!pa || !pb) return 0;
       return Math.hypot(pb.x - centre.x, pb.y - centre.y) - Math.hypot(pa.x - centre.x, pa.y - centre.y);
     })
     .slice(0, 3);
   const mapLabels = labelIds
     .map((id) => {
-      const point = MAP_POINT(id);
-      return point ? { x: point.x, y: point.y, name: nameOf(id) } : null;
+      const point = stationPoint(id);
+      return point ? { x: point.x, y: point.y, name: shortLabel(nameOf(id)) } : null;
     })
     .filter((label): label is StoryLabel => Boolean(label));
 

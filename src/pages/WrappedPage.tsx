@@ -267,7 +267,6 @@ export function WrappedPage() {
         />
       ) : null}
       <Fold pose={pose} wear={chapter.wear} map={chapter.map} hours={chapter.hours} />
-      <span className="wr-scrim" aria-hidden="true" />
 
       <nav className="wr-progress" aria-hidden="true">
         {story.map((item, at) => (
