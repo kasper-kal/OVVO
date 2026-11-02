@@ -7535,21 +7535,27 @@
 
 /* ========================================================== OVVO Wrapped: the stage
 
-   A full-screen story rather than a card in a column. Each chapter owns the whole window, in one of
-   four tones, so the year changes colour as it is told; everything drawn on top of a tone uses
-   `currentColor`, which is why one set of rules works on the dark chapter and on the cream one.
-   Movement is the story rather than decoration: content rises in a beat after the tone changes, the
-   route draws itself, the bars grow from the floor, the arc sweeps, and a number counts up. */
+   A full-screen story rather than a card in a column, and no two chapters built the same way. Each
+   owns the whole window and its own shape: an enormous number with rings pushing out of it, a rail
+   down the screen with a dot running it, twenty-four bars standing on the floor, a ring with the
+   answer inside it, a line shot across the full width, one huge word. The colour changes with the
+   chapter, and so does the composition, which is the difference between a story and a slideshow.
+
+   Everything drawn on top of a tone uses `currentColor`, so one set of rules works on the dark
+   chapter and on the cream one. Movement is the story rather than decoration: the chapter leans with
+   the thumb, arrives from the side the traveller came from, numbers count up, bars grow, the rail
+   draws and then runs, the ring sweeps. */
 
 .wrapped-stage {
+  --pad-x: clamp(20px, 6vw, 56px);
   position: fixed;
   inset: 0;
   z-index: 89;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
-  padding: max(env(safe-area-inset-top), 10px) clamp(20px, 6vw, 56px) max(env(safe-area-inset-bottom), 14px);
+  padding: max(env(safe-area-inset-top), 10px) var(--pad-x) max(env(safe-area-inset-bottom), 14px);
   transition: background-color 520ms var(--ease-out), color 520ms var(--ease-out);
   touch-action: pan-y;
   isolation: isolate;
@@ -7575,62 +7581,27 @@
   color: #2a1512;
 }
 
-/* Grain and two slow shapes: the texture and the life behind the type. */
-.wrapped-grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(currentColor 1px, transparent 1px);
-  background-size: 3px 3px;
-  opacity: 0.07;
-  z-index: 0;
-}
-
-.wrapped-blob {
-  position: fixed;
-  width: min(70vmax, 720px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(70px);
-  opacity: 0.22;
-  background: radial-gradient(circle, currentColor 0%, transparent 68%);
-  z-index: 0;
-  animation: wrapped-drift 18s ease-in-out infinite alternate;
-}
-
-.wrapped-blob--a {
-  top: -22vmax;
-  right: -26vmax;
-}
-
-.wrapped-blob--b {
-  bottom: -30vmax;
-  left: -24vmax;
-  animation-duration: 24s;
-  animation-direction: alternate-reverse;
-}
-
-@keyframes wrapped-drift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(-4vmax, 3vmax, 0) scale(1.12);
-  }
-}
-
 /* ------------------------------------------------------------------ the top row */
+/*
+ * **The corner is the app's corner, not the deck's.**
+ *
+ * Every other screen puts its way back in a 44px disc whose left edge is the page gutter, 12px from
+ * the edge of a phone, with its top 20px down. The deck drew its own: padding of its own, so the X
+ * landed at 23.4px across and 16px down — a thumb's width right of the arrow it replaces, and four
+ * pixels high, on the one screen a traveller arrives at from a button they have used a hundred times.
+ * The row is now pulled out to that gutter and stepped down to that line, so the X and the arrow
+ * beside it are the same control in the same place.
+ */
 .wrapped-top {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 3;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 0 10px;
-  background: linear-gradient(to bottom, currentColor 0%, transparent 100%);
-  background: none;
+  margin-inline: calc(12px - var(--pad-x));
+  margin-top: max(0px, calc(20px - max(env(safe-area-inset-top), 10px)));
+  padding: 0 0 10px;
+  flex: none;
 }
 
 .wrapped-close,
@@ -7656,24 +7627,7 @@
   opacity: 0.3;
 }
 
-.wrapped-track {
-  position: relative;
-  flex: 1;
-  height: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 18%, transparent);
-  overflow: hidden;
-}
-
-.wrapped-track__fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: calc(var(--progress, 0) * 100%);
-  background: currentColor;
-  border-radius: 999px;
-  transition: width 460ms var(--ease-out);
-}
-
+/* The sound switch sits alone in the top corner now: the progress bar is gone on purpose. */
 .wrapped-sound {
   flex: none;
   padding: 8px 12px;
@@ -7686,30 +7640,91 @@
   letter-spacing: 0.02em;
 }
 
-/* ---------------------------------------------------------------------- the body */
+/* ------------------------------------------------------------- the scene and the body */
+
+/*
+ * **The chapter leans with the thumb.**
+ *
+ * The body follows the drag at about a third of the finger's travel and takes a degree of tilt with
+ * it, so a swipe reads as moving a thing rather than as waiting for one. On release it springs back
+ * to flat, and the next chapter arrives from the side that was pulled.
+ */
+.wrapped-scene {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  transform: translate3d(calc(var(--drag, 0) * 1px * 0.34), 0, 0) rotate(calc(var(--drag, 0) * 0.012deg));
+  transition: transform 340ms var(--ease-out);
+  will-change: transform;
+}
+
+.wrapped-scene.is-dragging {
+  transition: none;
+}
+
 .wrapped-body {
   position: relative;
   z-index: 1;
   flex: 1;
   display: grid;
   align-content: center;
-  gap: clamp(10px, 2.4vh, 22px);
-  padding: clamp(8px, 3vh, 28px) 0 clamp(6px, 2vh, 20px);
-  min-height: 0;
+  gap: clamp(10px, 2.2vh, 22px);
   width: 100%;
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: clamp(4px, 1.6vh, 18px) 0;
+  min-height: 0;
+  animation: wrapped-in 620ms var(--ease-out) both;
 }
 
-.wrapped-body > * {
+.wrapped-body[data-dir='-1'] {
+  animation-name: wrapped-in-back;
+}
+
+@keyframes wrapped-in {
+  from {
+    opacity: 0;
+    transform: translate3d(12%, 0, 0) scale(0.94);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes wrapped-in-back {
+  from {
+    opacity: 0;
+    transform: translate3d(-12%, 0, 0) scale(0.94);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/*
+ * **Only the cover deals its own words in.**
+ *
+ * Every chapter used to stagger its lines the same way, which is why ten different layouts still
+ * arrived feeling like the same page. The entrance now belongs to the chapter rather than to the
+ * text — see "ten chapters, not ten pages" at the end of this file.
+ */
+.wrapped-body--cover > * {
   animation: wrapped-rise 620ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 85ms);
+  animation-delay: calc(var(--i, 0) * 90ms);
 }
 
 @keyframes wrapped-rise {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translateY(26px);
     filter: blur(6px);
   }
   to {
@@ -7737,6 +7752,7 @@
 }
 
 .wrapped-big {
+  position: relative;
   font-size: clamp(46px, 14.5vw, 132px);
   line-height: 0.9;
   letter-spacing: -0.035em;
@@ -7765,17 +7781,6 @@
   opacity: 0.72;
 }
 
-.wrapped-cover {
-  display: grid;
-  gap: clamp(10px, 2.4vh, 22px);
-  align-content: center;
-}
-
-.wrapped-cover .wrapped-title {
-  /* The year, as the thing the story is about: as big as the screen will honestly give it. */
-  font-size: clamp(72px, 30vw, 260px);
-}
-
 .wrapped-actions {
   display: flex;
   flex-wrap: wrap;
@@ -7784,105 +7789,399 @@
   margin-top: 4px;
 }
 
-/* ------------------------------------------------------------------- the visuals */
-.wrapped-route {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  margin-top: clamp(6px, 2vh, 18px);
-  font-size: clamp(12px, 3vw, 14px);
-  font-weight: 650;
+/* ------------------------------------------------------------------------ the cover */
+.wrapped-body--cover {
+  gap: clamp(10px, 2.2vh, 22px);
+  align-content: center;
 }
 
+.wrapped-body--cover .wrapped-title {
+  /* The year, as the thing the story is about: as big as the screen will honestly give it. */
+  font-size: clamp(76px, 31vw, 280px);
+  animation: wrapped-breathe 7s ease-in-out infinite alternate;
+}
+
+/* One thin ring breathing behind the year, slower than the number itself. */
+.wrapped-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(92vw, 520px);
+  aspect-ratio: 1;
+  margin: -46vmin 0 0 -46vmin;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  pointer-events: none;
+  animation: wrapped-orbit 26s linear infinite;
+}
+
+.wrapped-orbit::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@keyframes wrapped-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wrapped-breathe {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.02);
+  }
+}
+
+/* ---------------------------------------------------------------------- the total */
+
+/*
+ * **The total as a poster.**
+ *
+ * The label sits at the top of the screen and the number sits on the bottom edge, as large as three
+ * digits can be, with the sentence tucked under it. The empty height above is the point: the eye
+ * lands on the number with nothing else asking for it. Centred, the same content was a slide; on the
+ * baseline, it is a cover.
+ */
+.wrapped-body--number {
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  align-content: stretch;
+  justify-items: stretch;
+  text-align: left;
+  gap: clamp(4px, 1vh, 10px);
+}
+
+.wrapped-body--number .wrapped-big {
+  align-self: end;
+  font-size: min(46vw, 300px);
+  line-height: 0.7;
+  letter-spacing: -0.075em;
+  font-weight: 720;
+  margin-left: -0.04em;
+}
+
+.wrapped-body--number .wrapped-line {
+  max-width: 22ch;
+  font-size: clamp(18px, 4.8vw, 28px);
+}
+
+.wrapped-body--number > :not(.wrapped-rings):not(.wrapped-burst) {
+  z-index: 1;
+}
+
+/* Three rings pushing out of the number, endlessly, like a pulse. */
+.wrapped-rings {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapped-rings i {
+  position: absolute;
+  width: min(78vw, 440px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: wrapped-ring 4.4s ease-out infinite;
+}
+
+.wrapped-rings i:nth-child(2) {
+  animation-delay: 1.45s;
+}
+
+.wrapped-rings i:nth-child(3) {
+  animation-delay: 2.9s;
+}
+
+@keyframes wrapped-ring {
+  0% {
+    opacity: 0.42;
+    transform: scale(0.5);
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* A burst of dots when the year lands, once, then gone. */
+.wrapped-burst {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapped-burst i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  animation: wrapped-fly 1000ms var(--ease-out) both;
+  animation-delay: calc(260ms + var(--i, 0) * 14ms);
+}
+
+@keyframes wrapped-fly {
+  0% {
+    opacity: 0.9;
+    transform: rotate(calc(var(--i, 0) * 25.71deg)) translateY(-8vmin) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--i, 0) * 25.71deg)) translateY(-52vmin) scale(1);
+  }
+}
+
+/* -------------------------------------------------------------------- the route */
+
+/*
+ * **The journey fills the screen and the number is only its label.**
+ *
+ * The count is small and sits with the word "times"; the two stops are the typography, one at the top
+ * of the page and one at the bottom, with the line between them drawn as a track. The markers are
+ * positioned from the line's own left edge, so they cannot drift off it.
+ */
+.wrapped-body--route {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  gap: clamp(8px, 2vh, 18px);
+}
+
+.wrapped-route {
+  position: relative;
+  min-height: clamp(260px, 48vh, 560px);
+  margin-top: clamp(4px, 1.4vh, 12px);
+}
+
+/*
+ * **The number rides the line.**
+ *
+ * Above the rail it was a headline with a diagram under it, and the middle of the screen was five
+ * hundred pixels of nothing between two stations. In the gap it becomes the thing the journey
+ * passes through: station, twenty-one times, station.
+ */
+.wrapped-route__count {
+  position: absolute;
+  left: 44px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 0.14em;
+  font-size: min(30vw, 168px);
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+  animation: wrapped-rise 620ms var(--ease-out) both;
+  animation-delay: 240ms;
+}
+
+.wrapped-route__count i {
+  font-style: normal;
+  font-size: 0.2em;
+  font-weight: 660;
+  letter-spacing: -0.01em;
+  opacity: 0.66;
+}
+
+.wrapped-route__rail {
+  position: absolute;
+  left: 9px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.wrapped-route__rail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(to bottom, currentColor 0 9px, transparent 9px 18px);
+  transform-origin: top center;
+  animation: wrapped-draw-down 1100ms 220ms var(--ease-out) both;
+}
+
+@keyframes wrapped-draw-down {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/*
+ * **The train fits inside the station, and its light does not bleed.**
+ *
+ * It used to be the same size as the end marker with a hard six-pixel ring of colour around it, so on
+ * arrival that ring sat on top of the hollow station dot and read as a stripe bleeding out of it. The
+ * travelling dot is now eight pixels — exactly the hole left by the twelve-pixel marker's two-pixel
+ * border — and its glow is a soft blur rather than a hard ring, so the light falls inside the station
+ * instead of across it.
+ */
+.wrapped-route__train {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  margin: 0 0 0 -4px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px color-mix(in srgb, currentColor 45%, transparent);
+  opacity: 0;
+  animation: wrapped-run 5s 1400ms cubic-bezier(0.55, 0, 0.4, 1) infinite;
+}
+
+@keyframes wrapped-run {
+  0% {
+    top: -4px;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  74% {
+    top: calc(100% - 4px);
+    opacity: 1;
+  }
+  86%,
+  100% {
+    top: calc(100% - 4px);
+    opacity: 0;
+  }
+}
+
+/* The two markers are drawn from the line's own origin, so they sit on it exactly. */
 .wrapped-route__dot {
+  position: absolute;
+  left: 4px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: currentColor;
-  flex: none;
+}
+
+.wrapped-route__dot--start {
+  top: 0;
 }
 
 .wrapped-route__dot--end {
-  opacity: 0.5;
-}
-
-.wrapped-route__line {
-  position: relative;
-  height: 2px;
-  background: color-mix(in srgb, currentColor 30%, transparent);
-  border-radius: 999px;
-  overflow: hidden;
-  animation: wrapped-draw 900ms 220ms var(--ease-out) both;
-}
-
-.wrapped-route__line::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: currentColor;
-  transform-origin: left center;
-  animation: wrapped-sweep 1200ms 300ms var(--ease-out) both;
-}
-
-@keyframes wrapped-sweep {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes wrapped-draw {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  bottom: 0;
+  background: none;
+  border: 2px solid currentColor;
+  box-sizing: border-box;
 }
 
 .wrapped-route__from,
 .wrapped-route__to {
-  grid-row: 2;
-  max-width: 40vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0.8;
+  position: absolute;
+  left: 44px;
+  right: 0;
+  font-size: clamp(21px, 6vw, 40px);
+  font-weight: 660;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
 }
 
 .wrapped-route__from {
-  grid-column: 1;
+  top: -5px;
 }
 
 .wrapped-route__to {
-  grid-column: 3;
-  text-align: right;
+  bottom: -8px;
+}
+
+/* ---------------------------------------------------------------------- the hour */
+
+/*
+ * **The hour reads from the floor.**
+ *
+ * The sentence goes first, because the bars take a moment to read; then twenty-four bars standing on
+ * the bottom of the screen, one lit; then the time itself, at the size of a headline, sitting on the
+ * baseline under them. Where every other chapter puts its number at the top, this one puts it last.
+ */
+.wrapped-body--bars {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: clamp(6px, 1.2vh, 12px);
+}
+
+.wrapped-body--bars .wrapped-ruler {
+  order: 3;
+}
+
+.wrapped-body--bars .wrapped-kicker {
+  order: 1;
+}
+
+.wrapped-body--bars .wrapped-line {
+  order: 2;
+  font-size: clamp(15px, 3.9vw, 20px);
+  max-width: 30ch;
+  opacity: 0.82;
+}
+
+.wrapped-body--bars .wrapped-bars {
+  order: 4;
+  align-self: end;
+  height: 100%;
+  max-height: 46vh;
+}
+
+.wrapped-body--bars .wrapped-big {
+  order: 5;
+  font-size: min(27vw, 170px);
+  line-height: 0.78;
+  letter-spacing: -0.06em;
 }
 
 .wrapped-bars {
   display: flex;
   align-items: flex-end;
-  gap: clamp(2px, 0.9vw, 6px);
-  height: clamp(90px, 26vh, 220px);
-  margin-top: clamp(6px, 2vh, 18px);
+  gap: clamp(2px, 0.8vw, 5px);
+  width: 100%;
 }
 
 .wrapped-bars__bar {
   flex: 1;
   min-width: 3px;
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px 4px 0 0;
   background: currentColor;
-  opacity: 0.28;
+  opacity: 0.26;
   transform-origin: bottom center;
-  animation: wrapped-grow 700ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 18ms);
+  animation: wrapped-grow 760ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
 }
 
 .wrapped-bars__bar.is-peak {
   opacity: 1;
+  box-shadow: 0 0 26px color-mix(in srgb, currentColor 50%, transparent);
+  animation:
+    wrapped-grow 760ms var(--ease-out) both,
+    wrapped-bob 2600ms 1300ms ease-in-out infinite;
 }
 
 @keyframes wrapped-grow {
@@ -7894,21 +8193,95 @@
   }
 }
 
+@keyframes wrapped-bob {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.09);
+  }
+}
+
+/* ----------------------------------------------------------------------- the arc */
+
+/*
+ * **The dial is wider than the phone.**
+ *
+ * At 118% of the screen the ring runs off both edges, so it reads as part of the device rather than
+ * a chart placed on it; the answer sits in the middle of the opening it leaves. It fills from empty
+ * to its share as the chapter arrives, which is the one animation here that is the data itself.
+ */
+@property --arc {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.wrapped-body--arc {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  text-align: center;
+  gap: clamp(6px, 1.6vh, 14px);
+}
+
+.wrapped-body--arc .wrapped-kicker {
+  justify-self: center;
+}
+
 .wrapped-arc {
-  width: min(58vw, 240px);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(118vw, 620px);
+  max-width: none;
   aspect-ratio: 1;
+  margin-inline: calc(var(--pad-x) * -1);
+  animation: wrapped-arc-fill 1300ms 180ms var(--ease-out) both;
+}
+
+@keyframes wrapped-arc-fill {
+  from {
+    --arc: 0;
+  }
+}
+
+.wrapped-arc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
-  margin-top: clamp(4px, 1.6vh, 14px);
-  background: conic-gradient(currentColor calc(var(--arc, 0) * 1turn), transparent 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
-  mask: radial-gradient(farthest-side, transparent 63%, #000 64%);
-  animation: wrapped-arc-in 900ms 160ms var(--ease-out) both;
+  background: conic-gradient(
+    currentColor calc(var(--arc, 0) * 1turn),
+    color-mix(in srgb, currentColor 12%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent 62%, #000 63%);
+  mask: radial-gradient(farthest-side, transparent 62%, #000 63%);
+}
+
+.wrapped-arc__spark {
+  position: absolute;
+  inset: 0;
+  animation: wrapped-arc-in 1100ms var(--ease-out) both;
+}
+
+.wrapped-arc__spark::after {
+  content: '';
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 8px color-mix(in srgb, currentColor 18%, transparent);
 }
 
 @keyframes wrapped-arc-in {
   from {
     opacity: 0;
-    transform: rotate(-90deg) scale(0.86);
+    transform: rotate(-120deg) scale(0.8);
   }
   to {
     opacity: 1;
@@ -7916,28 +8289,721 @@
   }
 }
 
-.wrapped-chips {
+.wrapped-big--in {
+  font-size: clamp(64px, 20vw, 140px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.wrapped-body--arc .wrapped-line {
+  max-width: 24ch;
+}
+
+/* ------------------------------------------------------------------- the long haul */
+
+/*
+ * **The duration is the width of the screen.**
+ *
+ * One number, set as large as six characters allow and pushed to the left edge, then the trip as a
+ * line across the full width, with the two ends named under it. Nothing else: the chapter is a
+ * distance, so it is laid out as one.
+ */
+.wrapped-body--stretch {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  align-content: stretch;
+  gap: clamp(6px, 1.6vh, 14px);
+}
+
+.wrapped-body--stretch .wrapped-big {
+  font-size: min(24vw, 165px);
+  line-height: 0.84;
+  letter-spacing: -0.05em;
+}
+
+.wrapped-stretch {
+  position: relative;
+  align-self: end;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  height: 76px;
+}
+
+.wrapped-stretch__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  overflow: hidden;
+}
+
+.wrapped-stretch__line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: left center;
+  animation: wrapped-sweep-across 1500ms 260ms var(--ease-out) both;
+}
+
+@keyframes wrapped-sweep-across {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.wrapped-stretch__dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 8px color-mix(in srgb, currentColor 16%, transparent);
+  animation: wrapped-shoot 1500ms 260ms var(--ease-out) both;
+}
+
+@keyframes wrapped-shoot {
+  from {
+    left: 0;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  to {
+    left: calc(100% - 14px);
+    opacity: 1;
+  }
+}
+
+.wrapped-stretch__from,
+.wrapped-stretch__end {
+  position: absolute;
+  bottom: 0;
+  font-size: clamp(12px, 3.2vw, 15px);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  opacity: 0.7;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrapped-stretch__from {
+  left: 0;
+}
+
+.wrapped-stretch__end {
+  right: 0;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------------- the look */
+
+/*
+ * **A stamp and a number.**
+ *
+ * The name is the label, set small at the top; the days are what the chapter measures, so they take
+ * the bottom of the screen at almost half its width, with the word "days" riding their baseline.
+ * Two weights of voice, no third thing.
+ */
+.wrapped-body--word {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  align-content: stretch;
+  gap: clamp(4px, 1vh, 10px);
+}
+
+.wrapped-body--word .wrapped-big {
+  font-size: clamp(30px, 9vw, 78px);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  font-weight: 680;
+  opacity: 0.86;
+}
+
+.wrapped-days {
+  align-self: end;
+  display: flex;
+  align-items: baseline;
+  gap: 0.14em;
+  margin: 0;
+  font-size: min(44vw, 300px);
+  line-height: 0.74;
+  letter-spacing: -0.07em;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapped-days span {
+  font-size: 0.18em;
+  letter-spacing: -0.01em;
+  font-weight: 660;
+  opacity: 0.62;
+}
+
+.wrapped-body--word .wrapped-line {
+  font-size: clamp(17px, 4.4vw, 24px);
+  max-width: 22ch;
+}
+
+/* ----------------------------------------------------------------- the two lists */
+
+/*
+ * **A title at the top, the rest growing off the floor.**
+ *
+ * The lists sit at the bottom of the screen and are dealt upward, one card at a time, so the chapter
+ * fills as it plays instead of arriving finished.
+ */
+.wrapped-body--chips {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  align-content: stretch;
+  gap: clamp(6px, 1.4vh, 12px);
+}
+
+.wrapped-body--chips .wrapped-big {
+  font-size: clamp(40px, 12vw, 104px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+
+.wrapped-chips {
+  align-self: end;
+  display: grid;
+  gap: 9px;
   list-style: none;
-  margin: clamp(4px, 1.6vh, 14px) 0 0;
+  margin: 0;
   padding: 0;
 }
 
 .wrapped-chip {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 9px 14px;
-  border-radius: var(--r-pill, 999px);
-  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
-  font-size: clamp(12px, 3vw, 14px);
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 16px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  font-size: clamp(14px, 3.6vw, 17px);
+  animation: wrapped-deal 620ms var(--ease-out) both;
+  animation-delay: calc(220ms + var(--i, 0) * 110ms);
+}
+
+.wrapped-chip:nth-child(odd) {
+  animation-name: wrapped-deal-left;
 }
 
 .wrapped-chip strong {
-  font-weight: 680;
+  font-weight: 700;
+  font-size: clamp(18px, 4.6vw, 24px);
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes wrapped-deal {
+  from {
+    opacity: 0;
+    transform: translate3d(18%, 12%, 0) rotate(1.6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wrapped-deal-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-18%, 12%, 0) rotate(-1.6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- the close */
+.wrapped-body--close {
+  align-content: center;
+  justify-items: start;
+  gap: clamp(10px, 2.4vh, 22px);
+}
+
+.wrapped-body--close .wrapped-big {
+  font-size: clamp(56px, 17vw, 168px);
+  line-height: 0.88;
+}
+
+.wrapped-body--close .wrapped-line {
+  font-size: clamp(18px, 4.6vw, 26px);
+  max-width: 22ch;
+}
+
+/* ------------------------------------------------------------------ the grounds */
+
+/*
+ * **One ground per chapter, and nothing painted on top of all of them.**
+ *
+ * A dotted grain and two blurred glows sat over every page, so every page had the same texture and read
+ * as the same page with different words. Nothing is shared now: the cover is a warm corner of light, the
+ * line you kept is a transit grid on blue-black, the origins are paper with a band under the tickets, the
+ * hour is a night skyline, straight through is a plum glow behind a dial, the long haul is coral with a
+ * band across the top, the look is its photograph, your lines is a plain board, and the close is a
+ * vignette. The only dots left in the deck are the ones that mean a journey.
+ */
+
+.wrapped-stage[data-chapter='cover'] { background: #0d0d0f; }
+
+.wrapped-stage[data-chapter='cover']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 78% at 84% 96%, #4a3567 0%, transparent 62%);
+}
+
+.wrapped-stage[data-chapter='total'] { background: #0f0f13; }
+
+.wrapped-stage[data-chapter='pair'] { background: #0e1620; }
+
+.wrapped-stage[data-chapter='origin'] { background: #f4ede1; }
+
+.wrapped-stage[data-chapter='origin']::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34vh;
+  z-index: 0;
+  pointer-events: none;
+  background: #e8d9c4;
+}
+
+.wrapped-stage[data-chapter='hour'] { background: #0c1411; }
+
+.wrapped-stage[data-chapter='direct'] { background: #131019; }
+
+.wrapped-stage[data-chapter='direct']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(90% 60% at 50% 42%, #2b2040 0%, transparent 70%);
+}
+
+.wrapped-stage[data-chapter='longest'] { background: #fbe7e2; }
+
+.wrapped-stage[data-chapter='longest']::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 9vh;
+  z-index: 0;
+  pointer-events: none;
+  background: #2a1512;
+}
+
+.wrapped-stage[data-chapter='lines'] { background: #f7f5ef; }
+
+.wrapped-stage[data-chapter='close'] { background: #0b0b0d; }
+
+.wrapped-stage[data-chapter='close']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(110% 70% at 50% 110%, #26262b 0%, transparent 68%);
+}
+
+/* A chapter's own content always sits above its ground. */
+.wrapped-stage[data-chapter] .wrapped-top,
+.wrapped-stage[data-chapter] .wrapped-body,
+.wrapped-stage[data-chapter] .wrapped-foot {
+  position: relative;
+  z-index: 2;
+}
+
+/* ------------------------------------------------------------------ the surfaces */
+
+/*
+ * **Every chapter brings its own surface, not just its own layout.**
+ *
+ * The deck used to be four tints of one page: same grain, same glow, same cream behind every screen.
+ * A chapter is now allowed to change the ground it stands on — a field of dots, a transit grid, a
+ * night skyline, an actual photograph — which is the difference between ten slides and ten rooms.
+ */
+
+/* The year drawn as itself: one dot for every journey planned, behind the number counting them. */
+/*
+ * **The year is a field of journeys, not a dotted rule.**
+ *
+ * The dots were laid out in a wrapping flex row under a mask that faded everything above and below the
+ * middle, so a hundred and forty-six journeys drew one thin line of twenty-four dots across the
+ * screen — the emptiest thing in the deck, with a ring around it and nothing inside. A fixed grid of
+ * twelve columns fills the page with them instead, so the whole screen is the year and the number
+ * sits on top of it.
+ */
+.wrapped-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-content: space-evenly;
+  justify-items: center;
+  padding: 6% 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.wrapped-field i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+  animation: wrapped-pop 520ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 3ms);
+}
+
+@keyframes wrapped-pop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.wrapped-stage[data-chapter='total'] {
+  background-image: radial-gradient(120% 55% at 50% 100%, color-mix(in srgb, currentColor 14%, transparent), transparent 72%);
+}
+
+/* The rail chapter stands on a transit map: a faint grid, like the paper in a station. */
+.wrapped-stage[data-chapter='pair']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to right, color-mix(in srgb, currentColor 7%, transparent) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(to bottom, color-mix(in srgb, currentColor 7%, transparent) 0 1px, transparent 1px 46px);
+}
+
+/* The hour goes to night and becomes a skyline: buildings, one of them lit, on a true horizon. */
+.wrapped-stage[data-chapter='hour'] {
+  background: #101a15;
+  color: #eaf1e9;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-grain {
+  opacity: 0.05;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars {
+  position: relative;
+  border-bottom: 2px solid color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars__bar {
+  border-radius: 2px 2px 0 0;
+  opacity: 0.3;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars__bar.is-peak {
+  opacity: 1;
+  box-shadow: 0 0 44px rgba(234, 241, 233, 0.35);
+}
+
+.wrapped-ruler {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+.wrapped-ruler i {
+  font-style: normal;
+}
+
+/* The look's chapter wears the look: its photograph, full bleed, with the words knocked out on it. */
+.wrapped-photo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wrapped-stage[data-chapter='look'] {
+  background: #14100e;
+  color: #fff;
+}
+
+.wrapped-stage[data-chapter='look']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.12) 38%, rgba(0, 0, 0, 0.92));
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-top,
+.wrapped-stage[data-chapter='look'] .wrapped-foot,
+.wrapped-stage[data-chapter='look'] .wrapped-body {
+  position: relative;
+  z-index: 2;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker,
+.wrapped-stage[data-chapter='look'] .wrapped-count {
+  opacity: 0.9;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-line {
+  opacity: 1;
+  color: #fff;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(20px, 5.4vw, 30px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #fff;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  opacity: 0.8;
+}
+
+/* The lines chapter reads as a departure board: rows, rules, counts on the right. */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: 13px 2px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0;
+  background: none;
+  letter-spacing: 0.06em;
+}
+
+/* The origins chapter is a stack of tickets, stepping in from the left. */
+.wrapped-body[data-chapter='origin'] .wrapped-chips {
+  gap: 7px;
+}
+
+.wrapped-body[data-chapter='origin'] .wrapped-chip {
+  border-radius: 14px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.07);
+}
+
+.wrapped-body[data-chapter='origin'] .wrapped-chip:nth-child(2) {
+  margin-left: 18px;
+}
+
+.wrapped-body[data-chapter='origin'] .wrapped-chip:nth-child(3) {
+  margin-left: 36px;
+}
+
+/* The long haul is a boarding pass: departure and arrival either side of a perforation. */
+.wrapped-body[data-chapter='longest'] .wrapped-stretch {
+  border-block: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
+  padding-block: 16px;
+}
+
+/* --------------------------------------------------------------------- the voices */
+
+/*
+ * **Ten chapters, not one typeface.**
+ *
+ * The deck spoke in the worn look's fonts from cover to close, which is why ten different screens
+ * read as one screen. Every chapter now borrows a different voice from the app's own font set — a
+ * mono count like a departure display, uppercase station names like a diagram, a serif percentage, a
+ * fashion serif for the look, a typewriter board for the lines — and its own ground, so no two pages
+ * share both the face and the colour.
+ *
+ * These are the app's own downloaded faces, already in `public/fonts`. Each one is fetched only when
+ * its chapter appears.
+ */
+
+.wrapped-stage[data-chapter='cover'] .wrapped-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* The total reads like a departure display: mono numerals, counted. */
+.wrapped-stage[data-chapter='total'] .wrapped-big {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: min(35vw, 230px);
+  letter-spacing: -0.055em;
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-kicker {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.2em;
+}
+
+/* The line you kept becomes a diagram: dark ground, uppercase station names. */
+.wrapped-stage[data-chapter='pair'] {
+  background: #101821;
+  color: #e9eff3;
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-route__from,
+.wrapped-stage[data-chapter='pair'] .wrapped-route__to {
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.015em;
+  font-weight: 700;
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+}
+
+/* Where you set off is warm paper with tickets on it. */
+.wrapped-stage[data-chapter='origin'] {
+  background: #f4ede1;
+  color: #241c14;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-big {
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  font-family: 'Work Sans', sans-serif;
+}
+
+/* The hour is a clock face: mono, all of it. */
+.wrapped-stage[data-chapter='hour'] .wrapped-big,
+.wrapped-stage[data-chapter='hour'] .wrapped-ruler {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-line {
+  font-family: 'Figtree', sans-serif;
+}
+
+/* Straight through is an elegant figure: a book serif on near-black plum. */
+.wrapped-stage[data-chapter='direct'] {
+  background: #14111a;
+  color: #f4eef8;
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-big--in {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(76px, 24vw, 160px);
+  letter-spacing: -0.02em;
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-kicker {
+  letter-spacing: 0.24em;
+}
+
+/* The long haul is a heavy grotesque, the way a timetable is. */
+.wrapped-stage[data-chapter='longest'] .wrapped-big {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__from,
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__end {
+  font-family: 'Archivo', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: clamp(11px, 2.9vw, 13px);
+}
+
+/* The look is a fashion page: a high-contrast serif over the photograph. */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(46px, 13vw, 124px);
+  letter-spacing: -0.005em;
+  opacity: 1;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(13px, 3.4vw, 17px);
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+/* Your lines is a station board: typewriter mono on paper. */
+.wrapped-stage[data-chapter='lines'] {
+  background: #f7f5ef;
+  color: #1a1a18;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-big {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chip,
+.wrapped-stage[data-chapter='lines'] .wrapped-line,
+.wrapped-stage[data-chapter='lines'] .wrapped-kicker {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chip strong {
+  font-weight: 600;
+}
+
+/* The close is a quiet book page. */
+.wrapped-stage[data-chapter='close'] .wrapped-big {
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.wrapped-stage[data-chapter='close'] .wrapped-line {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: clamp(19px, 5vw, 27px);
+}
+
+.wrapped-stage[data-chapter='close'] .wrapped-note {
+  font-family: 'Newsreader', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(14px, 3.6vw, 17px);
 }
 
 /* ----------------------------------------------------------------------- the foot */
@@ -7949,6 +9015,7 @@
   align-items: center;
   gap: 12px;
   padding-top: 10px;
+  flex: none;
 }
 
 /*
@@ -7969,19 +9036,14 @@
   margin: 0;
 }
 
-.wrapped-step--next {
-  margin-left: auto;
-}
-
+/*
+ * **No arrows.** The story pages itself when a song ends, and a swipe does the same thing by hand, so
+ * the foot holds only where you are, and at the end, what you can do with the year.
+ */
 .wrapped-count {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  opacity: 0.6;
-  margin-left: auto;
-}
-
-.wrapped-foot:has(.wrapped-step--next) .wrapped-count {
-  margin-left: 0;
+  opacity: 0.55;
 }
 
 .wrapped-toast {
@@ -8015,27 +9077,950 @@
   .wrapped-line {
     max-width: 30ch;
   }
-}
 
-/*
- * **The app's own buttons, on a stage that is not the app's surface.**
- *
- * `btn--ghost` is drawn for a cream page: no fill, no edge, muted ink. On the dark chapter that is
- * a word the eye has to hunt for, and "Skip the sound" beside Begin was the worst of it. Inside the
- * stage a ghost button takes the chapter's own ink and a faint edge instead, which is the same
- * control saying the same thing in the colour of the screen it is standing on.
- */
-.wrapped-stage .btn--ghost {
-  color: inherit;
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-  background: color-mix(in srgb, currentColor 6%, transparent);
-}
+  .wrapped-body--number .wrapped-line {
+    max-width: 26ch;
+  }
 
-.wrapped-stage .btn--ghost:hover {
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  .wrapped-stretch {
+    height: 96px;
+  }
 }
 
 /* The invitation card on the home screen and in Settings keeps the app's own card shape. */
 .wrapped-invite .empty__icon {
   background: var(--accent-soft, var(--surface-sunken, transparent));
+}
+
+
+/* --------------------------------------------------- six faults, six repairs */
+
+/*
+ * Six things the steerer circled on his own phone, each fixed where it happens rather than on a
+ * shared style: the cover's font and its grey, the empty middles of the origins and the lines, the
+ * graph that did not move, the long haul's huge clipped number and its band of nothing, and the
+ * sentence lying on top of the look's days.
+ */
+
+/* 1 · The cover: the year in a clean grotesque, and words you can read. */
+.wrapped-stage[data-chapter='cover'] .wrapped-title {
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.84;
+}
+
+.wrapped-stage[data-chapter='cover'] .wrapped-kicker {
+  opacity: 1;
+}
+
+.wrapped-stage[data-chapter='cover'] .wrapped-demo {
+  opacity: 0.94;
+}
+
+/* What is not the accent button is white and underlined, never a grey whisper. */
+.wrapped-stage .wrapped-actions button:not([class*='accent']) {
+  opacity: 1;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 2 · Page 4: the three origins are tickets that fill the page, with the count as the figure. */
+.wrapped-stage[data-chapter='origin'] .wrapped-chips {
+  align-self: stretch;
+  align-content: space-between;
+  gap: clamp(10px, 3vh, 26px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: clamp(14px, 3.6vw, 20px) clamp(16px, 4.6vw, 22px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip span {
+  font-size: clamp(13px, 3.4vw, 15px);
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip strong {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: clamp(34px, 10vw, 54px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 3 · Page 5: the graph takes the middle of the page, and nothing is painted behind it. */
+.wrapped-stage[data-chapter='hour'] .wrapped-bars {
+  height: 100%;
+  max-height: 54vh;
+  overflow: hidden;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-bars__bar {
+  opacity: 0.34;
+}
+
+/* 4 · Page 7: no clipped number, no band of nothing, and the trip runs across the middle. */
+.wrapped-stage[data-chapter='longest']::before {
+  display: none;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-big {
+  font-size: min(17vw, 104px);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch {
+  align-self: center;
+  height: clamp(140px, 26vh, 240px);
+  margin: clamp(8px, 2vh, 18px) 0;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
+  top: 50%;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__from,
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__end {
+  bottom: auto;
+  top: calc(50% + 18px);
+  opacity: 0.85;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - 34px);
+  height: 22px;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 14px);
+  opacity: 0.35;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 8px, transparent 8px);
+  mask-image: linear-gradient(to bottom, #000 0 8px, transparent 8px);
+}
+
+/* 5 · Page 9: the board fills the page instead of three rows on the floor. */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-self: stretch;
+  align-content: space-between;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: clamp(16px, 4.4vh, 30px) 2px;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span,
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: clamp(18px, 5vw, 24px);
+}
+
+
+/* ---------------------------------------- the middles, done properly this time */
+
+/*
+ * Spreading rows with `space-between` in a tall region pushed the tickets on page 4 and the board
+ * rows on page 9 to the top and bottom edges and left the hole they were meant to fill. Each row now
+ * takes an equal share of the height and centres its own contents, so the list is the page.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-chips,
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-self: stretch;
+  align-content: stretch;
+  grid-auto-rows: 1fr;
+  gap: clamp(8px, 2vh, 16px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  justify-content: center;
+  gap: 6px;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  align-items: center;
+  padding: clamp(18px, 5vh, 40px) 2px;
+}
+
+/*
+ * Page 7's line sat in a row that stretched to the bottom of the screen, so the sentence drifted
+ * away from the trip it describes. The four things now sit together in the middle, evenly spaced.
+ */
+.wrapped-body--stretch {
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+  gap: clamp(16px, 3.2vh, 32px);
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch {
+  align-self: stretch;
+  height: clamp(120px, 20vh, 180px);
+  margin: 0;
+}
+
+
+/* ------------------------------------------------------------------ on the beat */
+
+/*
+ * **One hand-written movement per page, timed from the song.**
+ *
+ * The first attempt punched the page twice a second: a class flipped on for a slice of every beat and
+ * everything that moved jumped a pixel or two. That is a twitch, and it read as badly as it measured.
+ * This is the other way round. Every moving thing on the deck has a single animation written here by
+ * hand, and the only thing the music supplies is its timing: `--beat-ms` is one beat of this track,
+ * `--bar-ms` is four of them, and `--phase` is how far into a beat the song already was when the page
+ * arrived, so the animation opens in step rather than from zero.
+ *
+ * The animations are laid down once and then left alone. The browser runs them itself, on the
+ * compositor, at screen rate, which is what makes them smooth; the tempo underneath them was measured
+ * from each file (`lib/wrappedBeats`), so what the eye sees still lands with what the ear hears.
+ *
+ * Each page moves in its own way, because ten identical pulses is the same page ten times: a dot goes
+ * round the cover's ring, the year's journeys fill in on the beat, the rail's train walks down it, the
+ * tickets lift in turn, the hours light one after another, the dial turns, the long haul's dot patrols
+ * its line, and the board catches a sweep of light. The look and the closing screen are deliberately
+ * still: one sits under a photograph, and the other has finished speaking.
+ */
+
+/*
+ * **Two movements, and nothing else: things glide on the bar, things pop on the beat.**
+ *
+ * The first version of this was a twitch — a class flipped on for a slice of every beat. The second
+ * was a set of mechanical ticks: a quarter turn per beat, a step down the rail, a walk across the
+ * bars. Each of those is technically in time and looks like a machine. What a body recognises as music
+ * is two things only: something travelling evenly and arriving on the downbeat, and something giving a
+ * short push that settles. So there are exactly two keyframes here, and every chapter uses one or
+ * both of them.
+ *
+ * A *glide* lasts one bar and is eased so it arrives exactly as the bar closes. A *pop* lasts one beat
+ * and is over in its first quarter, which is what makes it read as a hit instead of a bounce.
+ */
+
+/* Page 1 · the dot travels the ring once a bar and arrives where it started as the bar closes. */
+.wrapped-stage.is-beat:not(.is-still) .wrapped-orbit {
+  animation: wrapped-orbit var(--bar-ms, 2400ms) linear infinite;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
+}
+
+/*
+ * Page 2 · the field is all there, and the beat lights it up.
+ *
+ * Fading each dot in from nothing left the screen nearly empty for the first seconds of the chapter,
+ * which is the emptiest state the deck can be in. The whole year is faint from the first frame and the
+ * beat brings twelve journeys forward at a time, so the page is full and still moving.
+ */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-field i {
+  opacity: 0.32;
+  animation: wrapped-fill var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms) / 12);
+}
+
+@keyframes wrapped-fill {
+  from {
+    opacity: 0.32;
+    scale: 0.72;
+  }
+  to {
+    opacity: 0.8;
+    scale: 1;
+  }
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-big {
+  animation: wrapped-pop var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms));
+}
+
+@keyframes wrapped-pop {
+  0% {
+    scale: 1.035;
+  }
+  26%,
+  100% {
+    scale: 1;
+  }
+}
+
+/* The three rings still push out over a whole bar, so the page breathes instead of flickering. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i {
+  animation-duration: var(--bar-ms, 2400ms);
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(2) {
+  animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) / 3);
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(3) {
+  animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) * 2 / 3);
+}
+
+/* Page 3 · the train travels the rail across a bar, and comes back up on the next one. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__train {
+  animation: wrapped-glide-down var(--bar-ms, 2400ms) cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
+  opacity: 1;
+}
+
+/*
+ * The rail is inset six pixels top and bottom inside the panel the station markers sit in, so a dot
+ * placed from the rail's own box lands six pixels off the station it is supposed to settle into. The
+ * four-pixel overhang is that inset cancelled out, and it is the difference between the dot arriving
+ * at the station and arriving just above it.
+ */
+@keyframes wrapped-glide-down {
+  from {
+    top: -4px;
+  }
+  to {
+    top: calc(100% - 4px);
+  }
+}
+
+/* Page 4 · one ticket lifts on each beat, and is back down before the next one lands. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip {
+  animation-name: wrapped-deal, wrapped-lift;
+  animation-duration: 620ms, calc(var(--beat-ms, 500ms) * 3);
+  animation-timing-function: var(--ease-out), cubic-bezier(0.2, 0.9, 0.25, 1);
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: both, none;
+  animation-delay:
+    calc(220ms + var(--i, 0) * 110ms),
+    calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='origin'] .wrapped-chip:nth-child(odd) {
+  animation-name: wrapped-deal-left, wrapped-lift;
+}
+
+/*
+ * The lift uses `translate`, not `transform`: the ticket is dealt in with `transform`, and a second
+ * animation on the same property would fight the first and win, so the entry would vanish.
+ */
+@keyframes wrapped-lift {
+  0% {
+    translate: 0 0;
+  }
+  10% {
+    translate: 0 -8px;
+  }
+  34%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* Page 5 · the whole graph pushes up on the beat, together, the way a speaker moves. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='hour'] .wrapped-bars__bar {
+  animation-name: wrapped-grow, wrapped-bar-beat;
+  animation-duration: 760ms, var(--beat-ms, 500ms);
+  animation-timing-function: var(--ease-out), cubic-bezier(0.2, 0.9, 0.25, 1);
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: both, none;
+  animation-delay:
+    calc(var(--i, 0) * 22ms),
+    calc(-1 * var(--beat-phase, 0ms));
+}
+
+@keyframes wrapped-bar-beat {
+  0% {
+    scale: 1 1.06;
+  }
+  26%,
+  100% {
+    scale: 1 1;
+  }
+}
+
+/* Page 6 · the marker travels the dial once a bar, and the dial itself gives a push on each beat. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc__spark {
+  animation: wrapped-ring-travel var(--bar-ms, 2400ms) linear infinite;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
+}
+
+@keyframes wrapped-ring-travel {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='direct'] .wrapped-arc::before {
+  animation: wrapped-ring-beat var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms));
+}
+
+@keyframes wrapped-ring-beat {
+  0% {
+    scale: 1.012;
+  }
+  26%,
+  100% {
+    scale: 1;
+  }
+}
+
+/* Page 7 · the dot travels the whole trip across a bar, and returns on the next one. */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='longest'] .wrapped-stretch__dot {
+  animation: wrapped-glide-across var(--bar-ms, 2400ms) cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  animation-delay: calc(-1 * var(--bar-phase, 0ms));
+  opacity: 1;
+}
+
+@keyframes wrapped-glide-across {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - 14px);
+  }
+}
+
+/*
+ * Page 9 · the board counts, and each count lands on its own beat.
+ *
+ * A gradient wash across the rows was the cheap bit: it moved, but it measured nothing and it looked
+ * like a shine on plastic. The rows count up from zero instead — one row per bar — and the number
+ * that has just landed gives a push on its beat.
+ */
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip strong {
+  animation: wrapped-count-pop var(--beat-ms, 500ms) cubic-bezier(0.2, 0.9, 0.25, 1) infinite;
+  animation-delay: calc(-1 * var(--beat-phase, 0ms) + var(--i, 0) * var(--beat-ms, 500ms));
+}
+
+@keyframes wrapped-count-pop {
+  0% {
+    scale: 1.1;
+  }
+  24%,
+  100% {
+    scale: 1;
+  }
+}
+
+/* ----------------------------------------------------- ten chapters, not ten pages */
+
+/*
+ * **The deck stopped being a document.**
+ *
+ * Three things made ten carefully different screens read as ten pages of one: a progress bar across
+ * the top, a "4 / 10" along the bottom, and the same blurred slide-in on every arrival. The bar and
+ * the count are gone — a chapter numbers itself, in its own type, in its own corner — and the
+ * entrance now belongs to the chapter instead of to the deck.
+ *
+ * So no two chapters arrive the same way: the cover lifts, the total rises off the floor, the line
+ * wipes open downwards, the origins are dealt from the side, the hours grow out of their own
+ * baseline, the dial zooms in, the long haul slides across, the look simply cuts, the board wipes
+ * across sideways, and the close settles slowly.
+ */
+
+.wrapped-sound {
+  margin-left: auto;
+}
+
+/*
+ * **The counter is back.**
+ *
+ * Removing the "4 / 10" was my call and it was wrong: the number of the chapter is not the same thing
+ * as a page count, and taking it away left the story with no sense of how far in it was. It is back as
+ * a chapter count in the chapter's own face — "04 / 10" — with the tracking pulled in so it reads as
+ * one figure rather than two letters spaced apart.
+ */
+.wrapped-chapter {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.62;
+}
+
+/* A chapter puts its number where that chapter wants it, not where a reader would expect a page. */
+.wrapped-stage[data-chapter='pair'] .wrapped-chapter,
+.wrapped-stage[data-chapter='hour'] .wrapped-chapter,
+.wrapped-stage[data-chapter='longest'] .wrapped-chapter,
+.wrapped-stage[data-chapter='lines'] .wrapped-chapter {
+  margin-left: auto;
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-chapter,
+.wrapped-stage[data-chapter='close'] .wrapped-chapter {
+  margin-inline: auto;
+}
+
+.wrapped-body[data-chapter='cover'] { animation: wrapped-ch-lift 900ms var(--ease-out) both; }
+.wrapped-body[data-chapter='total'] { animation: wrapped-ch-floor 820ms var(--ease-out) both; }
+.wrapped-body[data-chapter='pair'] { animation: wrapped-ch-wipe-down 780ms var(--ease-out) both; }
+.wrapped-body[data-chapter='origin'] { animation: wrapped-ch-deal 720ms var(--ease-out) both; }
+.wrapped-body[data-chapter='hour'] { animation: wrapped-ch-grow 820ms var(--ease-out) both; transform-origin: bottom center; }
+.wrapped-body[data-chapter='direct'] { animation: wrapped-ch-zoom 860ms var(--ease-out) both; }
+.wrapped-body[data-chapter='longest'] { animation: wrapped-ch-slide 760ms var(--ease-out) both; }
+.wrapped-body[data-chapter='look'] { animation: wrapped-ch-cut 340ms linear both; }
+.wrapped-body[data-chapter='lines'] { animation: wrapped-ch-wipe-across 740ms var(--ease-out) both; }
+.wrapped-body[data-chapter='close'] { animation: wrapped-ch-settle 1100ms var(--ease-out) both; }
+
+@keyframes wrapped-ch-lift {
+  from { opacity: 0; transform: translateY(7%); }
+}
+
+@keyframes wrapped-ch-floor {
+  from { opacity: 0; transform: translateY(18%); }
+}
+
+@keyframes wrapped-ch-wipe-down {
+  from { opacity: 0.2; clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0); }
+}
+
+@keyframes wrapped-ch-deal {
+  from { opacity: 0; transform: translateX(10%) rotate(1.4deg); }
+}
+
+@keyframes wrapped-ch-grow {
+  from { opacity: 0; transform: scaleY(0.86); }
+}
+
+@keyframes wrapped-ch-zoom {
+  from { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes wrapped-ch-slide {
+  from { opacity: 0; transform: translateX(-10%); }
+}
+
+@keyframes wrapped-ch-cut {
+  from { opacity: 0; }
+}
+
+@keyframes wrapped-ch-wipe-across {
+  from { opacity: 0.2; clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+@keyframes wrapped-ch-settle {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+/*
+ * **Chapter nine is a board, not a second set of tickets.**
+ *
+ * Pages four and nine were both lists of rounded cards with a number on the right, so one of them had
+ * to stop being a card. This one is a departure board: hairline rules, no boxes, upper case, the
+ * numbers set in mono — the thing you read while you wait — where page four is three paper tickets.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  gap: 0;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 0;
+  background: none;
+  padding: clamp(16px, 4vh, 30px) 0;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: clamp(12px, 3.1vw, 14px);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips > .wrapped-chip:last-child {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: clamp(15px, 3.8vw, 18px);
+  letter-spacing: 0.04em;
+}
+
+/* The last chapter is the only one that speaks from the middle of the screen. */
+.wrapped-body[data-chapter='close'] {
+  justify-items: center;
+  text-align: center;
+}
+
+.wrapped-body[data-chapter='close'] .wrapped-kicker {
+  justify-self: center;
+}
+
+.wrapped-body[data-chapter='close'] .wrapped-line {
+  max-width: 26ch;
+}
+
+.wrapped-body[data-chapter='close'] .wrapped-note {
+  max-width: 34ch;
+}
+
+/*
+ * **The numeral is set in the chapter's own voice.**
+ *
+ * A chapter's number is not a page number, so it is not set in the deck's default face either: the
+ * total counts in a departure-display mono, the line's is a diagram label, the dial's is a serif, the
+ * look's is a fashion serif. The mark belongs to the chapter that carries it.
+ */
+.wrapped-stage[data-chapter='total'] .wrapped-chapter {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-chapter {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.22em;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chapter {
+  font-family: 'Work Sans', sans-serif;
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-chapter {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-chapter {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-chapter {
+  font-family: 'Archivo', sans-serif;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-chapter {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 16px;
+  opacity: 0.95;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chapter {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+.wrapped-stage[data-chapter='close'] .wrapped-chapter {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------- the lines chapter */
+/*
+ * **A page whose rows were pulled a screen apart.**
+ *
+ * Each of the chapter's rows was given an equal share of the whole page, so "700" and "800" sat alone
+ * in acres of paper with nothing but a count beside them, and the sentence that belongs to the line
+ * name fell to the bottom, away from the name. The name, its rule and its sentence now sit together at
+ * the top, the runners-up follow as compact rows, and the tally keeps the foot of the page.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto max-content auto;
+  align-content: center;
+  gap: clamp(8px, 1.6vh, 14px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-kicker {
+  grid-row: 1;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-big {
+  grid-row: 2;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-line {
+  grid-row: 3;
+  max-width: 26ch;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-row: 4;
+  align-self: stretch;
+  align-content: start;
+  grid-auto-rows: auto;
+  gap: 0;
+  margin-top: clamp(6px, 1.8vh, 16px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: clamp(14px, 3vh, 22px) 0;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-aside {
+  grid-row: 5;
+  margin-top: clamp(10px, 2.6vh, 22px);
+}
+
+
+/* ==========================================================================
+ * **The bar at the top, and the page as two halves.**
+ *
+ * One segment per chapter: the ones behind you are solid, the one you are on fills as its own song
+ * plays, and the ones ahead are quiet. The tap halves below it are not drawn at all — the whole page
+ * is the target, and a faint edge on each side would only add two boxes to a screen that is meant to
+ * be one picture.
+ * ========================================================================== */
+
+.wrapped-progress {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: none;
+  gap: 4px;
+  margin: 0 0 clamp(8px, 1.6vh, 14px);
+}
+
+.wrapped-progress__seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 24%, transparent);
+}
+
+.wrapped-progress__seg.is-done {
+  background: currentColor;
+}
+
+.wrapped-progress__seg i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: currentColor;
+  animation: wrapped-progress-fill var(--len, 15s) linear forwards;
+}
+
+@keyframes wrapped-progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/*
+ * The bar is the story's clock, so it is exempt from the app's motion reductions like the rest of the
+ * deck: a three-pixel line filling is not a movement anybody needs protecting from, and a bar stuck
+ * empty is a bar that lies about where the story is.
+ */
+.wrapped-stage.is-still .wrapped-progress__seg i,
+:root[data-motion='reduced'] .wrapped-stage .wrapped-progress__seg i {
+  animation: wrapped-progress-fill var(--len, 15s) linear forwards !important;
+}
+
+/* The page is one target: the halves are only ever touched, never seen. */
+.wrapped-scene {
+  cursor: pointer;
+}
+
+/*
+ * **The cards on page four are paper, not glass.**
+ *
+ * The dot bed is the page's ground, so the cards have to be opaque for it to read as a ground: left
+ * translucent, the dots showed through them and crossed the station names, which is a texture landing
+ * on top of the words it was meant to sit under. Solid paper keeps the dots in the margins, where they
+ * belong, and the cards keep their tint and their shadow by being a shade off the page.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  background: color-mix(in srgb, #f4ede1 94%, #241c14 6%);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-field--bed i {
+  opacity: 0.3;
+}
+
+/* ---------------------------------------------- the dotted ground, as it always was */
+/*
+ * Lifted unchanged from the version that had it on every chapter: one-pixel dots on a three-pixel grid
+ * at seven percent, fixed under everything. It is a texture, not an ornament, which is why it is
+ * invisible until you look for it and why nothing on the page has to move aside for it.
+ */
+.wrapped-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 0.07;
+  z-index: 0;
+}
+
+/* The sound report: small, plain, and only there when it is asked for. */
+.wrapped-diag {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+
+/* ==========================================================================
+ * **The audit of ten chapters: what the fifty screenshots showed, and the repair.**
+ *
+ * Each block below is one thing the steerer's five-moments-per-chapter pass found, fixed where it
+ * happens. The order is the order of the deck: a veil over the look, a field over the total, a unit
+ * word stranded on the rail, two tickets stretched into billboards, an hour told backwards, a dial
+ * wider than the phone, and the foot of every page too tight to the chapter count.
+ * ========================================================================== */
+
+/* 1 · Nothing painted on a page may sit over a figure on it. */
+.wrapped-body > .wrapped-kicker,
+.wrapped-body > .wrapped-big,
+.wrapped-body > .wrapped-days,
+.wrapped-body > .wrapped-line,
+.wrapped-body > .wrapped-note,
+.wrapped-body > .wrapped-aside,
+.wrapped-body > .wrapped-ruler,
+.wrapped-body > .wrapped-bars,
+.wrapped-body > .wrapped-chips,
+.wrapped-body > .wrapped-arc,
+.wrapped-body > .wrapped-route,
+.wrapped-body > .wrapped-stretch {
+  position: relative;
+  z-index: 2;
+}
+
+/*
+ * 2 · The look's veil was painted over its own words.
+ *
+ * The photograph's gradient sits at the same depth as the scene, and being generated last it painted
+ * on top of it: the title, the sentence and the days were all under a 92% black wash at the foot of
+ * the page, which is why the number looked grey instead of white. The veil goes under the words.
+ */
+.wrapped-stage[data-chapter='look']::after {
+  z-index: 0;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big,
+.wrapped-stage[data-chapter='look'] .wrapped-days,
+.wrapped-stage[data-chapter='look'] .wrapped-line {
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.62);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  opacity: 0.9;
+}
+
+/* 3 · The total: the field of journeys stops short of the number it belongs to. */
+.wrapped-stage[data-chapter='total'] .wrapped-field {
+  -webkit-mask-image: linear-gradient(180deg, #000 0 46%, rgba(0, 0, 0, 0.55) 74%, transparent 97%);
+  mask-image: linear-gradient(180deg, #000 0 46%, rgba(0, 0, 0, 0.55) 74%, transparent 97%);
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-field i {
+  width: 4px;
+  height: 4px;
+}
+
+/* 4 · The rail's unit word was a whisper half a screen from its number. */
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count i {
+  font-size: 0.26em;
+  margin-left: 6px;
+  opacity: 0.82;
+}
+
+/*
+ * 5 · Page four was two billboards.
+ *
+ * The tickets were told to take an equal share of the whole page, which worked with three origins and
+ * turned into two 250px boxes with a name and a number stranded at the top of each when the year had
+ * two. A ticket is now as tall as its paper needs and the pair sits centred.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-chips {
+  grid-auto-rows: auto;
+  align-content: center;
+  gap: clamp(10px, 2.4vh, 20px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  min-height: clamp(96px, 16vh, 140px);
+}
+
+/*
+ * 6 · The hour was told backwards.
+ *
+ * The sentence gave the answer, the graph drew it, and the hour itself arrived last at the foot of the
+ * page. The clock is the headline now, the sentence explains it, and the graph fills what is left.
+ */
+.wrapped-body--bars {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+}
+
+.wrapped-body--bars .wrapped-kicker {
+  order: 1;
+}
+
+.wrapped-body--bars .wrapped-big {
+  order: 2;
+}
+
+.wrapped-body--bars .wrapped-line {
+  order: 3;
+}
+
+.wrapped-body--bars .wrapped-ruler {
+  order: 4;
+  margin-top: clamp(2px, 1vh, 8px);
+}
+
+.wrapped-body--bars .wrapped-bars {
+  order: 5;
+  align-self: stretch;
+  min-height: 160px;
+}
+
+/* 7 · The dial was wider than the phone, so it read as a cropped mistake. */
+.wrapped-stage[data-chapter='direct'] .wrapped-arc {
+  width: min(88vw, 520px);
+  margin-inline: auto;
+}
+
+/*
+ * 8 · The long haul carried its sentence at the foot of a stretched row.
+ *
+ * The trip, the two ends and the sentence were pulled apart by a row that took all the spare height,
+ * which left the page half empty under the line. The block now sits together in the middle.
+ */
+.wrapped-body--stretch {
+  grid-template-rows: repeat(5, auto);
+  align-content: center;
+  gap: clamp(14px, 2.8vh, 26px);
+}
+
+/* 9 · The foot of every page: the chapter count had the buttons pressed against it. */
+.wrapped-stage .wrapped-foot {
+  padding-top: clamp(14px, 2.8vh, 26px);
+}
+
+.wrapped-foot:has(.wrapped-foot__actions) {
+  gap: 16px;
+  row-gap: 14px;
+}
+
+/* 10 · The top bar was a row of dashes you had to go looking for. */
+.wrapped-progress__seg {
+  height: 4px;
+  background: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.wrapped-progress__seg.is-now {
+  background: color-mix(in srgb, currentColor 44%, transparent);
+}
+
+.wrapped-progress__seg.is-done {
+  background: currentColor;
 }

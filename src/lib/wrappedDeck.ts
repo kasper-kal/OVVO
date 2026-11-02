@@ -14,18 +14,36 @@
 import { getStop } from '../data/stops';
 import type { Language } from '../state/types';
 import { formatDuration } from './format';
-import { styleById } from './styles';
+import { styleById, stylePhotoPath } from './styles';
 import type { YearTally } from './wrapped';
+import type { Track } from './wrappedSound';
 
 /** The colour a chapter is painted in. Each is a token, so the look still shows through. */
 export type Tone = 'ink' | 'cream' | 'sage' | 'coral';
 
-export type ChapterKind = 'cover' | 'number' | 'route' | 'bars' | 'arc' | 'chips' | 'close';
+export type ChapterKind =
+  | 'cover'
+  | 'number'
+  | 'route'
+  | 'bars'
+  | 'arc'
+  | 'chips'
+  | 'stretch'
+  | 'word'
+  | 'close';
 
 export interface Chapter {
   id: string;
   kind: ChapterKind;
   tone: Tone;
+  /**
+   * The piece of music under this chapter.
+   *
+   * Chosen by mood rather than by order, so the story leans where it should: the cover opens on the
+   * grandest track, the line you kept coming back to gets the warmest groove, the look you wore gets
+   * the darkest one, and the last screen resolves on an acoustic guitar instead of a drop.
+   */
+  track: Track;
   /** The small line above the number. */
   kicker: string;
   /** What the chapter says, large. */
@@ -48,6 +66,10 @@ export interface Chapter {
   chips?: { label: string; detail: string }[];
   hearts?: number;
   boards?: number;
+  /** One dot per journey, for the chapter that counts them. */
+  dots?: number;
+  /** The photograph of the look that was worn, when that look has one. */
+  photo?: string;
 }
 
 /** How many journeys are enough to make a story. */
@@ -88,6 +110,7 @@ export function buildStory({
         id: 'cover',
         kind: 'cover',
         tone: 'ink',
+        track: 'luxury-anthem',
         kicker: 'OVVO Wrapped',
         big: String(year),
         line: 'Your year in journeys you planned.',
@@ -96,6 +119,8 @@ export function buildStory({
         id: 'thin',
         kind: 'close',
         tone: 'cream',
+        /* A thin year gets the quietest piece there is: no fanfare for a story that has not happened. */
+        track: 'acoustic',
         kicker: String(year),
         big: String(runs.length),
         count: runs.length,
@@ -142,6 +167,7 @@ export function buildStory({
       id: 'cover',
       kind: 'cover',
       tone: 'ink',
+      track: 'luxury-anthem',
       kicker: 'OVVO Wrapped',
       big: String(year),
       line: 'Your year in journeys you planned.',
@@ -150,9 +176,12 @@ export function buildStory({
       id: 'total',
       kind: 'number',
       tone: 'ink',
+      track: 'electro-dance',
       kicker: 'The year in one number',
       big: String(runs.length),
       count: runs.length,
+      /* The year drawn as itself: one dot per journey, behind the number that counts them. */
+      dots: runs.length,
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
     },
     pair
@@ -160,10 +189,15 @@ export function buildStory({
           id: 'pair',
           kind: 'route',
           tone: 'coral',
+          track: 'afrobeat',
           kicker: 'The line you kept coming back to',
           big: String(pair.count),
           count: pair.count,
-          line: `${pair.count === 1 ? 'time' : 'times'} from ${nameOf(pairFrom)} to ${nameOf(pairTo)}.`,
+          /*
+           * The two stations are printed on the rail itself, huge, so the sentence would only say
+           * them again. The count keeps its unit and nothing else is repeated.
+           */
+          line: pair.count === 1 ? 'time' : 'times',
           route: { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count },
         }
       : null,
@@ -172,6 +206,7 @@ export function buildStory({
           id: 'origin',
           kind: 'chips',
           tone: 'cream',
+          track: 'indie-pop',
           kicker: 'Where you set off',
           big: nameOf(originList[0].value),
           line: `${originList[0].count} ${originList[0].count === 1 ? 'journey began' : 'journeys began'} here.`,
@@ -185,6 +220,7 @@ export function buildStory({
       id: 'hour',
       kind: 'bars',
       tone: 'sage',
+      track: 'electropop',
       kicker: 'Your hour',
       big: `${peak < 10 ? '0' : ''}${peak}:00`,
       line: `${hours[peak]} ${hours[peak] === 1 ? 'journey' : 'journeys'} asked to leave in that hour, more than any other.`,
@@ -195,33 +231,41 @@ export function buildStory({
       id: 'direct',
       kind: 'arc',
       tone: 'ink',
+      track: 'melodic-trap',
       kicker: 'Straight through',
       big: `${directPct}%`,
       count: directPct,
       line:
         direct === 1
-          ? 'of your journeys had no changes at all. One clean run.'
-          : `of your journeys had no changes at all. ${direct} of ${runs.length}.`,
+          ? 'One journey, and it had no changes at all.'
+          : `${direct} of ${runs.length} journeys had no changes at all.`,
       arc: directShare,
     },
     longest.minutes
       ? {
           id: 'longest',
-          kind: 'number',
+          kind: 'stretch',
           tone: 'coral',
+          track: 'hip-hop-anthem',
           kicker: 'The long haul',
           big: formatDuration(longest.minutes, language),
-          line: `on the way to ${nameOf(longest.to)}, the longest trip you planned.`,
+          line: 'the longest trip you planned this year.',
+          route: { from: nameOf(longest.from), to: nameOf(longest.to), count: 1 },
         }
       : null,
     named
       ? {
           id: 'look',
-          kind: 'number',
+          kind: 'word',
           tone: 'cream',
+          track: 'dark-trap',
           kicker: 'The look you wore',
           big: named,
-          line: `${wearDays} ${wearDays === 1 ? 'day' : 'days'} in this look.`,
+          /* The days are the number the chapter turns on, so they get the size a number gets. */
+          count: wearDays,
+          line: 'in this look.',
+          /* The page wears the look too: its own photograph, full bleed, behind the words. */
+          photo: lookList[0] ? stylePhotoPath(lookList[0].value) : undefined,
         }
       : null,
     lineList.length
@@ -229,10 +273,21 @@ export function buildStory({
           id: 'lines',
           kind: 'chips',
           tone: 'sage',
+          track: 'rap-anthem',
           kicker: 'Your lines',
           big: lineList[0].value,
-          line: lineList[0].count === 1 ? 'journey on it.' : 'journeys on it.',
-          chips: lineList.slice(1).map((item) => ({ label: item.value, detail: `${item.count}` })),
+          /* The count belongs to the line above it, so it is in the sentence, not left out of it. */
+          line:
+            lineList[0].count === 1
+              ? '1 journey on it.'
+              : `${lineList[0].count} journeys on it.`,
+          /* A bare "22" on a board row is not an answer: the row says what the number counts. */
+          chips: lineList
+            .slice(1)
+            .map((item) => ({
+              label: item.value,
+              detail: item.count === 1 ? '1 journey' : `${item.count} journeys`,
+            })),
           hearts: tally.hearts,
           boards: tally.boards.length,
         }
@@ -241,6 +296,7 @@ export function buildStory({
       id: 'close',
       kind: 'close',
       tone: 'ink',
+      track: 'acoustic',
       kicker: String(year),
       big: 'That was the year.',
       line: 'Every number here comes from journeys you planned in this app, and nothing else.',

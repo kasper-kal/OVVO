@@ -1,130 +1,427 @@
 /**
- * **The soundtrack, made where it is needed.**
+ * **The score: one track per chapter, played plainly, and never a track before a tap.**
  *
- * A Wrapped with a score needs music, and OVVO ships no audio files: a licensed track is not ours to
- * ship, and half a megabyte of mp3 for one screen is a poor trade on a phone opening a timetable.
+ * Ten short pieces live in `public/music`, one for each chapter of the story. They are the steerer's
+ * own licensed music, so the deck carries a real score.
  *
- * So the sound is synthesised, in the browser, from nothing: a slow pad that holds under the whole
- * story and one short chime as each chapter arrives, both tuned to a pentatonic scale so no two
- * chapters can ever clash. It costs no bytes, works offline, and stops the moment the deck closes.
+ * **These are plain `<audio>` elements, and nothing else.** The score used to be routed through a Web
+ * Audio graph — two players, a gain node each, a master under them — so chapters could cross-fade and
+ * the level could be set below the phone's own volume. On a desktop browser it worked. On the steerer's
+ * phone it reported every sign of health — a context running, a player moving at eleven seconds, no
+ * refusal — and made no sound at all, which is the known way a media element routed through that graph
+ * goes quiet. The graph is gone. Each element carries its own `volume`, faded in small steps, which is a
+ * plainer thing that no layer between the file and the speaker can silently drop.
  *
- * Three rules it keeps: **nothing plays before a tap** (the deck asks, the answer is the gesture the
- * browser needs), **the traveller can silence it** and that choice holds for the session, and
- * **nothing is written to storage** — sound is not a preference about the app, it is a switch on
- * one screen.
+ * Two players, not ten, so a chapter change bends from one track into the next; the middle of the story
+ * is one song fading under another rather than a stop and a start.
+ *
+ * **The track is the clock.** Each chapter is scored, so its song ending is the signal that the chapter
+ * is over, and the deck turns the page a little before the last bar. A muted story has its own clock in
+ * the deck, so silence never looks like a missing auto-advance.
  */
 
-let context: AudioContext | null = null;
-let master: GainNode | null = null;
-let pad: { stop: () => void } | null = null;
-let muted = false;
+/** The chapters' tracks, named after the music rather than after the chapter, so they can be swapped. */
+export type Track =
+  | 'luxury-anthem'
+  | 'electro-dance'
+  | 'afrobeat'
+  | 'indie-pop'
+  | 'electropop'
+  | 'melodic-trap'
+  | 'hip-hop-anthem'
+  | 'dark-trap'
+  | 'rap-anthem'
+  | 'acoustic';
 
-/** The pentatonic scale the whole score is drawn from: no note in it can sound wrong with another. */
-const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
-
-function audio(): AudioContext | null {
-  if (typeof window === 'undefined') return null;
-  if (context) return context;
-  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctor) return null;
-  try {
-    context = new Ctor();
-  } catch {
-    /* A browser that refuses to make an audio context still gets the whole story, silently. */
-    return null;
-  }
-  master = context.createGain();
-  master.gain.value = muted ? 0 : 0.5;
-  master.connect(context.destination);
-  return context;
+/** Where a track is fetched from. Files sit in `public/music`, so the base is the app's own. */
+function urlOf(track: Track): string {
+  return `${import.meta.env.BASE_URL}music/${track}.mp3`;
 }
 
-/** A note of the scale, `index` steps up from the root, as a frequency in hertz. */
-function note(index: number, root = 220): number {
-  const step = SCALE[index % SCALE.length] + 12 * Math.floor(index / SCALE.length);
-  return root * Math.pow(2, step / 12);
+/**
+ * **Every track, brought to the same average decibel.**
+ *
+ * **Loud enough to be music.** The ten pieces were not mastered together, and the first version of this
+ * table brought them all to -22 dBFS and then turned the whole score down another five decibels. Measured
+ * on a phone that is about -27 dBFS, which is not a quiet score, it is a score that sounds like nothing at
+ * all: the report said "playing", and the speaker said silence. Every file is now brought to -16 dBFS,
+ * a normal listening level, and the extra master turn-down is gone. The three quiet files were lifted in
+ * the files themselves, where a boost above full volume is possible.
+ */
+const TRIM: Record<Track, number> = {
+  'luxury-anthem': 0.859,
+  'electro-dance': 0.839,
+  'afrobeat': 0.461,
+  'indie-pop': 1,
+  'electropop': 1,
+  'melodic-trap': 0.475,
+  'hip-hop-anthem': 0.75,
+  'dark-trap': 1,
+  'rap-anthem': 0.5,
+  'acoustic': 0.945,
+};
+
+/** How far under the phone's own volume the whole score sits. */
+const LEVEL = 1;
+const FADE_IN = 0.9;
+const FADE_OUT = 0.7;
+
+/** How long before a song ends the deck turns the page. */
+const TURN_EARLY = 0.5;
+
+/** The volume a chapter's track is faded to: its trim, scaled under the phone's own volume. */
+function targetVolume(track: Track): number {
+  return Math.max(0, Math.min(1, TRIM[track] * LEVEL));
 }
 
-/** The pad: two quiet, slightly detuned sines and a filter opened only a little. */
-function startPad(): void {
-  const ctx = audio();
-  if (!ctx || !master || pad) return;
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 700;
-  gain.connect(filter);
-  filter.connect(master);
+interface Slot {
+  el: HTMLAudioElement;
+  /** What is loaded in this element, so a prefetched track is not fetched twice. */
+  track: Track | null;
+}
 
-  const voices = [note(0, 110), note(3, 110), note(5, 220)].map((frequency, index) => {
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = frequency * (index === 2 ? 1.003 : 1);
-    osc.connect(gain);
-    osc.start();
-    return osc;
+let slots: Slot[] = [];
+let active: Slot | null = null;
+let current: Track | null = null;
+let playing = false;
+let onEnd: (() => void) | null = null;
+let turned = false;
+/** The last few things the score was asked to do, newest last, for the report. */
+const calls: string[] = [];
+
+function note(line: string): void {
+  const at = typeof performance !== 'undefined' ? (performance.now() / 1000).toFixed(1) : '0';
+  calls.push(`${at}s ${line}`);
+  if (calls.length > 6) calls.shift();
+}
+
+/** The last thing a play() said when it would not start, for the report. */
+let refusal: string | null = null;
+
+/** Volume fades in flight, so a new fade cancels the last one on the same element. */
+const fades = new Map<HTMLAudioElement, number>();
+
+/**
+ * Fade an element to a volume, in small steps.
+ *
+ * A media element's `volume` has no ramp of its own, and setting it once at the end would click. Twenty
+ * five steps a second is under the ear's notice and cheap enough to run on a phone.
+ */
+function fade(el: HTMLAudioElement, to: number, seconds: number): void {
+  const running = fades.get(el);
+  if (running) window.clearInterval(running);
+  const from = el.volume;
+  const target = Math.max(0, Math.min(1, to));
+  const steps = Math.max(1, Math.round(seconds * 25));
+  let step = 0;
+  const id = window.setInterval(() => {
+    step += 1;
+    el.volume = Math.max(0, Math.min(1, from + (target - from) * (step / steps)));
+    if (step >= steps) {
+      window.clearInterval(id);
+      fades.delete(el);
+    }
+  }, (seconds * 1000) / steps);
+  fades.set(el, id);
+}
+
+/** One player: an audio element, its own volume, and the two events the score turns on. */
+function makeSlot(): Slot {
+  const el = new Audio();
+  /* A chapter's song plays once: its end is what tells the deck to turn the page. */
+  el.loop = false;
+  el.preload = 'auto';
+  el.setAttribute('playsinline', '');
+  el.volume = 0;
+  /*
+   * **The player is in the page, and invisible.**
+   *
+   * An audio element that exists only in memory is refused by some phone browsers — the classic reason a
+   * score plays on a desktop and is silent on a phone. It is a one-pixel, transparent element at the end
+   * of the body: present for the browser, invisible to the traveller, and never in the way of a tap.
+   */
+  el.setAttribute('aria-hidden', 'true');
+  el.style.position = 'fixed';
+  el.style.left = '0';
+  el.style.bottom = '0';
+  el.style.width = '1px';
+  el.style.height = '1px';
+  el.style.opacity = '0';
+  el.style.pointerEvents = 'none';
+  if (typeof document !== 'undefined' && document.body) document.body.appendChild(el);
+  const slot: Slot = { el, track: null };
+  /*
+   * The page turns just before the song does.
+   *
+   * `timeupdate` fires several times a second, which is fine-grained enough to catch the last half
+   * second, and it works while the tab is in front. `ended` stays as the fallback for a browser that
+   * skips the last update, and the `turned` flag makes sure one song never asks twice.
+   */
+  el.addEventListener('timeupdate', () => {
+    if (slot !== active || !playing || turned) return;
+    const { duration, currentTime } = el;
+    if (!Number.isFinite(duration) || duration <= TURN_EARLY) return;
+    if (currentTime >= duration - TURN_EARLY) {
+      turned = true;
+      onEnd?.();
+    }
   });
-
-  /* Two seconds to arrive, so it is under the cover before the story starts. */
-  gain.gain.setTargetAtTime(0.09, ctx.currentTime, 0.8);
-  pad = {
-    stop: () => {
-      const now = ctx.currentTime;
-      gain.gain.setTargetAtTime(0, now, 0.15);
-      voices.forEach((osc) => osc.stop(now + 0.8));
-    },
-  };
+  el.addEventListener('ended', () => {
+    if (slot !== active || !playing || turned) return;
+    turned = true;
+    onEnd?.();
+  });
+  slots = [...slots, slot];
+  return slot;
 }
 
-/** Ask for sound. Must be called from a gesture: a browser will not start audio without one. */
-export function startSound(): void {
-  const ctx = audio();
-  if (!ctx) return;
-  if (ctx.state === 'suspended') void ctx.resume();
-  muted = false;
-  if (master) master.gain.setTargetAtTime(0.5, ctx.currentTime, 0.1);
-  startPad();
+function ensureSlots(): Slot[] {
+  if (slots.length === 0) makeSlot();
+  if (slots.length === 1) makeSlot();
+  return slots;
 }
 
-/** Silence it, and remember that for this session. */
-export function stopSound(): void {
-  muted = true;
-  if (context && master) master.gain.setTargetAtTime(0, context.currentTime, 0.08);
-  if (pad) {
-    pad.stop();
-    pad = null;
+/** Load a track into a player, unless it is already there. */
+function load(slot: Slot, track: Track): void {
+  if (slot.track === track) return;
+  slot.track = track;
+  slot.el.src = urlOf(track);
+  turned = false;
+}
+
+/** The player a new track should use: one that already holds it, or the one that is not playing. */
+function pick(track: Track): Slot | null {
+  const ready = ensureSlots();
+  if (ready.length === 0) return null;
+  const holds = ready.find((slot) => slot !== active && slot.track === track);
+  if (holds) return holds;
+  const idle = ready.find((slot) => slot !== active);
+  return idle ?? makeSlot();
+}
+
+/** Quietly fetch the chapter after this one, so the next swipe has nothing to wait for. */
+function prefetch(next: Track | undefined): void {
+  if (!next) return;
+  const idle = ensureSlots().find((slot) => slot !== active);
+  if (idle) load(idle, next);
+}
+
+/**
+ * **Start a player, but never a player that is already starting.**
+ *
+ * Begin starts the chapter's song, and the chapter's own effect asks the score for that same song a
+ * moment later. Both calls used to go through `play()`, and a phone aborts the first play when a second
+ * arrives on the same element while it is still loading: the element ends up stopped while the score's
+ * state says "on". That is why the music only arrived after the switch had been tapped off and on — the
+ * second tap was the first play that nothing interrupted.
+ */
+function begin(slot: Slot): void {
+  note(`play ${slot.track ?? 'none'}${slot.el.paused ? '' : ' (already playing)'}`);
+  if (!slot.el.paused) return;
+  slot.el.volume = 0;
+  const started = slot.el.play();
+  if (started) {
+    void started.catch((error: unknown) => {
+      refusal = String((error as Error)?.name || error);
+      note(`refused: ${refusal}`);
+    });
   }
+}
+
+/**
+ * **If the song did not start, ask again.**
+ *
+ * A phone refuses a play that arrives while the file is still loading: the element is left paused, the
+ * score says "on", and nothing retries it. The debug view of this deck sounded fine only because it
+ * re-renders twice a second and kept asking; the real page asked once. So the retry lives here now, four
+ * attempts over three seconds, and it stops the moment the player is moving.
+ */
+const retries = new Map<HTMLAudioElement, number>();
+
+function ensurePlaying(slot: Slot): void {
+  const running = retries.get(slot.el);
+  if (running) window.clearTimeout(running);
+  let attempt = 0;
+  const tryAgain = () => {
+    if (!playing || slot !== active) return;
+    if (!slot.el.paused) return;
+    if (attempt >= 4) return;
+    attempt += 1;
+    note(`retry ${attempt} ${slot.track ?? 'none'}`);
+    const started = slot.el.play();
+    if (started) void started.catch(() => undefined);
+    retries.set(slot.el, window.setTimeout(tryAgain, 600 * attempt));
+  };
+  retries.set(slot.el, window.setTimeout(tryAgain, 400));
+}
+
+/**
+ * Play a chapter's track, fading the one before it out underneath.
+ *
+ * `next` is only a hint: the chapter that follows, handed over so it can be warmed while this one
+ * plays. Missing it costs a little waiting, never a wrong song.
+ */
+function spin(track: Track, next?: Track): void {
+  /* A track already in the live player (rounding a chapter twice, or coming back from silence). */
+  const live = active && active.track === track ? active : null;
+  if (live) {
+    turned = false;
+    begin(live);
+    ensurePlaying(live);
+    fade(live.el, targetVolume(track), 0.35);
+    current = track;
+    prefetch(next);
+    return;
+  }
+
+  const incoming = pick(track);
+  if (!incoming) return;
+  load(incoming, track);
+  begin(incoming);
+  ensurePlaying(incoming);
+  fade(incoming.el, targetVolume(track), FADE_IN);
+
+  const leaving = active;
+  active = incoming;
+  current = track;
+  playing = true;
+
+  if (leaving && leaving !== incoming) {
+    fade(leaving.el, 0, FADE_OUT);
+    /* Fade first, stop after: stopping on the same beat as the fade leaves a hole in the middle. */
+    window.setTimeout(() => {
+      if (active !== leaving) {
+        leaving.el.pause();
+        leaving.track = null;
+      }
+    }, 1200);
+  }
+
+  window.setTimeout(() => prefetch(next), 1000);
+}
+
+/** Ask for the score. Must be called from a gesture: a browser will not start audio without one. */
+export function startSound(track: Track, next?: Track): void {
+  note(`startSound ${track}`);
+  playing = true;
+  spin(track, next);
+}
+
+/** Silence it for the session, and leave nothing playing behind another screen. */
+export function stopSound(): void {
+  note('stopSound');
+  playing = false;
+  retries.forEach((id) => window.clearTimeout(id));
+  retries.clear();
+  slots.forEach((slot) => fade(slot.el, 0, 0.15));
+  window.setTimeout(() => {
+    if (playing) return;
+    slots.forEach((slot) => slot.el.pause());
+  }, 260);
+}
+
+/**
+ * Called when the chapter's song reaches its end.
+ *
+ * One handler at a time, set by the deck while it is on screen and cleared when it leaves, so a
+ * finished track can never turn a page behind a closed story.
+ */
+export function whenTrackEnds(handler: (() => void) | null): void {
+  onEnd = handler;
+}
+
+/**
+ * Where the playing track is, in seconds, and which track it is.
+ *
+ * The deck puts its movement on this clock rather than on a timer of its own: a beat is only a beat if
+ * it comes from the song that is actually playing. Silence returns nothing.
+ */
+export function scoreTime(): { track: Track; seconds: number } | null {
+  if (!playing || !active || !active.track) return null;
+  return { track: active.track, seconds: active.el.currentTime };
 }
 
 /** Whether the score is currently allowed to make a sound. */
 export function soundIsOn(): boolean {
-  return !muted;
+  return playing;
 }
 
 /**
- * One chime, as a chapter arrives.
+ * A chapter arrived: move the score to its track.
  *
- * Three short notes, rising with the story: the same figure each time, so the sound is a signature
- * rather than a jingle per screen, and the pitch climbs a step as the year is told.
+ * Silent unless the traveller has asked for sound, so the cover's Begin and the switch in the corner
+ * are the only two ways music ever starts.
  */
-export function chime(chapter: number): void {
-  const ctx = audio();
-  if (!ctx || !master || muted) return;
-  const start = ctx.currentTime + 0.02;
-  const base = 2 + chapter;
+export function playChapter(track: Track, next?: Track): void {
+  note(`playChapter ${track}${playing ? '' : ' (silent)'}`);
+  if (!playing) return;
+  spin(track, next);
+}
 
-  for (let voice = 0; voice < 3; voice += 1) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = voice === 2 ? 'triangle' : 'sine';
-    osc.frequency.value = note(base + voice * 2, 440);
-    gain.gain.setValueAtTime(0, start + voice * 0.07);
-    gain.gain.linearRampToValueAtTime(0.16 - voice * 0.03, start + voice * 0.07 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + voice * 0.07 + 0.9);
-    osc.connect(gain);
-    gain.connect(master);
-    osc.start(start + voice * 0.07);
-    osc.stop(start + voice * 0.07 + 1);
+/**
+ * **Play it again, from the next touch.**
+ *
+ * A phone that refused a play leaves the story running in silence, and the only way back was to tap the
+ * sound switch off and on. This is that repair without the dance: a touch while the score should be
+ * sounding starts the chapter the traveller is on, in that touch, if it is not already playing.
+ */
+export function resumeSound(track: Track, next?: Track): void {
+  note(`resume ${track}`);
+  if (!playing) return;
+  const live = active;
+  if (live && live.track === track && !live.el.paused && live.el.currentTime > 0.4) return;
+  spin(track, next);
+}
+
+/**
+ * **What the score is actually doing, in words, for a phone I cannot hear.**
+ *
+ * Shown behind `?sound=debug`. It names the file, whether the player is moving, what its volume is, and
+ * what a refusal called itself — the four things that separate one cause from another.
+ */
+export function soundDiagnostics(): string[] {
+  const lines: string[] = [];
+  lines.push('audio: plain elements');
+  lines.push(`score: ${playing ? 'on' : 'off'}`);
+  lines.push(`track: ${active?.track ?? 'none'}`);
+  if (active) {
+    const el = active.el;
+    lines.push(`player: ${el.paused ? 'paused' : 'playing'} at ${el.currentTime.toFixed(1)}s`);
+    lines.push(`volume: ${el.volume.toFixed(2)}${el.muted ? ' muted' : ''}`);
+    lines.push(`ready: ${el.readyState}${el.error ? ` error ${el.error.code}` : ''}`);
+  } else {
+    lines.push('player: none');
   }
+  lines.push(`refused: ${refusal ?? 'no'}`);
+  calls.slice(-4).forEach((line) => lines.push(line));
+  return lines;
+}
+
+/**
+ * **How long each piece runs, measured from the files themselves.**
+ *
+ * A chapter is over when its song is over, and a silent story still has to know when that would have
+ * been. Without it, a muted deck turned the story into a slideshow that had to be swiped.
+ */
+const TRACK_SECONDS: Record<Track, number> = {
+  'acoustic': 14.32,
+  'afrobeat': 14.42,
+  'dark-trap': 20.74,
+  'electro-dance': 20.3,
+  'electropop': 14.81,
+  'hip-hop-anthem': 16.4,
+  'indie-pop': 14.92,
+  'luxury-anthem': 15.61,
+  'melodic-trap': 13.32,
+  'rap-anthem': 13.7,
+};
+
+/** How long a chapter's song runs, in seconds. */
+export function trackSeconds(track: Track): number {
+  return TRACK_SECONDS[track];
+}
+
+/** The chapter that is playing, for the tests and for anyone reading the state. */
+export function currentTrack(): Track | null {
+  return current;
 }

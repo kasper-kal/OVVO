@@ -1,5 +1,28 @@
 # Credits
 
+## Music
+
+The score of OVVO Wrapped is the steerer's own music, uploaded to this repository in November 2026
+and licensed for commercial use in OVVO. Ten pieces, one per chapter. The files were renamed on the
+way in so the code names them by mood rather than by working title, and they sit in `public/music`:
+only the chapter being played, and the one after it, are ever fetched.
+
+| File | Chapter | Uploaded as |
+| ---- | ------- | ----------- |
+| `luxury-anthem.mp3` | The cover | High fashion luxury anthem |
+| `electro-dance.mp3` | The year in one number | Upbeat electronic dance track |
+| `afrobeat.mp3` | The line you kept coming back to | Smooth melodic Afrobeat track |
+| `indie-pop.mp3` | Where you set off | Upbeat retro indie pop |
+| `electropop.mp3` | Your hour | Energetic electropop dance track |
+| `melodic-trap.mp3` | Straight through | Melodic trap hip-hop |
+| `hip-hop-anthem.mp3` | The long haul | Energetic hip-hop anthem |
+| `dark-trap.mp3` | The look you wore | Dark, moody melodic trap |
+| `rap-anthem.mp3` | Your lines | Hard-hitting rap anthem |
+| `acoustic.mp3` | That was the year, and a year too thin to tell | Warm acoustic guitar melody |
+
+Every file was exported by the same tool at 224 to 256 kbps and runs 13 to 21 seconds, which is
+long enough to sit under a chapter and short enough that the whole score is 3.2 MB.
+
 One line per picture, as `public/style-photos/README.md` asks. Every file here is the owner's own
 upload from the `Wallpapers/` folder and from the `public/style-photos/` upload on GitHub, so there is
 no outside source to credit and no licence to check. The column that matters is the style, so a
@@ -53,3 +76,22 @@ use is ever fetched.
 | `sinterklaas.jpg` | Sinterklaas | The bishop on his white horse, two puppets at his shoulder, red robe and gold mitre. |
 | `new-year.jpg` | New Year | Fireworks bursting gold and red over a black sky. |
 | `easter.jpg` | Easter | A white rabbit in a basket of pastel eggs, sunlight on the wicker. |
+
+## Levels
+
+Measured as the average level of each whole file, then trimmed so the score holds one volume, at
+-22 dB. The range was nineteen decibels before and is a fraction of one after, which is why a chapter
+used to arrive louder than the one before it.
+
+| File | Average before | Trim | Average after |
+| ---- | -------------- | ---- | ------------- |
+| `luxury-anthem.mp3` | -14.7 dB | 0.432 | -22.0 dB |
+| `electro-dance.mp3` | -14.5 dB | 0.422 | -22.0 dB |
+| `afrobeat.mp3` | -9.0 dB | 0.224 | -22.0 dB |
+| `indie-pop.mp3` | -28.3 dB | 2.065 | -22.0 dB |
+| `electropop.mp3` | -18.6 dB | 0.676 | -22.0 dB |
+| `melodic-trap.mp3` | -9.5 dB | 0.237 | -22.0 dB |
+| `hip-hop-anthem.mp3` | -13.5 dB | 0.376 | -22.0 dB |
+| `dark-trap.mp3` | -19.1 dB | 0.716 | -22.0 dB |
+| `rap-anthem.mp3` | -10.2 dB | 0.257 | -22.0 dB |
+| `acoustic.mp3` | -15.7 dB | 0.484 | -22.0 dB |

@@ -80,7 +80,7 @@ export function demoYear(year: number): YearTally {
   /* A look worn most of the year, with two changes of heart in the spring. */
   const wears = [] as YearTally['wears'];
   const looks: Array<[string, number]> = [
-    ['tram', 96],
+    ['nostalgia', 96],
     ['marble', 38],
     ['arches', 12],
   ];
