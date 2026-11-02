@@ -1,23 +1,27 @@
 /**
- * **The old-browser notice, tested in a real browser instead of argued about.**
+ * **The old-browser notice, tested in a real browser.**
  *
  * The check in `index.html` exists for one reason: a browser too old to read the bundle draws
  * nothing at all, and a blank page with no explanation is the worst thing this app can show. So it
  * looks at the browser *before* the bundle arrives and shows a plain notice instead.
  *
- * The danger is the other way round: if the check ever guesses "too old" about a perfectly good
- * browser, it hides a working app. That is exactly what happened in an automated runner, where eval
- * is blocked by policy rather than absent, and the check could not tell the difference.
+ * The danger is the other way round: if the check guesses "too old" about a perfectly good browser,
+ * it hides a working app. That is what happened to an automated reviewer, whose sandbox refuses
+ * `new Function` by policy rather than for want of syntax.
  *
- * This proves the four answers in Chromium:
- *
- *   1. a normal browser                     → app mounts, notice hidden
- *   2. `?bypass_compat=1`                   → app mounts, notice never looked at
- *   3. eval blocked by policy (EvalError)   → inconclusive, so app mounts, notice hidden
- *   4. syntax it cannot parse (SyntaxError) → notice shown, which is the case it is for
+ * The honest way to test that is a **policy**, not a stubbed global: the page is served with a
+ * Content-Security-Policy that omits `unsafe-eval`, which is exactly what such a sandbox does. The
+ * test first proves eval really is blocked in that page, so it cannot pass by testing nothing.
  *
  *   node scripts/compat-check.mjs                       against the live site
  *   URL=http://127.0.0.1:3000/ node scripts/compat-check.mjs
+ *
+ * On this machine Chromium needs its system libraries on the loader path:
+ *
+ *   LD_LIBRARY_PATH=/workspace/homes/d06ec682935a0dae4f349744/libs/usr/lib/x86_64-linux-gnu \
+ *     node scripts/compat-check.mjs
+ *
+ * `scripts/compat-logic-check.mjs` answers the same questions with no browser at all.
  */
 
 import { chromium } from 'playwright';
@@ -25,16 +29,28 @@ import { chromium } from 'playwright';
 const SITE = process.env.URL ?? 'https://ovvo.vibecreations.workers.dev/';
 
 /**
+ * A policy with no `unsafe-eval`, which is what a locked-down sandbox sends.
+ *
+ * Everything the page actually needs is allowed, so a failure here can only be about eval.
+ */
+const NO_EVAL_CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  'font-src https://fonts.gstatic.com data:',
+  "img-src 'self' data: blob:",
+  'connect-src *',
+].join('; ');
+
+const launch = () => chromium.launch();
+
+/**
  * Block the first two `new Function` calls with a chosen error, then behave normally.
  *
- * Two, because the check makes two: object spread and the nameless catch. Only the first calls are
- * faked so the app itself is untouched — if it happened to use `Function` later, it still could.
- *
- * Written as **text rather than a function**, because it has to run inside the browser before the
- * page's own scripts do. A function handed to Playwright loses everything around it, which is how
- * a test can end up silently testing nothing.
+ * Two, because the check makes two. This stands in for a browser that cannot *parse* the bundle,
+ * which no modern browser can be; a policy cannot produce a syntax error, only a refusal.
  */
-const blockEval = (errorName) => `
+const blockEvalText = (errorName) => `
       (function () {
         var real = window.Function;
         var remaining = 2;
@@ -48,12 +64,71 @@ const blockEval = (errorName) => `
       })();
     `;
 
-async function check(name, { url = SITE, before } = {}) {
-  const browser = await chromium.launch();
+/** Serve the site with an eval-free policy, and prove the policy bit. */
+async function withNoEvalPolicy(page, url) {
+  await page.route('**/*', async (route) => {
+    if (route.request().resourceType() !== 'document') {
+      await route.continue();
+      return;
+    }
+    const response = await route.fetch();
+    const body = await response.text();
+    const meta = `<meta http-equiv="Content-Security-Policy" content="${NO_EVAL_CSP}">`;
+    /*
+     * The body has been decoded on the way here, so the original encoding and length headers would
+     * describe something that is no longer true. Chromium copes with a wrong length and does not
+     * cope with a wrong encoding, which is how a policy can look applied and not be.
+     */
+    const headers = { ...response.headers() };
+    delete headers['content-encoding'];
+    delete headers['content-length'];
+    headers['content-type'] = 'text/html; charset=utf-8';
+    await route.fulfill({ response, body: body.replace('</head>', `${meta}</head>`), headers });
+  });
+  /*
+   * **Proof that the policy actually bit, taken from the page rather than from this script.**
+   *
+   * Asking the page to run `new Function` from here would prove nothing: a DevTools evaluation
+   * bypasses the page's policy, so it answers "allowed" on a page where the app's own script was
+   * refused. A `securitypolicyviolation` event, on the other hand, is the browser complaining about
+   * something the *document* tried to do, which is exactly the question.
+   */
+  await page.addInitScript(() => {
+    window.__cspViolations = [];
+    document.addEventListener('securitypolicyviolation', (event) => {
+      window.__cspViolations.push(event.violatedDirective || event.effectiveDirective || 'unknown');
+    });
+  });
+
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1500);
+
+  return page.evaluate(() => {
+    const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    const violations = window.__cspViolations ?? [];
+    const blockedEval = violations.some((directive) => directive.includes('script-src'));
+    return {
+      policy: meta ? 'served' : 'missing',
+      evalState: blockedEval ? 'blocked' : 'allowed',
+    };
+  });
+}
+
+async function check(item) {
+  const browser = await launch();
   try {
     const page = await browser.newPage();
-    if (before) await page.addInitScript({ content: before });
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    let evalState = 'not tested';
+    let policy = 'not needed';
+
+    if (item.noEvalPolicy) {
+      const measured = await withNoEvalPolicy(page, item.url ?? SITE);
+      evalState = measured.evalState;
+      policy = measured.policy;
+    } else {
+      if (item.before) await page.addInitScript({ content: item.before });
+      await page.goto(item.url ?? SITE, { waitUntil: 'domcontentloaded' });
+    }
 
     let mounted = true;
     try {
@@ -68,47 +143,43 @@ async function check(name, { url = SITE, before } = {}) {
       return getComputedStyle(notice).display !== 'none';
     });
 
-    return { name, mounted, noticeShown };
+    return { ...item, mounted, noticeShown, evalState, policy };
   } finally {
     await browser.close();
   }
 }
 
 const cases = [
-  {
-    name: 'a normal browser',
-    options: {},
-    want: { mounted: true, noticeShown: false },
-  },
+  { name: 'a normal browser', want: { mounted: true, noticeShown: false } },
   {
     name: '?bypass_compat=1',
-    options: { url: `${SITE}${SITE.includes('?') ? '&' : '?'}bypass_compat=1` },
+    url: `${SITE}?bypass_compat=1`,
     want: { mounted: true, noticeShown: false },
   },
   {
     name: 'eval blocked by policy',
-    options: { before: blockEval('EvalError') },
-    want: { mounted: true, noticeShown: false },
+    noEvalPolicy: true,
+    want: { mounted: true, noticeShown: false, evalState: 'blocked' },
   },
   {
     name: 'syntax it cannot parse',
-    options: { before: blockEval('SyntaxError') },
+    before: blockEvalText('SyntaxError'),
     want: { mounted: false, noticeShown: true },
   },
 ];
 
-const results = [];
+let failed = 0;
 for (const item of cases) {
-  const result = await check(item.name, item.options);
-  const ok = result.mounted === item.want.mounted && result.noticeShown === item.want.noticeShown;
-  results.push({ ...result, ok });
+  const got = await check(item);
+  const ok = Object.entries(item.want).every(([key, value]) => got[key] === value);
+  if (!ok) failed += 1;
   console.log(
-    `${ok ? 'ok  ' : 'FAIL'} ${result.name.padEnd(26)} app ${result.mounted ? 'mounted' : 'not mounted'.padEnd(11)}  notice ${result.noticeShown ? 'shown' : 'hidden'}`,
+    `${ok ? 'ok  ' : 'FAIL'} ${got.name.padEnd(24)} app ${got.mounted ? 'mounted    ' : 'not mounted'}  notice ${got.noticeShown ? 'shown ' : 'hidden'}  eval ${got.evalState}  policy ${got.policy}`,
   );
 }
 
-if (results.some((result) => !result.ok)) {
-  console.log('\nThe notice and the app disagree with what the page promises.');
+if (failed > 0) {
+  console.error(`\n${failed} case(s) did not do what the page promises.`);
   process.exit(1);
 }
-console.log('\nAll four answers are the ones the page promises.');
+console.log('\nEvery case does what the page promises.');
