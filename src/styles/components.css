@@ -11187,3 +11187,15 @@
   font-size: 10px;
   letter-spacing: 0.14em;
 }
+
+/*
+ * 34 · Four plates as high as the page is tall is four empty boxes.
+ *
+ * Sharing the whole height was the wrong correction: each card grew to two hundred and fifty pixels
+ * around thirty pixels of figure. The rows are capped at a card's height and the block sits centred,
+ * so the four plates are a block of four figures with air around them, not four blank panels.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-content: center;
+  grid-auto-rows: minmax(118px, 152px);
+}
