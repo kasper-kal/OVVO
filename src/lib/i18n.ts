@@ -676,6 +676,12 @@ const NL: Record<string, string> = {
   'Later options': 'Latere opties',
   Earlier: 'Eerder',
   Later: 'Later',
+  /* The developer panel's board number: the control is the number itself now. */
+  'Roll again': 'Opnieuw rollen',
+  'The first roll': 'De eerste worp',
+  Variant: 'Variant',
+  'Previous variant': 'Vorige variant',
+  'Next variant': 'Volgende variant',
   'Reset to {time}': 'Terug naar {time}',
   Best: 'Beste',
   Fastest: 'Snelste',
