@@ -10183,3 +10183,26 @@
 .wrapped-stage[data-chapter='lines']::after {
   background: linear-gradient(180deg, rgba(247, 245, 239, 0.30) 0%, rgba(247, 245, 239, 0) 17%, rgba(247, 245, 239, 0) 80%, rgba(247, 245, 239, 0.34) 100%);
 }
+
+/* ==========================================================================
+ * **The travel personality reads over the year, not through it.**
+ * ========================================================================== */
+
+/*
+ * 17 · The dots belong to the ground, and the ground gives way to the words.
+ *
+ * The field was drawn for the counting page, where a number sits on top of it and reads cleanly. On
+ * the personality page the same dots ran straight through a sentence of body text, and four grey
+ * discs inside a line of words is noise rather than texture. They gather lower, they are fainter,
+ * and the top of the page fades them out, so the name and the reason for it are printed on clean ink
+ * with the year underneath them.
+ */
+.wrapped-stage[data-chapter='persona'] .wrapped-field {
+  padding-top: 26%;
+  -webkit-mask-image: linear-gradient(180deg, transparent, transparent 26%, #000 48%, #000 88%, transparent);
+  mask-image: linear-gradient(180deg, transparent, transparent 26%, #000 48%, #000 88%, transparent);
+}
+
+.wrapped-stage[data-chapter='persona'] .wrapped-field i {
+  opacity: 0.26;
+}
