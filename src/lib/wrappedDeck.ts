@@ -68,6 +68,8 @@ export interface Chapter {
   boards?: number;
   /** One dot per journey, for the chapter that counts them. */
   dots?: number;
+  /** Journeys per calendar month, January first, for the year ring. */
+  months?: number[];
   /** The photograph of the look that was worn, when that look has one. */
   photo?: string;
 }
@@ -136,6 +138,7 @@ export function buildStory({
   const pairs = new Map<string, number>();
   const origins = new Map<string, number>();
   const hours = new Array<number>(24).fill(0);
+  const months = new Array<number>(12).fill(0);
   const looks = new Map<string, number>();
   const lines = new Map<string, number>();
   let direct = 0;
@@ -145,6 +148,7 @@ export function buildStory({
     pairs.set(`${run.from}→${run.to}`, (pairs.get(`${run.from}→${run.to}`) ?? 0) + 1);
     origins.set(run.from, (origins.get(run.from) ?? 0) + 1);
     hours[Math.max(0, Math.min(23, run.hour))] += 1;
+    months[new Date(run.at).getMonth()] += 1;
     if ((run.changes ?? 1) === 0) direct += 1;
     if ((run.minutes ?? 0) > (longest.minutes ?? 0)) longest = run;
     for (const line of run.lines ?? []) lines.set(line, (lines.get(line) ?? 0) + 1);
@@ -182,6 +186,7 @@ export function buildStory({
       count: runs.length,
       /* The year drawn as itself: one dot per journey, behind the number that counts them. */
       dots: runs.length,
+      months,
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
     },
     pair

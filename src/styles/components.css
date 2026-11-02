@@ -7877,46 +7877,111 @@
   z-index: 1;
 }
 
-/* Three rings pushing out of the number, endlessly, like a pulse. */
+/*
+ * **The year as a dial, not a pulse.**
+ *
+ * Three rings pushing out of the number said nothing: they pulsed at whatever speed the song
+ * happened to be and meant the same on every page. This dial is the year itself, twelve bars with one
+ * month each, starting at the top and running anticlockwise, and each bar is as long as that month's
+ * share of the journeys. A quiet January is a stub and a heavy September nearly reaches the rim, so
+ * the shape of the year is readable before the sentence under the number is.
+ */
 .wrapped-rings {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  left: 50%;
+  top: 50%;
+  width: min(74vw, 410px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
   pointer-events: none;
   z-index: 0;
 }
 
+.wrapped-rings::before {
+  content: '';
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* The month numbers sit just outside the bars, upright and small, so the dial reads as a year. */
+.wrapped-rings em {
+  position: absolute;
+  translate: -50% -50%;
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  opacity: 0.42;
+}
+
 .wrapped-rings i {
   position: absolute;
-  width: min(78vw, 440px);
-  aspect-ratio: 1;
+  left: 50%;
+  bottom: 50%;
+  width: 6px;
+  height: 50%;
+  margin-left: -3px;
+  transform-origin: 50% 100%;
+  rotate: calc(var(--m, 0) * -30deg);
+}
+
+/* Every bar starts on the same inner circle, so the twelve are compared by length and nothing else. */
+.wrapped-rings i::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 44%;
+  height: calc(var(--h, 0.2) * 52%);
+  border-radius: 3px;
+  background: currentColor;
+  opacity: calc(0.42 + var(--h, 0.2) * 0.58);
+  transform-origin: 50% 100%;
+  animation: wrapped-month-grow 780ms var(--ease-out) both;
+  animation-delay: calc(var(--m, 0) * 40ms + 220ms);
+}
+
+@keyframes wrapped-month-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* A small dot walks the rim once every twenty-six seconds: a dial with a hand, not a heartbeat. */
+.wrapped-rings__hand {
+  position: absolute;
+  inset: 0;
+  animation: wrapped-year-walk 26s linear infinite;
+}
+
+.wrapped-rings__hand::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
   border-radius: 50%;
-  border: 1.5px solid currentColor;
-  opacity: 0;
-  animation: wrapped-ring 4.4s ease-out infinite;
+  background: currentColor;
+  box-shadow: 0 0 12px color-mix(in srgb, currentColor 55%, transparent);
 }
 
-.wrapped-rings i:nth-child(2) {
-  animation-delay: 1.45s;
+@keyframes wrapped-year-walk {
+  to {
+    rotate: 360deg;
+  }
 }
 
-.wrapped-rings i:nth-child(3) {
-  animation-delay: 2.9s;
+.wrapped-stage.is-still .wrapped-rings__hand {
+  animation: none;
 }
 
-@keyframes wrapped-ring {
-  0% {
-    opacity: 0.42;
-    transform: scale(0.5);
-  }
-  70% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.35);
-  }
+.wrapped-stage.is-still .wrapped-rings i::before {
+  animation: none;
 }
 
 /* A burst of dots when the year lands, once, then gone. */
@@ -9366,20 +9431,6 @@
   100% {
     scale: 1;
   }
-}
-
-/* The three rings still push out over a whole bar, so the page breathes instead of flickering. */
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i {
-  animation-duration: var(--bar-ms, 2400ms);
-  animation-delay: calc(-1 * var(--bar-phase, 0ms));
-}
-
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(2) {
-  animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) / 3);
-}
-
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='total'] .wrapped-rings i:nth-child(3) {
-  animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) * 2 / 3);
 }
 
 /* Page 3 · the dot keeps its own slow journey when the music plays, so the beat never overtakes it. */

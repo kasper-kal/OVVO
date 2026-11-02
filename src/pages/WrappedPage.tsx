@@ -25,6 +25,18 @@ import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 /** How many dots fly out of the year's total when it lands. */
 const BURST = 14;
 
+/*
+ * The year dial: twelve bars, one a month, each as long as that month's share of the journeys.
+ * Built here rather than in the stylesheet because the lengths are the tally's, not the design's:
+ * a quiet February is a short bar and a heavy September reaches almost to the rim, in its own place
+ * on the dial, so the shape of the year is read anticlockwise from January at the top.
+ */
+function monthShares(months?: number[]): number[] {
+  const counts = months && months.length === 12 ? months : new Array<number>(12).fill(0);
+  const max = Math.max(1, ...counts);
+  return counts.map((count) => (count ? Math.max(0.16, count / max) : 0.06));
+}
+
 /**
  * **OVVO Wrapped: the year as a short film, not a report.**
  *
@@ -477,9 +489,25 @@ export function WrappedPage() {
               {chapter.kind === 'number' ? (
                 <>
                   <span className="wrapped-rings" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
+                    {monthShares(chapter.months).map((share, month) => (
+                      <i key={month} style={{ '--m': month, '--h': share } as CSSProperties} />
+                    ))}
+                    {/* The month numbers, upright, so the dial is a calendar and not a compass. */}
+                    {Array.from({ length: 12 }, (_, month) => {
+                      const angle = (month / 12) * Math.PI * 2;
+                      return (
+                        <em
+                          key={month}
+                          style={{
+                            left: `${50 - Math.sin(angle) * 46}%`,
+                            top: `${50 - Math.cos(angle) * 46}%`,
+                          }}
+                        >
+                          {month + 1}
+                        </em>
+                      );
+                    })}
+                    <b className="wrapped-rings__hand" />
                   </span>
                   <span className="wrapped-burst" aria-hidden="true">
                     {Array.from({ length: BURST }, (_, dot) => (
