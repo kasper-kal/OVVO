@@ -3866,6 +3866,67 @@
   margin-inline: -13px;
 }
 
+/*
+ * **The developer panel's battery rail, drawn by the app rather than by the browser.**
+ *
+ * The platform's rail is narrower than its box by a thumb's width, so at 100% the knob stopped short
+ * of the end; pulling it into line with the card meant making the rail wider than the text and letting
+ * the knob hang outside the card at the top of its travel (reported, circled). This rail is exactly as
+ * wide as the column, and the knob's centre runs from one end to the other, so 0 and 100 both land on
+ * the ends. The native input stays on top, transparent, so the drag, the keyboard and the screen
+ * reader are the browser's own.
+ */
+.dev-level {
+  position: relative;
+  height: var(--target-min);
+}
+
+.dev-level__rail {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  translate: 0 -50%;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--l1-bg);
+  border: 1px solid var(--border-hairline);
+}
+
+.dev-level__fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: inherit;
+  background: var(--accent-primary);
+}
+
+.dev-level__knob {
+  position: absolute;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+  border-radius: var(--r-circle);
+  background: var(--accent-primary);
+  border: 2px solid var(--surface-raised);
+  translate: -50% -50%;
+}
+
+.dev-level__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dev-level:focus-within .dev-level__knob {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* -------------------------------------------------------------- Mode badges */
 .mode-badge {
   display: inline-flex;

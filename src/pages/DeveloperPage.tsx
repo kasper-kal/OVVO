@@ -208,16 +208,22 @@ export function DeveloperPage() {
                   hint={t('The app is in {mode}.', { mode: modeLabel })}
                 >
               {/*
-                **The slider the rest of the app already uses, with the knob reaching its ends.**
+                **The rail is the column, and the knob reaches both ends of it.**
 
-                This was a bare `input`, so it drew the browser's own blue control — the only one
-                on the site — and at 0% its knob sat a thumb's width inside the rail, which reads as
-                "not actually at the start" (reported, circled). `.range` is the app's coral slider
-                (the walking-time one), and `--flush` moves the input out by half a thumb so the
-                knob's centre lands on the rail's end at both 0 and 100.
+                This was the app's native slider pulled a half thumb wider than the card's text to
+                make its knob meet the ends, which left the rail overhanging the column and, at 100%,
+                the knob hanging outside the card (reported, circled). The rail is now drawn at the
+                column's own width with a knob whose centre travels from one end to the other, and a
+                transparent native input sits on top so dragging, the arrow keys and the screen
+                reader all still work.
               */}
-              <div className="range range--flush">
+              <div className="dev-level">
+                <div className="dev-level__rail" aria-hidden="true">
+                  <span className="dev-level__fill" style={{ width: `${shownPercent ?? 0}%` }} />
+                  <span className="dev-level__knob" style={{ left: `${shownPercent ?? 0}%` }} />
+                </div>
                 <input
+                  className="dev-level__input"
                   type="range"
                   min={0}
                   max={100}
@@ -236,15 +242,6 @@ export function DeveloperPage() {
                     'A charger puts the app back in its full interface, whatever the level says.',
                   )}
                 />
-                <div className="row">
-                  <Button
-                    variant="ghost"
-                    icon="refresh"
-                    onClick={() => setDevOverrides({ battery: null, charging: false })}
-                  >
-                    {t('Use the device’s battery')}
-                  </Button>
-                </div>
               </>
             )}
             {/*
@@ -264,6 +261,19 @@ export function DeveloperPage() {
               label={t('A browser with no battery')}
               description={t('No level, no mode, and the full interface: what Safari and Firefox see.')}
             />
+
+            {/* The way back sits under the switch that decides whether there is a level to read. */}
+            {dev.battery !== null ? (
+              <div className="row">
+                <Button
+                  variant="ghost"
+                  icon="refresh"
+                  onClick={() => setDevOverrides({ battery: null, charging: false })}
+                >
+                  {t('Use the device’s battery')}
+                </Button>
+              </div>
+            ) : null}
           </Card>
 
           <Card className="stack">
