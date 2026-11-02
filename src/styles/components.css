@@ -8004,11 +8004,17 @@
   opacity: 0.66;
 }
 
+/*
+ * The rail stops at the ring instead of running through it. The markers are twelve pixels tall at
+ * the ends of the panel, so a rail inset six pixels ended on the exact centre of the hollow end
+ * marker and its dashes showed through the hole. Ten pixels ends it on the inner edge of the ring,
+ * and only the travelling dot crosses the last four pixels into the hollow.
+ */
 .wrapped-route__rail {
   position: absolute;
   left: 9px;
   top: 6px;
-  bottom: 6px;
+  bottom: 10px;
   width: 2px;
   border-radius: 2px;
   background: color-mix(in srgb, currentColor 20%, transparent);
@@ -8041,6 +8047,12 @@
  * border — and its glow is a soft blur rather than a hard ring, so the light falls inside the station
  * instead of across it.
  */
+/*
+ * The dot rides the line slowly and rests a full second in the station. It used to loop in five
+ * seconds, so the arrival lasted three frames and was gone. Three seconds each way, one second
+ * standing inside the hollow marker, and a short rest at the solid start: long enough for the eye to
+ * read "twenty-one times" between the two stations.
+ */
 .wrapped-route__train {
   position: absolute;
   left: 50%;
@@ -8052,25 +8064,35 @@
   background: currentColor;
   box-shadow: 0 0 10px color-mix(in srgb, currentColor 45%, transparent);
   opacity: 0;
-  animation: wrapped-run 5s 1400ms cubic-bezier(0.55, 0, 0.4, 1) infinite;
+  animation: wrapped-glide 7.6s 1200ms linear infinite;
 }
 
-@keyframes wrapped-run {
+@keyframes wrapped-glide {
   0% {
     top: -4px;
     opacity: 0;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.5, 1);
   }
-  8% {
+  3% {
     opacity: 1;
   }
-  74% {
-    top: calc(100% - 4px);
+  40.8% {
+    top: 100%;
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+  53.9% {
+    top: 100%;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.5, 1);
+  }
+  94.7% {
+    top: -4px;
     opacity: 1;
   }
-  86%,
   100% {
-    top: calc(100% - 4px);
-    opacity: 0;
+    top: -4px;
+    opacity: 1;
   }
 }
 
@@ -9360,26 +9382,9 @@
   animation-delay: calc(-1 * var(--bar-phase, 0ms) + var(--bar-ms, 2400ms) * 2 / 3);
 }
 
-/* Page 3 · the train travels the rail across a bar, and comes back up on the next one. */
+/* Page 3 · the dot keeps its own slow journey when the music plays, so the beat never overtakes it. */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__train {
-  animation: wrapped-glide-down var(--bar-ms, 2400ms) cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-  animation-delay: calc(-1 * var(--bar-phase, 0ms));
   opacity: 1;
-}
-
-/*
- * The rail is inset six pixels top and bottom inside the panel the station markers sit in, so a dot
- * placed from the rail's own box lands six pixels off the station it is supposed to settle into. The
- * four-pixel overhang is that inset cancelled out, and it is the difference between the dot arriving
- * at the station and arriving just above it.
- */
-@keyframes wrapped-glide-down {
-  from {
-    top: -4px;
-  }
-  to {
-    top: calc(100% - 4px);
-  }
 }
 
 /* Page 4 · one ticket lifts on each beat, and is back down before the next one lands. */
