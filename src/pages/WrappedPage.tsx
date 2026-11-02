@@ -520,7 +520,7 @@ export function WrappedPage() {
                 </div>
               ) : chapter.kind === 'route' ? null : (
                 <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
-                  {chapter.kind === 'word' || chapter.count === undefined ? chapter.big : count}
+                  {chapter.kind === 'word' || chapter.kind === 'chips' || chapter.count === undefined ? chapter.big : count}
                 </p>
               )}
 
