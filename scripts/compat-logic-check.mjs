@@ -38,7 +38,7 @@ if (!script) {
  * Everything the script touches is here and nothing else: `window.location.search`, the two
  * elements by id, `HTMLScriptElement`, and `Function`.
  */
-function run({ search = '', FunctionImpl, hasModules = true }) {
+function run({ search = '', FunctionImpl, hasModules = true, webdriver = false }) {
   const notice = { style: { display: 'none' } };
   let splashRemoved = false;
 
@@ -52,6 +52,7 @@ function run({ search = '', FunctionImpl, hasModules = true }) {
       },
     },
     HTMLScriptElement: { prototype: hasModules ? { noModule: true } : {} },
+    navigator: { webdriver },
     Function: FunctionImpl,
   });
 
@@ -69,6 +70,19 @@ const blocked = (name) =>
   function BlockedFunction() {
     if (name === 'SyntaxError') throw new SyntaxError('blocked');
     throw new EvalError('blocked');
+  };
+
+/**
+ * A browser that evaluates fine but cannot parse the newer syntax.
+ *
+ * The control snippet (`return 1`) works; anything using object spread or a nameless catch throws,
+ * which is what iOS 10 does. This is the one case the notice exists for.
+ */
+const onlyOlderSyntax = () =>
+  function OlderSyntaxFunction(...args) {
+    const body = typeof args[args.length - 1] === 'string' ? args[args.length - 1] : '';
+    if (body.includes('...') || body.includes('catch {')) throw new SyntaxError('bad syntax');
+    return function () {};
   };
 
 const cases = [
@@ -98,8 +112,23 @@ const cases = [
     want: { noticeShown: true, splashRemoved: true },
   },
   {
-    name: 'syntax it cannot parse',
+    name: 'navigator.webdriver',
+    world: { webdriver: true },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: '?debug=1',
+    world: { search: '?debug=1' },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: 'eval refused as a syntax error',
     world: { FunctionImpl: blocked('SyntaxError') },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: 'cannot parse, eval works',
+    world: { FunctionImpl: onlyOlderSyntax() },
     want: { noticeShown: true, splashRemoved: true },
   },
 ];

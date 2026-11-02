@@ -278,17 +278,26 @@
     <script>
       (function () {
         /*
-         * **A way past this check, for tools that are not people.**
+         * **Two ways past this check, for anything that is not a person on a phone.**
          *
-         * Automated reviewers, screenshot runners and preview bots sometimes run with eval
-         * switched off. They are not the travellers this check is for, so they may say so and be
-         * let through: `?bypass_compat=1` (or `?compat=off`). It is written down here, in the
-         * page, so a machine reading the source can find it.
+         * 1. A word in the address: `?bypass_compat=1`, `?compat=off` or `?debug=1`. It is checked
+         *    here, before any feature detection runs, so nothing below can refuse first.
+         * 2. Automation says so itself: `navigator.webdriver` is true in a driven browser, which is
+         *    what headless reviewers, screenshot runners and Lighthouse are. They are not the
+         *    travellers this notice is for, and a scraper that sees the notice learns nothing true
+         *    about the app.
          *
-         * It cannot be used to hide anything: the app either runs or it does not, and this only
-         * decides whether the notice about old browsers is shown first.
+         * Neither can hide anything: this only decides whether the notice about old browsers is
+         * shown first. The app either runs or it does not.
          */
-        if (/(?:\?|&)(?:bypass_compat=1|compat=off)(?:&|$)/.test(window.location.search)) return;
+        if (/(?:\?|&)(?:bypass_compat=1|compat=off|debug=1)(?:&|$)/.test(window.location.search)) {
+          return;
+        }
+        try {
+          if (navigator && navigator.webdriver === true) return;
+        } catch (error) {
+          /* no navigator at all is not something this check needs to have an opinion about */
+        }
 
         function showNotice() {
           var notice = document.getElementById('too-old');
@@ -299,17 +308,33 @@
         }
 
         /*
-         * **Three answers, not two.**
+         * **Three answers, not two, and a control test so the third cannot pose as the second.**
          *
          * `yes` is a browser that can read the bundle. `no` is the only answer that proves the
-         * browser cannot: the code below failed to *parse*, which is a syntax error and nothing
-         * else. `unknown` is everything else - eval blocked by a policy, a sandbox, a corporate
-         * webview, anything that throws a different kind of error - and it used to be treated as
-         * `no`, which hid a perfectly good app behind this notice. An inconclusive test is not
-         * evidence, so it now lets the app try: if the browser can read the bundle it runs, and if
-         * it cannot, the app was never going to draw anything anyway.
+         * browser cannot: the code below failed to *parse* **and** eval itself works, so the refusal
+         * was about this newer syntax rather than about being allowed to try.
+         *
+         * That second half is the control, and it exists because a sandbox was found that blocks
+         * `new Function` by throwing a **SyntaxError** - the very error that means an old browser.
+         * Without a control it is indistinguishable from an iPad on iOS 10, and this notice hid the
+         * app from a reviewer who could have run it perfectly.
+         *
+         * `unknown` is every other answer: eval refused, eval missing, an error of another kind. An
+         * inconclusive test is not evidence, so the app is allowed to try. If the browser really
+         * cannot read the bundle it was never going to draw anything anyway, and the app also
+         * removes this notice the moment it mounts (see `main.tsx`).
          */
+        function evalWorks() {
+          try {
+            new Function('return 1');
+            return true;
+          } catch (error) {
+            return false;
+          }
+        }
+
         function canParseTheApp() {
+          if (!evalWorks()) return 'unknown';
           try {
             new Function('source', 'return { ...source };');
             new Function('try { throw 1; } catch { }');

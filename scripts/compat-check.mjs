@@ -45,18 +45,22 @@ const NO_EVAL_CSP = [
 const launch = () => chromium.launch();
 
 /**
- * Block the first two `new Function` calls with a chosen error, then behave normally.
+ * Refuse `new Function` **while the page is still being parsed**, then behave normally.
  *
- * Two, because the check makes two. This stands in for a browser that cannot *parse* the bundle,
- * which no modern browser can be; a policy cannot produce a syntax error, only a refusal.
+ * That is the window the compatibility check runs in, and stopping at the end of it matters: an
+ * earlier version blocked a fixed number of calls, which damaged the app under test rather than the
+ * check, so the case "failed" for a reason that had nothing to do with what it was testing. The
+ * ready state is the honest boundary between the inline check and the module bundle, which only
+ * runs once parsing has finished.
+ *
+ * `SyntaxError` is the interesting one: it is the error that means an old browser, so a sandbox
+ * that uses it to refuse eval is the sandbox this control test exists for.
  */
-const blockEvalText = (errorName) => `
+const refuseEvalText = (errorName) => `
       (function () {
         var real = window.Function;
-        var remaining = 2;
         window.Function = function () {
-          if (remaining > 0) {
-            remaining -= 1;
+          if (document.readyState === 'loading') {
             throw new ${errorName}('blocked by policy');
           }
           return real.apply(null, arguments);
@@ -75,6 +79,12 @@ async function withNoEvalPolicy(page, url) {
     const body = await response.text();
     const meta = `<meta http-equiv="Content-Security-Policy" content="${NO_EVAL_CSP}">`;
     /*
+     * A probe written **into the document**, so the policy applies to it. Asking the page for the
+     * same answer through DevTools would bypass the policy and always say "allowed".
+     */
+    const probe =
+      '<script>window.__ovvoEvalProbe=(function(){try{new Function("return 1");return "allowed";}catch(error){return "blocked";}})();</script>';
+    /*
      * The body has been decoded on the way here, so the original encoding and length headers would
      * describe something that is no longer true. Chromium copes with a wrong length and does not
      * cope with a wrong encoding, which is how a policy can look applied and not be.
@@ -83,7 +93,11 @@ async function withNoEvalPolicy(page, url) {
     delete headers['content-encoding'];
     delete headers['content-length'];
     headers['content-type'] = 'text/html; charset=utf-8';
-    await route.fulfill({ response, body: body.replace('</head>', `${meta}</head>`), headers });
+    await route.fulfill({
+      response,
+      body: body.replace('</head>', `${meta}${probe}</head>`),
+      headers,
+    });
   });
   /*
    * **Proof that the policy actually bit, taken from the page rather than from this script.**
@@ -105,11 +119,10 @@ async function withNoEvalPolicy(page, url) {
 
   return page.evaluate(() => {
     const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    const violations = window.__cspViolations ?? [];
-    const blockedEval = violations.some((directive) => directive.includes('script-src'));
+    const probeAnswer = window.__ovvoEvalProbe;
     return {
       policy: meta ? 'served' : 'missing',
-      evalState: blockedEval ? 'blocked' : 'allowed',
+      evalState: probeAnswer === 'blocked' ? 'blocked' : probeAnswer ? 'allowed' : 'unproven',
     };
   });
 }
@@ -162,8 +175,35 @@ const cases = [
     want: { mounted: true, noticeShown: false, evalState: 'blocked' },
   },
   {
-    name: 'syntax it cannot parse',
-    before: blockEvalText('SyntaxError'),
+    name: '?debug=1',
+    url: `${SITE}?debug=1`,
+    want: { mounted: true, noticeShown: false },
+  },
+  {
+    /*
+     * A sandbox that refuses eval by throwing a syntax error used to be indistinguishable from an
+     * iPad on iOS 10. The control test is what tells them apart: here every eval is refused while
+     * the page is parsed, so there is no evidence about syntax and the app must still start.
+     */
+    name: 'eval refused as syntax error',
+    before: refuseEvalText('SyntaxError'),
+    want: { mounted: true, noticeShown: false },
+  },
+  {
+    /* The case the notice is for: a browser that evaluates, but cannot parse this syntax. */
+    name: 'cannot parse, eval works',
+    before: `
+      (function () {
+        var real = window.Function;
+        window.Function = function () {
+          var body = arguments[arguments.length - 1];
+          if (typeof body === 'string' && (body.indexOf('...') !== -1 || body.indexOf('catch {') !== -1)) {
+            throw new SyntaxError('unsupported syntax');
+          }
+          return real.apply(null, arguments);
+        };
+      })();
+    `,
     want: { mounted: false, noticeShown: true },
   },
 ];
