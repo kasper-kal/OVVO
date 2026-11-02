@@ -22000,6 +22000,34 @@ async function mintCustomToken(env, uid, name) {
 }
 __name(mintCustomToken, "mintCustomToken");
 
+// worker/turnstile.js
+init_modules_watch_stub();
+function turnstileConfigured(env) {
+  return typeof env.TURNSTILE_SECRET === "string" && env.TURNSTILE_SECRET.trim().length > 0;
+}
+__name(turnstileConfigured, "turnstileConfigured");
+async function turnstilePassed(env, token, ip) {
+  if (!turnstileConfigured(env)) return true;
+  if (typeof token !== "string" || token.trim().length === 0) return false;
+  const form = new FormData();
+  form.append("secret", env.TURNSTILE_SECRET);
+  form.append("response", token.trim());
+  if (typeof ip === "string" && ip.length > 0) form.append("remoteip", ip);
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: form,
+      signal: AbortSignal.timeout(6e3)
+    });
+    const body = await response.json().catch(() => ({}));
+    return body?.success === true;
+  } catch (error) {
+    console.error("[turnstile] could not check", error);
+    return true;
+  }
+}
+__name(turnstilePassed, "turnstilePassed");
+
 // worker/passkey.js
 var RP_NAME = "OVVO";
 var MAX_PASSKEYS = 5;
@@ -22082,6 +22110,14 @@ async function registerOptions(request, env, url, claims) {
   const displayName = typeof body.name === "string" ? body.name.trim().slice(0, 60) : "";
   const signedIn = claims !== null;
   if (!signingConfigured(env)) return json({ error: "not-configured" }, 503);
+  if (!signedIn) {
+    const passed = await turnstilePassed(
+      env,
+      body.turnstileToken,
+      request.headers.get("cf-connecting-ip")
+    );
+    if (!passed) return json({ error: "turnstile" }, 403);
+  }
   let uid;
   let userName;
   let userDisplayName;

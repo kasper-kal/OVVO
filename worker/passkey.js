@@ -26,6 +26,7 @@ import {
 } from '@simplewebauthn/server';
 import { identify } from './auth.js';
 import { mintCustomToken, signingConfigured } from './firebase-token.js';
+import { turnstilePassed } from './turnstile.js';
 
 const RP_NAME = 'OVVO';
 
@@ -146,6 +147,21 @@ async function registerOptions(request, env, url, claims) {
    * off, and a sign-in button that is nowhere to be seen.
    */
   if (!signingConfigured(env)) return json({ error: 'not-configured' }, 503);
+
+  /*
+   * **A new account passes the bot check first.** It is the only door that asks the traveller for
+   * nothing at all, which is exactly why it is worth scripting: every other way in costs an email
+   * or a password first. Adding a device to an account already signed in sits behind that account,
+   * so it is not asked again.
+   */
+  if (!signedIn) {
+    const passed = await turnstilePassed(
+      env,
+      body.turnstileToken,
+      request.headers.get('cf-connecting-ip'),
+    );
+    if (!passed) return json({ error: 'turnstile' }, 403);
+  }
 
   let uid;
   let userName;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Banner, Button, Card } from '../components/ui/primitives';
+import { TurnstileBox } from '../components/account/TurnstileBox';
 import { firebaseConfigured } from '../lib/firebase';
 import {
   createAccount,
@@ -49,6 +50,8 @@ export function SignInPage() {
   const [resent, setResent] = useState(false);
   const [passkeyReady, setPasskeyReady] = useState(false);
   const [newWithPasskey, setNewWithPasskey] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileTrouble, setTurnstileTrouble] = useState(false);
 
   /*
    * **Whether passkeys are worth offering is asked once, on arrival.** The browser says whether it
@@ -384,7 +387,10 @@ export function SignInPage() {
                   variant="surface"
                   size="sm"
                   disabled={busy}
-                  onClick={() => setNewWithPasskey(true)}
+                  onClick={() => {
+                    setTurnstileTrouble(false);
+                    setNewWithPasskey(true);
+                  }}
                 >
                   Create an account with a passkey
                 </Button>
@@ -413,17 +419,46 @@ export function SignInPage() {
                       onChange={(event) => setLastName(event.target.value)}
                     />
                   </label>
+                  {/*
+                    * **The quick check, right above the button it unlocks.** This is the only
+                    * door into OVVO that asks for nothing, so it is the only one a script could
+                    * walk through a thousand times. Nothing to press until it has finished.
+                    */}
+                  <TurnstileBox
+                    onToken={setTurnstileToken}
+                    onTrouble={() => setTurnstileTrouble(true)}
+                  />
+                  {turnstileTrouble ? (
+                    <p className="t-sm t-muted" style={{ margin: 0 }}>
+                      That check could not load, so an account with a passkey cannot be made right
+                      now. You can still make one with an email above.
+                    </p>
+                  ) : null}
                   <Button
                     variant="accent"
                     block
-                    disabled={busy || firstName.trim().length === 0 || !firebaseConfigured}
+                    disabled={
+                      busy ||
+                      turnstileToken === null ||
+                      firstName.trim().length === 0 ||
+                      !firebaseConfigured
+                    }
                     onClick={() =>
-                      void withPasskey(() => createAccountWithPasskey(firstName, lastName))
+                      void withPasskey(() =>
+                        createAccountWithPasskey(firstName, lastName, turnstileToken ?? ''),
+                      )
                     }
                   >
                     {busy ? 'Waiting for your device' : 'Create with a passkey'}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setNewWithPasskey(false)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setNewWithPasskey(false);
+                      setTurnstileToken(null);
+                    }}
+                  >
                     Cancel
                   </Button>
                 </div>

@@ -294,5 +294,25 @@
       })();
     </script>
 
+    <!--
+      **How many people read OVVO, without learning who they are.**
+
+      Cloudflare's own counter: no cookie, no fingerprint, no profile of a traveller. It answers one
+      question the project genuinely needs, whether anyone at all opens this site, which nothing
+      else in OVVO can tell us because the app keeps everything on the phone.
+
+      The token below is public by design; it names this site and is not a key. On a `workers.dev`
+      address Cloudflare cannot add this automatically, which is why it is written out here. One
+      known limit: a traveller who moves between screens inside the app counts as the page they
+      landed on, because the app changes screens without loading a page. The visit is still counted
+      once, which is the number that matters.
+
+      `defer` so it never delays the app: the mark and the first screen come first, always.
+    -->
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token":"dafdb9f4981046268b7bb3fca6da6a6a"}'
+    ></script>
   </body>
 </html>

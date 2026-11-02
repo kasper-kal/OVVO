@@ -119,11 +119,23 @@ export async function addPasskey(label: string): Promise<void> {
  * No email and no password, so there is nothing to wait for in an inbox. The name is asked once,
  * because an account with no name cannot be recognised in the list of devices later.
  */
-export async function createAccountWithPasskey(firstName: string, lastName: string): Promise<void> {
+export async function createAccountWithPasskey(
+  firstName: string,
+  lastName: string,
+  turnstileToken: string,
+): Promise<void> {
   const name = [firstName.trim(), lastName.trim()].filter((part) => part.length > 0).join(' ');
   if (name.length === 0) fail('passkey/name');
 
-  const start = await post<Options>('/api/passkey/register/options', { name }, false);
+  /*
+   * The bot check answers this one request and nothing else. It is sent with the name because the
+   * Worker will not make an account without it, and it is not kept anywhere afterwards.
+   */
+  const start = await post<Options>(
+    '/api/passkey/register/options',
+    { name, turnstileToken },
+    false,
+  );
   let response: unknown;
   try {
     response = await startRegistration({ optionsJSON: start.options as never });
@@ -227,6 +239,8 @@ export function explainPasskeyError(error: unknown): string {
       return 'Network error. Check your connection.';
     case 'passkey/name':
       return 'Enter your name first.';
+    case 'passkey/turnstile':
+      return 'The quick check did not finish. Please try again.';
     default:
       return 'That did not work. Please try again.';
   }

@@ -93,6 +93,20 @@ Asked by the steerer what else the free account is worth. Decided and built the 
   domain `ovvo.vibecreations.workers.dev`, Managed), a Web Analytics site for the same address, and
   an R2 bucket called `ovvo-photos`. The Turnstile secret becomes a Worker secret named
   `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
+- **Done the same day, once the token had Write.** The token needed three additions, all Write:
+  `Turnstile`, `Workers R2 Storage` and `Account Settings` (Web Analytics sites are created under
+  account settings; Cloudflare offers no Edit of their own for analytics). With those, the analytics
+  site (`ovvo.vibecreations.workers.dev`) and the Turnstile widget were created by script. The
+  Turnstile secret went straight into the Worker as `TURNSTILE_SECRET` from a temporary file, so it
+  was never printed into the chat, and the site key lives in `src/lib/turnstile.ts` because it is
+  public by design.
+- **The bot check guards one door only.** `/api/passkey/register/options` refuses a new account
+  without a passed token; adding a passkey to an account already signed in is behind that account
+  and is not asked again. A missing `TURNSTILE_SECRET` or an unreachable Cloudflare lets people
+  through rather than locking them out, and that is a decision, not an oversight.
+- **R2 still answers "Please enable R2 through the Cloudflare Dashboard"**, so the photo bucket
+  waits on one tap in the dashboards' R2 page. The token has Write for it; the product itself is
+  not switched on for the account yet.
 - **Not worth doing here.** Email Routing and the one free rate-limiting rule both need a domain,
   so they stay behind the same wall as the sign-in mail.
 
