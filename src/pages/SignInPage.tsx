@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Banner, Button, Card } from '../components/ui/primitives';
 import { firebaseConfigured } from '../lib/firebase';
@@ -10,6 +10,13 @@ import {
   signInWithGoogle,
   signInWithPassword,
 } from '../lib/account';
+import {
+  createAccountWithPasskey,
+  explainPasskeyError,
+  passkeyStatus,
+  passkeysSupported,
+  signInWithPasskey,
+} from '../lib/passkeys';
 
 type Mode = 'link' | 'password';
 
@@ -40,6 +47,40 @@ export function SignInPage() {
   const [offerCreate, setOfferCreate] = useState(false);
   const [sent, setSent] = useState<{ to: string; purpose: 'link' | 'reset' } | null>(null);
   const [resent, setResent] = useState(false);
+  const [passkeyReady, setPasskeyReady] = useState(false);
+  const [newWithPasskey, setNewWithPasskey] = useState(false);
+
+  /*
+   * **Whether passkeys are worth offering is asked once, on arrival.** The browser says whether it
+   * can make one, and the site says whether it is switched on. Until both say yes, the screen is
+   * exactly the screen it was before passkeys existed, rather than a button that cannot work.
+   */
+  const canUsePasskeys = passkeysSupported();
+
+  useEffect(() => {
+    if (!canUsePasskeys) return;
+    let alive = true;
+    void passkeyStatus().then((status) => {
+      if (alive) setPasskeyReady(status.available);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [canUsePasskeys]);
+
+  const withPasskey = async (work: () => Promise<void>) => {
+    setBusy(true);
+    setProblem(null);
+    setOfferCreate(false);
+    try {
+      await work();
+      back();
+    } catch (error) {
+      setProblem(explainPasskeyError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const go = async (work: () => Promise<void>, then: () => void) => {
     setBusy(true);
@@ -152,8 +193,29 @@ export function SignInPage() {
 
         <Card>
           <div className="stack-3">
+            {/*
+              * **The passkey goes first, because it is the shortest way in.** No password to
+              * recall and no mail to wait for: the phone shows a face or a fingerprint and the
+              * account is there. It is only offered when the browser and the site both say yes.
+              */}
+            {passkeyReady ? (
+              <>
+                <Button
+                  variant="primary"
+                  block
+                  disabled={busy || !firebaseConfigured}
+                  onClick={() => void withPasskey(signInWithPasskey)}
+                >
+                  Sign in with a passkey
+                </Button>
+                <p className="t-sm t-faint" style={{ textAlign: 'center', margin: 0 }}>
+                  or
+                </p>
+              </>
+            ) : null}
+
             <Button
-              variant="primary"
+              variant={passkeyReady ? 'surface' : 'primary'}
               block
               disabled={busy || !firebaseConfigured}
               onClick={() => void go(() => signInWithGoogle(), back)}
@@ -305,6 +367,70 @@ export function SignInPage() {
             </div>
           </div>
         </Card>
+
+        {/*
+          * **A new account can be a passkey and nothing else.** No email box, so nothing to wait
+          * for and nothing to land in a spam folder. The name is asked because an account with no
+          * name cannot be recognised on the next phone.
+          */}
+        {passkeyReady ? (
+          <Card>
+            <div className="stack-3">
+              <p className="t-strong" style={{ margin: 0 }}>
+                New to OVVO?
+              </p>
+              {!newWithPasskey ? (
+                <Button
+                  variant="surface"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => setNewWithPasskey(true)}
+                >
+                  Create an account with a passkey
+                </Button>
+              ) : (
+                <div className="stack-3">
+                  <p className="t-sm t-muted" style={{ margin: 0 }}>
+                    No email and no password. Your face, fingerprint or PIN is the key.
+                  </p>
+                  <label className="field">
+                    <span className="field__label">First name</span>
+                    <input
+                      className="input"
+                      name="given-name"
+                      autoComplete="given-name"
+                      value={firstName}
+                      onChange={(event) => setFirstName(event.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field__label">Last name (optional)</span>
+                    <input
+                      className="input"
+                      name="family-name"
+                      autoComplete="family-name"
+                      value={lastName}
+                      onChange={(event) => setLastName(event.target.value)}
+                    />
+                  </label>
+                  <Button
+                    variant="accent"
+                    block
+                    disabled={busy || firstName.trim().length === 0 || !firebaseConfigured}
+                    onClick={() =>
+                      void withPasskey(() => createAccountWithPasskey(firstName, lastName))
+                    }
+                  >
+                    {busy ? 'Waiting for your device' : 'Create with a passkey'}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setNewWithPasskey(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        ) : null}
 
         <p className="t-sm">
           <Link to={returnTo}>Back to OVVO</Link>

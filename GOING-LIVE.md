@@ -75,6 +75,63 @@ anyone later:
 Some providers cost money and stay off for that reason: Apple needs a paid Apple Developer
 account, and phone sign-in costs per message.
 
+## Passkeys (2 November 2026)
+
+Asked for by the steerer: passkeys as a way to sign in, as a second key on an existing account, and
+as a way to make a new account with no email and no password.
+
+**Firebase does not offer passkeys on the web.** Its passkey code is written but unreleased and
+switched on per project by Google, so there is nothing to switch on in the console and nothing to
+call from the page. So OVVO checks passkeys itself: the browser makes the key and shows the face,
+fingerprint or PIN, and the Worker checks the signed answer against the public key it stored. The
+account is still a Firebase account, so everything that already worked keeps working.
+
+What that needs, and it is the only new thing:
+
+- **Tables `passkey` and `passkey_challenge`** in D1. The public half of each key, the device
+  label, the counter, and the five-minute questions. No secret is stored there: the public key
+  cannot sign anything.
+- **One Worker secret, `FIREBASE_SERVICE_ACCOUNT`.** Firebase will not accept our word for who
+  somebody is; it wants a token signed with the project's service account key. Steps below. Until
+  that secret is set, `/api/passkey/status` answers `available: false` and the sign-in screen hides
+  every passkey button, so nothing offers a door that does not open.
+- **The service account key is the most powerful key the project has.** It stays in Worker secrets,
+it is never committed, never pasted in chat, and it can be rotated (a new key, a new secret, and
+the old key deleted in the console). If it ever leaks, rotate it the same day.
+
+How the three flows work:
+
+- **A new account with a passkey.** Name, then the passkey. No email, so no mail, so nothing to
+  land in a spam folder. The account id is made by the Worker.
+- **Adding a passkey to an existing account.** Settings, OVVO ID card, **Generate a new Passkey**.
+  Five devices at most; each is labelled with the platform it was made on.
+- **A new phone.** Sign in with a passkey; the system offers the key it already syncs through
+  iCloud or Google, or shows a code for the old phone to approve. That part is the phone's own
+  work and needs nothing from us. Then **Generate a new Passkey** on the new phone, so the next
+  sign-in is the short way again.
+
+Limits worth naming now:
+
+- **A passkey belongs to the address it was made on.** `ovvo.vibecreations.workers.dev` is the
+  address today. Moving to another address means every passkey made before the move stops working,
+  and everybody signs in the old way once more.
+- **A passkey-only account has no recovery.** If every device holding it is lost and nothing was
+  synced, the account cannot be opened. The card says so whenever there is only one passkey.
+- **Tested with a simulated key, not a phone.** Chrome's virtual authenticator made a key, signed
+  in with it, and the minted token's signature was checked against the matching public key
+  (`.logs/passkey-check.cjs`, all nine checks pass). Firebase itself refused the stand-in token, as
+  it must, so the last step can only be proven by the steerer on a real phone.
+
+### Turning passkeys on
+
+1. Firebase console, project `ovvo-vibecreations`, gear, **Project settings**, **Service accounts**.
+2. **Generate new private key**. A JSON file downloads. It is the key; do not leave it in a
+   downloads folder.
+3. In this project, with the file to hand:
+   `npx wrangler secret put FIREBASE_SERVICE_ACCOUNT < service-account.json`
+4. Delete the downloaded file once the secret is set. `/api/passkey/status` should then answer
+   `{"available":true,"max":5}`.
+
 ## Why the sign-in mail lands in spam
 
 Asked 2 November 2026. Answer first: the mail is not sent by us and not from our address.
@@ -128,6 +185,8 @@ it can deploy and delete code, so it never leaves the secrets store.
 - The Cloudflare **account ID** (part 1.4 of the tutorial).
 - The **six Firebase values** (part 4 of the tutorial).
 - The Cloudflare token, pasted into Settings → Secrets, never into chat.
+- **The Firebase service account key for passkeys** — see "Turning passkeys on" above. Until it
+  arrives, passkeys stay switched off and the site says so by hiding them.
 
 ## The tutorial
 

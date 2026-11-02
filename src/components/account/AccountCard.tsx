@@ -4,10 +4,48 @@ import { Button, Card, Dialog, SectionHeading } from '../ui/primitives';
 import { Avatar } from './Avatar';
 import { firebaseConfigured } from '../../lib/firebase';
 import { deleteAccount, signOutNow, syncNow, watchAccount } from '../../lib/account';
+import {
+  addPasskey,
+  explainPasskeyError,
+  listPasskeys,
+  passkeysSupported,
+  removePasskey,
+  type PasskeyInfo,
+} from '../../lib/passkeys';
 import { PHOTO_KEY, squarePhoto } from '../../lib/avatar';
 import { readStored, writeStored } from '../../lib/storage';
 
 type Account = { uid: string; email: string | null; name: string | null };
+
+/**
+ * **A name for the device a passkey was made on.**
+ *
+ * A list of five passkeys all called "This device" tells the traveller nothing when one of them has
+ * to be removed, so the platform is read off the browser's own description of itself and the name
+ * is made unique if that platform is already in the list.
+ */
+function deviceLabel(taken: string[]): string {
+  const agent = typeof navigator === 'undefined' ? '' : navigator.userAgent;
+  let base = 'This device';
+  if (/iPhone/.test(agent)) base = 'iPhone';
+  else if (/iPad/.test(agent)) base = 'iPad';
+  else if (/Android/.test(agent)) base = 'Android phone';
+  else if (/Macintosh/.test(agent)) base = 'Mac';
+  else if (/Windows/.test(agent)) base = 'Windows PC';
+  if (!taken.includes(base)) return base;
+  for (let count = 2; count < 10; count += 1) {
+    const next = `${base} ${count}`;
+    if (!taken.includes(next)) return next;
+  }
+  return base;
+}
+
+function dayOf(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString();
+}
 
 function useAccount() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -53,7 +91,68 @@ export function AccountCard() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
+  const [passkeyNote, setPasskeyNote] = useState<string | null>(null);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const canUsePasskeys = passkeysSupported();
+  const uid = account?.uid ?? null;
+
+  /* The list is read whenever the account changes hands, so it is never another person's. */
+  useEffect(() => {
+    if (uid === null || !canUsePasskeys) {
+      setPasskeys([]);
+      return;
+    }
+    let alive = true;
+    void listPasskeys()
+      .then((result) => {
+        if (alive) setPasskeys(result.passkeys);
+      })
+      .catch(() => {
+        if (alive) setPasskeys([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [uid, canUsePasskeys]);
+
+  const reloadPasskeys = async () => {
+    try {
+      const result = await listPasskeys();
+      setPasskeys(result.passkeys);
+    } catch {
+      /* the list stays as it was; the note already says what went wrong */
+    }
+  };
+
+  const generatePasskey = async () => {
+    setPasskeyBusy(true);
+    setPasskeyNote(null);
+    try {
+      await addPasskey(deviceLabel(passkeys.map((passkey) => passkey.name)));
+      await reloadPasskeys();
+      setPasskeyNote('Passkey added. You can sign in on this device without a password now.');
+    } catch (error) {
+      setPasskeyNote(explainPasskeyError(error));
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
+
+  const dropPasskey = async (id: string) => {
+    setPasskeyBusy(true);
+    setPasskeyNote(null);
+    try {
+      await removePasskey(id);
+      await reloadPasskeys();
+      setPasskeyNote('Passkey removed.');
+    } catch (error) {
+      setPasskeyNote(explainPasskeyError(error));
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
 
   const choosePhoto = async (file: File | undefined) => {
     if (!file) return;
@@ -133,6 +232,78 @@ export function AccountCard() {
             Your stops, journeys and settings are saved with this OVVO ID, so they are on your other
             devices too.
           </p>
+
+          {/*
+            * **Passkeys, listed by the device they were made on.** A new phone signs in with the
+            * key it already has, through iCloud or Google, or with a code from the old phone, and
+            * then makes its own key here, so the next sign-in is the short way again. Removing one
+            * is allowed; the line underneath says what that costs when it is the only one.
+            */}
+          {canUsePasskeys ? (
+            <div className="stack-3">
+              <p className="t-strong" style={{ margin: 0 }}>
+                Passkeys
+              </p>
+
+              {passkeys.length === 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  No passkey yet. Add one and you can sign in on this device with your face,
+                  fingerprint or PIN instead of a password.
+                </p>
+              ) : (
+                <div className="stack-1">
+                  {passkeys.map((passkey) => (
+                    <div
+                      key={passkey.id}
+                      className="row-wrap"
+                      style={{ justifyContent: 'space-between' }}
+                    >
+                      <span className="t-sm">
+                        {passkey.name}
+                        {passkey.lastUsedAt ? (
+                          <span className="t-muted">, last used {dayOf(passkey.lastUsedAt)}</span>
+                        ) : (
+                          <span className="t-muted">, added {dayOf(passkey.addedAt)}</span>
+                        )}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={passkeyBusy}
+                        onClick={() => void dropPasskey(passkey.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="row-wrap">
+                <Button
+                  variant="surface"
+                  size="sm"
+                  disabled={passkeyBusy}
+                  onClick={() => void generatePasskey()}
+                >
+                  {passkeyBusy ? 'Waiting for your device' : 'Generate a new Passkey'}
+                </Button>
+              </div>
+
+              {passkeys.length === 1 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  This is your only passkey. Keep a password or Google sign-in as well, so losing
+                  this device does not lock you out.
+                </p>
+              ) : null}
+
+              {passkeyNote ? (
+                <p className="t-sm" role="alert" style={{ margin: 0 }}>
+                  {passkeyNote}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="row-wrap">
             <Button variant="surface" size="sm" onClick={() => fileInput.current?.click()}>

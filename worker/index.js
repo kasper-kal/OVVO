@@ -5,7 +5,8 @@
  * alive and nothing that can go stale on its own.
  */
 
-import { verifyIdToken } from './auth.js';
+import { identify } from './auth.js';
+import { passkeyRoute } from './passkey.js';
 
 /** A whole traveller's year, in one document. Small next to D1's limits, and refused above this. */
 const MAX_DOC_BYTES = 200 * 1024;
@@ -27,19 +28,6 @@ const json = (body, status = 200) =>
 function crossOrigin(request, url) {
   const origin = request.headers.get('origin');
   return origin !== null && origin !== url.origin;
-}
-
-async function identify(request, env) {
-  const header = request.headers.get('authorization') ?? '';
-  if (!header.toLowerCase().startsWith('bearer ')) return null;
-  const token = header.slice(7).trim();
-  if (token.length === 0) return null;
-  try {
-    return await verifyIdToken(token, env.FIREBASE_PROJECT_ID || 'ovvo-vibecreations');
-  } catch (error) {
-    console.error('[api] token check failed', error);
-    return null;
-  }
 }
 
 async function readProfile(env, uid) {
@@ -111,6 +99,13 @@ async function api(request, env, url) {
   if (request.method !== 'GET' && request.method !== 'HEAD' && crossOrigin(request, url)) {
     return json({ error: 'origin' }, 403);
   }
+
+  /*
+   * **Passkeys answer before the account is required.** Two of these routes are how somebody signs
+   * in, so they cannot demand a sign-in first: the passkey is the thing being checked. The module
+   * decides for itself which of its routes need a token.
+   */
+  if (url.pathname.startsWith('/api/passkey/')) return passkeyRoute(request, env, url);
 
   const claims = await identify(request, env);
   if (!claims) return json({ error: 'unauthorized' }, 401);

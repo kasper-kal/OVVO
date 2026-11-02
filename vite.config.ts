@@ -168,6 +168,15 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       strictPort: false,
       allowedHosts: allowlist,
+      /*
+       * **`/api` belongs to the Worker, in development too.**
+       *
+       * The page is served by Vite and the API by `wrangler dev`; without this line every
+       * `/api/...` call in development is answered by Vite with a 404, so passkeys and sync could
+       * only ever be tried against the deployed site. Nothing is proxied when no Worker is running:
+       * the call fails in the same way it failed before.
+       */
+      proxy: { '/api': 'http://127.0.0.1:8787' },
     },
     preview: {
       host: '0.0.0.0',
