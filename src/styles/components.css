@@ -9895,26 +9895,12 @@
 }
 
 /*
- * 2 · The look's veil was painted over its own words.
+ * 2 · The look keeps its veil over its own words.
  *
- * The photograph's gradient sits at the same depth as the scene, and being generated last it painted
- * on top of it: the title, the sentence and the days were all under a 92% black wash at the foot of
- * the page, which is why the number looked grey instead of white. The veil goes under the words.
+ * The audit called this a fault and lifted it. It was not a fault: that wash is the page's light, and the
+ * title, the sentence and the day count are meant to be read through it, soft and half-lit. Taken away, the
+ * page went hard and white and lost the colour the steerer loved. It is back exactly where it was.
  */
-.wrapped-stage[data-chapter='look']::after {
-  z-index: 0;
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-big,
-.wrapped-stage[data-chapter='look'] .wrapped-days,
-.wrapped-stage[data-chapter='look'] .wrapped-line {
-  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.62);
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-days span {
-  opacity: 0.9;
-}
-
 /* 3 · The total: the field of journeys stops short of the number it belongs to. */
 .wrapped-stage[data-chapter='total'] .wrapped-field {
   -webkit-mask-image: linear-gradient(180deg, #000 0 46%, rgba(0, 0, 0, 0.55) 74%, transparent 97%);
@@ -10128,23 +10114,3 @@
   from { opacity: 0; transform: translateY(10px); }
 }
 
-/*
- * 14 · The count on the look keeps its colour and its glow.
- *
- * Lifting the veil off the words was right — they were being read through a black wash — but the wash was
- * also what gave "96 days" its warm, softly lit tint, and taking it away left plain white under a hard
- * black halo, which is the flatness the steerer noticed. The number is warm ivory again, lit from behind
- * by a soft cream glow and grounded by a faint shadow, so it sits in the photograph instead of on it.
- */
-.wrapped-stage[data-chapter='look'] .wrapped-days {
-  color: #f4e6d1;
-  text-shadow:
-    0 0 72px rgba(255, 223, 176, 0.34),
-    0 14px 52px rgba(0, 0, 0, 0.52);
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-days span {
-  color: #e9d7ba;
-  opacity: 0.88;
-  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.48);
-}
