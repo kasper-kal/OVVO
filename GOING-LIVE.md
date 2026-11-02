@@ -23,9 +23,11 @@ is pasted into this project's secrets, not typed into code.
   it never sleeps, it does not pause for inactivity, and the free plan does not expire.
 - **D1 for the database.** It lives inside the same Cloudflare account, so there is no second
   signup and no monthly bill.
-- **Firebase Authentication for sign-in.** Google's sign-in service. Cardless, permanently
-  free at our size, and it sends its own password reset and verification mail from
-  `firebaseapp.com`, which is why no domain is needed.
+- **Firebase Authentication for sign-in.** Google's sign-in service. Cardless and permanently
+  free at our size. It sends its own password reset and sign-in link mail from
+  `firebaseapp.com`; that shared sender is why those mails land in spam, and fixing it needs a
+  domain (see "Why the sign-in mail lands in spam" below). Google sign-in and a password need no
+  mail at all, and both work today.
 - **No custom domain.** Never. The free address Cloudflare gives us is the address.
 - **No card anywhere.** Every service must have a permanently free plan. A free plan with
   limits is fine; a free trial that ends is not.
@@ -72,6 +74,33 @@ anyone later:
 
 Some providers cost money and stay off for that reason: Apple needs a paid Apple Developer
 account, and phone sign-in costs per message.
+
+## Why the sign-in mail lands in spam
+
+Asked 2 November 2026. Answer first: the mail is not sent by us and not from our address.
+Firebase sends the sign-in link and the password reset itself, from
+`noreply@ovvo-vibecreations.firebaseapp.com`. `firebaseapp.com` is Google's and is shared by
+every Firebase project in the world, including a great many phishing pages. Gmail cannot check
+that the mail came from OVVO, because we own no domain and publish no SPF, DKIM or DMARC record
+for one, and Firebase will not sign the mail as us. So the mail is judged on the reputation of a
+shared sender, and it loses. Google's own issue tracker has this filed for authentication mail
+from `firebaseapp.com` (issuetracker.google.com/issues/253291461).
+
+The routes that would fix it, and what each costs:
+
+| Route | What it gives | What it needs |
+| --- | --- | --- |
+| Firebase custom email domain (Authentication, Templates, edit, *customize domain*) | From `noreply@<our domain>`, action links on that domain, with the TXT and CNAME records Firebase supplies | A domain we own. The records themselves are free |
+| Firebase custom SMTP (a sender such as Postmark or Resend) | The mail leaves through that service, which authenticates it | A domain, and the paid Identity Platform upgrade, which needs a card |
+| Mail sent by our own Worker through a sending service | OVVO writes the templates and owns the sender | A domain and an API key. Free at our size, still no card |
+
+**Every route needs a domain**, which the decisions above rule out. Until that changes, some of
+this mail will land in spam and no wording in the templates changes it: the sender is what Gmail
+is judging. We cannot test a mailbox from the build machine either, so this is documented rather
+than measured.
+
+What is true without a domain: **Google sign-in and email with a password need no mail** and are
+unaffected. Email link sign-in is the one path that depends on the mail arriving.
 
 ## Secrets and values
 
