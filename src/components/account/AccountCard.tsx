@@ -484,6 +484,8 @@ export function AccountCard() {
  */
 export function SignOutPanel() {
   const { account } = useAccount();
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   if (account === null) return null;
 
@@ -492,10 +494,50 @@ export function SignOutPanel() {
    * button is a backdrop that says "this is a section" about something that is not one.
    */
   return (
-    <div className="row-wrap">
-      <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
-        Sign out
-      </Button>
-    </div>
+    <>
+      <div className="row-wrap">
+        <Button variant="surface" size="sm" onClick={() => setConfirmSignOut(true)}>
+          Sign out
+        </Button>
+      </div>
+
+      {/*
+        * **Signing out asks first.** It is not destructive, which is why the sheet says so plainly
+        * rather than in the alarm colour: a traveller who tapped it by accident has one tap back,
+        * and one who meant it loses nothing but the session. The sheet also answers the question
+        * people actually have at that moment, which is whether their journeys are about to go.
+        */}
+      <Dialog
+        open={confirmSignOut}
+        title="Sign out of your OVVO ID?"
+        description="Your stops and journeys stay on this device, and the copy with your OVVO ID stays on the server until you delete it."
+        onClose={() => setConfirmSignOut(false)}
+        footer={
+          <>
+            <Button
+              variant="accent"
+              disabled={leaving}
+              onClick={() => {
+                setLeaving(true);
+                void signOutNow().finally(() => {
+                  setLeaving(false);
+                  setConfirmSignOut(false);
+                });
+              }}
+            >
+              {leaving ? 'Signing out' : 'Sign out'}
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmSignOut(false)}>
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">
+          Nothing is deleted and OVVO keeps working without an account. Sign in again whenever you
+          like and everything comes back.
+        </p>
+      </Dialog>
+    </>
   );
 }
