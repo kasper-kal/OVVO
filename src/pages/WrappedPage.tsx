@@ -72,12 +72,31 @@ export function WrappedPage() {
   const askedForDemo = params.get('demo') === '1';
   const now = appNow();
 
+  /*
+   * **Which year, and never half of one.**
+   *
+   * The deck used to wrap whatever year the calendar said, so a traveller opening it in July saw a
+   * few months of journeys presented as the whole year, with the year still running. The wrapped
+   * season opens on 20 December, when the year being wrapped is the one just ending; at every other
+   * time of year the newest finished year is the one before, which is the only year a review can
+   * honestly be of.
+   */
   const year = useMemo(() => {
     const named = Number(params.get('year'));
     if (Number.isInteger(named) && named > 2000) return named;
-    if (now.getMonth() === 0) return yearOf(now.getTime()) - 1;
-    return yearOf(now.getTime());
+    const thisYear = yearOf(now.getTime());
+    if (now.getMonth() === 11 && now.getDate() >= 20) return thisYear;
+    return thisYear - 1;
   }, [params, now]);
+
+  /*
+   * **A year that has not closed says so.**
+   *
+   * In the season the year being wrapped is still running until midnight on the thirty-first, so the
+   * cover carries one quiet line that the story is the year so far. Nothing else in the deck changes:
+   * every figure is still the tally's own.
+   */
+  const yearOver = now.getTime() >= new Date(year + 1, 0, 1).getTime();
 
   /*
    * **An empty year opens the example year, and says so.**
@@ -426,6 +445,11 @@ export function WrappedPage() {
               <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
                 {t(chapter.line)}
               </p>
+              {!yearOver ? (
+                <p className="wrapped-unfinished" style={{ '--i': 2 } as CSSProperties}>
+                  {t('This year is not over yet. This is it so far.')}
+                </p>
+              ) : null}
               {demo ? (
                 <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
                   <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}

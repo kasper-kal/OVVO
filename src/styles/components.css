@@ -7834,6 +7834,7 @@
 
 .wrapped-note,
 .wrapped-demo,
+.wrapped-unfinished,
 .wrapped-aside {
   font-size: clamp(13px, 3.2vw, 15px);
   line-height: 1.4;
@@ -9262,7 +9263,8 @@
   opacity: 1;
 }
 
-.wrapped-stage[data-chapter='cover'] .wrapped-demo {
+.wrapped-stage[data-chapter='cover'] .wrapped-demo,
+.wrapped-stage[data-chapter='cover'] .wrapped-unfinished {
   opacity: 0.94;
 }
 
