@@ -506,11 +506,17 @@ export function SignOutPanel() {
         * rather than in the alarm colour: a traveller who tapped it by accident has one tap back,
         * and one who meant it loses nothing but the session. The sheet also answers the question
         * people actually have at that moment, which is whether their journeys are about to go.
+        *
+        * **The words say where the things live, and that is the account.** An earlier draft said
+        * they "stay on this device", which is the wrong picture: with an OVVO ID the account is
+        * what holds them, and this device keeps a copy so the app still works with no network.
+        * Signing out changes neither of those, so the sentence promises nothing that has to be
+        * taken back.
         */}
       <Dialog
         open={confirmSignOut}
         title="Sign out of your OVVO ID?"
-        description="Your stops and journeys stay on this device, and the copy with your OVVO ID stays on the server until you delete it."
+        description="Your stops and journeys belong to your OVVO ID. Signing out does not delete them."
         onClose={() => setConfirmSignOut(false)}
         footer={
           <>
@@ -534,8 +540,8 @@ export function SignOutPanel() {
         }
       >
         <p className="t-sm">
-          Nothing is deleted and OVVO keeps working without an account. Sign in again whenever you
-          like and everything comes back.
+          They stay with your account and come back the next time you sign in. Until then OVVO keeps
+          working with what this device already holds, offline as well.
         </p>
       </Dialog>
     </>
