@@ -237,8 +237,8 @@ export function buildStory({
       count: directPct,
       line:
         direct === 1
-          ? 'of your journeys had no changes at all. One clean run.'
-          : `of your journeys had no changes at all. ${direct} of ${runs.length}.`,
+          ? 'One journey, and it had no changes at all.'
+          : `${direct} of ${runs.length} journeys had no changes at all.`,
       arc: directShare,
     },
     longest.minutes
@@ -249,7 +249,7 @@ export function buildStory({
           track: 'hip-hop-anthem',
           kicker: 'The long haul',
           big: formatDuration(longest.minutes, language),
-          line: `on the way to ${nameOf(longest.to)}, the longest trip you planned.`,
+          line: 'the longest trip you planned this year.',
           route: { from: nameOf(longest.from), to: nameOf(longest.to), count: 1 },
         }
       : null,

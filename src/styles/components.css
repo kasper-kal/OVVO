@@ -9866,3 +9866,161 @@
   letter-spacing: 0.01em;
   pointer-events: none;
 }
+
+
+/* ==========================================================================
+ * **The audit of ten chapters: what the fifty screenshots showed, and the repair.**
+ *
+ * Each block below is one thing the steerer's five-moments-per-chapter pass found, fixed where it
+ * happens. The order is the order of the deck: a veil over the look, a field over the total, a unit
+ * word stranded on the rail, two tickets stretched into billboards, an hour told backwards, a dial
+ * wider than the phone, and the foot of every page too tight to the chapter count.
+ * ========================================================================== */
+
+/* 1 · Nothing painted on a page may sit over a figure on it. */
+.wrapped-body > .wrapped-kicker,
+.wrapped-body > .wrapped-big,
+.wrapped-body > .wrapped-days,
+.wrapped-body > .wrapped-line,
+.wrapped-body > .wrapped-note,
+.wrapped-body > .wrapped-aside,
+.wrapped-body > .wrapped-ruler,
+.wrapped-body > .wrapped-bars,
+.wrapped-body > .wrapped-chips,
+.wrapped-body > .wrapped-arc,
+.wrapped-body > .wrapped-route,
+.wrapped-body > .wrapped-stretch {
+  position: relative;
+  z-index: 2;
+}
+
+/*
+ * 2 · The look's veil was painted over its own words.
+ *
+ * The photograph's gradient sits at the same depth as the scene, and being generated last it painted
+ * on top of it: the title, the sentence and the days were all under a 92% black wash at the foot of
+ * the page, which is why the number looked grey instead of white. The veil goes under the words.
+ */
+.wrapped-stage[data-chapter='look']::after {
+  z-index: 0;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big,
+.wrapped-stage[data-chapter='look'] .wrapped-days,
+.wrapped-stage[data-chapter='look'] .wrapped-line {
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.62);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  opacity: 0.9;
+}
+
+/* 3 · The total: the field of journeys stops short of the number it belongs to. */
+.wrapped-stage[data-chapter='total'] .wrapped-field {
+  -webkit-mask-image: linear-gradient(180deg, #000 0 46%, rgba(0, 0, 0, 0.55) 74%, transparent 97%);
+  mask-image: linear-gradient(180deg, #000 0 46%, rgba(0, 0, 0, 0.55) 74%, transparent 97%);
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-field i {
+  width: 4px;
+  height: 4px;
+}
+
+/* 4 · The rail's unit word was a whisper half a screen from its number. */
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count i {
+  font-size: 0.26em;
+  margin-left: 6px;
+  opacity: 0.82;
+}
+
+/*
+ * 5 · Page four was two billboards.
+ *
+ * The tickets were told to take an equal share of the whole page, which worked with three origins and
+ * turned into two 250px boxes with a name and a number stranded at the top of each when the year had
+ * two. A ticket is now as tall as its paper needs and the pair sits centred.
+ */
+.wrapped-stage[data-chapter='origin'] .wrapped-chips {
+  grid-auto-rows: auto;
+  align-content: center;
+  gap: clamp(10px, 2.4vh, 20px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  min-height: clamp(96px, 16vh, 140px);
+}
+
+/*
+ * 6 · The hour was told backwards.
+ *
+ * The sentence gave the answer, the graph drew it, and the hour itself arrived last at the foot of the
+ * page. The clock is the headline now, the sentence explains it, and the graph fills what is left.
+ */
+.wrapped-body--bars {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+}
+
+.wrapped-body--bars .wrapped-kicker {
+  order: 1;
+}
+
+.wrapped-body--bars .wrapped-big {
+  order: 2;
+}
+
+.wrapped-body--bars .wrapped-line {
+  order: 3;
+}
+
+.wrapped-body--bars .wrapped-ruler {
+  order: 4;
+  margin-top: clamp(2px, 1vh, 8px);
+}
+
+.wrapped-body--bars .wrapped-bars {
+  order: 5;
+  align-self: stretch;
+  min-height: 160px;
+}
+
+/* 7 · The dial was wider than the phone, so it read as a cropped mistake. */
+.wrapped-stage[data-chapter='direct'] .wrapped-arc {
+  width: min(88vw, 520px);
+  margin-inline: auto;
+}
+
+/*
+ * 8 · The long haul carried its sentence at the foot of a stretched row.
+ *
+ * The trip, the two ends and the sentence were pulled apart by a row that took all the spare height,
+ * which left the page half empty under the line. The block now sits together in the middle.
+ */
+.wrapped-body--stretch {
+  grid-template-rows: repeat(5, auto);
+  align-content: center;
+  gap: clamp(14px, 2.8vh, 26px);
+}
+
+/* 9 · The foot of every page: the chapter count had the buttons pressed against it. */
+.wrapped-stage .wrapped-foot {
+  padding-top: clamp(14px, 2.8vh, 26px);
+}
+
+.wrapped-foot:has(.wrapped-foot__actions) {
+  gap: 16px;
+  row-gap: 14px;
+}
+
+/* 10 · The top bar was a row of dashes you had to go looking for. */
+.wrapped-progress__seg {
+  height: 4px;
+  background: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.wrapped-progress__seg.is-now {
+  background: color-mix(in srgb, currentColor 44%, transparent);
+}
+
+.wrapped-progress__seg.is-done {
+  background: currentColor;
+}

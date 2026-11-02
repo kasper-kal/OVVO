@@ -92,6 +92,21 @@ export function WrappedPage() {
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
   const last = index >= story.length - 1;
 
+  /*
+   * **The corner cannot claim a song is playing when none has started.**
+   *
+   * The switch names the action, which is right, but on the cover the action it named was "Sound off"
+   * over a silent page — it read as though the score were already running and the traveller had missed
+   * it. Before Begin the cover offers the choice instead: start muted, or start with the sound on.
+   */
+  const soundLabel = !started
+    ? sound
+      ? t('Start muted')
+      : t('Start with sound')
+    : sound
+      ? t('Sound off')
+      : t('Sound on');
+
   /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
     (next: number) => {
@@ -335,10 +350,10 @@ export function WrappedPage() {
         <button
           type="button"
           className="wrapped-sound"
-          aria-label={sound ? t('Sound off') : t('Sound on')}
+          aria-label={soundLabel}
           onClick={() => setSound((on) => !on)}
         >
-          <span>{sound ? t('Sound off') : t('Sound on')}</span>
+          <span>{soundLabel}</span>
         </button>
       </header>
 
