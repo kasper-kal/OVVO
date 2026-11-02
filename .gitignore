@@ -14,3 +14,6 @@ artifacts/
 .env.*.local
 # Local Worker secrets, read by `wrangler dev`. Never committed: they hold a real key when present.
 .dev.vars
+
+# Local Wrangler state: the dev database, its cache and its session rows. It belongs to this machine only.
+.wrangler/
