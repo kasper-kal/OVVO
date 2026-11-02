@@ -11547,3 +11547,20 @@
   height: 24px;
   margin-top: -9px;
 }
+
+/*
+ * 41 · The rail disappeared when I gave it a position.
+ *
+ * The rail is an absolutely positioned line down the page, and I set it to relative to make the
+ * journey ticks sit inside it, which collapsed it to nothing: the dashed line and the ticks with it.
+ * The rail keeps its own positioning (an absolutely positioned box is a containing block already),
+ * and the long haul's track is one solid line again, because a half filled gradient under a marker
+ * that sits somewhere else is a second, contradictory reading of the same trip.
+ */
+.wrapped-route__rail {
+  position: absolute;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
+  background: currentColor;
+}
