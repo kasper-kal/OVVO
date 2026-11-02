@@ -19,6 +19,58 @@ import type { Language } from '../state/types';
  * lie about a real place.
  */
 const NL: Record<string, string> = {
+  /*
+   * ------------------------------------------------------------------- sign in
+   *
+   * The sign-in screen was the last part of the app that only spoke English, which meant a Dutch
+   * traveller met a Dutch planner and then an English door. These are the sentences of that door,
+   * and of the "check your email" screen behind it.
+   */
+  'Sign in': 'Inloggen',
+  'Sync your stops and journeys across your devices.':
+    'Synchroniseer je haltes en reizen tussen je apparaten.',
+  'Sign-in is unavailable': 'Inloggen is niet beschikbaar',
+  'This build was published without sign-in keys. Everything else works; your data stays on this device.':
+    'Deze versie is gepubliceerd zonder inlogsleutels. Al het andere werkt; je gegevens blijven op dit apparaat.',
+  'Sign in with a passkey': 'Inloggen met een passkey',
+  or: 'of',
+  'Continue with Google': 'Doorgaan met Google',
+  'That address already has an OVVO ID with a password. Sign in with that password below, and Google is added to the same account.':
+    'Dat adres heeft al een OVVO ID met een wachtwoord. Log hieronder in met dat wachtwoord, dan wordt Google aan hetzelfde account toegevoegd.',
+  Email: 'E-mailadres',
+  Password: 'Wachtwoord',
+  'First name': 'Voornaam',
+  'Last name (optional)': 'Achternaam (optioneel)',
+  'Create account': 'Account aanmaken',
+  'Please wait': 'Even geduld',
+  'Send sign-in link': 'Inloglink sturen',
+  'Use a password instead': 'Liever een wachtwoord',
+  'Use a sign-in link instead': 'Liever een inloglink',
+  'Forgot password?': 'Wachtwoord vergeten?',
+  'New to OVVO?': 'Nieuw bij OVVO?',
+  'Create an account with a passkey': 'Een account aanmaken met een passkey',
+  'No email and no password. Your face, fingerprint or PIN is the key.':
+    'Geen e-mail en geen wachtwoord. Je gezicht, vingerafdruk of pincode is de sleutel.',
+  'That check could not load, so an account with a passkey cannot be made right now. You can still make one with an email above.':
+    'Die controle kon niet laden, dus een account met een passkey kan nu niet worden gemaakt. Met een e-mailadres hierboven kan het wel.',
+  'Create with a passkey': 'Aanmaken met een passkey',
+  'Waiting for your device': 'Wachten op je apparaat',
+  'Back to OVVO': 'Terug naar OVVO',
+  'Check your email': 'Check je e-mail',
+  'We sent a sign-in link to': 'We stuurden een inloglink naar',
+  'We sent a password reset link to': 'We stuurden een link om je wachtwoord te vernieuwen naar',
+  'Click the link in the email to sign in. It works once and expires after an hour.':
+    'Klik op de link in de e-mail om in te loggen. Hij werkt één keer en verloopt na een uur.',
+  'Click the link in the email to choose a new password.':
+    'Klik op de link in de e-mail om een nieuw wachtwoord te kiezen.',
+  'It comes from': 'Hij komt van',
+  'Adding that address to your contacts keeps it out of spam next time.':
+    'Zet dat adres in je contacten, dan komt hij de volgende keer niet in je spam.',
+  "Didn't get it? Check your spam folder.": 'Niets ontvangen? Kijk dan in je spamfolder.',
+  'Email sent again.': 'E-mail opnieuw verstuurd.',
+  Sending: 'Versturen',
+  'Resend email': 'Opnieuw sturen',
+  'Use a different email': 'Ander e-mailadres',
   /* ---------------------------------------------------------------- app shell */
   'Skip to main content': 'Ga naar de hoofdinhoud',
   /* ------------------------------------------------------------------ install */
