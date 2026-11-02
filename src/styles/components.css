@@ -11745,3 +11745,23 @@
 .alert-card__head-text {
   min-width: 0;
 }
+
+/*
+ * **The − badge belongs to the card, not to the corner it was stuck on.**
+ *
+ * It sat at `top: -8px, right: -4px`: eight pixels above the card's top edge and four past its
+ * right edge, so half the disc was outside the card. On a plain surface that read as a badge on the
+ * corner; on a tinted card it read as a control that had come loose, and the same numbers looked
+ * like two different positions depending on what was behind them (reported: "weirdly positioned on
+ * different themes then default"). It now sits inside the card's own corner on every card, and the
+ * head keeps a lane clear on the right so a long title cannot run under it.
+ */
+.widget__remove {
+  top: 3px;
+  right: 3px;
+}
+
+/* The 44px target's disc is inset 7px, so the visible badge lands 10px inside both edges. */
+.widget-grid--editing .widget__head {
+  padding-right: calc(var(--target-min) - var(--s-2));
+}
