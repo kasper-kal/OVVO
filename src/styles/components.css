@@ -4922,16 +4922,36 @@
   display: flex;
   align-items: center;
   /*
-   * **The badges are the separation.**
+   * **The arrow owns the space around it.**
    *
-   * A chevron used to sit between them, inside each leg's own flex row, and that row could wrap on
-   * its own — so a long chain broke *between* a chevron and its badge and left two small arrows
-   * floating over the pills (circled and reported), while the line ran longer than the times above
-   * it. One badge per leg, no arrows, and 8px between them: the order is the order they are drawn in,
-   * which is how the chain is read anyway.
+   * The chain adds no gap of its own. A leg is one group (`.journey-card__leg`) holding an arrow and
+   * a badge, the group never breaks, and the arrow carries 6px on each side. When the spacing was
+   * split between the group's inner gap and the chain's gap, an arrow had 12px on one side and 8px
+   * on the other, which is what read as an arrow that sits inconsistently beside a walk badge and a
+   * bus badge: those badges differ in width, so the imbalance moved with them.
    */
-  gap: var(--s-2);
+  gap: 0;
   flex-wrap: wrap;
+}
+
+.journey-card__leg {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/*
+ * The same 6px on both sides of an arrow in the chain, and only there: the times at the top of the
+ * card draw an arrow of their own from the same glyph, and it must keep the space it had.
+ *
+ * The chain's arrow used to inherit the gap of the group it shared with its badge (8px) while the
+ * chain added 4px between one group and the next, so it sat 12px from one badge and 8px from the
+ * next, and that imbalance moved as the badges around it changed width — walking badges are wider
+ * than a bus badge, so the arrow looked differently placed beside them.
+ */
+.journey-card__leg .journey-card__arrow {
+  flex: none;
+  margin-inline: 6px;
 }
 
 .leg-row {

@@ -140,27 +140,30 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
           {journey.legs.length === 0 || journey.legs.every((leg) => leg.mode === 'walk') ? (
             <span className="pill">{t('Walking only')}</span>
           ) : (
-            journey.legs.map((leg) => {
+            journey.legs.map((leg, index) => {
               const minutes = leg.arrival - leg.departure;
               const onFoot = leg.mode === 'walk' || leg.mode === 'bike';
               /*
-               * **One badge per leg, and no chevron between them.**
+               * **A chevron between the badges, with the same 6px on both of its sides.**
                *
-               * Each leg used to be its own `row` — a chevron and a badge in a wrapping flex box —
-               * so a chain that ran out of room broke *inside* a leg: the chevron stayed on the
-               * first line and its badge dropped to the next, which is the pair of little arrows
-               * floating over the pills that was circled and reported. The chain is also read left
-               * to right without them (the badges are in the order you take them), and dropping
-               * them is most of the width that made this line longer than the times above it.
+               * The arrow and its badge used to share one group, and that group spaced its two
+               * children by 8px while the chain put 4px between one group and the next: the arrow
+               * had 12px of air on one side and 8px on the other, which drifts as soon as the badges
+               * either side of it change width. A leg is now a group of its own that cannot break
+               * (`nowrap`), the chain adds no gap of its own, and the space around the arrow belongs
+               * to the arrow alone, so every arrow sits in exactly the same place in its gap.
                */
               return (
-                <span key={leg.id} className={`mode-badge mode-badge--${leg.mode}`}>
-                  <ModeIcon mode={leg.mode} size={13} />
-                  {/* A glyph alone is not a word: the mode is said for a screen reader, and the
-                      badge itself carries what is worth reading — the line number, or the
-                      minutes on foot. */}
-                  <span className="sr-only">{t(modeLabel(leg.mode))}</span>
-                  {onFoot ? format.duration(minutes) : (getLine(leg.lineId)?.number ?? leg.lineNumber ?? '')}
+                <span key={leg.id} className="journey-card__leg">
+                  {index > 0 ? <Icon name="chevronRight" size={13} className="journey-card__arrow" /> : null}
+                  <span className={`mode-badge mode-badge--${leg.mode}`}>
+                    <ModeIcon mode={leg.mode} size={13} />
+                    {/* A glyph alone is not a word: the mode is said for a screen reader, and the
+                        badge itself carries what is worth reading — the line number, or the
+                        minutes on foot. */}
+                    <span className="sr-only">{t(modeLabel(leg.mode))}</span>
+                    {onFoot ? format.duration(minutes) : (getLine(leg.lineId)?.number ?? leg.lineNumber ?? '')}
+                  </span>
                 </span>
               );
             })
