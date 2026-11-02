@@ -10,7 +10,6 @@ import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
 import {
-  loopScore,
   resumeSound,
   scoreTime,
   soundAudible,
@@ -143,9 +142,7 @@ export function WrappedPage() {
       return;
     }
     startSound(chapter.track, story[index + 1]?.track);
-    /* The cover's piece holds until Begin; every page after it plays once and turns itself. */
-    loopScore(!started);
-  }, [index, started, sound, chapter.track, story]);
+  }, [index, sound, chapter.track, story]);
 
   /*
    * **The story keeps time with the music.**
@@ -158,11 +155,13 @@ export function WrappedPage() {
    */
   useEffect(() => {
     whenTrackEnds(() => {
-      if (!started || last) return;
+      if (last) return;
+      /* The cover's piece ending is the story starting, exactly as Begin is. */
+      if (index === 0) setStarted(true);
       go(index + 1);
     });
     return () => whenTrackEnds(null);
-  }, [go, index, last, started]);
+  }, [go, index, last]);
 
   /*
    * **The story turns itself in silence too.**
@@ -174,11 +173,14 @@ export function WrappedPage() {
    * music that turns the page and this never gets there first.
    */
   useEffect(() => {
-    if (!started || last) return undefined;
+    if (last) return undefined;
     const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
-    const timer = window.setTimeout(() => go(index + 1), quiet);
+    const timer = window.setTimeout(() => {
+      if (index === 0) setStarted(true);
+      go(index + 1);
+    }, quiet);
     return () => window.clearTimeout(timer);
-  }, [started, last, chapter.track, index, go]);
+  }, [last, chapter.track, index, go]);
 
   /* A report on the score, for a phone that cannot be debugged from here. */
   const showDiagnostics = useMemo(
@@ -337,8 +339,15 @@ export function WrappedPage() {
             key={item.id}
             className={`wrapped-progress__seg${at < index ? ' is-done' : ''}${at === index ? ' is-now' : ''}`}
           >
-            {/* The chapter you are on fills as its song plays, and not a moment before Begin. */}
-            {at === index && started ? (
+            {/*
+              * **The chapter you are on fills, whether or not it is audible.**
+              *
+              * The bar used to wait for Begin, and it still had to be asked for when the sound was off, so a
+              * muted story showed a clock that had stopped while the story itself was still running. The song
+              * is the clock either way: muted, the deck keeps the same count, so the segment fills on the cover
+              * and on every chapter, heard or not.
+              */}
+            {at === index ? (
               <i key={`${item.id}-${index}`} style={{ '--len': `${trackSeconds(chapter.track)}s` } as CSSProperties} />
             ) : null}
           </span>

@@ -210,11 +210,6 @@ function ensureSlots(): Slot[] {
  */
 function watchEnd(slot: Slot): void {
   if (slot !== active || !playing) return;
-  /*
-   * A looping track is the cover holding its note while the traveller reads, not a chapter ending: it
-   * must not duck itself into silence a second before the page, and it must not ask for a turn.
-   */
-  if (slot.el.loop) return;
   const { duration, currentTime } = slot.el;
   if (!Number.isFinite(duration) || duration <= TURN_EARLY + AUTO_FADE) return;
   if (!ducked && currentTime >= duration - TURN_EARLY - AUTO_FADE) {
@@ -388,17 +383,6 @@ export function whenTrackEnds(handler: (() => void) | null): void {
 export function scoreTime(): { track: Track; seconds: number } | null {
   if (!playing || !active || !active.track) return null;
   return { track: active.track, seconds: active.el.currentTime };
-}
-
-/**
- * **The cover's piece holds rather than ends.**
- *
- * The first page is where the traveller sits and reads before pressing Begin, so its music must not fall
- * silent after fifteen seconds while they are still deciding. It loops until the story starts, and every
- * chapter after that plays once, because there the end of the song is what turns the page.
- */
-export function loopScore(on: boolean): void {
-  if (active) active.el.loop = on;
 }
 
 /** Whether the score is currently allowed to make a sound. */
