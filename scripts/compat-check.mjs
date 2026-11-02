@@ -131,6 +131,25 @@ async function check(item) {
   const browser = await launch();
   try {
     const page = await browser.newPage();
+
+    /*
+     * **A case that wants to test the check has to stop claiming to be a robot.**
+     *
+     * Playwright sets `navigator.webdriver`, and the page now waves automation past the check on
+     * purpose. Left alone, every case here would test that door and none would test the check, which
+     * is how a suite passes while proving nothing. The last case keeps the honest flag, so the
+     * automation door is tested too.
+     */
+    if (item.webdriver !== true) {
+      await page.addInitScript(() => {
+        try {
+          Object.defineProperty(window.navigator, 'webdriver', { get: () => false });
+        } catch (error) {
+          /* if it cannot be redefined the case fails on its own merits rather than passing blind */
+        }
+      });
+    }
+
     let evalState = 'not tested';
     let policy = 'not needed';
 
@@ -211,6 +230,12 @@ const cases = [
       })();
     `,
     want: { noticeShown: true },
+  },
+  {
+    /* The door automation gets: no stub, no override, a real driven browser. */
+    name: 'automation (webdriver)',
+    webdriver: true,
+    want: { mounted: true, noticeShown: false },
   },
 ];
 
