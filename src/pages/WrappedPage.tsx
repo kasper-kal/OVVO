@@ -430,7 +430,11 @@ export function WrappedPage() {
            * the one thing on the page that is only theirs.
            */
           ...(chapter.swatches
-            ? { background: chapter.swatches[0], color: chapter.swatches[2] }
+            ? {
+                background: chapter.swatches[0],
+                color: chapter.swatches[2],
+                '--look-accent': chapter.swatches[3],
+              }
             : {}),
         } as CSSProperties
       }
@@ -622,6 +626,17 @@ export function WrappedPage() {
                 </div>
               ) : null}
 
+              {chapter.kind === 'number' && chapter.blocks ? (
+                <span className="wrapped-blocks" aria-hidden="true">
+                  {Array.from({ length: chapter.blocks }, (_, block) => (
+                    <i
+                      key={block}
+                      style={{ '--i': block, '--h': `${40 + (block % 5) * 12}%` } as CSSProperties}
+                    />
+                  ))}
+                </span>
+              ) : null}
+
               {chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
                   <span className="wrapped-arc__spark" aria-hidden="true" />
@@ -646,17 +661,6 @@ export function WrappedPage() {
                   {count}
                   <span>{chapter.count === 1 ? t('day') : t('days')}</span>
                 </p>
-              ) : null}
-
-              {chapter.kind === 'number' && chapter.blocks ? (
-                <span className="wrapped-blocks" aria-hidden="true">
-                  {Array.from({ length: chapter.blocks }, (_, block) => (
-                    <i
-                      key={block}
-                      style={{ '--i': block, '--h': `${40 + (block % 5) * 12}%` } as CSSProperties}
-                    />
-                  ))}
-                </span>
               ) : null}
 
               {(chapter.kind === 'number' || chapter.kind === 'word') && chapter.dots ? (

@@ -10499,15 +10499,12 @@
  * worth of blocks, one per working day the travelling amounted to, rising on the beat.
  */
 .wrapped-blocks {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  height: 46%;
-  padding: 0 var(--pad-x);
+  width: 100%;
+  height: clamp(84px, 16vh, 150px);
+  margin: clamp(4px, 1.4vh, 12px) 0 clamp(2px, 1vh, 10px);
   pointer-events: none;
 }
 
@@ -10537,15 +10534,15 @@
   animation: none;
 }
 
-/* The blocks sit under the number rather than over it. */
-.wrapped-body--number .wrapped-blocks {
-  z-index: 0;
+/* The look prints its count in its own accent, not in the app's grey. */
+.wrapped-body--word .wrapped-days,
+.wrapped-body--word .wrapped-days span {
+  color: var(--look-accent, currentColor);
 }
 
-.wrapped-body--number .wrapped-big,
-.wrapped-body--number .wrapped-line {
-  position: relative;
-  z-index: 1;
+/* The swatches are a band, not a row of buttons: big enough to be the look. */
+.wrapped-swatches i {
+  height: clamp(76px, 12vh, 124px);
 }
 
 /*
