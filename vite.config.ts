@@ -177,17 +177,13 @@ export default defineConfig(({ mode }) => {
        * Without a proxy the preview says plainly that the site cannot be reached, and every passkey
        * is made against the one database that matters.
        *
-       * **The three public lookups are the exception, and only those.** `worker/lookup.js` answers a
-       * street, a position and a Wikipedia paragraph: no account, no database, no key left on a
-       * device. Forwarding just that path to a local Worker lets the preview draw address results
-       * and encyclopaedia cards while `npm run dev` is running, and nothing that writes is proxied.
+       * **The three public lookups are not proxied either, and it was tried.** Forwarding just
+       * `/api/lookup` to a local Worker would let the preview draw address results and Wikipedia
+       * cards, but a Worker that is not running makes the dev server hang on that path rather than
+       * fail, and a preview that hangs is worse than a preview with no address results. The live
+       * site is where these run; locally they answer nothing and the app falls back to its stops,
+       * which is what it did before they existed.
        */
-      proxy: {
-        '/api/lookup': {
-          target: 'http://127.0.0.1:8787',
-          changeOrigin: true,
-        },
-      },
     },
     preview: {
       host: '0.0.0.0',
