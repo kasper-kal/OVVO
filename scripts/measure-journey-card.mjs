@@ -6,13 +6,13 @@
  * every card how wide each line's *content* is, how many rows the chain wrapped to, and every pair
  * of pieces whose boxes overlap.
  *
- * Usage: node scripts/measure-journey-card.mjs [from] [to]
+ * Usage: node scripts/measure-journey-card.mjs [from] [to]  (BASE=https://... for the live site)
  */
 import { chromium } from 'playwright';
 
 const from = process.argv[2] ?? 'Haarlem Station';
 const to = process.argv[3] ?? 'Zaandam Station';
-const base = 'http://127.0.0.1:3000';
+const base = process.env.BASE ?? 'http://127.0.0.1:3000';
 
 const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 
