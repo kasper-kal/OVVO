@@ -11577,3 +11577,90 @@
   content: none;
   display: none;
 }
+
+/*
+ * 43 · The lines page was four captions about a year of travelling.
+ *
+ * "24 journeys on it" was set as the smallest line on the page and the four cards carried two captions
+ * each. The number the line carried is the page's headline now, at the size of a headline, and the
+ * sentence that used to say it is gone. The two runners-up keep only their numbers, and the tallies
+ * are off this page, because a page that says one thing says it better than a page that says five.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-line {
+  display: none;
+}
+
+.wrapped-lines-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapped-lines-count strong {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: clamp(72px, 26vw, 140px);
+  line-height: 0.78;
+  letter-spacing: -0.06em;
+  font-weight: 600;
+}
+
+.wrapped-lines-count span {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  align-content: start;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-kicker {
+  grid-row: 1;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-big {
+  grid-row: 2;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-lines-count {
+  grid-row: 3;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-row: 4;
+  align-content: start;
+  grid-auto-rows: auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: clamp(16px, 3.4vh, 28px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 14px;
+  background: none;
+  justify-items: start;
+  gap: 0;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip:nth-child(n + 3) {
+  display: none;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  display: none;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span {
+  font-size: clamp(26px, 7.6vw, 34px);
+  letter-spacing: -0.01em;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-aside {
+  display: none;
+}

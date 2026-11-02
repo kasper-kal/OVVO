@@ -531,6 +531,18 @@ export function WrappedPage() {
                 </p>
               ) : null}
 
+              {/*
+                * The line's own count, at the size a year of journeys earns. It was a sentence under
+                * the name ("24 journeys on it."), which is the smallest type on the page saying the
+                * biggest thing the page knows.
+                */}
+              {chapter.id === 'lines' ? (
+                <p className="wrapped-lines-count" style={{ '--i': 2 } as CSSProperties}>
+                  <strong>{chapter.count ?? 0}</strong>
+                  <span>{t('journeys')}</span>
+                </p>
+              ) : null}
+
               {chapter.kind === 'number' ? (
                 <div className="wrapped-months" aria-hidden="true">
                   {monthBars(chapter.months).map((bar, month) => (
