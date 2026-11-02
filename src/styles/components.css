@@ -10255,7 +10255,8 @@
   stroke-dashoffset: 180;
   vector-effect: non-scaling-stroke;
   animation: wrapped-map-draw 900ms var(--ease-out) forwards;
-  animation-delay: calc(var(--i) * var(--bar-ms));
+  /* One line a beat, not one a bar: the last of seven has to be drawn before the page turns. */
+  animation-delay: calc(var(--i) * var(--beat-ms));
 }
 
 .wrapped-map__route.is-often {
