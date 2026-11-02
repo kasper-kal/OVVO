@@ -117,6 +117,11 @@ Limits worth naming now:
   and everybody signs in the old way once more.
 - **A passkey-only account has no recovery.** If every device holding it is lost and nothing was
   synced, the account cannot be opened. The card says so whenever there is only one passkey.
+- **`FIREBASE_SERVICE_ACCOUNT` must be a Secret, not a Variable.** Added as a plain dashboard
+  variable it does work at once, and then disappears on the next `npm run deploy` from here,
+  because a deploy uploads only the variables in the project's own config. Measured on
+  2 November 2026: status went true, one deploy later it was false again. A Secret is stored
+  apart from the upload, survives every deploy, and hides the private key from the dashboard.
 - **A passkey made before the switch is kept.** The sign-in step is the only part that needs
   the key, so a key already on a device starts working the moment `FIREBASE_SERVICE_ACCOUNT` is
   set, and the card shows it instead of claiming there is none.
