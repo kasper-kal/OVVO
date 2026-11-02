@@ -11284,3 +11284,94 @@
     background-position: 56% 74%;
   }
 }
+
+/*
+ * 37 · The look page was type laid over a dark photograph, which is the shape of every boring slide.
+ *
+ * Cutting the word out of the picture did not save it: the picture is dark where the word sits, so the
+ * word went dark with it, and a photograph with small white words on it is still a photograph with
+ * small white words on it. The page is a spread now. The picture is an object on the page, a photograph
+ * with a frame, a corner and a shadow, sitting in the top half of a sheet of paper, and the look's name
+ * and its days are printed underneath it in ink on that paper. The frame pans across the platform
+ * slowly, so the picture is alive without the page pretending the picture is the layout.
+ */
+.wrapped-stage[data-chapter='look'] {
+  background: #f4ede1;
+  color: #241c14;
+}
+
+.wrapped-stage[data-chapter='look']::after,
+.wrapped-stage[data-chapter='look']::before {
+  content: none;
+  background: none;
+}
+
+.wrapped-photo {
+  position: fixed;
+  top: 68px;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  height: 50%;
+  border-radius: 26px;
+  object-fit: cover;
+  object-position: 50% 45%;
+  box-shadow: 0 22px 50px rgba(36, 28, 20, 0.26);
+  animation: wrapped-photo-pan 26s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+@keyframes wrapped-photo-pan {
+  from {
+    object-position: 50% 36%;
+  }
+  to {
+    object-position: 50% 64%;
+  }
+}
+
+.wrapped-body[data-chapter='look'] {
+  align-content: end;
+  gap: clamp(6px, 1.6vh, 14px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  color: #241c14;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-stroke: 0;
+  filter: none;
+  font-size: clamp(42px, 14.5vw, 108px);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  animation: none;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #241c14;
+  font-size: clamp(62px, 21vw, 148px);
+  line-height: 0.78;
+  text-shadow: none;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  font-size: 0.2em;
+  opacity: 0.55;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-line {
+  color: #4a423a;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: clamp(17px, 4.4vw, 23px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker {
+  color: #7a7267;
+  opacity: 1;
+  letter-spacing: 0.2em;
+}
+
+.wrapped-stage.is-still .wrapped-photo {
+  animation: none;
+}
