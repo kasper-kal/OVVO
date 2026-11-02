@@ -10173,13 +10173,13 @@
 
 /* The paper pages are washed in their own paper: sun on a ticket, not shadow on a screen. */
 .wrapped-stage[data-chapter='origin']::after {
-  background: linear-gradient(180deg, rgba(244, 237, 225, 0.55) 0%, rgba(244, 237, 225, 0) 38%, rgba(232, 217, 196, 0.62) 100%);
+  background: linear-gradient(180deg, rgba(244, 237, 225, 0.30) 0%, rgba(244, 237, 225, 0) 17%, rgba(244, 237, 225, 0) 80%, rgba(232, 217, 196, 0.34) 100%);
 }
 
 .wrapped-stage[data-chapter='longest']::after {
-  background: linear-gradient(180deg, rgba(251, 231, 226, 0.60) 0%, rgba(251, 231, 226, 0) 40%, rgba(251, 231, 226, 0.66) 100%);
+  background: linear-gradient(180deg, rgba(251, 231, 226, 0.32) 0%, rgba(251, 231, 226, 0) 17%, rgba(251, 231, 226, 0) 80%, rgba(251, 231, 226, 0.36) 100%);
 }
 
 .wrapped-stage[data-chapter='lines']::after {
-  background: linear-gradient(180deg, rgba(247, 245, 239, 0.55) 0%, rgba(247, 245, 239, 0) 38%, rgba(247, 245, 239, 0.60) 100%);
+  background: linear-gradient(180deg, rgba(247, 245, 239, 0.30) 0%, rgba(247, 245, 239, 0) 17%, rgba(247, 245, 239, 0) 80%, rgba(247, 245, 239, 0.34) 100%);
 }
