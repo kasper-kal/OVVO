@@ -6,6 +6,7 @@
  */
 
 import { identify } from './auth.js';
+import { allow, tooMany } from './limit.js';
 import { lookupRoute } from './lookup.js';
 import { passkeyRoute } from './passkey.js';
 import { photoRoute } from './photos.js';
@@ -114,6 +115,20 @@ async function api(request, env, url) {
    * in, so they cannot demand a sign-in first: the passkey is the thing being checked. The module
    * decides for itself which of its routes need a token.
    */
+  /*
+   * **Making an account is the one door that asks for nothing, so it is counted by address.**
+   * Six an hour is far more than a person needs and far less than a script wants, and it is
+   * checked before the bot check, so a flood costs one database read rather than a Turnstile call.
+   */
+  if (
+    url.pathname === '/api/passkey/register/options' &&
+    request.method === 'POST'
+  ) {
+    const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
+    const gate = await allow(env, `new-account:${ip}`, 6, 60 * 60 * 1000);
+    if (!gate.ok) return tooMany(gate.retryAfter);
+  }
+
   if (url.pathname.startsWith('/api/passkey/')) return passkeyRoute(request, env, url);
 
   const claims = await identify(request, env);
@@ -123,6 +138,16 @@ async function api(request, env, url) {
    * **The face on the account.** Read, written and removed by its owner only; the bucket this was
    * going to live in needs a card, so it lives in the database (`worker/photos.js`).
    */
+  /*
+   * **A photo is the largest thing anyone sends here, so it is counted once per minute-ish.**
+   * Twenty in a minute is more than a person choosing a picture needs; it is not enough to fill
+   * the free database from one account.
+   */
+  if (url.pathname === '/api/photo' && request.method === 'PUT') {
+    const gate = await allow(env, `photo:${claims.uid}`, 20, 60 * 1000);
+    if (!gate.ok) return tooMany(gate.retryAfter);
+  }
+
   if (url.pathname === '/api/photo') return photoRoute(request, env, claims);
 
   if (url.pathname === '/api/me' && request.method === 'GET') {
@@ -137,6 +162,12 @@ async function api(request, env, url) {
   }
 
   if (url.pathname === '/api/sync' && request.method === 'PUT') {
+    /*
+     * **A busy phone is not an attack.** Saving happens after every change, so this is generous;
+     * it exists to stop one account writing thousands of times a minute, not to police typing.
+     */
+    const gate = await allow(env, `sync:${claims.uid}`, 120, 60 * 1000);
+    if (!gate.ok) return tooMany(gate.retryAfter);
     return saveProfile(request, env, claims);
   }
 

@@ -34,6 +34,21 @@ CREATE TABLE IF NOT EXISTS profile_photo (
   updated_at TEXT NOT NULL
 );
 
+/*
+ * **How often one caller may do one thing, while there is no zone to point a rule at.**
+ *
+ * One row per caller per door: the hits in this window and when the window ends. Cloudflare's own
+ * rate limiting needs a domain, and this project has none, so the count lives beside the data it
+ * protects. Windows are swept on the way past, the way challenges are (there is no cron here).
+ */
+CREATE TABLE IF NOT EXISTS api_limit (
+  bucket    TEXT PRIMARY KEY,
+  hits      INTEGER NOT NULL DEFAULT 0,
+  resets_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS api_limit_expiry ON api_limit (resets_at);
+
 CREATE TABLE IF NOT EXISTS passkey (
   id          TEXT PRIMARY KEY,
   uid         TEXT NOT NULL,

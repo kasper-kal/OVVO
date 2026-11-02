@@ -25,6 +25,8 @@ import {
   createUserWithEmailAndPassword,
   deleteUser,
   isSignInWithEmailLink,
+  linkWithCredential,
+  type AuthError,
   onAuthStateChanged,
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
@@ -62,8 +64,58 @@ export function watchAccount(next: (user: User | null) => void): () => void {
   return onAuthStateChanged(instance, next);
 }
 
+/*
+ * **The Google sign-in that could not be used yet, and why it is kept.**
+ *
+ * Firebase has one account per address. If somebody made an OVVO ID with a password and later
+ * presses Continue with Google on the same address, Google refuses: it will not take over an
+ * account it did not make. The refusal still carries a credential that proves the Google address,
+ * and holding it for a moment is what lets the traveller keep the account they already have
+ * instead of meeting a wall with no explanation.
+ *
+ * It lives in memory only: it is a proof of a sign-in, and a proof does not belong in storage.
+ */
+let pendingGoogle: ReturnType<typeof GoogleAuthProvider.credentialFromError> = null;
+
+export function googleLinkWaiting(): boolean {
+  return pendingGoogle !== null;
+}
+
 export async function signInWithGoogle(): Promise<void> {
-  await signInWithPopup(needAuth(), new GoogleAuthProvider());
+  try {
+    await signInWithPopup(needAuth(), new GoogleAuthProvider());
+    pendingGoogle = null;
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code ?? '';
+    if (code === 'auth/account-exists-with-different-credential') {
+      const credential = GoogleAuthProvider.credentialFromError(error as AuthError);
+      if (credential) {
+        pendingGoogle = credential;
+        /* Named so the screen can say "sign in with the password you already have". */
+        throw new Error('google/needs-password');
+      }
+    }
+    throw error;
+  }
+}
+
+/**
+ * **Adding Google to the account that just signed in with its password.**
+ *
+ * Called after a successful password sign-in and nothing else. Failure is not the traveller's
+ * problem: they are signed in either way, and the next Google attempt will offer this again.
+ */
+export async function linkPendingGoogle(): Promise<'linked' | 'none' | 'failed'> {
+  if (pendingGoogle === null) return 'none';
+  const user = auth()?.currentUser;
+  if (!user) return 'none';
+  try {
+    await linkWithCredential(user, pendingGoogle);
+    pendingGoogle = null;
+    return 'linked';
+  } catch {
+    return 'failed';
+  }
 }
 
 export async function signInWithPassword(email: string, password: string): Promise<void> {
@@ -184,6 +236,10 @@ export function explainAuthError(error: unknown): string {
       return 'Password must be at least 6 characters.';
     case 'auth/too-many-requests':
       return 'Too many attempts. Try again later.';
+    case 'google/needs-password':
+      return 'This address already has an OVVO ID with a password. Sign in with that password below, and Google is added to the same account.';
+    case 'auth/account-exists-with-different-credential':
+      return 'This address already has an OVVO ID made with Google. Press Continue with Google to sign in.';
     case 'auth/popup-closed-by-user':
     case 'auth/cancelled-popup-request':
       return 'Google sign-in was cancelled.';

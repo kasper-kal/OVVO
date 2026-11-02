@@ -6,6 +6,7 @@ import { firebaseConfigured } from '../lib/firebase';
 import {
   createAccount,
   explainAuthError,
+  linkPendingGoogle,
   sendResetMail,
   sendSignInLink,
   signInWithGoogle,
@@ -62,6 +63,8 @@ export function SignInPage() {
   const [newWithPasskey, setNewWithPasskey] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileTrouble, setTurnstileTrouble] = useState(false);
+  /* True after a Google attempt was refused because this address already has a password. */
+  const [googleWantsPassword, setGoogleWantsPassword] = useState(false);
 
   /*
    * **Whether passkeys are worth offering is asked once, on arrival.** The browser says whether it
@@ -103,8 +106,11 @@ export function SignInPage() {
       await work();
       then();
     } catch (error) {
-      const code = (error as { code?: string } | null)?.code ?? '';
+      const code =
+        (error as { code?: string | null } | null)?.code ??
+        (error instanceof Error ? error.message : '');
       setOfferCreate(code === 'auth/user-not-found' || code === 'auth/invalid-credential');
+      setGoogleWantsPassword(code === 'google/needs-password');
       setProblem(explainAuthError(error));
     } finally {
       setBusy(false);
@@ -241,6 +247,18 @@ export function SignInPage() {
               Continue with Google
             </Button>
 
+            {/*
+              * **The wall, said out loud.** Google refusing an address that already has a
+              * password used to arrive as a bare error with no way forward. Now the screen asks
+              * for the password it knows the account has, and adds Google once it works.
+              */}
+            {googleWantsPassword ? (
+              <p className="t-sm t-muted" style={{ margin: 0 }}>
+                That address already has an OVVO ID with a password. Sign in with that password
+                below, and Google is added to the same account.
+              </p>
+            ) : null}
+
             <p className="t-sm t-faint" style={{ textAlign: 'center', margin: 0 }}>
               or
             </p>
@@ -257,10 +275,15 @@ export function SignInPage() {
                   );
                   return;
                 }
-                void go(
-                  () => signInWithPassword(email, password),
-                  back,
-                );
+                void go(async () => {
+                  await signInWithPassword(email, password);
+                  /*
+                   * If a Google attempt was refused a moment ago because this address already has
+                   * a password, this is the moment to attach Google to it. Failure here changes
+                   * nothing: the traveller is signed in, and the next attempt offers it again.
+                   */
+                  await linkPendingGoogle();
+                }, back);
               }}
             >
               <label className="field">
