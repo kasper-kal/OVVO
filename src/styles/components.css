@@ -4897,16 +4897,40 @@
 .journey-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s-3);
+  /* 8px, not 12: the chain and the fare share the line under the times, and that line has to stay
+     shorter than the times above it. */
+  gap: var(--s-2);
   align-items: center;
   font-size: var(--fs-sm);
   color: var(--ink-muted);
 }
 
+/*
+ * **A badge in a chain is tighter than a badge on its own.**
+ *
+ * Four pixels a side instead of eight: the chain is the one line that has to end before the times
+ * above it do, and three or four badges with the roomier padding ran past them (measured at 390:
+ * 253px of chain and fare against 237px of times). The badge is still a 26px pill with its glyph
+ * and its number; it simply stops carrying a badge's worth of air in a line of five of them.
+ */
+.journey-card__chain .mode-badge {
+  padding: 0 var(--s-1);
+  gap: 3px;
+}
+
 .journey-card__chain {
   display: flex;
   align-items: center;
-  gap: var(--s-1);
+  /*
+   * **The badges are the separation.**
+   *
+   * A chevron used to sit between them, inside each leg's own flex row, and that row could wrap on
+   * its own — so a long chain broke *between* a chevron and its badge and left two small arrows
+   * floating over the pills (circled and reported), while the line ran longer than the times above
+   * it. One badge per leg, no arrows, and 8px between them: the order is the order they are drawn in,
+   * which is how the chain is read anyway.
+   */
+  gap: var(--s-2);
   flex-wrap: wrap;
 }
 
