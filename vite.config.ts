@@ -168,6 +168,22 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       strictPort: false,
       allowedHosts: allowlist,
+      /*
+       * **`/api` is deliberately not proxied here.**
+       *
+       * A local Worker has its own scratch database, and a passkey made against it is a real key on
+       * the device that opens nothing anywhere else. That is exactly how a preview came to create a
+       * passkey and then show an empty list: the key was real, the account was in a throwaway copy.
+       * Without a proxy the preview says plainly that the site cannot be reached, and every passkey
+       * is made against the one database that matters.
+       *
+       * **The three public lookups are not proxied either, and it was tried.** Forwarding just
+       * `/api/lookup` to a local Worker would let the preview draw address results and Wikipedia
+       * cards, but a Worker that is not running makes the dev server hang on that path rather than
+       * fail, and a preview that hangs is worse than a preview with no address results. The live
+       * site is where these run; locally they answer nothing and the app falls back to its stops,
+       * which is what it did before they existed.
+       */
     },
     preview: {
       host: '0.0.0.0',

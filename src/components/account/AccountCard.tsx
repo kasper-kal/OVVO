@@ -4,10 +4,50 @@ import { Button, Card, Dialog, SectionHeading } from '../ui/primitives';
 import { Avatar } from './Avatar';
 import { firebaseConfigured } from '../../lib/firebase';
 import { deleteAccount, signOutNow, syncNow, watchAccount } from '../../lib/account';
+import {
+  addPasskey,
+  explainPasskeyError,
+  listPasskeys,
+  passkeyStatus,
+  passkeysSupported,
+  removePasskey,
+  type PasskeyInfo,
+} from '../../lib/passkeys';
 import { PHOTO_KEY, squarePhoto } from '../../lib/avatar';
+import { loadPhotoFromAccount, removePhotoFromAccount, savePhotoToAccount } from '../../lib/photos';
 import { readStored, writeStored } from '../../lib/storage';
 
 type Account = { uid: string; email: string | null; name: string | null };
+
+/**
+ * **A name for the device a passkey was made on.**
+ *
+ * A list of five passkeys all called "This device" tells the traveller nothing when one of them has
+ * to be removed, so the platform is read off the browser's own description of itself and the name
+ * is made unique if that platform is already in the list.
+ */
+function deviceLabel(taken: string[]): string {
+  const agent = typeof navigator === 'undefined' ? '' : navigator.userAgent;
+  let base = 'This device';
+  if (/iPhone/.test(agent)) base = 'iPhone';
+  else if (/iPad/.test(agent)) base = 'iPad';
+  else if (/Android/.test(agent)) base = 'Android phone';
+  else if (/Macintosh/.test(agent)) base = 'Mac';
+  else if (/Windows/.test(agent)) base = 'Windows PC';
+  if (!taken.includes(base)) return base;
+  for (let count = 2; count < 10; count += 1) {
+    const next = `${base} ${count}`;
+    if (!taken.includes(next)) return next;
+  }
+  return base;
+}
+
+function dayOf(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString();
+}
 
 function useAccount() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -51,9 +91,124 @@ export function AccountCard() {
   const { account, failed } = useAccount();
   const [photo, setPhoto] = useState<string>(() => readStored(PHOTO_KEY, ''));
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmRemovePhoto, setConfirmRemovePhoto] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
+  const [passkeysOn, setPasskeysOn] = useState(false);
+  const [passkeyNote, setPasskeyNote] = useState<string | null>(null);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const canUsePasskeys = passkeysSupported();
+  const uid = account?.uid ?? null;
+
+  /*
+   * **Whether passkeys are on is asked before anything is shown.** A switched-off feature that
+   * draws a button is a broken feature; a switched-off feature that says so is a fact.
+   *
+   * The list is read whenever the account changes hands, so it is never another person's.
+   */
+  useEffect(() => {
+    if (uid === null || !canUsePasskeys) {
+      setPasskeys([]);
+      setPasskeysOn(false);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      const status = await passkeyStatus();
+      if (!alive) return;
+      setPasskeysOn(status.available);
+      /*
+       * **The list is read even when the feature reports itself off.** A passkey made before the
+       * switch was turned on is still a real key on the device, and hiding it is how the card came
+       * to say "no passkeys" to somebody holding one.
+       */
+      try {
+        const result = await listPasskeys();
+        if (alive) setPasskeys(result.passkeys);
+      } catch {
+        if (alive) setPasskeys([]);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [uid, canUsePasskeys]);
+
+  const reloadPasskeys = async () => {
+    try {
+      const result = await listPasskeys();
+      setPasskeys(result.passkeys);
+    } catch {
+      /* the list stays as it was; the note already says what went wrong */
+    }
+  };
+
+  const generatePasskey = async () => {
+    setPasskeyBusy(true);
+    setPasskeyNote(null);
+    try {
+      await addPasskey(deviceLabel(passkeys.map((passkey) => passkey.name)));
+      await reloadPasskeys();
+      setPasskeyNote('Passkey added. You can sign in on this device without a password now.');
+    } catch (error) {
+      setPasskeyNote(explainPasskeyError(error));
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
+
+  const dropPasskey = async (id: string) => {
+    setPasskeyBusy(true);
+    setPasskeyNote(null);
+    try {
+      await removePasskey(id);
+      await reloadPasskeys();
+      setPasskeyNote('Passkey removed.');
+    } catch (error) {
+      setPasskeyNote(explainPasskeyError(error));
+    } finally {
+      setPasskeyBusy(false);
+    }
+  };
+
+  /*
+   * **A new phone asks the account for the face.** The copy in this browser is drawn first because
+   * it costs nothing; this is what makes a fresh device show the same person without waiting for
+   * the travel document to arrive. A photograph already here wins, so nothing flickers on a phone
+   * that already knows this face.
+   */
+  useEffect(() => {
+    if (uid === null || photo.length > 0) return;
+    let alive = true;
+    void loadPhotoFromAccount()
+      .then((data) => {
+        if (!alive || data === null) return;
+        setPhoto(data);
+        writeStored(PHOTO_KEY, data);
+      })
+      .catch(() => {
+        /* no face, or no connection: the initial is a fine answer */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [uid, photo]);
+
+  /*
+   * **A photograph chosen before the account could hold one is copied up once.** Most travellers
+   * already have a face on this phone, and asking them to choose it again to get it onto their
+   * account would be silly. One copy per visit, and a failure simply tries again next time.
+   */
+  const copied = useRef<string | null>(null);
+  useEffect(() => {
+    if (uid === null || photo.length === 0 || copied.current === uid) return;
+    copied.current = uid;
+    void savePhotoToAccount(photo).catch(() => {
+      copied.current = null;
+    });
+  }, [uid, photo]);
 
   const choosePhoto = async (file: File | undefined) => {
     if (!file) return;
@@ -62,6 +217,12 @@ export function AccountCard() {
       setPhoto(square);
       writeStored(PHOTO_KEY, square);
       setNote(null);
+      /*
+       * The account keeps its own copy, so the next phone shows this face. If that copy fails the
+       * picture is still here and still drawn, so the traveller is not alarmed about a photograph
+       * they can already see.
+       */
+      void savePhotoToAccount(square).catch(() => undefined);
     } catch {
       setNote('That picture could not be read. Try another one.');
     }
@@ -71,6 +232,8 @@ export function AccountCard() {
     setPhoto('');
     writeStored(PHOTO_KEY, '');
     setNote(null);
+    /* A face removed here must not come back on the next phone. */
+    void removePhotoFromAccount().catch(() => undefined);
   };
 
   const removeAccount = async () => {
@@ -134,12 +297,108 @@ export function AccountCard() {
             devices too.
           </p>
 
+          {/*
+            * **Passkeys, listed by the device they were made on.** A new phone signs in with the
+            * key it already has, through iCloud or Google, or with a code from the old phone, and
+            * then makes its own key here, so the next sign-in is the short way again. Removing one
+            * is allowed; the line underneath says what that costs when it is the only one.
+            */}
+          {canUsePasskeys ? (
+            <div className="stack-3">
+              <p className="t-strong" style={{ margin: 0 }}>
+                Passkeys
+              </p>
+
+              {!passkeysOn && passkeys.length === 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  Passkeys are not switched on for OVVO yet. When they are, you can sign in with
+                  your face, fingerprint or PIN instead of a password.
+                </p>
+              ) : passkeys.length === 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  No passkey is saved with your OVVO ID yet. Add one here and you can sign in on this
+                  device with your face, fingerprint or PIN instead of a password.
+                </p>
+              ) : (
+                <div className="stack-1">
+                  {passkeys.map((passkey) => (
+                    <div
+                      key={passkey.id}
+                      className="row-wrap"
+                      style={{ justifyContent: 'space-between' }}
+                    >
+                      <span className="t-sm">
+                        {passkey.name}
+                        {passkey.lastUsedAt ? (
+                          <span className="t-muted">, last used {dayOf(passkey.lastUsedAt)}</span>
+                        ) : (
+                          <span className="t-muted">, added {dayOf(passkey.addedAt)}</span>
+                        )}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={passkeyBusy}
+                        onClick={() => void dropPasskey(passkey.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!passkeysOn && passkeys.length > 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  This passkey is saved with your OVVO ID. It starts signing you in once passkeys
+                  are switched on for OVVO.
+                </p>
+              ) : null}
+
+              <div className="row-wrap">
+                <Button
+                  variant="surface"
+                  size="sm"
+                  disabled={passkeyBusy || !passkeysOn}
+                  onClick={() => void generatePasskey()}
+                >
+                  {passkeyBusy ? 'Waiting for your device' : 'Generate a new Passkey'}
+                </Button>
+              </div>
+
+              {passkeysOn ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  One passkey per device, and five in all. To add another, open OVVO on your other
+                  phone or computer and press Generate a new Passkey there.
+                </p>
+              ) : null}
+
+              {passkeys.length === 1 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  This is your only passkey. Keep a password or Google sign-in as well, so losing
+                  this device does not lock you out.
+                </p>
+              ) : null}
+
+              {passkeyNote ? (
+                <p className="t-sm" role="alert" style={{ margin: 0 }}>
+                  {passkeyNote}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="row-wrap">
             <Button variant="surface" size="sm" onClick={() => fileInput.current?.click()}>
               {photo ? 'Change photo' : 'Add a photo'}
             </Button>
+            {/*
+              * **Removing the picture asks first.** A picture is not a setting that can be flicked
+              * back: the file leaves this device and the traveller has to find it again to put it
+              * back, so it is a decision rather than a tap.
+              */}
             {photo ? (
-              <Button variant="ghost" size="sm" onClick={removePhoto}>
+              <Button variant="ghost" size="sm" onClick={() => setConfirmRemovePhoto(true)}>
                 Remove photo
               </Button>
             ) : null}
@@ -186,6 +445,32 @@ export function AccountCard() {
           empty it with the reset at the foot of this page.
         </p>
       </Dialog>
+
+      <Dialog
+        open={confirmRemovePhoto}
+        title="Remove your picture?"
+        description="The picture is removed from this device. Your OVVO ID and everything saved with it stay as they are."
+        onClose={() => setConfirmRemovePhoto(false)}
+        footer={
+          <>
+            <Button
+              variant="accent"
+              icon="trash"
+              onClick={() => {
+                removePhoto();
+                setConfirmRemovePhoto(false);
+              }}
+            >
+              Remove photo
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmRemovePhoto(false)}>
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">You can add another picture at any time.</p>
+      </Dialog>
     </Card>
   );
 }
@@ -199,6 +484,8 @@ export function AccountCard() {
  */
 export function SignOutPanel() {
   const { account } = useAccount();
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   if (account === null) return null;
 
@@ -207,10 +494,50 @@ export function SignOutPanel() {
    * button is a backdrop that says "this is a section" about something that is not one.
    */
   return (
-    <div className="row-wrap">
-      <Button variant="surface" size="sm" onClick={() => void signOutNow()}>
-        Sign out
-      </Button>
-    </div>
+    <>
+      <div className="row-wrap">
+        <Button variant="surface" size="sm" onClick={() => setConfirmSignOut(true)}>
+          Sign out
+        </Button>
+      </div>
+
+      {/*
+        * **Signing out asks first.** It is not destructive, which is why the sheet says so plainly
+        * rather than in the alarm colour: a traveller who tapped it by accident has one tap back,
+        * and one who meant it loses nothing but the session. The sheet also answers the question
+        * people actually have at that moment, which is whether their journeys are about to go.
+        */}
+      <Dialog
+        open={confirmSignOut}
+        title="Sign out of your OVVO ID?"
+        description="Your stops and journeys stay on this device, and the copy with your OVVO ID stays on the server until you delete it."
+        onClose={() => setConfirmSignOut(false)}
+        footer={
+          <>
+            <Button
+              variant="accent"
+              disabled={leaving}
+              onClick={() => {
+                setLeaving(true);
+                void signOutNow().finally(() => {
+                  setLeaving(false);
+                  setConfirmSignOut(false);
+                });
+              }}
+            >
+              {leaving ? 'Signing out' : 'Sign out'}
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmSignOut(false)}>
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">
+          Nothing is deleted and OVVO keeps working without an account. Sign in again whenever you
+          like and everything comes back.
+        </p>
+      </Dialog>
+    </>
   );
 }

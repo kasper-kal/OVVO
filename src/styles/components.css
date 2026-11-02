@@ -10703,3 +10703,987 @@
 .wrapped-body[data-chapter='lines'] .wrapped-chip {
   align-items: center;
 }
+
+/*
+ * 24 · A page is a few pieces of text arriving, not one block appearing.
+ *
+ * The words on a chapter were all revealed in the same frame. A traveller read four things at once
+ * and the deck answered with four things at once, on every page, which is why ten layouts felt like
+ * one wall. Each direct piece now starts hidden and a little low, and moves up into place on its own
+ * turn: the queue is the number each piece already carried, 110ms apart. The page marks itself
+ * `is-dealt` two frames after it mounts (see `pages/WrappedPage`), so the pieces that were painted
+ * hidden are the ones that move.
+ *
+ * Transitions, not animations, on purpose: several pieces already run an animation of their own on
+ * the beat, and an animation on the same element would have replaced this one instead of joining it.
+ */
+.wrapped-body:not(.wrapped-body--cover) > * {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 460ms var(--ease-out),
+    transform 560ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 110ms);
+}
+
+.wrapped-body.is-dealt:not(.wrapped-body--cover) > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* The pieces that never carried a number get their own place in the queue. */
+.wrapped-body > .wrapped-field {
+  --i: 0;
+}
+
+.wrapped-body > .wrapped-rings,
+.wrapped-body > .wrapped-burst,
+.wrapped-body > .wrapped-ruler {
+  --i: 1;
+}
+
+.wrapped-body > .wrapped-bars {
+  --i: 2;
+}
+
+.wrapped-body > .wrapped-chips {
+  --i: 3;
+}
+
+/* Reduced motion is about movement, and a page that walks its words in is movement. */
+.wrapped-stage.is-still .wrapped-body > * {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/*
+ * 25 · The page's ground was changing while the pieces were arriving.
+ *
+ * Turning from the dark total onto the paper page took most of a second, and that fade passes through
+ * grey, so the label, the name and the ticket were all arriving over a half-lit grey page. It is the
+ * same fault that was fixed on page five; the truth is that every page had it and only one was
+ * reported. The ground now turns in a quarter of a second, before the pieces have finished coming in,
+ * so the reveal happens on the page's own colour instead of on a wash of it.
+ */
+.wrapped-stage {
+  transition: background-color 280ms var(--ease-out), color 280ms var(--ease-out);
+}
+
+/* On the page that names you, the sentence explains the rows, so it follows them. */
+.wrapped-body--name > .wrapped-line {
+  --i: 4;
+}
+
+/*
+ * 26 · The ticket arrived before its rows did.
+ *
+ * The card is the page's paper, and its rows are dealt in on their own beat, but the card was shown
+ * first, so for a moment there was an empty white plate under the name. On this page the card comes
+ * first and the rows follow it, one at a time, which is the order the page says them in anyway, and
+ * the sentence comes last because it is the line that explains them.
+ */
+.wrapped-body--name .wrapped-chip {
+  animation-delay: calc(380ms + var(--i, 0) * 130ms);
+}
+
+.wrapped-body--name > .wrapped-line {
+  --i: 5;
+}
+
+/*
+ * 27 · The four pages, taken further than a nudge.
+ *
+ * The year page had two graphics on top of each other. The dots of the journeys, the twelve month
+ * bars and the twelve month numbers all shared the middle of the screen, so nothing on it read as a
+ * shape. The dots are gone, the dial is the whole graphic now and it is larger, its bars are shorter
+ * and the month numbers sit on the outside where a calendar's numbers sit. One thing to look at.
+ *
+ * The lines page is a board, so each row now carries a rule under it as long as that line's share of
+ * the journeys: two numbers become a comparison you can see without reading them.
+ *
+ * The look was still a photograph with a slow zoom on it, which is invisible in the first second and
+ * gone by the third. There is a light moving across it now, warm and slow, and the zoom is quicker,
+ * so the page is alive the moment it opens rather than eventually.
+ */
+.wrapped-stage[data-chapter='total'] .wrapped-field {
+  display: none;
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-rings {
+  top: 45%;
+  width: min(86vw, 380px);
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-rings i {
+  height: 38%;
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-rings em {
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  position: relative;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.45;
+  transform-origin: left center;
+  transform: scaleX(var(--share, 0));
+}
+
+.wrapped-photo {
+  animation-duration: 16s;
+}
+
+.wrapped-stage[data-chapter='look']::before {
+  content: '';
+  position: fixed;
+  inset: -25%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(34% 28% at 32% 30%, rgba(255, 214, 170, 0.18), rgba(255, 214, 170, 0) 70%);
+  animation: wrapped-look-light 19s ease-in-out infinite alternate;
+}
+
+@keyframes wrapped-look-light {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(18%, 12%, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  animation-name: wrapped-days-breathe;
+}
+
+@keyframes wrapped-days-breathe-loud {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.06;
+  }
+}
+
+.wrapped-stage.is-still[data-chapter='look']::before,
+.wrapped-stage.is-still .wrapped-photo {
+  animation: none;
+}
+
+/*
+ * 28 · The three text pages, rebuilt as pictures.
+ *
+ * The page that names you was a card with three label and value rows: a form, in a story. It is a
+ * block of statistics now, one figure across the full width and two under it, each with its label
+ * underneath in small capitals, so the eye reads numbers first and words second. The card, its
+ * shadow and its border are gone; a hairline above and below holds the block together instead.
+ *
+ * The lines page was a list with a rule under each row. Two lines became two plates side by side:
+ * the number you recognise is the big thing on the plate, the count is a caption under it.
+ *
+ * The look is the one page with a photograph, and it was the stillest page in the deck. The zoom is
+ * now nearly a third of the frame over thirteen seconds, the day count floats upward while it
+ * breathes, and the look's name drifts against it, so nothing on the page is ever at rest.
+ */
+.wrapped-body--name .wrapped-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 520px;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.wrapped-body--name .wrapped-chip {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: clamp(14px, 3vh, 22px) 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: none;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.wrapped-body--name .wrapped-chip:first-child {
+  grid-column: span 2;
+}
+
+.wrapped-body--name .wrapped-chip:nth-child(2) {
+  padding-right: 16px;
+}
+
+.wrapped-body--name .wrapped-chip:nth-child(3) {
+  padding-left: 16px;
+  border-left: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.wrapped-body--name .wrapped-chip strong {
+  order: -1;
+  font-size: clamp(28px, 8.4vw, 42px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-align: left;
+}
+
+.wrapped-body--name .wrapped-chip:first-child strong {
+  font-size: clamp(38px, 12vw, 60px);
+}
+
+.wrapped-body--name .wrapped-chip span {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  text-align: left;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: auto;
+  align-content: center;
+  gap: 10px;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip::after {
+  content: none;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span {
+  font-size: clamp(24px, 7vw, 34px);
+  letter-spacing: -0.02em;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+}
+
+.wrapped-photo {
+  animation-duration: 13s;
+}
+
+@keyframes wrapped-photo-drift {
+  from {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.3) translate3d(-3%, -4%, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  animation: wrapped-word-sway 12s ease-in-out infinite alternate;
+}
+
+@keyframes wrapped-word-sway {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -18px, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  animation:
+    wrapped-days-breathe 7s ease-in-out infinite alternate,
+    wrapped-days-float 11s ease-in-out infinite alternate;
+}
+
+@keyframes wrapped-days-float {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -26px;
+  }
+}
+
+/*
+ * 29 · The year page was a dial, and a dial with twelve unlabelled bars and no rim is a mess.
+ *
+ * Twelve bars around a circle, twelve numbers around them and a field of dots behind all of it gave
+ * three competing shapes in the middle of the screen. A year is a thing that runs left to right, so
+ * it is drawn that way now: twelve columns, one a month, each as tall as that month's share of the
+ * journeys, with the month's letter under it. The giant number sits beneath them, so the page reads
+ * as a poster of the year with its total at the foot.
+ */
+.wrapped-body--number .wrapped-months {
+  position: relative;
+  z-index: 1;
+  grid-row: 2;
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: end;
+  gap: clamp(3px, 1.2vw, 8px);
+  height: clamp(110px, 24vh, 210px);
+  margin-bottom: clamp(12px, 2.6vh, 24px);
+}
+
+.wrapped-body--number .wrapped-months__col {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: end;
+  justify-items: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.wrapped-body--number .wrapped-months__col i {
+  width: 100%;
+  height: calc(var(--h, 0.1) * 100%);
+  min-height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: currentColor;
+  opacity: calc(0.28 + var(--h, 0.1) * 0.72);
+  transform-origin: bottom center;
+  animation: wrapped-month-rise 700ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes wrapped-month-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.wrapped-body--number .wrapped-months__col em {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+}
+
+.wrapped-body > .wrapped-months {
+  --i: 1;
+}
+
+/*
+ * 30 · The pages that were still half empty are filled with what the year already knows.
+ *
+ * On the board, "23 stops hearted, 0 boards pinned" was a sentence at the foot of the page and the
+ * two line plates floated alone in the middle of it. The two tallies are plates now, under the two
+ * lines, so the page is four figures in two rows: what you rode, and what you kept.
+ *
+ * The name page's second and third figures were set as large as the first and broke over two lines,
+ * and the dashed stamp cut straight through the numbers. The figures are sized for their column, the
+ * stamp is a ground rather than a line drawing, and the block sits inside it.
+ *
+ * The year's chart was a strip at the bottom of an empty page. It is taller now, so the year fills
+ * the space between its label and its total.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-aside {
+  display: none;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips--tally .wrapped-chip {
+  padding: 16px 18px;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips--tally .wrapped-chip span {
+  font-size: clamp(22px, 6.4vw, 30px);
+}
+
+.wrapped-body--name .wrapped-chip strong {
+  font-size: clamp(24px, 7vw, 34px);
+}
+
+.wrapped-body--name .wrapped-chip:first-child strong {
+  font-size: clamp(34px, 10.4vw, 52px);
+}
+
+.wrapped-body--name::before {
+  opacity: 0.5;
+}
+
+.wrapped-body--number .wrapped-months {
+  height: clamp(150px, 30vh, 260px);
+}
+
+/*
+ * 31 · Four plates in one grid, and figures that fit their column.
+ *
+ * The tally got its own list beside the board's list, and two lists in one row is a row of four.
+ * They are one list now, so the board is two by two. On the name page the second and third figures
+ * were still set large enough to break "21 journeys" over two lines; they are sized for the column
+ * and never wrap. And the year's chart is taller again, so the page is a year above its total.
+ */
+.wrapped-body--name .wrapped-chip:nth-child(n + 2) strong {
+  font-size: clamp(21px, 6vw, 27px);
+  white-space: nowrap;
+}
+
+.wrapped-body--number .wrapped-months {
+  height: clamp(170px, 34vh, 280px);
+}
+
+/*
+ * 32 · The board's plates sat in the middle of a page with nothing under them.
+ *
+ * Four plates in two rows, each as tall as its text, left a band of paper above them and a bigger one
+ * below. They take an equal share of the height between the title and the foot now, which is what a
+ * board does with four departures, and the figure sits at the top of its plate with the caption under
+ * it, so the four read as one grid rather than as four floating cards.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-content: stretch;
+  grid-auto-rows: 1fr;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  align-content: center;
+}
+
+/*
+ * 33 · The plates were taller than their contents.
+ *
+ * Four plates share the whole page now, which is right, but each one was still laying out a caption
+ * and a figure in the middle of a card eight times their height. The figure is set at the size a
+ * plate deserves, at the top of the card, with its caption on the floor of it, so a tall card reads
+ * as a station board rather than as an empty box.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  align-content: space-between;
+  padding: clamp(18px, 4vw, 24px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span {
+  font-size: clamp(34px, 10vw, 52px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+/*
+ * 34 · Four plates as high as the page is tall is four empty boxes.
+ *
+ * Sharing the whole height was the wrong correction: each card grew to two hundred and fifty pixels
+ * around thirty pixels of figure. The rows are capped at a card's height and the block sits centred,
+ * so the four plates are a block of four figures with air around them, not four blank panels.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  align-content: center;
+  grid-auto-rows: minmax(118px, 152px);
+}
+
+/*
+ * 35 · The look page was a photograph with a slow zoom on it, which is a wallpaper, not a page.
+ *
+ * The zoom was the wrong idea and the steerer said so: a picture that creeps is still a picture. On
+ * this page the photograph is the inside of the word. The look's name is set as large as the screen
+ * gives it and its letters are cut out of the image itself, so "Nostalgia" is made of the station it
+ * describes, glowing against the dark plate behind it, and the picture moves inside the letters
+ * rather than behind them. The day count keeps the floor of the page in solid type, because a number
+ * the traveller is meant to read should not be made of scenery.
+ */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(46px, 17vw, 132px);
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  color: transparent;
+  background-image: var(--look-photo, none);
+  background-size: cover;
+  background-position: 50% 40%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 3px 22px rgba(0, 0, 0, 0.55));
+  animation: wrapped-look-window 23s ease-in-out infinite alternate;
+  overflow-wrap: anywhere;
+}
+
+@keyframes wrapped-look-window {
+  from {
+    background-position: 42% 28%;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    background-position: 58% 72%;
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #fff;
+  font-size: clamp(72px, 26vw, 190px);
+  line-height: 0.8;
+  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.6);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  font-size: 0.22em;
+  letter-spacing: 0;
+  opacity: 0.9;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker {
+  opacity: 0.95;
+  letter-spacing: 0.22em;
+}
+
+.wrapped-stage.is-still[data-chapter='look'] .wrapped-big {
+  animation: none;
+}
+
+/*
+ * 36 · The word was made of the photograph, and the photograph was dark.
+ *
+ * Cut out of the image, "Nostalgia" took its colour from the roof above the platform and vanished into
+ * it. The letters are lifted now: the same photograph, brighter and a little saturated, with a hairline
+ * of light around each one so the shape survives where the picture is darkest, and the picture is
+ * taken from the part of the frame with the platform lights in it.
+ */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-size: clamp(54px, 20vw, 150px);
+  background-position: 50% 58%;
+  filter: brightness(1.85) saturate(1.15) contrast(1.05) drop-shadow(0 4px 24px rgba(0, 0, 0, 0.65));
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.34);
+  paint-order: stroke fill;
+}
+
+@keyframes wrapped-look-window {
+  from {
+    background-position: 46% 44%;
+  }
+  to {
+    background-position: 56% 74%;
+  }
+}
+
+/*
+ * 37 · The look page was type laid over a dark photograph, which is the shape of every boring slide.
+ *
+ * Cutting the word out of the picture did not save it: the picture is dark where the word sits, so the
+ * word went dark with it, and a photograph with small white words on it is still a photograph with
+ * small white words on it. The page is a spread now. The picture is an object on the page, a photograph
+ * with a frame, a corner and a shadow, sitting in the top half of a sheet of paper, and the look's name
+ * and its days are printed underneath it in ink on that paper. The frame pans across the platform
+ * slowly, so the picture is alive without the page pretending the picture is the layout.
+ */
+.wrapped-stage[data-chapter='look'] {
+  background: #f4ede1;
+  color: #241c14;
+}
+
+.wrapped-stage[data-chapter='look']::after,
+.wrapped-stage[data-chapter='look']::before {
+  content: none;
+  background: none;
+}
+
+.wrapped-photo {
+  position: fixed;
+  top: 68px;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  height: 50%;
+  border-radius: 26px;
+  object-fit: cover;
+  object-position: 50% 45%;
+  box-shadow: 0 22px 50px rgba(36, 28, 20, 0.26);
+  animation: wrapped-photo-pan 26s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+@keyframes wrapped-photo-pan {
+  from {
+    object-position: 50% 36%;
+  }
+  to {
+    object-position: 50% 64%;
+  }
+}
+
+.wrapped-body[data-chapter='look'] {
+  align-content: end;
+  gap: clamp(6px, 1.6vh, 14px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  color: #241c14;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-stroke: 0;
+  filter: none;
+  font-size: clamp(42px, 14.5vw, 108px);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  animation: none;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #241c14;
+  font-size: clamp(62px, 21vw, 148px);
+  line-height: 0.78;
+  text-shadow: none;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  font-size: 0.2em;
+  opacity: 0.55;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-line {
+  color: #4a423a;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: clamp(17px, 4.4vw, 23px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker {
+  color: #7a7267;
+  opacity: 1;
+  letter-spacing: 0.2em;
+}
+
+.wrapped-stage.is-still .wrapped-photo {
+  animation: none;
+}
+
+/*
+ * 38 · The photograph was a strip and the name sat on top of it in ink.
+ *
+ * Two faults, both measured rather than guessed: the picture resolved to its own width instead of the
+ * page's, so it was a narrow card down the left with a wide empty margin, and the body's rows were
+ * still stretched over the whole screen, so the kicker and the name were laid at the top, on top of
+ * the picture, in ink dark enough to disappear into it.
+ *
+ * The picture takes the whole width between the page gutters now, and the type starts below it: the
+ * body is padded past the picture's floor, so the look's name and its days are printed on paper under
+ * the photograph rather than over it. The paper is the page, the picture is the picture, and nothing
+ * is written on the picture.
+ */
+.wrapped-photo {
+  left: 16px;
+  right: 16px;
+  width: calc(100% - 32px);
+  top: 74px;
+  height: 47%;
+}
+
+.wrapped-body[data-chapter='look'] {
+  padding-top: 62%;
+  align-content: end;
+  gap: clamp(4px, 1.2vh, 12px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-size: clamp(44px, 15.5vw, 116px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  font-size: clamp(58px, 19vw, 132px);
+}
+
+/*
+ * 39 · A percentage of padding is a percentage of the width, not the height.
+ *
+ * The gap under the photograph was written as 62%, meaning to clear a picture that is 47% of the
+ * screen tall, and 62% of a phone's width is a third of its height: the name landed back on the
+ * picture, measured at 357 pixels down a frame that ends at 497. The gap is measured from the top of
+ * the screen now, in the same units as the picture it has to clear.
+ */
+.wrapped-body[data-chapter='look'] {
+  padding-top: calc(47vh + 76px);
+}
+
+/*
+ * 40 · Four pages that were words on a colour, rebuilt as things.
+ *
+ * The naming page carried a dashed circle behind the words that measured nothing and said nothing;
+ * it is gone. Its three figures sit in one row now, so the page is a name and three numbers rather
+ * than a name and three sentences, and the sentence under them is a caption rather than a paragraph.
+ *
+ * The line page was one dashed rule with a dot sliding down it, which is a picture of the idea instead
+ * of the idea. The rail carries one tick for every journey made on that pair, so the middle of the
+ * page can be counted rather than admired.
+ *
+ * The origins page was two flat cards. They are tickets now, with a tear line down the left of each
+ * and the count set as the big thing on the paper.
+ *
+ * The long haul drew twenty arbitrary ruler marks that measured nothing. They are gone, and the track
+ * is a solid progress line with the trip's marker sitting on it.
+ */
+.wrapped-body--name::before {
+  content: none;
+}
+
+.wrapped-body--name .wrapped-chips {
+  grid-template-columns: 1.35fr 1fr 1fr;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.wrapped-body--name .wrapped-chip {
+  padding: clamp(12px, 2.4vh, 20px) 10px clamp(12px, 2.4vh, 20px) 0;
+  border-bottom: 0;
+  gap: 6px;
+}
+
+.wrapped-body--name .wrapped-chip:first-child {
+  grid-column: auto;
+}
+
+.wrapped-body--name .wrapped-chip:nth-child(2),
+.wrapped-body--name .wrapped-chip:nth-child(3) {
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.wrapped-body--name .wrapped-chip strong,
+.wrapped-body--name .wrapped-chip:first-child strong {
+  font-size: clamp(20px, 5.6vw, 26px);
+  white-space: normal;
+}
+
+.wrapped-body--name .wrapped-chip span {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.wrapped-body--name .wrapped-line {
+  font-size: 13px;
+  line-height: 1.35;
+  max-width: 36ch;
+  opacity: 0.6;
+}
+
+.wrapped-route__rail {
+  position: relative;
+}
+
+.wrapped-route__tick {
+  position: absolute;
+  left: 50%;
+  top: calc(6% + var(--k, 0) * 3.6%);
+  width: 16px;
+  height: 2px;
+  margin-left: -8px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.55;
+  animation: wrapped-tick-in 400ms var(--ease-out) both;
+  animation-delay: calc(var(--k, 0) * 35ms);
+}
+
+@keyframes wrapped-tick-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  position: relative;
+  padding-left: clamp(26px, 8vw, 34px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip::before {
+  content: '';
+  position: absolute;
+  left: clamp(12px, 3.6vw, 16px);
+  top: 16px;
+  bottom: 16px;
+  border-left: 2px dashed color-mix(in srgb, currentColor 34%, transparent);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip strong {
+  font-size: clamp(30px, 9vw, 40px);
+  line-height: 1;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-ruler {
+  display: none;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    currentColor 0 50%,
+    color-mix(in srgb, currentColor 22%, transparent) 50% 100%
+  );
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__dot {
+  width: 24px;
+  height: 24px;
+  margin-top: -9px;
+}
+
+/*
+ * 41 · The rail disappeared when I gave it a position.
+ *
+ * The rail is an absolutely positioned line down the page, and I set it to relative to make the
+ * journey ticks sit inside it, which collapsed it to nothing: the dashed line and the ticks with it.
+ * The rail keeps its own positioning (an absolutely positioned box is a containing block already),
+ * and the long haul's track is one solid line again, because a half filled gradient under a marker
+ * that sits somewhere else is a second, contradictory reading of the same trip.
+ */
+.wrapped-route__rail {
+  position: absolute;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
+  background: currentColor;
+}
+
+/*
+ * 42 · The long haul still had a row of ruler marks over its track.
+ *
+ * They were drawn as the stretch block's own rule, not as the ruler element, so hiding the ruler left
+ * them behind: twenty marks that measure nothing, above a line that does measure the trip. They go.
+ * What is left is the duration, the two ends and the track between them.
+ */
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch::before,
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__ticks {
+  content: none;
+  display: none;
+}
+
+/*
+ * 43 · The lines page was four captions about a year of travelling.
+ *
+ * "24 journeys on it" was set as the smallest line on the page and the four cards carried two captions
+ * each. The number the line carried is the page's headline now, at the size of a headline, and the
+ * sentence that used to say it is gone. The two runners-up keep only their numbers, and the tallies
+ * are off this page, because a page that says one thing says it better than a page that says five.
+ */
+.wrapped-body[data-chapter='lines'] .wrapped-line {
+  display: none;
+}
+
+.wrapped-lines-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.wrapped-lines-count strong {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: clamp(72px, 26vw, 140px);
+  line-height: 0.78;
+  letter-spacing: -0.06em;
+  font-weight: 600;
+}
+
+.wrapped-lines-count span {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  align-content: start;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-kicker {
+  grid-row: 1;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-big {
+  grid-row: 2;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-lines-count {
+  grid-row: 3;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-row: 4;
+  align-content: start;
+  grid-auto-rows: auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: clamp(16px, 3.4vh, 28px);
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 14px;
+  background: none;
+  justify-items: start;
+  gap: 0;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip:nth-child(n + 3) {
+  display: none;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  display: none;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip span {
+  font-size: clamp(26px, 7.6vw, 34px);
+  letter-spacing: -0.01em;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-aside {
+  display: none;
+}
+
+/*
+ * 44 · The board sat at the top of the page with half a screen of paper under it.
+ *
+ * The name and the number belong together at the top, and the two runner-up lines belong with them,
+ * so the block is centred in the page instead of pinned to its ceiling, and the air is shared above
+ * and below rather than all of it landing at the foot.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  align-content: center;
+}
+
+/*
+ * 45 · A stretching row ate the centring.
+ *
+ * The block was told to centre and stayed at the top, because one of its rows was set to take all the
+ * spare height: a grid whose tracks fill the page has nothing left to centre. The spacer row is gone,
+ * so the four rows are as tall as their contents and the block sits in the middle of the page.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+}

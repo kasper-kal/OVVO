@@ -23,9 +23,11 @@ is pasted into this project's secrets, not typed into code.
   it never sleeps, it does not pause for inactivity, and the free plan does not expire.
 - **D1 for the database.** It lives inside the same Cloudflare account, so there is no second
   signup and no monthly bill.
-- **Firebase Authentication for sign-in.** Google's sign-in service. Cardless, permanently
-  free at our size, and it sends its own password reset and verification mail from
-  `firebaseapp.com`, which is why no domain is needed.
+- **Firebase Authentication for sign-in.** Google's sign-in service. Cardless and permanently
+  free at our size. Its own mail leaves from a shared `firebaseapp.com` address, which lands in
+  spam, so the mail is now sent through **Brevo** from **`ovvo.vibecreations@outlook.com`** and
+  arrives in the inbox. Cardless, no domain, and it works (see "The sign-in mail no longer lands
+  in spam" below). Google sign-in and a password need no mail at all, and both work today.
 - **No custom domain.** Never. The free address Cloudflare gives us is the address.
 - **No card anywhere.** Every service must have a permanently free plan. A free plan with
   limits is fine; a free trial that ends is not.
@@ -73,6 +75,145 @@ anyone later:
 Some providers cost money and stay off for that reason: Apple needs a paid Apple Developer
 account, and phone sign-in costs per message.
 
+## What else the free Cloudflare account is used for (2 November 2026)
+
+Asked by the steerer what else the free account is worth. Decided and built the same day:
+
+- **Edge caching for the three public lookups.** The address search, the naming of a position and
+  a stop's Wikipedia paragraph used to leave the browser for Nominatim and Wikipedia directly, so
+  every traveller was a separate caller and every phone gave its own IP away. They now go through
+  `/api/lookup/*` in the Worker, which forwards once and answers with `Cache-Control`, and
+  `cache.enabled` in `wrangler.jsonc` puts Cloudflare's own cache in front of the Worker.
+  **Measured on the live site:** the first request `cf-cache-status: MISS`, the second `HIT`, with
+  the Worker not running for the second. `caches.default` was not used: it does nothing on a
+  `workers.dev` address, while this cache follows the Worker rather than a domain.
+- **Three things wait on the steerer, because the deploy token can read but not create them.**
+  Listing Turnstile widgets, Web Analytics sites and R2 buckets all answer 200; every create
+  answers 403. So each of these needs one click in the dashboard: a Turnstile widget (name OVVO,
+  domain `ovvo.vibecreations.workers.dev`, Managed), a Web Analytics site for the same address, and
+  an R2 bucket called `ovvo-photos`. The Turnstile secret becomes a Worker secret named
+  `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
+- **Done the same day, once the token had Write.** The token needed three additions, all Write:
+  `Turnstile`, `Workers R2 Storage` and `Account Settings` (Web Analytics sites are created under
+  account settings; Cloudflare offers no Edit of their own for analytics). With those, the analytics
+  site (`ovvo.vibecreations.workers.dev`) and the Turnstile widget were created by script. The
+  Turnstile secret went straight into the Worker as `TURNSTILE_SECRET` from a temporary file, so it
+  was never printed into the chat, and the site key lives in `src/lib/turnstile.ts` because it is
+  public by design.
+- **The bot check guards one door only.** `/api/passkey/register/options` refuses a new account
+  without a passed token; adding a passkey to an account already signed in is behind that account
+  and is not asked again. A missing `TURNSTILE_SECRET` or an unreachable Cloudflare lets people
+  through rather than locking them out, and that is a decision, not an oversight.
+- **R2 still answers "Please enable R2 through the Cloudflare Dashboard"**, so the photo bucket
+  waits on one tap in the dashboards' R2 page. The token has Write for it; the product itself is
+  not switched on for the account yet.
+- **Not worth doing here.** Email Routing and the one free rate-limiting rule both need a domain,
+  so they stay behind the same wall as the sign-in mail.
+
+## Passkeys (2 November 2026)
+
+Asked for by the steerer: passkeys as a way to sign in, as a second key on an existing account, and
+as a way to make a new account with no email and no password.
+
+**Firebase does not offer passkeys on the web.** Its passkey code is written but unreleased and
+switched on per project by Google, so there is nothing to switch on in the console and nothing to
+call from the page. So OVVO checks passkeys itself: the browser makes the key and shows the face,
+fingerprint or PIN, and the Worker checks the signed answer against the public key it stored. The
+account is still a Firebase account, so everything that already worked keeps working.
+
+What that needs, and it is the only new thing:
+
+- **Tables `passkey` and `passkey_challenge`** in D1. The public half of each key, the device
+  label, the counter, and the five-minute questions. No secret is stored there: the public key
+  cannot sign anything.
+- **One Worker secret, `FIREBASE_SERVICE_ACCOUNT`.** Firebase will not accept our word for who
+  somebody is; it wants a token signed with the project's service account key. Steps below. Until
+  that secret is set, `/api/passkey/status` answers `available: false` and the sign-in screen hides
+  every passkey button, so nothing offers a door that does not open.
+- **The service account key is the most powerful key the project has.** It stays in Worker secrets,
+it is never committed, never pasted in chat, and it can be rotated (a new key, a new secret, and
+the old key deleted in the console). If it ever leaks, rotate it the same day.
+
+How the three flows work:
+
+- **A new account with a passkey.** Name, then the passkey. No email, so no mail, so nothing to
+  land in a spam folder. The account id is made by the Worker.
+- **Adding a passkey to an existing account.** Settings, OVVO ID card, **Generate a new Passkey**.
+  Five devices at most; each is labelled with the platform it was made on.
+- **A new phone.** Sign in with a passkey; the system offers the key it already syncs through
+  iCloud or Google, or shows a code for the old phone to approve. That part is the phone's own
+  work and needs nothing from us. Then **Generate a new Passkey** on the new phone, so the next
+  sign-in is the short way again.
+
+Limits worth naming now:
+
+- **A passkey belongs to the address it was made on.** `ovvo.vibecreations.workers.dev` is the
+  address today. Moving to another address means every passkey made before the move stops working,
+  and everybody signs in the old way once more.
+- **A passkey-only account has no recovery.** If every device holding it is lost and nothing was
+  synced, the account cannot be opened. The card says so whenever there is only one passkey.
+- **`FIREBASE_SERVICE_ACCOUNT` must be a Secret, not a Variable.** Added as a plain dashboard
+  variable it does work at once, and then disappears on the next `npm run deploy` from here,
+  because a deploy uploads only the variables in the project's own config. Measured on
+  2 November 2026: status went true, one deploy later it was false again. A Secret is stored
+  apart from the upload, survives every deploy, and hides the private key from the dashboard.
+- **A passkey made before the switch is kept.** The sign-in step is the only part that needs
+  the key, so a key already on a device starts working the moment `FIREBASE_SERVICE_ACCOUNT` is
+  set, and the card shows it instead of claiming there is none.
+- **Tested with a simulated key, not a phone.** Chrome's virtual authenticator made a key, signed
+  in with it, and the minted token's signature was checked against the matching public key
+  (`.logs/passkey-check.cjs`, all nine checks pass). Firebase itself refused the stand-in token, as
+  it must, so the last step can only be proven by the steerer on a real phone.
+
+### Turning passkeys on
+
+1. Firebase console, project `ovvo-vibecreations`, gear, **Project settings**, **Service accounts**.
+2. **Generate new private key**. A JSON file downloads. It is the key; do not leave it in a
+   downloads folder.
+3. In this project, with the file to hand:
+   `npx wrangler secret put FIREBASE_SERVICE_ACCOUNT < service-account.json`
+4. Delete the downloaded file once the secret is set. `/api/passkey/status` should then answer
+   `{"available":true,"max":5}`.
+
+## Why the sign-in mail lands in spam
+
+Asked 2 November 2026. Answer first: the mail is not sent by us and not from our address.
+Firebase sends the sign-in link and the password reset itself, from
+`noreply@ovvo-vibecreations.firebaseapp.com`. `firebaseapp.com` is Google's and is shared by
+every Firebase project in the world, including a great many phishing pages. Gmail cannot check
+that the mail came from OVVO, because we own no domain and publish no SPF, DKIM or DMARC record
+for one, and Firebase will not sign the mail as us. So the mail is judged on the reputation of a
+shared sender, and it loses. Google's own issue tracker has this filed for authentication mail
+from `firebaseapp.com` (issuetracker.google.com/issues/253291461).
+
+The routes that would fix it, and what each costs:
+
+| Route | What it gives | What it needs |
+| --- | --- | --- |
+| Firebase custom email domain (Authentication, Templates, edit, *customize domain*) | From `noreply@<our domain>`, action links on that domain, with the TXT and CNAME records Firebase supplies | A domain we own. The records themselves are free |
+| Firebase custom SMTP (a sender such as Brevo, Postmark or Resend) | The mail leaves through that service, which authenticates it | **A mailbox, not a domain.** This is the route that worked, with no card (see below) |
+| Mail sent by our own Worker through a sending service | OVVO writes the templates and owns the sender | A domain and an API key. Free at our size, still no card |
+
+**This paragraph was wrong, and it is kept so the mistake is visible (corrected 2 November 2026).**
+It said every route needs a domain. The steerer then read it as a challenge, set up **Brevo** as
+Firebase's custom SMTP sender, and sent the mail from a brand new mailbox of VibeCreations' own:
+**`ovvo.vibecreations@outlook.com`**. It arrives in the inbox. Measured by him on a real inbox,
+which is the only place this can be measured, because the build machine has no mailbox.
+
+What that teaches, written down so it is not unlearned: a sending service needs a **mailbox it is
+allowed to send from**, not a domain of our own. The spam verdict was never about DNS records we
+could not publish; it was about a sender address shared with every Firebase project in the world.
+Giving the mail its own address, with a service that authenticates it, was enough. Brevo's free
+plan sends the handful of messages a day this site needs, and no card was entered.
+
+**The exact address is on the screen now.** The "check your email" page tells the traveller it
+comes from `ovvo.vibecreations@outlook.com` (`MAIL_FROM` in `src/pages/SignInPage.tsx`), so they
+know what to look for and know the message is ours. If the sender is ever changed in Brevo or in
+Firebase, that one line changes with it.
+
+What is true without a domain: **Google sign-in and email with a password need no mail** and are
+unaffected. Email link sign-in is the one path that depends on the mail arriving.
+
 ## Secrets and values
 
 **There is no Settings → Secrets screen** in the steerer's client. He said so on 1 November 2026,
@@ -99,6 +240,8 @@ it can deploy and delete code, so it never leaves the secrets store.
 - The Cloudflare **account ID** (part 1.4 of the tutorial).
 - The **six Firebase values** (part 4 of the tutorial).
 - The Cloudflare token, pasted into Settings → Secrets, never into chat.
+- **The Firebase service account key for passkeys** — see "Turning passkeys on" above. Until it
+  arrives, passkeys stay switched off and the site says so by hiding them.
 
 ## The tutorial
 

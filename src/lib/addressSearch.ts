@@ -28,9 +28,6 @@ export interface AddressHit {
 /** Nominatim wants an identifiable caller and is not a CDN; six seconds is generous. */
 const TIMEOUT_MS = 6000;
 
-/** Five: a picker is a shortlist, and the stop list below it is already one. */
-const LIMIT = 5;
-
 /**
  * Two characters, and the lookup starts.
  *
@@ -61,7 +58,15 @@ function remember(query: string, hits: AddressHit[]): AddressHit[] {
   return hits;
 }
 
-const ENDPOINT = 'https://nominatim.openstreetmap.org/search';
+/**
+ * **The Worker asks Nominatim, and keeps the answer at the edge** (`worker/lookup.js`).
+ *
+ * The page used to call the map database itself, which made every traveller a separate caller:
+ * OpenStreetMap asks to be treated gently, and a street typed by a hundred people in a morning is
+ * one question, not a hundred. The address is ours now, so the limit and the country filter live
+ * on the server and the traveller's own IP never reaches the map database.
+ */
+const ENDPOINT = '/api/lookup/address';
 
 interface SearchResult {
   lat: string;
@@ -83,20 +88,10 @@ export async function searchAddresses(query: string): Promise<AddressHit[]> {
   if (known) return known;
   if (typeof fetch !== 'function') return [];
 
-  const params = new URLSearchParams({
-    format: 'jsonv2',
-    addressdetails: '1',
-    /* This is a Dutch planner, and Nominatim is global: without the filter "Hoofddorp" also
-       answers places in Belgium and Germany. */
-    countrycodes: 'nl',
-    limit: String(LIMIT),
-    q: trimmed,
-  });
-
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(`${ENDPOINT}?${params.toString()}`, {
+    const response = await fetch(`${ENDPOINT}?q=${encodeURIComponent(trimmed)}`, {
       signal: controller.signal,
       headers: { Accept: 'application/json' },
     });

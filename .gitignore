@@ -12,3 +12,5 @@ artifacts/
 .env
 .env.local
 .env.*.local
+# Local Worker secrets, read by `wrangler dev`. Never committed: they hold a real key when present.
+.dev.vars

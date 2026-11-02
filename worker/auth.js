@@ -74,6 +74,25 @@ async function signingKeys(force = false) {
 }
 
 /**
+ * Who is making this request, from the `Authorization: Bearer <token>` header.
+ *
+ * Shared by the API and by the passkey routes, so a token is checked by exactly one piece of
+ * code wherever it arrives.
+ */
+export async function identify(request, env) {
+  const header = request.headers.get('authorization') ?? '';
+  if (!header.toLowerCase().startsWith('bearer ')) return null;
+  const token = header.slice(7).trim();
+  if (token.length === 0) return null;
+  try {
+    return await verifyIdToken(token, env.FIREBASE_PROJECT_ID || 'ovvo-vibecreations');
+  } catch (error) {
+    console.error('[api] token check failed', error);
+    return null;
+  }
+}
+
+/**
  * Verify a token and return who it belongs to, or `null`.
  *
  * Returning `null` rather than throwing keeps the caller honest: every refusal looks the same from

@@ -468,6 +468,8 @@ export function buildStory({
           track: 'rap-anthem',
           kicker: 'Your lines',
           big: lineList[0].value,
+          /* The number the line carried, so the page can give it the size it earned. */
+          count: lineList[0].count,
           /* The count belongs to the line above it, so it is in the sentence, not left out of it. */
           line:
             lineList[0].count === 1

@@ -778,6 +778,33 @@ export function SettingsPage() {
           )}
         </p>
       </Dialog>
+
+      {/*
+        **The foot of the screen: who made this, and how to reach a person.**
+
+        OVVO has no support desk, so the honest thing is a real address that a person reads. The
+        footer is a footer on purpose: it sits under every setting, says the two facts a traveller
+        may want long after they stopped reading this page, and asks for nothing.
+
+        The address is a `mailto:` and wears the app's own button shape (`className="btn"`) rather
+        than a hand-made style, so it is the same height and the same touch target as every other
+        control on the page - it is a link somebody presses on a phone.
+      */}
+      <footer className="stack-2" style={{ marginTop: 28, textAlign: 'center' }}>
+        <p className="t-strong t-sm" style={{ margin: 0 }}>
+          OVVO, a VibeCreations app
+        </p>
+        <p className="t-sm t-muted" style={{ margin: 0 }}>
+          {t(
+            'Made in the Netherlands. Something wrong, or a question? Write to us and a person answers.',
+          )}
+        </p>
+        <div className="row-wrap" style={{ justifyContent: 'center' }}>
+          <a className="btn" href="mailto:ovvo.vibecreations@outlook.com">
+            ovvo.vibecreations@outlook.com
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

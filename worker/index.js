@@ -5,7 +5,10 @@
  * alive and nothing that can go stale on its own.
  */
 
-import { verifyIdToken } from './auth.js';
+import { identify } from './auth.js';
+import { lookupRoute } from './lookup.js';
+import { passkeyRoute } from './passkey.js';
+import { photoRoute } from './photos.js';
 
 /** A whole traveller's year, in one document. Small next to D1's limits, and refused above this. */
 const MAX_DOC_BYTES = 200 * 1024;
@@ -27,19 +30,6 @@ const json = (body, status = 200) =>
 function crossOrigin(request, url) {
   const origin = request.headers.get('origin');
   return origin !== null && origin !== url.origin;
-}
-
-async function identify(request, env) {
-  const header = request.headers.get('authorization') ?? '';
-  if (!header.toLowerCase().startsWith('bearer ')) return null;
-  const token = header.slice(7).trim();
-  if (token.length === 0) return null;
-  try {
-    return await verifyIdToken(token, env.FIREBASE_PROJECT_ID || 'ovvo-vibecreations');
-  } catch (error) {
-    console.error('[api] token check failed', error);
-    return null;
-  }
 }
 
 async function readProfile(env, uid) {
@@ -112,8 +102,28 @@ async function api(request, env, url) {
     return json({ error: 'origin' }, 403);
   }
 
+  /*
+   * **The three public lookups answer before a sign-in is asked for.** They are the same answer for
+   * everybody (a street, a position, a Wikipedia paragraph), so they need no traveller, and the
+   * edge keeps them (`worker/lookup.js`).
+   */
+  if (url.pathname.startsWith('/api/lookup/')) return lookupRoute(request, env, url);
+
+  /*
+   * **Passkeys answer before the account is required.** Two of these routes are how somebody signs
+   * in, so they cannot demand a sign-in first: the passkey is the thing being checked. The module
+   * decides for itself which of its routes need a token.
+   */
+  if (url.pathname.startsWith('/api/passkey/')) return passkeyRoute(request, env, url);
+
   const claims = await identify(request, env);
   if (!claims) return json({ error: 'unauthorized' }, 401);
+
+  /*
+   * **The face on the account.** Read, written and removed by its owner only; the bucket this was
+   * going to live in needs a card, so it lives in the database (`worker/photos.js`).
+   */
+  if (url.pathname === '/api/photo') return photoRoute(request, env, claims);
 
   if (url.pathname === '/api/me' && request.method === 'GET') {
     const profile = await readProfile(env, claims.uid);

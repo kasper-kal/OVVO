@@ -13,3 +13,55 @@ CREATE TABLE IF NOT EXISTS travel_sync (
   rev        INTEGER NOT NULL DEFAULT 1,
   updated_at TEXT NOT NULL
 );
+
+-- One row per passkey: the key a phone or computer made, kept by the id that key names itself by.
+--
+-- The public half only. There is no secret here to steal: checking a sign-in needs the public key,
+-- and nothing in this table can be used to sign one. `counter` is what tells a copied key from the
+-- real one, and `backed_up` says whether the platform syncs it between devices.
+
+/*
+ * **The traveller's photograph, one per account.**
+ *
+ * It was going to live in an R2 bucket, and Cloudflare will not switch R2 on without a payment
+ * method, which this project does not have. A squared photograph is about thirty kilobytes, so
+ * the free database holds thousands of them and nothing was given up but tidiness. The value is a
+ * JPEG data URL, written by `worker/photos.js` after it has checked the shape.
+ */
+CREATE TABLE IF NOT EXISTS profile_photo (
+  uid TEXT PRIMARY KEY,
+  photo TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS passkey (
+  id          TEXT PRIMARY KEY,
+  uid         TEXT NOT NULL,
+  name        TEXT NOT NULL,
+  public_key  TEXT NOT NULL,
+  counter     INTEGER NOT NULL DEFAULT 0,
+  transports  TEXT,
+  device_type TEXT,
+  backed_up   INTEGER NOT NULL DEFAULT 0,
+  created_at  TEXT NOT NULL,
+  last_used_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS passkey_uid ON passkey (uid);
+
+-- A challenge is the question the browser is asked to answer, and it lives for five minutes.
+--
+-- Kept in the database rather than trusted from the browser, because a challenge the browser can
+-- choose is not a challenge: it is what stops yesterday's answer from being replayed today. Rows
+-- are deleted the moment they are used and swept when the next one is made.
+
+CREATE TABLE IF NOT EXISTS passkey_challenge (
+  id         TEXT PRIMARY KEY,
+  challenge  TEXT NOT NULL,
+  kind       TEXT NOT NULL,
+  uid        TEXT,
+  name       TEXT,
+  expires_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS passkey_challenge_expiry ON passkey_challenge (expires_at);

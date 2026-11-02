@@ -300,7 +300,7 @@ ${part(
     '5.3',
     'Do not add anything else',
     `<p>Ignore phone, anonymous and the rest. Every provider you switch on is another way in and another thing to keep right.</p>
-     <p>Firebase sends its own password reset and verification emails on the free plan, so no email service and no domain are needed for that.</p>`,
+     <p>Firebase sends its own password reset and verification emails, so no email service is needed. They come from a shared <code>firebaseapp.com</code> address rather than from OVVO, so some of that mail lands in spam. That is a sender problem, not a mistake here, and the only real fix costs a domain. Google and password sign-in need no mail at all.</p>`,
   ),
 )}
 

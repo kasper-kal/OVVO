@@ -36,6 +36,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth } from './firebase';
+import { forgetAllPasskeys } from './passkeys';
 import { STORAGE_PREFIX, announceStored, onStoredChange } from './storage';
 
 /** Where the address for a half-finished email-link sign-in is kept, while the mail is in flight. */
@@ -146,6 +147,11 @@ export async function deleteAccount(): Promise<'ok' | 'recent-sign-in' | 'failed
   if (!user) return 'failed';
 
   await eraseRemote();
+  /*
+   * **The passkeys go before the account does.** A passkey row that outlives its account is a key
+   * that opens a door to nothing, and it is still ours to remove while the token is valid.
+   */
+  await forgetAllPasskeys();
   try {
     await deleteUser(user);
     return 'ok';

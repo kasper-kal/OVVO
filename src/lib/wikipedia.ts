@@ -75,9 +75,15 @@ function keyFor(language: Language, article: string): string {
 }
 
 async function requestSummary(language: Language, article: string): Promise<WikipediaSummary | null> {
-  const address = `https://${language}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+  /*
+   * **The Worker asks Wikipedia, and keeps the paragraph at the edge** (`worker/lookup.js`).
+   *
+   * A station's opening paragraph is the same paragraph for everybody, so it is fetched once and
+   * served from the edge after that, rather than once per reader.
+   */
+  const address = `/api/lookup/summary?lang=${language}&article=${encodeURIComponent(
     article.replace(/ /g, '_'),
-  )}?redirect=true`;
+  )}`;
   try {
     const response = await fetch(address, {
       headers: { accept: 'application/json' },
