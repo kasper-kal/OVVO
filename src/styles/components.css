@@ -1763,8 +1763,21 @@
 }
 
 .picker-row--action .picker-row__marker {
-  background: var(--tint-sage);
-  color: var(--tint-sage-ink);
+  /*
+   * **A themed sage, not a lent one.** The disc was filled with `--tint-sage`, which stays pale in
+   * every appearance because it is the ground for a sage *pill*; as a 32px circle it measured
+   * rgb(225, 234, 223) on the light page and the same on the near-black one, so the two rows a
+   * traveller presses first were the brightest thing on a dark screen (reported: "this colour stays
+   * with almost all themes, horrible"). Now it is a wash of the appearance's own sage over the
+   * surface the row sits on, and the glyph is that sage's ink: both follow the theme, and on a
+   * photograph or a tinted card they follow the card tier the station rows already use.
+   *
+   * `--l1-bg` alone is the fallback where `color-mix()` is unavailable (iOS 14 and older): no sage
+   * wash, but still a disc that darkens with the page rather than glaring on it.
+   */
+  background: var(--l1-bg);
+  background: color-mix(in srgb, var(--sage-accent) 16%, var(--l1-bg));
+  color: var(--sage-accent);
 }
 
 .picker-row__name {
@@ -3232,8 +3245,21 @@
 }
 
 .picker-row--action .picker-row__marker {
-  background: var(--tint-sage);
-  color: var(--tint-sage-ink);
+  /*
+   * **A themed sage, not a lent one.** The disc was filled with `--tint-sage`, which stays pale in
+   * every appearance because it is the ground for a sage *pill*; as a 32px circle it measured
+   * rgb(225, 234, 223) on the light page and the same on the near-black one, so the two rows a
+   * traveller presses first were the brightest thing on a dark screen (reported: "this colour stays
+   * with almost all themes, horrible"). Now it is a wash of the appearance's own sage over the
+   * surface the row sits on, and the glyph is that sage's ink: both follow the theme, and on a
+   * photograph or a tinted card they follow the card tier the station rows already use.
+   *
+   * `--l1-bg` alone is the fallback where `color-mix()` is unavailable (iOS 14 and older): no sage
+   * wash, but still a disc that darkens with the page rather than glaring on it.
+   */
+  background: var(--l1-bg);
+  background: color-mix(in srgb, var(--sage-accent) 16%, var(--l1-bg));
+  color: var(--sage-accent);
 }
 
 .picker-row__name {

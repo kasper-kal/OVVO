@@ -89,6 +89,18 @@
    * 5.7:1 now, in both appearances, because the tint itself does not change either.
    */
   --tint-sage-ink: #41603f;
+  /*
+   * **Sage as a mark on the theme's own surface, which is not the same promise as sage on its
+   * own pale tint.**
+   *
+   * `--tint-sage-ink` is the ink for `--tint-sage`, and both stay pale in every appearance, so a
+   * component that draws sage *without* that tint has to take a cut of its own: the stop picker's
+   * two action discs painted `--tint-sage` as their fill and stayed **rgb(225,234,223)** on a
+   * near-black page (reported: "this colour stays with almost all themes, horrible"). This token
+   * follows the appearance instead: dark sage in the light theme, light sage in the dark one, and
+   * the disc is a wash of it over whatever surface the row sits on.
+   */
+  --sage-accent: color-mix(in srgb, var(--tint-sage-strong) 50%, var(--ink-strong));
   --tint-butter-border: #efe2a0;
   --tint-butter-strong: #e6cf3f;
   --tint-butter-ink: #c9a227;
@@ -465,7 +477,6 @@
    * here, and the light cut lives in its own token.
    */
   --coral-ink: #ff9c87;
-
   /* `--brand-tile` / `--brand-ink` are deliberately *not* overridden here: the mark is a white
      tile with obsidian ink in both appearances, so flipping its ink in dark would draw a
      near-white glyph on the white ground. */
@@ -536,6 +547,8 @@
     --app-bg-wash: rgb(252 251 250 / 0.62);
     --skeleton-fill: #e7e4de;
     --skeleton-sheen: #f2f0eb;
+    /* The picker's discs without the mix: the same 50/50 sage and ink, made by hand. */
+    --sage-accent: #4a5d4b;
   }
 
   /* The canvas is near-black here, so the block has to be lighter than the card, not darker. */
@@ -543,5 +556,6 @@
     --app-bg-wash: rgb(18 18 17 / 0.7);
     --skeleton-fill: #33313a;
     --skeleton-sheen: #46434d;
+    --sage-accent: #b7c9b2;
   }
 }
