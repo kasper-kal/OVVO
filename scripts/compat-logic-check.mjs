@@ -39,18 +39,32 @@ if (!script) {
  * elements by id, `HTMLScriptElement`, and `Function`.
  */
 function run({ search = '', FunctionImpl, hasModules = true, webdriver = false }) {
-  const notice = { style: { display: 'none' } };
   let splashRemoved = false;
+  const attributes = {};
+
+  /*
+   * Only what the script touches: an element lookup, an element factory, a body to append to, and
+   * the document element for `data-compat`. The notice is no longer markup in the page, so the map
+   * starts empty apart from the splash: whatever appears in it was built by the script.
+   */
+  const byId = new Map([
+    ['splash', { parentNode: { removeChild: () => (splashRemoved = true) } }],
+  ]);
+
+  const document = {
+    getElementById: (id) => byId.get(id) ?? null,
+    createElement: () => ({ id: '', style: {}, setAttribute() {}, innerHTML: '' }),
+    body: { appendChild: (element) => { if (element.id) byId.set(element.id, element); } },
+    documentElement: {
+      setAttribute(name, value) {
+        attributes[name] = value;
+      },
+    },
+  };
 
   const context = vm.createContext({
     window: { location: { search } },
-    document: {
-      getElementById(id) {
-        if (id === 'too-old') return notice;
-        if (id === 'splash') return { parentNode: { removeChild: () => (splashRemoved = true) } };
-        return null;
-      },
-    },
+    document,
     HTMLScriptElement: { prototype: hasModules ? { noModule: true } : {} },
     navigator: { webdriver },
     Function: FunctionImpl,
@@ -58,7 +72,12 @@ function run({ search = '', FunctionImpl, hasModules = true, webdriver = false }
 
   vm.runInContext(script, context, { timeout: 2000 });
 
-  return { noticeShown: notice.style.display !== 'none', splashRemoved };
+  const notice = byId.get('too-old');
+  return {
+    noticeShown: notice ? notice.style.display === 'block' : false,
+    splashRemoved,
+    decision: attributes['data-compat'] ?? 'none',
+  };
 }
 
 /*
@@ -140,7 +159,7 @@ for (const item of cases) {
     got.noticeShown === item.want.noticeShown && got.splashRemoved === item.want.splashRemoved;
   if (!ok) failed += 1;
   console.log(
-    `${ok ? 'ok  ' : 'FAIL'} ${item.name.padEnd(24)} notice ${got.noticeShown ? 'shown ' : 'hidden'}  splash ${got.splashRemoved ? 'removed' : 'kept   '}`,
+    `${ok ? 'ok  ' : 'FAIL'} ${item.name.padEnd(30)} notice ${got.noticeShown ? 'shown ' : 'hidden'}  splash ${got.splashRemoved ? 'removed' : 'kept   '}  says ${got.decision}`,
   );
 }
 

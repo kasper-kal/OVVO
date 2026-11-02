@@ -1,0 +1,85 @@
+OVVO, a Dutch public transport planner by VibeCreations
+======================================================
+
+This file exists for anything that reads over HTTP and does not run JavaScript: a link
+preview, a crawler, a review bot, a text extractor. The app itself is drawn entirely by
+JavaScript, so a raw fetch of the page cannot show it. This is the honest substitute.
+
+The app: https://ovvo.vibecreations.workers.dev/
+Support: ovvo.vibecreations@outlook.com
+Made by VibeCreations. No custom domain, no payment card, free tier only, by decision.
+
+
+What OVVO is
+------------
+
+A journey planner for Dutch public transport, in the spirit of 9292, built as a fast web app
+that also installs to a phone's home screen and keeps working offline.
+
+Timetables and disruptions in this build are clearly labelled demonstration data. OVVO does not
+pretend to be a live source, and every screen that shows times says so where it matters. The
+stop names, lines and places are real Dutch ones.
+
+
+The screens
+-----------
+
+Home        A search for a journey from A to B, with the traveller's favourite stops, recent
+            searches and the departure board they have pinned.
+
+Results     Departures for a search, with duration, transfers, the lines used, the platform and
+            any delay. A journey can be opened, saved, or its stops opened one by one.
+
+Board       Live-style departure rows for one stop, sorted by time, with the platform, the
+            direction and the delay. A board can be pinned to the home screen.
+
+Stop        One stop: its lines, its board, a small map, and an encyclopaedia paragraph about
+            the place from Wikipedia in the traveller's own language.
+
+Journey     One journey in full: each leg, the walking parts, the changes, the times, and the
+            line's own colour.
+
+Search      Address and stop search. Addresses come from OpenStreetMap, stops from the app's own
+            list, and the two are drawn together in one picker.
+
+Themes      Fifty looks, each with its own page colour, ink, lettering and card treatment, plus
+            a photograph behind the page if the traveller wants one. Seasonal looks appear in
+            their own three weeks.
+
+Settings    Appearance, language (Dutch and English), clock format, location permission,
+            battery saving, names for favourite stops, developer panel, this account, the reset,
+            and the support address at the foot.
+
+Wrapped     A yearly review of the traveller's own year: a deck of chapters built only from what
+            this app recorded (searches, boards, hearts, looks), never a made-up number and never
+            a comparison with other travellers. It opens in its season and is kept afterwards.
+
+Sign in     Four ways in, all free: Google, an email and password, a link by email, or a
+            passkey. The sign-in mail is sent through Brevo from ovvo.vibecreations@outlook.com
+            so it lands in the inbox rather than in spam. A passkey sign-in needs no email at all.
+
+
+What is kept, and where
+-----------------------
+
+Without an account, everything stays in the browser. With an OVVO ID, the traveller's stops,
+journeys, searches, settings and profile photo belong to the account and follow them to another
+device; the browser keeps a copy so the app still works offline.
+
+A photo is about thirty kilobytes, squared by the app before it is sent, and stored with the
+account. Facial recognition, no advertising, no third-party analytics that follows a person: the
+visitor counter is Cloudflare's, cookie-free, and counts visits rather than people.
+
+Passkeys are checked by OVVO's own Worker against the public half of the key. Making an account
+with a passkey passes a Cloudflare Turnstile check first, because that is the only door that asks
+for no email and no password.
+
+
+Reading the app with a browser
+------------------------------
+
+If a tool needs the rendered interface, it needs a real JavaScript engine: Playwright, Puppeteer,
+Selenium or a headless Chromium all work. The page also accepts ?bypass_compat=1 (or ?compat=off,
+or ?debug=1) and waves driven browsers past its old-browser notice by itself, since that notice
+exists for old phones and not for reviewers. The branch the notice took is recorded on the
+document element as data-compat: bypassed, automation, no-modules, yes, unknown or no.

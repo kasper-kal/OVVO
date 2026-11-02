@@ -228,25 +228,35 @@
 
     <script type="module" src="/src/main.tsx"></script>
 
-    <div id="too-old" role="alert">
-      <div class="too-old__card">
+    <!--
+      **What a reader that never runs JavaScript is told.**
+
+      This is the honest answer to a reader that fetches the HTML and stops: OVVO draws every screen
+      with JavaScript, so there is nothing to read here without it. It is written plainly, because a
+      crawler, a link preview or a text extractor is not a broken phone and should not be told it is.
+
+      The old-browser notice is **no longer markup in this file**. It used to be, and a reader that
+      never ran the app found its words first: "This browser is too old for OVVO", which was both
+      wrong and the only thing it could see. That card is built by the check below, from a string, at
+      the moment a browser actually needs it (see `buildNotice`). A human on a current browser sees
+      none of this either way; a raw fetch no longer meets a sentence that is untrue.
+    -->
+    <noscript>
+      <div class="too-old__card" style="max-width: 520px; margin: 32px auto; padding: 0 20px">
         <span class="too-old__label">OVVO</span>
-        <h1 class="too-old__title">This browser is too old for OVVO</h1>
+        <h1 class="too-old__title">OVVO needs JavaScript</h1>
         <p class="too-old__body">
-          OVVO needs iOS 14 or newer on an iPhone or iPad, and on Android or a computer, a browser from
-          2020 or later. This one cannot read it, so there is nothing to draw on the screen, and no
-          buttons to press, which is why this page looks empty.
+          OVVO is a Dutch public transport planner and every screen is drawn by JavaScript. With it
+          switched off there is nothing to show here. Turn JavaScript on, or open OVVO in a current
+          browser, and the planner, the departure boards and your stops appear.
         </p>
         <p class="too-old__body">
-          A newer phone, tablet or computer will open it normally. Updating the software on this
-          device is the other way, if an update is still offered for it.
-        </p>
-        <div class="too-old__rule"></div>
-        <p class="too-old__alt" lang="nl">
-          Deze browser is te oud voor OVVO. Open OVVO op een nieuwere telefoon, tablet of computer.
+          A plain text account of what the app does, for anything that reads files rather than pages,
+          is at <a href="/app.txt">/app.txt</a>. Questions go to
+          <a href="mailto:ovvo.vibecreations@outlook.com">ovvo.vibecreations@outlook.com</a>.
         </p>
       </div>
-    </div>
+    </noscript>
 
     <!--
       **Can this browser read the app at all, and if not, does the splash get out of the way?**
@@ -319,8 +329,46 @@
           /* no navigator at all is not something this check needs to have an opinion about */
         }
 
+        /*
+         * **The notice is built here, not written into the page.**
+         *
+         * It used to sit in the markup as a hidden card, which meant every reader that does not run
+         * JavaScript found "This browser is too old for OVVO" and nothing else. A text extractor is
+         * not an old phone. So the words live in this string now, the card is made only when a
+         * browser genuinely needs it, and a raw fetch of the page finds the honest `<noscript>` line
+         * instead.
+         *
+         * Built with `innerHTML` rather than a template element, because a template's contents are
+         * still text in the file, which is the thing being avoided. Old JavaScript on purpose, like
+         * everything in this block: this has to run on the browser it is apologising to.
+         */
+        function buildNotice() {
+          var existing = document.getElementById('too-old');
+          if (existing) return existing;
+
+          var card = document.createElement('div');
+          card.id = 'too-old';
+          card.setAttribute('role', 'alert');
+          card.innerHTML =
+            '<div class="too-old__card">' +
+            '<span class="too-old__label">OVVO</span>' +
+            '<h1 class="too-old__title">This browser is too old for OVVO</h1>' +
+            '<p class="too-old__body">OVVO needs iOS 14 or newer on an iPhone or iPad, and on Android ' +
+            'or a computer, a browser from 2020 or later. This one cannot read it, so there is nothing ' +
+            'to draw on the screen, and no buttons to press, which is why this page looks empty.</p>' +
+            '<p class="too-old__body">A newer phone, tablet or computer will open it normally. ' +
+            'Updating the software on this device is the other way, if an update is still offered ' +
+            'for it.</p>' +
+            '<div class="too-old__rule"></div>' +
+            '<p class="too-old__alt" lang="nl">Deze browser is te oud voor OVVO. Open OVVO op een ' +
+            'nieuwere telefoon, tablet of computer.</p>' +
+            '</div>';
+          document.body.appendChild(card);
+          return card;
+        }
+
         function showNotice() {
-          var notice = document.getElementById('too-old');
+          var notice = buildNotice();
           if (notice) notice.style.display = 'block';
 
           var splash = document.getElementById('splash');
