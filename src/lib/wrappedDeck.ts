@@ -272,6 +272,8 @@ export function buildStory({
       kicker: 'Your travel personality',
       big: persona.name,
       line: persona.line,
+      /* The year that made the habit, drawn behind the name that names it. */
+      dots: runs.length,
     },
     {
       id: 'direct',

@@ -466,7 +466,7 @@ export function WrappedPage() {
                 </p>
               ) : null}
 
-              {chapter.kind === 'number' && chapter.dots ? (
+              {(chapter.kind === 'number' || chapter.kind === 'word') && chapter.dots ? (
                 <span className="wrapped-field" aria-hidden="true">
                   {/* One row of twelve lands on every beat, so the year fills in time with the song
                       rather than all at once behind the number. */}
@@ -570,8 +570,9 @@ export function WrappedPage() {
                 </ul>
               ) : null}
 
-              {/* The rail prints its own two stations, and the look prints its own days. */}
-              {chapter.kind === 'route' || chapter.kind === 'word' ? null : (
+              {/* The rail prints its own two stations, and the look prints its own days under its name.
+                  Any other word chapter (the travel personality) still needs the sentence that earns it. */}
+              {chapter.kind === 'route' || (chapter.kind === 'word' && chapter.count !== undefined) ? null : (
                 <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
                   {t(chapter.line)}
                 </p>
