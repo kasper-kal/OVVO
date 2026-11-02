@@ -85,51 +85,6 @@ const AUTO_FADE = 1;
 /** How long before a song ends the deck turns the page. */
 const TURN_EARLY = 0.5;
 
-/**
- * **The music runs by act, not by page.**
- *
- * A track used to start again on every chapter, which cut a piece every six seconds and left the
- * beat nowhere near the page. Now an act owns a small playlist and the pages underneath it share
- * the music: the track changes when the act does, and a page turn never touches it.
- */
-const ACT_TRACKS: Record<'1' | '2' | '3' | 'close', Track[]> = {
-  '1': ['luxury-anthem', 'electro-dance'],
-  '2': ['afrobeat', 'hip-hop-anthem'],
-  '3': ['melodic-trap', 'dark-trap'],
-  close: ['acoustic'],
-};
-
-export type ActId = 1 | 2 | 3 | 'close';
-
-let currentAct: ActId | null = null;
-let actTrack = 0;
-
-function actList(act: ActId): Track[] {
-  return act === 'close' ? ACT_TRACKS.close : ACT_TRACKS[String(act) as '1' | '2' | '3'];
-}
-
-/** The next piece inside the same act. A page never reaches this; an act does. */
-function turn(): void {
-  if (currentAct) {
-    const list = actList(currentAct);
-    actTrack = (actTrack + 1) % list.length;
-    spin(list[actTrack], undefined, false);
-    return;
-  }
-  onEnd?.();
-}
-
-/**
- * **How much of a song a chapter gets.**
- *
- * Every chapter used to run its whole track, so twelve chapters took over three minutes to walk and
- * the steerer called the story slow, which it was. A chapter now plays a little over half its song:
- * it opens on the part that moves, and it hands over to the next chapter while the last of it is still
- * there to be faded. Nothing is cut out of the files, so the same music is under the same page, and the
- * page still ends on its own cadence rather than on a timer.
- */
-const CUT = 0.56;
-
 /** The volume a chapter's track is faded to: its trim, scaled under the phone's own volume. */
 function targetVolume(track: Track): number {
   return Math.max(0, Math.min(1, TRIM[track] * LEVEL));
@@ -232,7 +187,7 @@ function makeSlot(): Slot {
   el.addEventListener('ended', () => {
     if (slot !== active || !playing || turned) return;
     turned = true;
-    turn();
+    onEnd?.();
   });
   slots = [...slots, slot];
   return slot;
@@ -256,43 +211,17 @@ function ensureSlots(): Slot[] {
 function watchEnd(slot: Slot): void {
   if (slot !== active || !playing) return;
   const { duration, currentTime } = slot.el;
-  /* The page turns where the cut is, not where the file ends. */
-  const end = duration * CUT;
-  if (!Number.isFinite(duration) || end <= TURN_EARLY + AUTO_FADE) return;
-  if (!ducked && currentTime >= end - TURN_EARLY - AUTO_FADE) {
+  if (!Number.isFinite(duration) || duration <= TURN_EARLY + AUTO_FADE) return;
+  if (!ducked && currentTime >= duration - TURN_EARLY - AUTO_FADE) {
     ducked = true;
     fade(slot.el, 0, AUTO_FADE);
     note(`fade out ${AUTO_FADE}s before the page`);
   }
   if (turned) return;
-  if (currentTime >= end - TURN_EARLY) {
+  if (currentTime >= duration - TURN_EARLY) {
     turned = true;
-    turn();
+    onEnd?.();
   }
-}
-
-/**
- * **A station bell on every page turn.**
- *
- * The deck is a journey, and a journey through Dutch stations has one sound everybody knows: two notes,
- * high then low, before the announcement. It is a plain audio element like the score, it is quiet, and it
- * never asks for a gesture of its own, so a phone that refuses it simply has no bell.
- */
-let bell: HTMLAudioElement | null = null;
-
-function stationBell(): void {
-  if (!playing) return;
-  if (!bell) {
-    bell = new Audio(`${import.meta.env.BASE_URL}music/chime.wav`);
-    bell.preload = 'auto';
-    bell.volume = 0.24;
-  }
-  try {
-    bell.currentTime = 0;
-  } catch {
-    /* Not decoded yet: the first page has no bell, the next one will. */
-  }
-  void bell.play().catch(() => undefined);
 }
 
 /** Load a track into a player, unless it is already there. */
@@ -376,7 +305,7 @@ function ensurePlaying(slot: Slot): void {
  * `next` is only a hint: the chapter that follows, handed over so it can be warmed while this one
  * plays. Missing it costs a little waiting, never a wrong song.
  */
-function spin(track: Track, next?: Track, bell = false): void {
+function spin(track: Track, next?: Track): void {
   /* A track already in the live player (rounding a chapter twice, or coming back from silence). */
   const live = active && active.track === track ? active : null;
   if (live) {
@@ -400,8 +329,6 @@ function spin(track: Track, next?: Track, bell = false): void {
   active = incoming;
   current = track;
   playing = true;
-  /* The bell belongs to the change of act, not to a page and not to a resumed score. */
-  if (bell) stationBell();
 
   if (leaving && leaving !== incoming) {
     fade(leaving.el, 0, FADE_OUT);
@@ -431,7 +358,6 @@ export function stopSound(): void {
   retries.forEach((id) => window.clearTimeout(id));
   retries.clear();
   slots.forEach((slot) => fade(slot.el, 0, 0.15));
-  bell?.pause();
   window.setTimeout(() => {
     if (playing) return;
     slots.forEach((slot) => slot.el.pause());
@@ -550,60 +476,7 @@ export function trackSeconds(track: Track): number {
   return TRACK_SECONDS[track];
 }
 
-/**
- * **How long a chapter actually lasts.**
- *
- * The deck's silent clock and its progress bar have to run to the same length the score does, or a muted
- * story turns its pages later than a heard one and the bar fills past the cut. Both read this.
- */
-export function chapterSeconds(track: Track): number {
-  return TRACK_SECONDS[track] * CUT;
-}
-
 /** The chapter that is playing, for the tests and for anyone reading the state. */
 export function currentTrack(): Track | null {
   return current;
-}
-
-/**
- * **Start an act, from a tap.**
- *
- * Begin and the sound switch are the only two gestures that can start the score, so this is called
- * inside those taps rather than from an effect. The first piece of the act arrives with the bell that
- * marks a new act.
- */
-export function startAct(act: ActId): void {
-  note(`startAct ${act}`);
-  playing = true;
-  currentAct = act;
-  actTrack = 0;
-  spin(actList(act)[0], undefined, true);
-}
-
-/**
- * **Move to another act.**
- *
- * Called when the story crosses an act boundary, and by nothing else. A page turn inside an act
- * leaves the music exactly where it is, which is what keeps the fold's beat and the sentence's
- * landing on the same clock as the song.
- */
-export function playAct(act: ActId): void {
-  if (!playing || currentAct === act) return;
-  note(`playAct ${act}`);
-  currentAct = act;
-  actTrack = 0;
-  spin(actList(act)[0], undefined, true);
-}
-
-/** Freeze the score where it is, so a paused story is paused in the ear too. */
-export function pauseScore(): void {
-  slots.forEach((slot) => slot.el.pause());
-}
-
-/** Carry on from where the pause left it, rather than starting the piece again. */
-export function resumeScore(): void {
-  const live = active;
-  if (!playing || !live) return;
-  const started = live.el.play();
-  if (started) void started.catch(() => undefined);
 }

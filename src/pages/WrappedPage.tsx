@@ -1,37 +1,60 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useHistoryBack } from '../components/layout/AppShell';
 import { useApp } from '../state/AppState';
 import { Button, Dialog } from '../components/ui/primitives';
+import { Icon } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear } from '../lib/wrappedDemo';
-import { Fold } from '../components/wrapped/Fold';
-import { drawCard, shareCard } from '../lib/wrappedCard';
 import {
-  pauseScore,
-  playAct,
-  resumeScore,
+  resumeSound,
+  scoreTime,
   soundAudible,
   soundDiagnostics,
-  startAct,
+  startSound,
   stopSound,
+  trackSeconds,
+  whenTrackEnds,
 } from '../lib/wrappedSound';
-import '../styles/wrapped-film.css';
+import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
+
+/** How many dots fly out of the year's total when it lands. */
+const BURST = 14;
 
 /**
- * **OVVO Wrapped: one object, one black ground, one sentence.**
+ * **OVVO Wrapped: the year as a short film, not a report.**
  *
- * The rebuild in `WRAPPED-REBUILD.md`. Every page is the same frame of type on top of the Fold, and
- * the film changes by folding the object into a new pose rather than by sliding a slide. The colour
- * changes at act boundaries only, the music runs by act, and the share belongs to the page it is on.
+ * Full screen, one idea at a time, and no two chapters laid out the same way. The year's total is an
+ * enormous number with rings pushing out of it; the line you kept coming back to is a rail down the
+ * screen with a dot running it; your hour is twenty-four bars standing on the floor with one lit and
+ * breathing; the share of journeys with no changes is a ring with the number inside it; the longest
+ * trip is a line shot across the whole width; the look you wore is one huge word. Colour changes with
+ * the chapter, and so does the shape of the page, which is the difference between a story and a
+ * slideshow.
+ *
+ * Ten chapters, not ten pages. The progress bar went, because a bar across the top is a document; the
+ * count stayed, because a traveller wants to know how far in they are. Each chapter carries its own
+ * number in its own type, and each one enters its own way — a wipe, a rise from the floor, a deal, a
+ * zoom, a cut.
+ *
+ * Movement is the story too, and it runs on the song rather than beside it: the cover's dot goes
+ * round its ring once a bar, the year's journeys fill in on the beat, the rail's train steps down it,
+ * the tickets lift in turn, the hours light one after another, the dial turns, the long haul's dot
+ * patrols its line and the board catches a little light. Each of those is one hand-written animation
+ * timed from the tempo measured in the audio, so it is smooth instead of a twitch per beat, and two
+ * chapters are left deliberately still.
+ *
+ * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
+ * a tap: the cover's Begin is the gesture that starts it, the corner switch starts it without the score.
  */
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
   const t = useT();
+  /* Closing the story returns to the screen it was opened from, not to the home screen. */
   const leave = useHistoryBack('/');
   const [params] = useSearchParams();
   const askedForDemo = params.get('demo') === '1';
@@ -44,6 +67,14 @@ export function WrappedPage() {
     return yearOf(now.getTime());
   }, [params, now]);
 
+  /*
+   * **An empty year opens the example year, and says so.**
+   *
+   * The steerer's own 2026 holds nothing yet, so the honest two-card deck was the only thing he ever
+   * saw, and he asked for the deck he liked instead of it. So: no journeys in the real year, and the
+   * plain address shows the demo year — with the cover's "Demo year: none of this is real" line on it,
+   * so nothing pretends to be his. A year with journeys in it still shows his own, untouched.
+   */
   const realTally = useMemo(() => tallyFor(year), [year]);
   const demo = askedForDemo || realTally.runs.length === 0;
   const tally = useMemo(() => (demo ? demoYear(year) : realTally), [demo, year, realTally]);
@@ -53,17 +84,27 @@ export function WrappedPage() {
   );
 
   const [index, setIndex] = useState(0);
-  const [prev, setPrev] = useState<Chapter | null>(null);
+  const [dir, setDir] = useState(1);
   const [started, setStarted] = useState(false);
+  /* The score is on by default: Begin plays it unless the traveller has muted it first. */
   const [sound, setSound] = useState(true);
-  const [paused, setPaused] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
-  const [audible, setAudible] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
-  const left = useRef(0);
+  const last = index >= story.length - 1;
+
+  /*
+   * **The corner switch tells the truth about the speaker, on every page.**
+   *
+   * The score is on by default, but a phone may refuse to play before a tap, so "on by default" and "making
+   * a sound" are two different things. The cover used to read "Sound on" while the story's music was already
+   * armed — the first page asking for a press the second page never asks for. The switch now follows the
+   * speaker: while music is sounding it says "Sound off", and while it is silent it says "Sound on" and starts
+   * the score in the tap that presses it.
+   */
+  const [audible, setAudible] = useState(false);
 
   useEffect(() => {
     const id = window.setInterval(() => setAudible(soundAudible()), 300);
@@ -72,146 +113,78 @@ export function WrappedPage() {
 
   const soundLabel = sound && audible ? t('Sound off') : t('Sound on');
 
+  /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
     (next: number) => {
       const target = Math.max(0, Math.min(story.length - 1, next));
-      if (target === index) return;
-      setPrev(chapter);
+      setDir(target < index ? -1 : 1);
       setIndex(target);
-      setPaused(false);
     },
-    [chapter, index, story.length],
+    [index, story.length],
   );
-
-  /* The pose that just left fades under the one arriving, then is taken off the page. */
-  useEffect(() => {
-    if (!prev) return undefined;
-    const id = window.setTimeout(() => setPrev(null), 640);
-    return () => window.clearTimeout(id);
-  }, [prev]);
+  const step = useCallback((direction: number) => go(index + direction), [go, index]);
 
   /*
-   * **The page's own clock.**
+   * Every chapter brings its own piece of music, crossfading in under the one before it.
    *
-   * The song used to be the clock, which cut a piece every six seconds. Now the hold belongs to the
-   * page and the music runs underneath it, by act. Pausing keeps what was left instead of starting
-   * the page again.
+   * The chapter after this one is handed over as a hint, so it is already on the phone by the time
+   * the traveller swipes: the story should never wait for a song.
    */
   useEffect(() => {
-    left.current = chapter.hold ?? 0;
-  }, [chapter.id, chapter.hold]);
-
-  useEffect(() => {
-    if (!started || paused || !chapter.hold) return undefined;
-    const startAt = performance.now();
-    const id = window.setTimeout(() => go(index + 1), Math.max(600, left.current));
-    return () => {
-      window.clearTimeout(id);
-      left.current = Math.max(300, left.current - (performance.now() - startAt));
-    };
-  }, [started, paused, chapter.hold, index, go]);
-
-  /* The score follows the act, never the page. */
-  useEffect(() => {
+    /*
+     * **There is one way to start the score, and this is it.**
+     *
+     * Begin started a song itself, the switch started one itself, and this effect started one on every
+     * chapter change: three doors into the same room, and on the steerer's phone only the switch's door
+     * made a sound. They are one door now. Starting the story sets `started`, the switch turns `sound`
+     * over, and what is applied here is exactly what the switch has always done.
+     */
     if (!sound) {
       stopSound();
       return;
     }
-    if (!started) return;
-    playAct(chapter.act);
-  }, [sound, started, chapter.act]);
+    startSound(chapter.track, story[index + 1]?.track);
+  }, [index, sound, chapter.track, story]);
 
-  useEffect(() => () => stopSound(), []);
-
-  const toggleSound = () => {
-    if (sound && audible) {
-      setSound(false);
-      stopSound();
-      return;
-    }
-    setSound(true);
-    startAct(chapter.act);
-    setAudible(true);
-  };
-
-  const togglePause = () => {
-    const next = !paused;
-    setPaused(next);
-    if (next) pauseScore();
-    else resumeScore();
-  };
-
-  const shareChapter = async () => {
-    if (!chapter.share) return;
-    const blob = await drawCard({
-      year,
-      sentence: chapter.sentence,
-      caption: chapter.caption,
-      act: chapter.act,
-    });
-    if (blob) {
-      await shareCard(blob, `ovvo-wrapped-${year}.png`, chapter.share);
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(chapter.share);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2200);
-    } catch {
-      setCopied(false);
-    }
-  };
-
-  const copyYear = async () => {
-    const text =
-      story.find((item) => item.id === 'total')?.share ??
-      `My ${year} in OVVO.`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2200);
-    } catch {
-      setCopied(false);
-    }
-  };
-
-  const saveYear = async () => {
-    const closing = story[story.length - 1];
-    const blob = await drawCard({
-      year,
-      sentence: closing?.sentence ?? `That was ${year}.`,
-      caption: closing?.caption ?? 'Every number here is yours.',
-      act: closing?.act ?? 1,
-    });
-    if (blob) await shareCard(blob, `ovvo-wrapped-${year}.png`, `My ${year} in OVVO.`);
-  };
-
-  /* The keyboard is a reader's way through: arrows, space to pause, Escape to leave. */
+  /*
+   * **The story keeps time with the music.**
+   *
+   * Every chapter is scored, so its song is its clock: when the song ends the deck turns the page by
+   * itself, which is what makes the story watchable without touching it. Swiping still works and
+   * jumps the story ahead of the score; muting stops the clock, because the song is what was doing
+   * the counting. A song that will not load never ends, so that chapter waits for a swipe rather
+   * than racing past unseen.
+   */
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        if (!started) {
-          setStarted(true);
-          startAct(1);
-          go(1);
-          return;
-        }
-        go(index + 1);
-      } else if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        go(index - 1);
-      } else if (event.key === ' ') {
-        event.preventDefault();
-        togglePause();
-      } else if (event.key === 'Escape') {
-        leave();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+    whenTrackEnds(() => {
+      if (last) return;
+      /* The cover's piece ending is the story starting, exactly as Begin is. */
+      if (index === 0) setStarted(true);
+      go(index + 1);
+    });
+    return () => whenTrackEnds(null);
+  }, [go, index, last]);
 
+  /*
+   * **The story turns itself in silence too.**
+   *
+   * The song is the clock, and it asks for the next chapter half a second before it ends. But a phone
+   * that refuses to play the first track has no clock at all, and neither has a muted deck: the story
+   * stopped dead on a finished chapter and waited to be swiped. This is the clock for both. It fires a
+   * second after the chapter's song would have ended, so when the music is playing it is always the
+   * music that turns the page and this never gets there first.
+   */
+  useEffect(() => {
+    if (last) return undefined;
+    const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
+    const timer = window.setTimeout(() => {
+      if (index === 0) setStarted(true);
+      go(index + 1);
+    }, quiet);
+    return () => window.clearTimeout(timer);
+  }, [last, chapter.track, index, go]);
+
+  /* A report on the score, for a phone that cannot be debugged from here. */
   const showDiagnostics = useMemo(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('sound') === 'debug',
     [],
@@ -225,164 +198,427 @@ export function WrappedPage() {
     return () => window.clearInterval(id);
   }, [showDiagnostics]);
 
-  const landed = useCountUp(chapter.figure?.value ?? 0, started && !reduceMotion, chapter.id, 900);
+  /* The keyboard is a reader's way through: arrows, Escape to leave. */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        step(1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        step(-1);
+      } else if (event.key === 'Escape') {
+        /* Escape is the same door as the X, so it returns the same way. */
+        leave();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [leave, step]);
 
-  const enter = () => {
-    setStarted(true);
-    setPaused(false);
-    startAct(1);
-    go(1);
+  /* Closing the deck closes the score with it; nothing keeps playing behind another screen. */
+  useEffect(() => () => stopSound(), []);
+
+  /*
+   * **Where the song is, read once and then left to the browser.**
+   *
+   * `--beat-ms` and `--bar-ms` are this chapter's measured tempo, and `--phase` is how far into a
+   * beat the music already was when the chapter arrived, so its animations open in step instead of
+   * from zero. The engine is not asked again: the stylesheet's animations run on their own, which is
+   * the difference between movement and a page twitching twice a second.
+   */
+  const beat = useBeatAnchor(started && sound, chapter.track, chapter.id);
+  const armed = beat !== null && beat.key === chapter.id;
+  const onBeat = armed && !reduceMotion;
+  const land = barMs(chapter.track) * 2;
+
+  const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
+
+  /*
+   * **What gets copied is a sentence, not a chapter.**
+   *
+   * It used to be glued together from a chapter's own line, which is written to sit under a big
+   * number ("21") and therefore leaves the number out: the copy read "times from Amsterdam Centraal
+   * to Haarlem Station." with nothing in front of it. A share is read on its own, in somebody else's
+   * chat, so it says everything it needs in one line.
+   */
+  const share = async () => {
+    const route = story.find((item) => item.kind === 'route');
+    const text = route?.route
+      ? t('In {year} I planned {count} journeys with OVVO. {times} of them were {from} to {to}.', {
+          year,
+          count: tally.runs.length,
+          times: route.route.count,
+          from: route.route.from,
+          to: route.route.to,
+        })
+      : t('In {year} I planned {count} journeys with OVVO.', { year, count: tally.runs.length });
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2600);
+    } catch {
+      setCopied(false);
+    }
   };
-
-  const pose = chapter.pose;
 
   return (
     <div
-      className={`wr-film${reduceMotion ? ' is-still' : ''}${paused ? ' is-paused' : ''}`}
-      data-act={chapter.act}
+      className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}${
+        onBeat ? ' is-beat' : ''
+      }`}
       data-chapter={chapter.id}
+      style={
+        {
+          '--beat-ms': `${beatMs(chapter.track)}ms`,
+          '--bar-ms': `${barMs(chapter.track)}ms`,
+          '--beat-phase': `${armed && beat ? beat.beatPhase : 0}ms`,
+          '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
+        } as CSSProperties
+      }
       role="region"
       aria-label={t('OVVO Wrapped {year}', { year })}
+      /*
+        * **A tap, not a swipe.**
+        *
+        * The deck asked for a horizontal drag to move on, which is a gesture nobody discovers and one
+        * that a scroll-happy thumb fights. Now the page itself is two buttons: the left half goes back,
+        * the right half of the middle goes forward. Anything that is really a control - the close
+        * button, the sound switch, Begin, the actions on the cover and the closing page, the bar at the
+        * top - is left alone, so a tap on a button is still a tap on that button.
+        */
+      /* Every touch repairs a score that never started. */
       onPointerDown={() => {
-        if (started && sound) resumeScore();
+        if (started && sound) resumeSound(chapter.track, story[index + 1]?.track);
       }}
       onClick={(event) => {
         const target = event.target as HTMLElement | null;
-        if (target?.closest('button, a, .wr-progress, [role="button"]')) return;
+        if (target?.closest('button, a, input, textarea, select, [role="button"], .wrapped-progress')) return;
+        const forward = event.clientX >= window.innerWidth / 2;
+        /* The cover is where the story is asked to begin, so its right half starts it. */
         if (!started) {
-          if (event.clientX < window.innerWidth / 2) return;
-          enter();
+          if (!forward) return;
+          setStarted(true);
+          go(1);
           return;
         }
-        go(event.clientX >= window.innerWidth / 2 ? index + 1 : index - 1);
+        step(forward ? 1 : -1);
       }}
     >
-      {prev ? (
-        <Fold
-          pose={prev.pose}
-          wear={prev.wear}
-          map={prev.map}
-          hours={prev.hours}
-          leaving
+      {/* The look's own photograph, behind everything, when that look has one. */}
+      {chapter.kind === 'word' && chapter.photo ? (
+        <img
+          className="wrapped-photo"
+          src={chapter.photo}
+          alt=""
+          aria-hidden="true"
+          onError={(event) => {
+            event.currentTarget.style.display = 'none';
+          }}
         />
       ) : null}
-      <Fold pose={pose} wear={chapter.wear} map={chapter.map} hours={chapter.hours} />
 
-      <nav className="wr-progress" aria-hidden="true">
+      {/*
+        * **The dotted ground, exactly as the first versions drew it.**
+        *
+        * One-pixel dots three pixels apart: paper grain, not a pattern of discs. It was taken off every
+        * chapter when each page got its own surface; this is the one page that asked for it back. It is a
+        * child of the stage rather than of the body, because the ground belongs to the whole page: drawn
+        * inside the body it started where the words start and stopped where they stop, and the paper shelf
+        * at the foot of the page covered the rest.
+        */}
+      {chapter.id === 'origin' ? <span className="wrapped-grain" aria-hidden="true" /> : null}
+
+      {/*
+        * **Where you are, in ten pieces.**
+        *
+        * A story needs a map at the top: one segment per chapter, the ones behind you filled, and the
+        * chapter you are on filling as its song plays, so the bar is the story's own clock rather than a
+        * decoration that says the same thing twice. It is not a control: the page itself is.
+        */}
+      <nav className="wrapped-progress" aria-hidden="true">
         {story.map((item, at) => (
           <span
             key={item.id}
-            className={`wr-progress__seg${at < index ? ' is-done' : ''}${at === index ? ' is-now' : ''}`}
+            className={`wrapped-progress__seg${at < index ? ' is-done' : ''}${at === index ? ' is-now' : ''}`}
           >
-            {at === index && chapter.hold ? (
-              <i
-                key={`${item.id}-${index}-${paused}`}
-                style={{ animationDuration: `${chapter.hold}ms` } as CSSProperties}
-              />
+            {/*
+              * **The chapter you are on fills, whether or not it is audible.**
+              *
+              * The bar used to wait for Begin, and it still had to be asked for when the sound was off, so a
+              * muted story showed a clock that had stopped while the story itself was still running. The song
+              * is the clock either way: muted, the deck keeps the same count, so the segment fills on the cover
+              * and on every chapter, heard or not.
+              */}
+            {at === index ? (
+              <i key={`${item.id}-${index}`} style={{ '--len': `${trackSeconds(chapter.track)}s` } as CSSProperties} />
             ) : null}
           </span>
         ))}
       </nav>
 
-      <header className="wr-chrome">
-        <span className="wr-mark">
-          OVVO
-          <b className="wr-count">
-            {String(index + 1).padStart(2, '0')} / {String(story.length).padStart(2, '0')}
-          </b>
-        </span>
-        <div className="wr-controls">
-          {/* The switch says what a thumb will get, not what is already true. */}
-          <button
-            type="button"
-            className="wr-pill"
-            aria-label={paused ? t('Play the story') : t('Pause the story')}
-            onClick={togglePause}
-          >
-            {paused ? t('Play') : t('Pause')}
-          </button>
-          <button type="button" className="wr-pill" aria-label={soundLabel} onClick={toggleSound}>
-            {soundLabel}
-          </button>
-          <button type="button" className="wr-pill" aria-label={t('Close')} onClick={leave}>
-            {t('Close')}
-          </button>
-        </div>
-      </header>
-
-      {prev ? (
-        <div className="wr-frame is-leaving" aria-hidden="true">
-          <div className="wr-frame__inner">
-            <p className="wr-sentence">{prev.sentence}</p>
-            <p className="wr-caption">{prev.caption}</p>
-          </div>
+      {showDiagnostics ? (
+        <div className="wrapped-diag" aria-live="polite">
+          {diagnostics.map((line) => (
+            <span key={line}>{line}</span>
+          ))}
         </div>
       ) : null}
 
-      <div className={`wr-frame${chapter.layout ? ` wr-frame--${chapter.layout}` : ''}`}>
-        <div className="wr-frame__inner">
-          {chapter.id === 'cover' ? (
+      <header className="wrapped-top">
+        <button type="button" className="wrapped-close" onClick={leave} aria-label={t('Close')}>
+          <Icon name="close" size={20} />
+        </button>
+        {/*
+          * **The switch says what a thumb will get, not what is already true.**
+          *
+          * While the score is playing it reads "Sound off", because that is what pressing it does. The
+          * steerer asked for it this way, and he is right that it is the plainer reading: a control that
+          * describes its own action needs no legend, and no coloured light beside it either.
+          */}
+        <button
+          type="button"
+          className="wrapped-sound"
+          aria-label={soundLabel}
+          onClick={() => {
+            /* "Sound off" mutes what is playing; "Sound on" starts it, in this tap, on any page. */
+            if (sound && audible) {
+              setSound(false);
+              return;
+            }
+            setSound(true);
+            resumeSound(chapter.track, story[index + 1]?.track);
+          }}
+        >
+          <span>{soundLabel}</span>
+        </button>
+      </header>
+
+      {/* The keyboard is a reader's way through: arrows, Escape to leave. */}
+      <div className="wrapped-scene">
+        <div
+          className={`wrapped-body wrapped-body--${chapter.kind}`}
+          data-chapter={chapter.id}
+          data-dir={dir}
+          key={chapter.id}
+        >
+          {chapter.kind === 'cover' ? (
             <>
-              <p className="wr-eyebrow">{t('OVVO Wrapped')}</p>
-              <p className="wr-year">{year}</p>
-              <p className="wr-caption">{t(chapter.caption)}</p>
-              <button type="button" className="wr-start" onClick={enter}>
-                {t('Begin')}
-              </button>
+              <span className="wrapped-orbit" aria-hidden="true" />
+              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+                {t(chapter.kicker)}
+              </span>
+              <h1 className="wrapped-title" style={{ '--i': 1 } as CSSProperties}>
+                {chapter.big}
+              </h1>
+              <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
+                {t(chapter.line)}
+              </p>
+              {demo ? (
+                <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
+                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
+                </p>
+              ) : null}
+              <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
+                <Button
+                  variant="accent"
+                  size="md"
+                  onClick={() => {
+                    setStarted(true);
+                    /* On by default, so Begin starts the score unless it was muted before the tap. */
+                    /*
+                     * **One press, one song.**
+                     *
+                     * Begin used to start the cover's track and hand over to the next chapter's from an
+                     * effect, outside the tap. A phone allows the first play and refuses the second, so the
+                     * room went quiet a second in and only came back when the switch was tapped again. The
+                     * score now opens on the chapter the traveller lands on, in the same gesture.
+                     */
+                    go(1);
+                  }}
+                >
+                  {t('Begin')}
+                </Button>
+                {/* The cover asks one thing. The score has its own switch in the corner. */}
+              </div>
             </>
           ) : (
             <>
-              <p className="wr-sentence">{sentenceWithFigure(t(chapter.sentence), chapter, landed)}</p>
-              <p className="wr-caption">{t(chapter.caption)}</p>
+              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+                {t(chapter.kicker)}
+              </span>
 
+              {chapter.kind === 'arc' ? (
+                <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
+                  <span className="wrapped-arc__spark" aria-hidden="true" />
+                  <p className="wrapped-big wrapped-big--in">{count}%</p>
+                </div>
+              ) : chapter.kind === 'route' ? null : (
+                <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
+                  {chapter.kind === 'word' || chapter.count === undefined ? chapter.big : count}
+                </p>
+              )}
+
+              {chapter.kind === 'word' && chapter.count !== undefined ? (
+                <p className="wrapped-days" style={{ '--i': 2 } as CSSProperties}>
+                  {count}
+                  <span>{chapter.count === 1 ? t('day') : t('days')}</span>
+                </p>
+              ) : null}
+
+              {chapter.kind === 'number' && chapter.dots ? (
+                <span className="wrapped-field" aria-hidden="true">
+                  {Array.from({ length: Math.min(chapter.dots, 700) }, (_, dot) => (
+                    <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                  ))}
+                </span>
+              ) : null}
+
+              {chapter.kind === 'number' ? (
+                <>
+                  <span className="wrapped-rings" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="wrapped-burst" aria-hidden="true">
+                    {Array.from({ length: BURST }, (_, dot) => (
+                      <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                    ))}
+                  </span>
+                </>
+              ) : null}
+
+              {/*
+                * The markers are children of the rail, not of the labels: drawn on the labels they
+                * were placed from a different origin and sat four pixels off the line, which is the
+                * kind of thing nobody notices until somebody does.
+                */}
+              {chapter.kind === 'route' && chapter.route ? (
+                <div className="wrapped-route" style={{ '--i': 2 } as CSSProperties}>
+                  <span className="wrapped-route__rail" aria-hidden="true">
+                    <span className="wrapped-route__train" />
+                  </span>
+                  <span className="wrapped-route__dot wrapped-route__dot--start" aria-hidden="true" />
+                  <span className="wrapped-route__dot wrapped-route__dot--end" aria-hidden="true" />
+                  <span className="wrapped-route__count">
+                    {count}
+                    <i>{t(chapter.line)}</i>
+                  </span>
+                  <span className="wrapped-route__from">{chapter.route.from}</span>
+                  <span className="wrapped-route__to">{chapter.route.to}</span>
+                </div>
+              ) : null}
+
+              {chapter.kind === 'bars' && chapter.bars ? (
+                <>
+                  <span className="wrapped-ruler" aria-hidden="true">
+                    <i>00</i>
+                    <i>06</i>
+                    <i>12</i>
+                    <i>18</i>
+                    <i>23</i>
+                  </span>
+                  <div className="wrapped-bars" style={{ '--i': 1 } as CSSProperties} aria-hidden="true">
+                  {chapter.bars.map((value, hour) => (
+                    <span
+                      key={hour}
+                      className={`wrapped-bars__bar${hour === chapter.peak ? ' is-peak' : ''}`}
+                      style={
+                        {
+                          height: `${Math.max(4, (value / Math.max(1, ...(chapter.bars ?? [1]))) * 100)}%`,
+                          '--i': hour,
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
+                  </div>
+                </>
+              ) : null}
+
+              {chapter.kind === 'stretch' && chapter.route ? (
+                <div className="wrapped-stretch" style={{ '--i': 2 } as CSSProperties}>
+                  <span className="wrapped-stretch__line" aria-hidden="true" />
+                  <span className="wrapped-stretch__dot" aria-hidden="true" />
+                  <span className="wrapped-stretch__from">{chapter.route.from}</span>
+                  <span className="wrapped-stretch__end">{chapter.route.to}</span>
+                </div>
+              ) : null}
+
+              {chapter.chips?.length ? (
+                <ul className="wrapped-chips">
+                  {chapter.chips.map((chip, position) => (
+                    <Chip
+                      key={chip.label}
+                      label={chip.label}
+                      detail={chip.detail}
+                      index={position}
+                      counting={chapter.id === 'lines'}
+                      rowDelay={position * barMs(chapter.track)}
+                    />
+                  ))}
+                </ul>
+              ) : null}
+
+              {/* The rail prints its own two stations, and the look prints its own days. */}
+              {chapter.kind === 'route' || chapter.kind === 'word' ? null : (
+                <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
+                  {t(chapter.line)}
+                </p>
+              )}
+
+              {chapter.hearts || chapter.boards ? (
+                <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
+                  {t('{hearts} stops hearted, {boards} boards pinned.', {
+                    hearts: chapter.hearts ?? 0,
+                    boards: chapter.boards ?? 0,
+                  })}
+                </p>
+              ) : null}
+              {chapter.note ? (
+                <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
+                  {t(chapter.note)}
+                </p>
+              ) : null}
             </>
           )}
         </div>
       </div>
 
-      {/* The closing actions live below the frame, so they can never sit on the sentence. */}
-      {chapter.id === 'close' ? (
-        <div className="wr-close-actions">
-          <button type="button" className="wr-btn" onClick={() => void saveYear()}>
-            {t('Save my year')}
-          </button>
-          <button type="button" className="wr-btn wr-btn--ghost" onClick={() => void copyYear()}>
-            {copied ? t('Copied') : t('Copy my year')}
-          </button>
-          <button type="button" className="wr-btn wr-btn--ghost" onClick={() => go(0)}>
-            {t('Start again')}
-          </button>
-          {demo ? null : (
-            <button type="button" className="wr-btn wr-btn--quiet" onClick={() => setConfirmClear(true)}>
-              {t('Empty this year')}
-            </button>
+      {started || chapter.kind !== 'cover' ? (
+        <footer className="wrapped-foot">
+          {chapter.kind === 'cover' ? null : (
+            <span
+              className="wrapped-chapter"
+              role="status"
+              aria-label={t('Chapter {n} of {total}', { n: index + 1, total: story.length })}
+            >
+              {String(index + 1).padStart(2, '0')} / {story.length}
+            </span>
           )}
-        </div>
-      ) : null}
 
-      {chapter.share && chapter.id !== 'close' ? (
-        <button type="button" className="wr-share" onClick={() => void shareChapter()}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 3.6v11" />
-            <path d="m8 7.2 4-3.6 4 3.6" />
-            <path d="M5.2 12.4v6.2a1.8 1.8 0 0 0 1.8 1.8h10a1.8 1.8 0 0 0 1.8-1.8v-6.2" />
-          </svg>
-          {copied ? t('Copied') : t('Share this story')}
-        </button>
+          {last ? (
+            <div className="wrapped-actions wrapped-foot__actions">
+              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
+                {copied ? t('Copied') : t('Copy my year')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => go(0)}>
+                {t('Start again')}
+              </Button>
+              {demo ? null : (
+                <Button variant="ghost" size="sm" icon="trash" onClick={() => setConfirmClear(true)}>
+                  {t('Empty this year')}
+                </Button>
+              )}
+            </div>
+          ) : null}
+        </footer>
       ) : null}
 
       {cleared ? (
-        <p className="wr-toast" role="status">
-          {t('The year has been emptied.')}
+        <p className="wrapped-toast" role="status">
+          <Icon name="check" size={14} /> {t('The year has been emptied.')}
         </p>
-      ) : null}
-
-      {showDiagnostics ? (
-        <div className="wr-diag" aria-live="polite">
-          {diagnostics.map((line) => (
-            <span key={line}>{line}</span>
-          ))}
-        </div>
       ) : null}
 
       <Dialog
@@ -417,32 +653,15 @@ export function WrappedPage() {
 }
 
 /**
- * **The figure is counted, but it stays inside the sentence.**
+ * **A number that arrives rather than appearing.**
  *
- * The reference never puts a giant number over a label: the number is a word in the sentence, so the
- * eye reads one thought. This finds the figure's own text in the sentence and replaces it with the
- * live count, keeping whatever follows it, including a percent sign.
+ * Over just under a second, eased so it slows as it lands: the eye follows the count and reads the
+ * final figure as the end of a movement. It runs again for each chapter (keyed on `id`), because a
+ * figure that arrived once and stayed would be the same number nine times.
+ *
+ * Reduced motion gets the answer immediately, which is the whole point of the setting.
  */
-function sentenceWithFigure(sentence: string, chapter: Chapter, value: number): ReactNode {
-  const figure = chapter.figure;
-  if (!figure) return sentence;
-  const token = String(figure.value);
-  const at = sentence.indexOf(token);
-  if (at < 0) return sentence;
-  return (
-    <>
-      {sentence.slice(0, at)}
-      <span className="wr-fig">
-        {value}
-        {figure.suffix ?? ''}
-      </span>
-      {sentence.slice(at + token.length)}
-    </>
-  );
-}
-
-/** A number that arrives rather than appearing, eased so it slows as it lands. */
-function useCountUp(target: number, active: boolean, key: string, duration = 900): number {
+function useCountUp(target: number, active: boolean, key: string, duration = 850): number {
   const [value, setValue] = useState(active ? 0 : target);
   useEffect(() => {
     if (!active) {
@@ -461,4 +680,110 @@ function useCountUp(target: number, active: boolean, key: string, duration = 900
     return () => cancelAnimationFrame(frame);
   }, [target, active, key, duration]);
   return value;
+}
+
+/**
+ * **Where the song is, sampled once per chapter.**
+ *
+ * The measure is taken at the moment the music is genuinely playing, not when the chapter mounted: a
+ * page laid down a frame early would open its animations a frame out of step. What comes back is how
+ * far into a beat the track already was, in milliseconds, which the stylesheet turns into a negative
+ * delay so every animation starts in phase.
+ *
+ * It is deliberately not a loop. Asking the audio where it is sixty times a second and re-timing the
+ * page from the answer is what made the first version stutter: every sample landed a few milliseconds
+ * from the last, and the movement chased the error instead of riding the music.
+ */
+function useBeatAnchor(
+  active: boolean,
+  track: Chapter['track'],
+  key: string,
+): { key: string; beatPhase: number; barPhase: number } | null {
+  const [anchor, setAnchor] = useState<{ key: string; beatPhase: number; barPhase: number } | null>(null);
+  useEffect(() => {
+    if (!active) {
+      setAnchor(null);
+      return undefined;
+    }
+    let frame = 0;
+    let stop = false;
+    const find = () => {
+      if (stop) return;
+      const at = scoreTime();
+      if (at && at.track === track && at.seconds > 0.04) {
+        const { index, phase } = beatAt(track, at.seconds);
+        const beat = beatMs(track);
+        setAnchor({
+          key,
+          beatPhase: phase * beat,
+          /* Which beat of the bar we are in, so a movement can tick a quarter turn per beat. */
+          barPhase: ((index % 4) + phase) * beat,
+        });
+        return;
+      }
+      frame = requestAnimationFrame(find);
+    };
+    frame = requestAnimationFrame(find);
+    return () => {
+      stop = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [active, track, key]);
+  return anchor;
+}
+
+/**
+ * **A board row that counts its own number.**
+ *
+ * The board's counts used to be printed and left there, so the one chapter about lines did not count
+ * anything while every other chapter's figure climbed. Each row now counts up on its own bar, one row
+ * after another, so the board fills in time with the music instead of arriving finished. A row that
+ * is not a number (a name, a platform) is printed as it always was.
+ */
+function Chip({
+  label,
+  detail,
+  index,
+  counting,
+  rowDelay,
+}: {
+  label: string;
+  detail: string;
+  index: number;
+  counting: boolean;
+  rowDelay: number;
+}) {
+  const target = Number(detail);
+  const numeric = Number.isFinite(target) && detail.trim() !== '';
+  /* A counting row starts at zero; a printed row starts at its number. */
+  const [shown, setShown] = useState(counting && numeric ? 0 : numeric ? target : 0);
+
+  useEffect(() => {
+    if (!counting || !numeric) {
+      setShown(numeric ? target : 0);
+      return undefined;
+    }
+    let frame = 0;
+    let started = 0;
+    const tick = (now: number) => {
+      if (!started) started = now;
+      const progress = Math.min(1, (now - started) / 620);
+      setShown(Math.round(target * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    const timer = window.setTimeout(() => {
+      frame = requestAnimationFrame(tick);
+    }, rowDelay);
+    return () => {
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
+  }, [counting, numeric, target, rowDelay]);
+
+  return (
+    <li className="wrapped-chip" style={{ '--i': index } as CSSProperties}>
+      <span>{label}</span>
+      <strong>{numeric ? (counting ? shown : target) : detail}</strong>
+    </li>
+  );
 }
