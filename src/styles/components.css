@@ -11199,3 +11199,63 @@
   align-content: center;
   grid-auto-rows: minmax(118px, 152px);
 }
+
+/*
+ * 35 · The look page was a photograph with a slow zoom on it, which is a wallpaper, not a page.
+ *
+ * The zoom was the wrong idea and the steerer said so: a picture that creeps is still a picture. On
+ * this page the photograph is the inside of the word. The look's name is set as large as the screen
+ * gives it and its letters are cut out of the image itself, so "Nostalgia" is made of the station it
+ * describes, glowing against the dark plate behind it, and the picture moves inside the letters
+ * rather than behind them. The day count keeps the floor of the page in solid type, because a number
+ * the traveller is meant to read should not be made of scenery.
+ */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(46px, 17vw, 132px);
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  color: transparent;
+  background-image: var(--look-photo, none);
+  background-size: cover;
+  background-position: 50% 40%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 3px 22px rgba(0, 0, 0, 0.55));
+  animation: wrapped-look-window 23s ease-in-out infinite alternate;
+  overflow-wrap: anywhere;
+}
+
+@keyframes wrapped-look-window {
+  from {
+    background-position: 42% 28%;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    background-position: 58% 72%;
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  color: #fff;
+  font-size: clamp(72px, 26vw, 190px);
+  line-height: 0.8;
+  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.6);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days span {
+  font-size: 0.22em;
+  letter-spacing: 0;
+  opacity: 0.9;
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-kicker {
+  opacity: 0.95;
+  letter-spacing: 0.22em;
+}
+
+.wrapped-stage.is-still[data-chapter='look'] .wrapped-big {
+  animation: none;
+}

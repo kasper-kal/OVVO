@@ -332,6 +332,8 @@ export function WrappedPage() {
           '--bar-ms': `${barMs(chapter.track)}ms`,
           '--beat-phase': `${armed && beat ? beat.beatPhase : 0}ms`,
           '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
+          /* The look's own photograph, for the chapter that sets its name inside it. */
+          ...(chapter.photo ? { '--look-photo': `url(${chapter.photo})` } : {}),
         } as CSSProperties
       }
       role="region"
