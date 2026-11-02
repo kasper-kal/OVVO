@@ -11259,3 +11259,28 @@
 .wrapped-stage.is-still[data-chapter='look'] .wrapped-big {
   animation: none;
 }
+
+/*
+ * 36 · The word was made of the photograph, and the photograph was dark.
+ *
+ * Cut out of the image, "Nostalgia" took its colour from the roof above the platform and vanished into
+ * it. The letters are lifted now: the same photograph, brighter and a little saturated, with a hairline
+ * of light around each one so the shape survives where the picture is darkest, and the picture is
+ * taken from the part of the frame with the platform lights in it.
+ */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-size: clamp(54px, 20vw, 150px);
+  background-position: 50% 58%;
+  filter: brightness(1.85) saturate(1.15) contrast(1.05) drop-shadow(0 4px 24px rgba(0, 0, 0, 0.65));
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.34);
+  paint-order: stroke fill;
+}
+
+@keyframes wrapped-look-window {
+  from {
+    background-position: 46% 44%;
+  }
+  to {
+    background-position: 56% 74%;
+  }
+}
