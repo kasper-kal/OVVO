@@ -281,26 +281,24 @@ export function HomePage() {
   }, []);
 
   /**
-   * **Where a hold starts** — the surface above, plus the cards themselves.
+   * **Where a hold starts: the background, and nothing else.**
    *
-   * A phone puts a home screen into its edit mode from the icons as well as the wallpaper: press
-   * and hold an icon and it starts to wiggle. This screen is almost entirely cards, so a hold that
-   * only worked on the thin strip of page around them was a hold that did not work at all — and
-   * what a person got instead was the browser selecting the card's own text (reported: "holding the
-   * home screen doesn't work on mobile, it just selects text instead of going to customizing").
+   * This is the surface above, exactly — one predicate for both gestures rather than two that can
+   * drift apart.
    *
-   * It is deliberately **not** the tap's surface: in customising, a tap on a card is the card's own
-   * business (it is how a widget is used), and a tap outside one is how the mode is left. Widening
-   * the tap to cards would make using a widget exit the mode. Two gestures, two surfaces, and this
-   * is only the one the clock runs on. Controls inside a card are still exempt (`NO_PRESS`), so a
-   * hold on a button in a widget is that button's press and nothing else.
+   * Cards were in it for a while. A phone's home screen starts edit mode from the icons as well as
+   * the wallpaper, and this screen is almost all cards, so a hold that only worked on the thin
+   * strip around them seemed not to work at all. The cost was that a press on a widget — the thing
+   * a traveller presses to *use* it — opened the arranging mode, which the steerer named as wrong:
+   * holding a widget should do nothing, and holding the background should be the only way in by
+   * gesture (the header's Edit is the other). So the clock runs on the background only, and the
+   * text-selection lock went with it: a long press on a card is now the browser's own press on
+   * content, which is what it looks like.
+   *
+   * Controls inside a card stay exempt through `NO_PRESS` on the surface itself, and the overlay,
+   * menu, sidebar and dock are excluded there too, so nothing else had to be repeated here.
    */
-  const isHoldSurface = useCallback((target: Element) => {
-    if (target.closest('.overlay, [role="dialog"], [role="menu"], .home-menu, .home-menu__scrim, .app-sidebar, .app-dock'))
-      return false;
-    if (target.closest(NO_PRESS)) return false;
-    return Boolean(target.closest('.app-shell'));
-  }, []);
+  const isHoldSurface = useCallback((target: Element) => isHomeSurface(target), [isHomeSurface]);
 
   /*
    * The hold is measured **on the document**, not on the home screen's wrapper.
