@@ -11375,3 +11375,50 @@
 .wrapped-stage.is-still .wrapped-photo {
   animation: none;
 }
+
+/*
+ * 38 · The photograph was a strip and the name sat on top of it in ink.
+ *
+ * Two faults, both measured rather than guessed: the picture resolved to its own width instead of the
+ * page's, so it was a narrow card down the left with a wide empty margin, and the body's rows were
+ * still stretched over the whole screen, so the kicker and the name were laid at the top, on top of
+ * the picture, in ink dark enough to disappear into it.
+ *
+ * The picture takes the whole width between the page gutters now, and the type starts below it: the
+ * body is padded past the picture's floor, so the look's name and its days are printed on paper under
+ * the photograph rather than over it. The paper is the page, the picture is the picture, and nothing
+ * is written on the picture.
+ */
+.wrapped-photo {
+  left: 16px;
+  right: 16px;
+  width: calc(100% - 32px);
+  top: 74px;
+  height: 47%;
+}
+
+.wrapped-body[data-chapter='look'] {
+  padding-top: 62%;
+  align-content: end;
+  gap: clamp(4px, 1.2vh, 12px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  font-size: clamp(44px, 15.5vw, 116px);
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-days {
+  font-size: clamp(58px, 19vw, 132px);
+}
+
+/*
+ * 39 · A percentage of padding is a percentage of the width, not the height.
+ *
+ * The gap under the photograph was written as 62%, meaning to clear a picture that is 47% of the
+ * screen tall, and 62% of a phone's width is a third of its height: the name landed back on the
+ * picture, measured at 357 pixels down a frame that ends at 497. The gap is measured from the top of
+ * the screen now, in the same units as the picture it has to clear.
+ */
+.wrapped-body[data-chapter='look'] {
+  padding-top: calc(47vh + 76px);
+}
