@@ -11724,3 +11724,24 @@
 :root[data-theme='dark'] .btn--primary:hover {
   border-color: rgba(252, 251, 250, 0.7);
 }
+
+/*
+ * **An alert card's header is one shape, whatever its title does.**
+ *
+ * The marker and the words were a wrapping row with no room to shrink, so a title that needed two
+ * lines pushed the whole text block *below* the icon: one card's title sat beside the marker and the
+ * next card's sat under it, with a different amount of space above it (reported: "all cards and
+ * spacing look different, mostly the top with the warning icon and the title"). Short titles fitted
+ * beside the marker, long ones did not, and nothing in the design asked for that.
+ *
+ * The row no longer wraps and the text column is allowed to be narrower than its content, so the
+ * marker is always top-left and the words are always beside it, wrapping inside their own column.
+ */
+.alert-card__head {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.alert-card__head-text {
+  min-width: 0;
+}

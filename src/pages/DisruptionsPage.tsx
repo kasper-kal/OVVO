@@ -413,11 +413,19 @@ function AlertCard({ alert }: { alert: Disruption }) {
      */
     <ResultCard as="li" to={to} className="stack-2">
       <div className="between wrap">
-        <div className="row-3">
+        {/*
+          **The header is one row, always.** The marker stayed beside the words on a short title
+          and dropped above them on a long one, because the row was allowed to wrap and the words
+          could not shrink: a card with a two-line title had its icon in a row of its own, a card
+          with a one-line title did not, and two cards in the same list therefore had two different
+          tops and two different amounts of space above the title (reported with three cards side
+          by side). The row does not wrap now, and the words take the width that is left.
+        */}
+        <div className="row-3 alert-card__head">
           <span className="leg-row__marker">
             <Icon name="alert" size={18} />
           </span>
-          <div className="stack-1">
+          <div className="stack-1 alert-card__head-text">
             <ResultCardLink to={to}>{words.title}</ResultCardLink>
             <span className="t-sm t-muted">
               {format.time(alert.startsAt)} – {format.time(alert.endsAt)}
