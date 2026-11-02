@@ -9895,26 +9895,12 @@
 }
 
 /*
- * 2 · The look's veil was painted over its own words.
+ * 2 · The look keeps its veil over its own words.
  *
- * The photograph's gradient sits at the same depth as the scene, and being generated last it painted
- * on top of it: the title, the sentence and the days were all under a 92% black wash at the foot of
- * the page, which is why the number looked grey instead of white. The veil goes under the words.
+ * The audit called this a fault and lifted it. It was not a fault: that wash is the page's light, and the
+ * title, the sentence and the day count are meant to be read through it, soft and half-lit. Taken away, the
+ * page went hard and white and lost the colour the steerer loved. It is back exactly where it was.
  */
-.wrapped-stage[data-chapter='look']::after {
-  z-index: 0;
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-big,
-.wrapped-stage[data-chapter='look'] .wrapped-days,
-.wrapped-stage[data-chapter='look'] .wrapped-line {
-  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.62);
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-days span {
-  opacity: 0.9;
-}
-
 /* 3 · The total: the field of journeys stops short of the number it belongs to. */
 .wrapped-stage[data-chapter='total'] .wrapped-field {
   -webkit-mask-image: linear-gradient(180deg, #000 0 46%, rgba(0, 0, 0, 0.55) 74%, transparent 97%);
@@ -10023,4 +10009,580 @@
 
 .wrapped-progress__seg.is-done {
   background: currentColor;
+}
+
+/* ==========================================================================
+ * **The dots across the whole page, and a calmer way from one page to the next.**
+ * ========================================================================== */
+
+/*
+ * 11 · The dot bed covers the page, not the text block.
+ *
+ * It was drawn inside the body, and the body is a transformed flex child, so it began under the top row
+ * and ended above the footer, while page four's paper shelf — a fixed band across the bottom third — was
+ * painted over the rest. It is a child of the stage now and sits above that shelf, under the words.
+ */
+.wrapped-stage > .wrapped-grain {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  z-index: 1;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-grain {
+  opacity: 0.09;
+}
+
+/*
+ * 12 · The way from one chapter to the next is a settle, not a jump.
+ *
+ * Every chapter used to arrive in well under a second, several of them by wiping a clip across the page
+ * or by swinging in from a tenth of the screen away, and the ground colour changed in half that time.
+ * The travel is now a few percent, the clip wipes are gone, the entries take about a second, and the
+ * colour underneath has the same second to change, so a page turn reads as one movement.
+ */
+.wrapped-stage {
+  transition: background-color 900ms cubic-bezier(0.22, 0.61, 0.36, 1), color 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.wrapped-body {
+  animation-duration: 900ms;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.wrapped-body[data-chapter='cover'] { animation: wrapped-ch-lift 1000ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='total'] { animation: wrapped-ch-floor 980ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='pair'] { animation: wrapped-ch-wipe-down 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='origin'] { animation: wrapped-ch-deal 920ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='hour'] { animation: wrapped-ch-grow 960ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='direct'] { animation: wrapped-ch-zoom 980ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='longest'] { animation: wrapped-ch-slide 920ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='look'] { animation: wrapped-ch-cut 640ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='lines'] { animation: wrapped-ch-wipe-across 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='close'] { animation: wrapped-ch-settle 1100ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* 13 · The same entrances, with the distance taken out of them. */
+@keyframes wrapped-in {
+  from { opacity: 0; transform: translate3d(6%, 0, 0) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes wrapped-in-back {
+  from { opacity: 0; transform: translate3d(-6%, 0, 0) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes wrapped-ch-lift {
+  from { opacity: 0; transform: translateY(3%); }
+}
+
+@keyframes wrapped-ch-floor {
+  from { opacity: 0; transform: translateY(6%); }
+}
+
+@keyframes wrapped-ch-wipe-down {
+  from { opacity: 0; transform: translateY(-2.5%) scale(0.99); }
+}
+
+@keyframes wrapped-ch-deal {
+  from { opacity: 0; transform: translateX(4%) rotate(0.5deg); }
+}
+
+@keyframes wrapped-ch-grow {
+  from { opacity: 0; transform: scaleY(0.97); }
+}
+
+@keyframes wrapped-ch-zoom {
+  from { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes wrapped-ch-slide {
+  from { opacity: 0; transform: translateX(-4%); }
+}
+
+@keyframes wrapped-ch-cut {
+  from { opacity: 0; transform: scale(1.02); }
+}
+
+@keyframes wrapped-ch-wipe-across {
+  from { opacity: 0; transform: translateX(3%); }
+}
+
+@keyframes wrapped-ch-settle {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+
+/*
+ * 16 · The same soft light on every page, in that page's own colour.
+ *
+ * What makes page eight beautiful is not a glow behind the type — it is a wash over it: the photograph's
+ * own light falling across the words so they sit in the picture rather than on it. Each page now has that
+ * same wash in its own material, and never the same twice: warm ink over the year, blue-black down the
+ * rail, platform-green over the hour, violet in the dial, plum on the cover, a warm dark on the close.
+ * The three paper pages are washed in their own paper instead, a pale haze over the ink, which is what sun
+ * on paper does. It sits above the words and below the buttons, and it never takes a tap.
+ */
+.wrapped-stage[data-chapter='cover']::after,
+.wrapped-stage[data-chapter='total']::after,
+.wrapped-stage[data-chapter='pair']::after,
+.wrapped-stage[data-chapter='origin']::after,
+.wrapped-stage[data-chapter='hour']::after,
+.wrapped-stage[data-chapter='direct']::after,
+.wrapped-stage[data-chapter='longest']::after,
+.wrapped-stage[data-chapter='lines']::after,
+.wrapped-stage[data-chapter='close']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* The cover: a plum dusk, deepest at both ends where the page meets the screen. */
+.wrapped-stage[data-chapter='cover']::after {
+  background: linear-gradient(180deg, rgba(26, 16, 38, 0.42) 0%, rgba(26, 16, 38, 0) 44%, rgba(32, 18, 46, 0.55) 100%);
+}
+
+/* The year: a warm ink, so the enormous number sits in the dark rather than on it. */
+.wrapped-stage[data-chapter='total']::after {
+  background: linear-gradient(180deg, rgba(22, 19, 15, 0.40) 0%, rgba(22, 19, 15, 0) 42%, rgba(24, 20, 15, 0.62) 100%);
+}
+
+/* The rail: blue-black at the two ends of the line. */
+.wrapped-stage[data-chapter='pair']::after {
+  background: linear-gradient(180deg, rgba(6, 14, 26, 0.46) 0%, rgba(6, 14, 26, 0) 40%, rgba(6, 14, 26, 0.58) 100%);
+}
+
+/* The hour: the shade of a night sky, heaviest behind the clock. */
+.wrapped-stage[data-chapter='hour']::after {
+  background: linear-gradient(180deg, rgba(6, 18, 14, 0.48) 0%, rgba(6, 18, 14, 0.10) 46%, rgba(6, 18, 14, 0.34) 100%);
+}
+
+/* The dial: violet, gathered at the foot under the sentence. */
+.wrapped-stage[data-chapter='direct']::after {
+  background: linear-gradient(180deg, rgba(14, 9, 22, 0.38) 0%, rgba(14, 9, 22, 0) 44%, rgba(18, 12, 28, 0.62) 100%);
+}
+
+/* The close: the warm dark of a lamp being switched off. */
+.wrapped-stage[data-chapter='close']::after {
+  background: linear-gradient(180deg, rgba(16, 12, 8, 0.40) 0%, rgba(16, 12, 8, 0) 40%, rgba(18, 13, 9, 0.52) 100%);
+}
+
+/* The paper pages are washed in their own paper: sun on a ticket, not shadow on a screen. */
+.wrapped-stage[data-chapter='origin']::after {
+  background: linear-gradient(180deg, rgba(244, 237, 225, 0.30) 0%, rgba(244, 237, 225, 0) 17%, rgba(244, 237, 225, 0) 80%, rgba(232, 217, 196, 0.34) 100%);
+}
+
+.wrapped-stage[data-chapter='longest']::after {
+  background: linear-gradient(180deg, rgba(251, 231, 226, 0.32) 0%, rgba(251, 231, 226, 0) 17%, rgba(251, 231, 226, 0) 80%, rgba(251, 231, 226, 0.36) 100%);
+}
+
+.wrapped-stage[data-chapter='lines']::after {
+  background: linear-gradient(180deg, rgba(247, 245, 239, 0.30) 0%, rgba(247, 245, 239, 0) 17%, rgba(247, 245, 239, 0) 80%, rgba(247, 245, 239, 0.34) 100%);
+}
+
+/* ==========================================================================
+ * **The travel personality reads over the year, not through it.**
+ * ========================================================================== */
+
+/*
+ * 17 · The dots belong to the ground, and the ground gives way to the words.
+ *
+ * The field was drawn for the counting page, where a number sits on top of it and reads cleanly. On
+ * the personality page the same dots ran straight through a sentence of body text, and four grey
+ * discs inside a line of words is noise rather than texture. They gather lower, they are fainter,
+ * and the top of the page fades them out, so the name and the reason for it are printed on clean ink
+ * with the year underneath them.
+ */
+.wrapped-stage[data-chapter='persona'] .wrapped-field {
+  padding-top: 26%;
+  -webkit-mask-image: linear-gradient(180deg, transparent, transparent 26%, #000 48%, #000 88%, transparent);
+  mask-image: linear-gradient(180deg, transparent, transparent 26%, #000 48%, #000 88%, transparent);
+}
+
+.wrapped-stage[data-chapter='persona'] .wrapped-field i {
+  opacity: 0.26;
+}
+
+/* ==========================================================================
+ * **The map, the pass, and a story that moves at a traveller's pace.**
+ * ========================================================================== */
+
+/*
+ * 18 · The year on the map.
+ *
+ * Lines rather than a picture of the Netherlands: every stroke is a pair the traveller actually planned,
+ * drawn between the same schematic positions the home map uses, so the shape is their year and not an
+ * illustration of one. Each line arrives one bar after the one before it, drawn from its first station to
+ * its second, and the pair planned most often is the one that glows.
+ */
+.wrapped-body--map {
+  justify-content: flex-start;
+}
+
+.wrapped-map {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: clamp(320px, 52vh, 600px);
+  margin: clamp(10px, 2.4vh, 26px) 0 clamp(4px, 1vh, 12px);
+}
+
+.wrapped-map svg {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+
+.wrapped-map__stop {
+  fill: currentColor;
+  opacity: 0.3;
+}
+
+.wrapped-map__route {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.5;
+  stroke-dasharray: 180;
+  stroke-dashoffset: 180;
+  vector-effect: non-scaling-stroke;
+  animation: wrapped-map-draw 900ms var(--ease-out) forwards;
+  /* One line a beat, not one a bar: the last of seven has to be drawn before the page turns. */
+  animation-delay: calc(var(--i) * var(--beat-ms));
+}
+
+.wrapped-map__route.is-often {
+  stroke: #ff8272;
+  stroke-width: 2.4;
+  opacity: 0.95;
+}
+
+@keyframes wrapped-map-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.wrapped-stage.is-still .wrapped-map__route {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+
+/*
+ * The station names sit under the drawing, in the page's own type.
+ *
+ * Printed inside the map they were scaled with it and came out four times the size of the stations,
+ * running through each other across the middle of the page. Under it they are small, legible and in one
+ * row, which is what a legend is for.
+ */
+.wrapped-map__names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+/*
+ * The stops arrive on the beat, one at a time, under the lines that join them: a map drawing itself is
+ * the one movement this chapter needs, and it is the year arriving rather than a loader turning.
+ */
+.wrapped-map__stop {
+  animation: wrapped-map-stop 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * var(--beat-ms));
+}
+
+@keyframes wrapped-map-stop {
+  from {
+    opacity: 0;
+    r: 0.2;
+  }
+  to {
+    opacity: 0.34;
+    r: 1.4;
+  }
+}
+
+.wrapped-stage.is-still .wrapped-map__stop {
+  animation: none;
+  opacity: 0.34;
+}
+
+/* The map wants the whole screen, so its sentence sits at the foot of it. */
+.wrapped-body--map .wrapped-kicker {
+  opacity: 0.7;
+}
+
+.wrapped-body--map .wrapped-line {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------------------ the pass */
+
+/*
+ * 19 · The personality as a thing you could be handed.
+ *
+ * A name on an empty page is a label somebody pinned on you. This is a year pass: a rail with the year on
+ * it, the name in the size a ticket gives a destination, the reason it was issued, and the three facts it
+ * was earned with. The dashed edge is punched out of the corner, so it reads as a ticket rather than a
+ * card, and the stamp is the year's own validity rather than a fake emblem.
+ */
+.wrapped-body--pass {
+  justify-content: center;
+}
+
+.wrapped-pass {
+  position: relative;
+  display: grid;
+  gap: clamp(12px, 2.6vh, 22px);
+  width: 100%;
+  padding: clamp(22px, 6.5vw, 34px) clamp(20px, 6vw, 30px) clamp(20px, 6vw, 30px);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  animation: wrapped-rise 700ms var(--ease-out) both;
+}
+
+.wrapped-pass__rail {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding-bottom: 12px;
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.wrapped-pass__rail::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+.wrapped-pass__name {
+  margin: 0;
+  font-size: clamp(2.3rem, 11.5vw, 3.9rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 720;
+  text-wrap: balance;
+}
+
+.wrapped-pass__why {
+  margin: 0;
+  font-size: clamp(0.98rem, 3.9vw, 1.16rem);
+  line-height: 1.42;
+  opacity: 0.82;
+  text-wrap: pretty;
+}
+
+.wrapped-pass__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wrapped-pass__facts li {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.64;
+}
+
+.wrapped-pass__stamp {
+  justify-self: end;
+  padding: 5px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  opacity: 0.5;
+}
+
+/* Each of the two new chapters gets its own surface, like the rest of the story. */
+.wrapped-stage[data-chapter='map'] {
+  background: #0a1014;
+}
+
+.wrapped-stage[data-chapter='persona'] {
+  background: #141019;
+}
+
+/* ==========================================================================
+ * **Colour, and a page that does not look like a console.**
+ * ========================================================================== */
+
+/*
+ * 20 · The cover opens on a night sky with a fire in it, not on a black rectangle.
+ *
+ * A near-black cover was the safe choice, and safe was the reason the whole story read as a wireframe.
+ * This is the same darkness with two coloured lights in it, so the first page has a mood before it has
+ * a sentence — and the year is set in the brand's own coral-to-violet rather than in flat white.
+ */
+.wrapped-stage[data-chapter='cover'] {
+  background:
+    radial-gradient(120% 78% at 12% -8%, #4b2170 0%, rgba(75, 33, 112, 0) 58%),
+    radial-gradient(130% 92% at 96% 12%, #8c2447 0%, rgba(140, 36, 71, 0) 56%),
+    radial-gradient(90% 60% at 50% 108%, #2b1450 0%, rgba(43, 20, 80, 0) 62%),
+    #0b0713;
+}
+
+.wrapped-body--cover .wrapped-title {
+  background-image: linear-gradient(104deg, #ffb199 0%, #ff7ba4 46%, #a98bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/*
+ * 21 · The pass is printed in colour.
+ *
+ * It was white type in a grey rounded box: the shape of a ticket with none of its ink. It now carries the
+ * brand's two lights, a coral validity stamp, and the name in the same gradient as the cover, so the
+ * traveller's badge looks like something issued rather than something logged.
+ */
+.wrapped-pass {
+  background: linear-gradient(158deg, rgba(255, 111, 97, 0.24) 0%, rgba(122, 92, 255, 0.22) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+}
+
+.wrapped-pass__name {
+  background-image: linear-gradient(102deg, #ffffff 0%, #ffd6c9 52%, #c9b8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wrapped-pass__stamp {
+  border-color: #ff9a86;
+  color: #ffc2b2;
+  opacity: 0.9;
+}
+
+/* The stage for the pass keeps a hint of the same two lights, so it is not another black page. */
+.wrapped-stage[data-chapter='persona'] {
+  background:
+    radial-gradient(90% 60% at 8% 4%, #3a1c56 0%, rgba(58, 28, 86, 0) 62%),
+    radial-gradient(90% 70% at 100% 100%, #61203d 0%, rgba(97, 32, 61, 0) 58%),
+    #120d1b;
+}
+
+/*
+ * 22 · The hours are stacked, not counted again.
+ *
+ * The journey total fills a field of dots, and the hour total was filling the same field a second time:
+ * two pages, one animation, which is what visual bankruptcy looks like. The hours now stand up as a day's
+ * worth of blocks, one per working day the travelling amounted to, rising on the beat.
+ */
+.wrapped-blocks {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  width: 100%;
+  height: clamp(84px, 16vh, 150px);
+  margin: clamp(4px, 1.4vh, 12px) 0 clamp(2px, 1vh, 10px);
+  pointer-events: none;
+}
+
+.wrapped-blocks i {
+  flex: 1 1 0;
+  min-width: 4px;
+  height: var(--h, 60%);
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, rgba(255, 138, 122, 0.85), rgba(255, 111, 97, 0.22));
+  transform-origin: bottom;
+  animation: wrapped-block-rise 520ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * var(--beat-ms));
+}
+
+@keyframes wrapped-block-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.wrapped-stage.is-still .wrapped-blocks i {
+  animation: none;
+}
+
+/* The look prints its count in its own accent, not in the app's grey. */
+.wrapped-body--word .wrapped-days,
+.wrapped-body--word .wrapped-days span {
+  color: var(--look-accent, currentColor);
+}
+
+/* The swatches are a band, not a row of buttons: big enough to be the look. */
+.wrapped-swatches i {
+  height: clamp(76px, 12vh, 124px);
+}
+
+/*
+ * 23 · The look, worn.
+ *
+ * Four colours, full width under the name: the look a traveller chose, painted instead of photographed.
+ * The photograph was a grey platform at night and made a festive page look like a documentary.
+ */
+.wrapped-swatches {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin: clamp(10px, 2vh, 20px) 0 0;
+  animation: wrapped-rise 560ms var(--ease-out) both;
+  animation-delay: 240ms;
+}
+
+.wrapped-swatches i {
+  flex: 1 1 0;
+  height: clamp(44px, 7vh, 74px);
+  border-radius: 10px;
+  background: var(--tone, currentColor);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* The demo line is a footnote now: it closes the story instead of opening it. */
+.wrapped-demo--quiet {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  opacity: 0.5;
+}
+
+/* The map's busy routes carry a little light, so the page is art rather than a network diagram. */
+.wrapped-map__route.is-often {
+  filter: drop-shadow(0 0 10px rgba(255, 130, 114, 0.55));
+}
+
+.wrapped-stage[data-chapter='map'] {
+  background:
+    radial-gradient(80% 55% at 18% 12%, #16232f 0%, rgba(22, 35, 47, 0) 62%),
+    radial-gradient(80% 60% at 92% 90%, #1d1730 0%, rgba(29, 23, 48, 0) 60%),
+    #070c11;
 }

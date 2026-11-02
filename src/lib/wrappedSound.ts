@@ -63,11 +63,38 @@ const TRIM: Record<Track, number> = {
 
 /** How far under the phone's own volume the whole score sits. */
 const LEVEL = 1;
-const FADE_IN = 0.9;
+/**
+ * **A song arrives in four tenths of a second, every time.**
+ *
+ * The steerer asked for the fade-in to be short and to never be skipped: a chapter that slid in already
+ * at full level made the page turn sound like a cut, and a chapter that took almost a second to arrive
+ * sounded like a broken phone.
+ */
+const FADE_IN = 0.4;
 const FADE_OUT = 0.7;
+
+/**
+ * **The last second of an automatic turn belongs to the fade.**
+ *
+ * When the song is turning the page by itself, the music has a full second to fall away before the next
+ * chapter arrives, so the ear is ready for it. A page the traveller turns by hand is not faded this way:
+ * a thumb should get its answer at once, and there the two tracks simply cross.
+ */
+const AUTO_FADE = 1;
 
 /** How long before a song ends the deck turns the page. */
 const TURN_EARLY = 0.5;
+
+/**
+ * **How much of a song a chapter gets.**
+ *
+ * Every chapter used to run its whole track, so twelve chapters took over three minutes to walk and
+ * the steerer called the story slow, which it was. A chapter now plays a little over half its song:
+ * it opens on the part that moves, and it hands over to the next chapter while the last of it is still
+ * there to be faded. Nothing is cut out of the files, so the same music is under the same page, and the
+ * page still ends on its own cadence rather than on a timer.
+ */
+const CUT = 0.56;
 
 /** The volume a chapter's track is faded to: its trim, scaled under the phone's own volume. */
 function targetVolume(track: Track): number {
@@ -86,6 +113,7 @@ let current: Track | null = null;
 let playing = false;
 let onEnd: (() => void) | null = null;
 let turned = false;
+let ducked = false;
 /** The last few things the score was asked to do, newest last, for the report. */
 const calls: string[] = [];
 
@@ -157,15 +185,16 @@ function makeSlot(): Slot {
    * second, and it works while the tab is in front. `ended` stays as the fallback for a browser that
    * skips the last update, and the `turned` flag makes sure one song never asks twice.
    */
-  el.addEventListener('timeupdate', () => {
-    if (slot !== active || !playing || turned) return;
-    const { duration, currentTime } = el;
-    if (!Number.isFinite(duration) || duration <= TURN_EARLY) return;
-    if (currentTime >= duration - TURN_EARLY) {
-      turned = true;
-      onEnd?.();
-    }
-  });
+  el.addEventListener('timeupdate', () => watchEnd(slot));
+  /*
+   * **A tenth of a second is close enough to the last second.**
+   *
+   * `timeupdate` fires about four times a second, which is fine for catching the end of a song but too
+   * coarse to place a one-second fade: the fade could start a quarter of a second late and still be at a
+   * third of its level when the page turned. This ticker asks the same question ten times a second, so a
+   * one-second fade takes one second.
+   */
+  window.setInterval(() => watchEnd(slot), 100);
   el.addEventListener('ended', () => {
     if (slot !== active || !playing || turned) return;
     turned = true;
@@ -181,12 +210,64 @@ function ensureSlots(): Slot[] {
   return slots;
 }
 
+/**
+ * Watch a player's clock for the two moments an automatic page turn needs: a second out, and half a
+ * second out.
+ *
+ * One second before the page turns, the song starts to fall away, so a chapter that ends by itself is
+ * heard ending rather than cut off. Half a second before, the deck is told, and it turns the page as the
+ * fade lands on nothing. A page the traveller turns by hand never gets here: by then this element is no
+ * longer the active one.
+ */
+function watchEnd(slot: Slot): void {
+  if (slot !== active || !playing) return;
+  const { duration, currentTime } = slot.el;
+  /* The page turns where the cut is, not where the file ends. */
+  const end = duration * CUT;
+  if (!Number.isFinite(duration) || end <= TURN_EARLY + AUTO_FADE) return;
+  if (!ducked && currentTime >= end - TURN_EARLY - AUTO_FADE) {
+    ducked = true;
+    fade(slot.el, 0, AUTO_FADE);
+    note(`fade out ${AUTO_FADE}s before the page`);
+  }
+  if (turned) return;
+  if (currentTime >= end - TURN_EARLY) {
+    turned = true;
+    onEnd?.();
+  }
+}
+
+/**
+ * **A station bell on every page turn.**
+ *
+ * The deck is a journey, and a journey through Dutch stations has one sound everybody knows: two notes,
+ * high then low, before the announcement. It is a plain audio element like the score, it is quiet, and it
+ * never asks for a gesture of its own, so a phone that refuses it simply has no bell.
+ */
+let bell: HTMLAudioElement | null = null;
+
+function stationBell(): void {
+  if (!playing) return;
+  if (!bell) {
+    bell = new Audio(`${import.meta.env.BASE_URL}music/chime.wav`);
+    bell.preload = 'auto';
+    bell.volume = 0.24;
+  }
+  try {
+    bell.currentTime = 0;
+  } catch {
+    /* Not decoded yet: the first page has no bell, the next one will. */
+  }
+  void bell.play().catch(() => undefined);
+}
+
 /** Load a track into a player, unless it is already there. */
 function load(slot: Slot, track: Track): void {
   if (slot.track === track) return;
   slot.track = track;
   slot.el.src = urlOf(track);
   turned = false;
+  ducked = false;
 }
 
 /** The player a new track should use: one that already holds it, or the one that is not playing. */
@@ -268,7 +349,7 @@ function spin(track: Track, next?: Track): void {
     turned = false;
     begin(live);
     ensurePlaying(live);
-    fade(live.el, targetVolume(track), 0.35);
+    fade(live.el, targetVolume(track), FADE_IN);
     current = track;
     prefetch(next);
     return;
@@ -285,6 +366,8 @@ function spin(track: Track, next?: Track): void {
   active = incoming;
   current = track;
   playing = true;
+  /* The bell belongs to the change of chapter, not to a resumed score. */
+  stationBell();
 
   if (leaving && leaving !== incoming) {
     fade(leaving.el, 0, FADE_OUT);
@@ -314,6 +397,7 @@ export function stopSound(): void {
   retries.forEach((id) => window.clearTimeout(id));
   retries.clear();
   slots.forEach((slot) => fade(slot.el, 0, 0.15));
+  bell?.pause();
   window.setTimeout(() => {
     if (playing) return;
     slots.forEach((slot) => slot.el.pause());
@@ -344,6 +428,17 @@ export function scoreTime(): { track: Track; seconds: number } | null {
 /** Whether the score is currently allowed to make a sound. */
 export function soundIsOn(): boolean {
   return playing;
+}
+
+/**
+ * **Whether a speaker is actually moving, which is not the same as being switched on.**
+ *
+ * A phone refuses a play that arrives without a tap, so the score can be armed and silent at the same
+ * moment. The corner switch has to name what is true of the speaker rather than what the state believes,
+ * or the first page asks for a press that the second page never asks for.
+ */
+export function soundAudible(): boolean {
+  return Boolean(playing && active && !active.el.paused && active.el.currentTime > 0.05);
 }
 
 /**
@@ -419,6 +514,16 @@ const TRACK_SECONDS: Record<Track, number> = {
 /** How long a chapter's song runs, in seconds. */
 export function trackSeconds(track: Track): number {
   return TRACK_SECONDS[track];
+}
+
+/**
+ * **How long a chapter actually lasts.**
+ *
+ * The deck's silent clock and its progress bar have to run to the same length the score does, or a muted
+ * story turns its pages later than a heard one and the bar fills past the cut. Both read this.
+ */
+export function chapterSeconds(track: Track): number {
+  return TRACK_SECONDS[track] * CUT;
 }
 
 /** The chapter that is playing, for the tests and for anyone reading the state. */

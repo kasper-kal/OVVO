@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { BrandMark, Icon, type IconName } from '../ui/Icons';
 import { Button, Dialog, Toaster } from '../ui/primitives';
@@ -821,23 +821,34 @@ export function HeaderButton({ icon, label, onClick }: { icon: IconName; label: 
  * What it says when there is nothing behind — the first screen of a fresh tab, or a link pasted
  * into the address bar — is the `fallback`, rather than a button that does nothing.
  */
-export function HistoryBackButton({ fallback = '/', label = 'Back' }: { fallback?: string; label?: string }) {
+/**
+ * **The rule of the way back, in one place, for controls the bar does not draw.**
+ *
+ * Everything the shell gives an arrow asks the history first (see `HistoryBackButton`). The story
+ * deck draws its own corner — an X instead of an arrow, because a story is closed rather than
+ * stepped back out of — and it was the one screen that did not ask: it went home from Settings, from
+ * a stop, from anywhere, which is a fixed parent for a screen that has as many doors as there are
+ * buttons that open it. This is the same rule, exported so a screen outside the bar can obey it
+ * without copying it.
+ *
+ * Two calls rather than one ternary argument: `navigate` takes a delta or a path, and `-1` in a
+ * union with a string stops matching either overload. The `fallback` answers a fresh tab or a
+ * pasted link, where there is no screen behind to ask.
+ */
+export function useHistoryBack(fallback = '/'): () => void {
   const navigate = useNavigate();
+  return useCallback(() => {
+    const canGoBack = typeof window !== 'undefined' && Number(window.history.state?.idx ?? 0) > 0;
+    if (canGoBack) navigate(-1);
+    else navigate(fallback);
+  }, [fallback, navigate]);
+}
+
+export function HistoryBackButton({ fallback = '/', label = 'Back' }: { fallback?: string; label?: string }) {
   const t = useT();
-  const canGoBack = typeof window !== 'undefined' && Number(window.history.state?.idx ?? 0) > 0;
+  const goBack = useHistoryBack(fallback);
   return (
-    <button
-      type="button"
-      className={BACK_ARROW}
-      aria-label={t(label)}
-      title={t(label)}
-      onClick={() => {
-        /* Two calls rather than one ternary argument: `navigate` takes a delta or a path,
-           and `-1` in a union with a string stops matching either overload. */
-        if (canGoBack) navigate(-1);
-        else navigate(fallback);
-      }}
-    >
+    <button type="button" className={BACK_ARROW} aria-label={t(label)} title={t(label)} onClick={goBack}>
       <Icon name="arrowLeft" size={18} />
     </button>
   );

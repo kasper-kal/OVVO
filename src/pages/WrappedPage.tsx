@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useHistoryBack } from '../components/layout/AppShell';
 import { useApp } from '../state/AppState';
 import { Button, Dialog } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
@@ -12,10 +13,11 @@ import { demoYear } from '../lib/wrappedDemo';
 import {
   resumeSound,
   scoreTime,
+  soundAudible,
   soundDiagnostics,
   startSound,
   stopSound,
-  trackSeconds,
+  chapterSeconds,
   whenTrackEnds,
 } from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
@@ -52,7 +54,8 @@ const BURST = 14;
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
   const t = useT();
-  const navigate = useNavigate();
+  /* Closing the story returns to the screen it was opened from, not to the home screen. */
+  const leave = useHistoryBack('/');
   const [params] = useSearchParams();
   const askedForDemo = params.get('demo') === '1';
   const now = appNow();
@@ -93,19 +96,22 @@ export function WrappedPage() {
   const last = index >= story.length - 1;
 
   /*
-   * **The corner cannot claim a song is playing when none has started.**
+   * **The corner switch tells the truth about the speaker, on every page.**
    *
-   * The switch names the action, which is right, but on the cover the action it named was "Sound off"
-   * over a silent page — it read as though the score were already running and the traveller had missed
-   * it. Before Begin the cover offers the choice instead: start muted, or start with the sound on.
+   * The score is on by default, but a phone may refuse to play before a tap, so "on by default" and "making
+   * a sound" are two different things. The cover used to read "Sound on" while the story's music was already
+   * armed — the first page asking for a press the second page never asks for. The switch now follows the
+   * speaker: while music is sounding it says "Sound off", and while it is silent it says "Sound on" and starts
+   * the score in the tap that presses it.
    */
-  const soundLabel = !started
-    ? sound
-      ? t('Start muted')
-      : t('Start with sound')
-    : sound
-      ? t('Sound off')
-      : t('Sound on');
+  const [audible, setAudible] = useState(false);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setAudible(soundAudible()), 300);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const soundLabel = sound && audible ? t('Sound off') : t('Sound on');
 
   /* Which way the story is moving, so a chapter arrives from the side the traveller came from. */
   const go = useCallback(
@@ -125,7 +131,6 @@ export function WrappedPage() {
    * the traveller swipes: the story should never wait for a song.
    */
   useEffect(() => {
-    if (!started) return;
     /*
      * **There is one way to start the score, and this is it.**
      *
@@ -139,7 +144,7 @@ export function WrappedPage() {
       return;
     }
     startSound(chapter.track, story[index + 1]?.track);
-  }, [index, started, sound, chapter.track, story]);
+  }, [index, sound, chapter.track, story]);
 
   /*
    * **The story keeps time with the music.**
@@ -152,11 +157,13 @@ export function WrappedPage() {
    */
   useEffect(() => {
     whenTrackEnds(() => {
-      if (!started || last) return;
+      if (last) return;
+      /* The cover's piece ending is the story starting, exactly as Begin is. */
+      if (index === 0) setStarted(true);
       go(index + 1);
     });
     return () => whenTrackEnds(null);
-  }, [go, index, last, started]);
+  }, [go, index, last]);
 
   /*
    * **The story turns itself in silence too.**
@@ -168,11 +175,14 @@ export function WrappedPage() {
    * music that turns the page and this never gets there first.
    */
   useEffect(() => {
-    if (!started || last) return undefined;
-    const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
-    const timer = window.setTimeout(() => go(index + 1), quiet);
+    if (last) return undefined;
+    const quiet = Math.max(4000, (chapterSeconds(chapter.track) + 1) * 1000);
+    const timer = window.setTimeout(() => {
+      if (index === 0) setStarted(true);
+      go(index + 1);
+    }, quiet);
     return () => window.clearTimeout(timer);
-  }, [started, last, chapter.track, index, go]);
+  }, [last, chapter.track, index, go]);
 
   /* A report on the score, for a phone that cannot be debugged from here. */
   const showDiagnostics = useMemo(
@@ -198,12 +208,13 @@ export function WrappedPage() {
         event.preventDefault();
         step(-1);
       } else if (event.key === 'Escape') {
-        navigate('/');
+        /* Escape is the same door as the X, so it returns the same way. */
+        leave();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [navigate, step]);
+  }, [leave, step]);
 
   /* Closing the deck closes the score with it; nothing keeps playing behind another screen. */
   useEffect(() => () => stopSound(), []);
@@ -222,6 +233,28 @@ export function WrappedPage() {
   const land = barMs(chapter.track) * 2;
 
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
+
+  /*
+   * **The map is framed on the year, not on the country.**
+   *
+   * The schematic canvas is a hundred units wide because it draws the whole network; a year with nine
+   * stations on it was a few dots huddled in one corner of a phone. The frame here is the box those
+   * stations actually occupy, padded, so the lines are as large as the page allows and the shape reads
+   * as a journey rather than as dust.
+   */
+  const mapBox = useMemo(() => {
+    const points = chapter.map?.stops ?? [];
+    if (points.length === 0) return { x: 0, y: 0, w: 100, h: 100 };
+    const xs = points.map((point) => point.x);
+    const ys = points.map((point) => point.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const padX = Math.max(9, (maxX - minX) * 0.16);
+    const padY = Math.max(9, (maxY - minY) * 0.16);
+    return { x: minX - padX, y: minY - padY, w: maxX - minX + padX * 2, h: maxY - minY + padY * 2 };
+  }, [chapter.map]);
 
   /*
    * **What gets copied is a sentence, not a chapter.**
@@ -251,6 +284,132 @@ export function WrappedPage() {
     }
   };
 
+  /**
+   * **The year as one picture, 9:16, ready for a story.**
+   *
+   * A copied sentence is a link nobody posts. This draws the year on a phone-sized canvas: the pass at
+   * the top, the route that kept coming back, and the three numbers a year is actually proud of. It is
+   * drawn from the same chapters the deck is reading, so it cannot say anything the deck does not.
+   */
+  const saveCard = async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const card = story.find((item) => item.kind === 'pass')?.pass;
+    const route = story.find((item) => item.kind === 'route')?.route;
+    const hoursChapter = story.find((item) => item.id === 'hours');
+    const stations = new Set(tally.runs.flatMap((run) => [run.from, run.to])).size;
+
+    /* A bright year, because this card is made to be posted rather than filed. */
+    const sky = ctx.createLinearGradient(0, 0, 1080, 1920);
+    sky.addColorStop(0, '#ff7a5c');
+    sky.addColorStop(0.46, '#ff4f8b');
+    sky.addColorStop(1, '#6a4cff');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    /* Orbits behind the type, so the card has depth instead of a flat wash. */
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 2;
+    [340, 520, 700].forEach((radius, at) => {
+      ctx.beginPath();
+      ctx.arc(at === 1 ? 860 : 220, at === 2 ? 420 : 560, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    const font = (weight: number, size: number) =>
+      `${weight} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+
+    const write = (
+      text: string,
+      x: number,
+      y: number,
+      type: string,
+      colour: string,
+      max = 900,
+      leading = 0,
+    ): number => {
+      ctx.font = type;
+      ctx.fillStyle = colour;
+      const rows: string[] = [];
+      let line = '';
+      for (const word of text.split(' ')) {
+        const next = line ? `${line} ${word}` : word;
+        if (ctx.measureText(next).width > max && line) {
+          rows.push(line);
+          line = word;
+        } else {
+          line = next;
+        }
+      }
+      if (line) rows.push(line);
+      rows.forEach((row, at) => ctx.fillText(row, x, y + at * (leading || 60)));
+      return y + rows.length * (leading || 60);
+    };
+
+    ctx.font = font(800, 30);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('OVVO WRAPPED', 88, 152);
+
+    const yearText = String(year);
+    ctx.font = font(800, 44);
+    const yearWidth = ctx.measureText(yearText).width;
+    rounded(ctx, 992 - yearWidth - 64, 104, yearWidth + 64, 76, 38);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(yearText, 992 - yearWidth - 32, 158);
+
+    write('YOUR TRAVEL PERSONALITY', 88, 336, font(700, 26), 'rgba(255, 255, 255, 0.72)');
+    let y = write(card?.name ?? '', 88, 486, font(800, 112), '#ffffff', 904, 118);
+    y = write(card?.evidence ?? '', 88, y + 44, font(500, 40), 'rgba(255, 255, 255, 0.92)', 904, 54);
+
+    if (route) {
+      rounded(ctx, 88, 1010, 904, 156, 34);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+      ctx.fill();
+      write(`${route.count} x ${route.from}`, 128, 1074, font(700, 40), '#ffffff', 820, 52);
+      write(`to ${route.to}`, 128, 1126, font(500, 34), 'rgba(255, 255, 255, 0.84)', 820, 46);
+    }
+
+    const stats: Array<[string, string]> = [
+      [String(tally.runs.length), 'JOURNEYS'],
+      [String(hoursChapter?.count ?? 0), 'HOURS'],
+      [String(stations), 'STATIONS'],
+    ];
+    stats.forEach(([value, label], at) => {
+      const x = 88 + at * 304;
+      rounded(ctx, x, 1250, 280, 200, 30);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.font = font(800, 74);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(value, x + 32, 1352);
+      ctx.font = font(700, 24);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillText(label, x + 32, 1402);
+    });
+
+    write('Every number from the journeys I planned in OVVO.', 88, 1776, font(500, 30), 'rgba(255, 255, 255, 0.86)');
+    ctx.font = font(800, 34);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('ovvo', 88, 1844);
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ovvo-wrapped-${year}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  };
+
   return (
     <div
       className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}${
@@ -263,6 +422,20 @@ export function WrappedPage() {
           '--bar-ms': `${barMs(chapter.track)}ms`,
           '--beat-phase': `${armed && beat ? beat.beatPhase : 0}ms`,
           '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
+          /*
+           * **The look's page is painted in the look.**
+           *
+           * Its own page colour, its own ink, so the page a traveller chose is the page the chapter is
+           * printed on. A photograph of a platform at night was the same picture for everybody; this is
+           * the one thing on the page that is only theirs.
+           */
+          ...(chapter.swatches
+            ? {
+                background: chapter.swatches[0],
+                color: chapter.swatches[2],
+                '--look-accent': chapter.swatches[3],
+              }
+            : {}),
         } as CSSProperties
       }
       role="region"
@@ -308,6 +481,17 @@ export function WrappedPage() {
       ) : null}
 
       {/*
+        * **The dotted ground, exactly as the first versions drew it.**
+        *
+        * One-pixel dots three pixels apart: paper grain, not a pattern of discs. It was taken off every
+        * chapter when each page got its own surface; this is the one page that asked for it back. It is a
+        * child of the stage rather than of the body, because the ground belongs to the whole page: drawn
+        * inside the body it started where the words start and stopped where they stop, and the paper shelf
+        * at the foot of the page covered the rest.
+        */}
+      {chapter.id === 'origin' ? <span className="wrapped-grain" aria-hidden="true" /> : null}
+
+      {/*
         * **Where you are, in ten pieces.**
         *
         * A story needs a map at the top: one segment per chapter, the ones behind you filled, and the
@@ -320,9 +504,16 @@ export function WrappedPage() {
             key={item.id}
             className={`wrapped-progress__seg${at < index ? ' is-done' : ''}${at === index ? ' is-now' : ''}`}
           >
-            {/* The chapter you are on fills as its song plays, and not a moment before Begin. */}
-            {at === index && started ? (
-              <i key={`${item.id}-${index}`} style={{ '--len': `${trackSeconds(chapter.track)}s` } as CSSProperties} />
+            {/*
+              * **The chapter you are on fills, whether or not it is audible.**
+              *
+              * The bar used to wait for Begin, and it still had to be asked for when the sound was off, so a
+              * muted story showed a clock that had stopped while the story itself was still running. The song
+              * is the clock either way: muted, the deck keeps the same count, so the segment fills on the cover
+              * and on every chapter, heard or not.
+              */}
+            {at === index ? (
+              <i key={`${item.id}-${index}`} style={{ '--len': `${chapterSeconds(chapter.track)}s` } as CSSProperties} />
             ) : null}
           </span>
         ))}
@@ -337,7 +528,7 @@ export function WrappedPage() {
       ) : null}
 
       <header className="wrapped-top">
-        <button type="button" className="wrapped-close" onClick={() => navigate('/')} aria-label={t('Close')}>
+        <button type="button" className="wrapped-close" onClick={leave} aria-label={t('Close')}>
           <Icon name="close" size={20} />
         </button>
         {/*
@@ -351,7 +542,15 @@ export function WrappedPage() {
           type="button"
           className="wrapped-sound"
           aria-label={soundLabel}
-          onClick={() => setSound((on) => !on)}
+          onClick={() => {
+            /* "Sound off" mutes what is playing; "Sound on" starts it, in this tap, on any page. */
+            if (sound && audible) {
+              setSound(false);
+              return;
+            }
+            setSound(true);
+            resumeSound(chapter.track, story[index + 1]?.track);
+          }}
         >
           <span>{soundLabel}</span>
         </button>
@@ -377,11 +576,6 @@ export function WrappedPage() {
               <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
                 {t(chapter.line)}
               </p>
-              {demo ? (
-                <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
-                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
-                </p>
-              ) : null}
               <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
                 <Button
                   variant="accent"
@@ -407,29 +601,60 @@ export function WrappedPage() {
             </>
           ) : (
             <>
-              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
-                {t(chapter.kicker)}
-              </span>
+              {chapter.kind === 'pass' ? null : (
+                <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
+                  {t(chapter.kicker)}
+                </span>
+              )}
 
-              {/*
-                * **The dotted ground, exactly as the first versions drew it.**
-                *
-                * One-pixel dots three pixels apart at seven percent: paper grain, not a pattern of discs.
-                * It was taken off every chapter when each page got its own surface; this is the one page
-                * that asked for it back.
-                */}
-              {chapter.id === 'origin' ? <span className="wrapped-grain" aria-hidden="true" /> : null}
+              {chapter.kind === 'pass' && chapter.pass ? (
+                <div className="wrapped-pass" style={{ '--i': 1 } as CSSProperties}>
+                  <p className="wrapped-pass__rail">
+                    <span>OVVO Wrapped</span>
+                    <span>{year}</span>
+                  </p>
+                  <h2 className="wrapped-pass__name">{t(chapter.pass.name)}</h2>
+                  <p className="wrapped-pass__why">{t(chapter.pass.evidence)}</p>
+                  <ul className="wrapped-pass__facts">
+                    {chapter.pass.facts.map((fact) => (
+                      <li key={fact}>{fact}</li>
+                    ))}
+                  </ul>
+                  <span className="wrapped-pass__stamp" aria-hidden="true">
+                    {t('Valid all year')}
+                  </span>
+                </div>
+              ) : null}
+
+              {chapter.kind === 'number' && chapter.blocks ? (
+                <span className="wrapped-blocks" aria-hidden="true">
+                  {Array.from({ length: chapter.blocks }, (_, block) => (
+                    <i
+                      key={block}
+                      style={{ '--i': block, '--h': `${40 + (block % 5) * 12}%` } as CSSProperties}
+                    />
+                  ))}
+                </span>
+              ) : null}
 
               {chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
                   <span className="wrapped-arc__spark" aria-hidden="true" />
                   <p className="wrapped-big wrapped-big--in">{count}%</p>
                 </div>
-              ) : chapter.kind === 'route' ? null : (
+              ) : chapter.kind === 'route' || chapter.kind === 'map' || chapter.kind === 'pass' ? null : (
                 <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
                   {chapter.kind === 'word' || chapter.count === undefined ? chapter.big : count}
                 </p>
               )}
+
+              {chapter.swatches?.length ? (
+                <span className="wrapped-swatches" aria-hidden="true">
+                  {chapter.swatches.map((colour, at) => (
+                    <i key={`${colour}-${at}`} style={{ '--tone': colour, '--i': at } as CSSProperties} />
+                  ))}
+                </span>
+              ) : null}
 
               {chapter.kind === 'word' && chapter.count !== undefined ? (
                 <p className="wrapped-days" style={{ '--i': 2 } as CSSProperties}>
@@ -438,10 +663,20 @@ export function WrappedPage() {
                 </p>
               ) : null}
 
-              {chapter.kind === 'number' && chapter.dots ? (
+              {(chapter.kind === 'number' || chapter.kind === 'word') && chapter.dots ? (
                 <span className="wrapped-field" aria-hidden="true">
+                  {/* One row of twelve lands on every beat, so the year fills in time with the song
+                      rather than all at once behind the number. */}
                   {Array.from({ length: Math.min(chapter.dots, 700) }, (_, dot) => (
-                    <i key={dot} style={{ '--i': dot } as CSSProperties} />
+                    <i
+                      key={dot}
+                      style={
+                        {
+                          '--i': dot,
+                          animationDelay: `${Math.floor(dot / 12) * beatMs(chapter.track)}ms`,
+                        } as CSSProperties
+                      }
+                    />
                   ))}
                 </span>
               ) : null}
@@ -517,6 +752,56 @@ export function WrappedPage() {
                 </div>
               ) : null}
 
+              {chapter.kind === 'map' && chapter.map ? (
+                <div className="wrapped-map" style={{ '--i': 1 } as CSSProperties}>
+                  <svg
+                    viewBox={`${mapBox.x} ${mapBox.y} ${mapBox.w} ${mapBox.h}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    {chapter.map.stops.map((stop, at) => (
+                      <circle
+                        key={`stop-${at}`}
+                        className="wrapped-map__stop"
+                        cx={stop.x}
+                        cy={stop.y}
+                        r={1.4}
+                        style={{ '--i': at } as CSSProperties}
+                      />
+                    ))}
+                    {chapter.map.routes.map((line, at) => {
+                      /*
+                       * **Every route bends, and none of them bends the same way.**
+                       *
+                       * Two straight lines between the same stations lie on top of each other, and the
+                       * year's seventh route then looks like its second. Each line bows out from the
+                       * straight path by a few units, alternating sides, so seven routes read as seven.
+                       */
+                      const dx = line.x2 - line.x1;
+                      const dy = line.y2 - line.y1;
+                      const span = Math.hypot(dx, dy) || 1;
+                      const bow = (at % 2 === 0 ? 1 : -1) * (2.6 + at * 0.55);
+                      const cx = (line.x1 + line.x2) / 2 - (dy / span) * bow;
+                      const cy = (line.y1 + line.y2) / 2 + (dx / span) * bow;
+                      return (
+                        <path
+                          key={`route-${at}`}
+                          className={`wrapped-map__route${line.count > 1 ? ' is-often' : ''}`}
+                          d={`M ${line.x1} ${line.y1} Q ${cx} ${cy} ${line.x2} ${line.y2}`}
+                          style={{ '--i': at } as CSSProperties}
+                        />
+                      );
+                    })}
+                  </svg>
+                  <ul className="wrapped-map__names">
+                    {chapter.map.labels.slice(0, 3).map((label) => (
+                      <li key={label.name}>{label.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
               {chapter.chips?.length ? (
                 <ul className="wrapped-chips">
                   {chapter.chips.map((chip, position) => (
@@ -532,8 +817,11 @@ export function WrappedPage() {
                 </ul>
               ) : null}
 
-              {/* The rail prints its own two stations, and the look prints its own days. */}
-              {chapter.kind === 'route' || chapter.kind === 'word' ? null : (
+              {/* The rail prints its own two stations, and the look prints its own days under its name.
+                  Any other word chapter (the travel personality) still needs the sentence that earns it. */}
+              {chapter.kind === 'route' ||
+              chapter.kind === 'pass' ||
+              (chapter.kind === 'word' && chapter.count !== undefined) ? null : (
                 <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
                   {t(chapter.line)}
                 </p>
@@ -550,6 +838,12 @@ export function WrappedPage() {
               {chapter.note ? (
                 <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
                   {t(chapter.note)}
+                </p>
+              ) : null}
+              {/* The year is the example one, and it still says so: on the last page, not the first. */}
+              {chapter.demoNote && demo ? (
+                <p className="wrapped-demo wrapped-demo--quiet" style={{ '--i': 5 } as CSSProperties}>
+                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
                 </p>
               ) : null}
             </>
@@ -571,7 +865,10 @@ export function WrappedPage() {
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
-              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
+              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void saveCard()}>
+                {t('Save my year')}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => go(0)}>
@@ -758,4 +1055,22 @@ function Chip({
       <strong>{numeric ? (counting ? shown : target) : detail}</strong>
     </li>
   );
+}
+
+/** A rounded rectangle, drawn the long way so it works in an older safari as well as a new one. */
+function rounded(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
 }
