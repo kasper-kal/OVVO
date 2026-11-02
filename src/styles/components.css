@@ -3444,13 +3444,25 @@
  * the one place it never does — so inside a card the link is the target (44px, expansion off),
  * exactly as the results banner's alert link already was.
  */
+/*
+ * **The words own their line; the target is borrowed from the card's padding.**
+ *
+ * This made the link's box 44px tall and centred the words inside it, because a borrowed target on
+ * a two-line title was once clipped by the row above. The cost was a one-line title floating in the
+ * middle of 44px: about 13px of nothing above it and 13px below, which the steerer circled as
+ * unnecessary white space. The box was the wrong thing to grow.
+ *
+ * The pseudo-element reaches into the card's own padding (20px above the title, and the 4px step to
+ * the time below), so nothing clips it: the target is 44px for one line and more for two, while the
+ * title takes only the height its words need.
+ */
 .card a.tap-target {
-  min-height: var(--target-min);
+  min-height: 0;
   align-items: center;
 }
 
 .card a.tap-target::after {
-  inset: 0;
+  inset: -13px -4px;
 }
 
 /*
