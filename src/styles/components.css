@@ -7910,7 +7910,7 @@
   position: absolute;
   translate: -50% -50%;
   font-style: normal;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -7953,7 +7953,7 @@
 /* A small dot walks the rim once every twenty-six seconds: a dial with a hand, not a heartbeat. */
 .wrapped-rings__hand {
   position: absolute;
-  inset: 0;
+  inset: 3%;
   animation: wrapped-year-walk 26s linear infinite;
 }
 

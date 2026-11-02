@@ -499,8 +499,8 @@ export function WrappedPage() {
                         <em
                           key={month}
                           style={{
-                            left: `${50 - Math.sin(angle) * 46}%`,
-                            top: `${50 - Math.cos(angle) * 46}%`,
+                            left: `${50 - Math.sin(angle) * 53}%`,
+                            top: `${50 - Math.cos(angle) * 53}%`,
                           }}
                         >
                           {month + 1}
