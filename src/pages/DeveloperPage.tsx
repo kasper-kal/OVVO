@@ -9,7 +9,7 @@ import { useFormat } from '../lib/useFormat';
 import { appNow, pad, parseTimeInput } from '../lib/format';
 import { clearDevOverrides, setDevOverrides, useDev } from '../lib/dev';
 import { DISRUPTIONS } from '../data/disruptions';
-import { APP_WIRE_BYTES, transferMs } from '../lib/link';
+import { APP_WIRE_BYTES, CLAIM_MAX_MBPS, CLAIM_MIN_MBPS, clampSpeed, transferMs } from '../lib/link';
 import { Icon } from '../components/ui/Icons';
 import { Select } from '../components/ui/Select';
 
@@ -94,16 +94,27 @@ export function DeveloperPage() {
    * the app comes back over the link you just chose, which is the whole point of being able to
    * choose one.
    */
-  const claimSpeed = (next: number) => setDevOverrides({ wifiMbps: next });
+  const claimSpeed = (next: number) => setDevOverrides({ wifiMbps: clampSpeed(next) });
   const applySpeed = (next: number | null) => {
     setDevOverrides({ wifiMbps: next });
     window.location.reload();
   };
   /* The field's button and Enter do the same thing: take the number that was typed, at once. */
   const commitSpeed = () => {
-    const next = Number(speedDraft);
-    if (Number.isFinite(next) && next > 0) applySpeed(next);
-    else setSpeedDraft(String(dev.wifiMbps ?? 5));
+    /*
+     * **A typed number is brought inside the field's range before it is believed.**
+     *
+     * `0.00000005` is under the field's own bottom end, and it used to be stored as typed: the wait it
+     * asked for was longer than a browser timer can count, so the timer fired at once and the reload
+     * looked instant. It is now stored as the slowest speed the field offers, and the label says so.
+     */
+    const next = clampSpeed(Number(speedDraft));
+    if (next === null) {
+      setSpeedDraft(String(dev.wifiMbps ?? 5));
+      return;
+    }
+    setSpeedDraft(String(next));
+    applySpeed(next);
   };
 
   const percent = dev.battery === null ? null : Math.round(dev.battery * 100);
@@ -208,16 +219,22 @@ export function DeveloperPage() {
                   hint={t('The app is in {mode}.', { mode: modeLabel })}
                 >
               {/*
-                **The slider the rest of the app already uses, with the knob reaching its ends.**
+                **The rail is the column, and the knob reaches both ends of it.**
 
-                This was a bare `input`, so it drew the browser's own blue control — the only one
-                on the site — and at 0% its knob sat a thumb's width inside the rail, which reads as
-                "not actually at the start" (reported, circled). `.range` is the app's coral slider
-                (the walking-time one), and `--flush` moves the input out by half a thumb so the
-                knob's centre lands on the rail's end at both 0 and 100.
+                This was the app's native slider pulled a half thumb wider than the card's text to
+                make its knob meet the ends, which left the rail overhanging the column and, at 100%,
+                the knob hanging outside the card (reported, circled). The rail is now drawn at the
+                column's own width with a knob whose centre travels from one end to the other, and a
+                transparent native input sits on top so dragging, the arrow keys and the screen
+                reader all still work.
               */}
-              <div className="range range--flush">
+              <div className="dev-level">
+                <div className="dev-level__rail" aria-hidden="true">
+                  <span className="dev-level__fill" style={{ width: `${shownPercent ?? 0}%` }} />
+                  <span className="dev-level__knob" style={{ left: `${shownPercent ?? 0}%` }} />
+                </div>
                 <input
+                  className="dev-level__input"
                   type="range"
                   min={0}
                   max={100}
@@ -236,15 +253,6 @@ export function DeveloperPage() {
                     'A charger puts the app back in its full interface, whatever the level says.',
                   )}
                 />
-                <div className="row">
-                  <Button
-                    variant="ghost"
-                    icon="refresh"
-                    onClick={() => setDevOverrides({ battery: null, charging: false })}
-                  >
-                    {t('Use the device’s battery')}
-                  </Button>
-                </div>
               </>
             )}
             {/*
@@ -264,6 +272,19 @@ export function DeveloperPage() {
               label={t('A browser with no battery')}
               description={t('No level, no mode, and the full interface: what Safari and Firefox see.')}
             />
+
+            {/* The way back sits under the switch that decides whether there is a level to read. */}
+            {dev.battery !== null ? (
+              <div className="row">
+                <Button
+                  variant="ghost"
+                  icon="refresh"
+                  onClick={() => setDevOverrides({ battery: null, charging: false })}
+                >
+                  {t('Use the device’s battery')}
+                </Button>
+              </div>
+            ) : null}
           </Card>
 
           <Card className="stack">
@@ -370,7 +391,7 @@ export function DeveloperPage() {
             <Switch
               checked={dev.wifiMbps !== null}
               onChange={(next) => {
-                const speed = dev.wifiMbps ?? (Number(speedDraft) || 5);
+                const speed = clampSpeed(dev.wifiMbps ?? Number(speedDraft)) ?? 5;
                 setSpeedDraft(String(speed));
                 /* On is not applied: the field appears, and its button is what reloads. Off has no
                    number to type, so it takes effect at once. */
@@ -403,8 +424,8 @@ export function DeveloperPage() {
                     className="input"
                     type="number"
                     inputMode="decimal"
-                    min={0.01}
-                    max={10000}
+                    min={CLAIM_MIN_MBPS}
+                    max={CLAIM_MAX_MBPS}
                     step={0.01}
                     value={speedDraft}
                     onChange={(event) => setSpeedDraft(event.target.value)}

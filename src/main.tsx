@@ -4,8 +4,8 @@ import App from './App';
 import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { watchInstallPrompt } from './lib/install';
 import { installManifest } from './lib/manifest';
-import { APP_WIRE_BYTES, transferMs } from './lib/link';
-import { getDevOverrides } from './lib/dev';
+import { APP_WIRE_BYTES, MAX_TIMER_MS, transferMs } from './lib/link';
+import { getDevOverrides, setDevOverrides } from './lib/dev';
 import { beginAccountSync } from './lib/account';
 import './styles/tokens.css';
 import './styles/fonts.css';
@@ -34,6 +34,7 @@ function translateLegacyHash() {
 }
 
 translateLegacyHash();
+watchSplash();
 
 /**
  * **The app restores scroll itself, so the browser must not.**
@@ -154,6 +155,42 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
  */
 document.getElementById('too-old')?.remove();
 
+/**
+ * **The mark never sits there without saying anything.**
+ *
+ * The splash is taken down by the app once it has drawn, and `index.html` removes it after ninety
+ * seconds as a last resort. Neither helps somebody looking at a logo now: the first says nothing
+ * until the wait is over, and the second arrives long after a person has decided the site is broken.
+ * This is the sentence in between. If the app has not drawn after twenty seconds, the mark gains one
+ * line and a Reload button, so a stuck start is something to read instead of something to wait out.
+ *
+ * It writes its own styles rather than borrowing the app's: this runs when the app is the thing that
+ * has not arrived, so nothing here may depend on it.
+ */
+function watchSplash(): void {
+  window.setTimeout(() => {
+    const splash = document.getElementById('splash');
+    const root = document.getElementById('root');
+    if (!splash || (root && root.childElementCount > 0)) return;
+    const note = document.createElement('div');
+    note.setAttribute('role', 'status');
+    /* The splash itself lets taps through, so this line has to take its own back for the button. */
+    note.style.cssText =
+      'position:absolute;bottom:12vh;left:24px;right:24px;text-align:center;font-family:system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.45;color:#3f3c37;pointer-events:auto;';
+    const line = document.createElement('p');
+    line.style.margin = '0 0 12px';
+    line.textContent = 'OVVO has not finished opening. Reloading the page usually starts it.';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Reload';
+    button.style.cssText =
+      'padding:10px 20px;border-radius:999px;border:1px solid #c9c5bb;background:#ffffff;color:#18181b;font:inherit;font-weight:600;';
+    button.addEventListener('click', () => window.location.reload());
+    note.append(line, button);
+    splash.appendChild(note);
+  }, 20000);
+}
+
 const container = document.getElementById('root');
 if (!container) throw new Error('Root container missing from index.html');
 
@@ -170,7 +207,32 @@ if (!container) throw new Error('Root container missing from index.html');
  * looks like: the page arrives, the drawing is already there, and the app itself takes its time.
  * Nothing else in the app waits for a speed it did not earn (see `lib/link`).
  */
-const bootWait = Math.max(0, transferMs(APP_WIRE_BYTES, getDevOverrides().wifiMbps) - performance.now());
+/*
+ * **Cut to what a timer can hold.**
+ *
+ * The arithmetic is exact, and at a speed of 0.00000005 it is longer than 2^31-1 milliseconds, which
+ * a browser's timer overflows into an immediate call: the panel claimed months and the app opened in a
+ * blink. The claimed speed is clamped in the panel, and the wait is clamped here as well, so a stale
+ * stored value cannot produce the same silence.
+ */
+/*
+ * **A claimed slow link is a wait, not a lockout.**
+ *
+ * The arithmetic is exact, and at the slowest speed the panel allows it says three minutes and
+ * twenty seconds. Held in full, that is a logo standing still on a site that is otherwise instant,
+ * which reads as a page that has failed rather than one that is slow.
+ *
+ * Reproduced on the live site on 2 November 2026: a remembered claim of 0.01 Mbps kept the mark up
+ * past thirty seconds with nothing drawn behind it, and reloading could not get past it, because
+ * the claim is remembered across reloads by design (`lib/dev`). The mark is now held for at most
+ * eight seconds, and the claimed speed still slows every other wait it was written for.
+ */
+const MAX_BOOT_WAIT_MS = 8000;
+const bootWait = Math.min(
+  MAX_BOOT_WAIT_MS,
+  MAX_TIMER_MS - 1,
+  Math.max(0, transferMs(APP_WIRE_BYTES, getDevOverrides().wifiMbps) - performance.now()),
+);
 
 function mount(): void {
   createRoot(container as HTMLElement).render(
@@ -220,5 +282,55 @@ function takeDownSplash(): void {
   }, remaining);
 }
 
-if (bootWait > 0) window.setTimeout(mount, bootWait);
-else mount();
+/**
+ * **"Skip wait", and only while there is a wait to skip.**
+ *
+ * A claimed slow link is held at the start of the app and nowhere else, which is the one moment
+ * there is no screen to reach the panel from: the thing that would switch the claim off is the thing
+ * the claim is holding. So the mark carries the way out. Pressing it clears the stored speed, the
+ * same switch the panel's own control throws, and opens the app at once, so the next reload is
+ * normal as well and a forgotten test value cannot cost two visits.
+ *
+ * It appears only when a speed is claimed (`getDevOverrides().wifiMbps`). With no claim the app has
+ * nothing to wait for, and a button that did nothing would be worse than no button at all.
+ */
+function offerSkipWait(open: () => void): void {
+  if (getDevOverrides().wifiMbps === null) return;
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+
+  /* The mark is decorative and hidden from screen readers; a button inside it would be reachable by
+     keyboard and invisible to a reader, so the mark becomes part of the page for as long as it
+     carries this control. */
+  splash.removeAttribute('aria-hidden');
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Skip wait';
+  /* Positioned and styled here rather than by the app's stylesheet: this is shown while the app is
+     still the thing that has not arrived. The mark lets taps through, so this takes its own back. */
+  button.style.cssText =
+    'position:absolute;bottom:12vh;left:50%;transform:translateX(-50%);padding:11px 22px;border-radius:999px;border:1px solid #c9c5bb;background:#ffffff;color:#18181b;font-family:system-ui,-apple-system,sans-serif;font-size:15px;font-weight:600;line-height:1.2;pointer-events:auto;cursor:pointer;';
+  button.addEventListener('click', () => {
+    setDevOverrides({ wifiMbps: null });
+    open();
+  });
+  splash.appendChild(button);
+}
+
+/* One opening only: the timer and the button can both arrive, and a second `createRoot` on the same
+   container would draw the app twice. */
+let booted = false;
+let bootTimer = 0;
+
+function open(): void {
+  if (booted) return;
+  booted = true;
+  window.clearTimeout(bootTimer);
+  mount();
+}
+
+if (bootWait > 0) {
+  bootTimer = window.setTimeout(open, bootWait);
+  offerSkipWait(open);
+} else open();

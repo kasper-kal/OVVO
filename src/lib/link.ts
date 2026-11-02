@@ -32,6 +32,28 @@ export function byteLength(text: string): number {
   return new TextEncoder().encode(text).length;
 }
 
+/*
+ * **The speed the panel will claim, and the longest wait a timer can take.**
+ *
+ * The field has a bottom end for a reason: below a hundredth of a megabit the reload is minutes long
+ * and nobody can read anything from it. A typed number is therefore brought inside this range before
+ * it is stored, and a stored number is brought inside it again on load, so an old absurd value cannot
+ * outlive the rule.
+ *
+ * The other number is the browser's own ceiling. A `setTimeout` delay above 2^31-1 milliseconds
+ * overflows and fires at once, which is exactly what a speed like 0.00000005 did: the arithmetic said
+ * months and the app opened on the next tick. Anything longer than this is cut to it.
+ */
+export const CLAIM_MIN_MBPS = 0.01;
+export const CLAIM_MAX_MBPS = 10_000;
+export const MAX_TIMER_MS = 2_147_483_647;
+
+/** A claimed speed brought inside the panel's range, or null for no claim at all. */
+export function clampSpeed(mbps: number | null): number | null {
+  if (mbps === null || !Number.isFinite(mbps) || mbps <= 0) return null;
+  return Math.min(CLAIM_MAX_MBPS, Math.max(CLAIM_MIN_MBPS, mbps));
+}
+
 /** The milliseconds `bytes` take at `mbps` megabits per second; zero for a speed that is not set. */
 export function transferMs(bytes: number, mbps: number | null): number {
   if (mbps === null || !Number.isFinite(mbps) || mbps <= 0) return 0;
