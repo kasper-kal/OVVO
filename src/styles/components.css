@@ -11675,3 +11675,15 @@
 .wrapped-body--chips[data-chapter='lines'] {
   align-content: center;
 }
+
+/*
+ * 45 · A stretching row ate the centring.
+ *
+ * The block was told to centre and stayed at the top, because one of its rows was set to take all the
+ * spare height: a grid whose tracks fill the page has nothing left to centre. The spacer row is gone,
+ * so the four rows are as tall as their contents and the block sits in the middle of the page.
+ */
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+}
