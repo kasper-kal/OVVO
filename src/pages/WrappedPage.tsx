@@ -554,6 +554,18 @@ export function WrappedPage() {
               {chapter.kind === 'route' && chapter.route ? (
                 <div className="wrapped-route" style={{ '--i': 2 } as CSSProperties}>
                   <span className="wrapped-route__rail" aria-hidden="true">
+                    {/*
+                      * One tick per journey down the line. The rail was a dashed rule with a dot
+                      * sliding on it, which is a diagram of the idea rather than the idea: the
+                      * journeys happened this many times and the line should be countable.
+                      */}
+                    {Array.from({ length: Math.min(chapter.route.count, 40) }, (_, tick) => (
+                      <b
+                        key={tick}
+                        className="wrapped-route__tick"
+                        style={{ '--k': tick } as CSSProperties}
+                      />
+                    ))}
                     <span className="wrapped-route__train" />
                   </span>
                   <span className="wrapped-route__dot wrapped-route__dot--start" aria-hidden="true" />

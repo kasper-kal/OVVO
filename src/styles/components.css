@@ -11422,3 +11422,128 @@
 .wrapped-body[data-chapter='look'] {
   padding-top: calc(47vh + 76px);
 }
+
+/*
+ * 40 · Four pages that were words on a colour, rebuilt as things.
+ *
+ * The naming page carried a dashed circle behind the words that measured nothing and said nothing;
+ * it is gone. Its three figures sit in one row now, so the page is a name and three numbers rather
+ * than a name and three sentences, and the sentence under them is a caption rather than a paragraph.
+ *
+ * The line page was one dashed rule with a dot sliding down it, which is a picture of the idea instead
+ * of the idea. The rail carries one tick for every journey made on that pair, so the middle of the
+ * page can be counted rather than admired.
+ *
+ * The origins page was two flat cards. They are tickets now, with a tear line down the left of each
+ * and the count set as the big thing on the paper.
+ *
+ * The long haul drew twenty arbitrary ruler marks that measured nothing. They are gone, and the track
+ * is a solid progress line with the trip's marker sitting on it.
+ */
+.wrapped-body--name::before {
+  content: none;
+}
+
+.wrapped-body--name .wrapped-chips {
+  grid-template-columns: 1.35fr 1fr 1fr;
+  border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.wrapped-body--name .wrapped-chip {
+  padding: clamp(12px, 2.4vh, 20px) 10px clamp(12px, 2.4vh, 20px) 0;
+  border-bottom: 0;
+  gap: 6px;
+}
+
+.wrapped-body--name .wrapped-chip:first-child {
+  grid-column: auto;
+}
+
+.wrapped-body--name .wrapped-chip:nth-child(2),
+.wrapped-body--name .wrapped-chip:nth-child(3) {
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.wrapped-body--name .wrapped-chip strong,
+.wrapped-body--name .wrapped-chip:first-child strong {
+  font-size: clamp(20px, 5.6vw, 26px);
+  white-space: normal;
+}
+
+.wrapped-body--name .wrapped-chip span {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.wrapped-body--name .wrapped-line {
+  font-size: 13px;
+  line-height: 1.35;
+  max-width: 36ch;
+  opacity: 0.6;
+}
+
+.wrapped-route__rail {
+  position: relative;
+}
+
+.wrapped-route__tick {
+  position: absolute;
+  left: 50%;
+  top: calc(6% + var(--k, 0) * 3.6%);
+  width: 16px;
+  height: 2px;
+  margin-left: -8px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.55;
+  animation: wrapped-tick-in 400ms var(--ease-out) both;
+  animation-delay: calc(var(--k, 0) * 35ms);
+}
+
+@keyframes wrapped-tick-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip {
+  position: relative;
+  padding-left: clamp(26px, 8vw, 34px);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip::before {
+  content: '';
+  position: absolute;
+  left: clamp(12px, 3.6vw, 16px);
+  top: 16px;
+  bottom: 16px;
+  border-left: 2px dashed color-mix(in srgb, currentColor 34%, transparent);
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip strong {
+  font-size: clamp(30px, 9vw, 40px);
+  line-height: 1;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-ruler {
+  display: none;
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    currentColor 0 50%,
+    color-mix(in srgb, currentColor 22%, transparent) 50% 100%
+  );
+}
+
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__dot {
+  width: 24px;
+  height: 24px;
+  margin-top: -9px;
+}
