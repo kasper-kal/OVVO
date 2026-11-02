@@ -89,6 +89,7 @@ export function AccountCard() {
   const { account, failed } = useAccount();
   const [photo, setPhoto] = useState<string>(() => readStored(PHOTO_KEY, ''));
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmRemovePhoto, setConfirmRemovePhoto] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
@@ -309,8 +310,13 @@ export function AccountCard() {
             <Button variant="surface" size="sm" onClick={() => fileInput.current?.click()}>
               {photo ? 'Change photo' : 'Add a photo'}
             </Button>
+            {/*
+              * **Removing the picture asks first.** A picture is not a setting that can be flicked
+              * back: the file leaves this device and the traveller has to find it again to put it
+              * back, so it is a decision rather than a tap.
+              */}
             {photo ? (
-              <Button variant="ghost" size="sm" onClick={removePhoto}>
+              <Button variant="ghost" size="sm" onClick={() => setConfirmRemovePhoto(true)}>
                 Remove photo
               </Button>
             ) : null}
@@ -356,6 +362,32 @@ export function AccountCard() {
           Everything saved with your OVVO ID goes with it. This device keeps its own copy until you
           empty it with the reset at the foot of this page.
         </p>
+      </Dialog>
+
+      <Dialog
+        open={confirmRemovePhoto}
+        title="Remove your picture?"
+        description="The picture is removed from this device. Your OVVO ID and everything saved with it stay as they are."
+        onClose={() => setConfirmRemovePhoto(false)}
+        footer={
+          <>
+            <Button
+              variant="accent"
+              icon="trash"
+              onClick={() => {
+                removePhoto();
+                setConfirmRemovePhoto(false);
+              }}
+            >
+              Remove photo
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmRemovePhoto(false)}>
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <p className="t-sm">You can add another picture at any time.</p>
       </Dialog>
     </Card>
   );
