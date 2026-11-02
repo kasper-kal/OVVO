@@ -15,7 +15,7 @@ import { MAP_POINT } from '../data/map';
 import { getStop } from '../data/stops';
 import type { Language } from '../state/types';
 import { formatDuration } from './format';
-import { styleById, stylePhotoPath } from './styles';
+import { styleById } from './styles';
 import type { YearTally } from './wrapped';
 import type { Track } from './wrappedSound';
 
@@ -71,6 +71,10 @@ export interface Chapter {
   boards?: number;
   /** One dot per journey, for the chapter that counts them. */
   dots?: number;
+  /** One block per working day's worth of hours, for the chapter that counts the time. */
+  blocks?: number;
+  /** A look's own four colours, so the page wears it instead of photographing it. */
+  swatches?: string[];
   /** The photograph of the look that was worn, when that look has one. */
   photo?: string;
   /**
@@ -95,6 +99,8 @@ export interface Chapter {
    * something and being shown why.
    */
   pass?: { name: string; evidence: string; facts: string[] };
+  /** The closing page says the year is the example one, without opening with a disclaimer. */
+  demoNote?: boolean;
 }
 
 /** How many journeys are enough to make a story. */
@@ -201,15 +207,15 @@ export function buildStory({
   const clock = `${peak < 10 ? '0' : ''}${peak}:00`;
   const habits = [
     { name: 'The Night Owl Express', share: nightRuns / runs.length, floor: 0.18,
-      line: `${nightRuns} of ${runs.length} journeys set off in the evening, after the day was done.` },
+      line: 'Evening is when the city is yours. The day is done, and you are still moving.' },
     { name: `${clock} Regular`, share: pair ? pair.count / runs.length : 0, floor: 0.4,
-      line: `${pair?.count ?? 0} of them the same pair of stations, over and over, like a heartbeat.` },
+      line: 'One journey, known by heart. You could plan it with your eyes shut.' },
     { name: 'The Station Collector', share: uniqueOrigins / 6, floor: 0.66,
-      line: `${uniqueOrigins} different stations set you off this year.` },
+      line: 'Not a station but a circuit: your year starts from all of them.' },
     { name: 'The Straight-Through Type', share: directShare, floor: 0.6,
-      line: `${directPct}% of your journeys had no change at all. You pick the line that stays on the rails.` },
+      line: 'You take the line that stays on the rails, and you let the changes go.' },
     { name: `${clock} Regular`, share: runs.length ? hours[peak] / runs.length : 0, floor: 0.2,
-      line: `${hours[peak]} journeys left in the ${clock} hour, more than any other hour of the week.` },
+      line: 'Your day starts at the same minute, without ever making a decision about it.' },
   ];
   const strongest = habits
     .filter((habit) => habit.share >= habit.floor)
@@ -398,8 +404,17 @@ export function buildStory({
           /* The days are the number the chapter turns on, so they get the size a number gets. */
           count: wearDays,
           line: 'in this look.',
-          /* The page wears the look too: its own photograph, full bleed, behind the words. */
-          photo: lookList[0] ? stylePhotoPath(lookList[0].value) : undefined,
+          /*
+           * **The look is worn, not photographed.**
+           *
+           * This page used to sit on the style's own photograph, and the one in the demo year was a grey
+           * platform at night under grey numbers, which read as a crime podcast rather than as a look.
+           * A look is four colours before it is a picture, so the page paints them instead.
+           */
+          swatches: (() => {
+            const worn = lookList[0] ? styleById(lookList[0].value) : null;
+            return worn ? [...worn.light] : undefined;
+          })(),
         }
       : null,
     lineList.length
@@ -435,11 +450,19 @@ export function buildStory({
           kicker: 'The time you gave the journey',
           big: String(totalHours),
           count: totalHours,
+          /*
+           * **A flex, not a timesheet.**
+           *
+           * "Twenty full working days" made the year sound like a sentence handed down. The same hours
+           * said as films on the train are the same arithmetic with the lift the page was missing: an
+           * average film is about ninety-six minutes, so the count is the hours divided by 1.6.
+           */
           line:
             totalHours === 1
               ? 'hour in transit this year.'
-              : `hours in transit this year${workingDays >= 1 ? `, ${workingDays} full working days of it` : ''}.`,
-          dots: runs.length,
+              : `hours in transit, which is about ${Math.max(1, Math.round(totalHours / 1.6))} films if the train Wi-Fi holds.`,
+          /* A block a day instead of a dot a journey: the same hour total, drawn a different way. */
+          blocks: Math.min(26, Math.max(1, workingDays)),
         }
       : null,
     {
@@ -452,6 +475,8 @@ export function buildStory({
       line: 'Every number here is yours: the journeys you planned in OVVO this year, and nothing else.',
       /* The last line is a door, not a disclaimer: the deck used to end by apologising for itself. */
       note: 'See you next December for the next one.',
+      /* The honesty stays, it just stops opening the party. */
+      demoNote: true,
     },
   ];
 

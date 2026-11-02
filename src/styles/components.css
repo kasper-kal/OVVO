@@ -10431,3 +10431,161 @@
 .wrapped-stage[data-chapter='persona'] {
   background: #141019;
 }
+
+/* ==========================================================================
+ * **Colour, and a page that does not look like a console.**
+ * ========================================================================== */
+
+/*
+ * 20 · The cover opens on a night sky with a fire in it, not on a black rectangle.
+ *
+ * A near-black cover was the safe choice, and safe was the reason the whole story read as a wireframe.
+ * This is the same darkness with two coloured lights in it, so the first page has a mood before it has
+ * a sentence — and the year is set in the brand's own coral-to-violet rather than in flat white.
+ */
+.wrapped-stage[data-chapter='cover'] {
+  background:
+    radial-gradient(120% 78% at 12% -8%, #4b2170 0%, rgba(75, 33, 112, 0) 58%),
+    radial-gradient(130% 92% at 96% 12%, #8c2447 0%, rgba(140, 36, 71, 0) 56%),
+    radial-gradient(90% 60% at 50% 108%, #2b1450 0%, rgba(43, 20, 80, 0) 62%),
+    #0b0713;
+}
+
+.wrapped-body--cover .wrapped-title {
+  background-image: linear-gradient(104deg, #ffb199 0%, #ff7ba4 46%, #a98bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/*
+ * 21 · The pass is printed in colour.
+ *
+ * It was white type in a grey rounded box: the shape of a ticket with none of its ink. It now carries the
+ * brand's two lights, a coral validity stamp, and the name in the same gradient as the cover, so the
+ * traveller's badge looks like something issued rather than something logged.
+ */
+.wrapped-pass {
+  background: linear-gradient(158deg, rgba(255, 111, 97, 0.24) 0%, rgba(122, 92, 255, 0.22) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+}
+
+.wrapped-pass__name {
+  background-image: linear-gradient(102deg, #ffffff 0%, #ffd6c9 52%, #c9b8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wrapped-pass__stamp {
+  border-color: #ff9a86;
+  color: #ffc2b2;
+  opacity: 0.9;
+}
+
+/* The stage for the pass keeps a hint of the same two lights, so it is not another black page. */
+.wrapped-stage[data-chapter='persona'] {
+  background:
+    radial-gradient(90% 60% at 8% 4%, #3a1c56 0%, rgba(58, 28, 86, 0) 62%),
+    radial-gradient(90% 70% at 100% 100%, #61203d 0%, rgba(97, 32, 61, 0) 58%),
+    #120d1b;
+}
+
+/*
+ * 22 · The hours are stacked, not counted again.
+ *
+ * The journey total fills a field of dots, and the hour total was filling the same field a second time:
+ * two pages, one animation, which is what visual bankruptcy looks like. The hours now stand up as a day's
+ * worth of blocks, one per working day the travelling amounted to, rising on the beat.
+ */
+.wrapped-blocks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 46%;
+  padding: 0 var(--pad-x);
+  pointer-events: none;
+}
+
+.wrapped-blocks i {
+  flex: 1 1 0;
+  min-width: 4px;
+  height: var(--h, 60%);
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, rgba(255, 138, 122, 0.85), rgba(255, 111, 97, 0.22));
+  transform-origin: bottom;
+  animation: wrapped-block-rise 520ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * var(--beat-ms));
+}
+
+@keyframes wrapped-block-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.wrapped-stage.is-still .wrapped-blocks i {
+  animation: none;
+}
+
+/* The blocks sit under the number rather than over it. */
+.wrapped-body--number .wrapped-blocks {
+  z-index: 0;
+}
+
+.wrapped-body--number .wrapped-big,
+.wrapped-body--number .wrapped-line {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * 23 · The look, worn.
+ *
+ * Four colours, full width under the name: the look a traveller chose, painted instead of photographed.
+ * The photograph was a grey platform at night and made a festive page look like a documentary.
+ */
+.wrapped-swatches {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin: clamp(10px, 2vh, 20px) 0 0;
+  animation: wrapped-rise 560ms var(--ease-out) both;
+  animation-delay: 240ms;
+}
+
+.wrapped-swatches i {
+  flex: 1 1 0;
+  height: clamp(44px, 7vh, 74px);
+  border-radius: 10px;
+  background: var(--tone, currentColor);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* The demo line is a footnote now: it closes the story instead of opening it. */
+.wrapped-demo--quiet {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  opacity: 0.5;
+}
+
+/* The map's busy routes carry a little light, so the page is art rather than a network diagram. */
+.wrapped-map__route.is-often {
+  filter: drop-shadow(0 0 10px rgba(255, 130, 114, 0.55));
+}
+
+.wrapped-stage[data-chapter='map'] {
+  background:
+    radial-gradient(80% 55% at 18% 12%, #16232f 0%, rgba(22, 35, 47, 0) 62%),
+    radial-gradient(80% 60% at 92% 90%, #1d1730 0%, rgba(29, 23, 48, 0) 60%),
+    #070c11;
+}

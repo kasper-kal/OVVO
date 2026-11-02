@@ -303,14 +303,23 @@ export function WrappedPage() {
     const hoursChapter = story.find((item) => item.id === 'hours');
     const stations = new Set(tally.runs.flatMap((run) => [run.from, run.to])).size;
 
-    ctx.fillStyle = '#0d0d0f';
+    /* A bright year, because this card is made to be posted rather than filed. */
+    const sky = ctx.createLinearGradient(0, 0, 1080, 1920);
+    sky.addColorStop(0, '#ff7a5c');
+    sky.addColorStop(0.46, '#ff4f8b');
+    sky.addColorStop(1, '#6a4cff');
+    ctx.fillStyle = sky;
     ctx.fillRect(0, 0, 1080, 1920);
-    ctx.fillStyle = '#ff6f61';
-    ctx.fillRect(0, 0, 1080, 16);
 
-    const ink = '#f4f1ea';
-    const quiet = '#8e8b86';
-    const soft = '#c9c4bc';
+    /* Orbits behind the type, so the card has depth instead of a flat wash. */
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 2;
+    [340, 520, 700].forEach((radius, at) => {
+      ctx.beginPath();
+      ctx.arc(at === 1 ? 860 : 220, at === 2 ? 420 : 560, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
     const font = (weight: number, size: number) =>
       `${weight} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
 
@@ -320,7 +329,7 @@ export function WrappedPage() {
       y: number,
       type: string,
       colour: string,
-      max = 880,
+      max = 900,
       leading = 0,
     ): number => {
       ctx.font = type;
@@ -341,23 +350,29 @@ export function WrappedPage() {
       return y + rows.length * (leading || 60);
     };
 
-    write('OVVO WRAPPED', 96, 190, font(700, 30), '#ff6f61');
-    write(String(year), 96, 300, font(700, 110), ink);
-    let y = write('YOUR TRAVEL PERSONALITY', 96, 470, font(600, 28), quiet);
-    y = write(card?.name ?? '', 96, y + 120, font(800, 100), ink, 880, 112);
-    y = write(card?.evidence ?? '', 96, y + 70, font(400, 40), soft, 880, 54);
+    ctx.font = font(800, 30);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('OVVO WRAPPED', 88, 152);
 
-    ctx.strokeStyle = 'rgba(244, 241, 234, 0.18)';
-    ctx.setLineDash([12, 14]);
-    ctx.beginPath();
-    ctx.moveTo(96, 1260);
-    ctx.lineTo(984, 1260);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    const yearText = String(year);
+    ctx.font = font(800, 44);
+    const yearWidth = ctx.measureText(yearText).width;
+    rounded(ctx, 992 - yearWidth - 64, 104, yearWidth + 64, 76, 38);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(yearText, 992 - yearWidth - 32, 158);
+
+    write('YOUR TRAVEL PERSONALITY', 88, 336, font(700, 26), 'rgba(255, 255, 255, 0.72)');
+    let y = write(card?.name ?? '', 88, 486, font(800, 112), '#ffffff', 904, 118);
+    y = write(card?.evidence ?? '', 88, y + 44, font(500, 40), 'rgba(255, 255, 255, 0.92)', 904, 54);
 
     if (route) {
-      write(`${route.count} x`, 96, 1370, font(600, 44), '#ff8a7a');
-      write(`${route.from} to ${route.to}`, 96, 1440, font(600, 44), ink, 880, 56);
+      rounded(ctx, 88, 1010, 904, 156, 34);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+      ctx.fill();
+      write(`${route.count} x ${route.from}`, 128, 1074, font(700, 40), '#ffffff', 820, 52);
+      write(`to ${route.to}`, 128, 1126, font(500, 34), 'rgba(255, 255, 255, 0.84)', 820, 46);
     }
 
     const stats: Array<[string, string]> = [
@@ -366,11 +381,22 @@ export function WrappedPage() {
       [String(stations), 'STATIONS'],
     ];
     stats.forEach(([value, label], at) => {
-      const x = 96 + at * 300;
-      write(value, x, 1660, font(800, 88), ink);
-      write(label, x, 1706, font(600, 24), quiet, 260, 30);
+      const x = 88 + at * 304;
+      rounded(ctx, x, 1250, 280, 200, 30);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.font = font(800, 74);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(value, x + 32, 1352);
+      ctx.font = font(700, 24);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillText(label, x + 32, 1402);
     });
-    write('Every number from the journeys I planned in OVVO.', 96, 1820, font(400, 28), soft);
+
+    write('Every number from the journeys I planned in OVVO.', 88, 1776, font(500, 30), 'rgba(255, 255, 255, 0.86)');
+    ctx.font = font(800, 34);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('ovvo', 88, 1844);
 
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
     if (!blob) return;
@@ -396,6 +422,16 @@ export function WrappedPage() {
           '--bar-ms': `${barMs(chapter.track)}ms`,
           '--beat-phase': `${armed && beat ? beat.beatPhase : 0}ms`,
           '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
+          /*
+           * **The look's page is painted in the look.**
+           *
+           * Its own page colour, its own ink, so the page a traveller chose is the page the chapter is
+           * printed on. A photograph of a platform at night was the same picture for everybody; this is
+           * the one thing on the page that is only theirs.
+           */
+          ...(chapter.swatches
+            ? { background: chapter.swatches[0], color: chapter.swatches[2] }
+            : {}),
         } as CSSProperties
       }
       role="region"
@@ -536,11 +572,6 @@ export function WrappedPage() {
               <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
                 {t(chapter.line)}
               </p>
-              {demo ? (
-                <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
-                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
-                </p>
-              ) : null}
               <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
                 <Button
                   variant="accent"
@@ -602,11 +633,30 @@ export function WrappedPage() {
                 </p>
               )}
 
+              {chapter.swatches?.length ? (
+                <span className="wrapped-swatches" aria-hidden="true">
+                  {chapter.swatches.map((colour, at) => (
+                    <i key={`${colour}-${at}`} style={{ '--tone': colour, '--i': at } as CSSProperties} />
+                  ))}
+                </span>
+              ) : null}
+
               {chapter.kind === 'word' && chapter.count !== undefined ? (
                 <p className="wrapped-days" style={{ '--i': 2 } as CSSProperties}>
                   {count}
                   <span>{chapter.count === 1 ? t('day') : t('days')}</span>
                 </p>
+              ) : null}
+
+              {chapter.kind === 'number' && chapter.blocks ? (
+                <span className="wrapped-blocks" aria-hidden="true">
+                  {Array.from({ length: chapter.blocks }, (_, block) => (
+                    <i
+                      key={block}
+                      style={{ '--i': block, '--h': `${40 + (block % 5) * 12}%` } as CSSProperties}
+                    />
+                  ))}
+                </span>
               ) : null}
 
               {(chapter.kind === 'number' || chapter.kind === 'word') && chapter.dots ? (
@@ -784,6 +834,12 @@ export function WrappedPage() {
               {chapter.note ? (
                 <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
                   {t(chapter.note)}
+                </p>
+              ) : null}
+              {/* The year is the example one, and it still says so: on the last page, not the first. */}
+              {chapter.demoNote && demo ? (
+                <p className="wrapped-demo wrapped-demo--quiet" style={{ '--i': 5 } as CSSProperties}>
+                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
                 </p>
               ) : null}
             </>
@@ -995,4 +1051,22 @@ function Chip({
       <strong>{numeric ? (counting ? shown : target) : detail}</strong>
     </li>
   );
+}
+
+/** A rounded rectangle, drawn the long way so it works in an older safari as well as a new one. */
+function rounded(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
 }
