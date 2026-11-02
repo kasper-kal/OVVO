@@ -22,7 +22,13 @@ export const ADDRESS_ATTRIBUTION = 'Address © OpenStreetMap contributors';
 /** Nominatim wants an identifiable caller and is not a CDN; six seconds is generous. */
 const TIMEOUT_MS = 6000;
 
-const ENDPOINT = 'https://nominatim.openstreetmap.org/reverse';
+/**
+ * **The Worker asks the map database, and keeps the answer at the edge** (`worker/lookup.js`).
+ *
+ * One point has one address, so the same answer serves everybody standing there, and the
+ * traveller's own IP stays out of OpenStreetMap's logs.
+ */
+const ENDPOINT = '/api/lookup/place';
 
 export interface AddressParts {
   house_number?: string;
@@ -90,7 +96,7 @@ const RETRY_DELAY_MS = 250;
 
 async function lookup(position: { lat: number; lon: number }): Promise<string | null> {
   if (typeof fetch !== 'function') return null;
-  const url = `${ENDPOINT}?format=jsonv2&zoom=18&addressdetails=1&lat=${position.lat}&lon=${position.lon}`;
+  const url = `${ENDPOINT}?lat=${position.lat}&lon=${position.lon}`;
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {

@@ -1981,10 +1981,10 @@ var require_tslib = __commonJS({
   }
 });
 
-// .wrangler/tmp/bundle-yuv5Xe/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-zF65qj/middleware-loader.entry.ts
 init_modules_watch_stub();
 
-// .wrangler/tmp/bundle-yuv5Xe/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-zF65qj/middleware-insertion-facade.js
 init_modules_watch_stub();
 
 // worker/index.js
@@ -2084,6 +2084,93 @@ async function verifyIdToken(token, projectId) {
   };
 }
 __name(verifyIdToken, "verifyIdToken");
+
+// worker/lookup.js
+init_modules_watch_stub();
+var NOMINATIM = "https://nominatim.openstreetmap.org";
+var AGENT = "OVVO/1.0 (+https://ovvo.vibecreations.workers.dev)";
+var DAY = 24 * 60 * 60;
+var MONTH = 30 * DAY;
+var TIMEOUT_MS = 6e3;
+var ADDRESS_LIMIT = 5;
+function answer(body, status, seconds) {
+  return new Response(typeof body === "string" ? body : JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": seconds > 0 ? `public, max-age=${seconds}, s-maxage=${seconds}` : "no-store"
+    }
+  });
+}
+__name(answer, "answer");
+async function upstream(url, seconds) {
+  const response = await fetch(url, {
+    headers: { accept: "application/json", "user-agent": AGENT },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (response.status === 404) return answer({ error: "not-found" }, 404, 0);
+  if (!response.ok) return answer({ error: "upstream" }, 502, 0);
+  return answer(await response.text(), 200, seconds);
+}
+__name(upstream, "upstream");
+async function addressLookup(url) {
+  const query = (url.searchParams.get("q") ?? "").trim();
+  if (query.length < 2) return answer({ error: "query" }, 400, 0);
+  if (query.length > 120) return answer([], 200, DAY);
+  const params = new URLSearchParams({
+    format: "jsonv2",
+    addressdetails: "1",
+    /* This is a Dutch planner, and Nominatim is global: without the filter "Hoofddorp" also
+       answers places in Belgium and Germany. */
+    countrycodes: "nl",
+    limit: String(ADDRESS_LIMIT),
+    q: query
+  });
+  return upstream(`${NOMINATIM}/search?${params.toString()}`, DAY);
+}
+__name(addressLookup, "addressLookup");
+async function placeLookup(url) {
+  const lat = Number(url.searchParams.get("lat"));
+  const lon = Number(url.searchParams.get("lon"));
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return answer({ error: "place" }, 400, 0);
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return answer({ error: "place" }, 400, 0);
+  const params = new URLSearchParams({
+    format: "jsonv2",
+    zoom: "18",
+    addressdetails: "1",
+    lat: String(lat),
+    lon: String(lon)
+  });
+  return upstream(`${NOMINATIM}/reverse?${params.toString()}`, MONTH);
+}
+__name(placeLookup, "placeLookup");
+async function summaryLookup(url) {
+  const language = (url.searchParams.get("lang") ?? "").trim().toLowerCase();
+  if (!/^[a-z]{2,3}$/.test(language)) return answer({ error: "language" }, 400, 0);
+  const article = (url.searchParams.get("article") ?? "").trim().replace(/ /g, "_");
+  if (article.length === 0 || article.length > 200) return answer({ error: "article" }, 400, 0);
+  if (article.includes("/")) return answer({ error: "article" }, 400, 0);
+  return upstream(
+    `https://${language}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article)}?redirect=true`,
+    DAY
+  );
+}
+__name(summaryLookup, "summaryLookup");
+async function lookupRoute(request, env, url) {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return answer({ error: "method" }, 405, 0);
+  }
+  try {
+    if (url.pathname === "/api/lookup/address") return await addressLookup(url);
+    if (url.pathname === "/api/lookup/place") return await placeLookup(url);
+    if (url.pathname === "/api/lookup/summary") return await summaryLookup(url);
+  } catch (error) {
+    console.error("[lookup]", error);
+    return answer({ error: "upstream" }, 502, 0);
+  }
+  return answer({ error: "not-found" }, 404, 0);
+}
+__name(lookupRoute, "lookupRoute");
 
 // worker/passkey.js
 init_modules_watch_stub();
@@ -22240,6 +22327,7 @@ async function api(request, env, url) {
   if (request.method !== "GET" && request.method !== "HEAD" && crossOrigin(request, url)) {
     return json2({ error: "origin" }, 403);
   }
+  if (url.pathname.startsWith("/api/lookup/")) return lookupRoute(request, env, url);
   if (url.pathname.startsWith("/api/passkey/")) return passkeyRoute(request, env, url);
   const claims = await identify(request, env);
   if (!claims) return json2({ error: "unauthorized" }, 401);
@@ -22327,7 +22415,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-yuv5Xe/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-zF65qj/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -22360,7 +22448,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-yuv5Xe/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-zF65qj/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

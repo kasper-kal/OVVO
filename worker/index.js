@@ -6,6 +6,7 @@
  */
 
 import { identify } from './auth.js';
+import { lookupRoute } from './lookup.js';
 import { passkeyRoute } from './passkey.js';
 
 /** A whole traveller's year, in one document. Small next to D1's limits, and refused above this. */
@@ -99,6 +100,13 @@ async function api(request, env, url) {
   if (request.method !== 'GET' && request.method !== 'HEAD' && crossOrigin(request, url)) {
     return json({ error: 'origin' }, 403);
   }
+
+  /*
+   * **The three public lookups answer before a sign-in is asked for.** They are the same answer for
+   * everybody (a street, a position, a Wikipedia paragraph), so they need no traveller, and the
+   * edge keeps them (`worker/lookup.js`).
+   */
+  if (url.pathname.startsWith('/api/lookup/')) return lookupRoute(request, env, url);
 
   /*
    * **Passkeys answer before the account is required.** Two of these routes are how somebody signs

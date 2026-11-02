@@ -75,6 +75,27 @@ anyone later:
 Some providers cost money and stay off for that reason: Apple needs a paid Apple Developer
 account, and phone sign-in costs per message.
 
+## What else the free Cloudflare account is used for (2 November 2026)
+
+Asked by the steerer what else the free account is worth. Decided and built the same day:
+
+- **Edge caching for the three public lookups.** The address search, the naming of a position and
+  a stop's Wikipedia paragraph used to leave the browser for Nominatim and Wikipedia directly, so
+  every traveller was a separate caller and every phone gave its own IP away. They now go through
+  `/api/lookup/*` in the Worker, which forwards once and answers with `Cache-Control`, and
+  `cache.enabled` in `wrangler.jsonc` puts Cloudflare's own cache in front of the Worker.
+  **Measured on the live site:** the first request `cf-cache-status: MISS`, the second `HIT`, with
+  the Worker not running for the second. `caches.default` was not used: it does nothing on a
+  `workers.dev` address, while this cache follows the Worker rather than a domain.
+- **Three things wait on the steerer, because the deploy token can read but not create them.**
+  Listing Turnstile widgets, Web Analytics sites and R2 buckets all answer 200; every create
+  answers 403. So each of these needs one click in the dashboard: a Turnstile widget (name OVVO,
+  domain `ovvo.vibecreations.workers.dev`, Managed), a Web Analytics site for the same address, and
+  an R2 bucket called `ovvo-photos`. The Turnstile secret becomes a Worker secret named
+  `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
+- **Not worth doing here.** Email Routing and the one free rate-limiting rule both need a domain,
+  so they stay behind the same wall as the sign-in mail.
+
 ## Passkeys (2 November 2026)
 
 Asked for by the steerer: passkeys as a way to sign in, as a second key on an existing account, and

@@ -176,7 +176,18 @@ export default defineConfig(({ mode }) => {
        * passkey and then show an empty list: the key was real, the account was in a throwaway copy.
        * Without a proxy the preview says plainly that the site cannot be reached, and every passkey
        * is made against the one database that matters.
+       *
+       * **The three public lookups are the exception, and only those.** `worker/lookup.js` answers a
+       * street, a position and a Wikipedia paragraph: no account, no database, no key left on a
+       * device. Forwarding just that path to a local Worker lets the preview draw address results
+       * and encyclopaedia cards while `npm run dev` is running, and nothing that writes is proxied.
        */
+      proxy: {
+        '/api/lookup': {
+          target: 'http://127.0.0.1:8787',
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       host: '0.0.0.0',
