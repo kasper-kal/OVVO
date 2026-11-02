@@ -3,7 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerE
 import { Link, useSearchParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
-import { Button, Card, Dialog } from '../components/ui/primitives';
+import { Button, Card, Dialog, IconButton } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { WIDGETS, WIDGET_CATEGORIES, widgetById } from '../widgets/registry';
 import { NETWORK } from '../data/network';
@@ -1432,10 +1432,16 @@ export function HomePage() {
                         <span className="t-strong t-sm">{t(widget.title)}</span>
                         <span className="t-sm t-faint">{t(widget.description)}</span>
                       </span>
-                      <Button
-                        size="sm"
+                      {/*
+                        **The plus is the whole control.** The word beside it repeated twelve times
+                        down a list whose rows already name themselves, and a plus is not ambiguous
+                        (reported: "no need for Add, + is all thats needed"). The accessible name
+                        still carries the widget's own title, so a screen reader hears twelve
+                        different buttons rather than twelve called Add.
+                      */}
+                      <IconButton
                         icon="plus"
-                        aria-label={t('Add {widget}', { widget: t(widget.title) })}
+                        label={t('Add {widget}', { widget: t(widget.title) })}
                         onClick={() => {
                           /*
                            * The list must not move under the finger (24.3). Removing the row above
@@ -1453,9 +1459,7 @@ export function HomePage() {
                              the list (24.4). The live region above says what happened. */
                           setNote(t('{widget} added to the home screen', { widget: t(widget.title) }));
                         }}
-                      >
-                        {t('Add')}
-                      </Button>
+                      />
                     </li>
                   ))}
                 </ul>
