@@ -187,7 +187,13 @@ const cases = [
      */
     name: 'eval refused as syntax error',
     before: refuseEvalText('SyntaxError'),
-    want: { mounted: true, noticeShown: false },
+    /*
+     * Only the notice is asserted. Replacing `window.Function` damages the bundle itself, so whether
+     * the app mounts here says nothing about the app: it is the browser-free harness
+     * (`compat-logic-check.mjs`) that proves the decision, and this case proves the notice stays
+     * hidden in a real browser that refuses eval.
+     */
+    want: { noticeShown: false },
   },
   {
     /* The case the notice is for: a browser that evaluates, but cannot parse this syntax. */
@@ -204,7 +210,7 @@ const cases = [
         };
       })();
     `,
-    want: { mounted: false, noticeShown: true },
+    want: { noticeShown: true },
   },
 ];
 
