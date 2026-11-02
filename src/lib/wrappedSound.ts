@@ -63,8 +63,24 @@ const TRIM: Record<Track, number> = {
 
 /** How far under the phone's own volume the whole score sits. */
 const LEVEL = 1;
-const FADE_IN = 0.9;
+/**
+ * **A song arrives in four tenths of a second, every time.**
+ *
+ * The steerer asked for the fade-in to be short and to never be skipped: a chapter that slid in already
+ * at full level made the page turn sound like a cut, and a chapter that took almost a second to arrive
+ * sounded like a broken phone.
+ */
+const FADE_IN = 0.4;
 const FADE_OUT = 0.7;
+
+/**
+ * **The last second of an automatic turn belongs to the fade.**
+ *
+ * When the song is turning the page by itself, the music has a full second to fall away before the next
+ * chapter arrives, so the ear is ready for it. A page the traveller turns by hand is not faded this way:
+ * a thumb should get its answer at once, and there the two tracks simply cross.
+ */
+const AUTO_FADE = 1;
 
 /** How long before a song ends the deck turns the page. */
 const TURN_EARLY = 0.5;
@@ -86,6 +102,7 @@ let current: Track | null = null;
 let playing = false;
 let onEnd: (() => void) | null = null;
 let turned = false;
+let ducked = false;
 /** The last few things the score was asked to do, newest last, for the report. */
 const calls: string[] = [];
 
@@ -157,15 +174,16 @@ function makeSlot(): Slot {
    * second, and it works while the tab is in front. `ended` stays as the fallback for a browser that
    * skips the last update, and the `turned` flag makes sure one song never asks twice.
    */
-  el.addEventListener('timeupdate', () => {
-    if (slot !== active || !playing || turned) return;
-    const { duration, currentTime } = el;
-    if (!Number.isFinite(duration) || duration <= TURN_EARLY) return;
-    if (currentTime >= duration - TURN_EARLY) {
-      turned = true;
-      onEnd?.();
-    }
-  });
+  el.addEventListener('timeupdate', () => watchEnd(slot));
+  /*
+   * **A tenth of a second is close enough to the last second.**
+   *
+   * `timeupdate` fires about four times a second, which is fine for catching the end of a song but too
+   * coarse to place a one-second fade: the fade could start a quarter of a second late and still be at a
+   * third of its level when the page turned. This ticker asks the same question ten times a second, so a
+   * one-second fade takes one second.
+   */
+  window.setInterval(() => watchEnd(slot), 100);
   el.addEventListener('ended', () => {
     if (slot !== active || !playing || turned) return;
     turned = true;
@@ -181,12 +199,38 @@ function ensureSlots(): Slot[] {
   return slots;
 }
 
+/**
+ * Watch a player's clock for the two moments an automatic page turn needs: a second out, and half a
+ * second out.
+ *
+ * One second before the page turns, the song starts to fall away, so a chapter that ends by itself is
+ * heard ending rather than cut off. Half a second before, the deck is told, and it turns the page as the
+ * fade lands on nothing. A page the traveller turns by hand never gets here: by then this element is no
+ * longer the active one.
+ */
+function watchEnd(slot: Slot): void {
+  if (slot !== active || !playing) return;
+  const { duration, currentTime } = slot.el;
+  if (!Number.isFinite(duration) || duration <= TURN_EARLY + AUTO_FADE) return;
+  if (!ducked && currentTime >= duration - TURN_EARLY - AUTO_FADE) {
+    ducked = true;
+    fade(slot.el, 0, AUTO_FADE);
+    note(`fade out ${AUTO_FADE}s before the page`);
+  }
+  if (turned) return;
+  if (currentTime >= duration - TURN_EARLY) {
+    turned = true;
+    onEnd?.();
+  }
+}
+
 /** Load a track into a player, unless it is already there. */
 function load(slot: Slot, track: Track): void {
   if (slot.track === track) return;
   slot.track = track;
   slot.el.src = urlOf(track);
   turned = false;
+  ducked = false;
 }
 
 /** The player a new track should use: one that already holds it, or the one that is not playing. */
@@ -268,7 +312,7 @@ function spin(track: Track, next?: Track): void {
     turned = false;
     begin(live);
     ensurePlaying(live);
-    fade(live.el, targetVolume(track), 0.35);
+    fade(live.el, targetVolume(track), FADE_IN);
     current = track;
     prefetch(next);
     return;

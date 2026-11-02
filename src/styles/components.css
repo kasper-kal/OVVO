@@ -10024,3 +10024,106 @@
 .wrapped-progress__seg.is-done {
   background: currentColor;
 }
+
+/* ==========================================================================
+ * **The dots across the whole page, and a calmer way from one page to the next.**
+ * ========================================================================== */
+
+/*
+ * 11 · The dot bed covers the page, not the text block.
+ *
+ * It was drawn inside the body, and the body is a transformed flex child, so it began under the top row
+ * and ended above the footer, while page four's paper shelf — a fixed band across the bottom third — was
+ * painted over the rest. It is a child of the stage now and sits above that shelf, under the words.
+ */
+.wrapped-stage > .wrapped-grain {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  z-index: 1;
+}
+
+.wrapped-stage[data-chapter='origin'] .wrapped-grain {
+  opacity: 0.09;
+}
+
+/*
+ * 12 · The way from one chapter to the next is a settle, not a jump.
+ *
+ * Every chapter used to arrive in well under a second, several of them by wiping a clip across the page
+ * or by swinging in from a tenth of the screen away, and the ground colour changed in half that time.
+ * The travel is now a few percent, the clip wipes are gone, the entries take about a second, and the
+ * colour underneath has the same second to change, so a page turn reads as one movement.
+ */
+.wrapped-stage {
+  transition: background-color 900ms cubic-bezier(0.22, 0.61, 0.36, 1), color 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.wrapped-body {
+  animation-duration: 900ms;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.wrapped-body[data-chapter='cover'] { animation: wrapped-ch-lift 1000ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='total'] { animation: wrapped-ch-floor 980ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='pair'] { animation: wrapped-ch-wipe-down 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='origin'] { animation: wrapped-ch-deal 920ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='hour'] { animation: wrapped-ch-grow 960ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='direct'] { animation: wrapped-ch-zoom 980ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='longest'] { animation: wrapped-ch-slide 920ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='look'] { animation: wrapped-ch-cut 640ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='lines'] { animation: wrapped-ch-wipe-across 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.wrapped-body[data-chapter='close'] { animation: wrapped-ch-settle 1100ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* 13 · The same entrances, with the distance taken out of them. */
+@keyframes wrapped-in {
+  from { opacity: 0; transform: translate3d(6%, 0, 0) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes wrapped-in-back {
+  from { opacity: 0; transform: translate3d(-6%, 0, 0) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes wrapped-ch-lift {
+  from { opacity: 0; transform: translateY(3%); }
+}
+
+@keyframes wrapped-ch-floor {
+  from { opacity: 0; transform: translateY(6%); }
+}
+
+@keyframes wrapped-ch-wipe-down {
+  from { opacity: 0; transform: translateY(-2.5%) scale(0.99); }
+}
+
+@keyframes wrapped-ch-deal {
+  from { opacity: 0; transform: translateX(4%) rotate(0.5deg); }
+}
+
+@keyframes wrapped-ch-grow {
+  from { opacity: 0; transform: scaleY(0.97); }
+}
+
+@keyframes wrapped-ch-zoom {
+  from { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes wrapped-ch-slide {
+  from { opacity: 0; transform: translateX(-4%); }
+}
+
+@keyframes wrapped-ch-cut {
+  from { opacity: 0; transform: scale(1.02); }
+}
+
+@keyframes wrapped-ch-wipe-across {
+  from { opacity: 0; transform: translateX(3%); }
+}
+
+@keyframes wrapped-ch-settle {
+  from { opacity: 0; transform: translateY(10px); }
+}

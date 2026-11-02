@@ -306,6 +306,17 @@ export function WrappedPage() {
       ) : null}
 
       {/*
+        * **The dotted ground, exactly as the first versions drew it.**
+        *
+        * One-pixel dots three pixels apart: paper grain, not a pattern of discs. It was taken off every
+        * chapter when each page got its own surface; this is the one page that asked for it back. It is a
+        * child of the stage rather than of the body, because the ground belongs to the whole page: drawn
+        * inside the body it started where the words start and stopped where they stop, and the paper shelf
+        * at the foot of the page covered the rest.
+        */}
+      {chapter.id === 'origin' ? <span className="wrapped-grain" aria-hidden="true" /> : null}
+
+      {/*
         * **Where you are, in ten pieces.**
         *
         * A story needs a map at the top: one segment per chapter, the ones behind you filled, and the
@@ -416,15 +427,6 @@ export function WrappedPage() {
               <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
                 {t(chapter.kicker)}
               </span>
-
-              {/*
-                * **The dotted ground, exactly as the first versions drew it.**
-                *
-                * One-pixel dots three pixels apart at seven percent: paper grain, not a pattern of discs.
-                * It was taken off every chapter when each page got its own surface; this is the one page
-                * that asked for it back.
-                */}
-              {chapter.id === 'origin' ? <span className="wrapped-grain" aria-hidden="true" /> : null}
 
               {chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
