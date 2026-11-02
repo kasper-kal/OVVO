@@ -11687,3 +11687,28 @@
   grid-template-rows: auto auto auto auto;
   align-content: center;
 }
+
+/*
+ * **A black pill needs an edge on a dark card.**
+ *
+ * The alert card's one action is `btn--primary`, which is the structural obsidian on every
+ * appearance. On a white card that is 15.9 to 1 and reads as a button; on the dark card it was
+ * `#18181b` against `#232220`, which measures **1.11 to 1** — the pill was drawn and could not be
+ * seen, which is exactly what the steerer pointed at. No fill fixes that: to reach 3 to 1 against a
+ * surface that dark, the pill would have to be grey.
+ *
+ * So in dark the border does the work instead of the surface. Light ink at 45% over the dark card
+ * resolves to about `#848482`, **3.4 to 1** against the card — enough for a control's boundary
+ * (WCAG 1.4.11) — and it is the same ink the label is painted in, so the pill reads as one object
+ * rather than a grey outline bolted onto it. Light is untouched: there the surface is the boundary.
+ *
+ * It lives at the end of this file rather than beside `.btn--primary` because that block appears
+ * twice (once per appearance); the selector is specific enough to win wherever it sits.
+ */
+:root[data-theme='dark'] .btn--primary {
+  border-color: rgba(252, 251, 250, 0.45);
+}
+
+:root[data-theme='dark'] .btn--primary:hover {
+  border-color: rgba(252, 251, 250, 0.7);
+}
