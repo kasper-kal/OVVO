@@ -285,43 +285,27 @@ export function WrappedPage() {
       </nav>
 
       <header className="wr-chrome">
-        <span className="wr-mark">OVVO</span>
+        <span className="wr-mark">
+          OVVO
+          <b className="wr-count">
+            {String(index + 1).padStart(2, '0')} / {String(story.length).padStart(2, '0')}
+          </b>
+        </span>
         <div className="wr-controls">
+          {/* The switch says what a thumb will get, not what is already true. */}
           <button
             type="button"
-            className="wr-icon"
+            className="wr-pill"
             aria-label={paused ? t('Play the story') : t('Pause the story')}
             onClick={togglePause}
           >
-            {paused ? (
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M8 5.5v13a1 1 0 0 0 1.5.87l10-6.5a1 1 0 0 0 0-1.74l-10-6.5A1 1 0 0 0 8 5.5Z" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <rect x="7" y="5" width="3.6" height="14" rx="1.2" />
-                <rect x="13.4" y="5" width="3.6" height="14" rx="1.2" />
-              </svg>
-            )}
+            {paused ? t('Play') : t('Pause')}
           </button>
-          <button type="button" className="wr-icon" aria-label={soundLabel} onClick={toggleSound}>
-            {sound && audible ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-                <path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4z" fill="currentColor" stroke="none" />
-                <path d="M16 9a4.4 4.4 0 0 1 0 6" />
-                <path d="M18.6 6.6a8 8 0 0 1 0 10.8" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-                <path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4z" fill="currentColor" stroke="none" />
-                <path d="m16.4 9.4 5.2 5.2M21.6 9.4l-5.2 5.2" />
-              </svg>
-            )}
+          <button type="button" className="wr-pill" aria-label={soundLabel} onClick={toggleSound}>
+            {soundLabel}
           </button>
-          <button type="button" className="wr-icon" aria-label={t('Close')} onClick={leave}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
-              <path d="m6 6 12 12M18 6 6 18" />
-            </svg>
+          <button type="button" className="wr-pill" aria-label={t('Close')} onClick={leave}>
+            {t('Close')}
           </button>
         </div>
       </header>

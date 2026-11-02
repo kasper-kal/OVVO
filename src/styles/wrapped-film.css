@@ -730,3 +730,34 @@
 
 .wr-fold[data-pose='tower'] { animation-name: wr-drift-b; animation-duration: 15.5s; }
 .wr-fold[data-pose='beam'] { animation-name: wr-drift-e; animation-duration: 16s; }
+
+/* The top says where the story is and what the sound is doing, in words. */
+.wr-mark {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.wr-count {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.62);
+  font-variant-numeric: tabular-nums;
+}
+
+.wr-pill {
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.wr-pill:active {
+  transform: scale(0.96);
+}
