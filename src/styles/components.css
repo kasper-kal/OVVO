@@ -11564,3 +11564,16 @@
 .wrapped-stage[data-chapter='longest'] .wrapped-stretch__line {
   background: currentColor;
 }
+
+/*
+ * 42 · The long haul still had a row of ruler marks over its track.
+ *
+ * They were drawn as the stretch block's own rule, not as the ruler element, so hiding the ruler left
+ * them behind: twenty marks that measure nothing, above a line that does measure the trip. They go.
+ * What is left is the duration, the two ends and the track between them.
+ */
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch::before,
+.wrapped-stage[data-chapter='longest'] .wrapped-stretch__ticks {
+  content: none;
+  display: none;
+}
