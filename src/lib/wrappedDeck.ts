@@ -30,6 +30,7 @@ export type ChapterKind =
   | 'chips'
   | 'stretch'
   | 'word'
+  | 'name'
   | 'close';
 
 export interface Chapter {
@@ -93,6 +94,159 @@ function topEntries<T extends string>(counts: Map<T, number>, limit: number): Ar
     .map(([value, count]) => ({ value, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
+}
+
+/** How many journeys a year needs before it can be said what kind of traveller it made. */
+export const NAME_MIN_RUNS = 6;
+
+interface Nameplate {
+  /** What the year made them, in a few words. */
+  name: string;
+  /** The sentence that turns the tally into that claim. */
+  line: string;
+  /** The journeys that earn it, printed under it. */
+  chips: { label: string; detail: string }[];
+}
+
+/**
+ * **Who the year made you.**
+ *
+ * Every other chapter counts something. This one says what the counting adds up to, so it is the only
+ * chapter that speaks about the traveller rather than about the tally. That is the part of Wrapped
+ * that actually pulls: not the colour or the movement, but being named. A name only works if the year
+ * earned it, so each claim needs a real share of the journeys, and the journeys that prove it are
+ * printed beside it. A year too thin to point anywhere gets no chapter at all rather than a
+ * flattering guess.
+ *
+ * The claims are the six shapes a year of journeys can honestly take: the one trip taken again and
+ * again, the same start every time, the trip with nothing to change on, the early start, the late
+ * one, and the year that kept going somewhere new. None of them needs a majority, because a real year
+ * is mixed; each is measured against the floor that makes it worth saying, and the claim that clears
+ * its own floor by the widest margin is the one that names the year.
+ */
+function nameplateFor({
+  runs,
+  pair,
+  secondPairCount,
+  topOrigin,
+  topOriginCount,
+  destinations,
+  direct,
+  peak,
+  beforeNine,
+  afterSix,
+  latestHour,
+  longestMinutes,
+  language,
+}: {
+  runs: number;
+  pair: { from: string; to: string; count: number } | null;
+  secondPairCount: number;
+  topOrigin: string | null;
+  topOriginCount: number;
+  destinations: number;
+  direct: number;
+  peak: number;
+  beforeNine: number;
+  afterSix: number;
+  latestHour: number;
+  longestMinutes?: number;
+  language: Language;
+}): Nameplate | null {
+  if (runs < NAME_MIN_RUNS) return null;
+
+  const clock = (hour: number) => `${hour < 10 ? '0' : ''}${hour}:00`;
+  const share = (count: number) => count / runs;
+  /* How far past the floor a claim sits, so the strongest shape of the year wins rather than the
+     first one in this list. A share of 0.7 against a floor of 0.35 is twice the claim it needs. */
+  const candidates: Array<Nameplate & { strength: number }> = [];
+
+  if (pair && pair.count >= 4 && pair.count >= 1.8 * Math.max(1, secondPairCount)) {
+    candidates.push({
+      strength: share(pair.count) / 0.35,
+      name: 'The Regular',
+      line: 'One trip again and again, and you know exactly which.',
+      chips: [
+        { label: `${pair.from} to ${pair.to}`, detail: `${pair.count} journeys` },
+        { label: 'The next most repeated trip', detail: `${secondPairCount} journeys` },
+        ...(topOrigin ? [{ label: 'Where you set off', detail: topOrigin }] : []),
+      ],
+    });
+  }
+
+  if (topOrigin && topOriginCount >= 4 && share(topOriginCount) >= 0.6) {
+    candidates.push({
+      strength: share(topOriginCount) / 0.6,
+      name: 'The Creature of Habit',
+      line: 'More often than not, the day began at the same station.',
+      chips: [
+        { label: 'Where you set off', detail: `${topOriginCount} of ${runs}` },
+        { label: 'Different destinations', detail: `${destinations}` },
+        ...(pair ? [{ label: 'The trip you took most', detail: `${pair.count} journeys` }] : []),
+      ],
+    });
+  }
+
+  if (direct >= 4 && share(direct) >= 0.5) {
+    candidates.push({
+      strength: share(direct) / 0.5,
+      name: 'The Straight-Through',
+      /* The row prints the number, so the sentence says what it means instead of repeating it. */
+      line: 'The change-free journey was your default.',
+      chips: [
+        ...(longestMinutes
+          ? [{ label: 'The longest trip', detail: formatDuration(longestMinutes, language) }]
+          : []),
+        { label: 'Journeys with no changes', detail: `${direct} of ${runs}` },
+        ...(topOrigin ? [{ label: 'Where you set off', detail: topOrigin }] : []),
+      ],
+    });
+  }
+
+  if (beforeNine >= 4 && share(beforeNine) >= 0.35 && beforeNine > afterSix) {
+    candidates.push({
+      strength: share(beforeNine) / 0.35,
+      name: 'The Early Riser',
+      line: 'You left before the city was properly awake.',
+      chips: [
+        { label: 'Before nine', detail: `${beforeNine} of ${runs}` },
+        { label: 'Your usual hour', detail: clock(peak) },
+        { label: 'After six', detail: `${afterSix} of ${runs}` },
+      ],
+    });
+  }
+
+  if (afterSix >= 4 && share(afterSix) >= 0.35 && afterSix > beforeNine) {
+    candidates.push({
+      strength: share(afterSix) / 0.35,
+      name: 'The Night Owl',
+      line: 'You travelled after the day was done.',
+      chips: [
+        { label: 'After six', detail: `${afterSix} of ${runs}` },
+        { label: 'Your latest hour', detail: clock(latestHour) },
+        { label: 'Before nine', detail: `${beforeNine} of ${runs}` },
+      ],
+    });
+  }
+
+  if (destinations >= 6 && share(destinations) >= 0.5) {
+    candidates.push({
+      strength: share(destinations) / 0.5,
+      name: 'The Explorer',
+      line: 'Half of your journeys went somewhere different.',
+      chips: [
+        { label: 'Different destinations', detail: `${destinations}` },
+        ...(pair ? [{ label: 'The trip you repeated most', detail: `${pair.count} times` }] : []),
+        ...(topOrigin ? [{ label: 'Where you set off from', detail: topOrigin }] : []),
+      ],
+    });
+  }
+
+  let best: (Nameplate & { strength: number }) | null = null;
+  for (const candidate of candidates) {
+    if (!best || candidate.strength > best.strength) best = candidate;
+  }
+  return best ? { name: best.name, line: best.line, chips: best.chips } : null;
 }
 
 export function buildStory({
@@ -165,6 +319,26 @@ export function buildStory({
   const lineList = topEntries(lines, 3);
   const directShare = runs.length ? direct / runs.length : 0;
   const directPct = Math.round(directShare * 100);
+  const destinations = new Set(runs.map((run) => run.to)).size;
+  const beforeNine = hours.slice(0, 9).reduce((sum, count) => sum + count, 0);
+  const afterSix = hours.slice(18).reduce((sum, count) => sum + count, 0);
+  const latestHour = hours.reduce((at, count, hour) => (count > 0 ? hour : at), 0);
+  const secondPair = topEntries(pairs, 2)[1];
+  const plate = nameplateFor({
+    runs: runs.length,
+    pair: pair ? { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count } : null,
+    secondPairCount: secondPair?.count ?? 0,
+    topOrigin: originList[0] ? nameOf(originList[0].value) : null,
+    topOriginCount: originList[0]?.count ?? 0,
+    destinations,
+    direct,
+    peak,
+    beforeNine,
+    afterSix,
+    latestHour,
+    longestMinutes: longest.minutes,
+    language,
+  });
 
   const story: Array<Chapter | null> = [
     {
@@ -189,6 +363,19 @@ export function buildStory({
       months,
       line: runs.length === 1 ? 'journey planned in OVVO.' : 'journeys planned in OVVO.',
     },
+    plate
+      ? {
+          id: 'name',
+          kind: 'name',
+          tone: 'sage',
+          /* A name is a reveal rather than a count, so it gets the mid-tempo piece. */
+          track: 'melodic-trap',
+          kicker: 'The traveller you were',
+          big: plate.name,
+          line: plate.line,
+          chips: plate.chips,
+        }
+      : null,
     pair
       ? {
           id: 'pair',
