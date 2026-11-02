@@ -65,6 +65,21 @@ async function readJson(request) {
   }
 }
 
+/**
+ * **The address a passkey is allowed to have been made on.**
+ *
+ * The request's own origin is the answer, and in production that is the only one. Development and
+ * preview sit behind a proxy that talks plain HTTP to this Worker while the browser is on HTTPS,
+ * so the secure form of the same host is accepted as well: same host, same site, the stricter
+ * scheme. Nothing else is ever on the list, which is what keeps an answer made for another site
+ * from being accepted here.
+ */
+function expectedOrigins(url) {
+  const origins = [url.origin];
+  if (url.protocol === 'http:') origins.push(`https://${url.host}`);
+  return origins;
+}
+
 function transportsOf(row) {
   if (typeof row.transports !== 'string' || row.transports.length === 0) return undefined;
   return row.transports.split(',').filter((part) => part.length > 0);
@@ -187,7 +202,7 @@ async function registerVerify(request, env, url, claims) {
     verification = await verifyRegistrationResponse({
       response: body.response,
       expectedChallenge: row.challenge,
-      expectedOrigin: url.origin,
+      expectedOrigin: expectedOrigins(url),
       expectedRPID: url.hostname,
     });
   } catch (error) {
@@ -269,7 +284,7 @@ async function signInVerify(request, env, url) {
     verification = await verifyAuthenticationResponse({
       response: body.response,
       expectedChallenge: row.challenge,
-      expectedOrigin: url.origin,
+      expectedOrigin: expectedOrigins(url),
       expectedRPID: url.hostname,
       credential: {
         id: stored.id,

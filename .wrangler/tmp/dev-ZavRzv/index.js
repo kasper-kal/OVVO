@@ -1981,10 +1981,10 @@ var require_tslib = __commonJS({
   }
 });
 
-// .wrangler/tmp/bundle-fMsyol/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-yuv5Xe/middleware-loader.entry.ts
 init_modules_watch_stub();
 
-// .wrangler/tmp/bundle-fMsyol/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-yuv5Xe/middleware-insertion-facade.js
 init_modules_watch_stub();
 
 // worker/index.js
@@ -21945,6 +21945,12 @@ async function readJson(request) {
   }
 }
 __name(readJson, "readJson");
+function expectedOrigins(url) {
+  const origins = [url.origin];
+  if (url.protocol === "http:") origins.push(`https://${url.host}`);
+  return origins;
+}
+__name(expectedOrigins, "expectedOrigins");
 function transportsOf(row) {
   if (typeof row.transports !== "string" || row.transports.length === 0) return void 0;
   return row.transports.split(",").filter((part) => part.length > 0);
@@ -22041,7 +22047,7 @@ async function registerVerify(request, env, url, claims) {
     verification = await verifyRegistrationResponse({
       response: body.response,
       expectedChallenge: row.challenge,
-      expectedOrigin: url.origin,
+      expectedOrigin: expectedOrigins(url),
       expectedRPID: url.hostname
     });
   } catch (error) {
@@ -22102,7 +22108,7 @@ async function signInVerify(request, env, url) {
     verification = await verifyAuthenticationResponse({
       response: body.response,
       expectedChallenge: row.challenge,
-      expectedOrigin: url.origin,
+      expectedOrigin: expectedOrigins(url),
       expectedRPID: url.hostname,
       credential: {
         id: stored.id,
@@ -22321,7 +22327,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-fMsyol/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-yuv5Xe/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -22354,7 +22360,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-fMsyol/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-yuv5Xe/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
