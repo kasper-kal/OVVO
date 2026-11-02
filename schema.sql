@@ -20,6 +20,20 @@ CREATE TABLE IF NOT EXISTS travel_sync (
 -- and nothing in this table can be used to sign one. `counter` is what tells a copied key from the
 -- real one, and `backed_up` says whether the platform syncs it between devices.
 
+/*
+ * **The traveller's photograph, one per account.**
+ *
+ * It was going to live in an R2 bucket, and Cloudflare will not switch R2 on without a payment
+ * method, which this project does not have. A squared photograph is about thirty kilobytes, so
+ * the free database holds thousands of them and nothing was given up but tidiness. The value is a
+ * JPEG data URL, written by `worker/photos.js` after it has checked the shape.
+ */
+CREATE TABLE IF NOT EXISTS profile_photo (
+  uid TEXT PRIMARY KEY,
+  photo TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS passkey (
   id          TEXT PRIMARY KEY,
   uid         TEXT NOT NULL,

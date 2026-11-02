@@ -15717,7 +15717,7 @@ var Name3 = class _Name {
   }
   toJSON() {
     var _a3;
-    const json3 = [];
+    const json4 = [];
     for (const rdn of this.asn) {
       const jsonItem = {};
       for (const attr of rdn) {
@@ -15725,9 +15725,9 @@ var Name3 = class _Name {
         (_a3 = jsonItem[type]) !== null && _a3 !== void 0 ? _a3 : jsonItem[type] = [];
         jsonItem[type].push(attr.value.anyValue ? `#${import_pvtsutils.Convert.ToHex(attr.value.anyValue)}` : attr.value.toString());
       }
-      json3.push(jsonItem);
+      json4.push(jsonItem);
     }
-    return json3;
+    return json4;
   }
   fromString(data) {
     const asn = new Name();
@@ -22303,9 +22303,55 @@ async function passkeyRoute(request, env, url) {
 }
 __name(passkeyRoute, "passkeyRoute");
 
+// worker/photos.js
+init_modules_watch_stub();
+var MAX_PHOTO_CHARS = 140 * 1024;
+var json2 = /* @__PURE__ */ __name((body, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
+}), "json");
+async function photoRoute(request, env, claims) {
+  if (claims === null || !claims.uid) return json2({ error: "unauthorized" }, 401);
+  if (request.method === "GET") {
+    const row = await env.DB.prepare("SELECT photo FROM profile_photo WHERE uid = ?1").bind(claims.uid).first();
+    if (!row || typeof row.photo !== "string" || row.photo.length === 0) {
+      return json2({ data: null });
+    }
+    return new Response(JSON.stringify({ data: row.photo }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "private, max-age=300"
+      }
+    });
+  }
+  if (request.method === "PUT") {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json2({ error: "body" }, 400);
+    }
+    const data = typeof body?.data === "string" ? body.data : "";
+    if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(data)) return json2({ error: "photo" }, 400);
+    if (data.length > MAX_PHOTO_CHARS) return json2({ error: "too-big" }, 413);
+    await env.DB.prepare(
+      `INSERT INTO profile_photo (uid, photo, updated_at) VALUES (?1, ?2, ?3)
+       ON CONFLICT(uid) DO UPDATE SET photo = ?2, updated_at = ?3`
+    ).bind(claims.uid, data, (/* @__PURE__ */ new Date()).toISOString()).run();
+    return json2({ saved: true });
+  }
+  if (request.method === "DELETE") {
+    await env.DB.prepare("DELETE FROM profile_photo WHERE uid = ?1").bind(claims.uid).run();
+    return json2({ removed: true });
+  }
+  return json2({ error: "method" }, 405);
+}
+__name(photoRoute, "photoRoute");
+
 // worker/index.js
 var MAX_DOC_BYTES = 200 * 1024;
-var json2 = /* @__PURE__ */ __name((body, status = 200) => new Response(JSON.stringify(body), {
+var json3 = /* @__PURE__ */ __name((body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
 }), "json");
@@ -22333,43 +22379,44 @@ async function saveProfile(request, env, claims) {
   try {
     body = await request.json();
   } catch {
-    return json2({ error: "body" }, 400);
+    return json3({ error: "body" }, 400);
   }
   if (!body || typeof body !== "object" || typeof body.doc !== "object" || body.doc === null) {
-    return json2({ error: "doc" }, 400);
+    return json3({ error: "doc" }, 400);
   }
   const doc = JSON.stringify(body.doc);
-  if (new TextEncoder().encode(doc).length > MAX_DOC_BYTES) return json2({ error: "too-big" }, 413);
+  if (new TextEncoder().encode(doc).length > MAX_DOC_BYTES) return json3({ error: "too-big" }, 413);
   const baseRev = Number.isFinite(body.baseRev) ? Math.max(0, Math.trunc(body.baseRev)) : 0;
   const now = (/* @__PURE__ */ new Date()).toISOString();
   const current = await readProfile(env, claims.uid);
   if (current.rev === 0) {
-    if (baseRev !== 0) return json2({ error: "stale", ...current }, 409);
+    if (baseRev !== 0) return json3({ error: "stale", ...current }, 409);
     await env.DB.prepare(
       "INSERT INTO travel_sync (uid, email, doc, rev, updated_at) VALUES (?1, ?2, ?3, 1, ?4)"
     ).bind(claims.uid, claims.email, doc, now).run();
-    return json2({ rev: 1, doc: body.doc, updatedAt: now });
+    return json3({ rev: 1, doc: body.doc, updatedAt: now });
   }
-  if (baseRev !== current.rev) return json2({ error: "stale", ...current }, 409);
+  if (baseRev !== current.rev) return json3({ error: "stale", ...current }, 409);
   await env.DB.prepare(
     "UPDATE travel_sync SET doc = ?2, email = ?3, rev = rev + 1, updated_at = ?4 WHERE uid = ?1 AND rev = ?5"
   ).bind(claims.uid, doc, claims.email, now, current.rev).run();
   const after = await readProfile(env, claims.uid);
-  return json2(after);
+  return json3(after);
 }
 __name(saveProfile, "saveProfile");
 async function api(request, env, url) {
-  if (url.pathname === "/api/health") return json2({ ok: true });
+  if (url.pathname === "/api/health") return json3({ ok: true });
   if (request.method !== "GET" && request.method !== "HEAD" && crossOrigin(request, url)) {
-    return json2({ error: "origin" }, 403);
+    return json3({ error: "origin" }, 403);
   }
   if (url.pathname.startsWith("/api/lookup/")) return lookupRoute(request, env, url);
   if (url.pathname.startsWith("/api/passkey/")) return passkeyRoute(request, env, url);
   const claims = await identify(request, env);
-  if (!claims) return json2({ error: "unauthorized" }, 401);
+  if (!claims) return json3({ error: "unauthorized" }, 401);
+  if (url.pathname === "/api/photo") return photoRoute(request, env, claims);
   if (url.pathname === "/api/me" && request.method === "GET") {
     const profile = await readProfile(env, claims.uid);
-    return json2({
+    return json3({
       uid: claims.uid,
       email: claims.email,
       rev: profile.rev,
@@ -22382,9 +22429,9 @@ async function api(request, env, url) {
   }
   if (url.pathname === "/api/sync" && request.method === "DELETE") {
     await env.DB.prepare("DELETE FROM travel_sync WHERE uid = ?1").bind(claims.uid).run();
-    return json2({ rev: 0, doc: {} });
+    return json3({ rev: 0, doc: {} });
   }
-  return json2({ error: "not-found" }, 404);
+  return json3({ error: "not-found" }, 404);
 }
 __name(api, "api");
 var worker_default = {
@@ -22395,7 +22442,7 @@ var worker_default = {
         return await api(request, env, url);
       } catch (error) {
         console.error("[api]", error);
-        return json2({ error: "server" }, 500);
+        return json3({ error: "server" }, 500);
       }
     }
     return env.ASSETS.fetch(request);

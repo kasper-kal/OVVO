@@ -8,6 +8,7 @@
 import { identify } from './auth.js';
 import { lookupRoute } from './lookup.js';
 import { passkeyRoute } from './passkey.js';
+import { photoRoute } from './photos.js';
 
 /** A whole traveller's year, in one document. Small next to D1's limits, and refused above this. */
 const MAX_DOC_BYTES = 200 * 1024;
@@ -117,6 +118,12 @@ async function api(request, env, url) {
 
   const claims = await identify(request, env);
   if (!claims) return json({ error: 'unauthorized' }, 401);
+
+  /*
+   * **The face on the account.** Read, written and removed by its owner only; the bucket this was
+   * going to live in needs a card, so it lives in the database (`worker/photos.js`).
+   */
+  if (url.pathname === '/api/photo') return photoRoute(request, env, claims);
 
   if (url.pathname === '/api/me' && request.method === 'GET') {
     const profile = await readProfile(env, claims.uid);

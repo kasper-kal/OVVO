@@ -14,6 +14,7 @@ import {
   type PasskeyInfo,
 } from '../../lib/passkeys';
 import { PHOTO_KEY, squarePhoto } from '../../lib/avatar';
+import { loadPhotoFromAccount, removePhotoFromAccount, savePhotoToAccount } from '../../lib/photos';
 import { readStored, writeStored } from '../../lib/storage';
 
 type Account = { uid: string; email: string | null; name: string | null };
@@ -172,6 +173,43 @@ export function AccountCard() {
     }
   };
 
+  /*
+   * **A new phone asks the account for the face.** The copy in this browser is drawn first because
+   * it costs nothing; this is what makes a fresh device show the same person without waiting for
+   * the travel document to arrive. A photograph already here wins, so nothing flickers on a phone
+   * that already knows this face.
+   */
+  useEffect(() => {
+    if (uid === null || photo.length > 0) return;
+    let alive = true;
+    void loadPhotoFromAccount()
+      .then((data) => {
+        if (!alive || data === null) return;
+        setPhoto(data);
+        writeStored(PHOTO_KEY, data);
+      })
+      .catch(() => {
+        /* no face, or no connection: the initial is a fine answer */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [uid, photo]);
+
+  /*
+   * **A photograph chosen before the account could hold one is copied up once.** Most travellers
+   * already have a face on this phone, and asking them to choose it again to get it onto their
+   * account would be silly. One copy per visit, and a failure simply tries again next time.
+   */
+  const copied = useRef<string | null>(null);
+  useEffect(() => {
+    if (uid === null || photo.length === 0 || copied.current === uid) return;
+    copied.current = uid;
+    void savePhotoToAccount(photo).catch(() => {
+      copied.current = null;
+    });
+  }, [uid, photo]);
+
   const choosePhoto = async (file: File | undefined) => {
     if (!file) return;
     try {
@@ -179,6 +217,12 @@ export function AccountCard() {
       setPhoto(square);
       writeStored(PHOTO_KEY, square);
       setNote(null);
+      /*
+       * The account keeps its own copy, so the next phone shows this face. If that copy fails the
+       * picture is still here and still drawn, so the traveller is not alarmed about a photograph
+       * they can already see.
+       */
+      void savePhotoToAccount(square).catch(() => undefined);
     } catch {
       setNote('That picture could not be read. Try another one.');
     }
@@ -188,6 +232,8 @@ export function AccountCard() {
     setPhoto('');
     writeStored(PHOTO_KEY, '');
     setNote(null);
+    /* A face removed here must not come back on the next phone. */
+    void removePhotoFromAccount().catch(() => undefined);
   };
 
   const removeAccount = async () => {
