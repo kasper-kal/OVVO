@@ -12160,6 +12160,39 @@
   gap: var(--timeline-gap);
 }
 
+/*
+ * **A ride's words sit on the middle of its own line, not under its station name.**
+ *
+ * The station belongs to the mark it names, so it stays on the mark's line. The service and the
+ * direction belong to the ride itself, and the ride is the blue line between this mark and the next
+ * one; left in the flow they hung just under the station, so the blue ran on for a third of its
+ * length under nothing at all. Pushing the block down by the gap makes its centre land on the
+ * middle of that blue, and the glyph that goes with it moves to the same line.
+ */
+.journey-rail .timeline__rail--ride:not(.timeline__rail--stop) > div.stack-1 > :nth-child(2) {
+  /* the gap less the station's own line and the stack's own space, so the block's centre is the
+     segment's centre whatever the two lines are called */
+  margin-top: calc(var(--timeline-gap) - 24px);
+}
+
+.journey-rail .timeline__rail--ride:not(.timeline__rail--stop) .timeline__mode {
+  top: calc(var(--timeline-gap) + 12px);
+}
+
+/* A ride that names no direction is one line shorter, so its glyph comes up with it. */
+.journey-rail .timeline__rail--ride:not(.timeline__rail--stop):not(:has(> div > p)) .timeline__mode {
+  top: var(--timeline-gap);
+}
+
+/* On foot the same rule: the amount sits on the middle of the dashed line, and so does the figure. */
+.journey-rail .timeline__rail--dashed > div {
+  padding-top: var(--timeline-gap);
+}
+
+.journey-rail .timeline__rail--dashed .timeline__mode {
+  top: var(--timeline-gap);
+}
+
 .journey-rail .timeline__station {
   font-size: calc(var(--fs-body) + 2px);
 }
