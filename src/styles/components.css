@@ -12081,7 +12081,9 @@
 .timeline__time {
   position: absolute;
   left: -46px;
-  top: 6px;
+  /* The time shares its centre line with the ring beside it, so the clock reads as a label of that
+     stop and not as a caption hanging under it. */
+  top: 3px;
   width: 40px;
   text-align: right;
   font-size: var(--fs-pill);
@@ -12143,7 +12145,7 @@
 .journey-rail .timeline {
   /* A journey is given one step more air than a list: the rail between two stations is then long
      enough to read as travel rather than as a joint between two marks. */
-  --timeline-gap: 20px;
+  --timeline-gap: 32px;
   gap: var(--timeline-gap);
 }
 
