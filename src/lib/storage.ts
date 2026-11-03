@@ -32,8 +32,50 @@ export function onStoredChange(listener: () => void): () => void {
   };
 }
 
+/*
+ * **A value that was removed stays removed.**
+ *
+ * Removing the departure alarm deleted its key, and the alarm came back anyway the moment the
+ * screen was left and opened again: the store is written by more than the control that owns a
+ * value — the account sync adopts a copy of the store from the server, and a second tab writes what
+ * it has — so a key that is merely deleted is a key that can be handed back, and an "adopt the
+ * account's copy" with an older revision put the alarm straight back. Deleting the value is
+ * therefore not enough: the deletion has to be remembered too, so a copy of the store that still
+ * contains it does not become the truth.
+ *
+ * `readStored` answers with the fallback for a name on this list, and only a deliberate write
+ * through `writeStored` takes the name off it. The list is capped and lives in the same store, so it
+ * is cleared with everything else.
+ */
+const REMOVED_KEY = 'removed-keys';
+let removedCache: string[] | null = null;
+
+function removedNames(): string[] {
+  if (removedCache) return removedCache;
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(PREFIX + REMOVED_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+    removedCache = Array.isArray(parsed) ? parsed.filter((name): name is string => typeof name === 'string') : [];
+  } catch {
+    removedCache = [];
+  }
+  return removedCache;
+}
+
+function setRemovedNames(names: string[]): void {
+  removedCache = names;
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(PREFIX + REMOVED_KEY, JSON.stringify(names));
+  } catch {
+    /* storage full or unavailable: the in-memory list still holds this session */
+  }
+}
+
 export function readStored<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
+  if (removedNames().includes(key)) return fallback;
   try {
     const raw = window.localStorage.getItem(PREFIX + key);
     if (!raw) return fallback;
@@ -49,6 +91,8 @@ export function writeStored<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    /* A deliberate write is what brings a removed name back into force. */
+    if (removedNames().includes(key)) setRemovedNames(removedNames().filter((name) => name !== key));
     for (const listener of listeners) listener();
   } catch {
     /* storage full or unavailable — the prototype keeps working in memory */
@@ -66,6 +110,8 @@ export function removeStored(key: string): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.removeItem(PREFIX + key);
+    /* The deletion is remembered, or the next copy of the store hands the value back (see above). */
+    if (!removedNames().includes(key)) setRemovedNames([...removedNames(), key].slice(-60));
     for (const listener of listeners) listener();
   } catch {
     /* ignore */
@@ -78,6 +124,7 @@ export function clearStored(): void {
     Object.keys(window.localStorage)
       .filter((key) => key.startsWith(PREFIX))
       .forEach((key) => window.localStorage.removeItem(key));
+    removedCache = [];
   } catch {
     /* ignore */
   }

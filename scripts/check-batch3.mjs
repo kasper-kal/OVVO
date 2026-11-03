@@ -209,6 +209,33 @@ check(
   'nothing is left behind in the store',
 );
 
+/*
+ * **Something else writes the store too.** The account sync adopts the server's copy and a second
+ * tab writes what it has, so a removed value can be handed straight back — which is the report: the
+ * alarm came back after leaving the page and returning. The deletion is now remembered, so a copy
+ * of the store that still holds the alarm does not become the truth.
+ */
+const journeyId = await page.evaluate(() => window.location.pathname.split('/').pop());
+await page.evaluate((id) => {
+  window.localStorage.setItem(`ov-planner:v1:alarm:${id}`, JSON.stringify({ minutes: 5, leaveBy: 355 }));
+}, journeyId);
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForSelector('.timeline', { timeout: 15000 });
+check(
+  (await alarmButton.textContent())?.trim() === 'Alarm',
+  'a copy of the store put back in the browser does not bring the alarm back',
+  (await alarmButton.textContent())?.trim(),
+);
+await alarmButton.click();
+await page.waitForSelector('.alarm__slider');
+await page.locator('.modal .btn--primary').click();
+await page.waitForTimeout(200);
+check(
+  (await alarmButton.textContent())?.trim() === 'Alarm 5 min',
+  'and the alarm can be set again afterwards',
+  (await alarmButton.textContent())?.trim(),
+);
+
 await page.locator('button[aria-label="Share this journey"]').click();
 await page.waitForSelector('.share-row');
 const rows = await page.locator('.share-row').count();
