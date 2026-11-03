@@ -8,7 +8,7 @@ import { findJourneyById } from '../data/journeyEngine';
 import { stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
 import { Button, EmptyState } from '../components/ui/primitives';
-import { Icon } from '../components/ui/Icons';
+import { Icon, ModeIcon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
 import { plural } from '../lib/format';
@@ -181,11 +181,31 @@ export function JourneyDetailPage() {
         showTitle
       />
 
+      {/*
+        **The chain of modes, then the number of changes.** 9292 opens a journey with the vehicles
+        you will actually take — walk, bus, train, train, walk — so the shape of the trip is read
+        before any time is: two trains and two walks, without opening a single leg. The glyphs are
+        the same ones the rail prints per leg, and the count of changes is in words because a
+        screen reader should not have to guess what a multiplication sign means.
+      */}
+      <div className="journey-modes">
+        <span className="journey-modes__chain" aria-hidden="true">
+          {journey.legs.map((leg) => (
+            <ModeIcon key={leg.id} mode={leg.mode} size={16} />
+          ))}
+        </span>
+        <span>
+          {journey.transfers === 0
+            ? t('Direct')
+            : plural(journey.transfers, t('transfer'), t('transfers'))}
+        </span>
+      </div>
+
       {/* The date, the length and the price, in one line under the two ends: 9292's own head. */}
       <p className="journey-meta">
         <span>{format.date(search?.query.date ?? '')}</span>
         <span aria-hidden="true">·</span>
-        <span>{format.duration(journey.durationMinutes)}</span>
+        <span>{t('Travel time {span}', { span: format.span(journey.durationMinutes) })}</span>
         {journey.fare.eur > 0 ? (
           <>
             <span aria-hidden="true">·</span>
@@ -195,11 +215,8 @@ export function JourneyDetailPage() {
               beside it: on white the "52 min" appeared to be running underneath it. The price is
               one more fact in the same sentence, bold because it is the one that costs money.
             */}
-            <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
+            <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}*</span>
           </>
-        ) : null}
-        {journey.delayMinutes ? (
-          <span className="delay">{t('Delay +{count} min', { count: journey.delayMinutes })}</span>
         ) : null}
       </p>
 
@@ -314,9 +331,6 @@ export function JourneyDetailPage() {
       {/* What the head does not say: the walking, how full, and the bicycle. */}
       <p className="t-sm t-muted journey-facts-line">
         {[
-          journey.transfers === 0
-            ? t('Direct')
-            : plural(journey.transfers, t('transfer'), t('transfers')),
           journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
           journey.occupancy === 'busy'
             ? t('Expected busy')
@@ -328,6 +342,16 @@ export function JourneyDetailPage() {
           .filter(Boolean)
           .join(' · ')}
       </p>
+      {/*
+        **The star beside the price means something, so it says what.** 9292 marks its fare with an
+        asterisk and prints the reason in small type under the journey; a price that is a modelled
+        fare rather than a sold ticket should say so in the same breath.
+      */}
+      {journey.fare.eur > 0 ? (
+        <p className="t-xs t-faint journey-note">
+          {t('Fares, occupancy, delays and platforms are indicative.')}
+        </p>
+      ) : null}
       </div>
 
       {/*

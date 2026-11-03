@@ -1226,6 +1226,7 @@ const NL: Record<string, string> = {
   "No bicycle": "Geen fiets",
   "Change at {stop}": "Overstappen in {stop}",
   "Delay +{count} min": "Vertraging +{count} min",
+  "Travel time {span}": "Reistijd {span}",
   "Affected stops ({count})": "Getroffen haltes ({count})",
   "Affected services ({count})": "Getroffen diensten ({count})",
   "More alerts for {line}": "Meer storingen voor {line}",

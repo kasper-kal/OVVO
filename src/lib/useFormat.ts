@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useApp } from '../state/AppState';
-import { formatDate, formatDuration, formatMinutes, relativeMinutes } from './format';
+import { formatDate, formatDuration, formatMinutes, formatSpan, relativeMinutes } from './format';
 
 /**
  * All presentation of times and dates goes through this hook so Settings apply everywhere —
@@ -16,6 +16,7 @@ export function useFormat() {
       hour12,
       language,
       time: (minutes: number) => formatMinutes(minutes, hour12),
+      span: (minutes: number) => formatSpan(minutes),
       duration: (minutes: number) => formatDuration(minutes, language),
       date: (iso: string, style: 'long' | 'dayMonth' = 'long') =>
         shortDates ? formatDate(iso, 'short', language) : formatDate(iso, style, language),

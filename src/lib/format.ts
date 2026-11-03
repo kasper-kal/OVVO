@@ -35,10 +35,20 @@ export function formatMinutes(minutes: number, hour12 = false): string {
   const normalised = ((Math.round(minutes) % 1440) + 1440) % 1440;
   const h = Math.floor(normalised / 60);
   const m = normalised % 60;
-  if (!hour12) return `${pad(h)}:${pad(m)}`;
+  /* 9292 prints 5:42, not 05:42, and a timetable is easier to scan for it. */
+  if (!hour12) return `${h}:${pad(m)}`;
   const suffix = h < 12 ? 'am' : 'pm';
   const hour = h % 12 === 0 ? 12 : h % 12;
   return `${hour}:${pad(m)} ${suffix}`;
+}
+
+/**
+ * **A length of time as a clock face.** "0:59", "1:57": the form 9292 prints beside the word that
+ * names it. A journey's length is not a time of day, so this never appears without that word.
+ */
+export function formatSpan(minutes: number): string {
+  const total = Math.max(0, Math.round(minutes));
+  return `${Math.floor(total / 60)}:${pad(total % 60)}`;
 }
 
 export function formatDuration(minutes: number, language: Language = 'en'): string {

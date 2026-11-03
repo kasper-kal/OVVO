@@ -12045,7 +12045,9 @@
   height: 10px;
   left: calc(var(--rail-node) / 2 - 5px);
   top: 3px;
-  border: 2px solid var(--ink-strong);
+  /* The line's own blue, so a stop reads as a widening of the line rather than a second thing
+     laid over it — 9292's beads are drawn in the colour of the service they belong to. */
+  border: 2px solid var(--rail-ride);
   border-radius: var(--r-circle);
   background: var(--l0-bg);
 }
@@ -12305,6 +12307,32 @@
 /* The grey sentence under the rail is the journey's numbers, and it closes the page. */
 .journey-facts-line {
   margin-top: var(--s-4);
+}
+
+/* The fare's asterisk, explained under the journey. */
+.journey-note {
+  margin-top: var(--s-2);
+}
+
+/*
+ * **The chain of modes under the title.** 9292 opens a journey with the vehicles it is made of, so
+ * the shape of the trip — two trains, two walks — is read before any clock time is. The glyphs are
+ * the rail's own, at one size, and the changes sit at the far edge of the row.
+ */
+.journey-modes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.journey-modes__chain {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--ink-strong);
 }
 
 /* ------------------------------------------------------------- A journey's head

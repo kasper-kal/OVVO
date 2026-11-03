@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { getLine } from '../../data/network';
+import { operatorName } from '../../data/operators';
 import { getDisruption } from '../../data/disruptions';
 import { alertLine } from '../../lib/disruptionText';
 import { useFormat } from '../../lib/useFormat';
@@ -92,8 +93,8 @@ function WalkLegRow({ leg, origin }: { leg: Leg; origin?: React.ReactNode }) {
           </span>
         ) : null}
         <span className="t-sm t-muted">
-          {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} {format.duration(minutes)}
-          {metres ? ` · ${metres} m` : ''}
+          {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} ± {format.duration(minutes)}
+          {metres ? ` (${metres} m)` : ''}
         </span>
         {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
       </div>
@@ -115,6 +116,17 @@ function RideLegRow({
   const line = getLine(leg.lineId);
   const stops = leg.intermediateStops ?? [];
   const serviceName = leg.lineName ?? line?.name ?? t('Service');
+  /*
+   * **The carrier is part of the service's name.** 9292 prints "NS Intercity" rather than
+   * "Intercity", so the traveller knows whose train it is before they board it. The name is only
+   * prefixed when the carrier is a real one and the name does not already say it, so a saved
+   * journey with "NS Intercity 500" written out does not read "NS NS …".
+   */
+  const carrier = operatorName(leg.operatorId ?? line?.operatorId);
+  const serviceLabel =
+    carrier && carrier !== 'Onbekend' && !serviceName.startsWith(carrier)
+      ? `${carrier} ${serviceName}`
+      : serviceName;
   return (
     <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
       {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
@@ -148,15 +160,15 @@ function RideLegRow({
               type="button"
               className="leg-service"
               aria-expanded={stopsOpen}
-              aria-label={t('Show the stops on {line}', { line: serviceName })}
+              aria-label={t('Show the stops on {line}', { line: serviceLabel })}
               onClick={onToggleStops}
             >
-              {serviceName}
+              {serviceLabel}
               <Icon name="chevronRight" size={13} className="leg-service__chevron" />
             </button>
           ) : (
             /* A service that calls nowhere in between has nothing to open, so it is not a button. */
-            <span className="leg-service leg-service--static">{serviceName}</span>
+            <span className="leg-service leg-service--static">{serviceLabel}</span>
           )}
           {/*
             The delay is printed on the service that is late, in the colour the app uses for late
