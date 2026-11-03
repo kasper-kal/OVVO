@@ -10,17 +10,15 @@ import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
 
 /*
- * **The rail is a timetable, not a stack of cards.**
+ * **The rail is a timetable.** The time in the gutter, the mode's own glyph under it, the station in
+ * bold on the line, then the service, the direction it is pointed in and the platform, in words.
+ * There are no pills: a chip for the platform, a chip for the arrival platform, a chip for the
+ * direction and a chip for the bicycle made a three-change journey twenty-one boxes tall.
  *
- * Every leg used to carry a row of pills — the platform, the arrival platform, the direction and a
- * bicycle — so a three-change journey printed twenty-one chips down one column and read as a form.
- * 9292 prints the same journey as a timetable: the time in a gutter on the left, the station in
- * bold on the line, the service in one coloured badge, and the rest as small grey sentences.
- *
- * **The stops a service calls at belong on that rail, not in a sheet.** They open under the service
- * that owns them, each with its own time in the gutter and a small ring on the line, exactly where
- * the traveller is looking — the rail is the thing that answers "how far am I", and lifting the
- * answer into a dialog took it off the line it describes.
+ * **The service name is the control.** Tapping "Bus 347" opens the stops it calls at, right here on
+ * the rail, each with its own time and a small ring on the line — the question "which stops are
+ * between here and there" is a question about this line, so the answer belongs under this line. The
+ * separate "1 stop in between" link said the same thing twice, in a second place, and is gone.
  */
 
 function WalkLegRow({ leg }: { leg: Leg }) {
@@ -36,12 +34,13 @@ function WalkLegRow({ leg }: { leg: Leg }) {
   return (
     <li className="timeline__rail timeline__rail--dashed">
       <span className="timeline__time">{format.time(leg.departure)}</span>
+      <span className="timeline__mode">
+        <ModeIcon mode={leg.mode} size={18} />
+      </span>
       <span className="timeline__node timeline__node--muted" />
       <div className="stack-1">
-        {/* One grey sentence, the shape 9292 gives a walk: how long, how far, from where to where. */}
         <span className="t-strong t-sm">
-          <ModeIcon mode={leg.mode} size={13} /> {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')}{' '}
-          {format.duration(minutes)}
+          {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} {format.duration(minutes)}
           {metres ? ` · ${metres} m` : ''}
         </span>
         <p className="t-sm t-muted">
@@ -80,35 +79,31 @@ function RideLegRow({
     <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
       {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
       <span className="timeline__time">{format.time(leg.departure)}</span>
+      {/* Under the time, the way you travel: a bus, a tram, a train, a boat. */}
+      <span className="timeline__mode">
+        <ModeIcon mode={leg.mode} size={18} />
+      </span>
       <span className="timeline__node timeline__node--accent" />
-      <div className="stack-2">
+      <div className="stack-1">
         <span className="timeline__station">
           {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
         </span>
 
         <div className="row-wrap">
-          {/*
-            **The service is the control.** Tapping the bus opens the stops it calls at, right here
-            on the rail — "which stops are between here and there" is a question about this line, so
-            the answer belongs under this line. A service with nothing in between is not a control:
-            there would be nothing to open.
-          */}
           {stops.length ? (
             <button
               type="button"
-              className={`mode-badge mode-badge--${leg.mode} leg-service`}
+              className="leg-service"
               aria-expanded={stopsOpen}
               aria-label={t('Show the stops on {line}', { line: serviceName })}
               onClick={onToggleStops}
             >
-              <ModeIcon mode={leg.mode} size={13} />
               {serviceName}
+              <Icon name="chevronRight" size={13} className="leg-service__chevron" />
             </button>
           ) : (
-            <span className={`mode-badge mode-badge--${leg.mode}`}>
-              <ModeIcon mode={leg.mode} size={13} />
-              {serviceName}
-            </span>
+            /* A service that calls nowhere in between has nothing to open, so it is not a button. */
+            <span className="leg-service leg-service--static">{serviceName}</span>
           )}
           {/*
             The delay is printed on the service that is late, in the colour the app uses for late
@@ -121,8 +116,7 @@ function RideLegRow({
         {/* The headsign is the direction this service is pointed in, in its own grey line. */}
         {leg.headsign ? (
           <p className="t-sm t-muted">
-            <Icon name="arrowRight" size={12} /> {t('Direction')}{' '}
-            <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+            {t('Direction')} <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
           </p>
         ) : null}
 
@@ -132,16 +126,6 @@ function RideLegRow({
           arrival platform of the last service is printed beside the arrival station instead.
         */}
         {platforms.length ? <p className="t-sm t-muted">{platforms.join(' · ')}</p> : null}
-
-        {stops.length ? (
-          <button type="button" className="leg-stops" aria-expanded={stopsOpen} onClick={onToggleStops}>
-            <Icon name="route" size={13} />
-            {stops.length === 1
-              ? t('1 stop in between')
-              : t('{count} stops in between', { count: stops.length })}
-            <Icon name="chevronRight" size={14} className="leg-stops__chevron" />
-          </button>
-        ) : null}
       </div>
     </li>
   );

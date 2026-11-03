@@ -11904,76 +11904,6 @@
   background: var(--ink-strong);
 }
 
-/* The way into a service's own stops: a word with a glyph, not another pill in the row. */
-.leg-stops {
-  display: inline-flex;
-  align-items: center;
-  justify-self: start;
-  gap: var(--s-1);
-  min-height: var(--target-min);
-  margin-left: calc(var(--s-2) * -1);
-  padding: 0 var(--s-2);
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-strong);
-  font: inherit;
-  font-size: var(--fs-pill);
-  font-weight: var(--fw-bold);
-  /* A word that opens something is underlined like every other control made of words. */
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-  cursor: pointer;
-}
-
-.leg-stops:hover {
-  background: var(--l2-bg);
-  text-decoration-thickness: 2px;
-}
-
-.leg-stops__chevron {
-  color: var(--ink-faint);
-}
-
-/* -------------------------------------------------------------- Timetable gutter
- *
- * **The times get a column of their own.**
- *
- * Every row printed its time inside the row, beside the badge and the chips, so the eye had to
- * hunt for the one fact a journey is made of. 9292 gives the times a gutter down the left edge and
- * sets them in the same weight as the station names, and the page becomes readable at a glance
- * because the column answers "when" before you read a single word of the rest. The rail and its
- * marks stay where they were; this adds 46px of margin to the left of the whole rail.
- */
-.timeline {
-  padding-left: 46px;
-}
-
-.timeline__time {
-  position: absolute;
-  left: -46px;
-  top: 6px;
-  width: 40px;
-  text-align: right;
-  font-size: var(--fs-pill);
-  font-weight: var(--fw-bold);
-  color: var(--ink-strong);
-  /* Times line up as a column, so 10:05 and 9:58 sit on the same digits. */
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-}
-
-/* The dot a change leaves on the rail: smaller than a stop, and never a plate. */
-.timeline__node--transfer {
-  width: 6px;
-  height: 6px;
-  left: calc(var(--rail-node) / 2 - 3px);
-  top: 12px;
-  border: 0;
-  background: var(--ink-faint);
-}
-
 /* ------------------------------------------------------------ Stops on the rail
  *
  * **A stop the service calls at is a small ring on the line, not a dialog.** The list opens under
@@ -11996,23 +11926,70 @@
   background: var(--l2-bg);
 }
 
-/* The service badge is a button when it opens its own stops: same badge, no browser chrome. */
+/*
+ * **A service is a name, not a chip.**
+ *
+ * "Bus 347" sat in a pale rounded badge, and a badge reads as a label you can look at rather than a
+ * line you can open — so a second underlined "1 stop in between" link had to tell the traveller
+ * where to press. 9292 prints the service as bold text and nothing else. The name is the control
+ * here: bold, the same weight as a station, with a small chevron that turns over when its stops are
+ * open. A service with no stops in between is not a button at all.
+ */
 .leg-service {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: -2px;
+  padding: 2px;
   border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-strong);
   font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  line-height: 1.3;
+  text-align: left;
   cursor: pointer;
 }
 
 .leg-service:hover {
-  filter: brightness(1.04);
+  background: var(--l2-bg);
+}
+
+.leg-service--static {
+  margin-left: 0;
+  padding: 0;
+  cursor: auto;
+}
+
+.leg-service--static:hover {
+  background: none;
 }
 
 /* The chevron points down while the stops are open, and turns back when they close. */
-.leg-stops[aria-expanded='true'] .leg-stops__chevron {
+.leg-service__chevron {
+  color: var(--ink-faint);
+  transition: transform var(--t-spring) var(--ease-spring);
+}
+
+.leg-service[aria-expanded='true'] .leg-service__chevron {
   transform: rotate(90deg);
 }
 
-.leg-stops__chevron {
-  transition: transform var(--t-spring) var(--ease-spring);
+/*
+ * **The mode glyph lives in the gutter, under the time.** It is how you know a bus from a train
+ * before reading the line, and 9292 puts it there for the same reason: the left column then answers
+ * both "when" and "how", and the line itself stays words.
+ */
+.timeline__mode {
+  position: absolute;
+  left: -46px;
+  top: 24px;
+  width: 40px;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 4px;
+  color: var(--ink);
 }
