@@ -4278,7 +4278,9 @@
    * it. The centre is the page's own colour, the ring is the app's strongest ink.
    */
   background: var(--l0-bg);
-  border: 3px solid var(--ink-strong);
+  /* Two pixels, not three: at three the ring read as a heavy plate on the line, where 9292 draws a
+     slim mark that the eye reads as a bead on a string. */
+  border: 2px solid var(--ink-strong);
 }
 
 .timeline__node--accent {
