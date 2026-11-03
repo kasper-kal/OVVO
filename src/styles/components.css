@@ -239,8 +239,8 @@
 :root[data-surface='tint'] .panel--sage {
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -394,8 +394,8 @@
    */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -405,8 +405,8 @@
   /* Same rule as the coral panel: a pale fill needs dark ink in both appearances. */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -1763,8 +1763,21 @@
 }
 
 .picker-row--action .picker-row__marker {
-  background: var(--tint-sage);
-  color: var(--tint-sage-ink);
+  /*
+   * **A themed sage, not a lent one.** The disc was filled with `--tint-sage`, which stays pale in
+   * every appearance because it is the ground for a sage *pill*; as a 32px circle it measured
+   * rgb(225, 234, 223) on the light page and the same on the near-black one, so the two rows a
+   * traveller presses first were the brightest thing on a dark screen (reported: "this colour stays
+   * with almost all themes, horrible"). Now it is a wash of the appearance's own sage over the
+   * surface the row sits on, and the glyph is that sage's ink: both follow the theme, and on a
+   * photograph or a tinted card they follow the card tier the station rows already use.
+   *
+   * `--l1-bg` alone is the fallback where `color-mix()` is unavailable (iOS 14 and older): no sage
+   * wash, but still a disc that darkens with the page rather than glaring on it.
+   */
+  background: var(--l1-bg);
+  background: color-mix(in srgb, var(--sage-accent) 16%, var(--l1-bg));
+  color: var(--sage-accent);
 }
 
 .picker-row__name {
@@ -1874,6 +1887,46 @@
 }
 
 /*
+ * **The sort's field is the chip, not a field inside a chip.**
+ *
+ * `Select` wraps a native `<select>` that this file dresses as a field: a 44px capsule with its own
+ * `--l2-bg` fill, its own hairline and its own font weight. Put inside the sort chip that drew a
+ * *second* capsule inside the first — a lighter box with an edge of its own, sitting inside the
+ * pill's curve and cutting its ends at a different angle, beside three controls that were one shape
+ * (reported: "looks super weird and inconsistent with the rest of the website", circled). It also
+ * made the sort 46px tall while its neighbours were 44, because a 44px field inside a bordered pill
+ * adds the pill's two pixels.
+ *
+ * So inside the chip the field is only the words and the mark: no box, no fill, no edge, no minimum
+ * height, and the chip's own type. The mark takes the lane the chip gives it, in the chip's ink.
+ */
+.results-chip--sort .select-wrap {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Three classes, because the field's own rule is written twice in this file and the second copy
+   would win on order alone. */
+.results-chip--sort .select-wrap .select {
+  min-height: 0;
+  padding: 0 26px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  background-image: none;
+  color: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+/* The mark sits at the chip's own right padding, not 12px inside a box that is no longer drawn. */
+.results-chip--sort .select-wrap__mark {
+  right: 0;
+  color: var(--ink-strong);
+}
+
+/*
  * From 720 the bar is one line again: the sort goes back beside the chips it is a chip with, so the
  * grid gives way to a row and each control takes its own width.
  */
@@ -1939,8 +1992,8 @@
    */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -1950,8 +2003,8 @@
   /* Same rule as the coral panel: a pale fill needs dark ink in both appearances. */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -3232,8 +3285,21 @@
 }
 
 .picker-row--action .picker-row__marker {
-  background: var(--tint-sage);
-  color: var(--tint-sage-ink);
+  /*
+   * **A themed sage, not a lent one.** The disc was filled with `--tint-sage`, which stays pale in
+   * every appearance because it is the ground for a sage *pill*; as a 32px circle it measured
+   * rgb(225, 234, 223) on the light page and the same on the near-black one, so the two rows a
+   * traveller presses first were the brightest thing on a dark screen (reported: "this colour stays
+   * with almost all themes, horrible"). Now it is a wash of the appearance's own sage over the
+   * surface the row sits on, and the glyph is that sage's ink: both follow the theme, and on a
+   * photograph or a tinted card they follow the card tier the station rows already use.
+   *
+   * `--l1-bg` alone is the fallback where `color-mix()` is unavailable (iOS 14 and older): no sage
+   * wash, but still a disc that darkens with the page rather than glaring on it.
+   */
+  background: var(--l1-bg);
+  background: color-mix(in srgb, var(--sage-accent) 16%, var(--l1-bg));
+  color: var(--sage-accent);
 }
 
 .picker-row__name {
@@ -3369,8 +3435,23 @@
   height: 18px;
   padding: 0 4px;
   border-radius: var(--r-pill);
-  background: var(--struct-main);
-  color: var(--on-dark);
+  /*
+   * **The count wears the accent, not the structural plate.**
+   *
+   * It was `--struct-main` behind `--on-dark`, the pair a primary button wears. `--struct-main` is a
+   * *dark plate in every style* — that is the point of it, so a primary button's light label always
+   * reads — so on a glass chip over a photograph the disc and the chip behind it are both near-black
+   * and the count had no edge at all (circled and reported). Its own pair was 16:1 in every style and
+   * still invisible, because what a badge has to clear is the *chip*, not its own ink. The accent is
+   * no better everywhere: it is under 3:1 against the chip's own surface in 17 of the 94 style and
+   * appearance pairs.
+   *
+   * `--ink-strong` on `--l1-bg` is the one pair this app already trusts on every screen: text on a
+   * surface. Used inverted — the ink as the disc, the surface colour as the number — the badge clears
+   * its chip by exactly the margin a paragraph clears a card, in every style, on glass or on paper.
+   */
+  background: var(--ink-strong);
+  color: var(--l1-bg);
   /* 11px is the floor for type on a 390px screen; this count sat one pixel under it. */
   font-size: 11px;
   font-weight: var(--fw-bold);
@@ -3444,13 +3525,25 @@
  * the one place it never does — so inside a card the link is the target (44px, expansion off),
  * exactly as the results banner's alert link already was.
  */
+/*
+ * **The words own their line; the target is borrowed from the card's padding.**
+ *
+ * This made the link's box 44px tall and centred the words inside it, because a borrowed target on
+ * a two-line title was once clipped by the row above. The cost was a one-line title floating in the
+ * middle of 44px: about 13px of nothing above it and 13px below, which the steerer circled as
+ * unnecessary white space. The box was the wrong thing to grow.
+ *
+ * The pseudo-element reaches into the card's own padding (20px above the title, and the 4px step to
+ * the time below), so nothing clips it: the target is 44px for one line and more for two, while the
+ * title takes only the height its words need.
+ */
 .card a.tap-target {
-  min-height: var(--target-min);
+  min-height: 0;
   align-items: center;
 }
 
 .card a.tap-target::after {
-  inset: 0;
+  inset: -13px -4px;
 }
 
 /*
@@ -4046,7 +4139,14 @@
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
+  /*
+   * **One number for the gap and for the line that crosses it.** The rail is drawn per row, so each
+   * segment has to run the gap below it to meet the next mark; when the journey's list was given a
+   * wider gap than the default, the dashed segment kept the default and stopped four pixels short of
+   * the next ring. The gap is a variable now, and every segment reads it.
+   */
+  --timeline-gap: var(--s-3);
+  gap: var(--timeline-gap);
 }
 
 .timeline__rail {
@@ -4077,7 +4177,7 @@
    * below its own top. The segment now runs the gap as well, and the node's own filled disc covers
    * where it passes behind it.
    */
-  bottom: calc(var(--s-3) * -1);
+  bottom: calc(var(--timeline-gap) * -1);
   width: var(--rail-line);
   background: var(--border-hairline);
 }
@@ -4097,53 +4197,102 @@
  * there too, so a full dash leaves the circle rather than 11px of white.
  */
 .timeline > :first-child::before {
-  top: calc(9px + var(--rail-node));
+  top: calc(3px + var(--rail-node));
 }
 
-.timeline > :first-child.timeline__rail--dashed::before {
-  background-position: 0 0;
+/* The segment starts with its own solid run now, so the pattern's phase no longer needs pinning to
+   the row's foot: every mark is met by a solid pixel whatever the phase is. */
+
+/*
+ * **A walk's words sit level with its glyph.**
+ *
+ * On a ride the station name takes the first line and the service the second, so the glyph under the
+ * time has a line of its own to sit beside. A walk is one line of words, and it sat at the top of
+ * the row while its glyph sat below it — a figure floating under nothing. The amount drops to the
+ * glyph's line and the two are centred on each other.
+ */
+.timeline__rail--dashed {
+  /* Tall enough for the glyph under the time: the padded words alone end 2px above the figure. */
+  min-height: 44px;
+}
+
+.timeline__rail--dashed > div {
+  /* The same line as a ride's service name, so a walk's amount sits where the eye already looks. */
+  padding-top: 26.5px;
 }
 
 .timeline__rail--dashed::before {
-  background: repeating-linear-gradient(
+  /*
+   * **Dashes from the circle to the circle, with no solid run at either end.**
+   *
+   * The stretch used to be painted in three layers — a twenty-pixel solid run at the top, the dashes
+   * in the middle, a twenty-four-pixel solid run at the foot — so that a mark was always met by a
+   * solid pixel whatever the pattern phase happened to be. It worked, and it looked wrong: the first
+   * stretch after the circle was one unbroken bar, and the last one ended in a long solid segment
+   * that read as a different kind of line. The segment now begins exactly at the circle's edge, so the
+   * pattern starts with a dash there, and closes on one short dash at the next circle —
+   * dashes all the way, which is what a walk is.
+   */
+  top: calc(3px + var(--rail-node));
+  /*
+   * **The stretch is fitted to a whole number of dashes, and the leftover hides under the circle
+   * below.** A pattern drawn over a fixed length ends wherever it ends: here on a half-length dash,
+   * there on a short final gap, so the last dash looked longer than its neighbours and the space
+   * before it looked smaller. `--dash-extra` is set by the row itself — the few pixels that make the
+   * dashes add up exactly — and it is hidden by the opaque circle it runs under. Both ends then meet
+   * their circle on a full dash, and every dash is the same length with the same space between.
+   */
+  bottom: calc((var(--timeline-gap) + 3px + var(--dash-extra, 0px)) * -1);
+  /*
+   * **The breaks have to show the page, not the line's own colour.** The rail's base rule paints the
+   * whole segment in this grey, so a dashed pattern laid on top of it painted grey on grey and the
+   * walk read as one solid line. Clearing the colour lets the gaps be gaps.
+   */
+  background-color: transparent;
+  background-image: repeating-linear-gradient(
     to bottom,
-    var(--border-hairline) 0 6px,
-    transparent 6px 12px
+    var(--rail-walk, var(--border-hairline)) 0 5px,
+    transparent 5px 12px
   );
-  background-position: 0 11px;
 }
 
-/* The same rhythm on the short connector into the arrival square, phased so a dash ends on the
-   square's top edge (11px in) rather than a gap doing so: a 5px offset leaves it covering 5 to 11. */
+/* The same rhythm on the short connector into the arrival square: short breaks, and a solid run at
+   the foot so the last dash meets the square rather than leaving a gap above it. */
 .timeline--dashed-end .timeline__end::before {
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--border-hairline) 0 6px,
-    transparent 6px 12px
-  );
-  background-position: 0 5px;
+  /* The same solid joint at the square as at a ring, and see-through gaps between the dashes. */
+  background-color: transparent;
+  background-image:
+    repeating-linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)) 0 5px, transparent 5px 12px),
+    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline)));
+  background-size: auto, 100% 5px;
+  background-position: 0 0, left bottom;
+  background-repeat: repeat, no-repeat;
 }
 
 .timeline__node {
   position: absolute;
   left: 0;
-  top: 9px;
+  /* On the first line of words, not six pixels under it: the mark and the station name share a
+     centre line, which is what makes the rail read as a timetable rather than a fence. */
+  top: 3px;
   width: var(--rail-node);
   height: var(--rail-node);
   border-radius: var(--r-circle);
-  background: var(--l2-bg);
-  border: 2px solid var(--struct-main);
+  /*
+   * **A ring, not a plate.** A filled disc sat on the line like a bead on a string and broke it
+   * into segments; 9292 draws a hollow ring, so the eye follows one continuous line with marks on
+   * it. The centre is the page's own colour, the ring is the app's strongest ink.
+   */
+  background: var(--l0-bg);
+  /* Two pixels, not three: at three the ring read as a heavy plate on the line, where 9292 draws a
+     slim mark that the eye reads as a bead on a string. */
+  border: 2px solid var(--ink-strong);
 }
 
 .timeline__node--accent {
-  /*
-   * **The rail's marks are the app's ink, not its accent.** The departure end was a coral disc and
-   * the arrival end a black square, so one journey was drawn in two colours that meant nothing —
-   * "why is the circle orange and the square black, both should be black". The accent belongs to
-   * things you can act on; a stop on a line is a fact, and the two ends now agree.
-   */
-  border-color: var(--struct-main);
-  background: var(--struct-main);
+  /* The same ring as every other stop: the accent belongs to things you can act on. */
+  border-color: var(--ink-strong);
+  background: var(--l0-bg);
 }
 
 /*
@@ -4163,7 +4312,7 @@
 
 .timeline__node--muted {
   border-color: var(--ink-faint);
-  background: var(--l2-bg);
+  background: var(--l0-bg);
 }
 
 /*
@@ -4192,8 +4341,15 @@
    * row above already carries the full 12px of the list gap, so this piece only has to carry this
    * row's own 11px, and the line now meets the square's edge.
    */
-  top: calc(var(--s-3) * -1);
-  height: calc(11px + var(--s-3));
+  top: calc(var(--timeline-gap) * -1);
+  /*
+   * **Into the square, not up to it.** The connector used to stop on the square's top edge, which is
+   * right only while every row above it ends exactly on its own foot: one row that carries a negative
+   * margin (a stop on the rail) or a hair of rounding, and the line stopped a few pixels above the
+   * square and the journey's end floated free. It now runs the square's whole height and is hidden
+   * behind it, so the last stretch of the line always meets the mark.
+   */
+  height: calc(15px + var(--timeline-gap));
   width: var(--rail-line);
   background: var(--border-hairline);
 }
@@ -4215,21 +4371,27 @@
      bus draw their last stop to the same place: the square's edge. The box is re-phased for the
      taller connector so a dash still finishes on that edge (17 to 23 in the new box) rather than
      a gap doing so. */
-  top: calc(var(--s-3) * -1);
-  height: calc(11px + var(--s-3));
+  top: calc(var(--timeline-gap) * -1);
+  /* Far enough into the square that the solid joint is hidden under it. */
+  height: calc(15px + var(--timeline-gap));
 }
 
 /* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
    here and 10px in the From/To card, so one journey's two ends were drawn at two weights. */
 .timeline__node--end {
-  top: 11px;
+  top: 5px;
   left: calc((var(--rail-node) - var(--rail-square)) / 2);
   width: var(--rail-square);
   height: var(--rail-square);
   border-radius: 2px;
   /* No ring: at 10px a 2px border is a fifth of the square, a frame rather than a mark. */
   border: 0;
-  background: var(--struct-main);
+  /*
+   * **The last mark is ink, not structure.** The square was painted in the structural obsidian, which
+   * is the same dark in both appearances, so on a dark page the journey's end simply vanished. Ink
+   * turns over with the theme: near-black on cream, near-white on a dark page.
+   */
+  background: var(--ink-strong);
 }
 
 /* --------------------------------------------------------------- Board table */
@@ -4819,17 +4981,61 @@
 .journey-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s-3);
+  /* 8px, not 12: the chain and the fare share the line under the times, and that line has to stay
+     shorter than the times above it. */
+  gap: var(--s-2);
   align-items: center;
   font-size: var(--fs-sm);
   color: var(--ink-muted);
 }
 
+/*
+ * **A badge in a chain is tighter than a badge on its own.**
+ *
+ * Four pixels a side instead of eight: the chain is the one line that has to end before the times
+ * above it do, and three or four badges with the roomier padding ran past them (measured at 390:
+ * 253px of chain and fare against 237px of times). The badge is still a 26px pill with its glyph
+ * and its number; it simply stops carrying a badge's worth of air in a line of five of them.
+ */
+.journey-card__chain .mode-badge {
+  padding: 0 var(--s-1);
+  gap: 3px;
+}
+
 .journey-card__chain {
   display: flex;
   align-items: center;
-  gap: var(--s-1);
+  /*
+   * **The arrow owns the space around it.**
+   *
+   * The chain adds no gap of its own. A leg is one group (`.journey-card__leg`) holding an arrow and
+   * a badge, the group never breaks, and the arrow carries 6px on each side. When the spacing was
+   * split between the group's inner gap and the chain's gap, an arrow had 12px on one side and 8px
+   * on the other, which is what read as an arrow that sits inconsistently beside a walk badge and a
+   * bus badge: those badges differ in width, so the imbalance moved with them.
+   */
+  gap: 0;
   flex-wrap: wrap;
+}
+
+.journey-card__leg {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/*
+ * The same 6px on both sides of an arrow in the chain, and only there: the times at the top of the
+ * card draw an arrow of their own from the same glyph, and it must keep the space it had.
+ *
+ * The chain's arrow used to inherit the gap of the group it shared with its badge (8px) while the
+ * chain added 4px between one group and the next, so it sat 12px from one badge and 8px from the
+ * next, and that imbalance moved as the badges around it changed width — walking badges are wider
+ * than a bus badge, so the arrow looked differently placed beside them.
+ */
+.journey-card__leg .journey-card__arrow {
+  flex: none;
+  margin-inline: 6px;
 }
 
 .leg-row {
@@ -11686,4 +11892,459 @@
 .wrapped-body--chips[data-chapter='lines'] {
   grid-template-rows: auto auto auto auto;
   align-content: center;
+}
+
+/*
+ * **A black pill needs an edge on a dark card.**
+ *
+ * The alert card's one action is `btn--primary`, which is the structural obsidian on every
+ * appearance. On a white card that is 15.9 to 1 and reads as a button; on the dark card it was
+ * `#18181b` against `#232220`, which measures **1.11 to 1** — the pill was drawn and could not be
+ * seen, which is exactly what the steerer pointed at. No fill fixes that: to reach 3 to 1 against a
+ * surface that dark, the pill would have to be grey.
+ *
+ * So in dark the border does the work instead of the surface. Light ink at 45% over the dark card
+ * resolves to about `#848482`, **3.4 to 1** against the card — enough for a control's boundary
+ * (WCAG 1.4.11) — and it is the same ink the label is painted in, so the pill reads as one object
+ * rather than a grey outline bolted onto it. Light is untouched: there the surface is the boundary.
+ *
+ * It lives at the end of this file rather than beside `.btn--primary` because that block appears
+ * twice (once per appearance); the selector is specific enough to win wherever it sits.
+ */
+:root[data-theme='dark'] .btn--primary {
+  border-color: rgba(252, 251, 250, 0.45);
+}
+
+:root[data-theme='dark'] .btn--primary:hover {
+  border-color: rgba(252, 251, 250, 0.7);
+}
+
+/*
+ * **An alert card's header is one shape, whatever its title does.**
+ *
+ * The marker and the words were a wrapping row with no room to shrink, so a title that needed two
+ * lines pushed the whole text block *below* the icon: one card's title sat beside the marker and the
+ * next card's sat under it, with a different amount of space above it (reported: "all cards and
+ * spacing look different, mostly the top with the warning icon and the title"). Short titles fitted
+ * beside the marker, long ones did not, and nothing in the design asked for that.
+ *
+ * The row no longer wraps and the text column is allowed to be narrower than its content, so the
+ * marker is always top-left and the words are always beside it, wrapping inside their own column.
+ */
+.alert-card__head {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.alert-card__head-text {
+  min-width: 0;
+}
+
+/*
+ * **The − badge belongs to the card, not to the corner it was stuck on.**
+ *
+ * It sat at `top: -8px, right: -4px`: eight pixels above the card's top edge and four past its
+ * right edge, so half the disc was outside the card. On a plain surface that read as a badge on the
+ * corner; on a tinted card it read as a control that had come loose, and the same numbers looked
+ * like two different positions depending on what was behind them (reported: "weirdly positioned on
+ * different themes then default"). It now sits inside the card's own corner on every card, and the
+ * head keeps a lane clear on the right so a long title cannot run under it.
+ */
+.widget__remove {
+  top: 3px;
+  right: 3px;
+}
+
+/* The 44px target's disc is inset 7px, so the visible badge lands 10px inside both edges. */
+.widget-grid--editing .widget__head {
+  padding-right: calc(var(--target-min) - var(--s-2));
+}
+
+/* ------------------------------------------------------------------ Leg stops
+ *
+ * **A walking link is a hairline and a ride is a line you can follow.** Both were drawn at the same
+ * weight in the same colour, so a journey's shape — walk, ride, walk, ride — did not read at a
+ * glance; 9292 makes the difference the first thing you see. The ride's rail takes the strongest
+ * ink at half again the width, the walk keeps the thin dashed hairline.
+ */
+.timeline__rail--ride::before {
+  /* Twice the hairline, in the transport blue, rounded ends: the line 9292 draws for a ride. */
+  width: calc(var(--rail-line) * 2);
+  left: calc(var(--rail-node) / 2 - var(--rail-line));
+  background: var(--rail-ride);
+  border-radius: var(--rail-line);
+  /*
+   * **Into the next row, not just into the gap.** The segment stopped exactly where the row ended
+   * plus the gap, so a hairline of background could show between one station's blue and the next.
+   * It now runs 4px past the gap on both sides; the ring at each station covers the overlap.
+   */
+  /*
+   * **The blue starts at its own ring and stops at the next one.** It used to reach four pixels past
+   * each ring, so on a journey that walks before a ride the blue swallowed the end of the dashed
+   * line and the dashes stopped in mid-air, four pixels short of the circle. Both ends now stop at
+   * the ring's top edge, where the ring hides the join, and a walk's dashes run right up to it.
+   */
+  top: 3px;
+  /*
+   * **Under the ring, not up to it.** Stopping exactly on the next ring's top edge left a hairline
+   * between the blue and the circle wherever a row height landed on a fraction of a pixel: the two
+   * ends were the same number, the browser rounded them apart, and a sliver of page showed at the top
+   * of the mark. The line now runs five pixels past that edge, where the ring's own border and fill
+   * cover it, so the join is closed whatever the rounding does.
+   */
+  bottom: calc((var(--timeline-gap) + 8px) * -1);
+}
+
+/* ------------------------------------------------------------ Stops on the rail
+ *
+ * **A stop the service calls at is a small ring on the line, not a dialog.** The list opens under
+ * the service that owns it, so the rail stays one continuous answer to "how far am I" — the sheet
+ * that used to hold this took the answer off the line it describes. Twenty stops are set tight
+ * (a negative margin each side) because a service that calls everywhere must not double the height
+ * of the journey: 9292 draws the same list at roughly one line per stop.
+ */
+.timeline__rail--stop {
+  margin-block: -6px;
+}
+
+.timeline__node--stop {
+  width: 8px;
+  height: 8px;
+  left: calc(var(--rail-node) / 2 - 4px);
+  top: 6px;
+  border: 2px solid var(--ink-strong);
+  border-radius: var(--r-circle);
+  background: var(--l0-bg);
+}
+
+/*
+ * **A service is a name, not a chip.**
+ *
+ * "Bus 347" sat in a pale rounded badge, and a badge reads as a label you can look at rather than a
+ * line you can open — so a second underlined "1 stop in between" link had to tell the traveller
+ * where to press. 9292 prints the service as bold text and nothing else. The name is the control
+ * here: bold, the same weight as a station, with a small chevron that turns over when its stops are
+ * open. A service with no stops in between is not a button at all.
+ */
+.leg-service {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: -2px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-strong);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.leg-service:hover {
+  background: var(--l2-bg);
+}
+
+.leg-service--static {
+  margin-left: 0;
+  /* The same height as the button, so a service with nothing to open does not sit two pixels higher
+     than the one under it and pull its own glyph off the middle of the line. */
+  padding: 2px 0;
+  cursor: auto;
+}
+
+.leg-service--static:hover {
+  background: none;
+}
+
+/* The chevron points down while the stops are open, and turns back when they close. */
+.leg-service__chevron {
+  color: var(--ink-faint);
+  transition: transform var(--t-spring) var(--ease-spring);
+}
+
+.leg-service[aria-expanded='true'] .leg-service__chevron {
+  transform: rotate(90deg);
+}
+
+/*
+ * **The mode glyph lives in the gutter, under the time.** It is how you know a bus from a train
+ * before reading the line, and 9292 puts it there for the same reason: the left column then answers
+ * both "when" and "how", and the line itself stays words.
+ */
+/*
+ * **The glyph sits under the time, never on top of it.**
+ *
+ * The gutter answers "when" and "how", one under the other: the time at the top of the row and the
+ * mode's glyph beneath it, level with the service that names it. Pushing a walk's glyph up to the
+ * row's first line put it straight through its own time — 04:23 and a walking figure in the same
+ * 40px — which is a collision, not a layout. Every row draws its glyph on the same line now, and a
+ * walk's row is made tall enough to hold both (see `.timeline__rail--dashed`).
+ */
+.timeline__mode {
+  position: absolute;
+  left: -46px;
+  /* Level with the second line of the block, which is the service name on a ride and the walk's own
+     amount on foot. 25, not 26: the figure's own box is a pixel taller than the words' line, so 26
+     hung it just under the line it belongs to. */
+  top: 25px;
+  width: 40px;
+  display: flex;
+  /* Centred under the clock, not pushed against the rail: 9292 puts the figure in the middle of the
+     time's column, so the gutter reads as one column of "when" over "how". */
+  justify-content: center;
+  padding-right: 0;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* -------------------------------------------------------------- Timetable gutter
+ *
+ * **The times get a column of their own.** Every row printed its time inside the row, so the eye
+ * had to hunt for the one fact a journey is made of. 9292 gives the times a gutter down the left
+ * edge, the mode's glyph under them, and the rail to their right; the column then answers "when"
+ * and "how" before you read a word of the rest.
+ *
+ * These three rules were lost when an edit removed a neighbouring block of styles, and the page
+ * went out with the times back in the text flow and the glyphs hanging off the card's left edge.
+ */
+.timeline {
+  padding-left: 46px;
+}
+
+.timeline__time {
+  position: absolute;
+  left: -46px;
+  /* The time shares its centre line with the ring beside it, so the clock reads as a label of that
+     stop and not as a caption hanging under it. */
+  top: 3px;
+  width: 40px;
+  text-align: right;
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  color: var(--ink-strong);
+  /* Times line up as a column, so 10:05 and 9:58 sit on the same digits. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* The dot a change leaves on the rail: smaller than a stop, and never a plate. */
+/*
+ * The last connector into the arrival square belongs to the last leg: blue under a service, dashed
+ * grey under a walk. It was a hairline whatever came above it, so a ride's blue ended one stop
+ * short of the journey's end.
+ */
+.timeline:not(.timeline--dashed-end) .timeline__end::before {
+  width: calc(var(--rail-line) * 2);
+  left: calc(var(--rail-node) / 2 - var(--rail-line));
+  background: var(--rail-ride);
+  border-radius: var(--rail-line);
+}
+
+.timeline__node--transfer {
+  width: 6px;
+  height: 6px;
+  left: calc(var(--rail-node) / 2 - 3px);
+  top: 12px;
+  border: 0;
+  background: var(--ink-faint);
+}
+
+/*
+ * **The platform is one accent word at the right of the station.** "Platform 1 · Arrival platform 2"
+ * was a grey sentence per service — two facts where a traveller needs one, on the line that is
+ * already the tallest thing in the card. 9292 prints the platform beside the station name in the
+ * accent colour, and that is the whole of it.
+ */
+.timeline__platform {
+  /*
+   * Beside the station, not pinned to the far edge. `margin-left: auto` pushed the word to the
+   * card's right border, and the arrival row's "Arrival platform 12" then ran past it and was cut
+   * off; a small gap after the station name cannot overflow at any width.
+   */
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  color: var(--coral-ink);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ The journey, bare
+ *
+ * **No card around the journey.** A bordered, rounded box with a heading in it is a frame the page
+ * has to carry; 9292 puts the line straight on the background and lets the rail be the page. With
+ * the card gone the rail gets the air instead: one step more between stops than a card's padding
+ * allowed, and no edge for the eye to travel round.
+ */
+.journey-rail .timeline {
+  /* A journey is given one step more air than a list: the rail between two stations is then long
+     enough to read as travel rather than as a joint between two marks. */
+  --timeline-gap: 32px;
+  gap: var(--timeline-gap);
+}
+
+/*
+ * **A ride's words sit on the middle of its own line, not under its station name.**
+ *
+ * The station belongs to the mark it names, so it stays on the mark's line. The service and the
+ * direction belong to the ride itself, and the ride is the blue line between this mark and the next
+ * one; left in the flow they hung just under the station, so the blue ran on for a third of its
+ * length under nothing at all. Pushing the block down by the gap makes its centre land on the
+ * middle of that blue, and the glyph that goes with it moves to the same line.
+ */
+.journey-rail .timeline__rail--ride:not(.timeline__rail--stop) > div.stack-1 > :nth-child(2) {
+  /* the gap less the station's own line and the stack's own space, so the block's centre is the
+     segment's centre whatever the two lines are called */
+  margin-top: calc(var(--timeline-gap) - 4px);
+}
+
+/* The glyph's own box is fixed at the figure's height and the figure is centred in it, so a bus and
+   a train land on the same line instead of two pixels apart. */
+.journey-rail .timeline__rail--ride:not(.timeline__rail--stop) .timeline__mode {
+  top: calc(var(--timeline-gap) + 32px);
+  height: 18px;
+  overflow: visible;
+  align-items: center;
+}
+
+/* A ride that names no direction is one line shorter, so its glyph comes up with it. */
+.journey-rail .timeline__rail--ride:not(.timeline__rail--stop):not(:has(> div > p)) .timeline__mode {
+  top: calc(var(--timeline-gap) + 22px);
+}
+
+/* On foot the same rule: the amount sits on the middle of the dashed line, and so does the figure. */
+/*
+ * **A walk's amount sits on the middle of its own dashes.** The same rule as a ride's words, and the
+ * same arithmetic: the block hangs low enough that its centre is the middle of the gap between the
+ * two rings, not a line's height under the ring above. The amount was riding high, beside the first
+ * dash instead of between the marks.
+ */
+.journey-rail .timeline__rail--dashed > div {
+  padding-top: calc(var(--timeline-gap) + 22px);
+}
+
+.journey-rail .timeline__rail--dashed .timeline__mode {
+  top: calc(var(--timeline-gap) + 20px);
+  height: 18px;
+  align-items: center;
+}
+
+/*
+ * **A walk that names its start is a line taller, so its figure comes down with it.** The padding
+ * above the block is the same either way — its centre lands on the middle of the dashes whatever its
+ * height — but the glyph is pinned to the row, and a row with a place name in it is 21px taller. Same
+ * rule as a ride's: the figure sits on the block's centre, not under the ring.
+ */
+/*
+ * **A walk that names its start is measured from that name, not from the ring.** The padding above a
+ * bare walk was chosen so its one line lands on the middle of the dashes; with a place name above the
+ * amount the block is two lines tall and that padding overshoots by half of it. Same arithmetic as a
+ * ride's block — the padding less the station's own line — and the figure follows the block down.
+ */
+/*
+ * **A named walk names its place on the ring's line, like every other mark on the rail.**
+ *
+ * The block-centring rule is right for a bare walk — one line, sitting on the middle of its dashes.
+ * It is wrong the moment the row carries a place name: the name belongs to the circle beside it and
+ * must share that circle's centre line, exactly as a station name does on a ride. So a named walk
+ * takes the ride's own geometry instead: the name on the ring, the amount one line under it.
+ */
+.journey-rail .timeline__rail--dashed:has(.timeline__station) > div {
+  padding-top: 0;
+}
+
+.journey-rail .timeline__rail--dashed:has(.timeline__station) > div > :nth-child(2) {
+  margin-top: calc(var(--timeline-gap) - 4px);
+}
+
+.journey-rail .timeline__rail--dashed:has(.timeline__station) .timeline__mode {
+  top: calc(var(--timeline-gap) + 22px);
+}
+
+.journey-rail .timeline__station {
+  font-size: calc(var(--fs-body) + 2px);
+}
+
+/* The grey sentence under the rail is the journey's numbers, and it closes the page. */
+.journey-facts-line {
+  margin-top: var(--s-4);
+}
+
+/* ------------------------------------------------------------- A journey's head
+ *
+ * **The head of a journey is a title, one line of facts and three small buttons.** It was a display
+ * title three lines tall (an address and two station names), a row of full-size pills and a pink
+ * banner, so the first screen was chrome and the journey began below it — the biggest reason this
+ * page read as heavier than 9292's. The title drops to heading size, the price and the length sit
+ * under it as one line, and the buttons keep their words at a smaller height.
+ */
+.journey-page .page-head__title {
+  font-size: var(--fs-h2, 24px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.journey-page .journey-actions .btn {
+  min-height: 38px;
+  padding-inline: var(--s-3);
+  font-size: var(--fs-pill);
+  gap: var(--s-1);
+}
+
+/* The date, the length and the price, under the two ends. */
+.journey-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+/*
+ * **The price is ink, not a badge.** It was a pill filled with the lightest surface there is, which
+ * on a near-white page is a patch that looks like nothing and hides the edge of the word beside it;
+ * on a dark page it becomes a bright plate in the middle of a quiet line. Bold ink reads at the same
+ * strength in both appearances and needs no plate behind it.
+ */
+.journey-meta__price {
+  color: var(--ink-strong);
+  font-weight: var(--fw-bold);
+}
+
+/*
+ * **A notice about the journey is a row on the page, not a card above it.** It carries the alert's
+ * own sentence and nothing else; the fill, the heading and the second line are gone.
+ */
+.journey-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--coral-ink);
+  text-decoration: none;
+}
+
+.journey-alert .t-strong {
+  color: var(--coral-ink);
+}
+
+.journey-alert__chevron {
+  color: var(--ink-faint);
+}
+
+/*
+ * **A station name is a name, not a link with an underline under it.** Every stop on the rail was
+ * underlined, so the page read as a wall of hyperlinks; the underline belongs to a word *inside a
+ * line of text*, and these are headings on the line. The name keeps its weight and its tap, and the
+ * smaller inline links keep their underline.
+ */
+.journey-page .timeline__station a,
+.journey-page .timeline__station .stop-link {
+  text-decoration: none;
 }

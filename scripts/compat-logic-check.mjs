@@ -1,0 +1,170 @@
+/**
+ * **The old-browser notice, tested without a browser at all.**
+ *
+ * The check in `index.html` decides whether to show that notice before the app's own bundle is
+ * anywhere near running. Getting it wrong in one direction shows a blank page to an old phone;
+ * getting it wrong in the other hides a perfectly good app from an automated runner, a locked-down
+ * webview, or anything else whose sandbox refuses `new Function`.
+ *
+ * This reads the **real script out of `index.html`** and runs it against five environments, with
+ * only the handful of browser objects it touches stubbed. No Chromium, no network, nothing to
+ * install: it runs anywhere Node runs, which is the point, because the environment that broke was
+ * not one this machine can open.
+ *
+ *   node scripts/compat-logic-check.mjs
+ *
+ * `scripts/compat-check.mjs` does the same four answers in a browser when one is available; this
+ * is the version that always is.
+ */
+
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+
+const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+
+/* The check is the inline script that mentions the bypass flag. */
+const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+  .map((match) => match[1])
+  .find((body) => body.includes('bypass_compat'));
+
+if (!script) {
+  console.error('Could not find the compatibility check in index.html.');
+  process.exit(1);
+}
+
+/**
+ * Run the page's own script once, in a world that behaves like one of the five.
+ *
+ * Everything the script touches is here and nothing else: `window.location.search`, the two
+ * elements by id, `HTMLScriptElement`, and `Function`.
+ */
+function run({ search = '', FunctionImpl, hasModules = true, webdriver = false }) {
+  let splashRemoved = false;
+  const attributes = {};
+
+  /*
+   * Only what the script touches: an element lookup, an element factory, a body to append to, and
+   * the document element for `data-compat`. The notice is no longer markup in the page, so the map
+   * starts empty apart from the splash: whatever appears in it was built by the script.
+   */
+  const byId = new Map([
+    ['splash', { parentNode: { removeChild: () => (splashRemoved = true) } }],
+  ]);
+
+  const document = {
+    getElementById: (id) => byId.get(id) ?? null,
+    createElement: () => ({ id: '', style: {}, setAttribute() {}, innerHTML: '' }),
+    body: { appendChild: (element) => { if (element.id) byId.set(element.id, element); } },
+    documentElement: {
+      setAttribute(name, value) {
+        attributes[name] = value;
+      },
+    },
+  };
+
+  const context = vm.createContext({
+    window: { location: { search } },
+    document,
+    HTMLScriptElement: { prototype: hasModules ? { noModule: true } : {} },
+    navigator: { webdriver },
+    Function: FunctionImpl,
+  });
+
+  vm.runInContext(script, context, { timeout: 2000 });
+
+  const notice = byId.get('too-old');
+  return {
+    noticeShown: notice ? notice.style.display === 'block' : false,
+    splashRemoved,
+    decision: attributes['data-compat'] ?? 'none',
+  };
+}
+
+/*
+ * A `Function` that refuses the way a policy would. Written as an explicit if, because
+ * `throw new name === 'SyntaxError' ? ...` compares a constructed object with a string (operator
+ * precedence), so the first version of this threw the wrong error and quietly tested nothing.
+ */
+const blocked = (name) =>
+  function BlockedFunction() {
+    if (name === 'SyntaxError') throw new SyntaxError('blocked');
+    throw new EvalError('blocked');
+  };
+
+/**
+ * A browser that evaluates fine but cannot parse the newer syntax.
+ *
+ * The control snippet (`return 1`) works; anything using object spread or a nameless catch throws,
+ * which is what iOS 10 does. This is the one case the notice exists for.
+ */
+const onlyOlderSyntax = () =>
+  function OlderSyntaxFunction(...args) {
+    const body = typeof args[args.length - 1] === 'string' ? args[args.length - 1] : '';
+    if (body.includes('...') || body.includes('catch {')) throw new SyntaxError('bad syntax');
+    return function () {};
+  };
+
+const cases = [
+  {
+    name: 'a normal browser',
+    world: {},
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: '?bypass_compat=1',
+    world: { search: '?bypass_compat=1' },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: '?compat=off',
+    world: { search: '?compat=off&utm=x' },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: 'eval blocked by policy',
+    world: { FunctionImpl: blocked('EvalError') },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: 'no module support',
+    world: { hasModules: false },
+    want: { noticeShown: true, splashRemoved: true },
+  },
+  {
+    name: 'navigator.webdriver',
+    world: { webdriver: true },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: '?debug=1',
+    world: { search: '?debug=1' },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: 'eval refused as a syntax error',
+    world: { FunctionImpl: blocked('SyntaxError') },
+    want: { noticeShown: false, splashRemoved: false },
+  },
+  {
+    name: 'cannot parse, eval works',
+    world: { FunctionImpl: onlyOlderSyntax() },
+    want: { noticeShown: true, splashRemoved: true },
+  },
+];
+
+let failed = 0;
+for (const item of cases) {
+  const got = run(item.world);
+  const ok =
+    got.noticeShown === item.want.noticeShown && got.splashRemoved === item.want.splashRemoved;
+  if (!ok) failed += 1;
+  console.log(
+    `${ok ? 'ok  ' : 'FAIL'} ${item.name.padEnd(30)} notice ${got.noticeShown ? 'shown ' : 'hidden'}  splash ${got.splashRemoved ? 'removed' : 'kept   '}  says ${got.decision}`,
+  );
+}
+
+if (failed > 0) {
+  console.error(`\n${failed} case(s) did not do what the page promises.`);
+  process.exit(1);
+}
+console.log('\nEvery case does what the page promises.');

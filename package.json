@@ -19,7 +19,9 @@
     "preview": "vite preview",
     "dev:preview": "bash scripts/dev-preview.sh",
     "after-restore": "bash scripts/after-restore.sh",
-    "check:corners": "node scripts/corner-audit.mjs"
+    "check:corners": "node scripts/corner-audit.mjs",
+    "check:compat": "node scripts/compat-logic-check.mjs",
+    "check:compat:browser": "node scripts/compat-check.mjs"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",

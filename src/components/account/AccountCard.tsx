@@ -96,6 +96,8 @@ export function AccountCard() {
   const [note, setNote] = useState<string | null>(null);
   const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([]);
   const [passkeysOn, setPasskeysOn] = useState(false);
+  /* Whether the question was actually answered, as opposed to failing to be asked. */
+  const [passkeysKnown, setPasskeysKnown] = useState(false);
   const [passkeyNote, setPasskeyNote] = useState<string | null>(null);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -112,6 +114,7 @@ export function AccountCard() {
     if (uid === null || !canUsePasskeys) {
       setPasskeys([]);
       setPasskeysOn(false);
+      setPasskeysKnown(false);
       return;
     }
     let alive = true;
@@ -119,6 +122,7 @@ export function AccountCard() {
       const status = await passkeyStatus();
       if (!alive) return;
       setPasskeysOn(status.available);
+      setPasskeysKnown(status.known);
       /*
        * **The list is read even when the feature reports itself off.** A passkey made before the
        * switch was turned on is still a real key on the device, and hiding it is how the card came
@@ -309,7 +313,19 @@ export function AccountCard() {
                 Passkeys
               </p>
 
-              {!passkeysOn && passkeys.length === 0 ? (
+              {/*
+                **"I could not ask" is not "it is switched off".** A failed status read used to be
+                drawn as the switched-off sentence with the button greyed out, which told a
+                traveller the feature did not exist and gave them nothing to press while the route
+                itself was answering that it was on. A failure now says so and leaves the button
+                live, so the real attempt is what decides.
+              */}
+              {!passkeysKnown && passkeys.length === 0 ? (
+                <p className="t-sm t-muted" style={{ margin: 0 }}>
+                  OVVO could not check whether passkeys are on just now. You can still try adding
+                  one.
+                </p>
+              ) : !passkeysOn && passkeys.length === 0 ? (
                 <p className="t-sm t-muted" style={{ margin: 0 }}>
                   Passkeys are not switched on for OVVO yet. When they are, you can sign in with
                   your face, fingerprint or PIN instead of a password.
@@ -359,7 +375,7 @@ export function AccountCard() {
                 <Button
                   variant="surface"
                   size="sm"
-                  disabled={passkeyBusy || !passkeysOn}
+                  disabled={passkeyBusy || (passkeysKnown && !passkeysOn)}
                   onClick={() => void generatePasskey()}
                 >
                   {passkeyBusy ? 'Waiting for your device' : 'Generate a new Passkey'}
@@ -506,11 +522,17 @@ export function SignOutPanel() {
         * rather than in the alarm colour: a traveller who tapped it by accident has one tap back,
         * and one who meant it loses nothing but the session. The sheet also answers the question
         * people actually have at that moment, which is whether their journeys are about to go.
+        *
+        * **The words say where the things live, and that is the account.** An earlier draft said
+        * they "stay on this device", which is the wrong picture: with an OVVO ID the account is
+        * what holds them, and this device keeps a copy so the app still works with no network.
+        * Signing out changes neither of those, so the sentence promises nothing that has to be
+        * taken back.
         */}
       <Dialog
         open={confirmSignOut}
         title="Sign out of your OVVO ID?"
-        description="Your stops and journeys stay on this device, and the copy with your OVVO ID stays on the server until you delete it."
+        description="Your stops and journeys belong to your OVVO ID. Signing out does not delete them."
         onClose={() => setConfirmSignOut(false)}
         footer={
           <>
@@ -534,8 +556,8 @@ export function SignOutPanel() {
         }
       >
         <p className="t-sm">
-          Nothing is deleted and OVVO keeps working without an account. Sign in again whenever you
-          like and everything comes back.
+          They stay with your account and come back the next time you sign in. Until then OVVO keeps
+          working with what this device already holds, offline as well.
         </p>
       </Dialog>
     </>

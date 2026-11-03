@@ -308,6 +308,40 @@ interface AppContextValue {
   setHomeMenuOpen: (open: boolean) => void;
 }
 
+/*
+ * **The open search survives a refresh.**
+ *
+ * Journeys are made from the search and kept in memory, so reloading a journey page emptied the
+ * list and the page answered "This journey could not be restored" — for a journey the traveller
+ * had been reading a second earlier. The search itself is a handful of ids and a time, so it is
+ * written for the length of the tab: a reload rebuilds the same journeys, and closing the tab
+ * forgets it, which is what a session is.
+ */
+const SESSION_SEARCH_KEY = 'ovv:session-search';
+
+function readSessionSearch(): PlannerSearchState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_SEARCH_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PlannerSearchState | null;
+    /* A shape check, because a value written by an older build is not a reason to break a page. */
+    return parsed && parsed.query && typeof parsed.query.fromStopId === 'string' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionSearch(state: PlannerSearchState | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (state) window.sessionStorage.setItem(SESSION_SEARCH_KEY, JSON.stringify(state));
+    else window.sessionStorage.removeItem(SESSION_SEARCH_KEY);
+  } catch {
+    /* Storage can be off; the app then simply forgets between reloads. */
+  }
+}
+
 const AppContext = createContext<AppContextValue | null>(null);
 
 let toastCounter = 0;
@@ -392,7 +426,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * and the recent-searches widget is where a previous search is offered back, deliberately,
    * one tap away. History you asked to keep; prefilling is history you did not.
    */
-  const [search, setSearch] = useState<PlannerSearchState | null>(null);
+  /* A reload keeps the search this tab was reading — see `readSessionSearch`. */
+  const [search, setSearch] = useState<PlannerSearchState | null>(() => readSessionSearch());
   const [locationConsent, setLocationConsent] = useState<LocationConsent>(() =>
     readStored<LocationConsent>(STORAGE_KEYS.locationConsent, 'unknown'),
   );
@@ -654,6 +689,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     journeys.forEach((journey) => sessionJourneys.current.set(journey.id, journey));
   }, [journeys]);
+
+  /* Written for the tab, so a reload rebuilds the same journeys rather than losing them. */
+  useEffect(() => {
+    writeSessionSearch(search);
+  }, [search]);
 
   const pushToast = useCallback((message: string, tone: Toast['tone'] = 'default') => {
     toastCounter += 1;

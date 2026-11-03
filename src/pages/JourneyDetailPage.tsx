@@ -1,12 +1,13 @@
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
 import { StopLink } from '../components/stops/StopLink';
-import { JOURNEY_LABELS } from '../data/journeyEngine';
-import { getStop, stopLabel } from '../data/stops';
+import { findJourneyById } from '../data/journeyEngine';
+import { stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
-import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
+import { Button, EmptyState } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -17,15 +18,51 @@ import { alertWords } from '../lib/disruptionText';
 export function JourneyDetailPage() {
   const { journeyId } = useParams();
   const navigate = useNavigate();
-  const { findJourney, search, preferences, startSearch, isJourneySaved, saveJourney, savedJourneys, power } = useApp();
+  const {
+    findJourney,
+    search,
+    searchHistory,
+    preferences,
+    startSearch,
+    isJourneySaved,
+    saveJourney,
+    savedJourneys,
+    power,
+  } = useApp();
   const format = useFormat();
   const t = useT();
-  const journey = findJourney(journeyId);
+  const found = findJourney(journeyId);
+  /*
+   * **A refreshed journey is rebuilt from its search, not lost with the tab.**
+   *
+   * Journeys are made per search and kept in memory, so reloading the page emptied the list and the
+   * traveller was shown "This journey could not be restored" for a journey they were reading a
+   * second earlier. Their searches survive a reload (they are written to this browser), and a
+   * journey can be rebuilt from the search that made it — `findJourneyById` is the engine's own
+   * way of doing that, written for saved journeys. So the page asks the history for the same
+   * journey before it says it is gone.
+   */
+  const rebuilt = useMemo(() => {
+    if (found || !journeyId) return null;
+    for (const entry of searchHistory) {
+      const sameJourney = findJourneyById(entry.query, journeyId);
+      if (sameJourney) return { journey: sameJourney, query: entry.query };
+    }
+    return null;
+  }, [found, journeyId, searchHistory]);
+  const journey = found ?? rebuilt?.journey ?? undefined;
+  /*
+   * The rebuilt journey puts the journey back on screen at once; this puts the search behind it
+   * back too, so Return, Map and Save act on this pair rather than on nothing.
+   */
+  useEffect(() => {
+    if (!rebuilt || search) return;
+    startSearch(rebuilt.query);
+  }, [rebuilt, search, startSearch]);
   const saved = journey ? isJourneySaved(journey.signature) : false;
   /* The search this journey came out of: the last one **run**, not the last one kept. A kept
      search may be from weeks ago, and offering it here as "the search you were looking at" would
      name a journey that is not on the screen. */
-  const { searchHistory } = useApp();
   const lastSearch = searchHistory[0] ?? null;
   usePageTitle(
     journey
@@ -111,15 +148,9 @@ export function JourneyDetailPage() {
   const toWords =
     journey.legs[journey.legs.length - 1].toLabel ?? stopLabel(journey.legs[journey.legs.length - 1].toStopId);
 
-  const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   const disruptions = journey.disruptionIds.map((id) => getDisruption(id)).filter(Boolean);
-  const transfers = journey.legs
-    .filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike')
-    .slice(0, -1)
-    .map((leg, index) => ({ leg, next: journey.legs[journey.legs.indexOf(leg) + 1], index }));
-
   return (
-    <div className="stack-6">
+    <div className="journey-page stack-6">
       <PageHeader
         /*
          * The glyph, not the character: `→` in a heading is a text arrow drawn in whatever face
@@ -149,6 +180,28 @@ export function JourneyDetailPage() {
         }`}
         showTitle
       />
+
+      {/* The date, the length and the price, in one line under the two ends: 9292's own head. */}
+      <p className="journey-meta">
+        <span>{format.date(search?.query.date ?? '')}</span>
+        <span aria-hidden="true">·</span>
+        <span>{format.duration(journey.durationMinutes)}</span>
+        {journey.fare.eur > 0 ? (
+          <>
+            <span aria-hidden="true">·</span>
+            {/*
+              **The price is a word in the line, not a pill on top of it.** It sat in its own pale
+              badge, and a pale badge on a pale page reads as a lighter patch laid over the words
+              beside it: on white the "52 min" appeared to be running underneath it. The price is
+              one more fact in the same sentence, bold because it is the one that costs money.
+            */}
+            <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
+          </>
+        ) : null}
+        {journey.delayMinutes ? (
+          <span className="delay">{t('Delay +{count} min', { count: journey.delayMinutes })}</span>
+        ) : null}
+      </p>
 
       {/*
         The journey's own actions, in their own row under the head — not three pills squeezed into
@@ -225,149 +278,56 @@ export function JourneyDetailPage() {
         walk are rows of the summary card.
       */}
 
-      {disruptions.length ? (
-        <Banner tone="coral" icon="alert" title={t('Alerts on this journey')}>
-          <div className="stack-2">
-            {disruptions.map((alert) =>
-              alert ? (
-                <Link
-                  key={alert.id}
-                  to={`/disruptions/${alert.id}`}
-                  className="t-sm alert-link alert-link--banner"
-                >
-                  <span className="t-strong">{alertWords(t, alert).title}</span>
-                  <span>{t('Read the details and advice')}</span>
-                </Link>
-              ) : null,
-            )}
-          </div>
-        </Banner>
-      ) : null}
+      {/*
+        **An alert is a line, not a pink block.** The banner filled a third of the first screen with
+        a heading, a sentence and a second sentence that only said "read the details", above a
+        journey that had not started yet. 9292 gives a notice one row; so does this.
+      */}
+      {disruptions.map((alert) =>
+        alert ? (
+          <Link key={alert.id} to={`/disruptions/${alert.id}`} className="journey-alert">
+            <Icon name="alert" size={16} />
+            <span className="t-sm t-strong grow">{alertWords(t, alert).title}</span>
+            <Icon name="chevronRight" size={14} className="journey-alert__chevron" />
+          </Link>
+        ) : null,
+      )}
 
-      <div className="grid-2" style={{ alignItems: 'start' }}>
-        <Card className="stack">
-          <div className="between wrap">
-            <h2 className="t-section">{t('Complete journey')}</h2>
-            <div className="row-wrap">
-              {journey.label ? <Pill tone="butter">{t(JOURNEY_LABELS[journey.label])}</Pill> : null}
-              {journey.delayMinutes ? (
-                <Pill tone="coral" dot dotTone="coral">
-                  {t('Delay +{count} min', { count: journey.delayMinutes })}
-                </Pill>
-              ) : journey.cancelled ? (
-                /* A cancelled service read "On time" here and on its own leg, while the results
-                   card for the same journey read "Cancelled" (9.4). */
-                <Pill tone="coral">{t('Cancelled')}</Pill>
-              ) : (
-                <Pill tone="sage">{t('On time')}</Pill>
-              )}
-            </div>
-          </div>
-          <LegList journey={journey} />
-        </Card>
-
-        <div className="stack-4">
-          <Card className="stack">
-            <h2 className="t-section">{t('Journey summary')}</h2>
-            {/*
-              Drawn, not described: the seven-row definition list it replaces read as a
-              paragraph of sentences ("EXTREMLY text heavy, replace with mostly icons",
-              2026-10-17t20-33-24). Every fact is still here, in the app's own chip idiom — the
-              same `mode-badge` the services wore on the journey card, and `Pill`s with the same
-              glyphs the card's own meta row uses (`ticket`, `walk`, `swap`, `station`). Nothing
-              reads as a sentence any more, and each chip is one line at 378px.
-            */}
-            {/*
-              No line badge and no operator chip: both are printed, at full size, in the journey
-              above this card — the same two facts twice on one screen was half of what made it
-              feel crowded. What is left is what the journey *is*: its price, its length, how many
-              changes, how much walking, how full, and whether a bicycle may come.
-            */}
-            <div className="row-wrap journey-facts">
-              {rideLegs.length === 0 ? (
-                <Pill tone="outline">{t('Walking only')}</Pill>
-              ) : null}
-              {/* A fare of nothing is not a fact about the trip — see the fare row on the journey
-                  card, which drops the same line for the same reason. */}
-              {journey.fare.eur > 0 ? (
-                <Pill tone="outline">
-                  <Icon name="ticket" size={12} />€{journey.fare.eur.toFixed(2)}{' '}
-                  <span className="t-faint">{t(journey.fare.label)}</span>
-                </Pill>
-              ) : null}
-              <Pill>
-                <Icon name="clock" size={12} />
-                {format.duration(journey.durationMinutes)}
-              </Pill>
-              <Pill>
-                <Icon name="swap" size={12} />
-                {journey.transfers === 0
-                  ? t('Direct')
-                  : plural(journey.transfers, t('transfer'), t('transfers'))}{' '}
-                · {plural(journey.legs.length, t('leg'), t('legs'))}
-              </Pill>
-              {/* A walk chip that says "0 min walking" answers a question nobody asked, and reads
-                  as a promise the journey does not make. No walk, no chip. */}
-              {journey.walkMinutes > 0 ? (
-                <Pill tone="outline">
-                  <Icon name="walk" size={12} />
-                  {journey.walkMinutes} {t('min walking')}
-                </Pill>
-              ) : null}
-              {/* The expected level, where the rest of the journey's facts live — it had a card of
-                  its own with a heading and one pill in it. */}
-              <Pill>
-                <Icon name="users" size={12} />
-                {journey.occupancy === 'busy'
-                  ? t('Expected busy')
-                  : journey.occupancy === 'moderate'
-                    ? t('Expected fairly busy')
-                    : t('Expected quiet')}
-              </Pill>
-              {/* A plain yes/no, kept short and kept: absence of the chip is what would hide the
-                  answer, not the answer itself. */}
-              <Pill tone={journey.bikeAllowed ? 'sage' : 'outline'}>
-                <Icon name="bike" size={12} />
-                {journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle')}
-              </Pill>
-            </div>
-          </Card>
-
-          {/*
-            **No transfers, no transfers card.** A whole card with a heading and one sentence
-            saying nothing happens is the clearest example of the page describing itself — the
-            summary already says “Direct · 1 leg”. The card exists only when there is a change to
-            name.
-          */}
-          {transfers.length ? (
-          <Card className="stack">
-            <h2 className="t-section">{t('Transfers')}</h2>
-            {
-              <ul className="stack-2">
-                {transfers.map(({ leg }) => {
-                  const stop = getStop(leg.toStopId);
-                  return (
-                    <li key={leg.id} className="list-row list-row--static">
-                      <span className="leg-row__marker">
-                        <Icon name="swap" size={18} />
-                      </span>
-                      <span className="stack-1 grow">
-                        {/*
-                          The "step-free transfer · staff assistance" line is deleted with every
-                          other visible accessibility claim (F19). What is left is the fact that
-                          belongs to a transfer: where to change.
-                        */}
-                        <span className="t-strong t-sm">{t('Change at {stop}', { stop: stop?.name ?? '' })}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            }
-          </Card>
-          ) : null}
-
-        </div>
+      {/*
+        **The journey is the page, not a card on it.**
+        
+        The rail sat inside a bordered, rounded card with a heading and a status pill in its corner,
+        so the first thing the eye met was a container and the last thing was another card. 9292
+        draws the journey straight onto the screen: a title, then the line. The heading, the card's
+        edge and its padding are gone, and with them the journey-level "On time · Delay" pill, which
+        the late service already says in its own coral words.
+      */}
+      <div className="journey-rail">
+        <LegList journey={journey} />
+      {/*
+        **The journey's numbers are one grey line under the rail.** They were a second card,
+        with its own heading and six pills, sitting beside the journey card: two cards of the
+        same journey on one screen, which is the thing 9292 never does. Every fact is still
+        here — price, length, changes, walking, how full, and the bicycle — as the sentence
+        under a timetable.
+      */}
+      {/* What the head does not say: the walking, how full, and the bicycle. */}
+      <p className="t-sm t-muted journey-facts-line">
+        {[
+          journey.transfers === 0
+            ? t('Direct')
+            : plural(journey.transfers, t('transfer'), t('transfers')),
+          journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
+          journey.occupancy === 'busy'
+            ? t('Expected busy')
+            : journey.occupancy === 'moderate'
+              ? t('Expected fairly busy')
+              : t('Expected quiet'),
+          journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle'),
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      </p>
       </div>
 
       {/*

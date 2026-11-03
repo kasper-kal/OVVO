@@ -675,12 +675,23 @@ export function SettingsPage() {
         Leaving sits above the reset, and on a lighter surface than it: this one only signs you
         out (your data stays on the device), while the one below deletes everything.
       */}
-      <SignOutPanel />
+      {/*
+        **The two ways out are one pair, with one gap between them.**
 
-      <div className="row-wrap">
-        <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
-          {t('Reset the app')}
-        </Button>
+        They were two separate rows of the page's 24px column, and once an account was signed in
+        the space between SIGN OUT and RESET THE APP measured about twice every other gap on the
+        screen (reported: "spacing is weird with the rest of the website"). They are one group now:
+        a 12px step inside the pair, and the page's own 24px above it, so the foot reads as two
+        decisions rather than two unrelated sections that happen to be near each other.
+      */}
+      <div className="stack-3">
+        <SignOutPanel />
+
+        <div className="row-wrap">
+          <Button variant="accent" icon="trash" onClick={() => setConfirmReset(true)}>
+            {t('Reset the app')}
+          </Button>
+        </div>
       </div>
 
 

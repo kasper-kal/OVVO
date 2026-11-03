@@ -783,8 +783,8 @@ export const STYLES: StyleDef[] = [
         '--struct-secondary': '#2d3b2d',
         '--ink-strong': '#18181b',
         '--ink': '#3f3f45',
-        '--ink-muted': '#5f5f66',
-        '--ink-faint': '#66666d',
+        '--ink-muted': '#55555c',
+        '--ink-faint': '#5b5b62',
         '--border-hairline': '#cdc7b8',
         '--hairline-on-dark': '#2d3b2d',
         '--on-dark': '#fcfbfa',
@@ -814,8 +814,8 @@ export const STYLES: StyleDef[] = [
         '--chrome-border': '#cdc7b8',
         '--chrome-ink': '#3f3f45',
         '--chrome-ink-strong': '#18181b',
-        '--chrome-ink-muted': '#5f5f66',
-        '--chrome-ink-faint': '#66666d',
+        '--chrome-ink-muted': '#55555c',
+        '--chrome-ink-faint': '#5b5b62',
         '--page-border': '#cdc7b8',
         /* 62%, as the old theme had it, in the `rgba()` form an old WebKit can parse. */
         '--app-bg-wash': 'rgba(252, 251, 250, 0.62)',
@@ -1815,7 +1815,13 @@ export function styleTokens(
      * the second surface, which is what a translucent card exposes. Default is skipped, because its
      * own red already clears the line and nothing about Default may move.
      */
-    ...(preserveDefault ? {} : { '--coral-ink': toward(toward('#C2452F', card, 4.6), alt, 4.6) }),
+    /*
+     * **The coral ink clears 5.2 on both card tiers, not 4.6.** The two `4.6`s here were the ones the
+     * sweep kept finding: 4.66:1 for a platform word on a tinted page, the thinnest margin anywhere in
+     * the app, and it came from this line rather than from the palette's own `coralInk`. Meaning
+     * colours hold the same floor as every other quiet step now.
+     */
+    ...(preserveDefault ? {} : { '--coral-ink': toward(toward('#C2452F', card, 5.2), alt, 5.2) }),
 
     /* The material of a card: flat paper in a printed shape, a lifted pane in a soft one. */
     '--card-shadow': shape.shadow,

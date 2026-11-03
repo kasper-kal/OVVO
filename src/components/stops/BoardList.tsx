@@ -1,5 +1,4 @@
-import { ROWS_PER_LOAD } from '../../lib/loadBatch';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
@@ -22,7 +21,7 @@ import type { Departure, Stop } from '../../data/types';
  */
 export function BoardList({
   departures,
-  limit = ROWS_PER_LOAD,
+  limit,
   emptyHint,
 }: {
   departures: Departure[];
@@ -31,60 +30,26 @@ export function BoardList({
   emptyHint?: string;
 }) {
   /*
-   * The rows hold back more of the board, five at a time — a board row is one row, so the rule
-   * (see `lib/loadBatch.ts`) is five departures per press, not "the rest of the board at once".
+   * **A board shows the departures in its window, and asks nothing.**
    *
-   * This is the same rule the two long lists use (`useLoadOnScroll`), applied to rows instead of
-   * cards: the batch is `ROWS_PER_LOAD`, the sentinel loads the next batch once the page has been
-   * scrolled, and the button underneath is still a real button that promises the number it adds.
-   * A board used to open on a literal `6` and grow only by pressing (MATCHING_PLAN rule 3).
+   * It used to hold rows back: five at a time, behind a "Show 5 more" button, with a scroll
+   * sentinel behind that. The button was the defect the steerer named — a board is a short list
+   * of what leaves next, in a window of twenty, and a tap to see the last ten of them is a tax on
+   * reading the screen the traveller already opened. The whole window is drawn; there is no
+   * batching, no sentinel and no press.
+   *
+   * The rows per load rule (`lib/loadBatch.ts`) is for lists that are long because the network is
+   * big — stops, alerts. A board is long because a day is long, and the window is already the
+   * answer to that.
+   *
+   * A widget still passes `limit`, because a card is not a list screen: there it shows the rows it
+   * has room for and nothing else.
    */
-  const [grown, setGrown] = useState(limit);
   const format = useFormat();
   const t = useT();
   const navigate = useNavigate();
 
-  const shown = departures.slice(0, grown);
-  const hidden = departures.length - shown.length;
-  const next = Math.min(ROWS_PER_LOAD, hidden);
-  const expanded = grown > limit;
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [hasScrolled, setHasScrolled] = useState(false);
-  /*
-   * A press of "Show 5 more" is five rows, not ten.
-   *
-   * The button and the scroll sentinel both add `ROWS_PER_LOAD`, and the press left the sentinel
-   * in view — so at 1440 the first press went 5 → 10 and the second, with the sentinel firing as
-   * well, 10 → 20 under a label that promises five (6.2). The sentinel is stood down for a moment
-   * after a press: the button answers the press, and a *scroll* is what may pull more.
-   */
-  const sentinelPausedUntil = useRef(0);
-
-  /* The sentinel is armed by a scroll, the way the two long lists are: without it a tall window
-     can hold a batch and the sentinel at once and pull the whole board in unbidden. */
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    const mark = () => setHasScrolled(true);
-    window.addEventListener('scroll', mark, { once: true, passive: true });
-    return () => window.removeEventListener('scroll', mark);
-  }, []);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || hidden <= 0 || !hasScrolled || typeof IntersectionObserver === 'undefined') {
-      return undefined;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting) && Date.now() > sentinelPausedUntil.current) {
-          setGrown((current) => current + ROWS_PER_LOAD);
-        }
-      },
-      { rootMargin: '400px 0px' },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hidden, hasScrolled, shown.length]);
+  const shown = limit === undefined ? departures : departures.slice(0, limit);
 
   if (departures.length === 0) {
     return (
@@ -246,42 +211,14 @@ export function BoardList({
 
       <PlanStopDialog stop={planStop} onClose={() => setPlanStop(null)} onPlan={chooseEnd} />
 
-      {hidden > 0 || expanded ? (
+      {/*
+        The count is all that is left of the foot: no button, and no "of" to fill in, because
+        nothing is being held back any more. A widget passes `limit` and gets no foot at all.
+      */}
+      {limit === undefined ? (
         <div className="row-wrap list-foot">
-          {/* The loader's marker lives *inside* this row, absolutely. As a child of the column it
-              was a flex item of its own and cost a second gap: the list and the button sat 24px
-              apart when there was more to load and 12px apart when there was not. */}
-          {hidden > 0 ? <div ref={sentinelRef} aria-hidden="true" /> : null}
-          <button
-            type="button"
-            /* Bordered, like the "Show N more" on the stops list and the alert list: one
-               control that extends a list wears one shape. */
-            className="btn btn--sm"
-            onClick={() => {
-              /* "Show only the next departures" resets without the sentinel immediately
-                 reloading the five it just hid (6.2, second half). */
-              sentinelPausedUntil.current = Date.now() + 1200;
-              setGrown((current) => (hidden > 0 ? current + ROWS_PER_LOAD : limit));
-            }}
-          >
-            <Icon name={hidden > 0 ? 'chevronDown' : 'chevronUp'} size={15} />
-            {hidden > 0
-              ? t('Show {count} more', { count: next })
-              : t('Show only the next departures')}
-          </button>
           <span className="t-sm t-faint">
-            {/*
-             * **The count, not the count's noun.** This passed `plural(…, 'departure')`, which is
-             * already the phrase "20 departures", into a sentence that supplies the word itself —
-             * so every board read *"5 of 20 departures departures in this window"* (seen on a
-             * 1440 board the audits never looked at, because no measurement in this project reads
-             * a sentence). The noun belongs to the translated string, where a language that orders
-             * or inflects it differently can own it.
-             */}
-            {t('{shown} of {total} departures in this window', {
-              shown: shown.length,
-              total: departures.length,
-            })}
+            {t('{total} departures in this window', { total: departures.length })}
           </span>
         </div>
       ) : null}

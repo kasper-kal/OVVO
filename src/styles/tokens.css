@@ -89,6 +89,18 @@
    * 5.7:1 now, in both appearances, because the tint itself does not change either.
    */
   --tint-sage-ink: #41603f;
+  /*
+   * **Sage as a mark on the theme's own surface, which is not the same promise as sage on its
+   * own pale tint.**
+   *
+   * `--tint-sage-ink` is the ink for `--tint-sage`, and both stay pale in every appearance, so a
+   * component that draws sage *without* that tint has to take a cut of its own: the stop picker's
+   * two action discs painted `--tint-sage` as their fill and stayed **rgb(225,234,223)** on a
+   * near-black page (reported: "this colour stays with almost all themes, horrible"). This token
+   * follows the appearance instead: dark sage in the light theme, light sage in the dark one, and
+   * the disc is a wash of it over whatever surface the row sits on.
+   */
+  --sage-accent: color-mix(in srgb, var(--tint-sage-strong) 50%, var(--ink-strong));
   --tint-butter-border: #efe2a0;
   --tint-butter-strong: #e6cf3f;
   --tint-butter-ink: #c9a227;
@@ -151,8 +163,15 @@
   /* Derived, spec-consistent supporting values (ink ramp on the warm canvas) */
   --ink-strong: var(--struct-main);
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  /*
+   * **The two quiet greys are darker than they were, because they were the thinnest thing on the
+   * page.** Muted measured 5.60:1 and faint 5.04:1 on the card surface, and faint fell to 4.59:1 on a
+   * pale tinted page — legal on cream and washed out the moment the page had any colour of its own.
+   * Neither is a failure now: 6.5:1 and 6.0:1 on a card, 5.4:1 on the palest tint, and still one
+   * clear step apart so a caption stays quieter than the line above it.
+   */
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   --on-dark: #fcfbfa;
   --on-dark-muted: #b9b9be;
   --hairline-on-dark: #2d3b2d;
@@ -223,6 +242,21 @@
   --rail-node: 14px;
   --rail-square: 10px;
   --rail-line: 2px;
+  /*
+   * **The colour a ride is drawn in.** A walk's rail stays a thin dashed hairline in the app's own
+   * border ink; a ride's is a solid, heavier line in a transport blue, so the journey's shape —
+   * walk, ride, walk, ride — reads before a word of it does. It is blue on cream and blue on black,
+   * the same one value, because the line is a graphic and not text.
+   */
+  --rail-ride: #5a8fd6;
+  /*
+   * **A walk's line is grey, and in the dark appearance it has to be a grey you can see.** It shared
+   * `--border-hairline`, which is a *border* colour: 1.99:1 on the dark canvas, so the dashed stretch
+   * of a journey was almost invisible exactly where it is the only line on the page. The light cut
+   * stays the hairline it was (9:1 on cream); the dark cut is lifted to 4.6:1 on the canvas and still
+   * quieter than the blue of a ride.
+   */
+  --rail-walk: #cdc7b8;
   --r-compact: calc(12px * var(--shape-scale, 1));
   --r-hair: calc(8px * var(--shape-scale, 1));
   --r-pill: 9999px;
@@ -422,6 +456,8 @@
  * a light wash across a whole canvas is not a signal, it is glare.
  */
 :root[data-theme='dark'] {
+  /* A walk's dashes, lifted off the hairline so the line is visible on the dark canvas. */
+  --rail-walk: #837d6f;
   color-scheme: dark;
 
   --canvas-base: #121211;
@@ -465,7 +501,6 @@
    * here, and the light cut lives in its own token.
    */
   --coral-ink: #ff9c87;
-
   /* `--brand-tile` / `--brand-ink` are deliberately *not* overridden here: the mark is a white
      tile with obsidian ink in both appearances, so flipping its ink in dark would draw a
      near-white glyph on the white ground. */
@@ -536,6 +571,8 @@
     --app-bg-wash: rgb(252 251 250 / 0.62);
     --skeleton-fill: #e7e4de;
     --skeleton-sheen: #f2f0eb;
+    /* The picker's discs without the mix: the same 50/50 sage and ink, made by hand. */
+    --sage-accent: #4a5d4b;
   }
 
   /* The canvas is near-black here, so the block has to be lighter than the card, not darker. */
@@ -543,5 +580,6 @@
     --app-bg-wash: rgb(18 18 17 / 0.7);
     --skeleton-fill: #33313a;
     --skeleton-sheen: #46434d;
+    --sage-accent: #b7c9b2;
   }
 }

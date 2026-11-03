@@ -20,7 +20,7 @@ import { useT } from '../lib/useT';
 import { useDev } from '../lib/dev';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
-import type { PublicMode, SortMode } from '../data/types';
+import type { Journey, PublicMode, SortMode } from '../data/types';
 import { Select } from '../components/ui/Select';
 
 /**
@@ -81,6 +81,18 @@ let heldSearch: { key: string; until: number } | null = null;
 function holdIsRunning(key: string): boolean {
   return Boolean(key) && (!heldSearch || heldSearch.key !== key || heldSearch.until > Date.now());
 }
+
+/**
+ * **The journeys Earlier and Later have walked to so far.**
+ *
+ * Module scope for the same reason the hold above is: `ResultsPage` is remounted whenever the
+ * address changes, and the address is rewritten the moment the search lands — including its
+ * *window*, so every press of Earlier or Later is a new address and a new mount. Kept in state,
+ * the pages walked so far were dropped on each press and the list came back shorter than before
+ * (measured: 8, then 7, then 6). Kept here, a remount re-reads the same pages and the list only
+ * ever grows. It is cleared when the search itself changes — see `spreadKey` below.
+ */
+let spreadStore: { key: string; journeys: Journey[] } | null = null;
 
 export function ResultsPage() {
   /* The search the address names, if it names one — `/results/<id>` (`lib/searchLink`). */
@@ -205,11 +217,57 @@ export function ResultsPage() {
     if (power.mode !== 'off') setPlanning(false);
   }, [power.mode]);
 
+  /*
+   * **Earlier and Later add to the list; they do not replace it.**
+   *
+   * The list is a window of departures, and the two controls at its ends walked that window thirty
+   * minutes at a time — so every press *threw away* the journeys on screen and showed a different
+   * set (reported: "Earlier and later on journey results should just show more (earlier/later)
+   * results instead of hiding others"). A timetable is read forwards and backwards from where you
+   * are standing, so the window now only moves one end of the list: what was there stays there, and
+   * the press adds the journeys this window has and the last one did not.
+   *
+   * The pages live in `spreadStore` above, because this screen is remounted on every press. The key
+   * is the search the pages belong to — the two ends, the hour, and the preferences they were
+   * planned with — so a genuinely new question starts a new list, while paging, a sort and a filter
+   * all keep the accumulated journeys.
+   */
+  const spreadKey = searchKey
+    ? `${searchKey}|${preferences.allowedModes.join(',')}|${preferences.maxTransfers}|${preferences.maxWalkingMinutes}|${preferences.accessFrom}|${preferences.accessTo}|${preferences.preferFewerTransfers}|${preferences.preferLessWalking}`
+    : '';
+
+  useEffect(() => {
+    if (!spreadKey) {
+      spreadStore = null;
+      return;
+    }
+    const current = spreadStore && spreadStore.key === spreadKey ? spreadStore.journeys : journeys;
+    /*
+     * By **signature**, because two windows overlap: the thirty minutes they share are the same
+     * departures. Not by id — a journey's id carries the window it was planned in, so the same
+     * 12:30 train from the 12:00 window and from the 12:30 window is two ids and one journey
+     * (measured: 30 cards, 20 distinct departures). `signature` is the fingerprint the heart uses,
+     * which is exactly the question "is this the same journey?".
+     */
+    const seen = new Set(current.map((journey) => journey.signature));
+    const added = journeys.filter((journey) => !seen.has(journey.signature));
+    spreadStore = { key: spreadKey, journeys: added.length ? [...current, ...added] : current };
+  }, [journeys, spreadKey]);
+
+  /* Read during the render, so the first frame after a press already holds both ends. */
+  const cachedJourneys = spreadStore && spreadStore.key === spreadKey ? spreadStore.journeys : journeys;
+
+  const allJourneys = useMemo(() => {
+    if (cachedJourneys === journeys) return journeys;
+    const seen = new Set(cachedJourneys.map((journey) => journey.signature));
+    return [...cachedJourneys, ...journeys.filter((journey) => !seen.has(journey.signature))];
+  }, [cachedJourneys, journeys]);
+
   const visible = useMemo(() => {
     if (!search) return [];
-    const filtered = filterJourneys(journeys, search.filter, preferences);
+    const filtered = filterJourneys(allJourneys, search.filter, preferences);
     return sortJourneys(filtered, search.sortMode, preferences);
-  }, [search, journeys, preferences]);
+  }, [search, allJourneys, preferences]);
 
   /*
    * **The address is the search.**
@@ -298,7 +356,7 @@ export function ResultsPage() {
   const stopAlerts = [...disruptionsForStop(query.fromStopId), ...disruptionsForStop(query.toStopId)].filter(
     (alert, index, list) => list.findIndex((item) => item.id === alert.id) === index,
   );
-  const totalJourneys = journeys.length;
+  const totalJourneys = allJourneys.length;
   /*
    * The date and time are the **device's own** pickers, by request.
    *
@@ -682,13 +740,15 @@ export function ResultsPage() {
           {/*
             Earlier, between the warning and the first journey.
 
-            The list is a window of departures from the time in the search; these two controls walk
-            that window without touching the search itself — "Leave: Now" stays exactly as it was, a
-            whole thirty minutes per press, the way paging through a timetable reads. They sit at the
-            list's ends because that is where the reader is looking for more: the top of the list is
-            where "too late" is, and the bottom is where "nothing after this" is. The control that
-            used to do this was removed from the date/time sheet on request; this is the home it was
-            said to need.
+            The list is a window of departures from the time in the search; these two controls move
+            one end of that window without touching the search itself — "Leave: Now" stays exactly
+            as it was, thirty minutes per press, the way paging through a timetable reads. They sit
+            at the list's ends because that is where the reader is looking for more: the top of the
+            list is where "too late" is, and the bottom is where "nothing after this" is.
+
+            What a press adds, it adds: the journeys already on the screen stay on it (see the
+            accumulator above). Paging used to replace the list with the next window's, so walking
+            back to the morning and then forwards again lost everything in between.
           */}
           <button
             type="button"

@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Banner, Button, Card } from '../components/ui/primitives';
 import { TurnstileBox } from '../components/account/TurnstileBox';
+import { useT } from '../lib/useT';
 import { firebaseConfigured } from '../lib/firebase';
 import {
   createAccount,
   explainAuthError,
+  linkPendingGoogle,
   sendResetMail,
   sendSignInLink,
   signInWithGoogle,
@@ -44,6 +46,7 @@ const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as 
  * sentence here is the sentence a traveller has already read a hundred times elsewhere.
  */
 export function SignInPage() {
+  const t = useT();
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as { from?: string } | null)?.from ?? '/';
@@ -62,6 +65,8 @@ export function SignInPage() {
   const [newWithPasskey, setNewWithPasskey] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileTrouble, setTurnstileTrouble] = useState(false);
+  /* True after a Google attempt was refused because this address already has a password. */
+  const [googleWantsPassword, setGoogleWantsPassword] = useState(false);
 
   /*
    * **Whether passkeys are worth offering is asked once, on arrival.** The browser says whether it
@@ -103,8 +108,11 @@ export function SignInPage() {
       await work();
       then();
     } catch (error) {
-      const code = (error as { code?: string } | null)?.code ?? '';
+      const code =
+        (error as { code?: string | null } | null)?.code ??
+        (error instanceof Error ? error.message : '');
       setOfferCreate(code === 'auth/user-not-found' || code === 'auth/invalid-credential');
+      setGoogleWantsPassword(code === 'google/needs-password');
       setProblem(explainAuthError(error));
     } finally {
       setBusy(false);
@@ -135,11 +143,13 @@ export function SignInPage() {
       <main style={SHELL}>
         <div className="stack-4">
           <div className="stack-1">
-            <h1 className="t-title">Check your email</h1>
+            <h1 className="t-title">{t('Check your email')}</h1>
             <p className="t-sm t-muted">
-              {sent.purpose === 'reset'
-                ? 'We sent a password reset link to '
-                : 'We sent a sign-in link to '}
+              {t(
+                sent.purpose === 'reset'
+                  ? 'We sent a password reset link to'
+                  : 'We sent a sign-in link to',
+              )}{' '}
               <b>{sent.to}</b>.
             </p>
           </div>
@@ -147,18 +157,20 @@ export function SignInPage() {
           <Card>
             <div className="stack-3">
               <p className="t-sm">
-                {sent.purpose === 'reset'
-                  ? 'Click the link in the email to choose a new password.'
-                  : 'Click the link in the email to sign in. It works once and expires after an hour.'}
+                {t(
+                  sent.purpose === 'reset'
+                    ? 'Click the link in the email to choose a new password.'
+                    : 'Click the link in the email to sign in. It works once and expires after an hour.',
+                )}
               </p>
               <p className="t-sm t-muted">
-                It comes from <b>{MAIL_FROM}</b>. Adding that address to your contacts keeps it out
-                of spam next time.
+                {t('It comes from')} <b>{MAIL_FROM}</b>.{' '}
+                {t('Adding that address to your contacts keeps it out of spam next time.')}
               </p>
 
-              <p className="t-sm t-muted">Didn&rsquo;t get it? Check your spam folder.</p>
+              <p className="t-sm t-muted">{t("Didn't get it? Check your spam folder.")}</p>
 
-              {resent ? <p className="t-sm t-muted">Email sent again.</p> : null}
+              {resent ? <p className="t-sm t-muted">{t('Email sent again.')}</p> : null}
               {problem !== null ? (
                 <p className="t-sm" role="alert" style={{ margin: 0 }}>
                   {problem}
@@ -167,7 +179,7 @@ export function SignInPage() {
 
               <div className="row-wrap">
                 <Button variant="surface" size="sm" disabled={busy} onClick={() => void resend()}>
-                  {busy ? 'Sending' : 'Resend email'}
+                  {busy ? t('Sending') : t('Resend email')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -178,14 +190,14 @@ export function SignInPage() {
                     setProblem(null);
                   }}
                 >
-                  Use a different email
+                  {t('Use a different email')}
                 </Button>
               </div>
             </div>
           </Card>
 
           <p className="t-sm">
-            <Link to={returnTo}>Back to OVVO</Link>
+            <Link to={returnTo}>{t('Back to OVVO')}</Link>
           </p>
         </div>
       </main>
@@ -198,14 +210,15 @@ export function SignInPage() {
     <main style={SHELL}>
       <div className="stack-4">
         <div className="stack-1">
-          <h1 className="t-title">Sign in</h1>
-          <p className="t-sm t-muted">Sync your stops and journeys across your devices.</p>
+          <h1 className="t-title">{t('Sign in')}</h1>
+          <p className="t-sm t-muted">{t('Sync your stops and journeys across your devices.')}</p>
         </div>
 
         {!firebaseConfigured ? (
-          <Banner tone="coral" icon="info" title="Sign-in is unavailable">
-            This build was published without sign-in keys. Everything else works; your data stays on
-            this device.
+          <Banner tone="coral" icon="info" title={t('Sign-in is unavailable')}>
+            {t(
+              'This build was published without sign-in keys. Everything else works; your data stays on this device.',
+            )}
           </Banner>
         ) : null}
 
@@ -224,10 +237,10 @@ export function SignInPage() {
                   disabled={busy || !firebaseConfigured}
                   onClick={() => void withPasskey(signInWithPasskey)}
                 >
-                  Sign in with a passkey
+                  {t('Sign in with a passkey')}
                 </Button>
                 <p className="t-sm t-faint" style={{ textAlign: 'center', margin: 0 }}>
-                  or
+                  {t('or')}
                 </p>
               </>
             ) : null}
@@ -238,11 +251,24 @@ export function SignInPage() {
               disabled={busy || !firebaseConfigured}
               onClick={() => void go(() => signInWithGoogle(), back)}
             >
-              Continue with Google
+              {t('Continue with Google')}
             </Button>
 
+            {/*
+              * **The wall, said out loud.** Google refusing an address that already has a
+              * password used to arrive as a bare error with no way forward. Now the screen asks
+              * for the password it knows the account has, and adds Google once it works.
+              */}
+            {googleWantsPassword ? (
+              <p className="t-sm t-muted" style={{ margin: 0 }}>
+                {t(
+                  'That address already has an OVVO ID with a password. Sign in with that password below, and Google is added to the same account.',
+                )}
+              </p>
+            ) : null}
+
             <p className="t-sm t-faint" style={{ textAlign: 'center', margin: 0 }}>
-              or
+              {t('or')}
             </p>
 
             <form
@@ -257,14 +283,19 @@ export function SignInPage() {
                   );
                   return;
                 }
-                void go(
-                  () => signInWithPassword(email, password),
-                  back,
-                );
+                void go(async () => {
+                  await signInWithPassword(email, password);
+                  /*
+                   * If a Google attempt was refused a moment ago because this address already has
+                   * a password, this is the moment to attach Google to it. Failure here changes
+                   * nothing: the traveller is signed in, and the next attempt offers it again.
+                   */
+                  await linkPendingGoogle();
+                }, back);
               }}
             >
               <label className="field">
-                <span className="field__label">Email</span>
+                <span className="field__label">{t('Email')}</span>
                 <input
                   className="input"
                   type="email"
@@ -279,7 +310,7 @@ export function SignInPage() {
 
               {mode === 'password' ? (
                 <label className="field">
-                  <span className="field__label">Password</span>
+                  <span className="field__label">{t('Password')}</span>
                   <input
                     className="input"
                     type="password"
@@ -306,7 +337,7 @@ export function SignInPage() {
               {offerCreate ? (
                 <div className="stack-3">
                   <label className="field">
-                    <span className="field__label">First name</span>
+                    <span className="field__label">{t('First name')}</span>
                     <input
                       className="input"
                       name="given-name"
@@ -317,7 +348,7 @@ export function SignInPage() {
                     />
                   </label>
                   <label className="field">
-                    <span className="field__label">Last name (optional)</span>
+                    <span className="field__label">{t('Last name (optional)')}</span>
                     <input
                       className="input"
                       name="family-name"
@@ -342,13 +373,13 @@ export function SignInPage() {
                       )
                     }
                   >
-                    Create account
+                    {t('Create account')}
                   </Button>
                 </div>
               ) : null}
 
               <Button variant="accent" block type="submit" disabled={busy || !firebaseConfigured}>
-                {busy ? 'Please wait' : mode === 'link' ? 'Send sign-in link' : 'Sign in'}
+                {busy ? t('Please wait') : mode === 'link' ? t('Send sign-in link') : t('Sign in')}
               </Button>
             </form>
 
@@ -364,7 +395,7 @@ export function SignInPage() {
                   setLastName('');
                 }}
               >
-                {mode === 'link' ? 'Use a password instead' : 'Use a sign-in link instead'}
+                {mode === 'link' ? t('Use a password instead') : t('Use a sign-in link instead')}
               </Button>
               {mode === 'password' ? (
                 <Button
@@ -379,7 +410,7 @@ export function SignInPage() {
                     );
                   }}
                 >
-                  Forgot password?
+                  {t('Forgot password?')}
                 </Button>
               ) : null}
             </div>
@@ -395,7 +426,7 @@ export function SignInPage() {
           <Card>
             <div className="stack-3">
               <p className="t-strong" style={{ margin: 0 }}>
-                New to OVVO?
+                {t('New to OVVO?')}
               </p>
               {!newWithPasskey ? (
                 <Button
@@ -407,12 +438,12 @@ export function SignInPage() {
                     setNewWithPasskey(true);
                   }}
                 >
-                  Create an account with a passkey
+                  {t('Create an account with a passkey')}
                 </Button>
               ) : (
                 <div className="stack-3">
                   <p className="t-sm t-muted" style={{ margin: 0 }}>
-                    No email and no password. Your face, fingerprint or PIN is the key.
+                    {t('No email and no password. Your face, fingerprint or PIN is the key.')}
                   </p>
                   <label className="field">
                     <span className="field__label">First name</span>
@@ -445,8 +476,9 @@ export function SignInPage() {
                   />
                   {turnstileTrouble ? (
                     <p className="t-sm t-muted" style={{ margin: 0 }}>
-                      That check could not load, so an account with a passkey cannot be made right
-                      now. You can still make one with an email above.
+                      {t(
+                        'That check could not load, so an account with a passkey cannot be made right now. You can still make one with an email above.',
+                      )}
                     </p>
                   ) : null}
                   <Button
@@ -464,7 +496,7 @@ export function SignInPage() {
                       )
                     }
                   >
-                    {busy ? 'Waiting for your device' : 'Create with a passkey'}
+                    {busy ? t('Waiting for your device') : t('Create with a passkey')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -474,17 +506,15 @@ export function SignInPage() {
                       setTurnstileToken(null);
                     }}
                   >
-                    Cancel
+                    {t('Cancel')}
                   </Button>
                 </div>
               )}
             </div>
           </Card>
-        ) : null}
-
-        <p className="t-sm">
-          <Link to={returnTo}>Back to OVVO</Link>
-        </p>
+        ) : null}          <p className="t-sm">
+            <Link to={returnTo}>{t('Back to OVVO')}</Link>
+          </p>
       </div>
     </main>
   );

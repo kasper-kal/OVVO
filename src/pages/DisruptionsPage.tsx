@@ -197,6 +197,54 @@ export function DisruptionsPage() {
             {t('Affecting my favourites')}
           </Chip>
 
+          {/*
+            **What is switched on, said in the row, once Options is closed.**
+
+            A filter inside Options changed the list and then left nothing behind but a small
+            number on the Options chip: pressing "Ferry" cut fourteen alerts down to two and the
+            screen no longer said why, which is the combination the steerer called horrible. Every
+            filter that changes the list now appears here as its own chip while it is on, and
+            pressing that chip takes the filter off again: the evidence and the undo in one place,
+            where the traveller is looking.
+          */}
+          {types.map((type) => (
+            <Chip
+              key={`type-${type}`}
+              selected
+              icon="close"
+              onClick={() => setTypes((current) => current.filter((value) => value !== type))}
+            >
+              {DISRUPTION_TYPE_LABELS[type]}
+            </Chip>
+          ))}
+          {severities.map((severity) => (
+            <Chip
+              key={`severity-${severity}`}
+              selected
+              icon="close"
+              onClick={() =>
+                setSeverities((current) => current.filter((value) => value !== severity))
+              }
+            >
+              {t(SEVERITY_LABEL[severity])}
+            </Chip>
+          ))}
+          {modes.map((mode) => (
+            <Chip
+              key={`mode-${mode}`}
+              selected
+              icon="close"
+              onClick={() => setModes((current) => current.filter((value) => value !== mode))}
+            >
+              {t(modeLabel(mode))}
+            </Chip>
+          ))}
+          {stopQuery.trim() ? (
+            <Chip selected icon="close" onClick={() => setStopQuery('')}>
+              {stopQuery.trim()}
+            </Chip>
+          ) : null}
+
           <label className="field" htmlFor="alerts-sort">
             <span className="field__label">{t('Sort by')}</span>
             <Select
@@ -413,11 +461,19 @@ function AlertCard({ alert }: { alert: Disruption }) {
      */
     <ResultCard as="li" to={to} className="stack-2">
       <div className="between wrap">
-        <div className="row-3">
+        {/*
+          **The header is one row, always.** The marker stayed beside the words on a short title
+          and dropped above them on a long one, because the row was allowed to wrap and the words
+          could not shrink: a card with a two-line title had its icon in a row of its own, a card
+          with a one-line title did not, and two cards in the same list therefore had two different
+          tops and two different amounts of space above the title (reported with three cards side
+          by side). The row does not wrap now, and the words take the width that is left.
+        */}
+        <div className="row-3 alert-card__head">
           <span className="leg-row__marker">
             <Icon name="alert" size={18} />
           </span>
-          <div className="stack-1">
+          <div className="stack-1 alert-card__head-text">
             <ResultCardLink to={to}>{words.title}</ResultCardLink>
             <span className="t-sm t-muted">
               {format.time(alert.startsAt)} – {format.time(alert.endsAt)}

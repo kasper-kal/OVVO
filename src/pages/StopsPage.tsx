@@ -247,6 +247,22 @@ export function StopsPage() {
             />
           </label>
 
+          {/*
+            **The favourites filter sits in the open, beside the search, exactly where the alerts
+            screen keeps it.** It used to be inside Options, one tap deeper than the same control
+            on the alerts screen, which made two lists that answer the same question ask it in two
+            different places. The words follow the screen rather than the other list, because
+            nothing on a list of stops is "affecting" anything: here it selects the stops that
+            are already yours.
+          */}
+          <Chip
+            selected={favouritesOnly}
+            icon="heart"
+            onClick={() => writeParams({ favourites: favouritesOnly ? null : '1' })}
+          >
+            {t('Favourites only')}
+          </Chip>
+
           <label className="field" htmlFor="stops-sort">
             <span className="field__label">{t('Sort by')}</span>
             <Select
@@ -358,13 +374,8 @@ export function StopsPage() {
                   {t(modeLabel(mode))}
                 </Chip>
               ))}
-              <Chip
-                selected={favouritesOnly}
-                icon="heart"
-                onClick={() => writeParams({ favourites: favouritesOnly ? null : '1' })}
-              >
-                {t('Favourites only')}
-              </Chip>
+              {/* The favourites chip moved into the filter row above, where it is always visible
+                  and in the same place as the alerts screen's. It is not repeated here. */}
               <Button
                 size="sm"
                 variant="ghost"

@@ -499,17 +499,47 @@ export function DeveloperPage() {
               number names one drawing of the whole network, and it is kept with the other
               overrides, so it survives the reload that reproduces the report.
             */}
+            {/*
+              **The number is the control.**
+
+              It used to be printed in the field's label, with two buttons underneath that could
+              only go forward by one or back to zero: a number you can read but not type, and no way
+              back down (reported: "what an odd way to change the number"). The number is now the
+              field itself — type it, or step it either way — and the two-word reset that used to
+              be a button is a minus that stops at zero.
+            */}
             <Field
-              label={t('Variant · {number}', { number: dev.rollVariant })}
+              label={t('Variant')}
               hint={t(
                 'Note the number and the same rows come back: the delays, the cancellations and the platforms.',
               )}
             >
               <div className="row">
-                <Button onClick={() => setDevOverrides({ rollVariant: dev.rollVariant + 1 })}>
-                  {t('Roll again')}
-                </Button>
-                <Button onClick={() => setDevOverrides({ rollVariant: 0 })}>
+                <IconButton
+                  icon="minus"
+                  label={t('Previous variant')}
+                  disabled={dev.rollVariant <= 0}
+                  onClick={() => setDevOverrides({ rollVariant: Math.max(0, dev.rollVariant - 1) })}
+                />
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={dev.rollVariant}
+                  aria-label={t('Variant')}
+                  style={{ width: '6rem', textAlign: 'center' }}
+                  onChange={(event) => {
+                    const next = Number.parseInt(event.target.value, 10);
+                    setDevOverrides({ rollVariant: Number.isFinite(next) && next >= 0 ? next : 0 });
+                  }}
+                />
+                <IconButton
+                  icon="plus"
+                  label={t('Next variant')}
+                  onClick={() => setDevOverrides({ rollVariant: dev.rollVariant + 1 })}
+                />
+                <Button variant="ghost" size="sm" onClick={() => setDevOverrides({ rollVariant: 0 })}>
                   {t('The first roll')}
                 </Button>
               </div>
