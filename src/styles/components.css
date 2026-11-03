@@ -11890,3 +11890,48 @@
 .widget-grid--editing .widget__head {
   padding-right: calc(var(--target-min) - var(--s-2));
 }
+
+/* ------------------------------------------------------------------ Leg stops
+ *
+ * **A walking link is a hairline and a ride is a line you can follow.** Both were drawn at the same
+ * weight in the same colour, so a journey's shape — walk, ride, walk, ride — did not read at a
+ * glance; 9292 makes the difference the first thing you see. The ride's rail takes the strongest
+ * ink at half again the width, the walk keeps the thin dashed hairline.
+ */
+.timeline__rail--ride::before {
+  width: calc(var(--rail-line) * 1.5);
+  left: calc(var(--rail-node) / 2 - (var(--rail-line) * 1.5) / 2);
+  background: var(--ink-strong);
+}
+
+/* The way into a service's own stops: a word with a glyph, not another pill in the row. */
+.leg-stops {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--s-1);
+  min-height: var(--target-min);
+  margin-left: calc(var(--s-2) * -1);
+  padding: 0 var(--s-2);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-strong);
+  font: inherit;
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  /* A word that opens something is underlined like every other control made of words. */
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+}
+
+.leg-stops:hover {
+  background: var(--l2-bg);
+  text-decoration-thickness: 2px;
+}
+
+.leg-stops__chevron {
+  color: var(--ink-faint);
+}

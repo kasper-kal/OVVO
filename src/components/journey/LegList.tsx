@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { getStop, stopLabel, nearbyStops } from '../../data/stops';
 import { getLine } from '../../data/network';
 import { getDisruption } from '../../data/disruptions';
 import { alertLine } from '../../lib/disruptionText';
 import { useFormat } from '../../lib/useFormat';
-import { Disclosure, Pill } from '../ui/primitives';
+import { Dialog, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { StopLink } from '../stops/StopLink';
 import { useT } from '../../lib/useT';
@@ -66,8 +67,18 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
   const format = useFormat();
   const t = useT();
   const line = getLine(leg.lineId);
+  /*
+   * **The stops on this service open in a sheet of their own.** They used to unfold inside the
+   * leg, which pushed every service below them down the rail and turned the journey into an
+   * accordion; 9292 keeps the journey the same height and opens the stops over it, so a traveller
+   * can see where they are between two stations without losing the line they are reading. The
+   * disclosure also meant the list was invisible until someone guessed it was there.
+   */
+  const [stopsOpen, setStopsOpen] = useState(false);
+  const stops = leg.intermediateStops ?? [];
+  const serviceName = leg.lineName ?? line?.name ?? t('Service');
   return (
-    <li className={`timeline__rail${leg.cancelled ? ' font-bold' : ''}`}>
+    <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
       <span className="timeline__node timeline__node--accent" />
       <div className="stack-2">
         {/*
@@ -133,33 +144,82 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
           */}
         </div>
 
-        {leg.intermediateStops?.length ? (
-          <Disclosure
-            title={t(
-              leg.intermediateStops.length === 1 ? '{count} intermediate stop' : '{count} intermediate stops',
-              { count: leg.intermediateStops.length },
-            )}
-            id={`leg-${leg.id}`}
-          >
-            <ol className="stack-2">
-              {leg.intermediateStops.map((stop) => (
-                <li key={stop.stopId} className="between">
-                  {/* The stops passed through are places with pages too — this is the list a
-                      traveller reads when they wonder whether a stop is the one they want. */}
-                  <span className="t-sm">
-                    <StopLink stopId={stop.stopId} />
-                  </span>
-                  <span className="row">
-                    <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
-                    {stop.platform ? (
-                      <Pill tone="outline">{t('Platform {platform}', { platform: stop.platform })}</Pill>
-                    ) : null}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </Disclosure>
-        ) : null}
+        <button
+          type="button"
+          className="leg-stops"
+          aria-label={t('Show the stops on {line}', { line: serviceName })}
+          onClick={() => setStopsOpen(true)}
+        >
+          <Icon name="route" size={13} />
+          {stops.length === 0
+            ? t('Board to alight')
+            : stops.length === 1
+              ? t('1 stop in between')
+              : t('{count} stops in between', { count: stops.length })}
+          <Icon name="chevronRight" size={14} className="leg-stops__chevron" />
+        </button>
+
+        {/*
+          The sheet is the leg's own line, stop by stop: where you get on, every stop it calls at
+          with its time and platform, and where you get off. The two ends of the *ride* carry the
+          two words that answer "how far am I", so a glance at the list says which end of it you
+          are travelling.
+        */}
+        <Dialog
+          open={stopsOpen}
+          onClose={() => setStopsOpen(false)}
+          title={serviceName}
+          description={`${format.time(leg.departure)} → ${format.time(leg.arrival)} · ${t('{duration} ride', {
+            duration: format.duration(leg.arrival - leg.departure),
+          })}`}
+        >
+          <ol className="stack-2">
+            <li className="between">
+              <span className="row-wrap">
+                <span className="t-strong t-sm">
+                  {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
+                </span>
+                <Pill tone="butter">{t('Board')}</Pill>
+                {leg.platform ? (
+                  <Pill tone="outline">
+                    <Icon name="platform" size={12} />
+                    {t('Platform')} {leg.platform}
+                  </Pill>
+                ) : null}
+              </span>
+              <span className="t-sm t-mono-num t-muted">{format.time(leg.departure)}</span>
+            </li>
+            {stops.map((stop) => (
+              <li key={stop.stopId} className="between">
+                {/* Every stop the service calls at is a place with a page, as in the rail itself. */}
+                <span className="t-sm">
+                  <StopLink stopId={stop.stopId} />
+                </span>
+                <span className="row">
+                  <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
+                  {stop.platform ? (
+                    <Pill tone="outline">{t('Platform {platform}', { platform: stop.platform })}</Pill>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+            <li className="between">
+              <span className="row-wrap">
+                <span className="t-strong t-sm">
+                  {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
+                </span>
+                <Pill tone="sage">{t('Get off')}</Pill>
+                {leg.arrivalPlatform ? (
+                  <Pill tone="outline">
+                    <Icon name="platform" size={12} />
+                    {t('Arrival platform')} {leg.arrivalPlatform}
+                  </Pill>
+                ) : null}
+              </span>
+              <span className="t-sm t-mono-num t-muted">{format.time(leg.arrival)}</span>
+            </li>
+          </ol>
+        </Dialog>
       </div>
     </li>
   );
