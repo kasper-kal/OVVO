@@ -253,34 +253,10 @@ export function JourneyDetailPage() {
         full sentence is still each control's accessible name; what is printed is the verb.
       */}
       <div className="journey-actions">
-        {search ? (
-          <Button
-            icon="route"
-            aria-label={t('Plan return journey')}
-            onClick={() => {
-              /*
-               * The two ends swap, and so does everything that names them: an end that was an
-               * address keeps its address when it becomes the destination, and the distance
-               * between that address and the stop swaps with it. Without the labels a return
-               * from Haarlem to "Rijksstraatweg 9, Haarlem" would have arrived at "Haarlem" —
-               * a journey to the station the traveller was standing at.
-               */
-              startSearch({
-                ...search.query,
-                fromStopId: journey.legs[journey.legs.length - 1].toStopId,
-                toStopId: journey.legs[0].fromStopId,
-                fromLabel: search.query.toLabel,
-                toLabel: search.query.fromLabel,
-                fromAccessMetres: search.query.toAccessMetres,
-                toAccessMetres: search.query.fromAccessMetres,
-                preferences,
-              });
-              navigate('/results');
-            }}
-          >
-            {t('Return')}
-          </Button>
-        ) : null}
+        {/* **No Return button.** The reverse of a pair is the results screen's own swap, next to the
+            two ends it swaps; a RETURN pill here was the third copy of that act (he crossed it out:
+            "theres already a Reverse button on the Journey results page"). Reversing is still one
+            press away — on the results screen this journey was chosen from. */}
         {/* **No Map button.** The thumbnail in the title line is already the way to the map, and it
             says so with its own arrow; a pill called MAP under it was a second door to the same room
             (he crossed it out). The map is still reachable from here, from every leg's own map glyph,

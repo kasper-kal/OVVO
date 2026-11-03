@@ -218,6 +218,37 @@ if (walkLinks > 0) {
   check(doors.total === 1, 'the journey offers exactly one way to the map', `${doors.total} control(s)`);
   check(doors.thumbs === 1, 'and that way is the thumbnail in the title line', `${doors.thumbs} thumbnail(s)`);
   check(doors.pills === 0, 'there is no second Map button', `${doors.pills} pill(s)`);
+  /*
+   * **And the reverse belongs on the results screen, where the pair is.** A RETURN pill here was a
+   * third copy of the same act — he crossed it out: "theres already a Reverse button on the Journey
+   * results page". The journey page must offer none, and the results screen must still have one.
+   */
+  const returnDoors = await doorPage.evaluate(
+    () =>
+      [...document.querySelectorAll('button, a')].filter((el) => {
+        const name = (el.getAttribute('aria-label') ?? el.textContent ?? '').trim();
+        return /plan return journey|^return$/i.test(name);
+      }).length,
+  );
+  check(returnDoors === 0, 'the journey page offers no Return button of its own', `${returnDoors} control(s)`);
+  await doorPage.goto(`${base}${rideTrip}`, { waitUntil: 'networkidle' });
+  for (let i = 0; i < 8; i += 1) {
+    const close = doorPage.locator('.overlay button, .sheet button');
+    if (!(await close.count())) break;
+    await close.first().click({ timeout: 800 }).catch(() => {});
+    await doorPage.waitForTimeout(120);
+  }
+  const swaps = await doorPage.evaluate(() => ({
+    byClass: document.querySelectorAll('.planner-swap').length,
+    named: [...document.querySelectorAll('[aria-label]')].filter((el) =>
+      /swap|reverse/i.test(el.getAttribute('aria-label') ?? ''),
+    ).length,
+  }));
+  check(
+    swaps.byClass + swaps.named > 0,
+    'the results screen still has the reverse for the pair',
+    `${swaps.byClass} swap control(s), ${swaps.named} named`,
+  );
   await doorPage.close();
 }
 
