@@ -17,3 +17,13 @@ artifacts/
 
 # Local Wrangler state: the dev database, its cache and its session rows. It belongs to this machine only.
 .wrangler/
+
+# **Timetable archives and everything unpacked from them stay out of Git.** They are ~179MB and
+# change nightly; the pipeline writes a manifest beside them and `REAL-DATA-STATUS.md` records what
+# was verified, so the repository carries the facts and not the bytes.
+data/
+
+# **Toolchains are installed, not committed.** The JDK and the OTP jar are 190MB and 135MB; GitHub
+# refuses a file over 100MB, which is how the first push of this work was rejected. `tools/` holds
+# what a machine downloads for itself.
+tools/
