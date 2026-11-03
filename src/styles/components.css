@@ -4337,7 +4337,14 @@
    * row's own 11px, and the line now meets the square's edge.
    */
   top: calc(var(--timeline-gap) * -1);
-  height: calc(5px + var(--timeline-gap));
+  /*
+   * **Into the square, not up to it.** The connector used to stop on the square's top edge, which is
+   * right only while every row above it ends exactly on its own foot: one row that carries a negative
+   * margin (a stop on the rail) or a hair of rounding, and the line stopped a few pixels above the
+   * square and the journey's end floated free. It now runs the square's whole height and is hidden
+   * behind it, so the last stretch of the line always meets the mark.
+   */
+  height: calc(15px + var(--timeline-gap));
   width: var(--rail-line);
   background: var(--border-hairline);
 }
