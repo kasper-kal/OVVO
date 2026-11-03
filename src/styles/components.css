@@ -4227,7 +4227,12 @@
    * a row of specks between two stations; the dash is longer and the break shorter, so the eye
    * follows a line from one mark to the next.
    */
-  bottom: calc(var(--timeline-gap) * -1);
+  /*
+   * **Past the gap, under the next ring.** A repeating pattern cannot promise that its last pixels
+   * are drawn, so a walk's line used to end in a 6px break just above the station that follows it.
+   * The segment runs 8px further, where the ring is painted over it and the break cannot be seen.
+   */
+  bottom: calc((var(--timeline-gap) + 8px) * -1);
   background: repeating-linear-gradient(
     to bottom,
     var(--border-hairline) 0 9px,
@@ -4341,7 +4346,8 @@
      taller connector so a dash still finishes on that edge (17 to 23 in the new box) rather than
      a gap doing so. */
   top: calc(var(--timeline-gap) * -1);
-  height: calc(5px + var(--timeline-gap));
+  /* Six pixels into the square, for the same reason: the last break in the pattern is covered. */
+  height: calc(11px + var(--timeline-gap));
 }
 
 /* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
