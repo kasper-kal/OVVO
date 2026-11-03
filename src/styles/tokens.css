@@ -163,8 +163,15 @@
   /* Derived, spec-consistent supporting values (ink ramp on the warm canvas) */
   --ink-strong: var(--struct-main);
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  /*
+   * **The two quiet greys are darker than they were, because they were the thinnest thing on the
+   * page.** Muted measured 5.60:1 and faint 5.04:1 on the card surface, and faint fell to 4.59:1 on a
+   * pale tinted page — legal on cream and washed out the moment the page had any colour of its own.
+   * Neither is a failure now: 6.5:1 and 6.0:1 on a card, 5.4:1 on the palest tint, and still one
+   * clear step apart so a caption stays quieter than the line above it.
+   */
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   --on-dark: #fcfbfa;
   --on-dark-muted: #b9b9be;
   --hairline-on-dark: #2d3b2d;
