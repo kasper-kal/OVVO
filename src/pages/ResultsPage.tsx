@@ -94,6 +94,18 @@ function holdIsRunning(key: string): boolean {
  */
 let spreadStore: { key: string; journeys: Journey[] } | null = null;
 
+/*
+ * **A re-plan is not a way out of the Date and time sheet.**
+ *
+ * Choosing a day, a time, or which side of it you mean rewrites the address (`/results/<id>` names
+ * the search), and a new address is a new render of this screen — so the sheet's own `useState` was
+ * thrown away by the very tap that answered it, and the sheet vanished for good. Measured: the
+ * control was gone 15ms after the press and still gone five seconds later, with the chip reading
+ * "Arrive: 2 Nov · 5:00", so the answer had been taken and the sheet had not. The flag lives outside
+ * the component for that one remount, and leaving the results screen clears it.
+ */
+let whenSheetStaysOpen = false;
+
 export function ResultsPage() {
   /* The search the address names, if it names one — `/results/<id>` (`lib/searchLink`). */
   const { searchId } = useParams();
@@ -124,12 +136,25 @@ export function ResultsPage() {
   const format = useFormat();
   const t = useT();
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const [whenOpen, setWhenOpen] = useState(false);
+  /* `whenSheetStaysOpen` is the sheet's own state surviving the re-plan's remount (see above). */
+  const [whenOpen, setWhenOpenState] = useState(whenSheetStaysOpen);
+  const setWhenOpen = (next: boolean) => {
+    whenSheetStaysOpen = next;
+    setWhenOpenState(next);
+  };
   /* A day that has gone is refused in words, not just by the native control's own validation
      bubble: the app used to store it and re-plan the list for yesterday, silently (23.2). */
   const [dateInvalid, setDateInvalid] = useState(false);
   const [accessSide, setAccessSide] = useState<null | 'from' | 'to'>(null);
   const [nowRef] = useState(() => roundToStep(nowMinutes(), 5));
+
+  useEffect(
+    () => () => {
+      /* Only a re-plan keeps the sheet open: leaving the results screen closes it for good. */
+      if (!window.location.pathname.startsWith('/results')) whenSheetStaysOpen = false;
+    },
+    [],
+  );
 
   /*
    * **The screen holds its list's own shape while a search lands.**
@@ -897,9 +922,25 @@ export function ResultsPage() {
                   updateSearchQuery({ date: next });
                 }}
               />
-              <span className="when-field__glyph" aria-hidden="true">
+              {/* The mark is the button now: the platform's own picker button is removed (see
+                  `.when-field__glyph` in components.css), so this is the one mark and the one way
+                  to the device's calendar. */}
+              <button
+                type="button"
+                className="when-field__glyph"
+                aria-label={t('Open the calendar')}
+                onClick={(event) => {
+                  const input = event.currentTarget.previousElementSibling;
+                  if (!(input instanceof HTMLInputElement)) return;
+                  try {
+                    (input as HTMLInputElement & { showPicker?: () => void }).showPicker?.();
+                  } catch {
+                    input.focus();
+                  }
+                }}
+              >
                 <Icon name="calendar" size={18} />
-              </span>
+              </button>
             </div>
             <div className="when-field__field">
               <input
@@ -918,9 +959,22 @@ export function ResultsPage() {
                   if (next !== null) updateSearchQuery({ time: next });
                 }}
               />
-              <span className="when-field__glyph" aria-hidden="true">
+              <button
+                type="button"
+                className="when-field__glyph"
+                aria-label={t('Open the clock')}
+                onClick={(event) => {
+                  const input = event.currentTarget.previousElementSibling;
+                  if (!(input instanceof HTMLInputElement)) return;
+                  try {
+                    (input as HTMLInputElement & { showPicker?: () => void }).showPicker?.();
+                  } catch {
+                    input.focus();
+                  }
+                }}
+              >
                 <Icon name="clock" size={18} />
-              </span>
+              </button>
             </div>
           </div>
           {/* The same answer, in the app's own date and clock format — the settings the native

@@ -7325,7 +7325,7 @@
 .when-field__field .input {
   flex: 1 1 auto;
   min-width: 0;
-  /* The mark's lane, the same one every other field gives its mark: 24px from the edge. */
+  /* The mark's lane: 44px of target, 4px from the edge, so the value never runs under it. */
   padding-right: 50px;
   font-variant-numeric: tabular-nums;
 }
@@ -7349,25 +7349,52 @@
   position: absolute;
   top: 50%;
   /*
-   * **The same lane as every other mark in a field.**
+   * **A press, not a picture — and one mark, not two.**
    *
-   * It was 8px from the edge, which on a 52px pill is *inside* the rounded end - the mark sat on
-   * the curve rather than in the field. The results screen's day and time fields were the last
-   * place still drawing their own mark by an older rule; they now use the 24px lane that the
-   * dropdowns and the clock field use, so every mark in the app lands in the same place.
+   * This used to be a `span` with `pointer-events: none`, sitting *under* the platform's own picker
+   * button so that a tap fell through to it. That is what drew two marks in his screenshot: the app's
+   * calendar and then a chevron, one above the other at the field's rounded end. Fading that
+   * indicator (`opacity: 0`) does not remove it on Chrome for Android — the app had already learned
+   * that once, on the clock field, and fixed it there with `appearance: none`. Same cure here: the
+   * platform's button is removed, and this mark becomes the button that opens the device's own
+   * picker (`showPicker()`), so there is exactly one mark and it is the one that works.
+   *
+   * It is 44px of tappable area with an 18px mark inside it, so the target is the app's size while
+   * the drawing stays the glyph's. `right: 4px` puts the glyph's centre 26px from the edge, clear of
+   * the 20px corner the stacked group now carries.
    */
-  right: 12px;
+  right: 4px;
   display: none;
   align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  height: var(--target-min);
+  padding: 0;
+  border: 0;
+  background: none;
   translate: 0 -50%;
   color: var(--ink-muted);
-  pointer-events: none;
+  cursor: pointer;
+}
+
+.when-field__glyph:hover {
+  color: var(--ink-strong);
 }
 
 @supports selector(::-webkit-calendar-picker-indicator) {
+  /*
+   * The platform's own button is **removed**, not faded: `appearance: none` is the switch that
+   * actually takes Chrome for Android's chevron away, and `display: none` on the indicator covers
+   * the engines where the pseudo-element is the only hook. What is left is one mark, ours.
+   */
+  .when-field__field .input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   .when-field__field .input::-webkit-calendar-picker-indicator {
+    display: none;
     opacity: 0;
-    cursor: pointer;
   }
 
   .when-field__glyph {
@@ -7389,6 +7416,18 @@
 @media (max-width: 400px) {
   .when-field__group {
     grid-template-columns: 1fr;
+    /*
+     * **Two answers stacked are a box, not a capsule.**
+     *
+     * Side by side the group is 52px tall and a pill is right. Stacked on a phone it is 91px tall
+     * with the same 9999px radius, which draws a stadium around two rows: the ends bulge past the
+     * marks and the divider runs into the curve (he circled exactly that end: "why are those thing
+     * rounded, it looks like shit"). The app already has this rule for the one other control taller
+     * than one line — the textarea "keeps the squircle, because a capsule eight lines tall is not a
+     * capsule" — so a two-row group takes the same corner, `--r-input`, and the marks sit against a
+     * straight edge instead of on a curve.
+     */
+    border-radius: var(--r-input);
   }
 
   .when-field__field + .when-field__field {

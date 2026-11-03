@@ -439,6 +439,119 @@ if (sheetSegmented && settingsSegmented) {
   );
 }
 
+
+/*
+ * **Colour, not only geometry — and the field, not only the switch.**
+ *
+ * The size check above passed while he was still looking at a white tab in a dark sheet, because it
+ * compared one appearance and four numbers. The switch is now read in **both** appearances, on the
+ * capsule, the thumb, its ring and its ink, and the day and time field is read beside it: one mark
+ * per answer, the platform's own picker button removed, and a stacked group that is a box rather
+ * than a stadium.
+ */
+const openSheet = async (theme) => {
+  const sheetPage = await browser.newPage({ viewport: { width: 390, height: 900 } });
+  if (theme === 'dark') await sheetPage.emulateMedia({ colorScheme: 'dark' });
+  await sheetPage.goto(`${base}${journey}`, { waitUntil: 'domcontentloaded' });
+  await sheetPage.waitForSelector('.results-chip', { timeout: 20000 });
+  for (let i = 0; i < 8; i += 1) {
+    const close = sheetPage.locator('.overlay button, .sheet button');
+    if (!(await close.count())) break;
+    await close.first().click({ timeout: 800 }).catch(() => {});
+    await sheetPage.waitForTimeout(100);
+  }
+  await sheetPage.waitForTimeout(400);
+  await sheetPage.locator('.results-chip').first().click();
+  await sheetPage.locator('[aria-label="Depart at or arrive by"]').waitFor({ timeout: 12000 });
+  if (theme === 'dark') await sheetPage.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await sheetPage.waitForTimeout(300);
+  return sheetPage;
+};
+
+const lookOf = (target, selector) => target.evaluate((sel) => {
+  const seg = document.querySelector(sel);
+  if (!seg) return null;
+  const pressed = seg.querySelector('.segmented__btn[aria-pressed="true"]');
+  if (!pressed) return null;
+  const ps = getComputedStyle(pressed);
+  const cs = getComputedStyle(seg);
+  const group = document.querySelector('.when-field__group');
+  const glyph = document.querySelector('.when-field__glyph');
+  const input = document.querySelector('#results-date');
+  const box = glyph && glyph.getBoundingClientRect();
+  return {
+    h: Math.round(seg.getBoundingClientRect().height),
+    thumbH: Math.round(pressed.getBoundingClientRect().height),
+    capsule: cs.backgroundColor,
+    bg: ps.backgroundColor,
+    ring: `${ps.borderTopWidth} ${ps.borderTopColor}`,
+    ink: ps.color,
+    groupRadius: group ? parseFloat(getComputedStyle(group).borderTopLeftRadius) : null,
+    glyphTag: glyph ? glyph.tagName : null,
+    glyphBox: box ? `${Math.round(box.width)}x${Math.round(box.height)}` : null,
+    pickerButton: input ? getComputedStyle(input).appearance : null,
+  };
+}, selector);
+
+const looks = {};
+for (const theme of ['light', 'dark']) {
+  const sheetPage = await openSheet(theme);
+  const sheetLook = await lookOf(sheetPage, '[aria-label="Depart at or arrive by"]');
+  await sheetPage.locator('[aria-label="Depart at or arrive by"] .segmented__btn').nth(1).click();
+  await sheetPage.waitForTimeout(500);
+  const stillOpen = (await sheetPage.locator('[aria-label="Depart at or arrive by"]').count()) > 0;
+  await sheetPage.close();
+
+  const settingsPage = await browser.newPage({ viewport: { width: 390, height: 900 } });
+  if (theme === 'dark') await settingsPage.emulateMedia({ colorScheme: 'dark' });
+  await settingsPage.goto(`${base}/settings`, { waitUntil: 'domcontentloaded' });
+  await settingsPage.waitForTimeout(500);
+  if (theme === 'dark') await settingsPage.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await settingsPage.waitForTimeout(400);
+  const settingsLook = await lookOf(settingsPage, '[aria-label="Default search type"]');
+  await settingsPage.close();
+  looks[theme] = { sheetLook, settingsLook, stillOpen };
+}
+
+for (const theme of ['light', 'dark']) {
+  const { sheetLook, settingsLook } = looks[theme];
+  check(Boolean(sheetLook) && Boolean(settingsLook), `both switches are drawn in the ${theme} appearance`);
+  if (!sheetLook || !settingsLook) continue;
+  check(
+    sheetLook.h === settingsLook.h && sheetLook.thumbH === settingsLook.thumbH,
+    `the switch is the same size in the ${theme} appearance`,
+    `${sheetLook.h}px/${sheetLook.thumbH}px vs ${settingsLook.h}px/${settingsLook.thumbH}px`,
+  );
+  check(
+    sheetLook.capsule === settingsLook.capsule &&
+      sheetLook.bg === settingsLook.bg &&
+      sheetLook.ring === settingsLook.ring &&
+      sheetLook.ink === settingsLook.ink,
+    `the switch paints the same colours in the ${theme} appearance`,
+    `capsule ${sheetLook.capsule} thumb ${sheetLook.bg} vs capsule ${settingsLook.capsule} thumb ${settingsLook.bg}`,
+  );
+}
+
+const sheetLight = looks.light.sheetLook;
+if (sheetLight) {
+  check(
+    sheetLight.glyphTag === 'BUTTON' && sheetLight.glyphBox === '44x44',
+    'each day and time answer has one mark, 44px',
+    `${sheetLight.glyphTag} ${sheetLight.glyphBox}`,
+  );
+  check(
+    sheetLight.pickerButton === 'none',
+    "the platform's own picker button is removed, not faded",
+    String(sheetLight.pickerButton),
+  );
+  check(
+    sheetLight.groupRadius !== null && sheetLight.groupRadius <= 24,
+    'a stacked day and time group is a box, not a stadium',
+    `${sheetLight.groupRadius}px corner`,
+  );
+}
+check(looks.dark.stillOpen === true, 'choosing a side leaves the sheet open', looks.dark.stillOpen ? 'still open' : 'it closed');
+
 await browser.close();
 console.log(`batch 3: ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);
