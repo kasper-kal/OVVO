@@ -219,6 +219,23 @@ if (walkLinks > 0) {
   check(doors.thumbs === 1, 'and that way is the thumbnail in the title line', `${doors.thumbs} thumbnail(s)`);
   check(doors.pills === 0, 'there is no second Map button', `${doors.pills} pill(s)`);
   /*
+   * **A marker must have its footnote.** The price wears a star; the line that explains it has to
+   * carry the same star, or the page tells the reader something is being left out and never says
+   * what. He circled the lone star: "Why is there a footnote marker but no footnote".
+   */
+  const starNote = await doorPage.evaluate(() => {
+    const price = document.querySelector('.journey-meta__price');
+    const note = document.querySelector('.journey-note');
+    const noteText = (note?.textContent ?? '').trim();
+    return {
+      starred: price ? price.textContent.includes('*') : false,
+      note: noteText.slice(0, 48),
+      noteHasStar: noteText.startsWith('*'),
+    };
+  });
+  check(starNote.starred, 'the price wears its marker', String(starNote.starred));
+  check(starNote.noteHasStar, 'and the footnote carries the same marker', starNote.note || '(no note)');
+  /*
    * **And the reverse belongs on the results screen, where the pair is.** A RETURN pill here was a
    * third copy of the same act — he crossed it out: "theres already a Reverse button on the Journey
    * results page". The journey page must offer none, and the results screen must still have one.

@@ -234,7 +234,11 @@ export function JourneyDetailPage() {
               beside it: on white the "52 min" appeared to be running underneath it. The price is
               one more fact in the same sentence, bold because it is the one that costs money.
             */}
-            <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}*</span>
+            <span className="journey-meta__price">
+              €{journey.fare.eur.toFixed(2)}
+              {/* The marker is decoration: a screen reader reads the note below, not a star. */}
+              <span aria-hidden="true">*</span>
+            </span>
           </>
         ) : null}
       </p>
@@ -338,6 +342,13 @@ export function JourneyDetailPage() {
       */}
       {journey.fare.eur > 0 ? (
         <p className="t-xs t-faint journey-note">
+          {/*
+            **The marker needs its footnote, and the footnote needs its marker.** The price carried a
+            star and this line explained it without one, so the page showed a footnote marker with
+            nothing to match it — "Why is there a footnktr marker but no footnotr". A marker with no
+            twin is worse than no marker: it tells the reader something is being left out.
+          */}
+          <span aria-hidden="true">* </span>
           {t('Fares, occupancy, delays and platforms are indicative.')}
         </p>
       ) : null}
