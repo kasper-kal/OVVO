@@ -4378,12 +4378,22 @@
 
 /* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
    here and 10px in the From/To card, so one journey's two ends were drawn at two weights. */
+/*
+ * **The journey's end is a square, but it is the same weight as every ring beside it.**
+ *
+ * It was a ten-pixel square on a rail of fourteen-pixel rings: at that size the rounded corners blur
+ * into a crumb, and standing alone at the foot of the line it read as a mark that had been squashed
+ * rather than a place you arrive at. The square stays — "here" is a square in this design — but it is
+ * drawn at the ring's own size now, with a corner round enough to look cut rather than melted, sat on
+ * the same three-pixel line and the same centre column, so the rail ends on a mark of its own family.
+ */
 .timeline__node--end {
-  top: 5px;
-  left: calc((var(--rail-node) - var(--rail-square)) / 2);
-  width: var(--rail-square);
-  height: var(--rail-square);
-  border-radius: 2px;
+  top: 3px;
+  /* The ring's own column: the mark and the rings share one centre line. */
+  left: 0;
+  width: var(--rail-node);
+  height: var(--rail-node);
+  border-radius: 3px;
   /* No ring: at 10px a 2px border is a fifth of the square, a frame rather than a mark. */
   border: 0;
   /*
