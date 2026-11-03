@@ -47,6 +47,15 @@ export interface Stop {
   coordinates: Coordinates;
   /** Real WGS84 position, used for distance, walking and "near me" lookups. */
   geo: GeoPosition;
+  /**
+   * The street or building at this stop, as OpenStreetMap names it.
+   *
+   * 9292 names the stop you stand at *with its street or building*, and the app held only the
+   * stop's name — so "Amsterdam, Leidseplein" was the whole answer to "where do I stand". The
+   * street is read from the map at the stop's own position once, by `scripts/geocode-stops.mjs`,
+   * and stored in `stop-streets.json`; nothing here is typed in by hand.
+   */
+  street?: string;
   facilities: string[];
   accessibility: Accessibility;
   bikeParking: boolean;

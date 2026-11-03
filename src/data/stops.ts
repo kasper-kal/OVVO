@@ -1,4 +1,5 @@
 import type { Accessibility, Stop, StopType, TravelMode } from './types';
+import STREETS from './stop-streets.json';
 
 /**
  * The stop network: stations, halts and walking landmarks in the Netherlands.
@@ -155,6 +156,7 @@ function build(seed: StopSeed, index: number): Stop {
     ovFiets: seed.ovFiets ?? (seed.type === 'station' || seed.type === 'airport'),
     operatorIds: seed.operatorIds,
     servesCity: seed.city,
+    street: (STREETS as Record<string, { street?: string }>)[seed.id]?.street || undefined,
   };
 }
 
@@ -246,6 +248,16 @@ export function requireStop(id: string): Stop {
   const stop = stopMap.get(id);
   if (!stop) throw new Error(`Unknown stop: ${id}`);
   return stop;
+}
+
+/**
+ * The street or building at a stop, for the rail's quiet line under the name.
+ *
+ * Empty when the map had nothing named at that exact point, which is a fact too: the row then says
+ * only the stop's name, rather than a guess.
+ */
+export function stopStreet(id: string | undefined): string | undefined {
+  return getStop(id)?.street;
 }
 
 export function stopName(id: string | undefined): string {

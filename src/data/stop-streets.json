@@ -1,0 +1,307 @@
+{
+  "amsterdam-centraal": {
+    "street": "",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-sloterdijk": {
+    "street": "",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-zuid": {
+    "street": "Ringweg-Zuid",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-bijlmer-arena": {
+    "street": "Hoekenrode",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-muiderpoort": {
+    "street": "Oosterspoorplein",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-amstel": {
+    "street": "Julianaplein",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-noord": {
+    "street": "Termini",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-leidseplein": {
+    "street": "Kleine-Gartmanplantsoen",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-museumplein": {
+    "street": "Paulus Potterstraat 7",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-dam": {
+    "street": "Dam",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-buiksloterweg": {
+    "street": "Buiksloterweg",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-raijhuis": {
+    "street": "Museumstraat",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-vondelpark": {
+    "street": "Vondelpark",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "amsterdam-annefrank": {
+    "street": "Prinsengracht 267",
+    "place": "Amsterdam",
+    "source": "OpenStreetMap"
+  },
+  "zaanse-schans": {
+    "street": "Kalverringdijk 29",
+    "place": "Zaandam",
+    "source": "OpenStreetMap"
+  },
+  "almere-centrum": {
+    "street": "P.J. Oudpad",
+    "place": "Almere",
+    "source": "OpenStreetMap"
+  },
+  "amstelveen-busstation": {
+    "street": "Meander",
+    "place": "Amstelveen",
+    "source": "OpenStreetMap"
+  },
+  "schiphol-airport": {
+    "street": "",
+    "place": "",
+    "source": "OpenStreetMap"
+  },
+  "leiden-centraal": {
+    "street": "Stationsplein",
+    "place": "Leiden",
+    "source": "OpenStreetMap"
+  },
+  "den-haag-centraal": {
+    "street": "Anna van Buerenstraat",
+    "place": "Den Haag",
+    "source": "OpenStreetMap"
+  },
+  "den-haag-hs": {
+    "street": "Stationsplein",
+    "place": "Den Haag",
+    "source": "OpenStreetMap"
+  },
+  "den-haag-binnenhof": {
+    "street": "Binnenhof 1a-d, 2 en 3",
+    "place": "Den Haag",
+    "source": "OpenStreetMap"
+  },
+  "rotterdam-centraal": {
+    "street": "Stationsplein 15B",
+    "place": "Rotterdam",
+    "source": "OpenStreetMap"
+  },
+  "rotterdam-blaak": {
+    "street": "Blaak 3",
+    "place": "Rotterdam",
+    "source": "OpenStreetMap"
+  },
+  "rotterdam-alexander": {
+    "street": "G.H. Betzweg",
+    "place": "Rotterdam",
+    "source": "OpenStreetMap"
+  },
+  "rotterdam-erasmusbrug": {
+    "street": "Zalmstraat",
+    "place": "Rotterdam",
+    "source": "OpenStreetMap"
+  },
+  "rotterdam-markthal": {
+    "street": "Dominee Jan Scharpstraat 298",
+    "place": "Rotterdam",
+    "source": "OpenStreetMap"
+  },
+  "schiedam-centrum": {
+    "street": "Schiedam Centrum",
+    "place": "Schiedam",
+    "source": "OpenStreetMap"
+  },
+  "utrecht-centraal": {
+    "street": "Stationshal",
+    "place": "Utrecht",
+    "source": "OpenStreetMap"
+  },
+  "utrecht-vaartsche-rijn": {
+    "street": "Westerkade 42",
+    "place": "Utrecht",
+    "source": "OpenStreetMap"
+  },
+  "utrecht-lunetten": {
+    "street": "De Wadden",
+    "place": "Utrecht",
+    "source": "OpenStreetMap"
+  },
+  "utrecht-overvecht": {
+    "street": "Albrecht Thaerlaan",
+    "place": "Utrecht",
+    "source": "OpenStreetMap"
+  },
+  "utrecht-domtoren": {
+    "street": "Jacob van Eyckpassage",
+    "place": "Utrecht",
+    "source": "OpenStreetMap"
+  },
+  "amersfoort-centraal": {
+    "street": "Stationshal",
+    "place": "Amersfoort",
+    "source": "OpenStreetMap"
+  },
+  "arnhem-centraal": {
+    "street": "Amsterdamseweg",
+    "place": "Arnhem",
+    "source": "OpenStreetMap"
+  },
+  "den-bosch": {
+    "street": "Stationspasserelle 8B",
+    "place": "'s-Hertogenbosch",
+    "source": "OpenStreetMap"
+  },
+  "eindhoven-centraal": {
+    "street": "Kennedyplein",
+    "place": "Eindhoven",
+    "source": "OpenStreetMap"
+  },
+  "eindhoven-strijp-s": {
+    "street": "Groenewoudseweg",
+    "place": "Eindhoven",
+    "source": "OpenStreetMap"
+  },
+  "groningen-noord": {
+    "street": "Kastanjelaan",
+    "place": "Groningen",
+    "source": "OpenStreetMap"
+  },
+  "zaandam": {
+    "street": "Station Zaandam",
+    "place": "Zaandam",
+    "source": "OpenStreetMap"
+  },
+  "volendam": {
+    "street": "Julianaweg",
+    "place": "Volendam",
+    "source": "OpenStreetMap"
+  },
+  "haarlem": {
+    "street": "Lange Herenstraat",
+    "place": "Haarlem",
+    "source": "OpenStreetMap"
+  },
+  "hilversum": {
+    "street": "Stationsplein",
+    "place": "Hilversum",
+    "source": "OpenStreetMap"
+  },
+  "alkmaar": {
+    "street": "Stationsweg 47",
+    "place": "Alkmaar",
+    "source": "OpenStreetMap"
+  },
+  "hoofddorp": {
+    "street": "Mercuriusplein",
+    "place": "Hoofddorp",
+    "source": "OpenStreetMap"
+  },
+  "delft": {
+    "street": "Weeshuisplaats",
+    "place": "Delft",
+    "source": "OpenStreetMap"
+  },
+  "gouda": {
+    "street": "Spoorzijde",
+    "place": "Gouda",
+    "source": "OpenStreetMap"
+  },
+  "dordrecht": {
+    "street": "Stationsplein",
+    "place": "Dordrecht",
+    "source": "OpenStreetMap"
+  },
+  "zoetermeer": {
+    "street": "Nelson Mandelabrug",
+    "place": "Zoetermeer",
+    "source": "OpenStreetMap"
+  },
+  "nijmegen": {
+    "street": "Stationsplein 6P",
+    "place": "Nijmegen",
+    "source": "OpenStreetMap"
+  },
+  "apeldoorn": {
+    "street": "Stationsplein 8",
+    "place": "Apeldoorn",
+    "source": "OpenStreetMap"
+  },
+  "deventer": {
+    "street": "Stationsplein",
+    "place": "Deventer",
+    "source": "OpenStreetMap"
+  },
+  "zwolle": {
+    "street": "Passerelle",
+    "place": "Zwolle",
+    "source": "OpenStreetMap"
+  },
+  "enschede": {
+    "street": "Stationsplein",
+    "place": "Enschede",
+    "source": "OpenStreetMap"
+  },
+  "tilburg": {
+    "street": "Burgemeester Stekelenburgplein",
+    "place": "Tilburg",
+    "source": "OpenStreetMap"
+  },
+  "breda": {
+    "street": "Stationsplein",
+    "place": "Breda",
+    "source": "OpenStreetMap"
+  },
+  "helmond": {
+    "street": "",
+    "place": "Helmond",
+    "source": "OpenStreetMap"
+  },
+  "maastricht": {
+    "street": "Parallelweg",
+    "place": "Maastricht",
+    "source": "OpenStreetMap"
+  },
+  "groningen": {
+    "street": "Stadsbalkon",
+    "place": "Groningen",
+    "source": "OpenStreetMap"
+  },
+  "leeuwarden": {
+    "street": "Stationsplein",
+    "place": "Leeuwarden;Ljouwert",
+    "source": "OpenStreetMap"
+  },
+  "vlissingen": {
+    "street": "Stationsplein",
+    "place": "Vlissingen",
+    "source": "OpenStreetMap"
+  }
+}

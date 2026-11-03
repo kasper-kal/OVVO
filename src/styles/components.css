@@ -12780,3 +12780,95 @@
 .timeline__platform.timeline__platform--choice {
   color: var(--coral-ink);
 }
+
+/* ---------------------------------------------------------------- the street map */
+/*
+ * Items 13 and 14: the walk and the ride on OpenStreetMap's tiles. The plate is a fixed height so
+ * the sheet is the same size whether a walk is 90 metres or 2 kilometres, and the tile corner keeps
+ * its credit, which the map's licence asks for.
+ */
+.street-map-panel {
+  max-width: 560px;
+}
+.street-map {
+  display: grid;
+  gap: 12px;
+}
+.street-map__canvas {
+  height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.street-map__canvas .leaflet-control-attribution {
+  font-size: 0.62rem;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+.street-map__notice {
+  color: var(--coral-ink);
+}
+.street-map__ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.street-map__end {
+  display: grid;
+  gap: 2px;
+}
+.street-map__end--right {
+  text-align: right;
+}
+.street-map__times {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.street-map__navigate {
+  display: grid;
+  gap: 10px;
+}
+.street-map__step {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+/* The street under a stop's name, in the rail's quietest ink. */
+.timeline__street {
+  margin-top: -2px;
+  font-size: 0.78rem;
+}
+
+/* The glyph that opens this ride, at the right end of its service line. */
+.leg-map {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: #1a4fd6;
+  background: color-mix(in srgb, #1a4fd6 10%, transparent);
+}
+.leg-map:hover {
+  background: color-mix(in srgb, #1a4fd6 18%, transparent);
+}
+/* The same link on a walk, as a word, because a walk's line has no service row to sit in. */
+.leg-map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #1a4fd6;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -6,6 +6,8 @@ import { alertLine } from '../../lib/disruptionText';
 import { useFormat } from '../../lib/useFormat';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { StopLink } from '../stops/StopLink';
+import { stopStreet } from '../../data/stops';
+import { StreetMapSheet, type MapTarget } from './StreetMapSheet';
 import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
 
@@ -131,7 +133,15 @@ function useFittedDashes() {
   return ref;
 }
 
-function WalkLegRow({ leg, origin }: { leg: Leg; origin?: React.ReactNode }) {
+function WalkLegRow({
+  leg,
+  origin,
+  onShowMap,
+}: {
+  leg: Leg;
+  origin?: React.ReactNode;
+  onShowMap: (target: MapTarget) => void;
+}) {
   const format = useFormat();
   const t = useT();
   const minutes = leg.arrival - leg.departure;
@@ -168,6 +178,20 @@ function WalkLegRow({ leg, origin }: { leg: Leg; origin?: React.ReactNode }) {
           {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} ± {format.duration(minutes)}
           {metres ? ` (${metres} m)` : ''}
         </span>
+        {/*
+          **Item 13: the walk's own door to the map.** 9292 gives every walk a link that opens it on
+          the map with the line drawn along the real streets; here it is the same word, carrying the
+          walk it belongs to rather than whichever walk happens to be first.
+        */}
+        <button
+          type="button"
+          className="leg-map-link"
+          aria-label={t('Show this walk on the map')}
+          onClick={() => onShowMap({ kind: 'walk', leg })}
+        >
+          <Icon name="map" size={14} />
+          {t('Map')}
+        </button>
         {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
       </div>
     </li>
@@ -178,10 +202,12 @@ function RideLegRow({
   leg,
   stopsOpen,
   onToggleStops,
+  onShowMap,
 }: {
   leg: Leg;
   stopsOpen: boolean;
   onToggleStops: () => void;
+  onShowMap: (target: MapTarget) => void;
 }) {
   const format = useFormat();
   const t = useT();
@@ -244,6 +270,17 @@ function RideLegRow({
           <Platform value={leg.platform} alt={leg.platformAlt} />
         </span>
 
+        {/*
+          **Item 11: the street you actually stand on.** 9292 names the stop you board at *with its
+          street or building*; the rail said only the stop's name. The street is read from
+          OpenStreetMap at the stop's own position (`scripts/geocode-stops.mjs`), so it is the map's
+          answer and not a guess. A leg that starts at an address has the traveller's own word for
+          the place, so it keeps that and gets no street.
+        */}
+        {!leg.fromLabel && stopStreet(leg.fromStopId) ? (
+          <p className="timeline__street t-sm t-faint">{stopStreet(leg.fromStopId)}</p>
+        ) : null}
+
         <div className="row-wrap">
           {stops.length ? (
             <button
@@ -270,6 +307,18 @@ function RideLegRow({
           */}
           {leg.delayMinutes ? <span className="delay t-sm">+{leg.delayMinutes} min</span> : null}
           {leg.cancelled ? <span className="delay t-sm">{t('Cancelled')}</span> : null}
+          {/*
+            **Item 14: the blue glyph at the end of every ride.** It opens this leg and no other on
+            the street map, with the route drawn, the two times under it and Navigeer on it.
+          */}
+          <button
+            type="button"
+            className="leg-map"
+            aria-label={t('Show this leg on the map')}
+            onClick={() => onShowMap({ kind: 'ride', leg })}
+          >
+            <Icon name="map" size={16} />
+          </button>
         </div>
 
         {/* How full this service is expected to be, under its own name. */}
@@ -298,6 +347,8 @@ export function LegList({ journey }: { journey: Journey }) {
    * once, so the shape of the trip is read without a tap per service; a journey with nothing to
    * show still opens closed, because there is nothing to open.
    */
+  /* Which walk or ride is open on the street map; `null` when the sheet is shut. */
+  const [mapTarget, setMapTarget] = useState<MapTarget | null>(null);
   const [openStops, setOpenStops] = useState<string[]>(() =>
     journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike').map((leg) => leg.id),
   );
@@ -347,6 +398,7 @@ export function LegList({ journey }: { journey: Journey }) {
         <WalkLegRow
           key={leg.id}
           leg={leg}
+          onShowMap={setMapTarget}
           /* The first leg owns the journey's start, so its row is the one that names it. */
           /*
            * **The first row says where the journey starts, and only that.** A journey that begins
@@ -369,6 +421,7 @@ export function LegList({ journey }: { journey: Journey }) {
           leg={leg}
           stopsOpen={openStops.includes(leg.id)}
           onToggleStops={() => toggleStops(leg.id)}
+          onShowMap={setMapTarget}
         />
       ),
     );
@@ -417,6 +470,7 @@ export function LegList({ journey }: { journey: Journey }) {
    */
   const endsOnFoot = lastLeg.mode === 'walk' || lastLeg.mode === 'bike';
   return (
+    <>
     <ol className={`timeline${endsOnFoot ? ' timeline--dashed-end' : ''}`}>
       {rows}
       <li className="timeline__end">
@@ -435,8 +489,14 @@ export function LegList({ journey }: { journey: Journey }) {
               <Platform value={lastLeg.arrivalPlatform} alt={lastLeg.arrivalPlatformAlt} />
             ) : null}
           </span>
+          {/* The arrival end's street, the same quiet line the departure row carries. */}
+          {stopStreet(arrivalId) ? (
+            <span className="timeline__street t-sm t-faint">{stopStreet(arrivalId)}</span>
+          ) : null}
         </span>
       </li>
     </ol>
+    <StreetMapSheet target={mapTarget} onClose={() => setMapTarget(null)} />
+    </>
   );
 }

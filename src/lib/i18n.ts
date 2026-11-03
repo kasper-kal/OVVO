@@ -1461,6 +1461,21 @@ const NL: Record<string, string> = {
   'Crowding unknown': 'Drukte onbekend',
   'Platform {a} or {b}': 'Spoor {a} of {b}',
   /* The share sheet, exactly two choices (item 2). */
+  /* The street map, its walk link and its Navigeer button (items 13 and 14). */
+  'Show this walk on the map': 'Toon deze wandeling op de kaart',
+  'Show this leg on the map': 'Toon deze rit op de kaart',
+  'Walk from {from} to {to}': 'Wandeling van {from} naar {to}',
+  'The walk drawn along the real streets.': 'De wandeling over de echte straten.',
+  'The route this service takes, station by station.': 'De route van deze rit, station voor station.',
+  'Street map': 'Stratenkaart',
+  'The straight line is shown; the real route could not be fetched just now.':
+    'De rechte lijn wordt getoond; de echte route kon nu niet worden opgehaald.',
+  'Navigeer': 'Navigeer',
+  'Stop navigating': 'Stop met navigeren',
+  'Step {index} of {count}': 'Stap {index} van {count}',
+  'On the way': 'Onderweg',
+  'Previous step': 'Vorige stap',
+  'Next step': 'Volgende stap',
   Share: 'Delen',
   'Share this journey': 'Deel deze reis',
   'Share the journey': 'Deel de reis',

@@ -232,3 +232,16 @@ Built, checked and deployed (the twenty items above are untouched by this list):
 - **12. The first row** — a journey that begins at an address now says only that this is the
   starting point; a journey that begins at a stop still names the stop.
 - **20. The facts line** — the three-fact line is gone; the bicycle stays as one quiet line.
+- **16. Crowding per service** — each service draws its own two or three little people, or a "?" where
+  nobody has counted; the foot no longer mentions it.
+- **10. Two possible platforms** — an unsettled berth reads "Platform 6 or 7" in the warning colour,
+  while a settled one is ordinary ink.
+- **2. Share** — exactly two choices: share the journey, or save it to the calendar.
+- **1. Departure alarm** — a slider with minus and plus from five minutes, Cancel and Save, and the
+  minute you have to leave worked out from the journey.
+- **11. Stop or station** — the ride names the stop you board at with the street the map gives for that
+  exact place (`scripts/geocode-stops.mjs`, OpenStreetMap), and the arrival row names its own street.
+- **13. The route link** — every walk carries a link that opens it on a real street map, the line
+  routed along the streets and dashed, with Navigeer stepping street by street.
+- **14. A map button on every ride** — the blue glyph at the end of each ride opens that leg alone on
+  the street map, with its route, its two times and Navigeer.
