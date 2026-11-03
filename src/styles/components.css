@@ -4224,18 +4224,18 @@
 
 .timeline__rail--dashed::before {
   /*
-   * **A walk is a line with breaks in it, not a dotted edge.** Six-on-six-off at a hairline read as
-   * a row of specks between two stations; the dash is longer and the break shorter, so the eye
-   * follows a line from one mark to the next.
+   * **A walk is a line with breaks in it, not a dotted edge.** A long dash over a long break read as
+   * separate sticks standing in the rail's place; 9292 uses short dashes with short breaks, so the
+   * eye follows one line from mark to mark.
    */
   /*
    * **The line joins the next mark with a short solid run.** A repeating pattern cannot promise
    * that a dash lands on its last pixel, so a walk's line kept ending in a break a few pixels above
-   * the station that follows it. The segment runs 12px further, and its last 12px are painted solid
-   * instead of dashed: the solid part reaches the next ring and disappears beneath it, so the eye
-   * sees a dash leaving the gap rather than a dash stopping in mid-air.
+   * the station that follows it. The segment runs 20px further, and its last 20px are painted solid
+   * instead of dashed: that run is longer than one break and ends under the next ring, so the eye
+   * always sees dashes joining the mark rather than a dash stopping in mid-air.
    */
-  bottom: calc((var(--timeline-gap) + 12px) * -1);
+  bottom: calc((var(--timeline-gap) + 20px) * -1);
   /*
    * **The breaks have to show the page, not the line's own colour.** The rail's base rule paints the
    * whole segment in this grey, so a dashed pattern laid on top of it painted grey on grey: the walk
@@ -4244,22 +4244,22 @@
   background-color: transparent;
   background-image:
     linear-gradient(to bottom, var(--border-hairline), var(--border-hairline)),
-    repeating-linear-gradient(to bottom, var(--border-hairline) 0 9px, transparent 9px 15px);
-  background-size: 100% 12px, auto;
-  background-position: left bottom, 0 11px;
+    repeating-linear-gradient(to bottom, var(--border-hairline) 0 6px, transparent 6px 14px);
+  background-size: 100% 20px, auto;
+  background-position: left bottom, 0 0;
   background-repeat: no-repeat, repeat;
 }
 
-/* The same rhythm on the short connector into the arrival square, phased so a dash ends on the
-   square's top edge (11px in) rather than a gap doing so: a 5px offset leaves it covering 5 to 11. */
+/* The same rhythm on the short connector into the arrival square: short breaks, and a solid run at
+   the foot so the last dash meets the square rather than leaving a gap above it. */
 .timeline--dashed-end .timeline__end::before {
   /* The same solid joint at the square as at a ring, and see-through gaps between the dashes. */
   background-color: transparent;
   background-image:
     linear-gradient(to bottom, var(--border-hairline), var(--border-hairline)),
-    repeating-linear-gradient(to bottom, var(--border-hairline) 0 9px, transparent 9px 15px);
+    repeating-linear-gradient(to bottom, var(--border-hairline) 0 6px, transparent 6px 14px);
   background-size: 100% 12px, auto;
-  background-position: left bottom, 0 5px;
+  background-position: left bottom, 0 0;
   background-repeat: no-repeat, repeat;
 }
 
@@ -4371,7 +4371,12 @@
   border-radius: 2px;
   /* No ring: at 10px a 2px border is a fifth of the square, a frame rather than a mark. */
   border: 0;
-  background: var(--struct-main);
+  /*
+   * **The last mark is ink, not structure.** The square was painted in the structural obsidian, which
+   * is the same dark in both appearances, so on a dark page the journey's end simply vanished. Ink
+   * turns over with the theme: near-black on cream, near-white on a dark page.
+   */
+  background: var(--ink-strong);
 }
 
 /* --------------------------------------------------------------- Board table */
@@ -12058,8 +12063,10 @@
   top: 26px;
   width: 40px;
   display: flex;
-  justify-content: flex-end;
-  padding-right: 2px;
+  /* Centred under the clock, not pushed against the rail: 9292 puts the figure in the middle of the
+     time's column, so the gutter reads as one column of "when" over "how". */
+  justify-content: center;
+  padding-right: 0;
   color: var(--ink);
   line-height: 1;
 }
