@@ -38,16 +38,15 @@ function WalkLegRow({ leg }: { leg: Leg }) {
       </span>
       <span className="timeline__node timeline__node--muted" />
       <div className="stack-1">
-        <span className="t-strong t-sm">
+        {/*
+          **One quiet line.** 9292 gives a walk "± 9 min (562 m) · route" and nothing else: the two
+          stations it joins are already named above and below it on the rail, so repeating them was
+          the page explaining its own drawing.
+        */}
+        <span className="t-sm t-muted">
           {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} {format.duration(minutes)}
           {metres ? ` · ${metres} m` : ''}
         </span>
-        <p className="t-sm t-muted">
-          {/* An end that is an address keeps its words and gets no link: there is no page for a
-              street, and a walk from a doorstep is named by the address, not by a station. */}
-          {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />} <Icon name="arrowRight" size={12} />{' '}
-          {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
-        </p>
         {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
       </div>
     </li>

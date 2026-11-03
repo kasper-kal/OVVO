@@ -7,7 +7,7 @@ import { StopLink } from '../components/stops/StopLink';
 import { findJourneyById } from '../data/journeyEngine';
 import { stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
-import { Banner, Button, EmptyState } from '../components/ui/primitives';
+import { Button, EmptyState } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -150,7 +150,7 @@ export function JourneyDetailPage() {
 
   const disruptions = journey.disruptionIds.map((id) => getDisruption(id)).filter(Boolean);
   return (
-    <div className="stack-6">
+    <div className="journey-page stack-6">
       <PageHeader
         /*
          * The glyph, not the character: `→` in a heading is a text arrow drawn in whatever face
@@ -180,6 +180,19 @@ export function JourneyDetailPage() {
         }`}
         showTitle
       />
+
+      {/* The date, the length and the price, in one line under the two ends: 9292's own head. */}
+      <p className="journey-meta">
+        <span>{format.date(search?.query.date ?? '')}</span>
+        <span aria-hidden="true">·</span>
+        <span>{format.duration(journey.durationMinutes)}</span>
+        {journey.fare.eur > 0 ? (
+          <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
+        ) : null}
+        {journey.delayMinutes ? (
+          <span className="delay">{t('Delay +{count} min', { count: journey.delayMinutes })}</span>
+        ) : null}
+      </p>
 
       {/*
         The journey's own actions, in their own row under the head — not three pills squeezed into
@@ -256,24 +269,20 @@ export function JourneyDetailPage() {
         walk are rows of the summary card.
       */}
 
-      {disruptions.length ? (
-        <Banner tone="coral" icon="alert" title={t('Alerts on this journey')}>
-          <div className="stack-2">
-            {disruptions.map((alert) =>
-              alert ? (
-                <Link
-                  key={alert.id}
-                  to={`/disruptions/${alert.id}`}
-                  className="t-sm alert-link alert-link--banner"
-                >
-                  <span className="t-strong">{alertWords(t, alert).title}</span>
-                  <span>{t('Read the details and advice')}</span>
-                </Link>
-              ) : null,
-            )}
-          </div>
-        </Banner>
-      ) : null}
+      {/*
+        **An alert is a line, not a pink block.** The banner filled a third of the first screen with
+        a heading, a sentence and a second sentence that only said "read the details", above a
+        journey that had not started yet. 9292 gives a notice one row; so does this.
+      */}
+      {disruptions.map((alert) =>
+        alert ? (
+          <Link key={alert.id} to={`/disruptions/${alert.id}`} className="journey-alert">
+            <Icon name="alert" size={16} />
+            <span className="t-sm t-strong grow">{alertWords(t, alert).title}</span>
+            <Icon name="chevronRight" size={14} className="journey-alert__chevron" />
+          </Link>
+        ) : null,
+      )}
 
       {/*
         **The journey is the page, not a card on it.**
@@ -293,10 +302,9 @@ export function JourneyDetailPage() {
         here — price, length, changes, walking, how full, and the bicycle — as the sentence
         under a timetable.
       */}
+      {/* What the head does not say: the walking, how full, and the bicycle. */}
       <p className="t-sm t-muted journey-facts-line">
         {[
-          journey.fare.eur > 0 ? `€${journey.fare.eur.toFixed(2)}` : null,
-          format.duration(journey.durationMinutes),
           journey.transfers === 0
             ? t('Direct')
             : plural(journey.transfers, t('transfer'), t('transfers')),
