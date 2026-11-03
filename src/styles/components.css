@@ -11966,8 +11966,14 @@
    * plus the gap, so a hairline of background could show between one station's blue and the next.
    * It now runs 4px past the gap on both sides; the ring at each station covers the overlap.
    */
-  top: -4px;
-  bottom: calc((var(--timeline-gap) + 4px) * -1);
+  /*
+   * **The blue starts at its own ring and stops at the next one.** It used to reach four pixels past
+   * each ring, so on a journey that walks before a ride the blue swallowed the end of the dashed
+   * line and the dashes stopped in mid-air, four pixels short of the circle. Both ends now stop at
+   * the ring's top edge, where the ring hides the join, and a walk's dashes run right up to it.
+   */
+  top: 3px;
+  bottom: calc((var(--timeline-gap) + 3px) * -1);
 }
 
 /* ------------------------------------------------------------ Stops on the rail
