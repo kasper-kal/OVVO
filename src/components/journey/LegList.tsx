@@ -243,6 +243,12 @@ function RideLegRow({
       {badgeNumber}
     </span>
   ) : null;
+  /*
+   * The engine sets this per service (`journeyEngine`), and a journey's own flag is only the "every
+   * service takes one" summary of it. Where a leg predates the field, the honest fallback is the
+   * rule the engine applies: a ferry or a metro always takes a bicycle.
+   */
+  const bikeOk = leg.bikeAllowed ?? (leg.mode === 'ferry' || leg.mode === 'metro');
   const serviceWords = (
     <>
       {nameCarrier ? `${nameCarrier} ` : ''}
@@ -325,6 +331,19 @@ function RideLegRow({
 
         {/* How full this service is expected to be, under its own name. */}
         <CrowdingMark level={leg.occupancy} />
+
+        {/*
+          **The bicycle is a fact about this service, not about the journey.**
+          
+          It was one quiet line at the foot of the whole page — "Bicycle allowed" under a journey
+          made of two trains — so it read as a claim about the trip, and a trip whose first train
+          takes bicycles and second does not said only one of the two things. 9292 puts it on the
+          service, because that is where it is decided: the guard at the door of *this* train.
+        */}
+        <span className={`leg-bike${bikeOk ? '' : ' leg-bike--no'}`}>
+          <ModeIcon mode="bike" size={15} />
+          {bikeOk ? t('Bicycle allowed') : t('No bicycle')}
+        </span>
 
         {/* The headsign is the direction this service is pointed in, in its own grey line. */}
         {leg.headsign ? (

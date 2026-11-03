@@ -332,9 +332,9 @@ export function JourneyDetailPage() {
         walk rows, which carry their own minutes; how full a service is belongs on the service. The
         bicycle has no home in 9292 and is one fact worth keeping, so it stays as one quiet line.
       */}
-      <p className="t-sm t-muted journey-facts-line">
-        {journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle')}
-      </p>
+      {/* The bicycle rule is on each service now, where it is decided; a page-level line said one
+          thing about a journey made of two trains (he asked why it was here and not under the
+          train). */}
       {/*
         **The star beside the price means something, so it says what.** 9292 marks its fare with an
         asterisk and prints the reason in small type under the journey; a price that is a modelled

@@ -236,6 +236,41 @@ if (walkLinks > 0) {
   check(starNote.starred, 'the price wears its marker', String(starNote.starred));
   check(starNote.noteHasStar, 'and the footnote carries the same marker', starNote.note || '(no note)');
   /*
+   * **The bicycle rule belongs to the service, not to the journey.** It was one quiet line at the
+   * foot of the page — "Bicycle allowed" under a trip made of two trains — and he asked why it was
+   * there and not under the train. Each ride row now says it, and the page no longer summarises it.
+   */
+  const bike = await doorPage.evaluate(() => ({
+    /*
+     * A service row, and only a service row: the rail also draws the change between two services and
+     * every intermediate stop as `--ride` rows, and counting those is how the first run of this check
+     * read "2 marks for 4 services" when both services had one.
+     */
+    rides: document.querySelectorAll(
+      'li.timeline__rail--ride:not(.timeline__rail--change):not(.timeline__rail--stop)',
+    ).length,
+    marks: document.querySelectorAll('.leg-bike').length,
+    texts: [...document.querySelectorAll('.leg-bike')].map((el) => el.textContent.trim()),
+    journeyLevel: [...document.querySelectorAll('p')].some((el) =>
+      /^(Bicycle allowed|No bicycle)$/.test(el.textContent.trim()),
+    ),
+  }));
+  check(
+    bike.rides > 0 && bike.marks === bike.rides,
+    'every service states its own bicycle rule',
+    `${bike.marks} mark(s) for ${bike.rides} service(s)`,
+  );
+  check(
+    bike.texts.every((text) => /bicycle/i.test(text)),
+    'each mark says the rule in words',
+    bike.texts.join(' / ') || '(none)',
+  );
+  check(
+    !bike.journeyLevel,
+    'and the page does not state it once for the whole journey',
+    bike.journeyLevel ? 'a journey-level line exists' : 'none',
+  );
+  /*
    * **And the reverse belongs on the results screen, where the pair is.** A RETURN pill here was a
    * third copy of the same act — he crossed it out: "theres already a Reverse button on the Journey
    * results page". The journey page must offer none, and the results screen must still have one.

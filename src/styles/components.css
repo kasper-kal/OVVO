@@ -13006,3 +13006,21 @@
 .segmented .segmented__btn[aria-pressed='true'] {
   border-color: var(--border-hairline);
 }
+
+/* ------------------------------------------- the bicycle rule, on the service it belongs to */
+/*
+ * A quiet line under the service's own crowding mark: the rule is about that train, and it is read
+ * in the same small grey the crowding is. The "no" half takes the warning ink, because "no bicycle
+ * on this train" is the answer that changes what the traveller carries to the station.
+ */
+.leg-bike {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.leg-bike--no {
+  color: var(--coral-ink);
+}
