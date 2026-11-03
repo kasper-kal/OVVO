@@ -3435,8 +3435,23 @@
   height: 18px;
   padding: 0 4px;
   border-radius: var(--r-pill);
-  background: var(--struct-main);
-  color: var(--on-dark);
+  /*
+   * **The count wears the accent, not the structural plate.**
+   *
+   * It was `--struct-main` behind `--on-dark`, the pair a primary button wears. `--struct-main` is a
+   * *dark plate in every style* — that is the point of it, so a primary button's light label always
+   * reads — so on a glass chip over a photograph the disc and the chip behind it are both near-black
+   * and the count had no edge at all (circled and reported). Its own pair was 16:1 in every style and
+   * still invisible, because what a badge has to clear is the *chip*, not its own ink. The accent is
+   * no better everywhere: it is under 3:1 against the chip's own surface in 17 of the 94 style and
+   * appearance pairs.
+   *
+   * `--ink-strong` on `--l1-bg` is the one pair this app already trusts on every screen: text on a
+   * surface. Used inverted — the ink as the disc, the surface colour as the number — the badge clears
+   * its chip by exactly the margin a paragraph clears a card, in every style, on glass or on paper.
+   */
+  background: var(--ink-strong);
+  color: var(--l1-bg);
   /* 11px is the floor for type on a 390px screen; this count sat one pixel under it. */
   font-size: 11px;
   font-weight: var(--fw-bold);
