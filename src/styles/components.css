@@ -12054,7 +12054,11 @@
  * accent colour, and that is the whole of it.
  */
 .timeline__platform {
-  margin-left: auto;
+  /*
+   * Beside the station, not pinned to the far edge. `margin-left: auto` pushed the word to the
+   * card's right border, and the arrival row's "Arrival platform 12" then ran past it and was cut
+   * off; a small gap after the station name cannot overflow at any width.
+   */
   font-size: var(--fs-pill);
   font-weight: var(--fw-bold);
   color: var(--coral-ink);

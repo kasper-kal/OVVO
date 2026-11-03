@@ -217,7 +217,7 @@ export function LegList({ journey }: { journey: Journey }) {
             */}
             {lastRide === lastLeg && lastLeg.arrivalPlatform ? (
               <span className="timeline__platform">
-                {t('Arrival platform')} {lastLeg.arrivalPlatform}
+                {t('Platform')} {lastLeg.arrivalPlatform}
               </span>
             ) : null}
           </span>
