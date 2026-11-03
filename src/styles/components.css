@@ -12877,3 +12877,22 @@
 .alarm__remove {
   color: var(--coral-ink);
 }
+
+/* The work-account line under the three calendar names, and the way back to the two choices. */
+.share-work {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  align-self: start;
+}
+.share-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  align-self: start;
+}

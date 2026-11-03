@@ -181,13 +181,62 @@ check(
 await page.locator('button[aria-label="Share this journey"]').click();
 await page.waitForSelector('.share-row');
 const rows = await page.locator('.share-row').count();
-check(rows === 2, 'the share sheet has exactly two choices', String(rows));
+check(rows === 2, 'the share sheet still offers exactly two things', String(rows));
 const rowText = await page.locator('.share-row').allTextContents();
 check(
-  rowText.some((text) => /Share the journey/.test(text)) && rowText.some((text) => /calendar/i.test(text)),
-  'the two choices are the journey and the calendar',
+  rowText.some((text) => /Share the journey/.test(text)) && rowText.some((text) => /Add to calendar/.test(text)),
+  'the two things are the journey and the calendar',
   rowText.map((text) => text.split('\n')[0]).join(' / '),
 );
+
+/* Option 4: the calendar row names the calendars instead of handing over a file. */
+await page.locator('button[aria-label="Add to calendar"]').click();
+await page.waitForSelector('a.share-row');
+const calendarNames = await page.locator('.share-row .t-strong').allTextContents();
+check(calendarNames.length === 3, 'three calendar names, no more', calendarNames.join(' / '));
+check(
+  calendarNames.some((name) => /Google/.test(name)) &&
+    calendarNames.some((name) => /Outlook/.test(name)) &&
+    calendarNames.some((name) => /Apple/.test(name)),
+  'the three names are Google, Outlook and Apple',
+  calendarNames.join(' / '),
+);
+
+const [googleHref, outlookHref] = await page
+  .locator('a.share-row')
+  .evaluateAll((links) => links.map((link) => link.href));
+check(
+  /^https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE/.test(googleHref),
+  'the Google row opens its own event editor',
+  googleHref.slice(0, 70),
+);
+check(
+  /dates=\d{8}T\d{6}\/\d{8}T\d{6}/.test(googleHref) && googleHref.includes('ctz=Europe'),
+  'the Google row carries both times and the timezone',
+  googleHref.match(/dates=[^&]+/)?.[0] ?? 'no dates',
+);
+check(
+  /outlook\.live\.com\/calendar\/deeplink\/compose/.test(outlookHref) &&
+    outlookHref.includes('rru=addevent') &&
+    /startdt=\d{4}-\d{2}-\d{2}T/.test(decodeURIComponent(outlookHref)),
+  'the Outlook row opens its own compose form',
+  decodeURIComponent(outlookHref).match(/startdt=[^&]+/)?.[0] ?? 'no start',
+);
+const workHref = await page.locator('a.share-work').getAttribute('href');
+check(/outlook\.office\.com/.test(workHref ?? ''), 'a work account has its own line', workHref?.slice(0, 48));
+
+/* The device row: the panel first, and a file only because this browser has no panel. */
+const [download] = await Promise.all([
+  page.waitForEvent('download', { timeout: 6000 }).catch(() => null),
+  page.locator('button.share-row').click(),
+]);
+check(
+  Boolean(download) && download.suggestedFilename() === 'ovvo-journey.ics',
+  'the device row is the floor: a file only when nothing can take it',
+  download?.suggestedFilename() ?? 'no file at all',
+);
+const afterDevice = (await page.locator('[role="status"]').last().textContent())?.trim() ?? '';
+check(/Saved for your calendar/.test(afterDevice), 'it says what it did', afterDevice);
 
 await browser.close();
 console.log(`batch 3: ${failures} failing check(s)`);

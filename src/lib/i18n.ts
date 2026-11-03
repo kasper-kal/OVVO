@@ -1478,6 +1478,22 @@ const NL: Record<string, string> = {
   'On the way': 'Onderweg',
   'Previous step': 'Vorige stap',
   'Next step': 'Volgende stap',
+  /* Option 4: the calendar rows, named rather than downloaded. */
+  'Add to calendar': 'In je agenda',
+  'Google Calendar': 'Google Agenda',
+  'Opens your own Google Calendar with the journey filled in.':
+    'Opent je eigen Google Agenda met de reis er al in.',
+  'Opens your own Outlook calendar with the journey filled in.':
+    'Opent je eigen Outlook-agenda met de reis er al in.',
+  'Apple or other': 'Apple of anders',
+  'Sends it to the calendar on this device.': 'Stuurt het naar de agenda op dit apparaat.',
+  'Sent to your calendar': 'Naar je agenda gestuurd',
+  'Outlook for a work account': 'Outlook voor een werkaccount',
+  'Choose where it goes. Nothing is downloaded unless your device cannot take it.':
+    'Kies waar het heen gaat. Er wordt niets gedownload, tenzij je apparaat het niet kan ontvangen.',
+  'Google, Outlook, or the calendar on this device.': 'Google, Outlook of de agenda op dit apparaat.',
+  'Send the advice to someone, or put the journey in your calendar.':
+    'Stuur het advies door, of zet de reis in je agenda.',
   Share: 'Delen',
   'Share this journey': 'Deel deze reis',
   'Share the journey': 'Deel de reis',
