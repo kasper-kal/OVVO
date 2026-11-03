@@ -4197,6 +4197,18 @@
   background-position: 0 0;
 }
 
+/*
+ * **A walk's row is two lines of gutter tall.**
+ *
+ * A ride's row is already tall, because a station, a service and a direction stand in it, so the
+ * glyph under the time fits inside it for free. A walk is one short grey line, and the glyph used to
+ * hang out of the bottom of it into the gap — over the next station's time. The row keeps the same
+ * words and gains the height the second gutter line needs, so the glyph sits inside its own row.
+ */
+.timeline__rail--dashed {
+  min-height: 46px;
+}
+
 .timeline__rail--dashed::before {
   background: repeating-linear-gradient(
     to bottom,
@@ -11993,27 +12005,24 @@
  * both "when" and "how", and the line itself stays words.
  */
 /*
- * **The glyph sits level with the line it belongs to, and it is big enough to read.** It was pinned
- * 25px down every row, so on a walk — which is one short line — the icon hung under the text and
- * crowded the next station's time, while on a ride it floated between the service and the
- * direction. 9292 draws the mode at the size of the service it names; each row now sets the height
- * its own glyph sits at.
+ * **The glyph sits under the time, never on top of it.**
+ *
+ * The gutter answers "when" and "how", one under the other: the time at the top of the row and the
+ * mode's glyph beneath it, level with the service that names it. Pushing a walk's glyph up to the
+ * row's first line put it straight through its own time — 04:23 and a walking figure in the same
+ * 40px — which is a collision, not a layout. Every row draws its glyph on the same line now, and a
+ * walk's row is made tall enough to hold both (see `.timeline__rail--dashed`).
  */
 .timeline__mode {
   position: absolute;
   left: -46px;
-  top: 2px;
+  top: 24px;
   width: 40px;
   display: flex;
   justify-content: flex-end;
   padding-right: 2px;
   color: var(--ink);
   line-height: 1;
-}
-
-/* On a ride the glyph sits level with the service name, three lines into the block. */
-.timeline__rail--ride > .timeline__mode {
-  top: 24px;
 }
 
 /* -------------------------------------------------------------- Timetable gutter
