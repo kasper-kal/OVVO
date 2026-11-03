@@ -11988,7 +11988,14 @@
    * the ring's top edge, where the ring hides the join, and a walk's dashes run right up to it.
    */
   top: 3px;
-  bottom: calc((var(--timeline-gap) + 3px) * -1);
+  /*
+   * **Under the ring, not up to it.** Stopping exactly on the next ring's top edge left a hairline
+   * between the blue and the circle wherever a row height landed on a fraction of a pixel: the two
+   * ends were the same number, the browser rounded them apart, and a sliver of page showed at the top
+   * of the mark. The line now runs five pixels past that edge, where the ring's own border and fill
+   * cover it, so the join is closed whatever the rounding does.
+   */
+  bottom: calc((var(--timeline-gap) + 8px) * -1);
 }
 
 /* ------------------------------------------------------------ Stops on the rail
