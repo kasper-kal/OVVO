@@ -12026,7 +12026,9 @@
 
 .leg-service--static {
   margin-left: 0;
-  padding: 0;
+  /* The same height as the button, so a service with nothing to open does not sit two pixels higher
+     than the one under it and pull its own glyph off the middle of the line. */
+  padding: 2px 0;
   cursor: auto;
 }
 
@@ -12172,16 +12174,21 @@
 .journey-rail .timeline__rail--ride:not(.timeline__rail--stop) > div.stack-1 > :nth-child(2) {
   /* the gap less the station's own line and the stack's own space, so the block's centre is the
      segment's centre whatever the two lines are called */
-  margin-top: calc(var(--timeline-gap) - 24px);
+  margin-top: calc(var(--timeline-gap) - 4px);
 }
 
+/* The glyph's own box is fixed at the figure's height and the figure is centred in it, so a bus and
+   a train land on the same line instead of two pixels apart. */
 .journey-rail .timeline__rail--ride:not(.timeline__rail--stop) .timeline__mode {
-  top: calc(var(--timeline-gap) + 12px);
+  top: calc(var(--timeline-gap) + 32px);
+  height: 18px;
+  overflow: visible;
+  align-items: center;
 }
 
 /* A ride that names no direction is one line shorter, so its glyph comes up with it. */
 .journey-rail .timeline__rail--ride:not(.timeline__rail--stop):not(:has(> div > p)) .timeline__mode {
-  top: var(--timeline-gap);
+  top: calc(var(--timeline-gap) + 22px);
 }
 
 /* On foot the same rule: the amount sits on the middle of the dashed line, and so does the figure. */
