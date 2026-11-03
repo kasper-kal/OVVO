@@ -23,7 +23,8 @@
     "check:compat": "node scripts/compat-logic-check.mjs",
     "check:compat:browser": "node scripts/compat-check.mjs",
     "check:joins": "bash scripts/rail-joins.sh",
-    "predeploy": "npm run check:joins"
+    "predeploy": "npm run check:joins && npm run screen",
+    "screen": "bash scripts/screen.sh"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",

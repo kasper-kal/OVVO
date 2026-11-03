@@ -61,6 +61,28 @@ Run `node scripts/corners.mjs --restore` when the page is lost or overwritten: i
 
 That checker covers the shape of the mockup gallery only. The safety of the work itself comes from `scripts/keep.mjs`, which saves the app and the gallery together.
 
+## Screenshots and faults
+
+The rule is short because it has to be followed while I am pleased with my own work.
+
+1. **No shot without its verdict.** A picture may only be sent to the steerer if it came from the current
+   run of `npm run screen`, and the reply quotes that run's `SCREEN: …` line. The picture and the verdict
+   come out of the same run, so a fault cannot be cropped out of the frame and a fault-free sentence
+   cannot stand in for a picture that has one.
+2. **The frame is not mine to choose.** `scripts/screen.mjs` holds the fixed list of screens, widths and
+   appearances. Do not hand-crop, do not pick a flattering region, do not shoot one surface and describe
+   another.
+3. **A fault in a shot is either fixed or named.** If a shot shows something wrong and it is not this
+   turn's work, it goes in `DEFECTS.md` and it is said out loud. Never left out of the sentence.
+4. **A check is not a check until it fails.** Before a check is trusted, break the thing on purpose and
+   watch it fail, then put it back and watch it pass. The join check once printed `0 gaps` with a
+   13-pixel hole in the rail because nobody did this; `silent green` is now the known failure mode.
+5. **Every reported defect gets a row in `DEFECTS.md`** before it is called fixed: his words, the check
+   that now catches it, and how that check was shown to fail. Rows that say *not covered* are the queue.
+
+`npm run deploy` runs `check:joins` and `screen` first, so a new fault stops the deploy rather than
+reaching him.
+
 ## Working agreements
 
 - Every decision and fact about putting OVVO on a real account lives in `GOING-LIVE.md`. Read it before touching deploy, sign-in, secrets or the setup tutorial, and add to it the moment something is decided, so a choice made in one chat is not lost by the next.
