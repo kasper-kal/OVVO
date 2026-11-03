@@ -4,6 +4,7 @@ const q = Buffer.from(JSON.stringify({ v: 1, f: 'haarlem', t: 'zaandam', d: '202
 const b = await chromium.launch()
 const p = await b.newPage({ viewport: { width: 390, height: 1000 }, deviceScaleFactor: 3, colorScheme: process.env.DARK ? 'dark' : 'light' })
 await p.goto(`${BASE}/results/${q}`, { waitUntil: 'networkidle' })
+await p.waitForFunction(() => [...document.styleSheets].some((s) => { try { return [...s.cssRules].length > 50 } catch { return false } }), { timeout: 15000 })
 for (let i = 0; i < 6; i++) await p.keyboard.press('Escape')
 const cards = p.locator('article')
 for (let i = 0; i < (await cards.count()); i += 1) {
