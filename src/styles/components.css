@@ -4139,7 +4139,14 @@
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
+  /*
+   * **One number for the gap and for the line that crosses it.** The rail is drawn per row, so each
+   * segment has to run the gap below it to meet the next mark; when the journey's list was given a
+   * wider gap than the default, the dashed segment kept the default and stopped four pixels short of
+   * the next ring. The gap is a variable now, and every segment reads it.
+   */
+  --timeline-gap: var(--s-3);
+  gap: var(--timeline-gap);
 }
 
 .timeline__rail {
@@ -4170,7 +4177,7 @@
    * below its own top. The segment now runs the gap as well, and the node's own filled disc covers
    * where it passes behind it.
    */
-  bottom: calc(var(--s-3) * -1);
+  bottom: calc(var(--timeline-gap) * -1);
   width: var(--rail-line);
   background: var(--border-hairline);
 }
@@ -4190,7 +4197,7 @@
  * there too, so a full dash leaves the circle rather than 11px of white.
  */
 .timeline > :first-child::before {
-  top: calc(9px + var(--rail-node));
+  top: calc(3px + var(--rail-node));
 }
 
 .timeline > :first-child.timeline__rail--dashed::before {
@@ -4198,22 +4205,33 @@
 }
 
 /*
- * **A walk's row is two lines of gutter tall.**
+ * **A walk's words sit level with its glyph.**
  *
- * A ride's row is already tall, because a station, a service and a direction stand in it, so the
- * glyph under the time fits inside it for free. A walk is one short grey line, and the glyph used to
- * hang out of the bottom of it into the gap — over the next station's time. The row keeps the same
- * words and gains the height the second gutter line needs, so the glyph sits inside its own row.
+ * On a ride the station name takes the first line and the service the second, so the glyph under the
+ * time has a line of its own to sit beside. A walk is one line of words, and it sat at the top of
+ * the row while its glyph sat below it — a figure floating under nothing. The amount drops to the
+ * glyph's line and the two are centred on each other.
  */
 .timeline__rail--dashed {
-  min-height: 46px;
+  /* Tall enough for the glyph under the time: the padded words alone end 2px above the figure. */
+  min-height: 44px;
+}
+
+.timeline__rail--dashed > div {
+  padding-top: 26px;
 }
 
 .timeline__rail--dashed::before {
+  /*
+   * **A walk is a line with breaks in it, not a dotted edge.** Six-on-six-off at a hairline read as
+   * a row of specks between two stations; the dash is longer and the break shorter, so the eye
+   * follows a line from one mark to the next.
+   */
+  bottom: calc(var(--timeline-gap) * -1);
   background: repeating-linear-gradient(
     to bottom,
-    var(--border-hairline) 0 6px,
-    transparent 6px 12px
+    var(--border-hairline) 0 9px,
+    transparent 9px 15px
   );
   background-position: 0 11px;
 }
@@ -4223,8 +4241,8 @@
 .timeline--dashed-end .timeline__end::before {
   background: repeating-linear-gradient(
     to bottom,
-    var(--border-hairline) 0 6px,
-    transparent 6px 12px
+    var(--border-hairline) 0 9px,
+    transparent 9px 15px
   );
   background-position: 0 5px;
 }
@@ -4232,7 +4250,9 @@
 .timeline__node {
   position: absolute;
   left: 0;
-  top: 9px;
+  /* On the first line of words, not six pixels under it: the mark and the station name share a
+     centre line, which is what makes the rail read as a timetable rather than a fence. */
+  top: 3px;
   width: var(--rail-node);
   height: var(--rail-node);
   border-radius: var(--r-circle);
@@ -4297,8 +4317,8 @@
    * row above already carries the full 12px of the list gap, so this piece only has to carry this
    * row's own 11px, and the line now meets the square's edge.
    */
-  top: calc(var(--s-3) * -1);
-  height: calc(11px + var(--s-3));
+  top: calc(var(--timeline-gap) * -1);
+  height: calc(5px + var(--timeline-gap));
   width: var(--rail-line);
   background: var(--border-hairline);
 }
@@ -4320,14 +4340,14 @@
      bus draw their last stop to the same place: the square's edge. The box is re-phased for the
      taller connector so a dash still finishes on that edge (17 to 23 in the new box) rather than
      a gap doing so. */
-  top: calc(var(--s-3) * -1);
-  height: calc(11px + var(--s-3));
+  top: calc(var(--timeline-gap) * -1);
+  height: calc(5px + var(--timeline-gap));
 }
 
 /* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
    here and 10px in the From/To card, so one journey's two ends were drawn at two weights. */
 .timeline__node--end {
-  top: 11px;
+  top: 5px;
   left: calc((var(--rail-node) - var(--rail-square)) / 2);
   width: var(--rail-square);
   height: var(--rail-square);
@@ -11922,7 +11942,7 @@
    * It now runs 4px past the gap on both sides; the ring at each station covers the overlap.
    */
   top: -4px;
-  bottom: calc((var(--s-3) + 4px) * -1);
+  bottom: calc((var(--timeline-gap) + 4px) * -1);
 }
 
 /* ------------------------------------------------------------ Stops on the rail
@@ -11941,7 +11961,7 @@
   width: 8px;
   height: 8px;
   left: calc(var(--rail-node) / 2 - 4px);
-  top: 8px;
+  top: 6px;
   border: 2px solid var(--ink-strong);
   border-radius: var(--r-circle);
   background: var(--l0-bg);
@@ -12016,7 +12036,9 @@
 .timeline__mode {
   position: absolute;
   left: -46px;
-  top: 24px;
+  /* Level with the second line of the block, which is the service name on a ride and the walk's own
+     amount on foot. */
+  top: 26px;
   width: 40px;
   display: flex;
   justify-content: flex-end;
@@ -12102,7 +12124,10 @@
  * allowed, and no edge for the eye to travel round.
  */
 .journey-rail .timeline {
-  gap: var(--s-4);
+  /* A journey is given one step more air than a list: the rail between two stations is then long
+     enough to read as travel rather than as a joint between two marks. */
+  --timeline-gap: 20px;
+  gap: var(--timeline-gap);
 }
 
 .journey-rail .timeline__station {
