@@ -4,7 +4,6 @@ import { getLine } from '../../data/network';
 import { getDisruption } from '../../data/disruptions';
 import { alertLine } from '../../lib/disruptionText';
 import { useFormat } from '../../lib/useFormat';
-import { Dialog, Pill } from '../ui/primitives';
 import { Icon, ModeIcon } from '../ui/Icons';
 import { StopLink } from '../stops/StopLink';
 import { useT } from '../../lib/useT';
@@ -16,9 +15,12 @@ import type { Journey, Leg } from '../../data/types';
  * Every leg used to carry a row of pills — the platform, the arrival platform, the direction and a
  * bicycle — so a three-change journey printed twenty-one chips down one column and read as a form.
  * 9292 prints the same journey as a timetable: the time in a gutter on the left, the station in
- * bold on the line, the service in one coloured badge, and the rest as small grey sentences. The
- * times answer "when", the rail answers "which way", and the grey line answers "what do I need to
- * know at this platform". Nothing is boxed twice.
+ * bold on the line, the service in one coloured badge, and the rest as small grey sentences.
+ *
+ * **The stops a service calls at belong on that rail, not in a sheet.** They open under the service
+ * that owns them, each with its own time in the gutter and a small ring on the line, exactly where
+ * the traveller is looking — the rail is the thing that answers "how far am I", and lifting the
+ * answer into a dialog took it off the line it describes.
  */
 
 function WalkLegRow({ leg }: { leg: Leg }) {
@@ -54,17 +56,20 @@ function WalkLegRow({ leg }: { leg: Leg }) {
   );
 }
 
-function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
+function RideLegRow({
+  leg,
+  isLastRide,
+  stopsOpen,
+  onToggleStops,
+}: {
+  leg: Leg;
+  isLastRide: boolean;
+  stopsOpen: boolean;
+  onToggleStops: () => void;
+}) {
   const format = useFormat();
   const t = useT();
   const line = getLine(leg.lineId);
-  /*
-   * **The stops on this service open in a sheet of their own.** They used to unfold inside the
-   * leg, which pushed every service below them down the rail and turned the journey into an
-   * accordion; 9292 keeps the journey the same height and opens the stops over it, so a traveller
-   * can see where they are between two stations without losing the line they are reading.
-   */
-  const [stopsOpen, setStopsOpen] = useState(false);
   const stops = leg.intermediateStops ?? [];
   const serviceName = leg.lineName ?? line?.name ?? t('Service');
   const platforms = [
@@ -82,10 +87,29 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
         </span>
 
         <div className="row-wrap">
-          <span className={`mode-badge mode-badge--${leg.mode}`}>
-            <ModeIcon mode={leg.mode} size={13} />
-            {serviceName}
-          </span>
+          {/*
+            **The service is the control.** Tapping the bus opens the stops it calls at, right here
+            on the rail — "which stops are between here and there" is a question about this line, so
+            the answer belongs under this line. A service with nothing in between is not a control:
+            there would be nothing to open.
+          */}
+          {stops.length ? (
+            <button
+              type="button"
+              className={`mode-badge mode-badge--${leg.mode} leg-service`}
+              aria-expanded={stopsOpen}
+              aria-label={t('Show the stops on {line}', { line: serviceName })}
+              onClick={onToggleStops}
+            >
+              <ModeIcon mode={leg.mode} size={13} />
+              {serviceName}
+            </button>
+          ) : (
+            <span className={`mode-badge mode-badge--${leg.mode}`}>
+              <ModeIcon mode={leg.mode} size={13} />
+              {serviceName}
+            </span>
+          )}
           {/*
             The delay is printed on the service that is late, in the colour the app uses for late
             things — not in a pill, and not again on the card's heading.
@@ -109,81 +133,15 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
         */}
         {platforms.length ? <p className="t-sm t-muted">{platforms.join(' · ')}</p> : null}
 
-        <button
-          type="button"
-          className="leg-stops"
-          aria-label={t('Show the stops on {line}', { line: serviceName })}
-          onClick={() => setStopsOpen(true)}
-        >
-          <Icon name="route" size={13} />
-          {stops.length === 0
-            ? t('Board to alight')
-            : stops.length === 1
+        {stops.length ? (
+          <button type="button" className="leg-stops" aria-expanded={stopsOpen} onClick={onToggleStops}>
+            <Icon name="route" size={13} />
+            {stops.length === 1
               ? t('1 stop in between')
               : t('{count} stops in between', { count: stops.length })}
-          <Icon name="chevronRight" size={14} className="leg-stops__chevron" />
-        </button>
-
-        {/*
-          The sheet is the leg's own line, stop by stop: where you get on, every stop it calls at
-          with its time and platform, and where you get off. The two ends of the ride carry the two
-          words that answer "how far am I", so a glance at the list says which end you are on.
-        */}
-        <Dialog
-          open={stopsOpen}
-          onClose={() => setStopsOpen(false)}
-          title={serviceName}
-          description={`${format.time(leg.departure)} → ${format.time(leg.arrival)} · ${t('{duration} ride', {
-            duration: format.duration(leg.arrival - leg.departure),
-          })}`}
-        >
-          <ol className="stack-2">
-            <li className="between">
-              <span className="row-wrap">
-                <span className="t-strong t-sm">
-                  {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
-                </span>
-                <Pill tone="butter">{t('Board')}</Pill>
-                {leg.platform ? (
-                  <Pill tone="outline">
-                    <Icon name="platform" size={12} />
-                    {t('Platform')} {leg.platform}
-                  </Pill>
-                ) : null}
-              </span>
-              <span className="t-sm t-mono-num t-muted">{format.time(leg.departure)}</span>
-            </li>
-            {stops.map((stop) => (
-              <li key={stop.stopId} className="between">
-                {/* Every stop the service calls at is a place with a page, as in the rail itself. */}
-                <span className="t-sm">
-                  <StopLink stopId={stop.stopId} />
-                </span>
-                <span className="row">
-                  <span className="t-sm t-muted t-mono-num">{format.time(stop.arrival)}</span>
-                  {stop.platform ? (
-                    <Pill tone="outline">{t('Platform {platform}', { platform: stop.platform })}</Pill>
-                  ) : null}
-                </span>
-              </li>
-            ))}
-            <li className="between">
-              <span className="row-wrap">
-                <span className="t-strong t-sm">
-                  {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
-                </span>
-                <Pill tone="sage">{t('Get off')}</Pill>
-                {leg.arrivalPlatform ? (
-                  <Pill tone="outline">
-                    <Icon name="platform" size={12} />
-                    {t('Arrival platform')} {leg.arrivalPlatform}
-                  </Pill>
-                ) : null}
-              </span>
-              <span className="t-sm t-mono-num t-muted">{format.time(leg.arrival)}</span>
-            </li>
-          </ol>
-        </Dialog>
+            <Icon name="chevronRight" size={14} className="leg-stops__chevron" />
+          </button>
+        ) : null}
       </div>
     </li>
   );
@@ -204,6 +162,13 @@ export function LegList({ journey }: { journey: Journey }) {
   const rows: React.ReactNode[] = [];
   const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   const lastRideId = lastRide?.id;
+  /* Which services have their stops open. A leg is addressed by its id, so a re-render keeps it. */
+  const [openStops, setOpenStops] = useState<string[]>([]);
+  const toggleStops = (id: string) =>
+    setOpenStops((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    );
+
   journey.legs.forEach((leg, index) => {
     const previous = journey.legs[index - 1];
     if (previous) {
@@ -233,9 +198,44 @@ export function LegList({ journey }: { journey: Journey }) {
       leg.mode === 'walk' || leg.mode === 'bike' ? (
         <WalkLegRow key={leg.id} leg={leg} />
       ) : (
-        <RideLegRow key={leg.id} leg={leg} isLastRide={leg.id === lastRideId} />
+        <RideLegRow
+          key={leg.id}
+          leg={leg}
+          isLastRide={leg.id === lastRideId}
+          stopsOpen={openStops.includes(leg.id)}
+          onToggleStops={() => toggleStops(leg.id)}
+        />
       ),
     );
+
+    /*
+     * **The stops in between, on the rail.** One row per stop, its time in the gutter and a small
+     * ring on the line, tucked tight under the service so a ride of twenty stops still reads as one
+     * ride and the width of the page does not move.
+     */
+    if (openStops.includes(leg.id) && leg.mode !== 'walk' && leg.mode !== 'bike') {
+      (leg.intermediateStops ?? []).forEach((stop) => {
+        rows.push(
+          <li
+            key={`stop-${leg.id}-${stop.stopId}`}
+            className="timeline__rail timeline__rail--ride timeline__rail--stop"
+          >
+            <span className="timeline__time">{format.time(stop.arrival)}</span>
+            <span className="timeline__node timeline__node--stop" />
+            <span className="row-wrap">
+              <span className="t-sm">
+                <StopLink stopId={stop.stopId} />
+              </span>
+              {stop.platform ? (
+                <span className="t-sm t-muted">
+                  {t('Platform')} {stop.platform}
+                </span>
+              ) : null}
+            </span>
+          </li>,
+        );
+      });
+    }
   });
 
   /*

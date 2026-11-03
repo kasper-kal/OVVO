@@ -11973,3 +11973,46 @@
   border: 0;
   background: var(--ink-faint);
 }
+
+/* ------------------------------------------------------------ Stops on the rail
+ *
+ * **A stop the service calls at is a small ring on the line, not a dialog.** The list opens under
+ * the service that owns it, so the rail stays one continuous answer to "how far am I" — the sheet
+ * that used to hold this took the answer off the line it describes. Twenty stops are set tight
+ * (a negative margin each side) because a service that calls everywhere must not double the height
+ * of the journey: 9292 draws the same list at roughly one line per stop.
+ */
+.timeline__rail--stop {
+  margin-block: -6px;
+}
+
+.timeline__node--stop {
+  width: 8px;
+  height: 8px;
+  left: calc(var(--rail-node) / 2 - 4px);
+  top: 8px;
+  border: 2px solid var(--ink-strong);
+  border-radius: var(--r-circle);
+  background: var(--l2-bg);
+}
+
+/* The service badge is a button when it opens its own stops: same badge, no browser chrome. */
+.leg-service {
+  appearance: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.leg-service:hover {
+  filter: brightness(1.04);
+}
+
+/* The chevron points down while the stops are open, and turns back when they close. */
+.leg-stops[aria-expanded='true'] .leg-stops__chevron {
+  transform: rotate(90deg);
+}
+
+.leg-stops__chevron {
+  transition: transform var(--t-spring) var(--ease-spring);
+}
