@@ -12872,3 +12872,8 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Removing an alarm is the only control on the sheet that undoes something, so it says so. */
+.alarm__remove {
+  color: var(--coral-ink);
+}

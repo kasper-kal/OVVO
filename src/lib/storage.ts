@@ -55,6 +55,23 @@ export function writeStored<T>(key: string, value: T): void {
   }
 }
 
+/**
+ * Delete one value.
+ *
+ * The alarm needs it: "remove this alarm" has to mean the minute is gone, not that a flag beside it
+ * is set. A key that is absent and a key holding `null` read the same through `readStored`, but only
+ * one of them stays gone when the store is synced or inspected.
+ */
+export function removeStored(key: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(PREFIX + key);
+    for (const listener of listeners) listener();
+  } catch {
+    /* ignore */
+  }
+}
+
 export function clearStored(): void {
   if (typeof window === 'undefined') return;
   try {

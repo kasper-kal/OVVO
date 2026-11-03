@@ -130,6 +130,18 @@ const slider = page.locator('.alarm__slider');
 check(Number(await slider.inputValue()) === 5, 'the slider starts at five minutes', await slider.inputValue());
 await page.locator('button[aria-label="One minute more"]').click();
 check(Number(await slider.inputValue()) === 6, 'the plus moves the slider', await slider.inputValue());
+/* Nought minutes is not a warning, so the sheet must not offer it. */
+check((await slider.getAttribute('min')) === '1', 'the slider cannot reach zero', await slider.getAttribute('min'));
+for (let i = 0; i < 8; i += 1) {
+  await page.locator('button[aria-label="One minute less"]').click({ timeout: 400 }).catch(() => {});
+}
+const floored = Number(await slider.inputValue());
+check(floored === 1, 'the minus stops at one minute', String(floored));
+check(
+  await page.locator('button[aria-label="One minute less"]').isDisabled(),
+  'the minus is switched off at one minute',
+);
+for (let i = 0; i < 5; i += 1) await page.locator('button[aria-label="One minute more"]').click();
 const leave = (await page.locator('.alarm__leave').textContent()) ?? '';
 check(/Leave at \d{1,2}:\d{2}/.test(leave), 'the sheet says when to leave', leave.trim().slice(0, 40));
 await page.locator('.modal .btn:not(.btn--primary)').last().click();
@@ -142,6 +154,29 @@ check((await alarmButton.textContent())?.trim() === 'Alarm 6 min', 'Save keeps t
 await page.reload({ waitUntil: 'networkidle' });
 await page.waitForSelector('.timeline', { timeout: 15000 });
 check((await alarmButton.textContent())?.trim() === 'Alarm 6 min', 'the alarm survives a reload', (await alarmButton.textContent())?.trim());
+
+/* Taking it off again: the journey must be able to have no alarm, and stay that way. */
+await alarmButton.click();
+await page.waitForSelector('.alarm__slider');
+const removeAlarm = page.locator('button[aria-label="Remove the alarm"]');
+check((await removeAlarm.count()) === 1, 'a saved alarm can be removed');
+await removeAlarm.click();
+check(
+  (await alarmButton.textContent())?.trim() === 'Alarm',
+  'removing it leaves a plain journey',
+  (await alarmButton.textContent())?.trim(),
+);
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForSelector('.timeline', { timeout: 15000 });
+check(
+  (await alarmButton.textContent())?.trim() === 'Alarm',
+  'the removed alarm does not come back on a reload',
+  (await alarmButton.textContent())?.trim(),
+);
+check(
+  (await page.evaluate(() => Object.keys(localStorage).some((key) => key.includes('alarm:')))) === false,
+  'nothing is left behind in the store',
+);
 
 await page.locator('button[aria-label="Share this journey"]').click();
 await page.waitForSelector('.share-row');

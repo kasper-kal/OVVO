@@ -3,7 +3,7 @@ import { Dialog } from '../ui/primitives';
 import { Icon } from '../ui/Icons';
 import { useFormat } from '../../lib/useFormat';
 import { useT } from '../../lib/useT';
-import { readStored, writeStored } from '../../lib/storage';
+import { readStored, removeStored, writeStored } from '../../lib/storage';
 import type { Journey } from '../../data/types';
 
 /*
@@ -92,7 +92,24 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
     setOpen(false);
   };
 
-  const step = (delta: number) => setDraft((value) => Math.max(0, Math.min(30, value + delta)));
+  /*
+   * **Never zero.** "Warn me nought minutes before leaving" is not a warning, it is the departure
+   * itself, and the sheet could be slid down to it and saved. One minute is the smallest warning
+   * that is still a warning; the minus stops there and the slider cannot be dragged below it.
+   */
+  const MIN_MINUTES = 1;
+  const MAX_MINUTES = 30;
+  const step = (delta: number) => setDraft((value) => Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, value + delta)));
+
+  /* **Taking the alarm off.** A journey with an alarm had no way back to a journey without one. */
+  const remove = () => {
+    removeStored(alarmKey(journey.id));
+    setSaved(null);
+    setDraft(5);
+    setFired(false);
+    notified.current = false;
+    setOpen(false);
+  };
 
   return (
     <>
@@ -117,6 +134,17 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
         onClose={cancel}
         footer={
           <>
+            {/* Only offered when there is something to remove. */}
+            {saved ? (
+              <button
+                type="button"
+                className="btn alarm__remove"
+                aria-label={t('Remove the alarm')}
+                onClick={remove}
+              >
+                {t('Remove alarm')}
+              </button>
+            ) : null}
             <button type="button" className="btn" onClick={cancel}>
               {t('Cancel')}
             </button>
@@ -135,6 +163,7 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
               type="button"
               className="btn btn--icon-circle"
               aria-label={t('One minute less')}
+              disabled={draft <= MIN_MINUTES}
               onClick={() => step(-1)}
             >
               <Icon name="minus" size={16} />
@@ -142,8 +171,8 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
             <input
               className="alarm__slider"
               type="range"
-              min={0}
-              max={30}
+              min={MIN_MINUTES}
+              max={MAX_MINUTES}
               step={1}
               value={draft}
               aria-label={t('Warn me {minutes} minutes before leaving', { minutes: draft })}

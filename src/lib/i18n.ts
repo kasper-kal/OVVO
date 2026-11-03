@@ -1470,6 +1470,8 @@ const NL: Record<string, string> = {
   'Street map': 'Stratenkaart',
   'The straight line is shown; the real route could not be fetched just now.':
     'De rechte lijn wordt getoond; de echte route kon nu niet worden opgehaald.',
+  'Remove alarm': 'Wekker verwijderen',
+  'Remove the alarm': 'Verwijder de wekker',
   'Navigeer': 'Navigeer',
   'Stop navigating': 'Stop met navigeren',
   'Step {index} of {count}': 'Stap {index} van {count}',
