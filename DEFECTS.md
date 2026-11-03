@@ -33,6 +33,8 @@ him, and it is the work queue.
 
 | 24 | "Is this a god damn joke?" — an alarm two minutes out printed "Time to leave for your journey, 8:44" as a pink box inside the Save / Alarm / Share row, stretching Alarm and Save to 105px so they read as circles | `scripts/check-batch3.mjs`: with an alarm due now, every child of the button row is a `BUTTON`, the row and its tallest child stay at or under 60px, no `.journey-alarm-line` exists, and the reminder appears in the toast region | yes: putting the paragraph back in the row prints **FAIL a due alarm adds no box to the button row (BUTTON / BUTTON / P / BUTTON)** and **FAIL and the row keeps its own height (105px row, tallest child 105px)** |
 
+| 25 | "The collapsable thing opens in wrong place, its placed after the transfer time while transferring is after being in the train" — an opened service printed its stops below the "9 min transfer time" row | `scripts/check-map.mjs`: on an opened journey, no stop row may stand between a change row and the next service | yes: moving the stop list back under the change row prints **FAIL no stop of a service is printed after the change that ends it (misplaced after change row 1)** |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

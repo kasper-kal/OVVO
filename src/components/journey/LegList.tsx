@@ -447,9 +447,6 @@ export function LegList({ journey }: { journey: Journey }) {
       ),
     );
 
-    const after = changeAfter(legIndex);
-    if (after) rows.push(changeRow(`change-out-${leg.id}`, after.departure - leg.arrival));
-
     /*
      * **The stops in between, on the rail.** One row per stop, its time in the gutter and a small
      * ring on the line, tucked tight under the service so a ride of twenty stops still reads as one
@@ -475,6 +472,17 @@ export function LegList({ journey }: { journey: Journey }) {
         );
       });
     }
+    /*
+     * **The change comes after the stops, not in the middle of the ride.**
+     *
+     * He photographed an opened Sprinter with "9 min transfer time" sitting between the service and
+     * the train's own stops, which reads as though the transfer happened before the train had gone
+     * anywhere. The stops belong to the service above them, so they are printed first and the change
+     * — the thing that happens once you step off — follows them.
+     */
+    const after = changeAfter(legIndex);
+    if (after) rows.push(changeRow(`change-out-${leg.id}`, after.departure - leg.arrival));
+
   });
 
   /*

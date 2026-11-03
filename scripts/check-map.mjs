@@ -270,6 +270,44 @@ if (walkLinks > 0) {
     'and the page does not state it once for the whole journey',
     bike.journeyLevel ? 'a journey-level line exists' : 'none',
   );
+
+  /*
+   * **Nothing from a service may appear after the change that ends it.** He photographed an opened
+   * Sprinter whose stops were printed below "9 min transfer time" — the train appeared to finish
+   * before the transfer it was still travelling towards. Every opened list must be read before the
+   * change row, and between a change and the next service there must be no stop at all.
+   */
+  const order = await doorPage.evaluate(() => {
+    const tokens = [...document.querySelectorAll('.timeline > li')].map((el) => {
+      if (el.matches('.timeline__rail--stop')) return 'stop';
+      if (el.matches('.timeline__rail--change')) return 'change';
+      if (el.matches('.timeline__rail--ride')) return 'ride';
+      return 'other';
+    });
+    const misplaced = [];
+    tokens.forEach((token, index) => {
+      if (token !== 'change') return;
+      for (let i = index + 1; i < tokens.length && tokens[i] !== 'ride'; i += 1) {
+        if (tokens[i] === 'stop') {
+          misplaced.push(index);
+          break;
+        }
+      }
+    });
+    return { tokens, misplaced, stops: tokens.filter((token) => token === 'stop').length };
+  });
+  check(
+    order.stops > 0,
+    'the opened journey shows its stops, so the order can be read',
+    `${order.stops} stop row(s)`,
+  );
+  check(
+    order.misplaced.length === 0,
+    'no stop of a service is printed after the change that ends it',
+    order.misplaced.length
+      ? `misplaced after change row ${order.misplaced.join(', ')}`
+      : order.tokens.join(' '),
+  );
   /*
    * **And the reverse belongs on the results screen, where the pair is.** A RETURN pill here was a
    * third copy of the same act — he crossed it out: "theres already a Reverse button on the Journey
