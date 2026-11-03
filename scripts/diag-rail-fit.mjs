@@ -81,7 +81,7 @@ const report = await page.evaluate(() => {
     wide,
     platform: [...document.querySelectorAll('.timeline__platform')].map((el) => {
       const r = el.getBoundingClientRect();
-      const card = el.closest('.card').getBoundingClientRect();
+      const card = (el.closest('.card') ?? document.querySelector('.journey-rail') ?? document.body).getBoundingClientRect();
       return { text: el.textContent.trim(), right: Math.round(r.right), cardRight: Math.round(card.right), overflows: r.right > card.right + 1 };
     }),
   };

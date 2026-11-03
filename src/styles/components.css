@@ -11904,6 +11904,13 @@
   left: calc(var(--rail-node) / 2 - var(--rail-line));
   background: var(--rail-ride);
   border-radius: var(--rail-line);
+  /*
+   * **Into the next row, not just into the gap.** The segment stopped exactly where the row ended
+   * plus the gap, so a hairline of background could show between one station's blue and the next.
+   * It now runs 4px past the gap on both sides; the ring at each station covers the overlap.
+   */
+  top: -4px;
+  bottom: calc((var(--s-3) + 4px) * -1);
 }
 
 /* ------------------------------------------------------------ Stops on the rail
@@ -11985,16 +11992,28 @@
  * before reading the line, and 9292 puts it there for the same reason: the left column then answers
  * both "when" and "how", and the line itself stays words.
  */
+/*
+ * **The glyph sits level with the line it belongs to, and it is big enough to read.** It was pinned
+ * 25px down every row, so on a walk — which is one short line — the icon hung under the text and
+ * crowded the next station's time, while on a ride it floated between the service and the
+ * direction. 9292 draws the mode at the size of the service it names; each row now sets the height
+ * its own glyph sits at.
+ */
 .timeline__mode {
   position: absolute;
   left: -46px;
-  top: 25px;
+  top: 2px;
   width: 40px;
   display: flex;
   justify-content: flex-end;
   padding-right: 2px;
   color: var(--ink);
   line-height: 1;
+}
+
+/* On a ride the glyph sits level with the service name, three lines into the block. */
+.timeline__rail--ride > .timeline__mode {
+  top: 24px;
 }
 
 /* -------------------------------------------------------------- Timetable gutter
