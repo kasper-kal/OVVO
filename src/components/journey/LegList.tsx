@@ -215,7 +215,20 @@ export function LegList({ journey }: { journey: Journey }) {
           key={leg.id}
           leg={leg}
           /* The first leg owns the journey's start, so its row is the one that names it. */
-          origin={journey.legs[0] === leg ? (leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />) : undefined}
+          /*
+           * **The first row says where the journey starts, and only that.** A journey that begins
+           * at an address printed that address beside the ring, which is the one row on the rail
+           * that is not a stop and read as a second title. 9292 calls it the starting point and
+           * leaves the place to the heading; a journey that begins at a stop still names the stop,
+           * because that is what the row is about.
+           */
+          origin={
+            journey.legs[0] === leg
+              ? leg.fromLabel
+                ? t('Starting point')
+                : <StopLink stopId={leg.fromStopId} />
+              : undefined
+          }
         />
       ) : (
         <RideLegRow

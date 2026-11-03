@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
@@ -190,14 +190,29 @@ export function JourneyDetailPage() {
       */}
       <div className="journey-modes">
         <span className="journey-modes__chain" aria-hidden="true">
-          {journey.legs.map((leg) => (
-            <ModeIcon key={leg.id} mode={leg.mode} size={16} />
+          {/* A dot between the vehicles, the way 9292 separates them: walk · bus · train. */}
+          {journey.legs.map((leg, index) => (
+            <Fragment key={leg.id}>
+              {index > 0 ? <span className="journey-modes__dot" /> : null}
+              <ModeIcon mode={leg.mode} size={16} />
+            </Fragment>
           ))}
         </span>
-        <span>
-          {journey.transfers === 0
-            ? t('Direct')
-            : plural(journey.transfers, t('transfer'), t('transfers'))}
+        {/*
+          **The changes as 9292 writes them: a figure, a multiplication sign and a swap glyph.**
+          The sentence stays for a screen reader, which would otherwise hear the sign read out as
+          "times"; what is printed is the figure and the symbol.
+        */}
+        <span className="journey-modes__count">
+          <span className="sr-only">
+            {journey.transfers === 0
+              ? t('Direct')
+              : plural(journey.transfers, t('transfer'), t('transfers'))}
+          </span>
+          <span aria-hidden="true">{journey.transfers} ×</span>
+          <span className="journey-modes__swap" aria-hidden="true">
+            <Icon name="swap" size={15} />
+          </span>
         </span>
       </div>
 
@@ -328,19 +343,13 @@ export function JourneyDetailPage() {
         here — price, length, changes, walking, how full, and the bicycle — as the sentence
         under a timetable.
       */}
-      {/* What the head does not say: the walking, how full, and the bicycle. */}
+      {/*
+        **The three-fact line at the foot is gone, as 9292 has none.** The walking is said on the
+        walk rows, which carry their own minutes; how full a service is belongs on the service. The
+        bicycle has no home in 9292 and is one fact worth keeping, so it stays as one quiet line.
+      */}
       <p className="t-sm t-muted journey-facts-line">
-        {[
-          journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
-          journey.occupancy === 'busy'
-            ? t('Expected busy')
-            : journey.occupancy === 'moderate'
-              ? t('Expected fairly busy')
-              : t('Expected quiet'),
-          journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle'),
-        ]
-          .filter(Boolean)
-          .join(' · ')}
+        {journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle')}
       </p>
       {/*
         **The star beside the price means something, so it says what.** 9292 marks its fare with an

@@ -723,6 +723,8 @@ const NL: Record<string, string> = {
 
   /* ------------------------------------------------------------ journey card */
   Direct: 'Direct',
+  /* The first row of a journey that begins at an address: 9292's own word for it. */
+  'Starting point': 'Beginpunt',
   'Delay +{minutes} min': 'Vertraging +{minutes} min',
   Cancelled: 'Rit vervalt',
   'Walking only': 'Alleen lopen',

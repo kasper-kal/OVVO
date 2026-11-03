@@ -12170,7 +12170,8 @@
   width: 40px;
   text-align: right;
   font-size: var(--fs-pill);
-  font-weight: var(--fw-bold);
+  /* Ordinary weight, as 9292 prints them: bold times made the gutter the loudest column. */
+  font-weight: 400;
   color: var(--ink-strong);
   /* Times line up as a column, so 10:05 and 9:58 sit on the same digits. */
   font-variant-numeric: tabular-nums;
@@ -12343,6 +12344,30 @@
   align-items: center;
   gap: var(--s-2);
   color: var(--ink-strong);
+}
+
+/* A dot between the glyphs, the way 9292 separates the vehicles of a journey. */
+.journey-modes__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+/* The changes, written as 9292 writes them: the figure, the sign, then the swap glyph. */
+.journey-modes__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ink-strong);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.journey-modes__swap {
+  display: inline-flex;
+  color: var(--ink-muted);
 }
 
 /* ------------------------------------------------------------- A journey's head

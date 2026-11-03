@@ -733,7 +733,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 title={t('Disruptions')}
               >
                 <Icon name="alert" size={18} />
-                {alertCount ? <span className="app-header__alert-count">{alertCount}</span> : null}
+                {/*
+                  **No count beside the alert glyph.** 9292 carries no badge in its top row, and a
+                  number there competes with the mark beside it. The count is still the link's own
+                  accessible name, so a screen reader hears how many alerts there are.
+                */}
               </Link>
             )}
           </div>

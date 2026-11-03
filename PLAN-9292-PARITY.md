@@ -211,3 +211,17 @@ Each group is built, checked at a phone width in both themes, deployed and pushe
 
 - **The alarm in item 1 is a browser reminder.** It fires while the page is open in a tab. The calendar entry from item 2 is the one that alarms with the site closed, so the alarm sheet offers that as the way to be sure.
 - **Items 13 and 14 need a real street map.** That is a service the app does not have yet, and it costs money; it is the only part of this plan that cannot be built from what the app already holds.
+
+## Done so far
+
+Built, checked and deployed (the twenty items above are untouched by this list):
+
+- **3. Alert counter** — gone from the top row, on every screen. The count is still the link's own
+  accessible name, so a screen reader hears how many alerts there are.
+- **5. Separators between the mode glyphs** — a small dot between each pair.
+- **6. The change count** — the figure, the multiplication sign and the swap glyph, with the words
+  kept for a screen reader.
+- **8. Time weight** — the times are ordinary weight again, still numeral-aligned.
+- **12. The first row** — a journey that begins at an address now says only that this is the
+  starting point; a journey that begins at a stop still names the stop.
+- **20. The facts line** — the three-fact line is gone; the bicycle stays as one quiet line.
