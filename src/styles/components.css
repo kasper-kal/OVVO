@@ -4219,7 +4219,8 @@
 }
 
 .timeline__rail--dashed > div {
-  padding-top: 26px;
+  /* The same line as a ride's service name, so a walk's amount sits where the eye already looks. */
+  padding-top: 26.5px;
 }
 
 .timeline__rail--dashed::before {
@@ -12061,8 +12062,9 @@
   position: absolute;
   left: -46px;
   /* Level with the second line of the block, which is the service name on a ride and the walk's own
-     amount on foot. */
-  top: 26px;
+     amount on foot. 25, not 26: the figure's own box is a pixel taller than the words' line, so 26
+     hung it just under the line it belongs to. */
+  top: 25px;
   width: 40px;
   display: flex;
   /* Centred under the clock, not pushed against the rail: 9292 puts the figure in the middle of the
