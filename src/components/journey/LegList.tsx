@@ -364,15 +364,14 @@ export function LegList({ journey }: { journey: Journey }) {
   const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   /* Which services have their stops open. A leg is addressed by its id, so a re-render keeps it. */
   /*
-   * **Every service opens with the journey.** 9292's opened journey has all of its legs open at
-   * once, so the shape of the trip is read without a tap per service; a journey with nothing to
-   * show still opens closed, because there is nothing to open.
+   * **Every list starts closed.** It used to open every service with the journey, copying 9292's
+   * opened page; the steerer asked for the opposite, and he is right: a ride of twenty stops turned
+   * the journey into a wall of station names before the traveller had read a single service. The
+   * chevron beside the train number opens that one train's stops and nothing else.
    */
   /* Which walk or ride is open on the street map; `null` when the sheet is shut. */
   const [mapTarget, setMapTarget] = useState<MapTarget | null>(null);
-  const [openStops, setOpenStops] = useState<string[]>(() =>
-    journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike').map((leg) => leg.id),
-  );
+  const [openStops, setOpenStops] = useState<string[]>([]);
   const toggleStops = (id: string) =>
     setOpenStops((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],

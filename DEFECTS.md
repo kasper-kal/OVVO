@@ -37,6 +37,8 @@ him, and it is the work queue.
 
 | 26 | "Make the colour of the map icon and map text the same colour blue as the stripes between busses and trains" — the glyph on a ride and the word on a walk were a hand-picked `#1a4fd6` while the rail used its own token, so they sat a shade apart | `scripts/check-map.mjs`: the map control's ink must equal the rail stripe's own background colour, read from the page | yes: putting `#1a4fd6` back prints **FAIL the map glyph on a ride is the same blue as the rail (rgb(26, 79, 214) vs rgb(…))** |
 
+| 27 | "The things should be automatically collapsed" / "automatically collapsed when you open the page instead of the current automatically opened" — every service opened its stop list on load, so a journey of twenty stops arrived as a wall of station names | `scripts/check-map.mjs`: on load there are no stop rows and every service reports `aria-expanded="false"`; a tap then produces the stops, and the rail order is read from that opened state | yes: putting the open-on-load state back prints **FAIL every service arrives with its stop list closed (2 stop row(s))** |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

@@ -277,6 +277,26 @@ if (walkLinks > 0) {
    * before the transfer it was still travelling towards. Every opened list must be read before the
    * change row, and between a change and the next service there must be no stop at all.
    */
+  /*
+   * **Closed on arrival, opened by a tap.** The page used to open every service with the journey;
+   * he asked for the opposite. This reads the page the moment it is there — no stop rows, every
+   * chevron reporting `aria-expanded="false"` — and only then taps each service open for the order
+   * check below, which needs a list on screen to have an opinion about.
+   */
+  const closed = await doorPage.evaluate(() => ({
+    stops: document.querySelectorAll('.timeline__rail--stop').length,
+    expanded: [...document.querySelectorAll('button.leg-service')].map((el) => el.getAttribute('aria-expanded')),
+  }));
+  check(closed.stops === 0, 'every service arrives with its stop list closed', `${closed.stops} stop row(s)`);
+  check(
+    closed.expanded.length > 0 && closed.expanded.every((value) => value === 'false'),
+    'and every service says it is closed',
+    closed.expanded.join(' / ') || '(no service button)',
+  );
+  for (const button of await doorPage.locator('button.leg-service').all()) {
+    await button.click().catch(() => {});
+  }
+  await doorPage.waitForTimeout(150);
   const order = await doorPage.evaluate(() => {
     const tokens = [...document.querySelectorAll('.timeline > li')].map((el) => {
       if (el.matches('.timeline__rail--stop')) return 'stop';
@@ -298,7 +318,7 @@ if (walkLinks > 0) {
   });
   check(
     order.stops > 0,
-    'the opened journey shows its stops, so the order can be read',
+    'a tap opens the stops, so the order can be read',
     `${order.stops} stop row(s)`,
   );
   /*
