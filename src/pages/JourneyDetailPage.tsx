@@ -1,9 +1,10 @@
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
 import { StopLink } from '../components/stops/StopLink';
-import { JOURNEY_LABELS } from '../data/journeyEngine';
+import { JOURNEY_LABELS, findJourneyById } from '../data/journeyEngine';
 import { stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
 import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
@@ -17,15 +18,51 @@ import { alertWords } from '../lib/disruptionText';
 export function JourneyDetailPage() {
   const { journeyId } = useParams();
   const navigate = useNavigate();
-  const { findJourney, search, preferences, startSearch, isJourneySaved, saveJourney, savedJourneys, power } = useApp();
+  const {
+    findJourney,
+    search,
+    searchHistory,
+    preferences,
+    startSearch,
+    isJourneySaved,
+    saveJourney,
+    savedJourneys,
+    power,
+  } = useApp();
   const format = useFormat();
   const t = useT();
-  const journey = findJourney(journeyId);
+  const found = findJourney(journeyId);
+  /*
+   * **A refreshed journey is rebuilt from its search, not lost with the tab.**
+   *
+   * Journeys are made per search and kept in memory, so reloading the page emptied the list and the
+   * traveller was shown "This journey could not be restored" for a journey they were reading a
+   * second earlier. Their searches survive a reload (they are written to this browser), and a
+   * journey can be rebuilt from the search that made it — `findJourneyById` is the engine's own
+   * way of doing that, written for saved journeys. So the page asks the history for the same
+   * journey before it says it is gone.
+   */
+  const rebuilt = useMemo(() => {
+    if (found || !journeyId) return null;
+    for (const entry of searchHistory) {
+      const sameJourney = findJourneyById(entry.query, journeyId);
+      if (sameJourney) return { journey: sameJourney, query: entry.query };
+    }
+    return null;
+  }, [found, journeyId, searchHistory]);
+  const journey = found ?? rebuilt?.journey ?? undefined;
+  /*
+   * The rebuilt journey puts the journey back on screen at once; this puts the search behind it
+   * back too, so Return, Map and Save act on this pair rather than on nothing.
+   */
+  useEffect(() => {
+    if (!rebuilt || search) return;
+    startSearch(rebuilt.query);
+  }, [rebuilt, search, startSearch]);
   const saved = journey ? isJourneySaved(journey.signature) : false;
   /* The search this journey came out of: the last one **run**, not the last one kept. A kept
      search may be from weeks ago, and offering it here as "the search you were looking at" would
      name a journey that is not on the screen. */
-  const { searchHistory } = useApp();
   const lastSearch = searchHistory[0] ?? null;
   usePageTitle(
     journey
