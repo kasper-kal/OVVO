@@ -346,7 +346,7 @@ function tintTiers(tint: Rgb): {
     const ink = inkFor(page);
     const keepInk = (colour: Rgb) => {
       let out = colour;
-      for (let back = 0; back <= 0.8 && contrast(out, ink) < 4.8; back += 0.04) {
+      for (let back = 0; back <= 0.8 && contrast(out, ink) < 5.2; back += 0.04) {
         out = mix(colour, page, back);
       }
       return out;
@@ -357,7 +357,7 @@ function tintTiers(tint: Rgb): {
     const { card, alt } = stepsFor(page);
     const ink = inkFor(page);
     const worst = [page, card, alt].reduce((a, b) => (contrast(b, ink) < contrast(a, ink) ? b : a));
-    return { ink, worst, card, alt, ok: contrast(worst, ink) >= 4.8 };
+    return { ink, worst, card, alt, ok: contrast(worst, ink) >= 5.2 };
   };
   const finish = (page: Rgb) => {
     const { ink, worst, card, alt } = assess(page);
@@ -376,7 +376,7 @@ function tintTiers(tint: Rgb): {
    * it. Only a true mid-tone — where neither of the app's inks clears the line — is moved, and then
    * in lightness alone.
    */
-  if (contrast(tint, inkFor(tint)) >= 4.8) return finish(tint);
+  if (contrast(tint, inkFor(tint)) >= 5.2) return finish(tint);
   const lighten = darkInkWins(tint);
   const hsl = rgbToHsl(tint);
   for (let step = 1; step <= 24; step += 1) {
@@ -455,8 +455,14 @@ function inkRamp(surface: Rgb, raised = false): {
    */
   const extreme: Rgb = useLight ? [255, 255, 255] : [0, 0, 0];
   const ink = raised ? extreme : soften(base, surface, 10);
-  const muted = soften(base, surface, raised ? 7.5 : 5.4);
-  const faint = soften(base, surface, raised ? 6 : 4.8);
+  /*
+   * **The quiet steps clear 5.8 and 5.2, not 5.4 and 4.8.** The faint step sat at 4.8 on every
+   * derived palette, which is a fifth of a step above the line: legal, and the first thing that
+   * looks washed out on a pale tint. Both steps move up together so the gap between a caption and
+   * the line above it survives — a caption is quieter, not invisible.
+   */
+  const muted = soften(base, surface, raised ? 8 : 5.8);
+  const faint = soften(base, surface, raised ? 6.4 : 5.2);
   return {
     strong: toHex(raised ? extreme : base),
     ink: toHex(ink),
@@ -474,7 +480,7 @@ function inkRamp(surface: Rgb, raised = false): {
  * direction that raises the contrast, so a delay is still coral on every tint — just a coral that
  * can be read.
  */
-function semanticInk(base: Rgb, surface: Rgb, target = 4.6): Rgb {
+function semanticInk(base: Rgb, surface: Rgb, target = 5.2): Rgb {
   if (contrast(base, surface) >= target) return base;
   const lighten = !darkInkWins(surface);
   const hsl = rgbToHsl(base);
@@ -689,7 +695,7 @@ function buttonPaint(colour: Rgb): {
   const inkFor = (surface: Rgb) => (contrast(surface, light) >= contrast(surface, dark) ? light : dark);
   let base = colour;
   let ink = inkFor(base);
-  if (contrast(base, ink) < 4.5) {
+  if (contrast(base, ink) < 5.2) {
     const hsl = rgbToHsl(base);
     /* Move the fill away from the ink it is carrying: dark ink wants a lighter fill. */
     const lift = ink === dark;

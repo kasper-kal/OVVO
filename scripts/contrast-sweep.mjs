@@ -39,7 +39,7 @@ import sharp from 'sharp';
 
 const ORIGIN = process.env.CONTRAST_ORIGIN ?? 'http://127.0.0.1:3000';
 const WIDTHS = (process.env.CONTRAST_WIDTHS ?? '320,390,720,1440').split(',').map(Number).filter(Boolean);
-const THEMES = (process.env.CONTRAST_THEMES ?? 'light,dark,light-hc,dark-hc,tint,tint-split').split(',');
+const THEMES = (process.env.CONTRAST_THEMES ?? 'light,dark,light-hc,dark-hc,tint,tint-split,photo,glass').split(',');
 const ONLY = process.env.CONTRAST_ROUTES ? process.env.CONTRAST_ROUTES.split(',') : null;
 
 /** A search the app really performs, used for the two screens that only exist after one. */
@@ -52,12 +52,26 @@ const SEARCH = Buffer.from(
  * the page colour. `tint` is the periwinkle page with the widgets following it; `tint-split` is the
  * same page holding ivory widgets, which is the combination that once drew an ivory badge on ivory.
  */
+/* A gradient from warm stone to slate: light at one end, dark at the other, like a real photograph. */
+const PHOTO =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efe3d2"/><stop offset="0.45" stop-color="#8d7c68"/><stop offset="1" stop-color="#33414f"/></linearGradient></defs><rect width="900" height="1400" fill="url(#g)"/></svg>',
+  );
+
 const APPEARANCES = {
   light: { theme: 'light', highContrast: false, background: 'cream', backgroundColour: '#FCFBFA', primaryColour: '' },
   dark: { theme: 'dark', highContrast: false, background: 'cream', backgroundColour: '#FCFBFA', primaryColour: '' },
   'light-hc': { theme: 'light', highContrast: true, background: 'cream', backgroundColour: '#FCFBFA', primaryColour: '' },
   'dark-hc': { theme: 'dark', highContrast: true, background: 'cream', backgroundColour: '#FCFBFA', primaryColour: '' },
   tint: { theme: 'light', highContrast: false, background: 'colour', backgroundColour: '#DDE3F7', primaryColour: '' },
+  /*
+   * **A photograph, which is the one ground the style tree cannot reason about.** The page puts a
+   * wash over it, so the ink is mixed against a colour nobody chose; these two appearances are that
+   * case, one with solid cards and one with glass, drawn on a test picture the sweep builds itself.
+   */
+  photo: { theme: 'light', highContrast: false, background: 'photo', backgroundImage: PHOTO, primaryColour: '', cardTreatment: 'solid' },
+  glass: { theme: 'light', highContrast: false, background: 'photo', backgroundImage: PHOTO, primaryColour: '', cardTreatment: 'glass' },
   'tint-split': { theme: 'light', highContrast: false, background: 'colour', backgroundColour: '#DDE3F7', primaryColour: '#FCFBFA' },
 };
 
@@ -333,8 +347,9 @@ for (const row of [...closest].sort((a, b) => a.cr - b.cr).slice(0, 20)) {
   lines.push(`| ${row.theme} | ${row.route} | ${row.width} | ${row.cr}:1 | ${row.need}:1 | ${row.icon ? 'icon' : 'text'} \`${row.text}\` | ${row.ink} | ${row.ground} |`);
 }
 lines.push('');
-writeFileSync('.logs/contrast-sweep.md', lines.join('\n') + '\n');
-writeFileSync('.logs/contrast-sweep.json', JSON.stringify(findings, null, 1) + '\n');
+const REPORT = process.env.CONTRAST_REPORT ?? '.logs/contrast-sweep.md';
+writeFileSync(REPORT, lines.join('\n') + '\n');
+writeFileSync(REPORT.replace(/\.md$/, '.json'), JSON.stringify(findings, null, 1) + '\n');
 
 for (const [theme, group] of Object.entries(byTheme)) {
   console.log(`${theme}: ${group.count} below AA`);
@@ -347,6 +362,6 @@ console.log('\nClosest to the floor:');
 for (const row of [...closest].sort((a, b) => a.cr - b.cr).slice(0, 10)) {
   console.log(`  ${row.cr}:1 need ${row.need} ${row.theme} ${row.route}@${row.width} ${row.icon ? 'icon' : 'text'} "${row.text}" ${row.ink} on ${row.ground}`);
 }
-console.log(`\n${checked.pages} renders, ${checked.nodes} nodes measured · report: .logs/contrast-sweep.md`);
+console.log(`\n${checked.pages} renders, ${checked.nodes} nodes measured · report: ${REPORT}`);
 if (findings.length) process.exit(1);
 console.log('OK — every word and icon clears WCAG AA in every appearance, on every screen, at every width.');

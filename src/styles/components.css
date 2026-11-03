@@ -239,8 +239,8 @@
 :root[data-surface='tint'] .panel--sage {
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -394,8 +394,8 @@
    */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -405,8 +405,8 @@
   /* Same rule as the coral panel: a pale fill needs dark ink in both appearances. */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -1992,8 +1992,8 @@
    */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
@@ -2003,8 +2003,8 @@
   /* Same rule as the coral panel: a pale fill needs dark ink in both appearances. */
   --ink-strong: #18181b;
   --ink: #3f3f45;
-  --ink-muted: #5f5f66;
-  --ink-faint: #66666d;
+  --ink-muted: #55555c;
+  --ink-faint: #5b5b62;
   color: var(--ink);
 }
 
