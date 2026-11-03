@@ -59,5 +59,11 @@ const result = await page.evaluate(() => {
   };
 });
 console.log(JSON.stringify(result));
-await page.locator('.timeline').screenshot({ path: 'artifacts/rail-walk.png' });
+const before = await page.evaluate(() => {
+  const li = document.querySelector('.timeline__rail--dashed');
+  const s = getComputedStyle(li, '::before');
+  return { top: s.top, bottom: s.bottom, height: s.height, bg: s.backgroundImage.slice(0, 80), pos: s.backgroundPosition, rowH: li.getBoundingClientRect().height };
+});
+console.log('DASHED::BEFORE', JSON.stringify(before));
+await page.locator('.timeline').screenshot({ path: process.env.OUT || 'artifacts/rail-walk.png' });
 await browser.close();

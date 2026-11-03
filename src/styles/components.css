@@ -4201,7 +4201,8 @@
 }
 
 .timeline > :first-child.timeline__rail--dashed::before {
-  background-position: 0 0;
+  /* Two layers, so both are named: the joint stays at the segment's foot, the pattern starts at 0. */
+  background-position: left bottom, 0 0;
 }
 
 /*
@@ -4228,28 +4229,38 @@
    * follows a line from one mark to the next.
    */
   /*
-   * **Past the gap, under the next ring.** A repeating pattern cannot promise that its last pixels
-   * are drawn, so a walk's line used to end in a 6px break just above the station that follows it.
-   * The segment runs 8px further, where the ring is painted over it and the break cannot be seen.
+   * **The line joins the next mark with a short solid run.** A repeating pattern cannot promise
+   * that a dash lands on its last pixel, so a walk's line kept ending in a break a few pixels above
+   * the station that follows it. The segment runs 12px further, and its last 12px are painted solid
+   * instead of dashed: the solid part reaches the next ring and disappears beneath it, so the eye
+   * sees a dash leaving the gap rather than a dash stopping in mid-air.
    */
-  bottom: calc((var(--timeline-gap) + 8px) * -1);
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--border-hairline) 0 9px,
-    transparent 9px 15px
-  );
-  background-position: 0 11px;
+  bottom: calc((var(--timeline-gap) + 12px) * -1);
+  /*
+   * **The breaks have to show the page, not the line's own colour.** The rail's base rule paints the
+   * whole segment in this grey, so a dashed pattern laid on top of it painted grey on grey: the walk
+   * read as one solid line. Clearing the colour lets the gaps be gaps.
+   */
+  background-color: transparent;
+  background-image:
+    linear-gradient(to bottom, var(--border-hairline), var(--border-hairline)),
+    repeating-linear-gradient(to bottom, var(--border-hairline) 0 9px, transparent 9px 15px);
+  background-size: 100% 12px, auto;
+  background-position: left bottom, 0 11px;
+  background-repeat: no-repeat, repeat;
 }
 
 /* The same rhythm on the short connector into the arrival square, phased so a dash ends on the
    square's top edge (11px in) rather than a gap doing so: a 5px offset leaves it covering 5 to 11. */
 .timeline--dashed-end .timeline__end::before {
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--border-hairline) 0 9px,
-    transparent 9px 15px
-  );
-  background-position: 0 5px;
+  /* The same solid joint at the square as at a ring, and see-through gaps between the dashes. */
+  background-color: transparent;
+  background-image:
+    linear-gradient(to bottom, var(--border-hairline), var(--border-hairline)),
+    repeating-linear-gradient(to bottom, var(--border-hairline) 0 9px, transparent 9px 15px);
+  background-size: 100% 12px, auto;
+  background-position: left bottom, 0 5px;
+  background-repeat: no-repeat, repeat;
 }
 
 .timeline__node {
@@ -4346,8 +4357,8 @@
      taller connector so a dash still finishes on that edge (17 to 23 in the new box) rather than
      a gap doing so. */
   top: calc(var(--timeline-gap) * -1);
-  /* Six pixels into the square, for the same reason: the last break in the pattern is covered. */
-  height: calc(11px + var(--timeline-gap));
+  /* Far enough into the square that the solid joint is hidden under it. */
+  height: calc(15px + var(--timeline-gap));
 }
 
 /* The arrival square is the same size as the planner's, because it is the same fact: it was 16px
