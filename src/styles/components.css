@@ -11935,3 +11935,41 @@
 .leg-stops__chevron {
   color: var(--ink-faint);
 }
+
+/* -------------------------------------------------------------- Timetable gutter
+ *
+ * **The times get a column of their own.**
+ *
+ * Every row printed its time inside the row, beside the badge and the chips, so the eye had to
+ * hunt for the one fact a journey is made of. 9292 gives the times a gutter down the left edge and
+ * sets them in the same weight as the station names, and the page becomes readable at a glance
+ * because the column answers "when" before you read a single word of the rest. The rail and its
+ * marks stay where they were; this adds 46px of margin to the left of the whole rail.
+ */
+.timeline {
+  padding-left: 46px;
+}
+
+.timeline__time {
+  position: absolute;
+  left: -46px;
+  top: 6px;
+  width: 40px;
+  text-align: right;
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  color: var(--ink-strong);
+  /* Times line up as a column, so 10:05 and 9:58 sit on the same digits. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* The dot a change leaves on the rail: smaller than a stop, and never a plate. */
+.timeline__node--transfer {
+  width: 6px;
+  height: 6px;
+  left: calc(var(--rail-node) / 2 - 3px);
+  top: 12px;
+  border: 0;
+  background: var(--ink-faint);
+}

@@ -10,17 +10,16 @@ import { StopLink } from '../stops/StopLink';
 import { useT } from '../../lib/useT';
 import type { Journey, Leg } from '../../data/types';
 
-function PlatformTag({ platform, label }: { platform?: string; label: string }) {
-  if (!platform) return null;
-  return (
-    <Pill>
-      {/* A platform, not the board: `board` is the departure screen's monitor and a control
-          that opens it. */}
-      <Icon name="platform" size={12} />
-      {label} {platform}
-    </Pill>
-  );
-}
+/*
+ * **The rail is a timetable, not a stack of cards.**
+ *
+ * Every leg used to carry a row of pills — the platform, the arrival platform, the direction and a
+ * bicycle — so a three-change journey printed twenty-one chips down one column and read as a form.
+ * 9292 prints the same journey as a timetable: the time in a gutter on the left, the station in
+ * bold on the line, the service in one coloured badge, and the rest as small grey sentences. The
+ * times answer "when", the rail answers "which way", and the grey line answers "what do I need to
+ * know at this platform". Nothing is boxed twice.
+ */
 
 function WalkLegRow({ leg }: { leg: Leg }) {
   const format = useFormat();
@@ -34,30 +33,22 @@ function WalkLegRow({ leg }: { leg: Leg }) {
   const metres = leg.distanceMetres ?? 0;
   return (
     <li className="timeline__rail timeline__rail--dashed">
+      <span className="timeline__time">{format.time(leg.departure)}</span>
       <span className="timeline__node timeline__node--muted" />
-      <div className="leg-row">
-        <span className="leg-row__marker">
-          <ModeIcon mode={leg.mode} size={16} />
+      <div className="stack-1">
+        {/* One grey sentence, the shape 9292 gives a walk: how long, how far, from where to where. */}
+        <span className="t-strong t-sm">
+          <ModeIcon mode={leg.mode} size={13} /> {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')}{' '}
+          {format.duration(minutes)}
+          {metres ? ` · ${metres} m` : ''}
         </span>
-        <div className="stack-1 grow">
-          <div className="row-wrap">
-            <span className="t-strong t-sm">
-              {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} {format.duration(minutes)}
-              {metres ? ` · ${metres} m` : ''}
-            </span>
-            <Pill tone="outline">{format.time(leg.departure)} – {format.time(leg.arrival)}</Pill>
-          </div>
-          {/*
-            A walk's two ends are stations too, so they are links like every other named stop on
-            this page. An end that is an address keeps its words and gets no link: there is no page
-            for a street, and a walk from a doorstep is named by the address, not by a station.
-          */}
-          <p className="t-sm t-muted">
-            {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />} <Icon name="arrowRight" size={13} />{' '}
-            {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
-          </p>
-          {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
-        </div>
+        <p className="t-sm t-muted">
+          {/* An end that is an address keeps its words and gets no link: there is no page for a
+              street, and a walk from a doorstep is named by the address, not by a station. */}
+          {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />} <Icon name="arrowRight" size={12} />{' '}
+          {leg.toLabel ?? <StopLink stopId={leg.toStopId} />}
+        </p>
+        {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
       </div>
     </li>
   );
@@ -71,22 +62,21 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
    * **The stops on this service open in a sheet of their own.** They used to unfold inside the
    * leg, which pushed every service below them down the rail and turned the journey into an
    * accordion; 9292 keeps the journey the same height and opens the stops over it, so a traveller
-   * can see where they are between two stations without losing the line they are reading. The
-   * disclosure also meant the list was invisible until someone guessed it was there.
+   * can see where they are between two stations without losing the line they are reading.
    */
   const [stopsOpen, setStopsOpen] = useState(false);
   const stops = leg.intermediateStops ?? [];
   const serviceName = leg.lineName ?? line?.name ?? t('Service');
+  const platforms = [
+    leg.platform ? `${t('Platform')} ${leg.platform}` : null,
+    !isLastRide && leg.arrivalPlatform ? `${t('Arrival platform')} ${leg.arrivalPlatform}` : null,
+  ].filter(Boolean);
   return (
     <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
+      {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
+      <span className="timeline__time">{format.time(leg.departure)}</span>
       <span className="timeline__node timeline__node--accent" />
       <div className="stack-2">
-        {/*
-          Where this service is boarded — the same words, weight and rail the arrival end uses.
-          The "From Haarlem Station · HLM / To Hoofddorp Station · HDD" pair said the same thing
-          twice, put both ends of the journey inside one service's block, and left the departure
-          unnamed at the top of the journey where it belongs.
-        */}
         <span className="timeline__station">
           {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
         </span>
@@ -94,55 +84,30 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
         <div className="row-wrap">
           <span className={`mode-badge mode-badge--${leg.mode}`}>
             <ModeIcon mode={leg.mode} size={13} />
-            {leg.lineName ?? line?.name ?? t('Service')}
-          </span>
-          <span className="leg-row__time">
-            {format.time(leg.departure)} <Icon name="arrowRight" size={13} /> {format.time(leg.arrival)}
+            {serviceName}
           </span>
           {/*
-            No duration pill beside the times. "05:00 → 05:26" already says how long the ride is,
-            and the same length was printed a third time in the summary card; 9292's own journey
-            screen prints the times and nothing else here.
+            The delay is printed on the service that is late, in the colour the app uses for late
+            things — not in a pill, and not again on the card's heading.
           */}
-          {leg.delayMinutes ? (
-            <Pill tone="coral" dot dotTone="coral">
-              {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
-            </Pill>
-          ) : null}
-          {/*
-            One status per leg, and a cancelled leg is never also "On time": the same reading
-            the journey summary above the rail makes (9.4). "On time" itself is not printed per
-            leg — the card's own head already says it once, and a line of green beside every
-            service is the noise that made the screen feel busy.
-          */}
-          {leg.cancelled ? <Pill tone="coral">{t('Cancelled')}</Pill> : null}
+          {leg.delayMinutes ? <span className="delay t-sm">+{leg.delayMinutes} min</span> : null}
+          {leg.cancelled ? <span className="delay t-sm">{t('Cancelled')}</span> : null}
         </div>
 
+        {/* The headsign is the direction this service is pointed in, in its own grey line. */}
+        {leg.headsign ? (
+          <p className="t-sm t-muted">
+            <Icon name="arrowRight" size={12} /> {t('Direction')}{' '}
+            <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+          </p>
+        ) : null}
+
         {/*
-          The departure platform is this service's. The arrival platform is the fact of the place
-          this leg ends at: on the last ride it is printed beside the arrival name below, and at an
-          interchange it stays here, because the stop a traveller changes at is where they need it.
+          Where you stand and where you get off, in words: "Platform 1 · Arrival platform 2". A
+          traveller reads this at the platform, so it stays on the service that owns it — the
+          arrival platform of the last service is printed beside the arrival station instead.
         */}
-        <div className="row-wrap">
-          <PlatformTag platform={leg.platform} label={t('Platform')} />
-          {isLastRide ? null : <PlatformTag platform={leg.arrivalPlatform} label={t('Arrival platform')} />}
-          {/* The operator is on the journey's summary and on the stop's own board; a chip per leg
-              here only repeated the line's name in a third place. */}
-          {/* The direction of travel is the arrow the leg's own times wear; the headsign beside it
-              is the destination it points at. The bike pill next door already has its picture. */}
-          {leg.headsign ? (
-            <Pill tone="outline">
-              <Icon name="arrowRight" size={12} />
-              {/* The terminus the service is headed for is a station like any other: the words
-                  keep their pill, and the name inside it is the way to its page. */}
-              {t('Direction')} <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
-            </Pill>
-          ) : null}
-          {/*
-            The bicycle is a fact about the whole journey, and the summary card says it once. Said
-            again on every leg it was three more pills down the rail for one answer.
-          */}
-        </div>
+        {platforms.length ? <p className="t-sm t-muted">{platforms.join(' · ')}</p> : null}
 
         <button
           type="button"
@@ -161,9 +126,8 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
 
         {/*
           The sheet is the leg's own line, stop by stop: where you get on, every stop it calls at
-          with its time and platform, and where you get off. The two ends of the *ride* carry the
-          two words that answer "how far am I", so a glance at the list says which end of it you
-          are travelling.
+          with its time and platform, and where you get off. The two ends of the ride carry the two
+          words that answer "how far am I", so a glance at the list says which end you are on.
         */}
         <Dialog
           open={stopsOpen}
@@ -245,17 +209,22 @@ export function LegList({ journey }: { journey: Journey }) {
     if (previous) {
       const transfer = transferBetween(previous, leg);
       if (previous.mode !== 'walk' && previous.mode !== 'bike' && leg.mode !== 'walk' && leg.mode !== 'bike') {
+        /*
+         * **A change is a small grey line on the rail, not a butter pill across it.** The rail is
+         * already drawn through the wait — the leg above stops at the change and the leg below
+         * starts there — so the only thing left to say is how long the wait is, and the words for
+         * it are the smallest ones on the screen.
+         */
         rows.push(
-          <li key={`transfer-${leg.id}`} className="row-wrap" style={{ margin: '0 0 var(--s-2) var(--s-6)' }}>
-            <Pill tone="butter">
-              <Icon name="swap" size={13} />
+          <li key={`transfer-${leg.id}`} className="timeline__rail timeline__transfer">
+            <span className="timeline__node timeline__node--transfer" />
+            <span className="t-sm t-muted">
               {transfer.sameStop
-                ? t('Transfer · {duration} at {stop}', {
+                ? t('Change here · {duration} wait', {
                     duration: format.duration(Math.max(1, transfer.wait)),
-                    stop: stopLabel(previous.toStopId),
                   })
-                : t('Transfer via walk to {stop}', { stop: stopLabel(leg.fromStopId) })}
-            </Pill>
+                : t('Change here · a short walk to {stop}', { stop: stopLabel(leg.fromStopId) })}
+            </span>
           </li>,
         );
       }
@@ -271,41 +240,37 @@ export function LegList({ journey }: { journey: Journey }) {
 
   /*
    * The line had no end: it stopped dead under the last leg, so a journey read as a list of
-   * events rather than as somewhere to somewhere ("no clear end, there should be an arrival
-   * thing, similar to the selected thing with a square instead of a circle", 2026-10-17t20-35-38).
-   * The terminus is the traveller's own rule — a circle for a departure, a **square** for an
-   * arrival — with the arrival stop named beside it and its time, so the rail finishes at a place
-   * and not at a hyphen. Same 16px box as every other node, so the rail's width is unchanged.
+   * events rather than as somewhere to somewhere. The terminus is the traveller's own rule — a
+   * circle for a departure, a **square** for an arrival — with the arrival stop named beside it and
+   * its time in the gutter, so the rail finishes at a place and not at a hyphen.
    */
   const lastLeg = journey.legs[journey.legs.length - 1];
   const arrivalId = lastLeg.toStopId;
   /*
    * The connector into the arrival square is the last leg's mode, the same as the row above it,
    * so a journey with no service in it is one dashed line from the departure circle to the square.
-   * It was solid whatever came above it, which left a walking-only plan dashed and then finished
-   * with a solid stub under the square — a line that broke and resumed for no reason.
    */
   const endsOnFoot = lastLeg.mode === 'walk' || lastLeg.mode === 'bike';
   return (
     <ol className={`timeline${endsOnFoot ? ' timeline--dashed-end' : ''}`}>
       {rows}
       <li className="timeline__end">
+        <span className="timeline__time">{format.time(journey.arrival)}</span>
         <span className="timeline__node timeline__node--end" />
         <span className="stack-1 grow">
-          {/* The platform a traveller steps onto is the arrival end's own fact, so it sits beside
-              the arrival name — not in the boarding service's chip row, 400px earlier. Only when the
-              journey ends at the service itself: after a final walk, the platform belongs to the
-              stop the walk left from, not to the door it reaches. */}
           <span className="row-wrap">
             <span className="timeline__station">
               {lastLeg.toLabel ?? <StopLink stopId={arrivalId} />}
             </span>
-            {lastRide === lastLeg ? (
-              <PlatformTag platform={lastLeg.arrivalPlatform} label={t('Arrival platform')} />
+            {/*
+              The platform a traveller steps onto is the arrival end's own fact, so it sits beside
+              the arrival name — as a phrase in the same grey line, not a chip.
+            */}
+            {lastRide === lastLeg && lastLeg.arrivalPlatform ? (
+              <span className="t-sm t-muted">
+                {t('Arrival platform')} {lastLeg.arrivalPlatform}
+              </span>
             ) : null}
-          </span>
-          <span className="t-sm t-muted">
-            {t('Arrive {time}', { time: format.time(journey.arrival) })}
           </span>
         </span>
       </li>
