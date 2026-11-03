@@ -12624,3 +12624,159 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* ------------------------------------------- 9292 parity, third batch: the rail's own facts */
+/*
+ * **Crowding, per service.** Two little people when it is quiet, three when it is full, and a
+ * question mark where nobody has counted — drawn under the service's name, as 9292 draws it. The
+ * glyph is the app's own `users` mark rather than a new picture, twice or three times over, with
+ * the empty ones drawn at a lighter stroke so "two of three" can be read at a glance.
+ */
+.leg-crowding {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 1px;
+  color: var(--coral-ink);
+}
+
+.leg-crowding--quiet .leg-crowding__people {
+  color: var(--ink-muted);
+}
+
+.leg-crowding__people {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.leg-crowding__unknown {
+  color: var(--coral-ink);
+  font-size: var(--fs-sm, 13px);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+/* A platform that is not settled yet, in the warning colour: watch the board, not one berth. */
+.timeline__platform--choice {
+  color: var(--coral-ink);
+  font-weight: var(--fw-bold);
+}
+
+/* An alarm that has come due, under the journey's controls. */
+.journey-alarm-line {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-compact, 10px);
+  background: var(--tint-coral);
+  color: var(--tint-coral-ink-strong);
+  font-size: var(--fs-sm, 13px);
+  font-weight: var(--fw-semibold, 600);
+}
+
+/* ---------------------------------------------------------------------- share rows */
+/* Two rows, each a whole target, exactly the two things 9292 offers. */
+.share-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+.share-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--s-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-compact, 12px);
+  background: var(--l1-bg, transparent);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.share-row:hover {
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+.share-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--tint-coral);
+  color: var(--tint-coral-ink-strong);
+}
+
+.share-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.share-row__chevron {
+  margin-left: auto;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------------ the alarm sheet */
+.alarm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+.alarm__value {
+  font-size: var(--fs-lg, 18px);
+  color: var(--ink);
+}
+
+.alarm__value strong {
+  font-size: var(--fs-xl, 28px);
+  font-variant-numeric: tabular-nums;
+}
+
+.alarm__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.alarm__slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--ink-strong);
+}
+
+.alarm__leave {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  font-weight: var(--fw-semibold, 600);
+}
+
+/*
+ * **Only an unsettled platform is red.** Every platform was already printed in the coral ink, so
+ * "Platform 6 or 7" in red said nothing a settled one did not: the two could not be told apart at a
+ * glance, which is the whole point of 9292's warning. A settled platform is ordinary ink; the pair
+ * that is not decided yet is the one that carries the colour (see `.timeline__platform--choice`).
+ */
+.timeline__platform {
+  color: var(--ink);
+}
+
+/* The pair that is not decided yet keeps the warning ink; the rule above must not flatten it. */
+.timeline__platform.timeline__platform--choice {
+  color: var(--coral-ink);
+}

@@ -1456,6 +1456,38 @@ const NL: Record<string, string> = {
   'The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.':
     'Het hele beeld: de pagina, de kaarten, de inkt, de letters en de foto achter de pagina.',
   'Type a station, stop or landmark': 'Typ een station, halte of herkenningspunt',
+  /* Crowding per service, and a platform that is not settled yet (items 16 and 10). */
+  'Fairly busy': 'Redelijk druk',
+  'Crowding unknown': 'Drukte onbekend',
+  'Platform {a} or {b}': 'Spoor {a} of {b}',
+  /* The share sheet, exactly two choices (item 2). */
+  Share: 'Delen',
+  'Share this journey': 'Deel deze reis',
+  'Share the journey': 'Deel de reis',
+  'Send the advice to someone, or copy its link.': 'Stuur het advies door, of kopieer de link.',
+  'Save it to your calendar': 'Zet het in je agenda',
+  'A calendar entry with both ends and both times.': 'Een agenda-item met beide uiteinden en beide tijden.',
+  'Link copied': 'Link gekopieerd',
+  'This journey could not be shared': 'Deze reis kon niet worden gedeeld',
+  'Saved for your calendar': 'Opgeslagen voor je agenda',
+  'Journey planned with OVVO. {count} changes, {span}.':
+    'Reis gepland met OVVO. {count} overstappen, {span}.',
+  /* The departure alarm (item 1). */
+  Alarm: 'Alarm',
+  'Alarm {minutes} min': 'Alarm {minutes} min',
+  'Set a departure alarm': 'Stel een vertrekalarm in',
+  'Departure alarm': 'Vertrekalarm',
+  'Warn me before I have to leave.': 'Waarschuw me voordat ik weg moet.',
+  'minutes before leaving': 'minuten voordat je weg moet',
+  'One minute less': 'Eén minuut minder',
+  'One minute more': 'Eén minuut meer',
+  'Warn me {minutes} minutes before leaving': 'Waarschuw me {minutes} minuten voordat ik weg moet',
+  'Leave at {time}': 'Vertrek om {time}',
+  '{count} min walk included': '{count} min lopen inbegrepen',
+  'The alarm rings while this page is open. For a reminder with the app closed, add the journey to your calendar.':
+    'Het alarm gaat af zolang deze pagina open is. Wil je een herinnering als de app dicht is, zet de reis dan in je agenda.',
+  'Time to leave for your journey': 'Tijd om te vertrekken voor je reis',
+  'Time to leave for your journey, {time}': 'Tijd om te vertrekken voor je reis, {time}',
 };
 
 

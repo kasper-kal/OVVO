@@ -350,6 +350,52 @@ function platformAt(stopId: string, mode: TravelMode, seedKey: string, offset = 
   return pool[Math.floor(rng() * pool.length) % pool.length];
 }
 
+/*
+ * **One service, its own crowding.**
+ *
+ * The journey's average is the mean of twelve samples of the whole trip, so a journey of two trains
+ * printed one number and each train printed none: the only crowding on the page was a sentence at
+ * the foot. A reading per service is what 9292 prints under each one, and it is what a traveller
+ * acts on — this train is packed, the next one is not. The seed is the service, the boarding stop
+ * and the quarter hour, so the same service at the same time reads the same on every screen, and a
+ * later departure of the same line reads differently.
+ *
+ * `unknown` is not a fallback: it is the honest answer for a service nobody has counted, and it is
+ * drawn as 9292 draws it, a question mark rather than three grey people pretending to know.
+ */
+function occupancyAt(lineId: string, stopId: string, departMinute: number): Leg['occupancy'] {
+  const hour = Math.floor(departMinute / 60) % 24;
+  const peak = (hour >= 7 && hour < 9) || (hour >= 16 && hour < 19);
+  const rng = seededRandom('crowd', lineId, stopId, Math.floor(departMinute / 15));
+  const roll = rng();
+  if (roll < 0.14) return 'unknown';
+  const level = (peak ? 0.22 : 0) + ((roll - 0.14) / 0.86) * 0.86;
+  return level < 0.38 ? 'quiet' : level < 0.66 ? 'moderate' : 'busy';
+}
+
+/*
+ * **The platform, when the station has not settled it.**
+ *
+ * A station with more than one berth for this mode can put a service on either of two of them, and
+ * 9292 says so in red rather than picking one and being wrong. The settled platform is still
+ * returned, because everything that draws a platform needs one; this is the second berth beside it.
+ */
+function platformAltAt(
+  stopId: string,
+  mode: TravelMode,
+  seedKey: string,
+  offset: number,
+  chosen: string,
+): string | undefined {
+  const stop = requireStop(stopId);
+  const others = stop.platforms.filter((platform) => platform !== chosen);
+  if (!others.length) return undefined;
+  const rng = seededRandom('platform-alt', stopId, mode, seedKey, offset);
+  const roll = rng();
+  if (roll > 0.16) return undefined;
+  return others[Math.floor(rng() * others.length) % others.length];
+}
+
 function distanceMetres(fromStopId: string, toStopId: string): number {
   const a = requireStop(fromStopId);
   const b = requireStop(toStopId);
@@ -412,11 +458,17 @@ function buildLeg(step: RawStep, query: SearchQuery, index: number): Leg {
   const fromStop = requireStop(step.fromStopId);
   const toStop = requireStop(step.toStopId);
 
+  const platform = platformAt(step.fromStopId, line.mode, line.id, boardIdx);
+  const arrivalPlatform = platformAt(step.toStopId, line.mode, line.id, alightIdx + 100);
+
   return {
     ...base,
     arrival: step.arriveMinute + delayMinutes,
-    platform: platformAt(step.fromStopId, line.mode, line.id, boardIdx),
-    arrivalPlatform: platformAt(step.toStopId, line.mode, line.id, alightIdx + 100),
+    platform,
+    platformAlt: platformAltAt(step.fromStopId, line.mode, line.id, boardIdx, platform),
+    arrivalPlatform,
+    arrivalPlatformAlt: platformAltAt(step.toStopId, line.mode, line.id, alightIdx + 100, arrivalPlatform),
+    occupancy: occupancyAt(line.id, step.fromStopId, step.departMinute),
     lineId: line.id,
     lineNumber: line.number,
     lineName: line.name,

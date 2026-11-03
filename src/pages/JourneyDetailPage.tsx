@@ -4,6 +4,8 @@ import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
 import { JourneyThumbnail } from '../components/journey/JourneyThumbnail';
+import { ShareSheet } from '../components/journey/ShareSheet';
+import { DepartureAlarm } from '../components/journey/DepartureAlarm';
 import { StopLink } from '../components/stops/StopLink';
 import { findJourneyById } from '../data/journeyEngine';
 import { stopLabel } from '../data/stops';
@@ -304,6 +306,9 @@ export function JourneyDetailPage() {
           <Icon name={saved ? 'heartFilled' : 'heart'} size={16} />
           {saved ? t('Saved') : t('Save')}
         </button>
+        {/* The alarm and the share sheet, beside the journey's other controls (items 1 and 2). */}
+        <DepartureAlarm journey={journey} />
+        <ShareSheet journey={journey} date={search?.query.date ?? ''} />
       </div>
 
       {/*

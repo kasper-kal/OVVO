@@ -38,6 +38,72 @@ import type { Journey, Leg } from '../../data/types';
    declares). The row's own fit adds the leftover that makes its stretch a whole number of cycles. */
 const CYCLE = 12;
 
+/*
+ * **Two or three little people, or a question mark.**
+ *
+ * 9292 draws the crowding of each service under its name: two people when it is quiet, three when
+ * it is full, and a question mark when nobody has counted. The app said it once, at the foot of the
+ * page, about the whole journey — so a packed second train and an empty first one read the same.
+ * The picture is drawn from the service's own reading (`Leg.occupancy`) and the words are kept for
+ * a screen reader, which cannot count silhouettes.
+ */
+const CROWDING_WORDS = {
+  quiet: 'Quiet',
+  moderate: 'Fairly busy',
+  busy: 'Busy',
+  unknown: 'Crowding unknown',
+} as const;
+
+function CrowdingMark({ level }: { level: Leg['occupancy'] }) {
+  const t = useT();
+  if (!level) return null;
+  if (level === 'unknown') {
+    return (
+      <span className="leg-crowding leg-crowding--unknown">
+        <span className="leg-crowding__unknown" aria-hidden="true">?</span>
+        <span className="sr-only">{t(CROWDING_WORDS.unknown)}</span>
+      </span>
+    );
+  }
+  const people = level === 'busy' ? 3 : 2;
+  const filled = level === 'quiet' ? 0 : level === 'moderate' ? 1 : people;
+  return (
+    <span className={`leg-crowding leg-crowding--${level}`}>
+      <span className="sr-only">{t(CROWDING_WORDS[level])}</span>
+      <span className="leg-crowding__people" aria-hidden="true">
+        {Array.from({ length: people }, (_, index) => (
+          <Icon key={index} name="users" size={13} strokeWidth={index < filled ? 2.4 : 1.3} />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/*
+ * **One platform, or two in the warning colour.**
+ *
+ * A station that has not settled which berth a service leaves from says so: 9292 prints
+ * "Platform 5 or 6" in red, which is a different instruction from "Platform 5" — watch the board
+ * rather than walk to one. The words are built here, not in the engine, so the sentence follows the
+ * page's language.
+ */
+function Platform({ value, alt }: { value?: string; alt?: string }) {
+  const t = useT();
+  if (!value) return null;
+  if (alt) {
+    return (
+      <span className="timeline__platform timeline__platform--choice">
+        {t('Platform {a} or {b}', { a: value, b: alt })}
+      </span>
+    );
+  }
+  return (
+    <span className="timeline__platform">
+      {t('Platform')} {value}
+    </span>
+  );
+}
+
 function useFittedDashes() {
   const ref = useRef<HTMLLIElement>(null);
   useLayoutEffect(() => {
@@ -175,11 +241,7 @@ function RideLegRow({
           <span className="timeline__station">
             {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
           </span>
-          {leg.platform ? (
-            <span className="timeline__platform">
-              {t('Platform')} {leg.platform}
-            </span>
-          ) : null}
+          <Platform value={leg.platform} alt={leg.platformAlt} />
         </span>
 
         <div className="row-wrap">
@@ -209,6 +271,9 @@ function RideLegRow({
           {leg.delayMinutes ? <span className="delay t-sm">+{leg.delayMinutes} min</span> : null}
           {leg.cancelled ? <span className="delay t-sm">{t('Cancelled')}</span> : null}
         </div>
+
+        {/* How full this service is expected to be, under its own name. */}
+        <CrowdingMark level={leg.occupancy} />
 
         {/* The headsign is the direction this service is pointed in, in its own grey line. */}
         {leg.headsign ? (
@@ -366,10 +431,8 @@ export function LegList({ journey }: { journey: Journey }) {
               The platform a traveller steps onto is the arrival end's own fact, so it sits beside
               the arrival name — as a phrase in the same grey line, not a chip.
             */}
-            {lastRide === lastLeg && lastLeg.arrivalPlatform ? (
-              <span className="timeline__platform">
-                {t('Platform')} {lastLeg.arrivalPlatform}
-              </span>
+            {lastRide === lastLeg ? (
+              <Platform value={lastLeg.arrivalPlatform} alt={lastLeg.arrivalPlatformAlt} />
             ) : null}
           </span>
         </span>

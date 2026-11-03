@@ -102,6 +102,25 @@ export interface Leg {
   arrival: number;
   platform?: string;
   arrivalPlatform?: string;
+  /**
+   * A second platform, when the first one is not settled yet.
+   *
+   * 9292 prints "Platform 5 or 6" in its warning colour at a station that has not decided, which
+   * is a different fact from "Platform 5": one is the berth you walk to, the other is two berths
+   * and a board to watch. Kept beside the settled one rather than replacing it, so every reader
+   * that only knows `platform` still works.
+   */
+  platformAlt?: string;
+  arrivalPlatformAlt?: string;
+  /**
+   * How full this one service is expected to be, and `unknown` where nobody knows.
+   *
+   * The journey carries an average (`Journey.occupancy`), which said the same thing about every
+   * service in it — one line at the foot of the page about a trip made of two trains. 9292 puts
+   * the reading on each service, so a quiet first train and a packed second one can be read before
+   * boarding either. `unknown` is the "?" it prints rather than a guess.
+   */
+  occupancy?: 'quiet' | 'moderate' | 'busy' | 'unknown';
   lineId?: string;
   lineNumber?: string;
   lineName?: string;
