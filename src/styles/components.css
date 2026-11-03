@@ -12444,3 +12444,171 @@
 .journey-page .timeline__station .stop-link {
   text-decoration: none;
 }
+
+/* ======================================================== 9292 parity, second batch
+ *
+ * Items 7, 9, 15, 17, 19 and 4 of PLAN-9292-PARITY.md. They sit at the end of the file so the rules
+ * they change are read in one place: the price's chip, the platform's edge, the line badge, the
+ * row for a change, the smaller stop mark, and the map thumbnail beside the title.
+ */
+
+/* 7. **The price in its pale chip.** 9292 puts the amount in a rounded block of its own, so the one
+ * number that costs money is a thing on the line rather than a bolder word. The tint is mixed from
+ * the page's own ink, so it is a shade off the page in both appearances instead of a bright plate
+ * in dark. */
+.journey-meta__price {
+  padding: 1px 9px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--ink-strong) 6%, transparent);
+  color: var(--ink-strong);
+  font-weight: var(--fw-bold);
+}
+
+/* 9. **The platform at the far edge of its row.** The name takes the space it needs and the platform
+ * sits at the end of the line, the way a timetable prints it. The name is allowed to be narrower
+ * than its words so a long station name wraps rather than pushing the platform off the page. */
+.timeline__rail .row-wrap {
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.timeline__rail .row-wrap > .timeline__station {
+  min-width: 0;
+}
+
+.timeline__platform {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* 15. **The line number in a badge of its own.** One colour per mode, and a night service in its
+ * own purple, mixed from the ink so the badge keeps its tint in both appearances. */
+.leg-line-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 21px;
+  margin: 0 3px 0 5px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--rail-ride) 24%, transparent);
+  color: var(--ink-strong);
+  font-size: var(--fs-xs, 12px);
+  font-weight: var(--fw-bold);
+  line-height: 18px;
+}
+
+.leg-line-badge--bus {
+  background: color-mix(in srgb, #e4659a 26%, transparent);
+}
+
+.leg-line-badge--tram {
+  background: color-mix(in srgb, #e0a03a 26%, transparent);
+}
+
+.leg-line-badge--metro {
+  background: color-mix(in srgb, #4a9bd6 26%, transparent);
+}
+
+.leg-line-badge--ferry {
+  background: color-mix(in srgb, #3fa98b 26%, transparent);
+}
+
+.leg-line-badge--night {
+  background: color-mix(in srgb, #7a5bb5 28%, transparent);
+}
+
+/* 17. **The row for a change.** Tight against the ride above and below it, marked with a small dot
+ * of the ride's own blue so the line reads as unbroken through the wait. */
+.timeline__rail--change {
+  margin-block: -4px;
+}
+
+.timeline__node--change {
+  width: 8px;
+  height: 8px;
+  left: calc(var(--rail-node) / 2 - 4px);
+  top: 4px;
+  border-radius: var(--r-circle);
+  background: var(--rail-ride);
+}
+
+/* 19. **A stop is a bead, a station is a mark.** Smaller and thinner than it was, so an opened
+ * service reads as a service with stops in it rather than as twenty stations on a line. */
+.timeline__node--stop {
+  width: 8px;
+  height: 8px;
+  left: calc(var(--rail-node) / 2 - 4px);
+  border-width: 1px;
+}
+
+/* 4. **The map thumbnail beside the title.** The title keeps the width it needs, and the thumbnail
+ * is pinned to the head's trailing edge, level with its first line. */
+.journey-page .page-head .row-wrap {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.journey-page .page-head__title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.journey-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--ink-strong) 12%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink-strong) 4%, transparent);
+  overflow: hidden;
+}
+
+.journey-thumb svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-thumb__line {
+  fill: none;
+  stroke: var(--rail-ride);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.journey-thumb__start {
+  fill: none;
+  stroke: var(--ink-strong);
+  stroke-width: 4;
+}
+
+.journey-thumb__end {
+  fill: var(--ink-strong);
+}
+
+.journey-thumb__expand {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--l0-bg, white) 80%, transparent);
+  color: var(--ink-strong);
+}
+
+.journey-thumb__expand svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

@@ -128,11 +128,33 @@ function RideLegRow({
    * prefixed when the carrier is a real one and the name does not already say it, so a saved
    * journey with "NS Intercity 500" written out does not read "NS NS …".
    */
+  /*
+   * **The number leaves the name and becomes a badge of its own.** 9292 prints "Connexxion Bus" and
+   * then the line number in a coloured badge, so the service and its number are read as two things:
+   * who runs it, and which one you get on. A night service gets its own colour.
+   */
   const carrier = operatorName(leg.operatorId ?? line?.operatorId);
-  const serviceLabel =
-    carrier && carrier !== 'Onbekend' && !serviceName.startsWith(carrier)
-      ? `${carrier} ${serviceName}`
+  const badgeNumber = leg.lineNumber ?? line?.number ?? '';
+  const nameWithoutNumber =
+    badgeNumber && serviceName.endsWith(badgeNumber)
+      ? serviceName.slice(0, -badgeNumber.length).trim()
       : serviceName;
+  const nameCarrier =
+    carrier && carrier !== 'Onbekend' && !nameWithoutNumber.startsWith(carrier) ? carrier : '';
+  const serviceLabel = [nameCarrier, nameWithoutNumber, badgeNumber].filter(Boolean).join(' ');
+  const badge = badgeNumber ? (
+    <span
+      className={`leg-line-badge leg-line-badge--${leg.mode}${line?.nightOnly ? ' leg-line-badge--night' : ''}`}
+    >
+      {badgeNumber}
+    </span>
+  ) : null;
+  const serviceWords = (
+    <>
+      {nameCarrier ? `${nameCarrier} ` : ''}
+      {nameWithoutNumber}
+    </>
+  );
   return (
     <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
       {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
@@ -169,12 +191,16 @@ function RideLegRow({
               aria-label={t('Show the stops on {line}', { line: serviceLabel })}
               onClick={onToggleStops}
             >
-              {serviceLabel}
+              {serviceWords}
+              {badge}
               <Icon name="chevronRight" size={13} className="leg-service__chevron" />
             </button>
           ) : (
             /* A service that calls nowhere in between has nothing to open, so it is not a button. */
-            <span className="leg-service leg-service--static">{serviceLabel}</span>
+            <span className="leg-service leg-service--static">
+              {serviceWords}
+              {badge}
+            </span>
           )}
           {/*
             The delay is printed on the service that is late, in the colour the app uses for late
@@ -202,13 +228,55 @@ export function LegList({ journey }: { journey: Journey }) {
   const rows: React.ReactNode[] = [];
   const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   /* Which services have their stops open. A leg is addressed by its id, so a re-render keeps it. */
-  const [openStops, setOpenStops] = useState<string[]>([]);
+  /*
+   * **Every service opens with the journey.** 9292's opened journey has all of its legs open at
+   * once, so the shape of the trip is read without a tap per service; a journey with nothing to
+   * show still opens closed, because there is nothing to open.
+   */
+  const [openStops, setOpenStops] = useState<string[]>(() =>
+    journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike').map((leg) => leg.id),
+  );
   const toggleStops = (id: string) =>
     setOpenStops((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
 
-  journey.legs.forEach((leg) => {
+  /*
+   * **A change is a row, printed on both sides of the walk between two services.** 9292 writes the
+   * minutes you wait once as you get off and once as you get on, so a change reads as a place in the
+   * journey rather than as a gap with nothing in it. The wait is the space between the two rides and
+   * is already known, so nothing new has to be stored.
+   */
+  const isRide = (item: Leg) => item.mode !== 'walk' && item.mode !== 'bike';
+  const previousRide = (index: number) =>
+    [...journey.legs.slice(0, index)].reverse().find((item) => isRide(item));
+  /*
+   * The next ride, whether or not a walk stands between them: a change that is only a wait has no
+   * walk to print, and 9292 still writes the minutes you wait on the line.
+   */
+  const changeAfter = (index: number) => {
+    if (!isRide(journey.legs[index])) return undefined;
+    return journey.legs.slice(index + 1).find((item) => isRide(item));
+  };
+  const changeRow = (key: string, minutes: number) => (
+    <li key={key} className="timeline__rail timeline__rail--ride timeline__rail--change">
+      <span className="timeline__mode">
+        <ModeIcon mode="walk" size={18} />
+      </span>
+      <span className="timeline__node timeline__node--change" />
+      <div className="stack-1">
+        <span className="t-sm t-muted">
+          {t('{count} min transfer time', { count: Math.max(0, minutes) })}
+        </span>
+      </div>
+    </li>
+  );
+
+  journey.legs.forEach((leg, legIndex) => {
+    if (isRide(leg) && legIndex > 0 && !isRide(journey.legs[legIndex - 1])) {
+      const before = previousRide(legIndex);
+      if (before) rows.push(changeRow(`change-in-${leg.id}`, leg.departure - before.arrival));
+    }
     rows.push(
       leg.mode === 'walk' || leg.mode === 'bike' ? (
         <WalkLegRow
@@ -240,6 +308,9 @@ export function LegList({ journey }: { journey: Journey }) {
       ),
     );
 
+    const after = changeAfter(legIndex);
+    if (after) rows.push(changeRow(`change-out-${leg.id}`, after.departure - leg.arrival));
+
     /*
      * **The stops in between, on the rail.** One row per stop, its time in the gutter and a small
      * ring on the line, tucked tight under the service so a ride of twenty stops still reads as one
@@ -258,11 +329,8 @@ export function LegList({ journey }: { journey: Journey }) {
               <span className="t-sm">
                 <StopLink stopId={stop.stopId} />
               </span>
-              {stop.platform ? (
-                <span className="t-sm t-muted">
-                  {t('Platform')} {stop.platform}
-                </span>
-              ) : null}
+              {/* A stop in an opened list carries its name and nothing else, as 9292 draws it:
+                  a platform beside every stop turns one service into twenty little station rows. */}
             </span>
           </li>,
         );

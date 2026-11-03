@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
+import { JourneyThumbnail } from '../components/journey/JourneyThumbnail';
 import { StopLink } from '../components/stops/StopLink';
 import { findJourneyById } from '../data/journeyEngine';
 import { stopLabel } from '../data/stops';
@@ -178,6 +179,8 @@ export function JourneyDetailPage() {
             ? t('direct')
             : plural(journey.transfers, t('transfer'), t('transfers'))
         }`}
+        /* The small map beside the title, with its arrow into the map screen (item 4). */
+        actions={<JourneyThumbnail journey={journey} />}
         showTitle
       />
 

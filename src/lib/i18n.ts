@@ -733,6 +733,8 @@ const NL: Record<string, string> = {
   '{count} transfers': '{count} overstappen',
   '{count} minute walk': '{count} minuten lopen',
   'Bicycle allowed': 'Fiets mee toegestaan',
+  /* The minutes you wait between two services, printed above and below the change. */
+  '{count} min transfer time': '{count} min overstaptijd',
   Occupancy: 'Drukte',
   'Expected quiet': 'Naar verwachting rustig',
   'Expected fairly busy': 'Naar verwachting redelijk druk',
