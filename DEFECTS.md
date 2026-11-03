@@ -35,6 +35,8 @@ him, and it is the work queue.
 
 | 25 | "The collapsable thing opens in wrong place, its placed after the transfer time while transferring is after being in the train" — an opened service printed its stops below the "9 min transfer time" row | `scripts/check-map.mjs`: on an opened journey, no stop row may stand between a change row and the next service | yes: moving the stop list back under the change row prints **FAIL no stop of a service is printed after the change that ends it (misplaced after change row 1)** |
 
+| 26 | "Make the colour of the map icon and map text the same colour blue as the stripes between busses and trains" — the glyph on a ride and the word on a walk were a hand-picked `#1a4fd6` while the rail used its own token, so they sat a shade apart | `scripts/check-map.mjs`: the map control's ink must equal the rail stripe's own background colour, read from the page | yes: putting `#1a4fd6` back prints **FAIL the map glyph on a ride is the same blue as the rail (rgb(26, 79, 214) vs rgb(…))** |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

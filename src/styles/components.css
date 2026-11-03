@@ -12885,12 +12885,12 @@
   border-radius: 8px;
   border: 0;
   padding: 0;
-  color: #1a4fd6;
+  color: var(--rail-ride);
   background: none;
   cursor: pointer;
 }
 .leg-map:hover {
-  background: color-mix(in srgb, #1a4fd6 14%, transparent);
+  background: color-mix(in srgb, var(--rail-ride) 14%, transparent);
 }
 /*
  * The same link on a walk, as a word, because a walk's line has no service row to sit in.
@@ -12909,7 +12909,7 @@
   border: 0;
   background: none;
   padding: 0;
-  color: #1a4fd6;
+  color: var(--rail-ride);
   font-size: 0.82rem;
   line-height: 1.2;
   text-decoration: underline;

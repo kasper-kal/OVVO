@@ -301,6 +301,40 @@ if (walkLinks > 0) {
     'the opened journey shows its stops, so the order can be read',
     `${order.stops} stop row(s)`,
   );
+  /*
+   * **The map's blue is the rail's blue.** The glyph on a ride and the word on a walk were a
+   * hand-picked #1a4fd6 while the line they sit beside took `--rail-ride`, so the two blues differed
+   * by a shade and the eye read the map as a foreign thing hanging off the journey. He asked for one
+   * blue; this reads both from the page instead of trusting the stylesheet's spelling.
+   */
+  const ink = await doorPage.evaluate(() => {
+    const ride = document.querySelector(
+      'li.timeline__rail--ride:not(.timeline__rail--change):not(.timeline__rail--stop)',
+    );
+    const stripeOf = (pseudo) => (ride ? getComputedStyle(ride, pseudo).backgroundColor : '');
+    const colour = (el) => (el ? getComputedStyle(el).color : '');
+    return {
+      pseudoBefore: stripeOf('::before'),
+      pseudoAfter: stripeOf('::after'),
+      glyph: colour(document.querySelector('.leg-map')),
+      word: colour(document.querySelector('.leg-map-link')),
+    };
+  });
+  const stripe = [ink.pseudoBefore, ink.pseudoAfter].find((value) => value && value !== 'rgba(0, 0, 0, 0)');
+  check(Boolean(stripe), 'the rail draws a stripe whose colour can be read', stripe ?? 'none found');
+  check(
+    ink.glyph === stripe,
+    'the map glyph on a ride is the same blue as the rail',
+    `${ink.glyph} vs ${stripe}`,
+  );
+  if (ink.word) {
+    check(
+      ink.word === stripe,
+      'and the word Map on a walk is the same blue too',
+      `${ink.word} vs ${stripe}`,
+    );
+  }
+
   check(
     order.misplaced.length === 0,
     'no stop of a service is printed after the change that ends it',
