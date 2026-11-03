@@ -34,10 +34,16 @@ for (const width of [390, 320]) {
     await page.locator('.journey-card__link').nth(2).click();
     await page.waitForSelector('.timeline', { timeout: 15000 });
     if (theme === 'dark') await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'auto' }));
     await page.waitForTimeout(400);
 
     const rail = await page.evaluate(() => {
-      const mainBox = document.querySelector('.app-main').getBoundingClientRect();
+      /*
+       * **Document coordinates, not viewport ones.** A full-page screenshot is the whole document, so
+       * every measurement has to be the document's own: the row's top plus the scroll offset, and the
+       * mark's left as it is. Measuring against `.app-main`'s viewport box put every crop in the
+       * header, which is how this check once reported nothing while looking at the wrong pixels.
+       */
       const rows = [];
       document.querySelectorAll('.timeline > li').forEach((li) => {
         const rect = li.getBoundingClientRect();
@@ -45,12 +51,25 @@ for (const width of [390, 320]) {
         const nodeBox = node ? node.getBoundingClientRect() : null;
         rows.push({
           cls: li.className,
-          top: rect.top - mainBox.top,
-          bottom: rect.bottom - mainBox.top,
-          nodeCol: nodeBox ? nodeBox.left - mainBox.left + nodeBox.width / 2 : null,
+          top: rect.top + window.scrollY,
+          bottom: rect.bottom + window.scrollY,
+          nodeCol: nodeBox ? nodeBox.left + nodeBox.width / 2 : null,
+          nodeTop: nodeBox ? nodeBox.top + window.scrollY : null,
+          nodeBottom: nodeBox ? nodeBox.bottom + window.scrollY : null,
         });
       });
-      return { bg: getComputedStyle(document.documentElement).backgroundColor, rows };
+      /*
+       * **The page's own colour, read from the canvas token.** The document's background is transparent,
+       * so asking it gave black and nothing ever matched: the check reported a clean rail while a
+       * 13-pixel gap sat in it. `--l0-bg` is the colour the ring's centre is painted with, so a pixel of
+       * that colour inside a connector is exactly the sliver being hunted.
+       */
+      const probe = document.createElement('div');
+      probe.style.background = 'var(--l0-bg)';
+      document.body.appendChild(probe);
+      const bg = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { bg, rows };
     });
     const gap = await page.evaluate(
       () => parseFloat(getComputedStyle(document.querySelector('.timeline')).getPropertyValue('--timeline-gap')) || 32,
