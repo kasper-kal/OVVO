@@ -20,7 +20,7 @@ import type { Journey, Leg } from '../../data/types';
  * separate "1 stop in between" link said the same thing twice, in a second place, and is gone.
  */
 
-function WalkLegRow({ leg }: { leg: Leg }) {
+function WalkLegRow({ leg, origin }: { leg: Leg; origin?: React.ReactNode }) {
   const format = useFormat();
   const t = useT();
   const minutes = leg.arrival - leg.departure;
@@ -39,10 +39,19 @@ function WalkLegRow({ leg }: { leg: Leg }) {
       <span className="timeline__node timeline__node--muted" />
       <div className="stack-1">
         {/*
-          **One quiet line.** 9292 gives a walk "± 9 min (562 m) · route" and nothing else: the two
-          stations it joins are already named above and below it on the rail, so repeating them was
-          the page explaining its own drawing.
+          **A walk that starts the journey names where it starts.**
+          *
+          * The first row of a journey from an address is a walk, and it had nothing beside its ring:
+          * the traveller's own street was named in the title and then never appeared on the line, so
+          * the rail began with a bare circle at 04:23 and an amount. Every other mark on the line
+          * names a place; this one now does too, and only this one — a walk between two stations is
+          * still one quiet line, because the stations above and below it are already named.
         */}
+        {origin ? (
+          <span className="row-wrap">
+            <span className="timeline__station">{origin}</span>
+          </span>
+        ) : null}
         <span className="t-sm t-muted">
           {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} {format.duration(minutes)}
           {metres ? ` · ${metres} m` : ''}
@@ -145,7 +154,12 @@ export function LegList({ journey }: { journey: Journey }) {
   journey.legs.forEach((leg) => {
     rows.push(
       leg.mode === 'walk' || leg.mode === 'bike' ? (
-        <WalkLegRow key={leg.id} leg={leg} />
+        <WalkLegRow
+          key={leg.id}
+          leg={leg}
+          /* The first leg owns the journey's start, so its row is the one that names it. */
+          origin={journey.legs[0] === leg ? (leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />) : undefined}
+        />
       ) : (
         <RideLegRow
           key={leg.id}

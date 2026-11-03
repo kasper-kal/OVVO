@@ -12229,6 +12229,26 @@
   align-items: center;
 }
 
+/*
+ * **A walk that names its start is a line taller, so its figure comes down with it.** The padding
+ * above the block is the same either way — its centre lands on the middle of the dashes whatever its
+ * height — but the glyph is pinned to the row, and a row with a place name in it is 21px taller. Same
+ * rule as a ride's: the figure sits on the block's centre, not under the ring.
+ */
+/*
+ * **A walk that names its start is measured from that name, not from the ring.** The padding above a
+ * bare walk was chosen so its one line lands on the middle of the dashes; with a place name above the
+ * amount the block is two lines tall and that padding overshoots by half of it. Same arithmetic as a
+ * ride's block — the padding less the station's own line — and the figure follows the block down.
+ */
+.journey-rail .timeline__rail--dashed:has(.timeline__station) > div {
+  padding-top: calc(var(--timeline-gap) - 4px);
+}
+
+.journey-rail .timeline__rail--dashed:has(.timeline__station) .timeline__mode {
+  top: calc(var(--timeline-gap) + 19px);
+}
+
 .journey-rail .timeline__station {
   font-size: calc(var(--fs-body) + 2px);
 }
