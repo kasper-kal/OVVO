@@ -21,7 +21,8 @@
     "after-restore": "bash scripts/after-restore.sh",
     "check:corners": "node scripts/corner-audit.mjs",
     "check:compat": "node scripts/compat-logic-check.mjs",
-    "check:compat:browser": "node scripts/compat-check.mjs"
+    "check:compat:browser": "node scripts/compat-check.mjs",
+    "check:joins": "node scripts/rail-joins.mjs && python3 scripts/rail-joins.py"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
