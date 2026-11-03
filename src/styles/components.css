@@ -12701,19 +12701,7 @@
   font-weight: var(--fw-bold);
 }
 
-/* An alarm that has come due, under the journey's controls. */
-.journey-alarm-line {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  margin-top: var(--s-2);
-  padding: var(--s-2) var(--s-3);
-  border-radius: var(--r-compact, 10px);
-  background: var(--tint-coral);
-  color: var(--tint-coral-ink-strong);
-  font-size: var(--fs-sm, 13px);
-  font-weight: var(--fw-semibold, 600);
-}
+
 
 /* ---------------------------------------------------------------------- share rows */
 /* Two rows, each a whole target, exactly the two things 9292 offers. */

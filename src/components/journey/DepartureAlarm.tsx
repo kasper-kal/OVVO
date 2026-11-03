@@ -4,6 +4,7 @@ import { Icon } from '../ui/Icons';
 import { useFormat } from '../../lib/useFormat';
 import { useT } from '../../lib/useT';
 import { readStored, removeStored, writeStored } from '../../lib/storage';
+import { useApp } from '../../state/AppState';
 import type { Journey } from '../../data/types';
 
 /*
@@ -30,10 +31,10 @@ const alarmKey = (journeyId: string) => `alarm:${journeyId}`;
 export function DepartureAlarm({ journey }: { journey: Journey }) {
   const t = useT();
   const format = useFormat();
+  const { pushToast } = useApp();
   const [open, setOpen] = useState(false);
   const [saved, setSaved] = useState<Alarm | null>(() => readStored<Alarm | null>(alarmKey(journey.id), null));
   const [draft, setDraft] = useState<number>(() => readStored<Alarm | null>(alarmKey(journey.id), null)?.minutes ?? 5);
-  const [fired, setFired] = useState(false);
   const notified = useRef(false);
   const [now, setNow] = useState(() => {
     const clock = new Date();
@@ -59,7 +60,17 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
   useEffect(() => {
     if (!due || notified.current) return;
     notified.current = true;
-    setFired(true);
+    /*
+     * **The reminder is a message, not a box in the button row.**
+     *
+     * It used to be a paragraph rendered beside Save, Alarm and Share, inside the same row — so it
+     * became a flex item 97px tall, and the two buttons next to it stretched to 105px and turned
+     * into circles. He photographed exactly that. A due alarm is news, and the app already has
+     * one place for news: the toast region, outside the layout, read aloud as a status.
+     */
+    pushToast(
+      t('Time to leave for your journey, {time}', { time: format.time(saved?.leaveBy ?? journey.departure) }),
+    );
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
         new Notification(t('Time to leave for your journey'), {
@@ -69,13 +80,12 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
         /* A notification that cannot be drawn is not a reason to lose the in-page one. */
       }
     }
-  }, [due, format, journey.departure, saved, t]);
+  }, [due, format, journey.departure, pushToast, saved, t]);
 
   const save = () => {
     const alarm = { minutes: draft, leaveBy: leaveByFor(draft) };
     writeStored(alarmKey(journey.id), alarm);
     setSaved(alarm);
-    setFired(false);
     notified.current = false;
     setOpen(false);
     /*
@@ -106,7 +116,6 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
     removeStored(alarmKey(journey.id));
     setSaved(null);
     setDraft(5);
-    setFired(false);
     notified.current = false;
     setOpen(false);
   };
@@ -198,12 +207,6 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
         </div>
       </Dialog>
 
-      {due || fired ? (
-        <p className="journey-alarm-line" role="status">
-          <Icon name="clock" size={15} />
-          {t('Time to leave for your journey, {time}', { time: format.time(saved?.leaveBy ?? 0) })}
-        </p>
-      ) : null}
     </>
   );
 }

@@ -31,6 +31,8 @@ him, and it is the work queue.
 | 22 | "Why is this button square." — the Back control in the Add to calendar sheet | `scripts/check-batch3.mjs`: the way back inside the sheet is read for its corner, its height and its underline | yes: taking `.btn` off it again makes the same run print **FAIL the way back is the app's pill, not a square (corner 2px)**; with it, **corner 9999px, 44px, underline none** |
 | 23 | "Why is bicycle allowed there and not under a specific train" — one page-level bicycle line above a journey of two trains | `scripts/check-map.mjs`: every ride row carries the rule, in words, and no paragraph states it once for the journey | yes: putting the page-level line back makes the same run print **FAIL and the page does not state it once for the whole journey (a journey-level line exists)**; removing a service's mark prints **FAIL every service states its own bicycle rule (1 mark(s) for 2 service(s))** |
 
+| 24 | "Is this a god damn joke?" — an alarm two minutes out printed "Time to leave for your journey, 8:44" as a pink box inside the Save / Alarm / Share row, stretching Alarm and Save to 105px so they read as circles | `scripts/check-batch3.mjs`: with an alarm due now, every child of the button row is a `BUTTON`, the row and its tallest child stay at or under 60px, no `.journey-alarm-line` exists, and the reminder appears in the toast region | yes: putting the paragraph back in the row prints **FAIL a due alarm adds no box to the button row (BUTTON / BUTTON / P / BUTTON)** and **FAIL and the row keeps its own height (105px row, tallest child 105px)** |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

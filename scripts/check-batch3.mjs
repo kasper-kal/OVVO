@@ -236,6 +236,49 @@ check(
   (await alarmButton.textContent())?.trim(),
 );
 
+/*
+ * **A due alarm is news, not a box in the row.** He photographed the journey page with an alarm two
+ * minutes out: a pink paragraph "Time to leave for your journey, 8:44" sitting between Alarm and
+ * Share, and the two buttons stretched to the block's height and turned into circles. The reminder
+ * is now said in the toast region, which lives outside the layout, so the row is unchanged by it.
+ */
+await page.evaluate((id) => {
+  const clock = new Date();
+  const now = clock.getHours() * 60 + clock.getMinutes();
+  window.localStorage.setItem(`ov-planner:v1:alarm:${id}`, JSON.stringify({ minutes: 2, leaveBy: now }));
+}, journeyId);
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForSelector('.timeline', { timeout: 15000 });
+await page.waitForTimeout(700);
+const due = await page.evaluate(() => {
+  const row = document.querySelector('.journey-actions');
+  const kids = row ? [...row.children] : [];
+  const heights = kids.map((el) => Math.round(el.getBoundingClientRect().height));
+  return {
+    tags: kids.map((el) => el.tagName),
+    rowHeight: row ? Math.round(row.getBoundingClientRect().height) : 0,
+    tallest: heights.length ? Math.max(...heights) : 0,
+    box: document.querySelector('.journey-alarm-line') !== null,
+    toast: document.querySelector('.toast-region')?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+  };
+});
+check(
+  due.tags.length > 0 && due.tags.every((tag) => tag === 'BUTTON'),
+  'a due alarm adds no box to the button row',
+  due.tags.join(' / '),
+);
+check(
+  due.rowHeight <= 60 && due.tallest <= 60,
+  'and the row keeps its own height, so no button is stretched into a circle',
+  `${due.rowHeight}px row, tallest child ${due.tallest}px`,
+);
+check(!due.box, 'the pink paragraph is gone from the page', due.box ? 'still there' : 'gone');
+check(
+  /Time to leave for your journey/.test(due.toast),
+  'the reminder is said, in the toast',
+  due.toast.slice(0, 48) || '(no toast)',
+);
+
 await page.locator('button[aria-label="Share this journey"]').click();
 await page.waitForSelector('.share-row');
 const rows = await page.locator('.share-row').count();
