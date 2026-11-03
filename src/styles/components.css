@@ -12933,3 +12933,39 @@
   height: 18px;
   align-items: center;
 }
+
+/*
+ * **One segmented control, everywhere.**
+ *
+ * The same choice was drawn two ways: in the Date and time sheet it was the compact variant (44px
+ * tall, the chosen half marked by fill alone, no ring), and in Settings it was the default (54px,
+ * with its own 1px ring inside the capsule). He circled it: "even the SWITCH is different then the
+ * other switches in the website."
+ *
+ * The compact geometry is the right one — it is the app's own 44px target and it is the height of
+ * the chip it shares a line with — so the compact shape is now the shape of the control, and the
+ * difference between the two sizes is gone. What changes for Settings is 10px of height it did not
+ * need and a ring it already had; what changes for the sheet is the ring, so the chosen half now
+ * reads as raised there too.
+ */
+.segmented {
+  padding: 2px;
+  min-height: var(--target-min);
+}
+
+.segmented .segmented__btn {
+  position: relative;
+  min-height: calc(var(--target-min) - 6px);
+}
+
+/* The chosen half is 38px drawn, and its tappable area is grown to 46 without growing the mark. */
+.segmented .segmented__btn::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+
+/* The ring is the mark of the chosen half, in every size and on every screen. */
+.segmented .segmented__btn[aria-pressed='true'] {
+  border-color: var(--border-hairline);
+}

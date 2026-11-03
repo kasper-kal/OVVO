@@ -337,6 +337,108 @@ const walkGutter = await page.evaluate(() => {
 });
 check(walkGutter.length === 0, 'no clock or figure sits on another on a walk journey', walkGutter.join(', ') || 'clean');
 
+/*
+ * **One control, one look.** The same "Depart at / Arrive by" is drawn in the Date and time sheet
+ * and in Settings; it shipped at two heights and with a ring in only one of them. This reads both
+ * and compares them, so the next divergence is caught by a number rather than by his eye.
+ */
+const segmentedStyle = async (selector, opener) => {
+  if (opener) {
+    await opener();
+    await page.waitForTimeout(400);
+  }
+  return page.evaluate((sel) => {
+    const wrap = document.querySelector(sel);
+    if (!wrap) return null;
+    const cs = getComputedStyle(wrap);
+    const pressed = wrap.querySelector('.segmented__btn[aria-pressed="true"]');
+    const other = wrap.querySelector('.segmented__btn[aria-pressed="false"]');
+    const ps = pressed ? getComputedStyle(pressed) : null;
+    return {
+      pad: cs.padding,
+      gap: cs.gap,
+      h: Math.round(wrap.getBoundingClientRect().height),
+      pressedBg: ps?.backgroundColor ?? null,
+      pressedBorder: ps ? `${ps.borderTopWidth} ${ps.borderTopColor}` : null,
+      pressedH: pressed ? Math.round(pressed.getBoundingClientRect().height) : null,
+      secondH: other ? Math.round(other.getBoundingClientRect().height) : null,
+    };
+  }, selector);
+};
+
+const closeSheets = async () => {
+  for (let i = 0; i < 8; i += 1) {
+    const close = page.locator('.overlay button, .sheet button');
+    if (!(await close.count())) break;
+    await close.first().click({ timeout: 800 }).catch(() => {});
+    await page.waitForTimeout(80);
+  }
+};
+
+const compare = await browser.newPage({ viewport: { width: 390, height: 900 } });
+const clearOverlays = async () => {
+  for (let i = 0; i < 8; i += 1) {
+    const close = compare.locator('.overlay button, .sheet button');
+    if (!(await close.count())) break;
+    await close.first().click({ timeout: 800 }).catch(() => {});
+    await compare.waitForTimeout(100);
+  }
+};
+const measureSegmented = async (selector) =>
+  compare.evaluate((sel) => {
+    const wrap = document.querySelector(sel);
+    if (!wrap) return null;
+    const cs = getComputedStyle(wrap);
+    const pressed = wrap.querySelector('.segmented__btn[aria-pressed="true"]');
+    const ps = pressed ? getComputedStyle(pressed) : null;
+    return {
+      pad: cs.padding,
+      gap: cs.gap,
+      h: Math.round(wrap.getBoundingClientRect().height),
+      pressedBg: ps?.backgroundColor ?? null,
+      pressedBorder: ps ? `${ps.borderTopWidth} ${ps.borderTopColor}` : null,
+      pressedH: pressed ? Math.round(pressed.getBoundingClientRect().height) : null,
+    };
+  }, selector);
+
+await compare.goto(`${base}${journey}`, { waitUntil: 'domcontentloaded' });
+await compare.waitForSelector('.results-chip', { timeout: 20000 });
+await clearOverlays();
+await compare.waitForTimeout(600);
+await compare.locator('.results-chip').first().click();
+await compare.waitForSelector('.street-map, .modal, [role="dialog"]', { timeout: 12000 }).catch(() => {});
+const sheetSegmented = await measureSegmented('[aria-label="Depart at or arrive by"]');
+
+await compare.goto(`${base}/settings`, { waitUntil: 'domcontentloaded' });
+await compare.waitForTimeout(800);
+await clearOverlays();
+const settingsSegmented = await measureSegmented('[aria-label="Default search type"]');
+await compare.close();
+
+check(Boolean(sheetSegmented) && Boolean(settingsSegmented), 'both places draw the same choice');
+if (sheetSegmented && settingsSegmented) {
+  check(
+    sheetSegmented.h === settingsSegmented.h,
+    'the same switch is the same height everywhere',
+    `${sheetSegmented.h}px in the sheet, ${settingsSegmented.h}px in settings`,
+  );
+  check(
+    sheetSegmented.pressedH === settingsSegmented.pressedH && sheetSegmented.pad === settingsSegmented.pad,
+    'the chosen half is the same size everywhere',
+    `${sheetSegmented.pressedH}px / pad ${sheetSegmented.pad} vs ${settingsSegmented.pressedH}px / pad ${settingsSegmented.pad}`,
+  );
+  check(
+    sheetSegmented.pressedBg === settingsSegmented.pressedBg,
+    'the chosen half is filled the same everywhere',
+    `${sheetSegmented.pressedBg} vs ${settingsSegmented.pressedBg}`,
+  );
+  check(
+    sheetSegmented.pressedBorder === settingsSegmented.pressedBorder,
+    'the chosen half is ringed the same everywhere',
+    `${sheetSegmented.pressedBorder} vs ${settingsSegmented.pressedBorder}`,
+  );
+}
+
 await browser.close();
 console.log(`batch 3: ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);

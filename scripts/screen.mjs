@@ -51,6 +51,9 @@ const walkJourney = `/results/${Buffer.from(
 const SURFACES = [
   { name: 'home', path: '/' },
   { name: 'results', path: journey },
+  /* The Date and time sheet: the one control he has now circled twice lives in a dialog, and a
+     dialog was never in the frame. */
+  { name: 'when-sheet', path: journey, sheet: '.results-chip' },
   { name: 'journey', path: journey, journey: 3 },
   { name: 'journey-walk', path: walkJourney, journey: 1 },
   { name: 'stops', path: '/stops' },
@@ -136,12 +139,29 @@ for (const surface of SURFACES) {
   for (const width of [390, 320]) {
     for (const theme of ['light', 'dark']) {
       const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: 2 });
+      if (theme === 'dark') await page.emulateMedia({ colorScheme: 'dark' });
       await page.goto(`${base}${surface.path}`, { waitUntil: 'networkidle' });
       for (let i = 0; i < 8; i += 1) {
         const close = page.locator('.overlay button, .sheet button');
         if (!(await close.count())) break;
         await close.first().click({ timeout: 800 }).catch(() => {});
         await page.waitForTimeout(120);
+      }
+      if (surface.sheet) {
+        /* First chip, with a retry: the list behind it is still rendering when it is clicked. */
+        await page.waitForSelector(surface.sheet, { timeout: 20000 });
+        await page.waitForTimeout(500);
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          try {
+            await page.locator(surface.sheet).first().click({ timeout: 5000 });
+            await page.waitForSelector('[aria-label="Depart at or arrive by"]', { timeout: 5000 });
+            break;
+          } catch {
+            await page.keyboard.press('Escape').catch(() => {});
+            await page.waitForTimeout(400);
+          }
+        }
+        await page.waitForTimeout(250);
       }
       if (surface.journey) {
         await page.locator('.journey-card__link').nth(surface.journey - 1).click();
@@ -152,10 +172,19 @@ for (const surface of SURFACES) {
       }
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'auto' }));
       await page.waitForTimeout(350);
+      /* Opening a dialog re-runs the appearance effect, which puts the stored preference back. */
+      if (theme === 'dark') {
+        await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+      }
 
+      const applied = await page.evaluate(() => document.documentElement.dataset.theme ?? 'light');
+      if (applied !== theme) {
+        throw new Error(`${surface.name} ${width}: photographed as ${applied}, not ${theme}`);
+      }
       const faults = await page.evaluate(MEASURE, LABEL);
       const file = `${OUT}/${surface.name}-${width}-${theme}.png`;
-      await page.screenshot({ path: file, fullPage: true });
+      /* A sheet is framed in the window: the dialog is the surface, not the list behind it. */
+      await page.screenshot({ path: file, fullPage: !surface.sheet });
       for (const fault of faults) all.push({ ...fault, surface: surface.name, width, theme });
       shots.push({ file, surface: surface.name, width, theme, faults: faults.length });
       await page.close();
