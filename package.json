@@ -22,7 +22,8 @@
     "check:corners": "node scripts/corner-audit.mjs",
     "check:compat": "node scripts/compat-logic-check.mjs",
     "check:compat:browser": "node scripts/compat-check.mjs",
-    "check:joins": "bash scripts/rail-joins.sh"
+    "check:joins": "bash scripts/rail-joins.sh",
+    "predeploy": "npm run check:joins"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
