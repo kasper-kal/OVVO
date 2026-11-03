@@ -4,9 +4,14 @@ The twenty items below are the spec, word for word as the steerer wrote them. No
 softened, reworded, merged or skipped. Each one gets a plan under it saying what has to be built, how
 big it is, and how we know it is done.
 
-Sizes, measured rather than guessed. Six of the **S** items were built and checked in four
-minutes, so one **S** is about forty seconds; the others are set against that: **S** under a
-minute · **M** a few minutes · **L** a quarter of an hour · **XL** half an hour or more.
+Sizes, measured twice rather than guessed. Six of the **S** items were built and checked in four
+minutes, so one **S** is about forty seconds. Then six **M** items, with these numbers being
+corrected in the same go, took six minutes, so one **M** is about a minute. Both batches were built
+together, which is faster than the same items one at a time, and that is why the first guesses were
+so far out. The scale that follows from the two measurements: **S** under a minute · **M** about a
+minute · **L** a few minutes · **XL** ten minutes or more. The two exceptions are 13 and 14, which
+need a street map the app does not have: those are counted in hours, and no batch will shorten
+them.
 
 ---
 
