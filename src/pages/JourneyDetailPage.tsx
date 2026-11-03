@@ -4,7 +4,7 @@ import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
 import { StopLink } from '../components/stops/StopLink';
 import { JOURNEY_LABELS } from '../data/journeyEngine';
-import { getStop, stopLabel } from '../data/stops';
+import { stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
 import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
@@ -113,11 +113,6 @@ export function JourneyDetailPage() {
 
   const rideLegs = journey.legs.filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
   const disruptions = journey.disruptionIds.map((id) => getDisruption(id)).filter(Boolean);
-  const transfers = journey.legs
-    .filter((leg) => leg.mode !== 'walk' && leg.mode !== 'bike')
-    .slice(0, -1)
-    .map((leg, index) => ({ leg, next: journey.legs[journey.legs.indexOf(leg) + 1], index }));
-
   return (
     <div className="stack-6">
       <PageHeader
@@ -339,33 +334,14 @@ export function JourneyDetailPage() {
             summary already says “Direct · 1 leg”. The card exists only when there is a change to
             name.
           */}
-          {transfers.length ? (
-          <Card className="stack">
-            <h2 className="t-section">{t('Transfers')}</h2>
-            {
-              <ul className="stack-2">
-                {transfers.map(({ leg }) => {
-                  const stop = getStop(leg.toStopId);
-                  return (
-                    <li key={leg.id} className="list-row list-row--static">
-                      <span className="leg-row__marker">
-                        <Icon name="swap" size={18} />
-                      </span>
-                      <span className="stack-1 grow">
-                        {/*
-                          The "step-free transfer · staff assistance" line is deleted with every
-                          other visible accessibility claim (F19). What is left is the fact that
-                          belongs to a transfer: where to change.
-                        */}
-                        <span className="t-strong t-sm">{t('Change at {stop}', { stop: stop?.name ?? '' })}</span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            }
-          </Card>
-          ) : null}
+          {/*
+            **The transfers card is gone.** It listed "Change at Schiphol Airport" and "Change at
+            Amsterdam Centraal" one row each, with a swap glyph, on a page where the rail already
+            says "Transfer · 4 min at Schiphol Airport" between the same two stops and the summary
+            says "2 transfers · 4 legs". Three cards of the same journey, and the traveller read the
+            changes twice before they read the journey once (reported: the page is heavier than
+            9292's own journey screen, which has an advert on it).
+          */}
 
         </div>
       </div>

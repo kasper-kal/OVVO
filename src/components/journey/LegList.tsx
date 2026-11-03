@@ -88,10 +88,11 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
           <span className="leg-row__time">
             {format.time(leg.departure)} <Icon name="arrowRight" size={13} /> {format.time(leg.arrival)}
           </span>
-          <Pill>
-            <Icon name="clock" size={12} />
-            {format.duration(leg.arrival - leg.departure)}
-          </Pill>
+          {/*
+            No duration pill beside the times. "05:00 → 05:26" already says how long the ride is,
+            and the same length was printed a third time in the summary card; 9292's own journey
+            screen prints the times and nothing else here.
+          */}
           {leg.delayMinutes ? (
             <Pill tone="coral" dot dotTone="coral">
               {t('Delay +{minutes} min', { minutes: leg.delayMinutes })}
@@ -126,12 +127,10 @@ function RideLegRow({ leg, isLastRide }: { leg: Leg; isLastRide: boolean }) {
               {t('Direction')} <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
             </Pill>
           ) : null}
-          {leg.bikeAllowed ? (
-            <Pill tone="outline">
-              <Icon name="bike" size={12} />
-              {t('Bicycle allowed')}
-            </Pill>
-          ) : null}
+          {/*
+            The bicycle is a fact about the whole journey, and the summary card says it once. Said
+            again on every leg it was three more pills down the rail for one answer.
+          */}
         </div>
 
         {leg.intermediateStops?.length ? (
