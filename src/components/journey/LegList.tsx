@@ -34,7 +34,8 @@ import type { Journey, Leg } from '../../data/types';
  * fill hides them. The visible result is simple: a full dash leaving the circle above, a full dash
  * arriving at the circle below, and the same space between every pair.
  */
-const DASH = 5;
+/* One cycle of the walk's pattern: five pixels of dash, seven of space (the same numbers the style
+   declares). The row's own fit adds the leftover that makes its stretch a whole number of cycles. */
 const CYCLE = 12;
 
 function useFittedDashes() {
@@ -48,7 +49,12 @@ function useFittedDashes() {
       const node = parseFloat(cs.getPropertyValue('--rail-node')) || 14;
       /* From the circle above's foot to the circle below's head: the whole stretch this row draws. */
       const length = el.getBoundingClientRect().height + gap - node;
-      const extra = (((DASH - (length % CYCLE)) % CYCLE) + CYCLE) % CYCLE;
+      /*
+       * The pattern is drawn half a cycle late (see the style), so it ends on a dash at the next
+       * circle only when the length is a whole number of cycles. The leftover is what makes it so,
+       * and it hides under that circle.
+       */
+      const extra = ((-(length % CYCLE) % CYCLE) + CYCLE) % CYCLE;
       el.style.setProperty('--dash-extra', `${extra.toFixed(2)}px`);
     };
     fit();

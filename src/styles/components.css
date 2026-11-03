@@ -4254,6 +4254,16 @@
     var(--rail-walk, var(--border-hairline)) 0 5px,
     transparent 5px 12px
   );
+  /*
+   * **The first thing under the circle is a gap, not a dash.**
+   *
+   * The pattern began with a dash, and a dash that touches the ring above shares its grey: the ring's
+   * two-pixel stroke and the five-pixel dash read as one seven-pixel mark, so the top dash looked
+   * longer than every other. Sliding the pattern up by half a cycle puts the phase's own gap first,
+   * and then every visible dash is five pixels, with the same seven-pixel space between them — the
+   * one at the top simply starts where the others do.
+   */
+  background-position: 0 -5px;
 }
 
 /* The same rhythm on the short connector into the arrival square: short breaks, and a solid run at
