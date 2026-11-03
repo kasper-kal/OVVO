@@ -4234,20 +4234,26 @@
    * dashes all the way, which is what a walk is.
    */
   top: calc(3px + var(--rail-node));
-  bottom: calc((var(--timeline-gap) + 3px) * -1);
+  /*
+   * **The stretch is fitted to a whole number of dashes, and the leftover hides under the circle
+   * below.** A pattern drawn over a fixed length ends wherever it ends: here on a half-length dash,
+   * there on a short final gap, so the last dash looked longer than its neighbours and the space
+   * before it looked smaller. `--dash-extra` is set by the row itself — the few pixels that make the
+   * dashes add up exactly — and it is hidden by the opaque circle it runs under. Both ends then meet
+   * their circle on a full dash, and every dash is the same length with the same space between.
+   */
+  bottom: calc((var(--timeline-gap) + 3px + var(--dash-extra, 0px)) * -1);
   /*
    * **The breaks have to show the page, not the line's own colour.** The rail's base rule paints the
    * whole segment in this grey, so a dashed pattern laid on top of it painted grey on grey and the
    * walk read as one solid line. Clearing the colour lets the gaps be gaps.
    */
   background-color: transparent;
-  background-image:
-    repeating-linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)) 0 5px, transparent 5px 12px),
-    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline)));
-  /* The pattern from the top, and one dash's length at the foot so the line closes on a dash. */
-  background-size: auto, 100% 5px;
-  background-position: 0 0, left bottom;
-  background-repeat: repeat, no-repeat;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--rail-walk, var(--border-hairline)) 0 5px,
+    transparent 5px 12px
+  );
 }
 
 /* The same rhythm on the short connector into the arrival square: short breaks, and a solid run at

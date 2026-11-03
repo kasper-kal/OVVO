@@ -19,6 +19,14 @@ const clip = await p.evaluate(() => {
   walk.querySelector('div.stack-1').innerHTML =
     '<span class="timeline__station t-md">Meeuwenstraat 98</span><span class="t-sm t-muted">Walk 37 min · 2970 m</span>'
   ol.prepend(walk)
+  /* The same fitting the row does itself (useFittedDashes): whole dash cycles, leftover under the circle. */
+  const cs = getComputedStyle(walk)
+  const gap = parseFloat(cs.getPropertyValue('--timeline-gap')) || 32
+  const node = parseFloat(cs.getPropertyValue('--rail-node')) || 14
+  const len = walk.getBoundingClientRect().height + gap - node
+  const extra = (((5 - (len % 12)) % 12) + 12) % 12
+  walk.style.setProperty('--dash-extra', `${extra.toFixed(2)}px`)
+  window.__fit = { len: +len.toFixed(1), extra: +extra.toFixed(2) }
   const a = walk.getBoundingClientRect()
   const b = ol.children[1].getBoundingClientRect()
   window.scrollTo(0, window.scrollY + a.top - 40)
@@ -37,7 +45,11 @@ const px = await p.evaluate(() => {
   const walk = document.querySelector('.timeline > li')
   const seg = getComputedStyle(walk, '::before')
   const row = walk.getBoundingClientRect()
-  return { top: seg.top, bottom: seg.bottom, h: +(row.height).toFixed(1) }
+  const real = [...document.querySelectorAll('.timeline__rail--dashed')].map((el) => ({
+    extra: el.style.getPropertyValue('--dash-extra') || null,
+    h: +el.getBoundingClientRect().height.toFixed(1),
+  }))
+  return { top: seg.top, bottom: seg.bottom, h: +row.height.toFixed(1), fit: window.__fit, realDashedRows: real }
 })
 console.log(JSON.stringify(px))
 await b.close()

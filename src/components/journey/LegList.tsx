@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { getLine } from '../../data/network';
 import { getDisruption } from '../../data/disruptions';
 import { alertLine } from '../../lib/disruptionText';
@@ -20,6 +20,44 @@ import type { Journey, Leg } from '../../data/types';
  * separate "1 stop in between" link said the same thing twice, in a second place, and is gone.
  */
 
+
+/*
+ * **A walk's dashes are fitted to its stretch, not cut off by it.**
+ *
+ * The rail draws a walk as a repeating pattern, and a pattern cannot know how tall the row it is
+ * drawing in happens to be. Left alone it ended on a half-length dash and with a cramped gap before
+ * it — a row is not a whole number of dashes tall, and there is no reason it would be.
+ *
+ * So the row measures itself and adds the one to eleven pixels that make its stretch a whole number
+ * of dash-and-gap cycles. Those spare pixels run past the next circle's edge, and the circle's own
+ * fill hides them. The visible result is simple: a full dash leaving the circle above, a full dash
+ * arriving at the circle below, and the same space between every pair.
+ */
+const DASH = 5;
+const CYCLE = 12;
+
+function useFittedDashes() {
+  const ref = useRef<HTMLLIElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const fit = () => {
+      const cs = getComputedStyle(el);
+      const gap = parseFloat(cs.getPropertyValue('--timeline-gap')) || 32;
+      const node = parseFloat(cs.getPropertyValue('--rail-node')) || 14;
+      /* From the circle above's foot to the circle below's head: the whole stretch this row draws. */
+      const length = el.getBoundingClientRect().height + gap - node;
+      const extra = (((DASH - (length % CYCLE)) % CYCLE) + CYCLE) % CYCLE;
+      el.style.setProperty('--dash-extra', `${extra.toFixed(2)}px`);
+    };
+    fit();
+    const watcher = new ResizeObserver(fit);
+    watcher.observe(el);
+    return () => watcher.disconnect();
+  }, []);
+  return ref;
+}
+
 function WalkLegRow({ leg, origin }: { leg: Leg; origin?: React.ReactNode }) {
   const format = useFormat();
   const t = useT();
@@ -30,8 +68,9 @@ function WalkLegRow({ leg, origin }: { leg: Leg; origin?: React.ReactNode }) {
    */
   const alert = leg.disruptionId ? getDisruption(leg.disruptionId) : undefined;
   const metres = leg.distanceMetres ?? 0;
+  const railRef = useFittedDashes();
   return (
-    <li className="timeline__rail timeline__rail--dashed">
+    <li ref={railRef} className="timeline__rail timeline__rail--dashed">
       <span className="timeline__time">{format.time(leg.departure)}</span>
       <span className="timeline__mode">
         <ModeIcon mode={leg.mode} size={18} />
