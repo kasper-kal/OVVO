@@ -4,10 +4,10 @@ import { useApp } from '../state/AppState';
 import { PageHeader } from '../components/layout/AppShell';
 import { LegList } from '../components/journey/LegList';
 import { StopLink } from '../components/stops/StopLink';
-import { JOURNEY_LABELS, findJourneyById } from '../data/journeyEngine';
+import { findJourneyById } from '../data/journeyEngine';
 import { stopLabel } from '../data/stops';
 import { getDisruption } from '../data/disruptions';
-import { Banner, Button, Card, EmptyState, Pill } from '../components/ui/primitives';
+import { Banner, Button, EmptyState } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icons';
 import { useFormat } from '../lib/useFormat';
 import { useT } from '../lib/useT';
@@ -275,51 +275,43 @@ export function JourneyDetailPage() {
         </Banner>
       ) : null}
 
-      <Card className="stack">
-        <div className="between wrap">
-          <h2 className="t-section">{t('Complete journey')}</h2>
-          <div className="row-wrap">
-            {journey.label ? <Pill tone="butter">{t(JOURNEY_LABELS[journey.label])}</Pill> : null}
-            {journey.delayMinutes ? (
-              <Pill tone="coral" dot dotTone="coral">
-                {t('Delay +{count} min', { count: journey.delayMinutes })}
-              </Pill>
-            ) : journey.cancelled ? (
-              /* A cancelled service read "On time" here and on its own leg, while the results
-                 card for the same journey read "Cancelled" (9.4). */
-              <Pill tone="coral">{t('Cancelled')}</Pill>
-            ) : (
-              <Pill tone="sage">{t('On time')}</Pill>
-            )}
-          </div>
-        </div>
+      {/*
+        **The journey is the page, not a card on it.**
+        
+        The rail sat inside a bordered, rounded card with a heading and a status pill in its corner,
+        so the first thing the eye met was a container and the last thing was another card. 9292
+        draws the journey straight onto the screen: a title, then the line. The heading, the card's
+        edge and its padding are gone, and with them the journey-level "On time · Delay" pill, which
+        the late service already says in its own coral words.
+      */}
+      <div className="journey-rail">
         <LegList journey={journey} />
-        {/*
-          **The journey's numbers are one grey line under the rail.** They were a second card,
-          with its own heading and six pills, sitting beside the journey card: two cards of the
-          same journey on one screen, which is the thing 9292 never does. Every fact is still
-          here — price, length, changes, walking, how full, and the bicycle — as the sentence
-          under a timetable.
-        */}
-        <p className="t-sm t-muted journey-facts-line">
-          {[
-            journey.fare.eur > 0 ? `€${journey.fare.eur.toFixed(2)}` : null,
-            format.duration(journey.durationMinutes),
-            journey.transfers === 0
-              ? t('Direct')
-              : plural(journey.transfers, t('transfer'), t('transfers')),
-            journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
-            journey.occupancy === 'busy'
-              ? t('Expected busy')
-              : journey.occupancy === 'moderate'
-                ? t('Expected fairly busy')
-                : t('Expected quiet'),
-            journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle'),
-          ]
-            .filter(Boolean)
-            .join(' · ')}
-        </p>
-      </Card>
+      {/*
+        **The journey's numbers are one grey line under the rail.** They were a second card,
+        with its own heading and six pills, sitting beside the journey card: two cards of the
+        same journey on one screen, which is the thing 9292 never does. Every fact is still
+        here — price, length, changes, walking, how full, and the bicycle — as the sentence
+        under a timetable.
+      */}
+      <p className="t-sm t-muted journey-facts-line">
+        {[
+          journey.fare.eur > 0 ? `€${journey.fare.eur.toFixed(2)}` : null,
+          format.duration(journey.durationMinutes),
+          journey.transfers === 0
+            ? t('Direct')
+            : plural(journey.transfers, t('transfer'), t('transfers')),
+          journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
+          journey.occupancy === 'busy'
+            ? t('Expected busy')
+            : journey.occupancy === 'moderate'
+              ? t('Expected fairly busy')
+              : t('Expected quiet'),
+          journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle'),
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      </p>
+      </div>
 
       {/*
         This page used to close with a "Continue" panel: a "Back to results" link and the two

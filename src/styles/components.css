@@ -4224,19 +4224,19 @@
   width: var(--rail-node);
   height: var(--rail-node);
   border-radius: var(--r-circle);
-  background: var(--l2-bg);
-  border: 2px solid var(--struct-main);
+  /*
+   * **A ring, not a plate.** A filled disc sat on the line like a bead on a string and broke it
+   * into segments; 9292 draws a hollow ring, so the eye follows one continuous line with marks on
+   * it. The centre is the page's own colour, the ring is the app's strongest ink.
+   */
+  background: var(--l0-bg);
+  border: 3px solid var(--ink-strong);
 }
 
 .timeline__node--accent {
-  /*
-   * **The rail's marks are the app's ink, not its accent.** The departure end was a coral disc and
-   * the arrival end a black square, so one journey was drawn in two colours that meant nothing —
-   * "why is the circle orange and the square black, both should be black". The accent belongs to
-   * things you can act on; a stop on a line is a fact, and the two ends now agree.
-   */
-  border-color: var(--struct-main);
-  background: var(--struct-main);
+  /* The same ring as every other stop: the accent belongs to things you can act on. */
+  border-color: var(--ink-strong);
+  background: var(--l0-bg);
 }
 
 /*
@@ -4256,7 +4256,7 @@
 
 .timeline__node--muted {
   border-color: var(--ink-faint);
-  background: var(--l2-bg);
+  background: var(--l0-bg);
 }
 
 /*
@@ -11925,7 +11925,7 @@
   top: 8px;
   border: 2px solid var(--ink-strong);
   border-radius: var(--r-circle);
-  background: var(--l2-bg);
+  background: var(--l0-bg);
 }
 
 /*
@@ -12064,4 +12064,24 @@
   color: var(--coral-ink);
   letter-spacing: 0;
   white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ The journey, bare
+ *
+ * **No card around the journey.** A bordered, rounded box with a heading in it is a frame the page
+ * has to carry; 9292 puts the line straight on the background and lets the rail be the page. With
+ * the card gone the rail gets the air instead: one step more between stops than a card's padding
+ * allowed, and no edge for the eye to travel round.
+ */
+.journey-rail .timeline {
+  gap: var(--s-4);
+}
+
+.journey-rail .timeline__station {
+  font-size: calc(var(--fs-body) + 2px);
+}
+
+/* The grey sentence under the rail is the journey's numbers, and it closes the page. */
+.journey-facts-line {
+  margin-top: var(--s-4);
 }

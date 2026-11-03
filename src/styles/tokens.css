@@ -241,7 +241,7 @@
    * walk, ride, walk, ride — reads before a word of it does. It is blue on cream and blue on black,
    * the same one value, because the line is a graphic and not text.
    */
-  --rail-ride: #4f83cc;
+  --rail-ride: #5a8fd6;
   --r-compact: calc(12px * var(--shape-scale, 1));
   --r-hair: calc(8px * var(--shape-scale, 1));
   --r-pill: 9999px;
