@@ -41,5 +41,15 @@ const out = await p.evaluate(() => {
   return { pageBg: `rgb(${pageBg.join(', ')})`, kids, overlaps, metaRight: +meta.getBoundingClientRect().right.toFixed(1), width: innerWidth }
 })
 console.log(JSON.stringify(out, null, 1))
-await p.locator('.page-head').screenshot({ path: process.env.OUT || 'artifacts/meta-light.png' }).catch(() => {})
+await p.evaluate(() => {
+  const meta = document.querySelector('.journey-meta')
+  meta.scrollIntoView({ block: 'center' })
+})
+await p.waitForTimeout(200)
+const box = await p.evaluate(() => {
+  const head = document.querySelector('.page-head').getBoundingClientRect()
+  const meta = document.querySelector('.journey-meta').getBoundingClientRect()
+  return { top: head.top - 6, height: meta.bottom - head.top + 12 }
+})
+await p.screenshot({ path: process.env.OUT || 'artifacts/meta-light.png', clip: { x: 0, y: Math.max(0, box.top), width: 390, height: Math.ceil(box.height) } })
 await b.close()
