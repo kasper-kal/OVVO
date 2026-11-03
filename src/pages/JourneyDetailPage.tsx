@@ -187,7 +187,16 @@ export function JourneyDetailPage() {
         <span aria-hidden="true">·</span>
         <span>{format.duration(journey.durationMinutes)}</span>
         {journey.fare.eur > 0 ? (
-          <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
+          <>
+            <span aria-hidden="true">·</span>
+            {/*
+              **The price is a word in the line, not a pill on top of it.** It sat in its own pale
+              badge, and a pale badge on a pale page reads as a lighter patch laid over the words
+              beside it: on white the "52 min" appeared to be running underneath it. The price is
+              one more fact in the same sentence, bold because it is the one that costs money.
+            */}
+            <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
+          </>
         ) : null}
         {journey.delayMinutes ? (
           <span className="delay">{t('Delay +{count} min', { count: journey.delayMinutes })}</span>

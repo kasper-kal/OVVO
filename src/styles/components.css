@@ -12269,10 +12269,13 @@
   font-size: var(--fs-sm);
 }
 
+/*
+ * **The price is ink, not a badge.** It was a pill filled with the lightest surface there is, which
+ * on a near-white page is a patch that looks like nothing and hides the edge of the word beside it;
+ * on a dark page it becomes a bright plate in the middle of a quiet line. Bold ink reads at the same
+ * strength in both appearances and needs no plate behind it.
+ */
 .journey-meta__price {
-  padding: 1px var(--s-2);
-  border-radius: var(--r-pill);
-  background: var(--l2-bg);
   color: var(--ink-strong);
   font-weight: var(--fw-bold);
 }
