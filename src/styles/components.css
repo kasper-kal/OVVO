@@ -12533,6 +12533,18 @@
   background: var(--rail-ride);
 }
 
+/* 9b. **The ride's line starts under its own ring, not below it.** The first row of a journey
+ * pushed every connector down by the height of the ring, which is right for a walk (its dashes
+ * begin with a gap) and wrong for a ride: the blue begins a few pixels under the circle and the
+ * journey's first line looks detached from the station it leaves. The ride takes the ring's own
+ * top edge, where the circle's stroke and fill hide the join. */
+.timeline > .timeline__rail--ride:first-child::before {
+  top: 3px;
+  /* Square at the top: the line runs up under the circle, and a rounded cap there leaves a notch
+     of page on each side of the join that reads as a gap. */
+  border-radius: 0 0 var(--rail-line) var(--rail-line);
+}
+
 /* 19. **A stop is a bead, a station is a mark.** Smaller and thinner than it was, so an opened
  * service reads as a service with stops in it rather than as twenty stations on a line. */
 .timeline__node--stop {
