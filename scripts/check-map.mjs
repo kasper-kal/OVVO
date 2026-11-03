@@ -181,6 +181,46 @@ if (walkLinks > 0) {
   }
 }
 
+
+/*
+ * **One door to the map.**
+ *
+ * The journey page carried a MAP pill under its controls and a thumbnail of the route in its title
+ * line, and both opened the same map — he crossed the pill out: "Map button is useless, the circles
+ * button does the same". Exactly one control may answer to "Show on map", and it has to be the
+ * thumbnail, because that is the one that shows where the journey goes before you press it.
+ */
+{
+  const doorPage = await browser.newPage({ viewport: { width: 390, height: 900 } });
+  await doorPage.goto(`${base}${rideTrip}`, { waitUntil: 'networkidle' });
+  /* The install banner and any first-visit sheet sit over the list; the same dismissal every other
+     probe in this file uses before it presses anything. */
+  for (let i = 0; i < 8; i += 1) {
+    const close = doorPage.locator('.overlay button, .sheet button');
+    if (!(await close.count())) break;
+    await close.first().click({ timeout: 800 }).catch(() => {});
+    await doorPage.waitForTimeout(120);
+  }
+  await doorPage.waitForSelector('.journey-card__link', { timeout: 20000 });
+  await doorPage.locator('.journey-card__link').first().click();
+  await doorPage.waitForSelector('.timeline', { timeout: 15000 });
+  const doors = await doorPage.evaluate(() => {
+    const named = [...document.querySelectorAll('[aria-label="Show on map"]')];
+    const pills = [...document.querySelectorAll('a.btn, button.btn')].filter(
+      (el) => el.textContent.trim() === 'Map',
+    );
+    return {
+      total: named.length,
+      thumbs: named.filter((el) => el.classList.contains('journey-thumb')).length,
+      pills: pills.length,
+    };
+  });
+  check(doors.total === 1, 'the journey offers exactly one way to the map', `${doors.total} control(s)`);
+  check(doors.thumbs === 1, 'and that way is the thumbnail in the title line', `${doors.thumbs} thumbnail(s)`);
+  check(doors.pills === 0, 'there is no second Map button', `${doors.pills} pill(s)`);
+  await doorPage.close();
+}
+
 await browser.close();
 console.log(`map: ${failures} failing check(s)`);
 process.exit(failures ? 1 : 0);

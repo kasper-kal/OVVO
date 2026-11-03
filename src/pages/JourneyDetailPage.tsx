@@ -30,7 +30,6 @@ export function JourneyDetailPage() {
     isJourneySaved,
     saveJourney,
     savedJourneys,
-    power,
   } = useApp();
   const format = useFormat();
   const t = useT();
@@ -282,13 +281,10 @@ export function JourneyDetailPage() {
             {t('Return')}
           </Button>
         ) : null}
-        {/* At a tenth of a battery the map is closed everywhere, so the way in goes with it. */}
-        {(power.mode === 'super' || power.mode === 'last') ? null : (
-          <Link to={`/map?journey=${journey.id}`} className="btn" aria-label={t('Show on map')}>
-            <Icon name="map" size={16} />
-            {t('Map')}
-          </Link>
-        )}
+        {/* **No Map button.** The thumbnail in the title line is already the way to the map, and it
+            says so with its own arrow; a pill called MAP under it was a second door to the same room
+            (he crossed it out). The map is still reachable from here, from every leg's own map glyph,
+            and at the map screen itself. */}
         {/*
           The same control as the one on this journey's card: a heart, filled while the journey is
           kept, with the two labels the card uses (`Favourite this journey` / `Favourited`). It
