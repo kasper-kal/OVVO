@@ -4223,39 +4223,31 @@
 
 .timeline__rail--dashed::before {
   /*
-   * **A walk is a line with breaks in it, not a dotted edge.** A long dash over a long break read as
-   * separate sticks standing in the rail's place; 9292 uses short dashes with short breaks, so the
-   * eye follows one line from mark to mark.
+   * **Dashes from the circle to the circle, with no solid run at either end.**
+   *
+   * The stretch used to be painted in three layers — a twenty-pixel solid run at the top, the dashes
+   * in the middle, a twenty-four-pixel solid run at the foot — so that a mark was always met by a
+   * solid pixel whatever the pattern phase happened to be. It worked, and it looked wrong: the first
+   * stretch after the circle was one unbroken bar, and the last one ended in a long solid segment
+   * that read as a different kind of line. The segment now begins exactly at the circle's edge, so the
+   * pattern starts with a dash there, and closes on one short dash at the next circle —
+   * dashes all the way, which is what a walk is.
    */
-  /*
-   * **The line joins the next mark with a short solid run.** A repeating pattern cannot promise
-   * that a dash lands on its last pixel, so a walk's line kept ending in a break a few pixels above
-   * the station that follows it. The segment runs 20px further, and its last 20px are painted solid
-   * instead of dashed: that run is longer than one break and ends under the next ring, so the eye
-   * always sees dashes joining the mark rather than a dash stopping in mid-air.
-   */
-  bottom: calc((var(--timeline-gap) + 20px) * -1);
+  top: calc(3px + var(--rail-node));
+  bottom: calc((var(--timeline-gap) + 3px) * -1);
   /*
    * **The breaks have to show the page, not the line's own colour.** The rail's base rule paints the
-   * whole segment in this grey, so a dashed pattern laid on top of it painted grey on grey: the walk
-   * read as one solid line. Clearing the colour lets the gaps be gaps.
+   * whole segment in this grey, so a dashed pattern laid on top of it painted grey on grey and the
+   * walk read as one solid line. Clearing the colour lets the gaps be gaps.
    */
   background-color: transparent;
-  /*
-   * **A solid run at both marks, dashes only in between.** A repeating pattern cannot promise that a
-   * dash lands on the pixel where a ring begins, so the walk's line kept leaving one ring and
-   * arriving at the next with a twelve-pixel break in between: the dashes stopped short of both
-   * circles. The segment is painted in three layers now — solid at the top, dashes in the middle,
-   * solid at the foot — and both solid runs are long enough to reach past each ring, so the line
-   * always leaves a circle and always arrives at one.
-   */
   background-image:
-    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline))),
     repeating-linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)) 0 5px, transparent 5px 12px),
     linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline)));
-  background-size: 100% 20px, auto, 100% 24px;
-  background-position: left top, 0 0, left bottom;
-  background-repeat: no-repeat, repeat, no-repeat;
+  /* The pattern from the top, and one dash's length at the foot so the line closes on a dash. */
+  background-size: auto, 100% 5px;
+  background-position: 0 0, left bottom;
+  background-repeat: repeat, no-repeat;
 }
 
 /* The same rhythm on the short connector into the arrival square: short breaks, and a solid run at
@@ -4264,12 +4256,11 @@
   /* The same solid joint at the square as at a ring, and see-through gaps between the dashes. */
   background-color: transparent;
   background-image:
-    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline))),
     repeating-linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)) 0 5px, transparent 5px 12px),
     linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline)));
-  background-size: 100% 20px, auto, 100% 20px;
-  background-position: left top, 0 0, left bottom;
-  background-repeat: no-repeat, repeat, no-repeat;
+  background-size: auto, 100% 5px;
+  background-position: 0 0, left bottom;
+  background-repeat: repeat, no-repeat;
 }
 
 .timeline__node {
@@ -12248,12 +12239,24 @@
  * amount the block is two lines tall and that padding overshoots by half of it. Same arithmetic as a
  * ride's block — the padding less the station's own line — and the figure follows the block down.
  */
+/*
+ * **A named walk names its place on the ring's line, like every other mark on the rail.**
+ *
+ * The block-centring rule is right for a bare walk — one line, sitting on the middle of its dashes.
+ * It is wrong the moment the row carries a place name: the name belongs to the circle beside it and
+ * must share that circle's centre line, exactly as a station name does on a ride. So a named walk
+ * takes the ride's own geometry instead: the name on the ring, the amount one line under it.
+ */
 .journey-rail .timeline__rail--dashed:has(.timeline__station) > div {
-  padding-top: calc(var(--timeline-gap) - 4px);
+  padding-top: 0;
+}
+
+.journey-rail .timeline__rail--dashed:has(.timeline__station) > div > :nth-child(2) {
+  margin-top: calc(var(--timeline-gap) - 4px);
 }
 
 .journey-rail .timeline__rail--dashed:has(.timeline__station) .timeline__mode {
-  top: calc(var(--timeline-gap) + 19px);
+  top: calc(var(--timeline-gap) + 22px);
 }
 
 .journey-rail .timeline__station {
