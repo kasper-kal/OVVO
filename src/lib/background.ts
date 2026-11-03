@@ -656,9 +656,15 @@ export function paintFor(colour: string, raised = false): TintPaint {
     dockAccent: toHex(dockAccent),
     onDockAccent: dockInk.ink,
     onAccent: accentFill.ink,
-    coralInk: toHex(semanticInk(coralBase, worst, raised ? 6 : 4.6)),
-    sageInk: toHex(semanticInk(sageBase, worst, raised ? 6 : 4.6)),
-    butterInk: toHex(semanticInk(butterBase, worst, raised ? 6 : 4.6)),
+    /*
+     * **A delay's coral, a cleared stop's sage, a busy carriage's butter: 5.2, not 4.6.** These three
+     * carried the thinnest margin in the whole sweep — 4.66:1 for coral on a tinted page — because
+     * they passed their target exactly and stopped. A hue that meaning rides on should not be the
+     * hardest thing on the screen to read.
+     */
+    coralInk: toHex(semanticInk(coralBase, worst, raised ? 6.4 : 5.2)),
+    sageInk: toHex(semanticInk(sageBase, worst, raised ? 6.4 : 5.2)),
+    butterInk: toHex(semanticInk(butterBase, worst, raised ? 6.4 : 5.2)),
   };
 }
 

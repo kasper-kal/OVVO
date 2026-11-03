@@ -1,7 +1,7 @@
 # Contrast sweep — every screen, every appearance, every width
 
-Measured 2026-11-03 03:10 on http://127.0.0.1:3000.
-128 page renders, 6876 text and icon nodes measured.
+Measured 2026-11-03 03:27 on http://127.0.0.1:3000.
+64 page renders, 3454 text and icon nodes measured.
 Thresholds: 4.5:1 body, 3:1 large text and icons.
 
 Nothing below AA anywhere in the matrix.
