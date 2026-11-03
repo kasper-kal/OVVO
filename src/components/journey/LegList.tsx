@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { getStop, stopLabel, nearbyStops } from '../../data/stops';
 import { getLine } from '../../data/network';
 import { getDisruption } from '../../data/disruptions';
 import { alertLine } from '../../lib/disruptionText';
@@ -57,12 +56,10 @@ function WalkLegRow({ leg }: { leg: Leg }) {
 
 function RideLegRow({
   leg,
-  isLastRide,
   stopsOpen,
   onToggleStops,
 }: {
   leg: Leg;
-  isLastRide: boolean;
   stopsOpen: boolean;
   onToggleStops: () => void;
 }) {
@@ -71,10 +68,6 @@ function RideLegRow({
   const line = getLine(leg.lineId);
   const stops = leg.intermediateStops ?? [];
   const serviceName = leg.lineName ?? line?.name ?? t('Service');
-  const platforms = [
-    leg.platform ? `${t('Platform')} ${leg.platform}` : null,
-    !isLastRide && leg.arrivalPlatform ? `${t('Arrival platform')} ${leg.arrivalPlatform}` : null,
-  ].filter(Boolean);
   return (
     <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
       {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
@@ -85,8 +78,21 @@ function RideLegRow({
       </span>
       <span className="timeline__node timeline__node--accent" />
       <div className="stack-1">
-        <span className="timeline__station">
-          {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
+        {/*
+          **The platform sits beside the station, in the accent, as one word.** It was a grey sentence
+          of its own — "Platform 1 · Arrival platform 2" — which is two facts and a line of height
+          per service; 9292 prints the platform the traveller actually stands on at the right of the
+          station name and nothing else.
+        */}
+        <span className="row-wrap">
+          <span className="timeline__station">
+            {leg.fromLabel ?? <StopLink stopId={leg.fromStopId} />}
+          </span>
+          {leg.platform ? (
+            <span className="timeline__platform">
+              {t('Platform')} {leg.platform}
+            </span>
+          ) : null}
         </span>
 
         <div className="row-wrap">
@@ -120,24 +126,9 @@ function RideLegRow({
           </p>
         ) : null}
 
-        {/*
-          Where you stand and where you get off, in words: "Platform 1 · Arrival platform 2". A
-          traveller reads this at the platform, so it stays on the service that owns it — the
-          arrival platform of the last service is printed beside the arrival station instead.
-        */}
-        {platforms.length ? <p className="t-sm t-muted">{platforms.join(' · ')}</p> : null}
       </div>
     </li>
   );
-}
-
-/** Transfer rows between two consecutive ride legs, including the walking link. */
-function transferBetween(previous: Leg, next: Leg) {
-  const sameStop = previous.toStopId === next.fromStopId;
-  const wait = next.departure - previous.arrival;
-  const shortWalk = !sameStop ? nearbyStops(previous.toStopId, 6).find((stop) => stop.id === next.fromStopId) : undefined;
-  const stop = getStop(sameStop ? next.fromStopId : previous.toStopId);
-  return { sameStop, wait, shortWalk, stop };
 }
 
 export function LegList({ journey }: { journey: Journey }) {
@@ -145,7 +136,6 @@ export function LegList({ journey }: { journey: Journey }) {
   const t = useT();
   const rows: React.ReactNode[] = [];
   const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk' && leg.mode !== 'bike');
-  const lastRideId = lastRide?.id;
   /* Which services have their stops open. A leg is addressed by its id, so a re-render keeps it. */
   const [openStops, setOpenStops] = useState<string[]>([]);
   const toggleStops = (id: string) =>
@@ -153,31 +143,7 @@ export function LegList({ journey }: { journey: Journey }) {
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
 
-  journey.legs.forEach((leg, index) => {
-    const previous = journey.legs[index - 1];
-    if (previous) {
-      const transfer = transferBetween(previous, leg);
-      if (previous.mode !== 'walk' && previous.mode !== 'bike' && leg.mode !== 'walk' && leg.mode !== 'bike') {
-        /*
-         * **A change is a small grey line on the rail, not a butter pill across it.** The rail is
-         * already drawn through the wait — the leg above stops at the change and the leg below
-         * starts there — so the only thing left to say is how long the wait is, and the words for
-         * it are the smallest ones on the screen.
-         */
-        rows.push(
-          <li key={`transfer-${leg.id}`} className="timeline__rail timeline__transfer">
-            <span className="timeline__node timeline__node--transfer" />
-            <span className="t-sm t-muted">
-              {transfer.sameStop
-                ? t('Change here · {duration} wait', {
-                    duration: format.duration(Math.max(1, transfer.wait)),
-                  })
-                : t('Change here · a short walk to {stop}', { stop: stopLabel(leg.fromStopId) })}
-            </span>
-          </li>,
-        );
-      }
-    }
+  journey.legs.forEach((leg) => {
     rows.push(
       leg.mode === 'walk' || leg.mode === 'bike' ? (
         <WalkLegRow key={leg.id} leg={leg} />
@@ -185,7 +151,6 @@ export function LegList({ journey }: { journey: Journey }) {
         <RideLegRow
           key={leg.id}
           leg={leg}
-          isLastRide={leg.id === lastRideId}
           stopsOpen={openStops.includes(leg.id)}
           onToggleStops={() => toggleStops(leg.id)}
         />
@@ -251,7 +216,7 @@ export function LegList({ journey }: { journey: Journey }) {
               the arrival name — as a phrase in the same grey line, not a chip.
             */}
             {lastRide === lastLeg && lastLeg.arrivalPlatform ? (
-              <span className="t-sm t-muted">
+              <span className="timeline__platform">
                 {t('Arrival platform')} {lastLeg.arrivalPlatform}
               </span>
             ) : null}

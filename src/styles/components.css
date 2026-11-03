@@ -11899,9 +11899,11 @@
  * ink at half again the width, the walk keeps the thin dashed hairline.
  */
 .timeline__rail--ride::before {
-  width: calc(var(--rail-line) * 1.5);
-  left: calc(var(--rail-node) / 2 - (var(--rail-line) * 1.5) / 2);
-  background: var(--ink-strong);
+  /* Twice the hairline, in the transport blue, rounded ends: the line 9292 draws for a ride. */
+  width: calc(var(--rail-line) * 2);
+  left: calc(var(--rail-node) / 2 - var(--rail-line));
+  background: var(--rail-ride);
+  border-radius: var(--rail-line);
 }
 
 /* ------------------------------------------------------------ Stops on the rail
@@ -12024,6 +12026,18 @@
 }
 
 /* The dot a change leaves on the rail: smaller than a stop, and never a plate. */
+/*
+ * The last connector into the arrival square belongs to the last leg: blue under a service, dashed
+ * grey under a walk. It was a hairline whatever came above it, so a ride's blue ended one stop
+ * short of the journey's end.
+ */
+.timeline:not(.timeline--dashed-end) .timeline__end::before {
+  width: calc(var(--rail-line) * 2);
+  left: calc(var(--rail-node) / 2 - var(--rail-line));
+  background: var(--rail-ride);
+  border-radius: var(--rail-line);
+}
+
 .timeline__node--transfer {
   width: 6px;
   height: 6px;
@@ -12031,4 +12045,19 @@
   top: 12px;
   border: 0;
   background: var(--ink-faint);
+}
+
+/*
+ * **The platform is one accent word at the right of the station.** "Platform 1 · Arrival platform 2"
+ * was a grey sentence per service — two facts where a traveller needs one, on the line that is
+ * already the tallest thing in the card. 9292 prints the platform beside the station name in the
+ * accent colour, and that is the whole of it.
+ */
+.timeline__platform {
+  margin-left: auto;
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  color: var(--coral-ink);
+  letter-spacing: 0;
+  white-space: nowrap;
 }

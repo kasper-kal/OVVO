@@ -235,6 +235,13 @@
   --rail-node: 14px;
   --rail-square: 10px;
   --rail-line: 2px;
+  /*
+   * **The colour a ride is drawn in.** A walk's rail stays a thin dashed hairline in the app's own
+   * border ink; a ride's is a solid, heavier line in a transport blue, so the journey's shape —
+   * walk, ride, walk, ride — reads before a word of it does. It is blue on cream and blue on black,
+   * the same one value, because the line is a graphic and not text.
+   */
+  --rail-ride: #4f83cc;
   --r-compact: calc(12px * var(--shape-scale, 1));
   --r-hair: calc(8px * var(--shape-scale, 1));
   --r-pill: 9999px;
