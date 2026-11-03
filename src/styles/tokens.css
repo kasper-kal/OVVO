@@ -249,6 +249,14 @@
    * the same one value, because the line is a graphic and not text.
    */
   --rail-ride: #5a8fd6;
+  /*
+   * **A walk's line is grey, and in the dark appearance it has to be a grey you can see.** It shared
+   * `--border-hairline`, which is a *border* colour: 1.99:1 on the dark canvas, so the dashed stretch
+   * of a journey was almost invisible exactly where it is the only line on the page. The light cut
+   * stays the hairline it was (9:1 on cream); the dark cut is lifted to 4.6:1 on the canvas and still
+   * quieter than the blue of a ride.
+   */
+  --rail-walk: #cdc7b8;
   --r-compact: calc(12px * var(--shape-scale, 1));
   --r-hair: calc(8px * var(--shape-scale, 1));
   --r-pill: 9999px;
@@ -448,6 +456,8 @@
  * a light wash across a whole canvas is not a signal, it is glare.
  */
 :root[data-theme='dark'] {
+  /* A walk's dashes, lifted off the hairline so the line is visible on the dark canvas. */
+  --rail-walk: #837d6f;
   color-scheme: dark;
 
   --canvas-base: #121211;

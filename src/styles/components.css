@@ -4250,9 +4250,9 @@
    * always leaves a circle and always arrives at one.
    */
   background-image:
-    linear-gradient(to bottom, var(--border-hairline), var(--border-hairline)),
-    repeating-linear-gradient(to bottom, var(--border-hairline) 0 6px, transparent 6px 14px),
-    linear-gradient(to bottom, var(--border-hairline), var(--border-hairline));
+    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline))),
+    repeating-linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)) 0 5px, transparent 5px 12px),
+    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline)));
   background-size: 100% 20px, auto, 100% 24px;
   background-position: left top, 0 0, left bottom;
   background-repeat: no-repeat, repeat, no-repeat;
@@ -4264,9 +4264,9 @@
   /* The same solid joint at the square as at a ring, and see-through gaps between the dashes. */
   background-color: transparent;
   background-image:
-    linear-gradient(to bottom, var(--border-hairline), var(--border-hairline)),
-    repeating-linear-gradient(to bottom, var(--border-hairline) 0 6px, transparent 6px 14px),
-    linear-gradient(to bottom, var(--border-hairline), var(--border-hairline));
+    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline))),
+    repeating-linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)) 0 5px, transparent 5px 12px),
+    linear-gradient(to bottom, var(--rail-walk, var(--border-hairline)), var(--rail-walk, var(--border-hairline)));
   background-size: 100% 20px, auto, 100% 20px;
   background-position: left top, 0 0, left bottom;
   background-repeat: no-repeat, repeat, no-repeat;
