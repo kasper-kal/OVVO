@@ -20,6 +20,7 @@ him, and it is the work queue.
 | 11 | a stop bead the wrong size, or carrying a platform | not covered | — |
 | 12 | services that were already open, or would not open | not covered | — |
 | 13 | a screenshot of mine that showed a fault I did not mention | `npm run screen` — the picture and the verdict now come from one run, and AGENTS.md forbids sending one without the other | yes: the same run prints `SCREEN: …` above the files it wrote |
+| 15 | "This is an absolute, absolute MESS": the walk's map link drew a wide grey button across the row, and a change row's walking figure sat on top of the next stop's time | `scripts/check-batch3.mjs`: the gutter collision measure, and the link's own box being a word and not a control | yes: the gutter check failed on the real fault before the fix, and fails again when the rule is removed |
 | 14 | a check that said "clean" while the fault was there | the negative-test rule in AGENTS.md: a check that has not been shown to fail on a deliberate break is not a check | yes: the join check did exactly this, was rewritten, and now fails on the break |
 
 ## The rule that keeps this file honest

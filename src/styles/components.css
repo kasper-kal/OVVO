@@ -12853,24 +12853,41 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 0;
+  padding: 0;
   color: #1a4fd6;
-  background: color-mix(in srgb, #1a4fd6 10%, transparent);
+  background: none;
+  cursor: pointer;
 }
 .leg-map:hover {
-  background: color-mix(in srgb, #1a4fd6 18%, transparent);
+  background: color-mix(in srgb, #1a4fd6 14%, transparent);
 }
-/* The same link on a walk, as a word, because a walk's line has no service row to sit in. */
+/*
+ * The same link on a walk, as a word, because a walk's line has no service row to sit in.
+ *
+ * It shipped as a bare `<button>`, so it kept the button chrome and drew a wide bordered grey slab
+ * across the row: bigger than the walk it belonged to, and in dark mode it looked like a filled
+ * field. A link inside a line is sized by its line and nothing else (rule 8), so every box is
+ * removed here rather than balanced by hand.
+ */
 .leg-map-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  width: fit-content;
+  justify-self: start;
+  border: 0;
+  background: none;
+  padding: 0;
   color: #1a4fd6;
   font-size: 0.82rem;
+  line-height: 1.2;
   text-decoration: underline;
   text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 /* Removing an alarm is the only control on the sheet that undoes something, so it says so. */
@@ -12895,4 +12912,24 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   align-self: start;
+}
+
+/*
+ * **The change's walking figure belongs on the change's own line.**
+ *
+ * A change row carries the ride row's classes, so it inherited the ride's glyph offset: a rule that
+ * hangs the figure 64px down, under a clock that a ride row has and a change row does not. The figure
+ * therefore dropped past its own row and landed on top of the next stop's time — the overlapping
+ * shoes beside "9:40". The change row's glyph sits level with its text, and there is nothing to hang
+ * it under.
+ */
+/*
+ * The first version of this rule lost to the ride offset it was correcting, because a change row is
+ * a ride row with one class more and `:not()` weighs the same as a class: the selector has to be at
+ * least as specific as the one it overrules, and this one is a class more.
+ */
+.journey-rail .timeline__rail--ride.timeline__rail--change:not(.timeline__rail--stop) .timeline__mode {
+  top: 0;
+  height: 18px;
+  align-items: center;
 }

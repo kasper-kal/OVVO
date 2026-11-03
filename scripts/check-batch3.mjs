@@ -122,6 +122,37 @@ for (let i = 0; i < 8; i += 1) {
 await page.locator('.journey-card__link').nth(2).click();
 await page.waitForSelector('.timeline', { timeout: 15000 });
 
+/*
+ * **Nothing in the gutter may sit on anything else in the gutter.** The change row's walking figure
+ * was drawn 64px below its own row and landed on the next stop's time; measuring the boxes catches
+ * that, and catches the next thing shaped like it.
+ */
+const gutter = await page.evaluate(() => {
+  const box = (el) => el.getBoundingClientRect();
+  const rows = [...document.querySelectorAll('.timeline__rail, .timeline__end')].map((row) => ({
+    cls: row.className.replace('timeline__rail', '').trim() || 'end',
+    time: row.querySelector('.timeline__time') ? box(row.querySelector('.timeline__time')) : null,
+    mode: row.querySelector('.timeline__mode') ? box(row.querySelector('.timeline__mode')) : null,
+  }));
+  const hits = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    for (let j = i + 1; j < rows.length; j += 1) {
+      for (const a of ['time', 'mode']) {
+        for (const b of ['time', 'mode']) {
+          const one = rows[i][a];
+          const two = rows[j][b];
+          if (!one || !two) continue;
+          const overlaps =
+            one.left < two.right && two.left < one.right && one.top < two.bottom - 1 && two.top < one.bottom - 1;
+          if (overlaps) hits.push(`${rows[i].cls}.${a} on ${rows[j].cls}.${b}`);
+        }
+      }
+    }
+  }
+  return hits;
+});
+check(gutter.length === 0, 'no time or glyph in the gutter sits on another', gutter.join(', ') || 'clean');
+
 const alarmButton = page.locator('button[aria-label="Set a departure alarm"]');
 check(await alarmButton.count() === 1, 'the alarm control sits in the journey row');
 await alarmButton.click();
@@ -154,6 +185,30 @@ check((await alarmButton.textContent())?.trim() === 'Alarm 6 min', 'Save keeps t
 await page.reload({ waitUntil: 'networkidle' });
 await page.waitForSelector('.timeline', { timeout: 15000 });
 check((await alarmButton.textContent())?.trim() === 'Alarm 6 min', 'the alarm survives a reload', (await alarmButton.textContent())?.trim());
+
+/* The walk's map link is a word in a line, not a control with a box around it. */
+const linkBox = await page.evaluate(() => {
+  const link = document.querySelector('.leg-map-link');
+  if (!link) return null;
+  const cs = getComputedStyle(link);
+  const rect = link.getBoundingClientRect();
+  return {
+    borderWidth: parseFloat(cs.borderTopWidth) + parseFloat(cs.borderLeftWidth),
+    background: cs.backgroundColor,
+    height: Math.round(rect.height),
+    width: Math.round(rect.width),
+  };
+});
+check(Boolean(linkBox), 'a walk still carries its map link');
+if (linkBox) {
+  check(linkBox.borderWidth === 0, 'the walk link has no box around it', `${linkBox.borderWidth}px of border`);
+  check(
+    linkBox.background === 'rgba(0, 0, 0, 0)' || linkBox.background === 'transparent',
+    'the walk link has no fill',
+    linkBox.background,
+  );
+  check(linkBox.height <= 22, 'the walk link is the height of its line', `${linkBox.height}px tall`);
+}
 
 /* Taking it off again: the journey must be able to have no alarm, and stay that way. */
 await alarmButton.click();

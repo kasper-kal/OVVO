@@ -174,24 +174,26 @@ function WalkLegRow({
             <span className="timeline__station">{origin}</span>
           </span>
         ) : null}
-        <span className="t-sm t-muted">
-          {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} ± {format.duration(minutes)}
-          {metres ? ` (${metres} m)` : ''}
+        <span className="row wrap gap-2">
+          <span className="t-sm t-muted">
+            {t(leg.mode === 'bike' ? 'Cycle' : 'Walk')} ± {format.duration(minutes)}
+            {metres ? ` (${metres} m)` : ''}
+          </span>
+          {/*
+            **Item 13: the walk's own door to the map.** 9292 gives every walk a link that opens it
+            on the map with the line drawn along the real streets; here it is the same word on the
+            same line as the walk's own minutes, carrying the walk it belongs to.
+          */}
+          <button
+            type="button"
+            className="leg-map-link"
+            aria-label={t('Show this walk on the map')}
+            onClick={() => onShowMap({ kind: 'walk', leg })}
+          >
+            <Icon name="map" size={14} />
+            {t('Map')}
+          </button>
         </span>
-        {/*
-          **Item 13: the walk's own door to the map.** 9292 gives every walk a link that opens it on
-          the map with the line drawn along the real streets; here it is the same word, carrying the
-          walk it belongs to rather than whichever walk happens to be first.
-        */}
-        <button
-          type="button"
-          className="leg-map-link"
-          aria-label={t('Show this walk on the map')}
-          onClick={() => onShowMap({ kind: 'walk', leg })}
-        >
-          <Icon name="map" size={14} />
-          {t('Map')}
-        </button>
         {alert ? <p className="t-sm t-faint">{alertLine(t, alert)}</p> : null}
       </div>
     </li>
