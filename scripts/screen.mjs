@@ -35,11 +35,24 @@ const journey = `/results/${Buffer.from(
   JSON.stringify({ v: 1, f: 'haarlem', t: 'zwolle', d: '2026-11-02', m: 300, tm: 'depart' }),
 ).toString('base64url')}`;
 
-/* The surfaces are listed here, once, and not chosen per answer. `journey` walks the real flow. */
+/*
+ * **The walk is a surface of its own.**
+ *
+ * The gate shot one journey, and that journey began at a station: it had no walk row at all. So the
+ * one place the walk's map link is drawn was never photographed, and the link shipped as a wide grey
+ * button with the verdict reading clean. A surface the gate cannot see is a surface he has to check
+ * for me, which is the thing this script exists to stop.
+ */
+const walkJourney = `/results/${Buffer.from(
+  JSON.stringify({ v: 1, f: 'haarlem', t: 'zwolle', fl: 'Rijksstraatweg 9, Haarlem', fa: 1400, d: '2026-11-02', m: 300, tm: 'depart' }),
+).toString('base64url')}`;
+
+/* The surfaces are listed here, once, and not chosen per answer. `journey` is the card to open. */
 const SURFACES = [
   { name: 'home', path: '/' },
   { name: 'results', path: journey },
-  { name: 'journey', path: journey, journey: true },
+  { name: 'journey', path: journey, journey: 3 },
+  { name: 'journey-walk', path: walkJourney, journey: 1 },
   { name: 'stops', path: '/stops' },
   { name: 'departures', path: '/departures' },
   { name: 'map', path: '/map' },
@@ -131,7 +144,7 @@ for (const surface of SURFACES) {
         await page.waitForTimeout(120);
       }
       if (surface.journey) {
-        await page.locator('.journey-card__link').nth(2).click();
+        await page.locator('.journey-card__link').nth(surface.journey - 1).click();
         await page.waitForSelector('.timeline', { timeout: 15000 });
       }
       if (theme === 'dark') {
