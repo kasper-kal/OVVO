@@ -280,6 +280,29 @@ check(
   'the Outlook row opens its own compose form',
   decodeURIComponent(outlookHref).match(/startdt=[^&]+/)?.[0] ?? 'no start',
 );
+
+/*
+ * **The way back is a button of this app, not the browser's.** It was a bare `<button>` styled as an
+ * underlined word, so the engine drew a square edge inside a sheet where every other control is a
+ * pill — he circled it: "Why is this button square". Shape, height and underline are read here, so
+ * the next square is caught by a number.
+ */
+const backLook = await page.evaluate(() => {
+  const back = [...document.querySelectorAll('.modal button')].find((el) => el.textContent.trim() === 'Back');
+  if (!back) return null;
+  const style = getComputedStyle(back);
+  return {
+    radius: style.borderTopLeftRadius,
+    h: Math.round(back.getBoundingClientRect().height),
+    underline: style.textDecorationLine,
+  };
+});
+check(Boolean(backLook), 'the calendar sheet has a way back');
+if (backLook) {
+  check(parseFloat(backLook.radius) >= 20, "the way back is the app's pill, not a square", `corner ${backLook.radius}`);
+  check(backLook.h >= 44, "and it is the app's 44px target", `${backLook.h}px`);
+  check(backLook.underline === 'none', 'it is a button, not an underlined word', backLook.underline);
+}
 const workHref = await page.locator('a.share-work').getAttribute('href');
 check(/outlook\.office\.com/.test(workHref ?? ''), 'a work account has its own line', workHref?.slice(0, 48));
 

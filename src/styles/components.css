@@ -12942,15 +12942,13 @@
   text-underline-offset: 3px;
   align-self: start;
 }
+/* The way back in the calendar sheet is the app's own button (`.btn`); this hook carries only the
+   space above it. This rule used to be the whole look — a muted, underlined word on a bare browser
+   `<button>`, which drew its own square edge and its own underline inside a sheet made of pills
+   (he circled it: "Why is this button square."). A shape declared in one place and a control drawn
+   from another is how a square got into a sheet. */
 .share-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  align-self: start;
+  margin-top: var(--s-4);
 }
 
 /*
