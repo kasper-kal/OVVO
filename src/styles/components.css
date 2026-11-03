@@ -4287,6 +4287,13 @@
   /* Two pixels, not three: at three the ring read as a heavy plate on the line, where 9292 draws a
      slim mark that the eye reads as a bead on a string. */
   border: 2px solid var(--ink-strong);
+  /*
+   * **A mark sits on top of its line, always.** Each row draws its own stretch of rail that runs past
+   * the row, so the stretches overlap; without this the blue of the row above painted into a small
+   * ring's opening and left it looking chewed at the top. No fill, however opaque, can hide a line
+   * that is drawn after it.
+   */
+  z-index: 2;
 }
 
 .timeline__node--accent {
@@ -12018,25 +12025,29 @@
 }
 
 /*
- * **A stop is a bead on the line, not a hole punched in it.**
+ * **A stop is a small ring of the station's own family.**
  *
- * Two things were wrong with this mark. It sat two pixels below the centre line of its own station
- * name, so an opened service read as a row of beads sliding off their stops. And it was filled with
- * the page's colour, the way a station ring is — but a station ring is where a line *ends*, and a
- * stop is where a line carries on. The fill cut the blue, and left a ring with four pixels of page in
- * it on a four-pixel line: a hole in the middle of the ride.
+ * Three faults came out of this mark in a row, so the reasons are written down here. It sat two
+ * pixels below the centre line of its own name, so an opened service read as beads sliding off their
+ * rows. It was eight pixels wide, a crumb beside fourteen-pixel station rings. And its centre was
+ * open, to let the blue run through — but a four-pixel line inside a four-pixel opening leaves no
+ * room at all: the line's edges touched the ring's stroke and bled through it, so the bead looked
+ * chewed rather than drawn.
  *
- * The station rings keep their opaque centres. A stop's is transparent, so the line it belongs to
- * runs through the opening, and the mark sits on the same centre line as the name beside it.
+ * It is now ten pixels: plainly a smaller member of the same family, never a crumb. Its centre is
+ * filled with the page, like a station ring, so the line stops cleanly at its edge and cannot bleed
+ * inside. And it sits on the centre line of the name beside it. The arrival mark stays a square, and
+ * the change-of-service rings stay fourteen pixels: size is what tells the traveller which of the
+ * three she is looking at.
  */
 .timeline__node--stop {
-  width: 8px;
-  height: 8px;
-  left: calc(var(--rail-node) / 2 - 4px);
-  top: 4px;
+  width: 10px;
+  height: 10px;
+  left: calc(var(--rail-node) / 2 - 5px);
+  top: 3px;
   border: 2px solid var(--ink-strong);
   border-radius: var(--r-circle);
-  background: transparent;
+  background: var(--l0-bg);
 }
 
 /*
