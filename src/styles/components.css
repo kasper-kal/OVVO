@@ -12017,14 +12017,26 @@
   margin-block: -6px;
 }
 
+/*
+ * **A stop is a bead on the line, not a hole punched in it.**
+ *
+ * Two things were wrong with this mark. It sat two pixels below the centre line of its own station
+ * name, so an opened service read as a row of beads sliding off their stops. And it was filled with
+ * the page's colour, the way a station ring is — but a station ring is where a line *ends*, and a
+ * stop is where a line carries on. The fill cut the blue, and left a ring with four pixels of page in
+ * it on a four-pixel line: a hole in the middle of the ride.
+ *
+ * The station rings keep their opaque centres. A stop's is transparent, so the line it belongs to
+ * runs through the opening, and the mark sits on the same centre line as the name beside it.
+ */
 .timeline__node--stop {
   width: 8px;
   height: 8px;
   left: calc(var(--rail-node) / 2 - 4px);
-  top: 6px;
+  top: 4px;
   border: 2px solid var(--ink-strong);
   border-radius: var(--r-circle);
-  background: var(--l0-bg);
+  background: transparent;
 }
 
 /*
