@@ -11986,10 +11986,49 @@
 .timeline__mode {
   position: absolute;
   left: -46px;
-  top: 24px;
+  top: 25px;
   width: 40px;
   display: flex;
   justify-content: flex-end;
-  padding-right: 4px;
+  padding-right: 2px;
   color: var(--ink);
+  line-height: 1;
+}
+
+/* -------------------------------------------------------------- Timetable gutter
+ *
+ * **The times get a column of their own.** Every row printed its time inside the row, so the eye
+ * had to hunt for the one fact a journey is made of. 9292 gives the times a gutter down the left
+ * edge, the mode's glyph under them, and the rail to their right; the column then answers "when"
+ * and "how" before you read a word of the rest.
+ *
+ * These three rules were lost when an edit removed a neighbouring block of styles, and the page
+ * went out with the times back in the text flow and the glyphs hanging off the card's left edge.
+ */
+.timeline {
+  padding-left: 46px;
+}
+
+.timeline__time {
+  position: absolute;
+  left: -46px;
+  top: 6px;
+  width: 40px;
+  text-align: right;
+  font-size: var(--fs-pill);
+  font-weight: var(--fw-bold);
+  color: var(--ink-strong);
+  /* Times line up as a column, so 10:05 and 9:58 sit on the same digits. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* The dot a change leaves on the rail: smaller than a stop, and never a plate. */
+.timeline__node--transfer {
+  width: 6px;
+  height: 6px;
+  left: calc(var(--rail-node) / 2 - 3px);
+  top: 12px;
+  border: 0;
+  background: var(--ink-faint);
 }
