@@ -1,6 +1,6 @@
 # Every address OVVO has
 
-Host: `https://ovvo.onrender.com` — generated from the route table in `src/App.tsx` and the ids in
+Host: `https://ovvo.vibecreations.workers.dev` — generated from the route table in `src/App.tsx` and the ids in
 `src/data/stops.ts` and `src/data/disruptions.ts`, so it lists what the app actually
 answers rather than what it once did. Regenerate it after adding a stop or an alert.
 
@@ -18,6 +18,10 @@ answers rather than what it once did. Regenerate it after adding a stop or an al
 | `/preferences` | Travel preferences — walking, transfers, luggage |
 | `/settings` | Settings — language, appearance, colour, background, storage |
 | `/themes` | Themes, the look of the whole app (the old `/styles` address redirects here) |
+| `/wrapped` | OVVO Wrapped — the traveller's own year |
+| `/signin` | Signing in: Google, a link by email, a password, or a passkey |
+| `/auth/finish` | Where an emailed sign-in link lands (the address named in the mail) |
+| `/developer` | The developer panel, while its switch in Settings is on |
 | `/planner` | Not a screen: sends you to Home |
 | `/journey/<journey id>` | One journey, opened from the results list (see below) |
 | `/stops/<stop id>` | One stop (61 of them, listed below) |
@@ -25,6 +29,11 @@ answers rather than what it once did. Regenerate it after adding a stop or an al
 
 Any other address shows the app's own "Page not found" screen. It answers with the
 app rather than a server error, which matters for anything typed by hand.
+
+The Worker also answers a small API under `/api/*`: `/api/health` (a plain `{"ok":true}`),
+`/api/me` and the travel store (401 without a sign-in token), the sign-up and passkey routes, the
+profile photograph, and the three cached lookups under `/api/lookup/` (address, place name,
+Wikipedia summary).
 
 ## A stop — 61 addresses
 

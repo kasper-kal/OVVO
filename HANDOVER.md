@@ -14,7 +14,7 @@ Keep this file and your `.env` note together. Between the two of them you have e
 | --- | --- | --- |
 | Code | https://github.com/kasper-kal/OVVO | A normal git repository on a GitHub account |
 | The site | Cloudflare, Worker named `ovvo` | https://ovvo.vibecreations.workers.dev |
-| The database | Cloudflare D1, named `ovvo` | Holds one row per signed-in traveller |
+| The database | Cloudflare D1, named `ovvo` | The signed-in traveller's store, their passkeys, their photograph and the rate-limit counters |
 | Sign-in | Google Firebase, project `ovvo-vibecreations` | Google, email+password, email link |
 | Deploying | `wrangler`, run from a copy of the repository | Puts the code and the database together |
 
@@ -68,6 +68,15 @@ VITE_FIREBASE_APP_ID=1:454638608003:web:7b15bd9be71177751585b6
   never in a commit, never in a chat.
 - The **account ID is not secret** — it is an account number, not a key.
 
+**Two more values are Worker secrets, not `.env` names.** They live only in Cloudflare, set once
+with `npx wrangler secret put <NAME>`, and never appear in the repository:
+
+- **`FIREBASE_SERVICE_ACCOUNT`** — a JSON key for the Firebase project, used by
+  `worker/firebase-token.js` for the server-side calls the browser cannot make (deleting the
+  account, for instance).
+- **`TURNSTILE_SECRET`** — Cloudflare's sign-up challenge. While it is absent the challenge is not
+  enforced, which is what a local copy looks like; on a real site it should be set.
+
 Where the six Firebase values come from, if they are ever lost: Firebase console, project
 `ovvo-vibecreations`, the gear icon, **Project settings**, scroll to **Your apps**, the web app, and
 **SDK setup and configuration → Config**. If the web app is gone, add one again; the values change
@@ -117,9 +126,16 @@ It is optional; the manual command is what works today.
 ## 6. The database
 
 - Name `ovvo`, id `ba996f68-d067-46b6-8ea4-3dc05ce38acc`, region WNAM (Western North America).
-- One table, `travel_sync`, defined in **`schema.sql`** at the top of the repository.
-- One row per signed-in traveller: their user id, their email, a document of everything they saved,
-  a revision number, and when it last changed.
+- **Five tables**, all defined in **`schema.sql`** at the top of the repository.
+  - `travel_sync` — one row per signed-in traveller: their user id, their email, a document of
+    everything they saved, a revision number, and when it last changed.
+  - `passkey` — one row per passkey. The public half only, plus a counter, so nothing here can be
+    used to sign in on its own.
+  - `passkey_challenge` — the five-minute question a passkey answers. Deleted the moment it is used.
+  - `profile_photo` — the traveller's squared photograph, kept as a JPEG data URL because Cloudflare
+    will not switch on R2 without a payment method. About thirty kilobytes a row.
+  - `api_limit` — how often one caller may do one thing, counted per caller because there is no
+    domain to point Cloudflare's own rate limiting at.
 
 Reading it:
 
@@ -222,4 +238,7 @@ A 401 there is correct: it means the API refuses to answer without a sign-in.
 - The Firebase library adds about 230 kB (gzipped) to the bundle, because every screen ships in one
   file by design.
 - No custom domain, by choice.
-- OVVO Wrapped is **planned, not built**. Nothing in the app pretends otherwise.
+- OVVO Wrapped **is built** (`/wrapped`, `src/pages/WrappedPage.tsx`): the traveller's own year,
+  drawn from what they saved and searched. It is a screen of its own rather than a section.
+- A real end-to-end sign-in has not been walked on a phone yet. The code, the routes and the
+  database are in place; the one untested step is a person signing in for the first time.

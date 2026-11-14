@@ -3,7 +3,11 @@
 An independent Dutch public transport journey planner. The interface is complete and
 functional; the data layer ships with this build's own network data and is isolated
 behind the same shapes a live timetable source uses, so it can be swapped without
-touching a single screen.
+touching a single screen. Swapping that data for real services is the one piece of work
+left to call it live.
+
+Every document in the project is listed, with what it is for, under *Documents* at the end of
+this file.
 
 The name is **OVVO** and the mark is a 2x2 checkerboard: O and V over V and O. The
 artwork's outline lives in `src/components/ui/Icons.tsx` as three paths (`BRAND_INK`) in a
@@ -21,10 +25,11 @@ benefit.
 ## Run it
 
 ```bash
-npm install          # install from the lockfile (dependencies are not pre-installed)
+npm ci               # install exactly the versions in package-lock.json
 npm run dev          # Vite dev server on http://localhost:3000
-npm run build        # typecheck (tsc --noEmit) + production build into dist/
-npm run typecheck
+npm run build        # typecheck (tsc --noEmit), the style audits, then dist/
+npm run deploy       # build, then put the site live with wrangler
+npm run typecheck    # TypeScript only
 ```
 
 The app is a single-page React app. Routes are real paths (`/stops/utrecht-centraal`), so
@@ -76,12 +81,17 @@ It ends by asking the running server for the app with that hostname and failing 
 `200`, so "the server is up" is a measurement here rather than a hopeful line in a log. Run it with
 no hostname and the server stays localhost-only, which is the right default for a plain checkout.
 
-The live site is served from Render by `npm run preview`, which checks the same header and
-refused it until its own address was named. `vite.config.ts` therefore also allows
-`ovvo.onrender.com` and whatever `RENDER_EXTERNAL_HOSTNAME` holds (Render sets that per
-service, so a pull-request preview on `ovvo-pr-<n>.onrender.com` needs no edit), plus a
-comma-separated `ALLOWED_HOSTS` for anywhere else. Each host is named individually: the
-allow-list is never `true`, so an unknown `Host` still gets a 403.
+The live site is served by the **Cloudflare Worker `ovvo`** at
+`https://ovvo.vibecreations.workers.dev`. `npm run deploy` builds the app and uploads two
+things in one Worker: the files in `dist/` as static assets, and `worker/index.js`, which answers
+`/api/*` itself and hands every other request to those files (`wrangler.jsonc` ties the two
+together). A deep address is answered by the SPA fallback rather than a 404, so `/stops/utrecht-centraal`
+survives a refresh on the live site as well as locally.
+
+`vite.config.ts` still names the addresses the app may be *served* from, because `vite preview`
+validates the `Host` header too. `ovvo.onrender.com` and `RENDER_EXTERNAL_HOSTNAME` are kept for the
+older Render deployment, and `ALLOWED_HOSTS` takes a comma-separated list for anywhere else. Each
+host is named individually: the allow-list is never `true`, so an unknown `Host` still gets a 403.
 
 ## Screens
 
@@ -95,7 +105,12 @@ allow-list is never `true`, so an unknown `Host` still gets a 403.
 | `/disruptions`, `/disruptions/:id` | Service alerts with filters, detail, advice, navigation |
 | `/preferences` | Travel preferences with a live preview of their effect |
 | `/settings` | Display settings, location access, planner defaults and local data management |
-| `/themes` | Themes: fifty whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. `/styles` redirects here |
+| `/themes` | Themes: forty whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. `/styles` redirects here |
+| `/map` | The network map on a screen of its own (closed below 10% battery, with Settings) |
+| `/wrapped` | OVVO Wrapped: the traveller's own year, drawn from what they saved and searched |
+| `/signin`, `/auth/finish` | Signing in, and the page an emailed sign-in link lands on — both outside the shell |
+| `/developer` | The developer panel, reachable only while its switch in Settings is on |
+| `/skeleton` | Development only: the loading placeholder on a page of its own. Never in a build |
 
 No route scrolls sideways: every screen is checked for horizontal overflow from 320px up.
 
@@ -122,7 +137,7 @@ delete-all button for the search history.
 The home screen is a 12-column widget grid. Customising it is deliberately out of the way:
 a small, muted “Customise home” control sits at the very foot of the page. Only then does
 each removable widget show the same remove × in the same top-right slot of its card, and
-only then does the **Add widget** catalogue (9 widgets, grouped Plan / Travel information /
+only then does the **Add widget** catalogue (16 widgets, grouped Plan / Travel information /
 Yours) become reachable. The planner widget is required and never shows a remove
 control; the layout lives in this browser. With customising off, none of that chrome is
 rendered at all.
@@ -132,7 +147,8 @@ something of the traveller’s or do something for them. Seventeen cards became 
 network counts, the operator list, the About card, the settings echo, the navigation
 duplicate and the “stored on this device” card were cut, the two lists of journeys were
 merged into **Your journeys**, and the alerts card became the alerts that touch a journey
-you saved. A fresh browser opens with **Plan a journey**, **Next departures** (untied: it
+you saved. The catalogue has since grown back to **sixteen** cards, each admitted on the same
+test rather than on how the old list was arranged. A fresh browser opens with **Plan a journey**, **Next departures** (untied: it
 asks for one station in the card itself) and **Favourite stops** — the three cards that
 answer the question a traveller arrives with.
 
@@ -359,29 +375,56 @@ audits check:
   it was once dropped from `main.tsx` and the stop page's map silently rendered as an
   unstyled black rectangle.
 
-Settings, preferences, pins, favourited journeys, recent searches, the widget layout and
-the location answer are stored in `localStorage` (`ov-planner:v1:*`). No account, cookie or
-server-side storage is used.
+Settings, preferences, pins, favourited journeys, recent searches, the widget layout, the
+location answer and the sign-in state are stored in `localStorage` (`ov-planner:v1:*`).
 
-**Two things leave the browser**, both of them to place the traveller on the list of stops, and
-neither of them with a key, an account or anything of the traveller's own in it.
+**Signed out, there is no account, no cookie and no server-side copy of anything.** The app is a
+local app that makes three kinds of request, and none of them carries an account, a profile or the
+traveller's own data.
 
 *Turning a position into a place name.* "Use my current location" resolves the device position
-to a street address through **OpenStreetMap's Nominatim** (`src/lib/reverseGeocode.ts`) — one
-request per tap, asked for one point, credited where the address is shown. If the lookup fails,
-or the app is offline, the row falls back to the nearest stop, which is what it did before the
-lookup existed.
+to a street address through **OpenStreetMap's Nominatim** (`src/lib/reverseGeocode.ts`), one
+request per tap, asked for one point, credited where the address is shown. If the lookup fails, or
+the app is offline, the row falls back to the nearest stop, which is what it did before the lookup
+existed.
+
+*A stop's Wikipedia paragraph.* A stop with an article draws its first sentences through
+**Wikipedia's API** (`src/lib/wikipedia.ts`).
 
 *Finding roughly where the traveller is when the device will not say.* The stops list sorts
 nearest-first, and when there is no device fix it uses a coarse country/city-level estimate from
-the public IP, so it asks for one on load: **`ipwho.is`**, then **`freeipapi.com`** as a second
-provider (`src/lib/approximateLocation.ts`), first answer wins, any failure silent. The estimate is
-cached in `localStorage` for **a day** rather than re-asked per visit, and the screen says which
-of the two it is using — *"from an approximate IP location — it can be off by a lot"* — because
-an estimate presented as a measurement is a different kind of lie from no estimate at all. With
-the device's own fix the estimate is ignored; with neither, the list sorts by city and says so.
+the public IP: **`ipwho.is`**, then **`freeipapi.com`** as a second provider
+(`src/lib/approximateLocation.ts`), first answer wins, any failure silent. The estimate is cached
+in `localStorage` for **a day** rather than re-asked per visit, and the screen says which of the
+two it is using — *"from an approximate IP location — it can be off by a lot"* — because an
+estimate presented as a measurement is a different kind of lie from no estimate at all. With the
+device's own fix the estimate is ignored; with neither, the list sorts by city and says so.
+
+The address, place-name and Wikipedia requests do not go to those services from the browser any
+more: they go to this site's own Worker (`/api/lookup/*` in `worker/lookup.js`), which forwards one
+request and answers with cache headers so Cloudflare's edge keeps the reply. A repeat question is
+then answered without the vendor being called again, and the traveller's IP reaches one host of
+ours instead of three.
 
 The device's position is not stored anywhere else, and nothing else is sent.
+
+## Accounts
+
+Signing in is optional and changes nothing until somebody asks for it. Three ways in, all through
+Firebase Authentication: **Google**, **a link by email**, and **email with a password**; a passkey
+(a fingerprint or face on the device) can be added or used instead (`worker/passkey.js`,
+`src/lib/passkeys.ts`).
+
+Once signed in, the whole local store travels as **one document per account** in D1
+(`travel_sync`), pushed shortly after any change and read back on the next device, so a saved
+journey or a year of Wrapped is not lost when a browser is cleared. Two rules keep that honest: a
+save names the revision it was built on, so two devices merge instead of one erasing the other,
+and a device that has never synced only has its gaps filled, so the first sign-in cannot empty a
+phone that was already in use. A profile photograph is squared and kept in the same database, and
+the sign-up door is rate-limited per address (`api_limit`).
+
+Deleting the account erases that document first and then the account itself. The record of what was
+built, and what is still untested, is `GOING-LIVE.md`.
 
 ## Dev-only checks
 
@@ -404,7 +447,7 @@ node scripts/class-audit.mjs
 #   npx playwright install chromium
 # and a dev server on :3000 (or pass an origin). In a restored sandbox Playwright's Chromium
 # exits 127 for a dozen missing system libraries and there is no root to install them, so
-# `source .logs/playwright-libs.sh` first: it fetches them as .deb packages into $HOME/syslibs,
+# `source scripts/browser-env.sh` first: it fetches them as .deb packages into $HOME/syslibs,
 # writes the fontconfig file the browser needs to repaint, and exports LD_LIBRARY_PATH and
 # FONTCONFIG_FILE. Every browser check and probe below goes through it
 node scripts/icon-audit.mjs
@@ -468,17 +511,6 @@ node scripts/ui-audit.mjs
 # journey announced as "Utrecht CentraalAmsterdam Centraal" were found.
 node scripts/screen-reader-audit.mjs
 
-# the dashed enclosure, as paint: screenshots the empty box from a real browser and walks its
-# straight edge and its four corner arcs per position (PIL), because "the corners got done" is a
-# claim about pixels, not about CSS
-node .logs/empty-ring-check.cjs
-
-# the chunk rule, on every list that holds items back: what loads must equal five times what
-# the layout puts side by side, and one press must add exactly one batch — measured at 390,
-# 900 and 1440 on the stops grid, the board page's favourites row, the results screen's
-# carrier row and the departure rows themselves
-node .logs/round10-check.cjs
-
 # every piece of interface text that does not start with a capital letter. Walks 18 screens
 # and states in both languages (text nodes, placeholders, aria-labels), then scans the rest of
 # the Dutch dictionary and the JSX literals the walk cannot reach; sorts each hit into label /
@@ -486,24 +518,15 @@ node .logs/round10-check.cjs
 # server on :3000 (or CAPS_URL). Exits 1 on a lowercase label or sentence, so it gates.
 node scripts/caps-audit.mjs
 
-# the one-colour theme, as behaviour (R108): cream is the default and Reset returns to it, a tint
-# paints the page's wash, every widget card and the sidebar and flips the card's ink when it is
-# dark, glass blurs and stays translucent over a photo, the solid treatment paints the tint, the
-# eyedropper takes a pixel out of the stored wallpaper, the choice survives a reload and nothing
-# overflows a 390px phone. Exits 1 on a failure.
-node .logs/tint-check.cjs
-
-# the same theme as *contrast*, route by route: it resolves the nearest painted surface behind
-# every text node (compositing translucent layers, and over a photo against a black *and* a white
-# wallpaper, because a wallpaper is unknown) and reports any pair under 4.5:1. 5 tints × 2
-# appearances + 4 photo cases × 10 routes — the instrument that found the map's labels at 1.11:1
-# on a dark tint and iOS blue at 4.34:1 under its own ink
-node .logs/tint-contrast.cjs
-
 # the icon set as a page to look at: every name at every size it is drawn at, rendered from
 # the same components the app renders -> .shots/r57/icon-set.html
 node scripts/icon-sheet.mjs
 ```
+
+Four older instruments — the dashed-enclosure check, the chunk-rule check and the two tint checks
+(`tint-check`, `tint-contrast`) — lived in the gitignored `.logs/` folder and are **not in the
+repository**, so their commands are no longer printed here. Their measurements are still cited in
+`DESIGN_DECISIONS.md` and in the reports they wrote.
 
 The first three run outside the app bundle and need nothing beyond esbuild (already present
 through Vite). The browser audits (`icon-audit`, `ui-audit`, `caps-audit`, `precision-audit`)
@@ -611,10 +634,19 @@ nothing but the saving.
 
 ## Status
 
-The interface is feature-complete for the current design. The remaining work to make it
-production is data: pointing `src/data` at real timetable, alert and geocoding sources,
-and giving the map widget a geographic basemap (coastline and water) behind the network it
-already draws. Accounts and server-side storage are not started.
+The interface is feature-complete for the current design, and the account layer is built: sign-in
+three ways plus passkeys, a traveller's store kept in D1 and carried between devices, a profile
+photograph, and rate limits on the doors that need them. OVVO Wrapped exists as its own screen
+(`/wrapped`).
+
+What is still missing to call it production is **data**, not screens: `src/data` still holds this
+build's own demonstration network, so the planner, the alerts and the boards answer from it rather
+than from a live timetable source, and the map has no geographic basemap (coastline and water)
+behind the network it already draws. Swapping `src/data` is the work, and the screens do not have
+to change for it.
+
+Two smaller known gaps: a real end-to-end sign-in has not been walked on a phone yet (recorded in
+`GOING-LIVE.md`), and the sign-in screens and account card are English only.
 
 Scheduling a journey uses the device's own date and time pickers (`<input type="date">` and
 `<input type="time">` in the results screen's *When* dialog). A native control draws in the
@@ -623,3 +655,39 @@ answer is printed under the fields in the app's own format, and the stored value
 minutes since midnight) is unaffected either way. The second language covers the interface rather than the data; **85 interface strings are still
 English in Dutch** (`DESIGN_DECISIONS.md` P5), concentrated in the alerts list, the stop page, the
 journey page and the preference controls.
+
+## Documents
+
+This file is the front door. The rest, and what each one is for — read a document as a record of
+the day it names, not as a description of the app today:
+
+**Live — keep these true.**
+
+| Document | What it holds |
+| --- | --- |
+| `AGENTS.md` | The system rules this project is worked to. Read before any change |
+| `AGENT-BRIEF.md` | How the steerer works: his standard, the audit doctrine, the definition of done |
+| `GOING-LIVE.md` | Every decision and fact about the real account: Cloudflare, D1, Firebase, mail, measured results. Add to it the moment something is decided |
+| `HANDOVER.md` | Everything needed to run, move or rebuild the site without the agent that built it |
+| `DESIGN_DECISIONS.md` | The decision log: what was decided, why, and which values are approved |
+| `USER-FIXES.md` | The work order: every request in the steerer's words, and whether it was done |
+| `CREDITS.md` | Where the music, photographs and fonts came from |
+| `URLS.md` | Every address the app answers, generated from the route table and the data |
+
+**Records of a finished round — kept as written, cited by the audits.**
+
+| Document | The round it records |
+| --- | --- |
+| `AUDIT-PLAN.md` | The 32-section screen audit. Every section is done; nothing in it is pending |
+| `MOBILE-FIXES.md` | The phone-width fix batch |
+| `FIXES-APPLIED.md` | The nine-item round, with the procedure for going back |
+| `STALE-FILES.md` | The tree cleanup, executed 2026-10-15. Historical inventory, not a current list |
+| `CONSISTENCY-AUDIT.md`, `STRICT-AUDIT.md`, `TORTURE-AUDIT.md` | What each sweep found and the rules the audits enforce |
+| `TEXT-VS-ICON-AUDIT.md` | Where the interface writes a word it owns a glyph for. An audit, not a fix |
+| `WIDGET-AUDIT.md` | Why the home catalogue holds what it holds |
+| `STYLE-SWEEP-FINDINGS.md`, `WALLPAPERS-STYLES.md` | The theme and wallpaper sweeps. The catalogue has since grown to forty themes |
+| `COLOURS_PLAN.md`, `MATCHING_PLAN.md`, `THEMES_PLAN.md` | Plans written before their code, kept as written. All three are built |
+| `DESKTOP-FIXES.md` | An empty placeholder: no desktop batch has been written into it |
+
+The dev-only checks in *Dev-only checks* above are the instruments that back the claims in this
+file and in `DESIGN_DECISIONS.md`.

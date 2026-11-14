@@ -302,3 +302,37 @@ taken back from it, because they describe the device and not the traveller: `loc
 `location-fix`, `approximate-location` and `install-asked`.
 
 Deleting the account erases that document first, then the account itself.
+
+## Where the account layer stands (14 November 2026)
+
+Written down because the last three weeks of this file describe decisions, and this section is the
+state of the code that carries them out.
+
+**Built and in the repository:**
+
+- **Sign-in, four ways** — Google, a link by email (landing on `/auth/finish`), email with a password,
+  and a passkey. `src/pages/SignInPage.tsx`, `src/lib/account.ts`, `src/lib/passkeys.ts`, and
+  `worker/passkey.js` for the server half of the keys.
+- **The store travels** — one document per account in `travel_sync`, saved with the revision it was
+  built on, so two devices merge rather than overwrite (`worker/index.js`).
+- **A photograph per account** — squared, size-checked, kept in `profile_photo` in the same database
+  (`worker/photos.js`).
+- **Doors are counted** — `api_limit` holds the per-caller window, because Cloudflare's own rate
+  limiting wants a domain this project deliberately does not have (`worker/limit.js`).
+- **The three lookups are cached at the edge** — `/api/lookup/*`, measured live as a `MISS` then a
+  `HIT` with the Worker not running for the second (see above).
+- **The sign-up challenge** is Cloudflare Turnstile, enforced only when `TURNSTILE_SECRET` is set
+  (`worker/turnstile.js`).
+- **OVVO Wrapped is built** — `/wrapped`, drawn from what the traveller saved and searched.
+
+**Checked, and how:** the project's own type check, its style audits and a production build all pass
+in a clean checkout (`npm run typecheck`, `npm run build`). That is a statement about the code, not
+about the live site.
+
+**Still to do:** a real end-to-end sign-in by the steerer on a real phone, which is the one step no
+agent can walk for him. Until that happens, treat the account layer as working but unproven in a
+browser.
+
+**One cost, unchanged since it was measured:** the Firebase sign-in code adds about 230 kB
+(gzipped) to the bundle, because every screen ships in one file by design. Worth splitting the
+heaviest screens out if first load is measured to suffer on a phone.
