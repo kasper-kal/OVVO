@@ -17,3 +17,6 @@ artifacts/
 
 # Local Wrangler state: the dev database, its cache and its session rows. It belongs to this machine only.
 .wrangler/
+
+# generated screenshots from scripts/look.mjs
+/.look-shots/

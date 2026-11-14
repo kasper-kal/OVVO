@@ -197,7 +197,9 @@ export function SignInPage() {
           </Card>
 
           <p className="t-sm">
-            <Link to={returnTo}>{t('Back to OVVO')}</Link>
+            <Link to={returnTo} className="tap-target">
+              {t('Back to OVVO')}
+            </Link>
           </p>
         </div>
       </main>
@@ -513,7 +515,9 @@ export function SignInPage() {
             </div>
           </Card>
         ) : null}          <p className="t-sm">
-            <Link to={returnTo}>{t('Back to OVVO')}</Link>
+            <Link to={returnTo} className="tap-target">
+              {t('Back to OVVO')}
+            </Link>
           </p>
       </div>
     </main>
