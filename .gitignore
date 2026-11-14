@@ -20,3 +20,6 @@ artifacts/
 
 # generated screenshots from scripts/look.mjs
 /.look-shots/
+
+# timetable archives and unpacked data: reproducible, and far too large for Git
+/.gtfs-cache/
