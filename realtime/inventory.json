@@ -1,0 +1,174 @@
+{
+  "measuredAt": "2026-11-14T23:11:36.741Z",
+  "feeds": [
+    {
+      "name": "vehiclePositions",
+      "label": "vehicles",
+      "url": "https://gtfs.ovapi.nl/nl/vehiclePositions.pb",
+      "status": "ok",
+      "httpStatus": 200,
+      "bytes": 164408,
+      "contentType": null,
+      "fetchedInMs": 1055,
+      "ageSeconds": 12,
+      "version": "1.0",
+      "headerTimestamp": "2026-11-14T23:11:26.000Z",
+      "alertSelectors": {
+        "routes": 0,
+        "stops": 0,
+        "agencies": 0,
+        "withoutSelector": 0
+      },
+      "entities": 1198,
+      "deleted": 0,
+      "counts": {
+        "tripUpdates": 0,
+        "vehicles": 1198,
+        "alerts": 0
+      },
+      "stopTimeUpdates": 0,
+      "namedTrips": 1193,
+      "namedRoutes": 503,
+      "sampleTrips": [
+        "396449558",
+        "396449565",
+        "391526237",
+        "396986061",
+        "391527195"
+      ],
+      "sampleRoutes": [
+        "152361",
+        "141806",
+        "163429",
+        "154700",
+        "152368"
+      ],
+      "messageTime": {
+        "header": "2026-11-14T23:11:26.000Z",
+        "oldestEntity": "2026-09-14T17:13:12.000Z",
+        "newestEntity": "2026-11-14T23:11:25.000Z"
+      },
+      "causes": [],
+      "effects": []
+    },
+    {
+      "name": "tripUpdates",
+      "label": "trip updates",
+      "url": "https://gtfs.ovapi.nl/nl/tripUpdates.pb",
+      "status": "ok",
+      "httpStatus": 200,
+      "bytes": 2269402,
+      "contentType": null,
+      "fetchedInMs": 1278,
+      "ageSeconds": 13,
+      "version": "1.0",
+      "headerTimestamp": "2026-11-14T23:11:26.000Z",
+      "alertSelectors": {
+        "routes": 0,
+        "stops": 0,
+        "agencies": 0,
+        "withoutSelector": 0
+      },
+      "entities": 4700,
+      "deleted": 0,
+      "counts": {
+        "tripUpdates": 4700,
+        "vehicles": 0,
+        "alerts": 0
+      },
+      "stopTimeUpdates": 4659,
+      "namedTrips": 4700,
+      "namedRoutes": 628,
+      "sampleTrips": [
+        "390181602",
+        "391526237",
+        "391527195",
+        "390181603",
+        "390181605"
+      ],
+      "sampleRoutes": [
+        "151339",
+        "141806",
+        "163703",
+        "147346",
+        "152328"
+      ],
+      "messageTime": {
+        "header": "2026-11-14T23:11:26.000Z",
+        "oldestEntity": null,
+        "newestEntity": null
+      },
+      "causes": [],
+      "effects": []
+    },
+    {
+      "name": "alerts",
+      "label": "service alerts",
+      "url": "https://gtfs.ovapi.nl/nl/alerts.pb",
+      "status": "ok",
+      "httpStatus": 200,
+      "bytes": 442300,
+      "contentType": null,
+      "fetchedInMs": 172,
+      "ageSeconds": 13,
+      "version": "1.0",
+      "headerTimestamp": "2026-11-14T23:11:26.000Z",
+      "alertSelectors": {
+        "routes": 0,
+        "stops": 0,
+        "agencies": 0,
+        "withoutSelector": 823
+      },
+      "entities": 823,
+      "deleted": 0,
+      "counts": {
+        "tripUpdates": 0,
+        "vehicles": 0,
+        "alerts": 823
+      },
+      "stopTimeUpdates": 0,
+      "namedTrips": 0,
+      "namedRoutes": 0,
+      "sampleTrips": [],
+      "sampleRoutes": [],
+      "messageTime": {
+        "header": "2026-11-14T23:11:26.000Z",
+        "oldestEntity": null,
+        "newestEntity": null
+      },
+      "causes": [
+        [
+          8,
+          445
+        ],
+        [
+          4,
+          101
+        ],
+        [
+          6,
+          90
+        ],
+        [
+          7,
+          83
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "effects": []
+    }
+  ],
+  "summary": {
+    "feedsChecked": 3,
+    "feedsOk": 3,
+    "feedsFailed": 0,
+    "newestMessageAgeSeconds": 12,
+    "oldestMessageAgeSeconds": 13,
+    "staleAfterSeconds": 300,
+    "matchesTimetable": true,
+    "note": "Counts and ages are from the payload bytes at measuredAt. Matching a feed trip to a scheduled trip needs the timetable index; a named trip id here does not prove the match."
+  }
+}

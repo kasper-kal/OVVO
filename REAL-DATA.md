@@ -152,3 +152,88 @@ does not depend on the engine can proceed in this order, and none of it needs a 
 4. Build the internet-facing `/api/journey` contract and typed adapter, so the engine is a drop-in
    behind a tested boundary rather than a rewrite.
 5. Turn the mention of a mock in production into a hard error, so demo data cannot leak.
+
+## 8. Round two — stops, boards and realtime, same day
+
+This section supersedes the matrix in section 6 where the two disagree; section 6 is left as it was
+written, so the record shows what was true before this round.
+
+### Stop pages and departure boards now use the real timetable
+
+The app's stop list is hand-built — 61 stations and landmarks with a schematic map position,
+facilities and operators — and replacing it with 53,612 raw GTFS stops would have thrown away the
+approved design to gain nothing the traveller can see. So the two are **joined**:
+
+| What | Measured |
+| --- | --- |
+| Stops in the app | 60 (one seed has no coordinate pair, so it is not a map stop) |
+| Matched to a real GTFS stop | **53** |
+| Unmatched | 7 — Vondelpark, Anne Frank House, Binnenhof, Erasmusbrug, Markthal, Domtoren, Buiksloterweg ferry. Six are landmarks, which are not stops in the feed at all; the ferry's name differs in the feed |
+| Real departures generated | 17,457, for the next two service days |
+| Per stop, per day | capped at 250; the cap is filled in file order, so it is a spread across the day rather than a complete board |
+| Generated module | `src/data/generated/boards.ts`, 1,259 KB, holds the feed's name and SHA-256 |
+| Build time | 21 seconds over the cached archive |
+
+Each row carries the real line number, the real headsign, the operator name and the platform the
+feed gives — and **no delay**, because a scheduled time is not a prediction. `boardForStop` returns
+the real rows when the feed has them; a stop with no real rows gets an empty board, never an
+invented one.
+
+**The 250 cap is a real limitation, not a detail.** At a station with 1,400 departures a day, the
+traveller sees 250 of them; the ones missing are dropped silently, and there is no way to tell from
+the screen. The fix is per-hour thinning (keep the next few from each hour instead of a flat cap),
+which keeps a full day in the same number of rows. Until then the board is real but not complete,
+and this file says so rather than letting the screen imply otherwise.
+
+### Realtime is parsed and inventoried
+
+`scripts/realtime/probe.mjs` decodes all three feeds by hand — no dependency, no schema tool — and
+writes `realtime/inventory.json`. Measured at 14 November 2026, 23:0x UTC:
+
+| Feed | Bytes | Entities | Named trips | Named routes | Age |
+| --- | --- | --- | --- | --- | --- |
+| Vehicle positions | 164,408 | 1,198 | 1,193 | 503 | 12 s |
+| Trip updates | 2,269,402 | 4,700 | 4,700 | 628 | 13 s |
+| Service alerts | 442,300 | 823 | 0 (by design) | 0 | 13 s |
+
+An alert names no trip: it carries selectors for a route, a stop or an agency, and the probe counts
+those separately. Every feed was fresh to within 13 seconds, which is the first real evidence that
+these are live and not an archived snapshot.
+
+**Operational finding: the feeds rate-limit.** Three runs in quick succession answered `429` on all
+three URLs, and only cleared after several minutes. Any integration must cache, back off and poll on
+a schedule — a page that fetched on every view would be blocked. That is measured behaviour, not a
+warning from a document.
+
+### Prototype data can no longer look real
+
+Two changes, both small and both structural:
+
+- **One switch.** `src/lib/dataMode.ts` decides whether sample data may be generated at all. In a
+development run it may; in a production build it may **not**, unless the build is made with
+`VITE_ALLOW_DEMO=1` on purpose. A screen with no real source now shows nothing rather than
+something plausible.
+- **One label.** Every board whose rows are invented now says *"Sample times, not a live feed"* in
+its foot. Before this, a generated board and a real one were the same pixels.
+
+### Revised matrix
+
+| Feature | Status | Evidence |
+| --- | --- | --- |
+| Timetable acquisition, validation, last-good | **COMPLETE** | Section 1; failure paths exercised |
+| Stop pages and departure boards | **PARTIAL** | 53 of 60 stops serve real scheduled departures; the 7 landmarks have none; line boards cannot yet be answered from the feed |
+| Realtime feed inventory | **COMPLETE** | Three feeds parsed, counted, aged; `realtime/inventory.json` |
+| Realtime applied to boards or journeys | **NOT STARTED** | Needs trip matching to the timetable and the engine |
+| Prototype data labelled and gated | **COMPLETE** for boards | `lib/dataMode`, board foot label, production build refuses sample boards |
+| Prototype journeys | **PARTIAL** | Still generated in development and still unlabelled on the results screen; gating them needs an honest unavailable state on that screen first |
+| Disruptions from real alerts | **NOT STARTED** | Feed parsed; nothing wired to the screen |
+| Routing engine, real journeys | **BLOCKED** | Section 4 |
+| Real map | **NOT STARTED** | Unchanged |
+
+### Commands this round added
+
+```
+node scripts/gtfs/build-app-data.mjs   # regenerate real boards for the app's stops (21 s)
+node scripts/realtime/probe.mjs        # fetch, parse and inventory the three feeds
+node scripts/realtime/probe.mjs --report   # print the last inventory, fetch nothing
+```

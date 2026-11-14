@@ -220,6 +220,17 @@ export function BoardList({
           <span className="t-sm t-faint">
             {t('{total} departures in this window', { total: departures.length })}
           </span>
+          {/*
+            **Invented times are never allowed to look like a real answer.**
+
+            Until this line existed, a board built from `./departures` and a board read out of the
+            national timetable were the same pixels: a plausible time, a plausible platform, no
+            hint which was which. Every sample row now says so, on the same foot as the count, and
+            a build without sample data cannot produce one at all (`lib/dataMode`).
+          */}
+          {departures.some((departure) => departure.source === 'demo') ? (
+            <span className="t-sm t-muted">{t('Sample times, not a live feed')}</span>
+          ) : null}
         </div>
       ) : null}
     </div>

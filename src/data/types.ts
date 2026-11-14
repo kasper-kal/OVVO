@@ -196,7 +196,11 @@ export interface Departure {
   disruptionId?: string;
   /** direction index within the line (0 = A direction, 1 = B direction) */
   directionIndex: 0 | 1;
-  source: 'demo';
+  /**
+   * Where this row came from, and the only thing a screen may trust about its origin.
+   * `timetable` is a scheduled time read out of the national GTFS feed; `demo` is invented.
+   */
+  source: 'demo' | 'timetable';
 }
 
 export interface TimeWindow {
