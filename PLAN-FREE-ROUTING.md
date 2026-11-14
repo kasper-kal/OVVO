@@ -1,0 +1,154 @@
+# Plan — real journeys, with no paid service
+
+## Summary (read this and you have the whole plan)
+
+We build the journey search ourselves and run it on free infrastructure. No Java server, no rented
+machine, no card, no trial that ends. The national timetable is already downloaded and checked, and
+the three live feeds already decode, so the only missing piece is the search itself.
+
+The plan is one experiment first, then four build steps. The experiment decides the scope: a free
+serverless function gets very little processor time per request, so step 0 measures whether one
+search across the whole country fits inside it. If it fits, OVVO plans nationwide for free. If it
+does not fit, the same code runs on a smaller region and the app says so on screen — real answers
+either way, and still free.
+
+Nothing in this plan costs money, and any option that does is out of scope permanently.
+
+## The rule this plan obeys
+
+> **No card anywhere.** Every service must have a permanently free plan.
+
+That is the steerer's rule and it is not a preference to be weighed against convenience. A paid host
+is not a fallback, not a recommendation and not something to ask about again.
+
+## What already exists (measured, not assumed)
+
+| Piece | State |
+| --- | --- |
+| National timetable | Active: 53,612 stops, 608,596 trips, 11,336,204 stop times, valid 14 Nov – 12 Dec 2026 |
+| Timetable pipeline | Complete: resolves the newest archive, verifies, validates, keeps the last good copy |
+| Stop boards | Real scheduled departures for 53 of the app's 60 stops |
+| Live feeds | All three decode: 1,198 vehicles, 4,700 trip updates, 823 alerts, ~12 seconds old |
+| Free platform limits | 10 ms processor time and 128 MB memory per request; 100,000 requests a day; static files free and unlimited, 25 MiB each, 20,000 of them |
+| Journey planning | Still invented in the browser. This plan replaces it |
+
+## The shape we are building towards
+
+```
+GTFS archive ──► graph builder (offline, free) ──► static graph files (free to serve)
+                                                          │
+browser ──► /api/journey ──► search in the function ──────┘
+                │
+                └──► typed result the approved UI already understands
+```
+
+The graph is built once by a script, not on every request. It is served as ordinary static files,
+which are free and unmetered, so no process has to stay warm and nothing has to be rented.
+
+## Step 0 — the experiment that decides the scope (do this first)
+
+**Question:** does one real search fit in 10 ms of processor time and 128 MB of memory?
+
+1. Build a compact graph for one region first — connections sorted by departure, in typed arrays,
+   with walking links between stops within 400 m.
+2. Write the search (connection scan, the simplest correct algorithm) in plain TypeScript.
+3. Run real queries — Utrecht Centraal to Amsterdam Centraal, a cross-country pair, a short hop —
+   and measure processor time per query, memory, and the size of the graph each query needs.
+4. Repeat with the national graph and the same three queries.
+
+**Outcome A — it fits.** National journeys on the free tier. Continue to step 3 with national data.
+
+**Outcome B — it does not fit.** Two free remedies, tried in this order:
+
+- **Shard the graph.** Load only the region a query touches (a file fetch costs no processor time),
+  so one request never scans the whole country.
+- **A different free runtime.** Some serverless free tiers allow more time per request and need no
+  card. If a free one does, the same code runs there.
+
+**Outcome C — no free arrangement fits.** Then the first release covers a region, chosen by real
+usage, and the app states the limit on screen. This is still real data, still free, and is reported
+as PARTIAL rather than dressed up as national.
+
+Nothing is built beyond step 0 until its result is written down here.
+
+## Step 1 — the graph builder
+
+A script that turns the verified archive into the files the search reads:
+
+- stops and their coordinates, stations grouped with their platforms;
+- every connection (departure, arrival, from stop, to stop, trip) sorted by departure time;
+- services per calendar date, including exceptions, so a Sunday and a public holiday differ;
+- walking links between stops that are genuinely close, computed from coordinates already in the feed;
+- times kept as seconds, so services after midnight (25:10:00) stay in the right order.
+
+The builder refuses to publish a graph that fails its own checks: every stop referenced must exist,
+every connection must move forward in time, every date must have a service. A failed build leaves the
+previous graph in place, exactly as the timetable pipeline does.
+
+## Step 2 — the search itself
+
+Connection scan first: one forward pass over departure-sorted connections gives the earliest arrival
+for every stop from one origin. That covers "leave at" and, run backwards, "arrive by". It is small,
+it is well understood, and it is easy to test. It handles:
+
+- a minimum transfer time at each stop, so a 0-minute change is not offered;
+- staying on the same vehicle across stops (no false transfer);
+- walking legs between nearby stops;
+- a limit on the number of changes, and a limit on total walking.
+
+Preferences are only honoured if the search actually applies them. A setting the search ignores —
+step-free routing, bicycle carriage — is not shown as applied; it is reported as not yet supported.
+
+## Step 3 — the contract between search and screen
+
+`/api/journey` takes origin, destination, date, time, arrival-by or departure-at, and the supported
+preferences, and returns itineraries shaped like the `Journey` the approved UI already draws. The
+adapter is the only place that knows the search's internal types.
+
+Honest answers, in this order of preference: real itineraries; a specific, explainable failure (no
+route at that time, origin unknown, search timed out); and never an invented journey. The search does
+not guess a station or make up a departure to fill a screen.
+
+## Step 4 — wire it and make invention impossible
+
+- The results screen reads `/api/journey`. In a production build the invented journeys are gone, not
+  hidden: `lib/dataMode` already gates sample data, and journeys join that gate.
+- With no engine answer, the screen shows an honest unavailable state, not a plausible timetable.
+- Realtime is applied to the result **only** where a live feed names the same trip — a delay is never
+  inferred from a route number that looks similar.
+
+## Step 5 — prove it works
+
+- Known journeys with known answers: a direct train, a change, a short bus hop, a late-night service
+  after midnight, a date on each side of a daylight-saving change.
+- A Sunday and a holiday, to prove the calendar is read.
+- A query with no route at all, to prove the empty answer is honest.
+- Processor time and memory for each query, recorded in this file, so the scope claim is measured.
+- The full app flow: type a place, pick it, press search, see real legs — checked in a browser.
+
+## Step 6 — the map and realtime, in that order
+
+Only after journeys are real: draw the real route geometry, then attach live delays to the trips the
+search actually chose.
+
+## What could go wrong, and what happens then
+
+| Risk | Response |
+| --- | --- |
+| 10 ms is far too little | Shard the graph, then try another free runtime; if neither works, a region with an on-screen limit |
+| National graph too large to serve as static files | Split by region and time window; static bandwidth is free and unmetered |
+| Search answers slowly under load | Cache per origin/date window in the free edge cache |
+| A preference cannot be honoured | Say so in the interface; never pretend it was applied |
+| Realtime rate-limits (already observed) | Poll on a schedule with backoff, cache the last good answer, and label its age |
+
+## What I will not do
+
+- No paid host, no trial, no card, ever.
+- No invented journeys, departures or delays in a production build.
+- No pretending a feature works because a route exists.
+- No silent scope change: if the answer becomes regional, the app says so and this file records why.
+
+## Permission needed
+
+I am asking to execute steps 0 to 5. Step 0 comes first and its result decides national versus
+regional; I will stop and report that result before building on it.
