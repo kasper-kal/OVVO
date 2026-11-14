@@ -29,8 +29,15 @@ const config = {
 /** True when this build carries a usable Firebase configuration. */
 export const firebaseConfigured = Boolean(config.apiKey && config.projectId && config.appId);
 
-/** The address the app is served from, used to build the email-link return address. */
-export const siteOrigin = env.VITE_SITE_ORIGIN ?? window.location.origin;
+/**
+ * The address the app is served from, used to build the email-link return address.
+ *
+ * Guarded for `window` because this module is imported by the server-side render check
+ * (`scripts/render-check.ts`), which runs in Node with no document: touching `window` while the
+ * module is being read crashed that check before it rendered a single page.
+ */
+export const siteOrigin =
+  env.VITE_SITE_ORIGIN ?? (typeof window === 'undefined' ? '' : window.location.origin);
 
 let app: FirebaseApp | null = null;
 

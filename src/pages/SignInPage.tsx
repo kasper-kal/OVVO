@@ -143,7 +143,7 @@ export function SignInPage() {
       <main style={SHELL}>
         <div className="stack-4">
           <div className="stack-1">
-            <h1 className="t-title">{t('Check your email')}</h1>
+            <h1 className="t-h1">{t('Check your email')}</h1>
             <p className="t-sm t-muted">
               {t(
                 sent.purpose === 'reset'
@@ -210,7 +210,7 @@ export function SignInPage() {
     <main style={SHELL}>
       <div className="stack-4">
         <div className="stack-1">
-          <h1 className="t-title">{t('Sign in')}</h1>
+          <h1 className="t-h1">{t('Sign in')}</h1>
           <p className="t-sm t-muted">{t('Sync your stops and journeys across your devices.')}</p>
         </div>
 

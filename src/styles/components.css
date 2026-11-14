@@ -9424,7 +9424,7 @@
   transition: none !important;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 720px) {
   .wrapped-body {
     gap: 26px;
   }

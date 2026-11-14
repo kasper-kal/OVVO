@@ -27,7 +27,7 @@ benefit.
 ```bash
 npm ci               # install exactly the versions in package-lock.json
 npm run dev          # Vite dev server on http://localhost:3000
-npm run build        # typecheck (tsc --noEmit), the style audits, then dist/
+npm run build        # typecheck, then every audit, then dist/
 npm run deploy       # build, then put the site live with wrangler
 npm run typecheck    # TypeScript only
 ```
@@ -433,9 +433,12 @@ built, and what is still untested, is `GOING-LIVE.md`.
 npx esbuild scripts/smoke-engine.ts --bundle --format=esm --platform=node \
   --outfile=/tmp/smoke.mjs && node /tmp/smoke.mjs
 
-# server-side render of every page (catches runtime errors a build cannot)
+# server-side render of every page (catches runtime errors a build cannot). The two loaders and
+# the `define` are required: the install banner imports its icon as a `.png`, and a CommonJS
+# bundle has no `import.meta` for the Firebase config to read.
 npx esbuild scripts/render-check.ts --bundle --format=cjs --platform=node \
-  --outfile=/tmp/render.cjs --loader:.css=empty && node /tmp/render.cjs
+  --outfile=/tmp/render.cjs --loader:.css=empty --loader:.png=dataurl \
+  --define:import.meta.env='{}' && node /tmp/render.cjs
 
 # every class name used in the markup has a rule (catches a typo, which otherwise fails
 # silently: `.stack-3`, `.row-2`, `.status-dot--sage` and `.t-h3` all shipped dead)
@@ -527,6 +530,11 @@ Four older instruments — the dashed-enclosure check, the chunk-rule check and 
 (`tint-check`, `tint-contrast`) — lived in the gitignored `.logs/` folder and are **not in the
 repository**, so their commands are no longer printed here. Their measurements are still cited in
 `DESIGN_DECISIONS.md` and in the reports they wrote.
+
+`class-audit` and `breakpoint-audit` also run inside `npm run build`, so a dead class name or a
+stray width fails the build instead of waiting to be noticed. They were outside it until
+14 November 2026, and that is how four unstyled headings and a 900px breakpoint survived a green
+build.
 
 The first three run outside the app bundle and need nothing beyond esbuild (already present
 through Vite). The browser audits (`icon-audit`, `ui-audit`, `caps-audit`, `precision-audit`)
