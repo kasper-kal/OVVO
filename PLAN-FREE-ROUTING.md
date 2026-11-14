@@ -71,6 +71,38 @@ as PARTIAL rather than dressed up as national.
 
 Nothing is built beyond step 0 until its result is written down here.
 
+### Step 0 — result (measured 14 November 2026)
+
+The experiment is done: a real connection-scan search over the real archive, written and run.
+Records: `routing/feasibility-region.json`, `routing/feasibility-national.json`,
+`routing/feasibility-national-2h.json` and its 3 h and 4 h siblings.
+
+| Scope | Connections | Graph | Journey cost (median) | Answer |
+| --- | --- | --- | --- | --- |
+| Utrecht region, whole day | 235,292 | 4.7 MiB | 1.7 – 3.1 ms | correct |
+| National, whole day | 1,424,045 | 29.9 MiB | 30 – 38 ms | correct |
+| National, 2-hour slice | ~120,000 | ~2.5 MiB | **6.8 – 9.5 ms** | correct |
+| National, 3-hour slice | ~180,000 | ~3.7 MiB | 8.0 – 11.8 ms | correct |
+
+The journeys it returns are believable against the real timetable: Utrecht Centraal to Amsterdam
+Centraal arriving 08:35, Amsterdam to Rotterdam 08:40, Utrecht to Groningen 10:14 — all from an
+08:00 departure.
+
+**Conclusion — outcome A, with a condition.** A national search fits inside the free 10 ms budget
+when the graph is served in **2-hour slices** and the scan stops as soon as nothing later can arrive
+easier. Long journeys do not fit at that window: Utrecht to Groningen needs a 3-hour slice and costs
+11.8 ms, which the free tier would terminate.
+
+So the shape is settled: **time-sliced graph files, an adaptive window that starts at 2 hours and
+extends only when no answer is found, and a region fallback only if an extension still exceeds the
+budget.** Long-distance journeys are the known soft spot and are the first thing step 2 must improve
+(a tighter scan that visits only stops the search has actually reached, rather than every connection
+in the slice).
+
+This is measured in Node on this machine, not inside a Worker. The Worker figure could be better or
+worse; the comparison is the first check of step 2, and it is not called done until it is measured
+there.
+
 ## Step 1 — the graph builder
 
 A script that turns the verified archive into the files the search reads:

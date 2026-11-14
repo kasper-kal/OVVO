@@ -1,0 +1,44 @@
+{
+  "measuredAt": "2026-11-14T23:28:36.486Z",
+  "scope": "national",
+  "date": "20261114",
+  "stops": 53612,
+  "trips": 91783,
+  "connections": 1424045,
+  "walkingLinks": 176985,
+  "graphBytes": 31312660,
+  "graphMiB": 29.9,
+  "stopTimesRead": 11336204,
+  "windowHours": 4,
+  "results": [
+    {
+      "query": "Utrecht Centraal → Amsterdam Centraal",
+      "origin": "Utrecht Centraal",
+      "destination": "Amsterdam Centraal",
+      "medianMs": 11.11,
+      "bestMs": 8.98,
+      "arrival": "08:35"
+    },
+    {
+      "query": "Amsterdam Centraal → Rotterdam Centraal",
+      "origin": "Utrecht Centraal",
+      "destination": "Rotterdam Centraal",
+      "medianMs": 9.21,
+      "bestMs": 9.02,
+      "arrival": "08:40"
+    },
+    {
+      "query": "Utrecht Centraal → Groningen",
+      "origin": "Utrecht Centraal",
+      "destination": "[Groningen] busstation",
+      "medianMs": 12.81,
+      "bestMs": 12.48,
+      "arrival": "10:14"
+    }
+  ],
+  "budget": {
+    "freeCpuMsPerRequest": 10,
+    "freeMemoryMb": 128
+  },
+  "note": "Measured in Node on this machine. A Worker is a different engine, so these are the best available estimate, not a Worker measurement."
+}
