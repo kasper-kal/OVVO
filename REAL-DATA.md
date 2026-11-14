@@ -87,16 +87,24 @@ A Java process cannot run inside a Cloudflare Worker under any configuration. So
 live somewhere else, and every free tier of a persistent host (typically 256 MB–1 GB) is an order of
 magnitude below what a national Dutch graph needs to build and serve.
 
-**This is the decision the steerer has to make**, because it costs money or changes coverage:
+**The plan is free, and only free.** OVVO has one rule about this, set by the steerer: no card
+anywhere, no service that has to be paid for, ever. So a paid host is not an option and must not be
+proposed again — not as a "recommendation", not as a fallback, not with a price beside it.
 
-1. **A paid host with at least 4 GB of RAM** (roughly €5–7 a month), running OTP and talking to the
-   Worker over HTTPS. Full national coverage, real transfers, walking legs, realtime applied.
-2. **A regional graph on a tiny free host.** One province is small enough for 512 MB–1 GB. Free, but
-   journeys outside that region cannot be planned, and the app must say so.
-3. **A managed routing API** with a free tier. No servers to run, but coverage, terms and rate limits
-   are outside our control and must be verified before promising anything.
+That leaves exactly one shape, and it is the one that fits the platform OVVO already uses:
 
-Until one is chosen, milestone 4 onward cannot be honestly completed, and the planner stays mock.
+- **Run the routing ourselves, on a free tier.** A round-based search (RAPTOR) over the timetable,
+  written by us in JavaScript, inside a serverless function rather than a JVM. The graph is built
+  once by the pipeline and shipped as static data, so nothing has to stay warm and no process has to
+  live on a server we pay for. Free static bandwidth serves the graph; the function only searches.
+- **Scope follows from the limits, not from a bill.** Free serverless functions give little CPU and
+  memory per request. That is what decides whether the whole country fits in one search or whether
+  the first release covers a region and says so on screen. Either way the answer is real, and either
+  way it is free.
+
+What is genuinely blocked today is not money: it is that the RAPTOR implementation, the graph build
+and the free-tier feasibility test have not been written yet. That is the work, and it costs
+nothing but time.
 
 ## 5. What is built and working
 
