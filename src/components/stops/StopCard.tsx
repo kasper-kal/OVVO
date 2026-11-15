@@ -4,6 +4,7 @@ import { modeLabel } from '../../data/preferences';
 import { stopTypeLabel } from '../../lib/format';
 import { useFormat } from '../../lib/useFormat';
 import { useT } from '../../lib/useT';
+import { useLiveDepartures } from '../../lib/useLiveDepartures';
 import { Button, IconButton, Pill } from '../ui/primitives';
 import { ResultCard, ResultCardLink } from '../ui/ResultCard';
 import { StopLink } from './StopLink';
@@ -40,6 +41,8 @@ export function StopCard({
   onPlan: () => void;
 }) {
   const t = useT();
+  /* The card draws its own rows, so it asks for the live delays itself. */
+  const live = useLiveDepartures(departures);
   const format = useFormat();
   const name = customStopName(stop.id) ?? stop.name;
   /* The services the card draws as chips — walking and cycling are not chips anywhere. */
@@ -119,9 +122,9 @@ export function StopCard({
         </div>
       ) : null}
 
-      {departures.length ? (
+      {live.length ? (
         <ul className="stop-card__board">
-          {departures.map((departure) => (
+          {live.map((departure) => (
             <li key={departure.id} className="stop-card__departure">
               <span className={`t-mono-num${departure.cancelled ? ' strike' : ''}`}>
                 {format.time(departure.cancelled ? departure.planned : departure.expected)}

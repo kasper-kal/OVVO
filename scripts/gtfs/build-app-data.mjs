@@ -273,6 +273,8 @@ for await (const row of table('stop_times.txt')) {
     o: String(agencies.get(info?.agency) || info?.agency || '').slice(0, 24),
     m: MODE_BY_TYPE[info?.type] ?? 'bus',
     p: String(stops.get(row.stop_id)?.platform || '').slice(0, 6),
+    /* The feed's trip id: the only key realtime delays arrive under. */
+    t: row.trip_id,
   });
   rowsKept += 1;
 }
@@ -318,6 +320,8 @@ const body = [
   '  m: string;',
   '  /** Platform or stop code, when the feed gives one. */',
   '  p: string;',
+  '  /** The feed\'s trip id: what a realtime delay is keyed by. */',
+  '  t: string;',
   '}',
   '',
   'export type RealBoard = RealDeparture[];',

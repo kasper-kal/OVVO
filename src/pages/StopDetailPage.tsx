@@ -15,6 +15,7 @@ import { getLine, linesAtStop } from '../data/network';
 import { operatorName } from '../data/operators';
 import { disruptionsForStop } from '../data/disruptions';
 import { boardForStop } from '../data/departures';
+import { useLiveDepartures } from '../lib/useLiveDepartures';
 import { useMinuteNow } from '../lib/useMinuteNow';
 import { Button, Card, EmptyState, IconButton } from '../components/ui/primitives';
 import { PlanStopDialog } from '../components/stops/PlanStopDialog';
@@ -52,10 +53,12 @@ export function StopDetailPage() {
    * so there is nothing left over to promise and no "show more" row to press. The full timetable
    * is one press away through "Open the full board" above the rows.
    */
-  const board = useMemo(
+  const boardFromTimetable = useMemo(
     () => (stop ? boardForStop(stop.id, { fromMinutes: minutes, limit: 6, tick: 0 }) : []),
     [stop?.id, minutes],
   );
+  /* The timetable gives the time; the live feed adds the delay when the vehicle is running. */
+  const board = useLiveDepartures(boardFromTimetable);
   const alerts = stop ? disruptionsForStop(stop.id) : [];
   const lines = stop ? linesAtStop(stop.id) : [];
   /* The head's Plan button asks the same question the stop cards do (see `PlanStopDialog`). */

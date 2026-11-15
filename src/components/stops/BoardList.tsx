@@ -4,6 +4,7 @@ import { getLine } from '../../data/network';
 import { operatorName } from '../../data/operators';
 import { getStop } from '../../data/stops';
 import { useFormat } from '../../lib/useFormat';
+import { useLiveDepartures } from '../../lib/useLiveDepartures';
 import { useT } from '../../lib/useT';
 import { EmptyState, IconButton } from '../ui/primitives';
 import { PlanStopDialog } from './PlanStopDialog';
@@ -49,9 +50,14 @@ export function BoardList({
   const t = useT();
   const navigate = useNavigate();
 
-  const shown = limit === undefined ? departures : departures.slice(0, limit);
+  /*
+   * Every board in the app goes through this list, so one hook here puts the live delay on all of
+   * them: the departures page, a stop's own board and the small boards in the stop cards.
+   */
+  const live = useLiveDepartures(departures);
+  const shown = limit === undefined ? live : live.slice(0, limit);
 
-  if (departures.length === 0) {
+  if (live.length === 0) {
     return (
       <EmptyState
         icon="board"

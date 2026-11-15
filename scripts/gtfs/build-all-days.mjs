@@ -11,7 +11,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 
-const count = Number(process.argv[2] ?? 2);
+const count = Number(process.argv[2] ?? 7);
 const current = JSON.parse(fs.readFileSync('.gtfs-cache/current.json', 'utf8'));
 const first = current.validity.from.replace(/-/g, '');
 const last = current.validity.until.replace(/-/g, '');
@@ -23,6 +23,10 @@ for (let offset = 0; offset < count; offset += 1) {
   const date = stamp(new Date(start.getTime() + offset * 86400000));
   if (date < first || date > last) {
     console.log(`skipping ${date}: outside the feed's validity`);
+    continue;
+  }
+  if (fs.existsSync(`public/graph/${date}/manifest.json`)) {
+    console.log(`${date} is already built`);
     continue;
   }
   console.log(`building ${date}…`);

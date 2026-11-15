@@ -63,6 +63,7 @@ function boardFromTimetable(stopId: string, options: BoardOptions): Departure[] 
         accessible: false,
         directionIndex: 0,
         source: 'timetable',
+        tripId: row.t,
       };
     })
     .filter((departure) => departure.planned >= from - 1)

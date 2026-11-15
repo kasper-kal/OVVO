@@ -34,7 +34,9 @@
     "after-restore": "bash scripts/after-restore.sh",
     "check:corners": "node scripts/corner-audit.mjs",
     "check:compat": "node scripts/compat-logic-check.mjs",
-    "check:compat:browser": "node scripts/compat-check.mjs"
+    "check:compat:browser": "node scripts/compat-check.mjs",
+    "check:journeys": "node scripts/routing/golden.mjs",
+    "gtfs:week": "node scripts/gtfs/fetch.mjs && node scripts/gtfs/build-all-days.mjs 7"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",

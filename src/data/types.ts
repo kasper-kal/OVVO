@@ -194,13 +194,15 @@ export interface Departure {
   cancelled: boolean;
   accessible: boolean;
   disruptionId?: string;
+  /** The feed's own identifier for the vehicle, so a live delay can be joined to this row. */
+  tripId?: string;
   /** direction index within the line (0 = A direction, 1 = B direction) */
   directionIndex: 0 | 1;
   /**
    * Where this row came from, and the only thing a screen may trust about its origin.
    * `timetable` is a scheduled time read out of the national GTFS feed; `demo` is invented.
    */
-  source: 'demo' | 'timetable';
+  source: 'demo' | 'timetable' | 'realtime';
 }
 
 export interface TimeWindow {

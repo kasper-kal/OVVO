@@ -86,8 +86,40 @@ interface DayGraph {
 const dayCache = new Map<string, Promise<DayGraph>>();
 let indexCache: Promise<PlanDay[]> | null = null;
 
+const GRAPH_CACHE = 'ovvo-graph-v1';
+
+/**
+ * **The timetable is downloaded once, not on every search.**
+ *
+ * A day is about 17 MB of stops, trip descriptions and two-hour slices, and a search only needs a
+ * few slices — but without a cache every visit paid for them again. Cache Storage keeps them on the
+ * device, so the first search of the day costs the download and every later one costs nothing. When
+ * the cache is unavailable the fetch simply goes to the network, which is also correct.
+ */
+async function fetchGraph(path: string): Promise<Response> {
+  const full = `${BASE}/${path}`;
+  let cache: Cache | null = null;
+  try {
+    cache = await caches.open(GRAPH_CACHE);
+    const hit = await cache.match(full);
+    if (hit) return hit;
+  } catch {
+    cache = null;
+  }
+
+  const response = await fetch(full, { cache: 'force-cache' });
+  if (cache && response.ok) {
+    try {
+      await cache.put(full, response.clone());
+    } catch {
+      /* A full or blocked cache must never break a search. */
+    }
+  }
+  return response;
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${BASE}/${path}`, { cache: 'force-cache' });
+  const response = await fetchGraph(path);
   if (!response.ok) throw new Error(`${path} answered ${response.status}`);
   return (await response.json()) as T;
 }
@@ -105,7 +137,7 @@ export function loadDay(day: string): Promise<DayGraph> {
   if (cached) return cached;
 
   const loading = (async () => {
-    const manifestResponse = await fetch(`${BASE}/${day}/manifest.json`);
+    const manifestResponse = await fetchGraph(`${day}/manifest.json`);
     if (!manifestResponse.ok) throw new Error(`the timetable for ${day} has not been built`);
     const manifest = (await manifestResponse.json()) as {
       trips: number;
@@ -123,8 +155,8 @@ export function loadDay(day: string): Promise<DayGraph> {
       fetchJson<DayGraph['stations']>(`${day}/${manifest.stations.file}`),
       fetchJson<number[][]>(`${day}/${manifest.places.file}`),
       fetchJson<DayGraph['tripInfo']>(`${day}/${manifest.tripsInfo.file}`),
-      fetch(`${BASE}/${day}/${manifest.tripIds.file}`, { cache: 'force-cache' }).then((response) => response.text()),
-      fetch(`${BASE}/${day}/${manifest.walks.file}`).then((response) => response.arrayBuffer()),
+      fetchGraph(`${day}/${manifest.tripIds.file}`).then((response) => response.text()),
+      fetchGraph(`${day}/${manifest.walks.file}`).then((response) => response.arrayBuffer()),
     ]);
 
     const linkCount = manifest.walks.links;
@@ -197,7 +229,7 @@ export function placesOf(graph: DayGraph): PlanPlace[] {
 async function sliceFor(graph: DayGraph, file: string): Promise<Slice> {
   const cached = graph.slices.get(file);
   if (cached) return cached;
-  const response = await fetch(`${BASE}/${graph.day}/${file}`, { cache: 'force-cache' });
+  const response = await fetchGraph(`${graph.day}/${file}`);
   if (!response.ok) throw new Error(`${file} answered ${response.status}`);
   const buffer = await response.arrayBuffer();
   const view = new DataView(buffer);

@@ -357,3 +357,29 @@ day's graph carries the feed's own trip identifiers, which is what makes the joi
 stations are matched by **distance** — the nearest stop within 600 m — instead of by name, because
 no station in the feed carries the name "Vondelpark". Verified by the builder: 60 matched, none
 unmatched.
+
+
+## The four follow-ups, closed (15 Nov 2026)
+
+**A rolling week.** `npm run gtfs:week` refreshes the feed and builds today plus six days; days that
+already exist are skipped, so a rerun costs seconds. Eight service days are built now
+(14–21 November) and `public/graph/index.json` lists exactly those, which is what the day picker
+offers. A day that was never built can no longer be silently planned as "no journey".
+
+**Live delays on the boards.** Every departure row now carries the feed's own trip id, and one hook
+(`useLiveDepartures`) asks `/api/live` for exactly the trips a board is showing, once a minute. It is
+used by the shared board list, the stop card and the stop page, so every board surface gets it. A row
+the feed does not mention keeps its scheduled time and claims no delay.
+*Limitation, stated plainly:* a service whose scheduled time has passed drops off the board instead of
+staying on it marked late. That is the next board fix.
+
+**Saved journeys.** `npm run check:journeys` drives the real page and asserts three fixed answers:
+Sunday 08:00 Utrecht → Groningen is 08:07 → 10:12 with two changes; an after-midnight search finds a
+departure before 05:00 (the previous service day); a Monday midday Amsterdam → Rotterdam journey
+exists. It exits non-zero on a mismatch, so it can run before every save.
+
+**What a search downloads.** Measured in the browser, three searches over two service days cost
+117.8 MiB before caching and 67.2 MiB after Cache Storage keeps the timetable on the device. One new
+day is about 17 MB raw — roughly 6 MB compressed, which is what production serving sends — and a
+repeat search on the same day costs nothing. The two-hour slices are why a search does not fetch a
+whole day.
