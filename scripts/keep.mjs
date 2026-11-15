@@ -20,6 +20,11 @@ import { join } from 'node:path';
 // Files and folders that git ignores but that are not throwaway.
 const ALWAYS_INCLUDED = ['.logs/mock/index.html', '.logs/mock/scenes.html'];
 
+// Saves always publish to main. The checked-out branch is the chat's own
+// freebuff/... working branch; pushing HEAD by name left finished work off
+// GitHub's main. Keep this explicit, and do not make it follow the branch name.
+const PUSH_BRANCH = 'main';
+
 // Folders git ignores that can still hold work worth keeping.
 const WATCHED_FOLDERS = ['.logs', 'shots', 'artifacts'];
 const WORK_FILE = /\.(html?|md|json|tsx?|jsx?|css|svg|mjs)$/;
@@ -73,8 +78,9 @@ function push() {
     return;
   }
   try {
-    git(['push', '-q', '-u', remote, 'HEAD'], { stdio: 'pipe' });
-    console.log(`Pushed to ${remote}.`);
+    git(['push', '-q', '-u', remote, `HEAD:refs/heads/${PUSH_BRANCH}`], { stdio: 'pipe' });
+    const sha = git(['rev-parse', '--short', 'HEAD']).trim();
+    console.log(`Pushed ${sha} to ${remote}/${PUSH_BRANCH}.`);
   } catch (error) {
     const detail = String(error.stderr || error.message || '').trim().split('\n').pop();
     console.log(`Saved, but the push failed: ${detail}`);

@@ -45,7 +45,7 @@ Pass these three gates on **every** turn, in this order. If one is missed, stop 
 
 Git is the only copy that survives. The sandbox sleeps, the worktree can be replaced, and anything sitting in an ignored folder has no history at all, which is how a day of approved shapes was lost once.
 
-`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip, and then pushes it to the remote so the copy leaves this workspace. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
+`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip, and then pushes it to the remote so the copy leaves this workspace. Every save pushes to **`main`**. The checked-out `freebuff/...` branch is the chat's working branch, not the publish target. Do not change `push()` in `scripts/keep.mjs` to push `HEAD` by its branch name. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
 
 `--check` reports anything unsaved, including ignored files that would not be kept. `--list` shows the recent saves. `--restore <path>` brings the newest saved copy of a file or folder back, and `--from <sha>` reaches further back. No timer is involved: the sandbox is asleep between turns, so work is saved when it finishes, not on a clock.
 
