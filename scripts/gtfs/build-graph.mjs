@@ -289,10 +289,17 @@ const modeFor = (type) => {
 
 /* trips, with what a leg needs to describe them --------------------------- */
 const tripIndex = new Map();
+/*
+ * The feed's own trip identifiers, in the same order as the internal trip numbers. Live running
+ * times arrive keyed by these identifiers and by nothing else, so without this list a delay can
+ * never be joined to a journey the browser has planned.
+ */
+const tripIds = [];
 const tripInfo = [];
 for await (const row of table('trips.txt')) {
   if (!services.has(row.service_id)) continue;
   tripIndex.set(row.trip_id, tripIndex.size);
+  tripIds.push(row.trip_id);
   const route = routeInfo.get(row.route_id);
   tripInfo.push([
     route?.short ?? '',
@@ -574,6 +581,9 @@ fs.writeFileSync(path.join(OUT_DIR, 'stations.json'), stationsBuffer);
 fs.writeFileSync(path.join(OUT_DIR, 'trips.json'), tripsBuffer);
 fs.writeFileSync(path.join(OUT_DIR, 'places.json'), placesBuffer);
 
+const tripIdsBuffer = Buffer.from(tripIds.join('\n'));
+fs.writeFileSync(path.join(OUT_DIR, 'tripIds.txt'), tripIdsBuffer);
+
 const manifest = {
   version: 1,
   builtAt: new Date().toISOString(),
@@ -582,6 +592,7 @@ const manifest = {
   stations: { file: 'stations.json', count: stations.length, bytes: stationsBuffer.length, sha256: sha(stationsBuffer) },
   places: { file: 'places.json', count: places.length, bytes: placesBuffer.length, sha256: sha(placesBuffer) },
   tripsInfo: { file: 'trips.json', count: tripInfo.length, bytes: tripsBuffer.length, sha256: sha(tripsBuffer) },
+  tripIds: { file: 'tripIds.txt', count: tripIds.length, bytes: tripIdsBuffer.length, sha256: sha(tripIdsBuffer) },
   walks: {
     file: 'walks.bin',
     links: walkFrom.length,

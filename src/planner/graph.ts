@@ -27,6 +27,8 @@ export interface PlanLeg {
   /** Minutes since midnight. */
   departure: number;
   arrival: number;
+  /** The feed's own identifier for this vehicle, so a live delay can be looked up. */
+  tripId: string | null;
 }
 
 export interface PlanJourney {
@@ -68,6 +70,8 @@ interface DayGraph {
   stops: [string, string, number, number, number, string][];
   stations: [string, number[]][];
   tripInfo: [string, string, string, string][];
+  /** The feed's trip identifiers, indexed by internal trip number, for joining live delays. */
+  tripIds: string[];
   placePlatforms: number[][];
   placeOfStop: Uint32Array;
   placeNames: string[];
@@ -109,15 +113,17 @@ export function loadDay(day: string): Promise<DayGraph> {
       stations: { file: string };
       places: { file: string };
       tripsInfo: { file: string };
+      tripIds: { file: string };
       walks: { file: string; links: number };
       slices: { files: { file: string; from: number; to: number }[] };
     };
 
-    const [stops, stations, places, tripInfo, walksResponse] = await Promise.all([
+    const [stops, stations, places, tripInfo, tripIdsText, walksResponse] = await Promise.all([
       fetchJson<DayGraph['stops']>(`${day}/${manifest.stops.file}`),
       fetchJson<DayGraph['stations']>(`${day}/${manifest.stations.file}`),
       fetchJson<number[][]>(`${day}/${manifest.places.file}`),
       fetchJson<DayGraph['tripInfo']>(`${day}/${manifest.tripsInfo.file}`),
+      fetch(`${BASE}/${day}/${manifest.tripIds.file}`, { cache: 'force-cache' }).then((response) => response.text()),
       fetch(`${BASE}/${day}/${manifest.walks.file}`).then((response) => response.arrayBuffer()),
     ]);
 
@@ -167,6 +173,7 @@ export function loadDay(day: string): Promise<DayGraph> {
       placeOfStop,
       stations,
       tripInfo,
+      tripIds: tripIdsText.split('\n'),
       placePlatforms,
       placeNames,
       walkFrom,
@@ -361,6 +368,7 @@ function toJourney(graph: DayGraph, path: BuiltPath): PlanJourney | null {
       toPlatform: endStop?.[5] ?? '',
       departure: Math.floor(path.dep[first] / 60),
       arrival: Math.floor(path.arr[last] / 60),
+      tripId: graph.tripIds[path.trip[first]] ?? null,
     };
   };
 
@@ -394,6 +402,7 @@ function toJourney(graph: DayGraph, path: BuiltPath): PlanJourney | null {
         toPlatform: '',
         departure: start,
         arrival: start + minutes,
+        tripId: null,
       });
       continue;
     }

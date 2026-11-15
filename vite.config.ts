@@ -7,6 +7,8 @@ import react from '@vitejs/plugin-react';
  * for a tool that is going to be deleted.
  */
 import reviewUpload, { reviewBatchName } from './review/upload-plugin.mjs';
+/* The same live-feed reader the worker uses, so the delays can be checked before a deploy. */
+import liveFeedPlugin from './shared/live-dev-plugin.mjs';
 
 // The config runs in Node, where `process` exists but is not in the browser typings.
 declare const process: {
@@ -162,7 +164,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __REVIEW_BATCH__: JSON.stringify(reviewBatch),
     },
-    plugins: [react(), reviewUpload({ batch: reviewBatch }), requestTrace()],
+    plugins: [react(), reviewUpload({ batch: reviewBatch }), requestTrace(), liveFeedPlugin()],
     server: {
       host: '0.0.0.0',
       port: 3000,

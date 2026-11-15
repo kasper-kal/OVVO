@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card } from '../components/ui/primitives';
 import { nowMinutes, timeInputValue } from '../lib/format';
-import { loadDay, loadGraphIndex, planRealJourneys, placesOf, type PlanDay, type PlanJourney, type PlanPlace } from '../planner/graph';
+import { loadDay, loadGraphIndex, planRealJourneys, placesOf, type PlanDay, type PlanJourney, type PlanLeg, type PlanPlace } from '../planner/graph';
+import { fetchLiveDelays, type LiveReport } from '../planner/live';
 
 /**
  * **Plan a journey against the real timetable.**
@@ -133,6 +134,11 @@ export function PlanPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'searching' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [journeys, setJourneys] = useState<PlanJourney[]>([]);
+  const [live, setLive] = useState<{
+    delays: Record<string, number>;
+    report: LiveReport | null;
+    state: 'idle' | 'loading' | 'ready' | 'error';
+  }>({ delays: {}, report: null, state: 'idle' });
 
   useEffect(() => {
     let cancelled = false;
@@ -180,12 +186,35 @@ export function PlanPage() {
     try {
       const found = await planRealJourneys(day, origin.id, destination.id, (hours || 0) * 60 + (minutes || 0));
       setJourneys(found);
+
+      /* Ask for live running times for exactly these vehicles, after the timetable has its answer. */
+      const tripIds = found.flatMap((journey) => journey.legs.map((leg) => leg.tripId)).filter((id): id is string => Boolean(id));
+      if (tripIds.length > 0) {
+        setLive({ delays: {}, report: null, state: 'loading' });
+        fetchLiveDelays(tripIds)
+          .then(({ report, delays }) => setLive({ delays, report, state: 'ready' }))
+          .catch(() => setLive({ delays: {}, report: null, state: 'error' }));
+      }
       setStatus('ready');
       if (found.length === 0) setMessage('No journey found at that time.');
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'The search failed.');
     }
+  };
+
+  /* Live delays are shown next to the planned time, never instead of it. */
+  const delayLabel = (leg: PlanLeg): string | null => {
+    const delay = leg.tripId ? live.delays[leg.tripId] : undefined;
+    if (delay === undefined) return null;
+    if (Math.abs(delay) < 60) return 'on time';
+    return `${delay > 0 ? '+' : ''}${Math.round(delay / 60)} min`;
+  };
+
+  const arrivalShift = (journey: PlanJourney): number => {
+    const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk');
+    const delay = lastRide?.tripId ? live.delays[lastRide.tripId] : undefined;
+    return delay === undefined ? 0 : Math.round(delay / 60);
   };
 
   return (
@@ -242,6 +271,26 @@ export function PlanPage() {
         </div>
       </Card>
 
+      {live.state === 'ready' && live.report ? (
+        <Card>
+          <p style={{ margin: 0, opacity: 0.85 }}>
+            Live running times · feed updated{' '}
+            {live.report.generatedAt
+              ? new Date(live.report.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+              : 'just now'}{' '}
+            {live.report.matched > 0
+              ? ` · ${live.report.matched} of ${live.report.requested} services reporting`
+              : ' · none of these services has started yet'}
+            {live.report.late > 0 ? ` · ${live.report.late} services nationally running late` : ''}
+          </p>
+        </Card>
+      ) : null}
+      {live.state === 'error' ? (
+        <Card>
+          <p style={{ margin: 0, opacity: 0.85 }}>Live running times are unavailable right now, so these are the scheduled times.</p>
+        </Card>
+      ) : null}
+
       {message ? (
         <Card>
           <p style={{ margin: 0 }}>{message}</p>
@@ -252,7 +301,13 @@ export function PlanPage() {
         <Card key={`${journey.departure}-${index}`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <strong style={{ fontSize: '1.1rem' }}>
-              {clock(journey.departure)} → {clock(journey.arrival)}
+              {clock(journey.departure)} → {clock(journey.arrival + arrivalShift(journey))}
+              {arrivalShift(journey) !== 0 ? (
+                <span style={{ marginLeft: 8, fontSize: '0.85rem', color: '#b3261e' }}>
+                  {arrivalShift(journey) > 0 ? '+' : ''}
+                  {arrivalShift(journey)} min
+                </span>
+              ) : null}
             </strong>
             <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ padding: '4px 10px', borderRadius: 999, border: '1px solid var(--border, #ddd)', fontSize: '0.9em' }}>
@@ -282,6 +337,11 @@ export function PlanPage() {
                     {leg.operator ? `${leg.operator} · ` : ''}
                     {clock(leg.arrival)}
                     {leg.mode === 'walk' ? ' · on foot' : ''}
+                    {delayLabel(leg) ? (
+                      <span style={{ marginLeft: 6, color: delayLabel(leg)?.startsWith('+') ? '#b3261e' : undefined }}>
+                        · {delayLabel(leg)}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </li>

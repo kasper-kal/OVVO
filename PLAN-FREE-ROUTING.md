@@ -346,6 +346,14 @@ The browser does the search, so no server function is needed and nothing is paid
   file order — the old cap filled the morning and silently dropped the evening.
 * Walks are modelled as steps of their own, and a walk inside one station is not a leg.
 
-Known gaps, stated plainly: the seven stops that are landmarks rather than stations (Vondelpark,
-Anne Frank House, Binnenhof, Erasmusbrug, Markthal, Domtoren, Buiksloterweg) still have no board,
-and live delays are not shown — the page shows scheduled times from the timetable only.
+**Live running times.** The national realtime feed is a binary protobuf and sends no CORS headers, so
+a page cannot read it. The app now reads it on the server (`shared/live-feed.mjs`, served by the
+worker at `/api/live` and by the dev server through the same module) and answers for the exact trips
+the page is showing. A delay is drawn beside the planned time, never instead of it, and the page
+states when the feed cannot be read rather than assuming a train is on time. `tripIds.txt` in each
+day's graph carries the feed's own trip identifiers, which is what makes the join possible.
+
+**The landmark stops.** All 60 stops now have a board. The seven that are landmarks rather than
+stations are matched by **distance** — the nearest stop within 600 m — instead of by name, because
+no station in the feed carries the name "Vondelpark". Verified by the builder: 60 matched, none
+unmatched.

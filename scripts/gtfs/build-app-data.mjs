@@ -82,6 +82,17 @@ const seeds = [...source.matchAll(/\{ id: '([^']+)', name: '([^']+)', city: '([^
   city: m[3],
   code: m[4],
 }));
+
+/*
+ * The app's real positions, keyed by stop id. Landmarks such as the Vondelpark or the Markthal are
+ * places, not stations, so no station in the feed carries their name — but a tram or bus stop within
+ * a few hundred metres does serve them, and that is the board a visitor actually wants. Coordinates
+ * are the only honest way to find it, so they are read here rather than guessed from a name.
+ */
+const geo = new Map();
+for (const match of source.matchAll(/'?([a-z0-9-]+)'?:\s*\{\s*lat:\s*([\d.]+),\s*lon:\s*([\d.]+)\s*\}/g)) {
+  geo.set(match[1], { lat: Number(match[2]), lon: Number(match[3]) });
+}
 if (seeds.length < 40) throw new Error(`only ${seeds.length} stops read from src/data/stops.ts — the seed format changed`);
 
 const normalise = (value) =>
@@ -130,6 +141,8 @@ for await (const row of table('stops.txt')) {
     name: row.stop_name,
     parent: row.parent_station || '',
     platform: (row.platform_code || row.stop_code || '').trim(),
+    lat: Number(row.stop_lat),
+    lon: Number(row.stop_lon),
   });
 }
 
@@ -165,6 +178,44 @@ for (const seed of seeds) {
   const group = [chosen, ...[...stops.entries()].filter(([, stop]) => stop.parent === chosen).map(([id]) => id)];
   matchOf.set(seed.id, new Set(group));
 }
+
+/* ---------------------------------------------------------------- landmarks by distance */
+
+const metresBetween = (a, b) => {
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLon = (b.lon - a.lon) * rad * Math.cos(((a.lat + b.lat) / 2) * rad);
+  return Math.hypot(dLat, dLon) * 6371000;
+};
+
+const NEAREST_METRES = 600;
+const stillUnmatched = [];
+for (const seedId of unmatched) {
+  const point = geo.get(seedId);
+  if (!point) {
+    stillUnmatched.push(seedId);
+    continue;
+  }
+  let nearestId = null;
+  let nearestMetres = NEAREST_METRES;
+  for (const [stopId, stop] of stops) {
+    if (stop.parent || !Number.isFinite(stop.lat) || !Number.isFinite(stop.lon)) continue;
+    const metres = metresBetween(point, stop);
+    if (metres < nearestMetres) {
+      nearestMetres = metres;
+      nearestId = stopId;
+    }
+  }
+  if (!nearestId) {
+    stillUnmatched.push(seedId);
+    continue;
+  }
+  const group = [nearestId, ...[...stops.entries()].filter(([, stop]) => stop.parent === nearestId).map(([id]) => id)];
+  matchOf.set(seedId, new Set(group));
+  console.log(`  ${seedId}: no station by that name, using the stop ${nearestMetres.toFixed(0)} m away`);
+}
+unmatched.length = 0;
+unmatched.push(...stillUnmatched);
 
 const gtfsToSeed = new Map();
 for (const [seedId, ids] of matchOf) for (const id of ids) gtfsToSeed.set(id, seedId);
