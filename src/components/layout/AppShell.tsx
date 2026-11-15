@@ -768,7 +768,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           is recognised, and asks nothing on a later visit once it has been answered
           (see `ui/InstallBanner`).
         */}
-        <InstallBanner />
+        {/* The offer belongs to the home screen. It used to hang over every route, taking the top
+            of a phone before the page's own title; a traveller reading a journey is not asking to
+            install anything. */}
+        {location.pathname === '/' ? <InstallBanner /> : null}
         <LocationPermission />
       </div>
     </HeaderControlContext.Provider>

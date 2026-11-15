@@ -116,7 +116,13 @@ function RideLegRow({
   const stops = leg.intermediateStops ?? [];
   const serviceName = leg.lineName ?? line?.name ?? t('Service');
   return (
-    <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
+    <li
+      className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}
+      /* The rail is this leg's own colour: a bus into Schiphol was drawn in train blue because
+         every ride shared one token. The dot ring takes the same colour, so the mark and its
+         line agree. */
+      data-mode={leg.mode}
+    >
       {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
       <span className="timeline__time">{format.time(leg.departure)}</span>
       {/* Under the time, the way you travel: a bus, a tram, a train, a boat. */}
@@ -228,6 +234,7 @@ export function LegList({ journey }: { journey: Journey }) {
           <li
             key={`stop-${leg.id}-${stop.stopId}`}
             className="timeline__rail timeline__rail--ride timeline__rail--stop"
+            data-mode={leg.mode}
           >
             <span className="timeline__time">{format.time(stop.arrival)}</span>
             <span className="timeline__node timeline__node--stop" />

@@ -10,10 +10,11 @@ import { tallyFor } from '../../lib/wrapped';
 /**
  * **When the year is worth opening.**
  *
- * From 20 December the card appears on the home screen, and in the first week of January it is the
- * year that has just ended — so somebody who opens OVVO on 2 January is offered 2026 rather than an
- * empty 2027. Outside those weeks there is no card at all: the year is kept, and Settings still
- * knows about it, but the home screen does not shout about a story that is not being told yet.
+ * **A year is reviewed only once it is over.** The card appears in the first week of January and
+ * names the year that has just ended, so somebody who opens OVVO on 2 January is offered 2026 rather
+ * than an empty 2027. It no longer appears on 20 December with the year still running: half a year
+ * presented as the whole of it was the one thing this card must not do. Outside that week there is
+ * no card at all: Settings still knows about the story, but the home screen does not shout about it.
  *
  * The app's own clock is what is read (`appNow`), which is what makes the developer panel's date
  * field able to show this card: set the clock to 31 December and the invitation is simply there.
@@ -21,7 +22,6 @@ import { tallyFor } from '../../lib/wrapped';
 export function seasonFor(now: Date): { year: number; opening: boolean } | null {
   const month = now.getMonth();
   const day = now.getDate();
-  if (month === 11 && day >= 20) return { year: now.getFullYear(), opening: false };
   if (month === 0 && day <= 7) return { year: now.getFullYear() - 1, opening: true };
   return null;
 }

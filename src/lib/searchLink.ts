@@ -72,6 +72,8 @@ interface Payload {
   d: string;
   m: number;
   tm: TimeMode;
+  /** This search is answered by the real timetable. */
+  tt?: 1;
   w?: number;
   s?: SortMode;
   /** modes, directOnly, delayedOnly, hideCancelled, operators — omitted when it is the default. */
@@ -98,6 +100,7 @@ export function encodeSearchLink(
     m: query.time,
     tm: query.timeMode,
   };
+  if (query.timetable) payload.tt = 1;
   if (query.fromLabel) payload.fl = query.fromLabel;
   if (query.toLabel) payload.tl = query.toLabel;
   if (query.fromAccessMetres) payload.fa = query.fromAccessMetres;
@@ -138,7 +141,10 @@ export function decodeSearchLink(id: string): DecodedSearch | null {
   if (payload.v !== 1) return null;
 
   if (typeof payload.f !== 'string' || typeof payload.t !== 'string') return null;
-  if (!getStop(payload.f) || !getStop(payload.t)) return null;
+  /* A real search can name a place outside the app's 61 stops; its id begins `tt-` and carries
+     its name in the link's label. Anything else still has to be a stop the app knows. */
+  const knownEnd = (id: string) => Boolean(getStop(id)) || /^tt-[a-z0-9-]+$/.test(id);
+  if (!knownEnd(payload.f) || !knownEnd(payload.t)) return null;
   if (payload.f === payload.t && !payload.fa && !payload.ta) return null;
 
   if (typeof payload.d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(payload.d)) return null;
@@ -175,6 +181,7 @@ export function decodeSearchLink(id: string): DecodedSearch | null {
     time: payload.m,
     timeMode: payload.tm,
   };
+  if (payload.tt === 1) query.timetable = true;
   if (typeof payload.fl === 'string' && payload.fl) query.fromLabel = payload.fl;
   if (typeof payload.tl === 'string' && payload.tl) query.toLabel = payload.tl;
   if (typeof payload.fa === 'number' && payload.fa > 0) query.fromAccessMetres = payload.fa;

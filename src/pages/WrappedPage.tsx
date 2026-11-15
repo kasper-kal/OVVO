@@ -79,15 +79,14 @@ export function WrappedPage() {
    *
    * The deck used to wrap whatever year the calendar said, so a traveller opening it in July saw a
    * few months of journeys presented as the whole year, with the year still running. The wrapped
-   * season opens on 20 December, when the year being wrapped is the one just ending; at every other
+   * season opens on 1 January, when the year being wrapped is the one just ended; at every other
    * time of year the newest finished year is the one before, which is the only year a review can
-   * honestly be of.
+   * honestly be of. December used to open the running year early, and half a year is not a year.
    */
   const year = useMemo(() => {
     const named = Number(params.get('year'));
     if (Number.isInteger(named) && named > 2000) return named;
     const thisYear = yearOf(now.getTime());
-    if (now.getMonth() === 11 && now.getDate() >= 20) return thisYear;
     return thisYear - 1;
   }, [params, now]);
 

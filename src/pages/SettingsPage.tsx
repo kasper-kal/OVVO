@@ -183,8 +183,17 @@ export function SettingsPage() {
    * "flip it, it should try again, then go back to off if it fails again".
    */
   const [askingLocation, setAskingLocation] = useState(false);
-  const sampleTime = 14 * 60 + 5;
-  const sampleDate = new Date().toISOString().slice(0, 10);
+  /*
+   * **The specimen is today, not a fixed afternoon.**
+   *
+   * 14:05 was a pleasant-looking number, but in the morning it read as "departure in the past" and
+   * at midnight the delayed row's struck time sat before its own departure. The sample starts a few
+   * minutes from now, and its date is the local day rather than UTC's (which is the previous day
+   * for the first hours of a Dutch morning).
+   */
+  const now = new Date();
+  const sampleTime = (Math.ceil((now.getHours() * 60 + now.getMinutes() + 2) / 5) * 5) % (24 * 60);
+  const sampleDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const appearanceLabel =
     settings.theme === 'system'
@@ -577,7 +586,7 @@ export function SettingsPage() {
                   <span className="board-list__time">
                     <span className="t-mono-num">{format.time(sampleTime + 10)}</span>
                     <span className="board-list__delta">
-                      <span className="strike">{format.time(sampleTime + 7)}</span>
+                      <span className="strike">{format.time(sampleTime + 10)}</span>
                       <span className="delay">+3</span>
                     </span>
                   </span>

@@ -741,6 +741,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ) {
       return planResult.journeys;
     }
+    /* A timetable question is being answered elsewhere (the results screen plans it). Running the
+       demonstration engine on it would throw on a `tt-` stop before that answer arrives. */
+    if (search.query.timetable) return [];
     return planJourneys(
       { ...search.query, preferences },
       { windowOffsetMinutes: search.windowOffsetMinutes },

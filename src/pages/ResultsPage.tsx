@@ -16,11 +16,13 @@ import { Icon, ModeIcon } from '../components/ui/Icons';
 import { nowMinutes, parseTimeInput, roundToStep, timeInputValue, todayIso } from '../lib/format';
 import { useFormat } from '../lib/useFormat';
 import { decodeSearchLink, encodeSearchLink } from '../lib/searchLink';
+import { journeysForQuery } from '../planner/realSearch';
 import { useT } from '../lib/useT';
 import { useDev } from '../lib/dev';
 import { alertWords } from '../lib/disruptionText';
 import type { AccessMode } from '../data/preferences';
 import type { Journey, PublicMode, SortMode } from '../data/types';
+import type { SearchQuery } from '../data/journeyEngine';
 import { Select } from '../components/ui/Select';
 
 /**
@@ -93,6 +95,83 @@ function holdIsRunning(key: string): boolean {
  * ever grows. It is cleared when the search itself changes — see `spreadKey` below.
  */
 let spreadStore: { key: string; journeys: Journey[] } | null = null;
+
+/**
+ * **A real timetable answer, including one that arrived as a link.**
+ *
+ * `/plan` hands its journeys over directly (`planResult`). A pasted `/results/...` address has only
+ * the question, so this plans it again from the official timetable — the same planner, the same
+ * conversion — instead of dropping through to the demonstration engine below. A search that says
+ * `timetable` but cannot be rebuilt says why, rather than showing invented journeys that look real.
+ */
+function TimetableResults({ query, initial }: { query: SearchQuery; initial?: Journey[] }) {
+  const t = useT();
+  const { adoptPlanResult } = useApp();
+  const [journeys, setJourneys] = useState<Journey[] | null>(initial ?? null);
+  const [failure, setFailure] = useState('');
+
+  useEffect(() => {
+    /* Handed over by `/plan`: nothing to plan, and nothing to store again (that would loop). */
+    if (initial) return;
+    let cancelled = false;
+    setJourneys(null);
+    setFailure('');
+    journeysForQuery(query)
+      .then((found) => {
+        if (cancelled) return;
+        adoptPlanResult(query, found);
+        setJourneys(found);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setFailure(error instanceof Error ? error.message : t('The timetable could not be searched.'));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [query, initial, adoptPlanResult, t]);
+
+  return (
+    <div className="stack-6">
+      <PageHeader title={t('Journey results')} showTitle />
+      <SearchForm inheritSearch />
+      <p className="t-sm t-muted">
+        {t('Real scheduled times from the official Dutch timetable. Fares, crowding and live delays are not part of these results yet.')}
+      </p>
+      {failure ? (
+        <Card>
+          <p className="t-strong">{t('That search could not be run again')}</p>
+          <p className="t-sm t-muted" style={{ marginBottom: 0 }}>
+            {failure}
+          </p>
+        </Card>
+      ) : journeys === null ? (
+        <Card>
+          <p style={{ margin: 0 }}>{t('Searching the official timetable…')}</p>
+        </Card>
+      ) : journeys.length === 0 ? (
+        <Card>
+          <p className="t-strong">{t('No journey found at that time')}</p>
+          <p className="t-sm t-muted" style={{ marginBottom: 0 }}>
+            {t('The timetable has no connection between these places at that time.')}
+          </p>
+        </Card>
+      ) : (
+        <div className="stack-4">
+          {journeys.map((journey) => (
+            <JourneyCard key={journey.id} journey={journey} />
+          ))}
+        </div>
+      )}
+      <div className="row-wrap">
+        <Link to="/plan" className="btn">
+          <Icon name="route" size={16} />
+          {t('Change the search')}
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export function ResultsPage() {
   /* The search the address names, if it names one — `/results/<id>` (`lib/searchLink`). */
@@ -385,7 +464,9 @@ export function ResultsPage() {
    * time, so the empty state can name the cause and offer the fix inline.
    */
   const offModes = MODE_OPTIONS.filter((mode) => !preferences.allowedModes.includes(mode));
-  const relaxations = visible.length === 0 ? suggestRelaxations(query, filter) : [];
+  /* Suggestions are the demonstration engine's: asking it about a `tt-` stop throws. A timetable
+     search is answered (or is still being answered) by its own branch below. */
+  const relaxations = visible.length === 0 && !search?.query.timetable ? suggestRelaxations(query, filter) : [];
   const offModeNames = offModes.map(modeLabel).join(' and ').toLowerCase();
   const emptyReason = offModes.length
     ? preferences.allowedModes.includes('walk')
@@ -446,27 +527,8 @@ export function ResultsPage() {
       ? planResult
       : null;
 
-  if (realResult) {
-    return (
-      <div className="stack-6">
-        <PageHeader title={t('Journey results')} showTitle />
-        <SearchForm inheritSearch />
-        <p className="t-sm t-muted">
-          {t('Real scheduled times from the official Dutch timetable. Fares, crowding and live delays are not part of these results yet.')}
-        </p>
-        <div className="stack-4">
-          {realResult.journeys.map((journey) => (
-            <JourneyCard key={journey.id} journey={journey} />
-          ))}
-        </div>
-        <div className="row-wrap">
-          <Link to="/plan" className="btn">
-            <Icon name="route" size={16} />
-            {t('Change the search')}
-          </Link>
-        </div>
-      </div>
-    );
+  if (realResult || search?.query.timetable) {
+    return <TimetableResults query={search!.query} initial={realResult?.journeys} />;
   }
 
   return (

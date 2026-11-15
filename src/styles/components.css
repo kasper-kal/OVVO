@@ -12348,3 +12348,55 @@
 .journey-page .timeline__station .stop-link {
   text-decoration: none;
 }
+/* --------------------------------------------------- Appearance-aware chips
+ * The tinted chips are fixed pale colours with fixed ink, which is right on a pale page.
+ * On the dark appearance the same pink and yellow were the brightest objects on /stops and
+ * /disruptions, out-shouting the titles. These keep the hue, deepen it into the card, and use
+ * the light cut of the ink. Nothing moves in the light appearance.
+ */
+:root[data-theme='dark'] .pill--coral,
+:root[data-theme='dark'] .mode-badge--bus,
+:root[data-theme='dark'] .mode-badge--ferry {
+  background: color-mix(in srgb, #ff8f7a 16%, var(--l1-bg));
+  border-color: color-mix(in srgb, #ff8f7a 38%, var(--l1-bg));
+  color: #ffc6ba;
+}
+
+:root[data-theme='dark'] .pill--sage,
+:root[data-theme='dark'] .mode-badge--tram {
+  background: color-mix(in srgb, #9cc59a 15%, var(--l1-bg));
+  border-color: color-mix(in srgb, #9cc59a 34%, var(--l1-bg));
+  color: #c8e2c4;
+}
+
+:root[data-theme='dark'] .pill--butter,
+:root[data-theme='dark'] .mode-badge--metro {
+  background: color-mix(in srgb, #f2dc8a 14%, var(--l1-bg));
+  border-color: color-mix(in srgb, #f2dc8a 32%, var(--l1-bg));
+  color: #f3e3a6;
+}
+
+/* ------------------------------------------------------- One colour per leg
+ * Every ride shared the train blue, so a bus into Schiphol was drawn in the colour of the train
+ * above it. Each ride's spine and its ring now take the colour of the way it travels; a walk
+ * keeps its grey dashes.
+ */
+.timeline__rail--ride[data-mode='bus']::before { background: #c9614c; }
+.timeline__rail--ride[data-mode='tram']::before { background: #6f9a6d; }
+.timeline__rail--ride[data-mode='metro']::before { background: #b8912a; }
+.timeline__rail--ride[data-mode='ferry']::before { background: #2f8fa3; }
+
+.timeline__rail--ride[data-mode='bus'] > .timeline__node { border-color: #c9614c; }
+.timeline__rail--ride[data-mode='tram'] > .timeline__node { border-color: #6f9a6d; }
+.timeline__rail--ride[data-mode='metro'] > .timeline__node { border-color: #b8912a; }
+.timeline__rail--ride[data-mode='ferry'] > .timeline__node { border-color: #2f8fa3; }
+
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='bus']::before { background: #e08672; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='tram']::before { background: #9dc19a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='metro']::before { background: #dcc04a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='ferry']::before { background: #5fb3c4; }
+
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='bus'] > .timeline__node { border-color: #e08672; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='tram'] > .timeline__node { border-color: #9dc19a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='metro'] > .timeline__node { border-color: #dcc04a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='ferry'] > .timeline__node { border-color: #5fb3c4; }
