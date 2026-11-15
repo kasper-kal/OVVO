@@ -1,5 +1,4 @@
-/* =============================================================================
-   OV PLANNER — MICRO-UI COMPONENT ARCHITECTURE (INTERACTIVE SUITE)
+/* ======================================================================   OV PLANNER — MICRO-UI COMPONENT ARCHITECTURE (INTERACTIVE SUITE)
    Zero-blur elevation, squircle geometry, capsule pills, spring physics.
 
    [OCR Visual Transcode - Micro-UI Component Geometry]
@@ -7565,8 +7564,7 @@
   border-color: var(--accent-primary);
 }
 
-/* ==========================================================================================
- * **The second value, for a browser that cannot mix colours.**
+/* =================================================================================== * **The second value, for a browser that cannot mix colours.**
  *
  * Every rule above that paints a surface with `color-mix()` would vanish whole on iOS 14 — not
  * fade, vanish: the parser drops the declaration and the element keeps whatever it had before,
@@ -9490,7 +9488,7 @@
   transition: none !important;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 720px) {
   .wrapped-body {
     gap: 26px;
   }
@@ -10144,8 +10142,7 @@
 }
 
 
-/* ==========================================================================
- * **The bar at the top, and the page as two halves.**
+/* =================================================================== * **The bar at the top, and the page as two halves.**
  *
  * One segment per chapter: the ones behind you are solid, the one you are on fills as its own song
  * plays, and the ones ahead are quiet. The tap halves below it are not drawn at all — the whole page
@@ -10259,8 +10256,7 @@
 }
 
 
-/* ==========================================================================
- * **The audit of ten chapters: what the fifty screenshots showed, and the repair.**
+/* =================================================================== * **The audit of ten chapters: what the fifty screenshots showed, and the repair.**
  *
  * Each block below is one thing the steerer's five-moments-per-chapter pass found, fixed where it
  * happens. The order is the order of the deck: a veil over the look, a field over the total, a unit
@@ -10402,8 +10398,7 @@
   background: currentColor;
 }
 
-/* ==========================================================================
- * **The dots across the whole page, and a calmer way from one page to the next.**
+/* =================================================================== * **The dots across the whole page, and a calmer way from one page to the next.**
  * ========================================================================== */
 
 /*
@@ -10675,8 +10670,7 @@
   text-align: right;
 }
 
-/* ==========================================================================
- * **The rail hands the paper page over, instead of dragging it through grey.**
+/* =================================================================== * **The rail hands the paper page over, instead of dragging it through grey.**
  * ========================================================================== */
 
 /*
@@ -10726,8 +10720,7 @@
   to { opacity: 1; transform: none; }
 }
 
-/* ==========================================================================
- * **Four pages that were boring, empty, or a mess.**
+/* =================================================================== * **Four pages that were boring, empty, or a mess.**
  * ========================================================================== */
 
 /*
@@ -12491,18 +12484,6 @@
  * row for a change, the smaller stop mark, and the map thumbnail beside the title.
  */
 
-/* 7. **The price in its pale chip.** 9292 puts the amount in a rounded block of its own, so the one
- * number that costs money is a thing on the line rather than a bolder word. The tint is mixed from
- * the page's own ink, so it is a shade off the page in both appearances instead of a bright plate
- * in dark. */
-.journey-meta__price {
-  padding: 1px 9px;
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--ink-strong) 6%, transparent);
-  color: var(--ink-strong);
-  font-weight: var(--fw-bold);
-}
-
 /* 9. **The platform at the far edge of its row.** The name takes the space it needs and the platform
  * sits at the end of the line, the way a timetable prints it. The name is allowed to be narrower
  * than its words so a long station name wraps rather than pushing the platform off the page. */
@@ -13012,3 +12993,74 @@
 .leg-bike--no {
   color: var(--coral-ink);
 }
+/* --------------------------------------------------- Appearance-aware chips
+ * The tinted chips are fixed pale colours with fixed ink, which is right on a pale page.
+ * On the dark appearance the same pink and yellow were the brightest objects on /stops and
+ * /disruptions, out-shouting the titles. These keep the hue, deepen it into the card, and use
+ * the light cut of the ink. Nothing moves in the light appearance.
+ */
+:root[data-theme='dark'] .pill--coral,
+:root[data-theme='dark'] .mode-badge--bus,
+:root[data-theme='dark'] .mode-badge--ferry {
+  background: color-mix(in srgb, #ff8f7a 16%, var(--l1-bg));
+  border-color: color-mix(in srgb, #ff8f7a 38%, var(--l1-bg));
+  color: #ffc6ba;
+}
+
+:root[data-theme='dark'] .pill--sage,
+:root[data-theme='dark'] .mode-badge--tram {
+  background: color-mix(in srgb, #9cc59a 15%, var(--l1-bg));
+  border-color: color-mix(in srgb, #9cc59a 34%, var(--l1-bg));
+  color: #c8e2c4;
+}
+
+:root[data-theme='dark'] .pill--butter,
+:root[data-theme='dark'] .mode-badge--metro {
+  background: color-mix(in srgb, #f2dc8a 14%, var(--l1-bg));
+  border-color: color-mix(in srgb, #f2dc8a 32%, var(--l1-bg));
+  color: #f3e3a6;
+}
+
+/* ------------------------------------------------------- One colour per leg
+ * Every ride shared the train blue, so a bus into Schiphol was drawn in the colour of the train
+ * above it. Each ride's spine and its ring now take the colour of the way it travels; a walk
+ * keeps its grey dashes.
+ */
+.timeline__rail--ride[data-mode='bus']::before { background: #c9614c; }
+.timeline__rail--ride[data-mode='tram']::before { background: #6f9a6d; }
+.timeline__rail--ride[data-mode='metro']::before { background: #b8912a; }
+.timeline__rail--ride[data-mode='ferry']::before { background: #2f8fa3; }
+
+.timeline__rail--ride[data-mode='bus'] > .timeline__node { border-color: #c9614c; }
+.timeline__rail--ride[data-mode='tram'] > .timeline__node { border-color: #6f9a6d; }
+.timeline__rail--ride[data-mode='metro'] > .timeline__node { border-color: #b8912a; }
+.timeline__rail--ride[data-mode='ferry'] > .timeline__node { border-color: #2f8fa3; }
+
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='bus']::before { background: #e08672; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='tram']::before { background: #9dc19a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='metro']::before { background: #dcc04a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='ferry']::before { background: #5fb3c4; }
+
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='bus'] > .timeline__node { border-color: #e08672; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='tram'] > .timeline__node { border-color: #9dc19a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='metro'] > .timeline__node { border-color: #dcc04a; }
+:root[data-theme='dark'] .timeline__rail--ride[data-mode='ferry'] > .timeline__node { border-color: #5fb3c4; }
+
+/* --------------------------------------------------------------- Sign-in mark
+ * The sign-in screen carries the same mark as every other screen, so it reads as OVVO rather
+ * than as a third-party form on a white page.
+ */
+.signin-brand {
+  display: flex;
+  justify-content: center;
+  color: var(--ink-strong);
+  text-decoration: none;
+  margin-bottom: var(--s-4);
+}
+
+/* An empty state is a card, not a drop zone: the dashed ring read as "drag a file here". */
+.empty__ring-edge {
+  stroke: var(--border-hairline);
+  stroke-dasharray: none;
+}
+

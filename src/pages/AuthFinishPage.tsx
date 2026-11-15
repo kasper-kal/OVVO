@@ -42,7 +42,7 @@ export function AuthFinishPage() {
     return (
       <main style={SHELL}>
         <div className="stack-4">
-          <h1 className="t-title">Sign in</h1>
+          <h1 className="t-h1">Sign in</h1>
           <p className="t-sm t-muted">This link is invalid or has expired.</p>
           <p className="t-sm">
             <Link to="/signin">Back to sign in</Link>
@@ -55,7 +55,7 @@ export function AuthFinishPage() {
   return (
     <main style={SHELL}>
       <div className="stack-4">
-        <h1 className="t-title">Sign in</h1>
+        <h1 className="t-h1">Sign in</h1>
         <p className="t-sm t-muted">Confirm the email address this link was sent to.</p>
 
         {problem !== null ? (

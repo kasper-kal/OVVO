@@ -13,16 +13,17 @@ Keep this file and your `.env` note together. Between the two of them you have e
 | Piece | Where | What it is |
 | --- | --- | --- |
 | Code | https://github.com/kasper-kal/OVVO | A normal git repository on a GitHub account |
-| The site | Cloudflare, Worker named `ovvo` | https://ovvo.vibecreations.workers.dev |
-| The database | Cloudflare D1, named `ovvo` | Holds one row per signed-in traveller |
+| The site | Cloudflare, Worker named `ovvo` | https://app.ovvo.us.ci |
+| The database | Cloudflare D1, named `ovvo` | The signed-in traveller's store, their passkeys, their photograph and the rate-limit counters |
 | Sign-in | Google Firebase, project `ovvo-vibecreations` | Google, email+password, email link |
 | Deploying | `wrangler`, run from a copy of the repository | Puts the code and the database together |
 
 Nothing here is paid. Cloudflare's free Worker and D1 plans and Firebase's free Spark plan cover
 this site at its size. None of them pause when unused.
 
-**A custom domain was deliberately not used.** The address is the free `workers.dev` one, and there
-is no DNS record, no domain bill and no renewal to forget.
+**The app now uses a custom subdomain:** `https://app.ovvo.us.ci`. The root `ovvo.us.ci` is
+reserved for a future landing page. The old `https://ovvo.vibecreations.workers.dev` still answers
+as a fallback.
 
 ---
 
@@ -49,7 +50,7 @@ Not in git, and it must stay that way. **Nine names**, all of them listed here. 
 are credentials; one is just a note.
 
 ```
-APP_URL=https://ovvo.vibecreations.workers.dev
+APP_URL=https://app.ovvo.us.ci
 
 CLOUDFLARE_ACCOUNT_ID=3e26a32b9147263801a9c32a05e99349
 CLOUDFLARE_API_TOKEN=<the token; you have this in your protected note>
@@ -67,6 +68,15 @@ VITE_FIREBASE_APP_ID=1:454638608003:web:7b15bd9be71177751585b6
 - The **Cloudflare token is a credential**. It can deploy and delete. Never in the repository,
   never in a commit, never in a chat.
 - The **account ID is not secret** — it is an account number, not a key.
+
+**Two more values are Worker secrets, not `.env` names.** They live only in Cloudflare, set once
+with `npx wrangler secret put <NAME>`, and never appear in the repository:
+
+- **`FIREBASE_SERVICE_ACCOUNT`** — a JSON key for the Firebase project, used by
+  `worker/firebase-token.js` for the server-side calls the browser cannot make (deleting the
+  account, for instance).
+- **`TURNSTILE_SECRET`** — Cloudflare's sign-up challenge. While it is absent the challenge is not
+  enforced, which is what a local copy looks like; on a real site it should be set.
 
 Where the six Firebase values come from, if they are ever lost: Firebase console, project
 `ovvo-vibecreations`, the gear icon, **Project settings**, scroll to **Your apps**, the web app, and
@@ -117,9 +127,16 @@ It is optional; the manual command is what works today.
 ## 6. The database
 
 - Name `ovvo`, id `ba996f68-d067-46b6-8ea4-3dc05ce38acc`, region WNAM (Western North America).
-- One table, `travel_sync`, defined in **`schema.sql`** at the top of the repository.
-- One row per signed-in traveller: their user id, their email, a document of everything they saved,
-  a revision number, and when it last changed.
+- **Five tables**, all defined in **`schema.sql`** at the top of the repository.
+  - `travel_sync` — one row per signed-in traveller: their user id, their email, a document of
+    everything they saved, a revision number, and when it last changed.
+  - `passkey` — one row per passkey. The public half only, plus a counter, so nothing here can be
+    used to sign in on its own.
+  - `passkey_challenge` — the five-minute question a passkey answers. Deleted the moment it is used.
+  - `profile_photo` — the traveller's squared photograph, kept as a JPEG data URL because Cloudflare
+    will not switch on R2 without a payment method. About thirty kilobytes a row.
+  - `api_limit` — how often one caller may do one thing, counted per caller because there is no
+    domain to point Cloudflare's own rate limiting at.
 
 Reading it:
 
@@ -154,10 +171,10 @@ Three ways in, all switched on under **Authentication → Sign-in method**:
 1. **Google** — no setup beyond the consent screen, which is already configured and in production.
 2. **Email/Password** — with reset mail sent by Firebase itself.
 3. **Email link (passwordless)** — the mail contains a link back to
-   `https://ovvo.vibecreations.workers.dev/auth/finish`, which is a page of ours.
+   `https://app.ovvo.us.ci/auth/finish`, which is a page of ours.
 
-**Authentication → Settings → Authorized domains** must list the site's host name. It currently
-does. If the address ever changes, that list is the single line to update — the sign-in window
+**Authentication → Settings → Authorized domains** must list `app.ovvo.us.ci`. If the address
+ever changes, that list is the single line to update — the sign-in window
 travels through Firebase's own addresses too, so those two entries stay.
 
 The mails (reset, verification, sign-in link) are now sent through **Brevo** from
@@ -206,9 +223,9 @@ npx wrangler d1 execute ovvo --remote --command "SELECT COUNT(*) FROM travel_syn
 After a deploy, these three answer "is it really up":
 
 ```bash
-curl -s https://ovvo.vibecreations.workers.dev/api/health            # {"ok":true}
-curl -s -o /dev/null -w "%{http_code}\n" https://ovvo.vibecreations.workers.dev/   # 200
-curl -s -o /dev/null -w "%{http_code}\n" https://ovvo.vibecreations.workers.dev/api/me   # 401
+curl -s https://app.ovvo.us.ci/api/health            # {"ok":true}
+curl -s -o /dev/null -w "%{http_code}\n" https://app.ovvo.us.ci/   # 200
+curl -s -o /dev/null -w "%{http_code}\n" https://app.ovvo.us.ci/api/me   # 401
 ```
 
 A 401 there is correct: it means the API refuses to answer without a sign-in.
@@ -221,5 +238,8 @@ A 401 there is correct: it means the API refuses to answer without a sign-in.
   language setting.
 - The Firebase library adds about 230 kB (gzipped) to the bundle, because every screen ships in one
   file by design.
-- No custom domain, by choice.
-- OVVO Wrapped is **planned, not built**. Nothing in the app pretends otherwise.
+- The landing page on `ovvo.us.ci` is not built yet.
+- OVVO Wrapped **is built** (`/wrapped`, `src/pages/WrappedPage.tsx`): the traveller's own year,
+  drawn from what they saved and searched. It is a screen of its own rather than a section.
+- A real end-to-end sign-in has not been walked on a phone yet. The code, the routes and the
+  database are in place; the one untested step is a person signing in for the first time.

@@ -5,7 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SkeletonDemoPage } from './pages/SkeletonDemoPage';
 import { ResultsPage } from './pages/ResultsPage';
-import { WrappedPage } from './pages/WrappedPage';
+import { WrappedGate } from './pages/WrappedPage';
 import { JourneyDetailPage } from './pages/JourneyDetailPage';
 import { MapPage } from './pages/MapPage';
 import { StopsPage } from './pages/StopsPage';
@@ -18,6 +18,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { StylesPage } from './pages/StylesPage';
 import { ReviewLayer } from './review/ReviewLayer';
 import { DeveloperRoute } from './pages/DeveloperPage';
+import { PlanPage } from './pages/PlanPage';
 import { getDevOverrides } from './lib/dev';
 import { SignInPage } from './pages/SignInPage';
 import { AuthFinishPage } from './pages/AuthFinishPage';
@@ -136,7 +137,8 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
-                  <Route path="/wrapped" element={<WrappedPage />} />
+                  <Route path="/plan" element={<PlanPage />} />
+                  <Route path="/wrapped" element={<WrappedGate />} />
                   {/* One search, in full: everything a reload or a pasted link must put back —
                       see `lib/searchLink`. `/results` alone still works and says there is nothing
                       to show yet. */}

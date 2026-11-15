@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Banner, Button, Card } from '../components/ui/primitives';
 import { TurnstileBox } from '../components/account/TurnstileBox';
+import { BrandMark } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import { firebaseConfigured } from '../lib/firebase';
 import {
@@ -22,16 +23,6 @@ import {
 } from '../lib/passkeys';
 
 type Mode = 'link' | 'password';
-
-/**
- * **The address the sign-in mail actually comes from.**
- *
- * The mail is sent by Firebase through Brevo, from a mailbox of VibeCreations' own rather than the
- * shared no-reply address Firebase uses by default, and that is what stopped it landing in spam.
- * A traveller who is told the exact sender knows what to look for in a crowded inbox, and knows the
- * message is ours rather than something that borrowed our name.
- */
-const MAIL_FROM = 'ovvo.vibecreations@outlook.com';
 
 const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as const;
 
@@ -62,6 +53,8 @@ export function SignInPage() {
   const [sent, setSent] = useState<{ to: string; purpose: 'link' | 'reset' } | null>(null);
   const [resent, setResent] = useState(false);
   const [passkeyReady, setPasskeyReady] = useState(false);
+  /* Whether the question has been answered at all, so a missing route can be said out loud. */
+  const [passkeyChecked, setPasskeyChecked] = useState(false);
   const [newWithPasskey, setNewWithPasskey] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileTrouble, setTurnstileTrouble] = useState(false);
@@ -79,7 +72,10 @@ export function SignInPage() {
     if (!canUsePasskeys) return;
     let alive = true;
     void passkeyStatus().then((status) => {
-      if (alive) setPasskeyReady(status.available);
+      if (alive) {
+        setPasskeyReady(status.available);
+        setPasskeyChecked(true);
+      }
     });
     return () => {
       alive = false;
@@ -141,9 +137,12 @@ export function SignInPage() {
 
     return (
       <main style={SHELL}>
+        <Link to="/" aria-label="OVVO" className="signin-brand">
+          <BrandMark size={44} />
+        </Link>
         <div className="stack-4">
           <div className="stack-1">
-            <h1 className="t-title">{t('Check your email')}</h1>
+            <h1 className="t-h1">{t('Check your email')}</h1>
             <p className="t-sm t-muted">
               {t(
                 sent.purpose === 'reset'
@@ -164,8 +163,7 @@ export function SignInPage() {
                 )}
               </p>
               <p className="t-sm t-muted">
-                {t('It comes from')} <b>{MAIL_FROM}</b>.{' '}
-                {t('Adding that address to your contacts keeps it out of spam next time.')}
+                {t('It comes from')} <b>OVVO</b>.
               </p>
 
               <p className="t-sm t-muted">{t("Didn't get it? Check your spam folder.")}</p>
@@ -197,7 +195,9 @@ export function SignInPage() {
           </Card>
 
           <p className="t-sm">
-            <Link to={returnTo}>{t('Back to OVVO')}</Link>
+            <Link to={returnTo} className="tap-target">
+              {t('Back to OVVO')}
+            </Link>
           </p>
         </div>
       </main>
@@ -208,9 +208,14 @@ export function SignInPage() {
 
   return (
     <main style={SHELL}>
+      {/* The same mark every other screen carries. Without it this page read as somebody else's
+          sign-in form floating on a white page (F73). */}
+      <Link to="/" aria-label="OVVO" className="signin-brand">
+        <BrandMark size={44} />
+      </Link>
       <div className="stack-4">
         <div className="stack-1">
-          <h1 className="t-title">{t('Sign in')}</h1>
+          <h1 className="t-h1">{t('Sign in')}</h1>
           <p className="t-sm t-muted">{t('Sync your stops and journeys across your devices.')}</p>
         </div>
 
@@ -246,13 +251,18 @@ export function SignInPage() {
             ) : null}
 
             <Button
-              variant={passkeyReady ? 'surface' : 'primary'}
+              variant="surface"
               block
               disabled={busy || !firebaseConfigured}
               onClick={() => void go(() => signInWithGoogle(), back)}
             >
               {t('Continue with Google')}
             </Button>
+            {canUsePasskeys && passkeyChecked && !passkeyReady ? (
+              <p className="t-sm t-faint" style={{ margin: 0 }}>
+                {t('Passkeys are not available in this build. Email and Google still work.')}
+              </p>
+            ) : null}
 
             {/*
               * **The wall, said out loud.** Google refusing an address that already has a
@@ -301,7 +311,6 @@ export function SignInPage() {
                   type="email"
                   autoComplete="email"
                   inputMode="email"
-                  autoFocus
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
@@ -513,7 +522,9 @@ export function SignInPage() {
             </div>
           </Card>
         ) : null}          <p className="t-sm">
-            <Link to={returnTo}>{t('Back to OVVO')}</Link>
+            <Link to={returnTo} className="tap-target">
+              {t('Back to OVVO')}
+            </Link>
           </p>
       </div>
     </main>

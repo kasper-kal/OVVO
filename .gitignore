@@ -27,3 +27,11 @@ data/
 # refuses a file over 100MB, which is how the first push of this work was rejected. `tools/` holds
 # what a machine downloads for itself.
 tools/
+# generated screenshots from scripts/look.mjs
+/.look-shots/
+
+# timetable archives and unpacked data: reproducible, and far too large for Git
+/.gtfs-cache/
+
+# the searchable graph, built from that archive by `npm run gtfs:graph`: reproducible, and tens of MB
+/public/graph/

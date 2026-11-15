@@ -65,6 +65,43 @@ const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D
  * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
  * a tap: the cover's Begin is the gesture that starts it, the corner switch starts it without the score.
  */
+/**
+ * **Wrapped is a new-year door, and it is shut until midnight.**
+ *
+ * The story is a review of a finished year, so it opens on 1 January at 00:01 and closes when
+ * January ends. Opening `/wrapped` in November used to show last year's story as if it were still
+ * the season — the page was never gated, only its invitation was. The gate is here rather than in
+ * the router so the closed screen still wears the app's own chrome and has a way back.
+ */
+export function WrappedGate() {
+  const t = useT();
+  const leave = useHistoryBack('/');
+  const now = appNow();
+  /* The developer's example deck stays reachable in a development build. */
+  const demo = import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === '1';
+  /*
+   * **00:00:01, not midnight.**
+   *
+   * The gate used to be "is it January", which opened at 00:00:00 — a second before the moment the
+   * steerer named. The comparison is against the first second of 1 January, so 23:59:59 and
+   * 00:00:00 are both still closed and 00:00:01 opens.
+   */
+  const opening = new Date(now.getFullYear(), 0, 1, 0, 0, 1).getTime();
+  if ((now.getMonth() === 0 && now.getTime() >= opening) || demo) return <WrappedPage />;
+
+  return (
+    <div className="stack-4" style={{ maxWidth: 560, margin: '12vh auto 0' }}>
+      <h1 className="t-h1">{t('OVVO Wrapped')}</h1>
+      <p className="t-muted">
+        {t('Wrapped opens on 1 January, just after midnight. It looks back at the whole year, every journey, once the year is over.')}
+      </p>
+      <div>
+        <Button onClick={leave}>{t('Back')}</Button>
+      </div>
+    </div>
+  );
+}
+
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
   const t = useT();
@@ -79,15 +116,14 @@ export function WrappedPage() {
    *
    * The deck used to wrap whatever year the calendar said, so a traveller opening it in July saw a
    * few months of journeys presented as the whole year, with the year still running. The wrapped
-   * season opens on 20 December, when the year being wrapped is the one just ending; at every other
+   * season opens on 1 January, when the year being wrapped is the one just ended; at every other
    * time of year the newest finished year is the one before, which is the only year a review can
-   * honestly be of.
+   * honestly be of. December used to open the running year early, and half a year is not a year.
    */
   const year = useMemo(() => {
     const named = Number(params.get('year'));
     if (Number.isInteger(named) && named > 2000) return named;
     const thisYear = yearOf(now.getTime());
-    if (now.getMonth() === 11 && now.getDate() >= 20) return thisYear;
     return thisYear - 1;
   }, [params, now]);
 

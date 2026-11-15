@@ -1,9 +1,9 @@
 /**
  * **A ceiling on how often one caller may do something, kept in the database we already have.**
  *
- * Cloudflare's own rate-limiting rules need a zone, and OVVO has no domain by decision. The free
- * Worker plan also has no per-caller limit of its own: a hundred thousand requests a day are free,
- * and one script can spend all of them. So the count lives in D1, next to the data it protects.
+ * Cloudflare's own rate-limiting rules need a zone, and the app now has one, but the free Worker
+ * plan has no per-caller limit of its own: a hundred thousand requests a day are free, and one
+ * script can spend all of them. So the count lives in D1, next to the data it protects.
  *
  * **It counts by window, not by timestamp per request.** One row per caller per thing: the number
  * of hits and when the window ends. That is one small write per allowed request and a delete for

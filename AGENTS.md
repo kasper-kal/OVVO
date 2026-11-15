@@ -23,6 +23,12 @@ Here are the rules:
 
 12. NEVER ask permission to commit or to push. When a change is finished and its checks pass, commit it and push it yourself, with a message that says why, and tell the steerer in one line that you did it. A commit that never leaves this workspace can be lost with it, so the push is part of finishing, not a separate favour to ask for. Do not commit half-finished work, and never commit secrets.
 
+## Brand assets
+
+**The official brand logo** is `design/ovvo-logo.svg` and its high-resolution export `design/ovvo-logo-4096.png`: the white rounded tile with the obsidian OVVO mark and transparent outside the corners. Use these for the brand, email signatures, marketing and anywhere the logo represents OVVO. Do not redraw or edit them without the two confirmations rule 6 requires.
+
+**`public/icons/icon-192.png` is not the official logo.** It is the deliberately different small-size app icon for the home screen and the install banner, because the official corner rounding reads as a circle at that size. Keep it for that job only: do not use it as the brand logo, do not put it in the email signature, and do not regenerate it from the official rounded artwork. The other install icons under `public/icons/` serve the same app-install job and are likewise not brand artwork.
+
 ## How the rules are enforced
 
 Pass these three gates on **every** turn, in this order. If one is missed, stop and fix it before sending the final message — never send first and explain afterwards.
@@ -45,7 +51,7 @@ Pass these three gates on **every** turn, in this order. If one is missed, stop 
 
 Git is the only copy that survives. The sandbox sleeps, the worktree can be replaced, and anything sitting in an ignored folder has no history at all, which is how a day of approved shapes was lost once.
 
-`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip, and then pushes it to the remote so the copy leaves this workspace. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
+`node scripts/keep.mjs --save "<why>"` saves the whole project in one step, including `.logs/mock/index.html`, which git would otherwise skip, and then pushes it to the remote so the copy leaves this workspace. Every save pushes to **`main`**. The checked-out `freebuff/...` branch is the chat's working branch, not the publish target. Do not change `push()` in `scripts/keep.mjs` to push `HEAD` by its branch name. Run it whenever a change is finished. A save costs a second; losing an hour costs an hour.
 
 `--check` reports anything unsaved, including ignored files that would not be kept. `--list` shows the recent saves. `--restore <path>` brings the newest saved copy of a file or folder back, and `--from <sha>` reaches further back. No timer is involved: the sandbox is asleep between turns, so work is saved when it finishes, not on a clock.
 

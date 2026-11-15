@@ -62,6 +62,11 @@ const PROVIDERS: readonly Provider[] = [
   },
 ];
 
+/** A generous box around the Benelux: the only area this network can answer for. */
+function onNetwork(lat: number, lon: number): boolean {
+  return lat >= 49 && lat <= 54.5 && lon >= 2 && lon <= 8.5;
+}
+
 function coordinates(lat: unknown, lon: unknown): { lat: number; lon: number } | null {
   const latitude = Number(lat);
   const longitude = Number(lon);
@@ -69,6 +74,15 @@ function coordinates(lat: unknown, lon: unknown): { lat: number; lon: number } |
   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
   /* Null Island is what a service returns when it has nothing to say. */
   if (latitude === 0 && longitude === 0) return null;
+  /*
+   * **An estimate on another continent is not an estimate.**
+   *
+   * The network is Dutch, so a network address that locates to 8,700 km away is a bad answer from
+   * the service, not a position: it made every stop "8,742 km away" and turned "Nearest" into
+   * noise. A generous box around the Benelux keeps a real estimate near the border and throws
+   * away the ones that cannot be where the traveller is.
+   */
+  if (!onNetwork(latitude, longitude)) return null;
   return { lat: latitude, lon: longitude };
 }
 
@@ -88,6 +102,9 @@ export function readFreshApproximateLocation(): ApproximateLocation | null {
   const stored = readApproximateLocation();
   if (!stored) return null;
   if (!Number.isFinite(stored.lat) || !Number.isFinite(stored.lon)) return null;
+  /* An estimate written by an older build can be on another continent; the cache is not a
+     licence to keep using an answer the current rule would refuse. */
+  if (!onNetwork(stored.lat, stored.lon)) return null;
   if (!Number.isFinite(stored.at) || Date.now() - stored.at > FRESH_FOR_MS) return null;
   return stored;
 }

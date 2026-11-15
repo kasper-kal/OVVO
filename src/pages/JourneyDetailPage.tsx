@@ -81,6 +81,7 @@ export function JourneyDetailPage() {
         <PageHeader
           title={t('Journey no longer in this session')}
           description={t('Journeys are generated per search, so this option is not available right now.')}
+          showTitle
         />
         <EmptyState
           icon="route"
@@ -224,7 +225,7 @@ export function JourneyDetailPage() {
       <p className="journey-meta">
         <span>{format.date(search?.query.date ?? '')}</span>
         <span aria-hidden="true">·</span>
-        <span>{t('Travel time {span}', { span: format.span(journey.durationMinutes) })}</span>
+        <span>{format.duration(journey.durationMinutes)}</span>
         {journey.fare.eur > 0 ? (
           <>
             <span aria-hidden="true">·</span>
@@ -234,13 +235,12 @@ export function JourneyDetailPage() {
               beside it: on white the "52 min" appeared to be running underneath it. The price is
               one more fact in the same sentence, bold because it is the one that costs money.
             */}
-            <span className="journey-meta__price">
-              €{journey.fare.eur.toFixed(2)}
-              {/* The marker is decoration: a screen reader reads the note below, not a star. */}
-              <span aria-hidden="true">*</span>
-            </span>
+            <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
           </>
         ) : null}
+        {/* No journey-wide delay: the leg that is late carries its own `+N min`, and the times on
+            this line are the timetable's. A summary delay beside an unchanged arrival was the one
+            number on the page that could not be true. */}
       </p>
 
       {/*
@@ -327,31 +327,31 @@ export function JourneyDetailPage() {
         here — price, length, changes, walking, how full, and the bicycle — as the sentence
         under a timetable.
       */}
-      {/*
-        **The three-fact line at the foot is gone, as 9292 has none.** The walking is said on the
-        walk rows, which carry their own minutes; how full a service is belongs on the service. The
-        bicycle has no home in 9292 and is one fact worth keeping, so it stays as one quiet line.
-      */}
-      {/* The bicycle rule is on each service now, where it is decided; a page-level line said one
-          thing about a journey made of two trains (he asked why it was here and not under the
-          train). */}
-      {/*
-        **The star beside the price means something, so it says what.** 9292 marks its fare with an
-        asterisk and prints the reason in small type under the journey; a price that is a modelled
-        fare rather than a sold ticket should say so in the same breath.
-      */}
-      {journey.fare.eur > 0 ? (
-        <p className="t-xs t-faint journey-note">
-          {/*
-            **The marker needs its footnote, and the footnote needs its marker.** The price carried a
-            star and this line explained it without one, so the page showed a footnote marker with
-            nothing to match it — "Why is there a footnktr marker but no footnotr". A marker with no
-            twin is worse than no marker: it tells the reader something is being left out.
-          */}
-          <span aria-hidden="true">* </span>
-          {t('Fares, occupancy, delays and platforms are indicative.')}
-        </p>
-      ) : null}
+      {/* What the head does not say: the walking, how full, and the bicycle. */}
+      <p className="t-sm t-muted journey-facts-line">
+        {[
+          journey.transfers === 0
+            ? t('Direct')
+            : plural(journey.transfers, t('transfer'), t('transfers')),
+          journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
+          /* Only facts the source has. A real timetable journey carries neither crowding nor a
+             bicycle rule, and inventing "Expected quiet" for it would be a lie in grey type. */
+          journey.occupancy === 'busy'
+            ? t('Expected busy')
+            : journey.occupancy === 'moderate'
+              ? t('Expected fairly busy')
+              : journey.occupancy === 'quiet'
+                ? t('Expected quiet')
+                : null,
+          journey.bikeAllowed === true
+            ? t('Bicycle allowed')
+            : journey.bikeAllowed === false
+              ? t('No bicycle')
+              : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      </p>
       </div>
 
       {/*

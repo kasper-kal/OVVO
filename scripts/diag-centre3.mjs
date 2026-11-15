@@ -1,6 +1,6 @@
 /** Every rail row's words and glyph against the middle of its own line, dot to dot. */
 import { chromium } from 'playwright'
-const BASE = process.env.BASE || 'https://ovvo.vibecreations.workers.dev'
+const BASE = process.env.BASE || 'https://app.ovvo.us.ci'
 const ROUTE = process.env.ROUTE || 'haarlem|zaandam'
 const [f, t] = ROUTE.split('|')
 const q = Buffer.from(JSON.stringify({ v: 1, f, t, d: '2026-11-02', m: 600, tm: 'depart' })).toString('base64')

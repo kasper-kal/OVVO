@@ -542,6 +542,11 @@ svg.map-canvas {
   gap: var(--s-1);
 }
 
+/* A row's own spacing, without changing its direction. */
+.gap-2 {
+  gap: var(--s-2);
+}
+
 /*
  * **A row makes a second line instead of squeezing what is on it.**
  *

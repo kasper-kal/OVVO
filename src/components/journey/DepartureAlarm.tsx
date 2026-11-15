@@ -201,7 +201,7 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
             {t('Leave at {time}', { time: format.time(leaveByFor(draft)) })}
             {walkMinutes > 0 ? <span className="t-sm t-muted"> · {t('{count} min walk included', { count: walkMinutes })}</span> : null}
           </p>
-          <p className="t-xs t-faint">
+          <p className="t-sm t-faint">
             {t('The alarm rings while this page is open. For a reminder with the app closed, add the journey to your calendar.')}
           </p>
         </div>

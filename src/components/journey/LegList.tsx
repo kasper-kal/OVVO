@@ -61,7 +61,7 @@ function CrowdingMark({ level }: { level: Leg['occupancy'] }) {
   if (!level) return null;
   if (level === 'unknown') {
     return (
-      <span className="leg-crowding leg-crowding--unknown">
+      <span className="leg-crowding">
         <span className="leg-crowding__unknown" aria-hidden="true">?</span>
         <span className="sr-only">{t(CROWDING_WORDS.unknown)}</span>
       </span>
@@ -256,7 +256,13 @@ function RideLegRow({
     </>
   );
   return (
-    <li className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}>
+    <li
+      className={`timeline__rail timeline__rail--ride${leg.cancelled ? ' font-bold' : ''}`}
+      /* The rail is this leg's own colour: a bus into Schiphol was drawn in train blue because
+         every ride shared one token. The dot ring takes the same colour, so the mark and its
+         line agree. */
+      data-mode={leg.mode}
+    >
       {/* The time you board, in the gutter, exactly where a paper timetable prints it. */}
       <span className="timeline__time">{format.time(leg.departure)}</span>
       {/* Under the time, the way you travel: a bus, a tram, a train, a boat. */}
@@ -348,7 +354,15 @@ function RideLegRow({
         {/* The headsign is the direction this service is pointed in, in its own grey line. */}
         {leg.headsign ? (
           <p className="t-sm t-muted">
-            {t('Direction')} <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+            {/* A headsign without a stop id is still a direction: print the words. `StopLink`
+                renders nothing without an id, which silently swallowed the destination on real
+                timetable journeys and left a bare "Direction". */}
+            {t('Direction')}{' '}
+            {leg.headsignStopId ? (
+              <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+            ) : (
+              leg.headsign
+            )}
           </p>
         ) : null}
 
@@ -457,6 +471,7 @@ export function LegList({ journey }: { journey: Journey }) {
           <li
             key={`stop-${leg.id}-${stop.stopId}`}
             className="timeline__rail timeline__rail--ride timeline__rail--stop"
+            data-mode={leg.mode}
           >
             <span className="timeline__time">{format.time(stop.arrival)}</span>
             <span className="timeline__node timeline__node--stop" />

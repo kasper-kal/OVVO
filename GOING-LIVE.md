@@ -5,7 +5,7 @@ file. It is the one place to look, so that a choice made in a chat three weeks a
 lost. Add to it; do not rewrite history. If something changes, change the line and add the
 date.
 
-Last updated: 1 November 2026.
+Last updated: 15 November 2026.
 
 ## What we are building
 
@@ -26,9 +26,11 @@ is pasted into this project's secrets, not typed into code.
 - **Firebase Authentication for sign-in.** Google's sign-in service. Cardless and permanently
   free at our size. Its own mail leaves from a shared `firebaseapp.com` address, which lands in
   spam, so the mail is now sent through **Brevo** from **`ovvo.vibecreations@outlook.com`** and
-  arrives in the inbox. Cardless, no domain, and it works (see "The sign-in mail no longer lands
-  in spam" below). Google sign-in and a password need no mail at all, and both work today.
-- **No custom domain.** Never. The free address Cloudflare gives us is the address.
+  arrives in the inbox. Cardless, no mailbox of our own yet, and it works (see "The sign-in mail
+  no longer lands in spam" below). Google sign-in and a password need no mail at all, and both work today.
+- **The app has a custom domain now (15 November 2026).** It lives at `app.ovvo.us.ci`;
+  the root `ovvo.us.ci` is kept free for a future landing page. This reverses the 1 November
+  decision that there would never be one.
 - **No card anywhere.** Every service must have a permanently free plan. A free plan with
   limits is fine; a free trial that ends is not.
 
@@ -36,14 +38,43 @@ is pasted into this project's secrets, not typed into code.
 
 | Thing | Value | Notes |
 | --- | --- | --- |
-| Cloudflare account | made by the steerer | Account ID still to come — see "Still missing" |
+| Cloudflare account | made by the steerer | Account ID is in the project's `.env` |
 | Cloudflare subdomain | `vibecreations` | The steerer's choice, 1 November 2026. Workers sit under it |
 | Cloudflare Worker name | `ovvo` | Decides the first part of the public address |
-| Public address | `ovvo.vibecreations.workers.dev` | Worker name, then the subdomain |
+| Cloudflare zone | `ovvo.us.ci` | The root the steerer owns; DNS is on Cloudflare |
+| App address | `app.ovvo.us.ci` | The Worker's custom domain, live 15 November 2026 |
+| Old fallback | `ovvo.vibecreations.workers.dev` | Still answers; keep until the new address is trusted |
+| Root address | `ovvo.us.ci` | Reserved for the future landing page; no site yet |
 | Firebase project ID | `ovvo-vibecreations` | Cannot be changed once made |
 | Firebase project name | `OVVO` | Display only |
 | Firebase sign-in domain | `ovvo-vibecreations.firebaseapp.com` | Leave `authDomain` exactly as given |
 | Token name | `OVVO deploy` | Display only |
+
+## The address (15 November 2026)
+
+- The app is **https://app.ovvo.us.ci**. It answers, and `/api/health` answers `{"ok":true}`.
+- `ovvo.us.ci` is the zone. The root has no website yet; it is reserved for the landing page.
+- `https://ovvo.vibecreations.workers.dev` still works as a fallback. Do not remove it until the
+  new address has been used for a while.
+- Turnstile: the OVVO widget already lists `app.ovvo.us.ci` under **Hostname Management**
+  (checked 15 November 2026).
+- Firebase: `app.ovvo.us.ci` must be in **Authentication → Settings → Authorized domains**.
+- Email: Zoho Mail Free is the chosen mailbox for `support@ovvo.us.ci` (see below).
+
+## Email at ovvo.us.ci (15 November 2026)
+
+**Chosen: Zoho Mail Free** for `support@ovvo.us.ci`. It is a real mailbox that can send and
+receive on one custom domain, with up to 5 users and 5 GB each, and it needs no card. The free
+plan has no IMAP, POP or ActiveSync, so it is used in Zoho's web and mobile apps. It is being
+set up in the **Europe (EU)** data centre, because the free plan is offered only in the US, EU
+and India centres.
+
+**Setup status: live.** Sending and receiving were confirmed working on 15 November 2026.
+Cloudflare has the three MX records `mx.zoho.eu` (10), `mx2.zoho.eu` (20) and `mx3.zoho.eu` (50),
+the single SPF record `v=spf1 include:zohomail.com -all`, the DKIM TXT at `zoho._domainkey`, and
+DMARC at `_dmarc` (`v=DMARC1; p=none; rua=mailto:support@ovvo.us.ci`, monitor-only for now).
+The outgoing display name is **OVVO Support**, set in Zoho Mail under **Settings → Send Mail As**.
+Cloudflare Email Routing must stay off for this domain, because it would replace the MX records.
 
 Rule of thumb, after the subdomain was settled: **`OVVO`** is the name a person sees,
 **`ovvo`** is the short name in front of the address, and **`ovvo-vibecreations`** survives
@@ -90,14 +121,14 @@ Asked by the steerer what else the free account is worth. Decided and built the 
 - **Three things wait on the steerer, because the deploy token can read but not create them.**
   Listing Turnstile widgets, Web Analytics sites and R2 buckets all answer 200; every create
   answers 403. So each of these needs one click in the dashboard: a Turnstile widget (name OVVO,
-  domain `ovvo.vibecreations.workers.dev`, Managed), a Web Analytics site for the same address, and
-  an R2 bucket called `ovvo-photos`. The Turnstile secret becomes a Worker secret named
-  `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
+  domain `app.ovvo.us.ci`, Managed — the widget was created for the old address, so add this
+  hostname), a Web Analytics site for the same address, and an R2 bucket called `ovvo-photos`.
+  The Turnstile secret becomes a Worker secret named `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
 - **Done the same day, once the token had Write.** The token needed three additions, all Write:
   `Turnstile`, `Workers R2 Storage` and `Account Settings` (Web Analytics sites are created under
   account settings; Cloudflare offers no Edit of their own for analytics). With those, the analytics
-  site (`ovvo.vibecreations.workers.dev`) and the Turnstile widget were created by script. The
-  Turnstile secret went straight into the Worker as `TURNSTILE_SECRET` from a temporary file, so it
+  site (then the old address; now `app.ovvo.us.ci`) and the Turnstile widget were created by script.
+  The Turnstile secret went straight into the Worker as `TURNSTILE_SECRET` from a temporary file, so it
   was never printed into the chat, and the site key lives in `src/lib/turnstile.ts` because it is
   public by design.
 - **The bot check guards one door only.** `/api/passkey/register/options` refuses a new account
@@ -107,8 +138,8 @@ Asked by the steerer what else the free account is worth. Decided and built the 
 - **R2 still answers "Please enable R2 through the Cloudflare Dashboard"**, so the photo bucket
   waits on one tap in the dashboards' R2 page. The token has Write for it; the product itself is
   not switched on for the account yet.
-- **Not worth doing here.** Email Routing and the one free rate-limiting rule both need a domain,
-  so they stay behind the same wall as the sign-in mail.
+- **Now possible.** Email Routing and the one free rate-limiting rule needed a domain; the
+  domain is here, so Email Routing can be switched on (see "Email at ovvo.us.ci").
 
 ## Passkeys (2 November 2026)
 
@@ -147,9 +178,9 @@ How the three flows work:
 
 Limits worth naming now:
 
-- **A passkey belongs to the address it was made on.** `ovvo.vibecreations.workers.dev` is the
-  address today. Moving to another address means every passkey made before the move stops working,
-  and everybody signs in the old way once more.
+- **A passkey belongs to the address it was made on.** The app address is now
+  `app.ovvo.us.ci`. Passkeys made on the old `ovvo.vibecreations.workers.dev` address do not carry
+  over; there are no users yet, so nothing is lost.
 - **A passkey-only account has no recovery.** If every device holding it is lost and nothing was
   synced, the account cannot be opened. The card says so whenever there is only one passkey.
 - **`FIREBASE_SERVICE_ACCOUNT` must be a Secret, not a Variable.** Added as a plain dashboard
@@ -206,10 +237,9 @@ could not publish; it was about a sender address shared with every Firebase proj
 Giving the mail its own address, with a service that authenticates it, was enough. Brevo's free
 plan sends the handful of messages a day this site needs, and no card was entered.
 
-**The exact address is on the screen now.** The "check your email" page tells the traveller it
-comes from `ovvo.vibecreations@outlook.com` (`MAIL_FROM` in `src/pages/SignInPage.tsx`), so they
-know what to look for and know the message is ours. If the sender is ever changed in Brevo or in
-Firebase, that one line changes with it.
+**The public contact address is now `support@ovvo.us.ci`.** The sign-in page no longer prints a
+sender address; the support mailbox is separate from the Brevo sender. If the sender is ever changed
+in Brevo or Firebase, the page does not need another address added by hand.
 
 What is true without a domain: **Google sign-in and email with a password need no mail** and are
 unaffected. Email link sign-in is the one path that depends on the mail arriving.
@@ -262,10 +292,10 @@ the site's address and it does not exist until the Cloudflare side is named.
 
 **Everything needed to run this without me is in [HANDOVER.md](HANDOVER.md)** — accounts, names, ids, the commands, and what happens if something is lost.
 
-## What is live now (1 November 2026)
+## What is live now (15 November 2026)
 
-- **Address:** https://ovvo.vibecreations.workers.dev. Worker name `ovvo`, account subdomain
-  `vibecreations`.
+- **Address:** https://app.ovvo.us.ci. Worker name `ovvo`, custom domain inside the
+  `ovvo.us.ci` zone. The old https://ovvo.vibecreations.workers.dev still answers as a fallback.
 - **One deploy carries everything.** `worker/index.js` answers `/api/*` itself and hands every
   other request to the built site. Config: `wrangler.jsonc`.
 - **Database:** Cloudflare D1, name `ovvo`, id `ba996f68-d067-46b6-8ea4-3dc05ce38acc`. One table,
@@ -302,3 +332,37 @@ taken back from it, because they describe the device and not the traveller: `loc
 `location-fix`, `approximate-location` and `install-asked`.
 
 Deleting the account erases that document first, then the account itself.
+
+## Where the account layer stands (14 November 2026)
+
+Written down because the last three weeks of this file describe decisions, and this section is the
+state of the code that carries them out.
+
+**Built and in the repository:**
+
+- **Sign-in, four ways** — Google, a link by email (landing on `/auth/finish`), email with a password,
+  and a passkey. `src/pages/SignInPage.tsx`, `src/lib/account.ts`, `src/lib/passkeys.ts`, and
+  `worker/passkey.js` for the server half of the keys.
+- **The store travels** — one document per account in `travel_sync`, saved with the revision it was
+  built on, so two devices merge rather than overwrite (`worker/index.js`).
+- **A photograph per account** — squared, size-checked, kept in `profile_photo` in the same database
+  (`worker/photos.js`).
+- **Doors are counted** — `api_limit` holds the per-caller window, because Cloudflare's own rate
+  limiting wants a domain this project deliberately does not have (`worker/limit.js`).
+- **The three lookups are cached at the edge** — `/api/lookup/*`, measured live as a `MISS` then a
+  `HIT` with the Worker not running for the second (see above).
+- **The sign-up challenge** is Cloudflare Turnstile, enforced only when `TURNSTILE_SECRET` is set
+  (`worker/turnstile.js`).
+- **OVVO Wrapped is built** — `/wrapped`, drawn from what the traveller saved and searched.
+
+**Checked, and how:** the project's own type check, its style audits and a production build all pass
+in a clean checkout (`npm run typecheck`, `npm run build`). That is a statement about the code, not
+about the live site.
+
+**Still to do:** a real end-to-end sign-in by the steerer on a real phone, which is the one step no
+agent can walk for him. Until that happens, treat the account layer as working but unproven in a
+browser.
+
+**One cost, unchanged since it was measured:** the Firebase sign-in code adds about 230 kB
+(gzipped) to the bundle, because every screen ships in one file by design. Worth splitting the
+heaviest screens out if first load is measured to suffer on a phone.

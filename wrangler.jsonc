@@ -23,8 +23,8 @@
   /*
    * **The edge keeps the lookups, so a repeat question does not run this Worker at all.**
    * `worker/lookup.js` answers with `Cache-Control`, and this puts a real HTTP cache in front of
-   * the Worker for it. It follows the Worker rather than a domain, so it works on the
-   * `workers.dev` address we have (checked against the Cache API, which does not).
+   * the Worker for it. It follows the Worker rather than a domain, so it works on both the
+   * custom domain and the `workers.dev` fallback (checked against the Cache API, which does not).
    */
   "cache": {
     "enabled": true

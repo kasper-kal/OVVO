@@ -61,6 +61,13 @@ export interface SearchQuery {
   /** minutes since midnight */
   time: number;
   timeMode: TimeMode;
+  /**
+   * This question is answered by the real timetable, not the demonstration engine.
+   *
+   * It is in the search so it travels in the address: a `/results/...` link made from a real
+   * search can plan that search again on a browser that has never seen it.
+   */
+  timetable?: boolean;
   /** Preferences captured with the search so it can be replayed later. */
   preferences: Preferences;
 }

@@ -7,6 +7,7 @@
 
 import { identify } from './auth.js';
 import { allow, tooMany } from './limit.js';
+import { liveRoute } from './live.js';
 import { lookupRoute } from './lookup.js';
 import { passkeyRoute } from './passkey.js';
 import { photoRoute } from './photos.js';
@@ -98,6 +99,7 @@ async function saveProfile(request, env, claims) {
 
 async function api(request, env, url) {
   if (url.pathname === '/api/health') return json({ ok: true });
+  if (url.pathname === '/api/live') return liveRoute(url);
 
   if (request.method !== 'GET' && request.method !== 'HEAD' && crossOrigin(request, url)) {
     return json({ error: 'origin' }, 403);

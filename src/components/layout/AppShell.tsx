@@ -44,6 +44,7 @@ export function useNavigation(): NavGroup[] {
       title: t('Home'),
       items: [
         { to: '/', label: t('Home'), icon: 'home', hint: t('Plan a journey and browse the network') },
+        { to: '/plan', label: t('Plan a journey'), icon: 'station', hint: t('Search the real timetable') },
         /*
           There was a "Journey results" entry here, and it was a way to a screen that answers a
           question — the results of a search you have just made. The planner's second stop goes
@@ -771,7 +772,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           is recognised, and asks nothing on a later visit once it has been answered
           (see `ui/InstallBanner`).
         */}
-        <InstallBanner />
+        {/* The offer belongs to the home screen. It used to hang over every route, taking the top
+            of a phone before the page's own title; a traveller reading a journey is not asking to
+            install anything. */}
+        {location.pathname === '/' ? <InstallBanner /> : null}
         <LocationPermission />
       </div>
     </HeaderControlContext.Provider>

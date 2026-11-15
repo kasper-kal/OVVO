@@ -1,8 +1,11 @@
-import { getStop, requireStop } from './stops';
+import { getStop, requireStop, STOPS } from './stops';
 import { directions, getLine, isInService, NETWORK, nextDeparture, linesAtStop } from './network';
 import { disruptionForLeg } from './disruptions';
+import { OPERATORS } from './operators';
 import { seededRandom } from '../lib/random';
-import type { Departure } from './types';
+import { BOARDS } from './generated/boards';
+import { SAMPLE_DATA_ALLOWED } from '../lib/dataMode';
+import type { Departure, PublicMode } from './types';
 
 /**
  * Departure boards.
@@ -22,9 +25,71 @@ export interface BoardOptions {
   destinationQuery?: string;
 }
 
+/** The service day the real feed is indexed under, in local time. */
+function todayKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * **A board read out of the real timetable, or nothing.**
+ *
+ * The generated data holds scheduled departures for the stops the app knows, for the service days
+ * the feed was built for. It carries no delay: a scheduled time is not a prediction, and calling
+ * one "on time" would be inventing a fact. Realtime is a separate feed and a separate step.
+ */
+function boardFromTimetable(stopId: string, options: BoardOptions): Departure[] {
+  const rows = BOARDS[stopId]?.[todayKey()];
+  if (!rows || rows.length === 0) return [];
+  const from = options.fromMinutes;
+  const named = (headsign: string) => STOPS.find((candidate) => candidate.id !== stopId && headsign.startsWith(candidate.name));
+  const here = getStop(stopId)?.name ?? '';
+  return rows
+    /* A trip that ends here has no onward departure: its headsign is this station, which read as
+       "Utrecht Centraal → Utrecht Centraal" on the board. The sample generator already drops its
+       terminus; the real feed needs the same rule. */
+    .filter((row) => !here || !row.d.startsWith(here))
+    .map<Departure>((row) => {
+      const planned = Math.round(row.s / 60);
+      const destination = named(row.d);
+      /* The feed names operators in its own spelling (`NS`, `Arriva`); the app's operator id is
+         the join key every badge and colour reads. Matching here is what stops a row printing
+         "Onbekend" for an operator the app actually knows. */
+      const operator = OPERATORS.find(
+        (entry) => entry.id === row.o || entry.shortName === row.o || entry.name === row.o,
+      );
+      return {
+        id: `tt-${stopId}-${row.s}-${row.l}`,
+        stopId,
+        mode: (row.m as PublicMode) ?? 'bus',
+        lineId: `tt-${row.l}`,
+        lineNumber: row.l,
+        operatorId: operator?.id ?? '',
+        destinationStopId: destination?.id ?? '',
+        destinationLabel: row.d || destination?.name || '',
+        planned,
+        expected: planned,
+        platform: row.p,
+        delayMinutes: 0,
+        cancelled: false,
+        accessible: false,
+        directionIndex: 0,
+        source: 'timetable',
+        tripId: row.t,
+      };
+    })
+    .filter((departure) => departure.planned >= from - 1)
+    .sort((a, b) => a.planned - b.planned)
+    .slice(0, options.limit ?? 24);
+}
+
 export function boardForStop(stopId: string, options: BoardOptions): Departure[] {
   const stop = getStop(stopId);
   if (!stop) return [];
+  /* Real first. A stop the feed knows is never answered with invented times. */
+  const real = boardFromTimetable(stopId, options);
+  if (real.length > 0) return real;
+  if (!SAMPLE_DATA_ALLOWED) return [];
   const limit = options.limit ?? 24;
   const from = options.fromMinutes;
   const lines = linesAtStop(stopId);
@@ -63,6 +128,9 @@ export function boardForLine(lineId: string, stopId: string, options: BoardOptio
   const line = getLine(lineId);
   const stop = getStop(stopId);
   if (!line || !stop) return [];
+  /* The real feed is indexed by stop, not by the app's line ids, so a single line's board cannot
+   * be answered from it yet. Rather than mix the two, a build without sample data shows nothing. */
+  if (!SAMPLE_DATA_ALLOWED) return [];
   const limit = options.limit ?? 24;
   const entries: Departure[] = [];
 

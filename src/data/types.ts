@@ -175,15 +175,17 @@ export interface Journey {
   operatorIds: string[];
   fare: Fare;
   label?: 'fastest' | 'fewestTransfers' | 'leastWalking' | 'direct';
-  occupancy: 'quiet' | 'moderate' | 'busy';
-  occupancyHistory: number[];
-  stepFree: boolean;
-  bikeAllowed: boolean;
+  /** Present only when the source actually knows it; a real timetable row may not. */
+  occupancy?: 'quiet' | 'moderate' | 'busy';
+  occupancyHistory?: number[];
+  stepFree?: boolean;
+  bikeAllowed?: boolean;
   realtime: false;
   delayMinutes: number;
   cancelled: boolean;
   disruptionIds: string[];
-  source: 'demo';
+  /** `timetable` journeys come from the official GTFS graph; `demo` ones are invented. */
+  source: 'demo' | 'timetable';
 }
 
 export type DisruptionType = 'delay' | 'cancellation' | 'works' | 'platformChange' | 'crowding' | 'weather';
@@ -222,9 +224,15 @@ export interface Departure {
   cancelled: boolean;
   accessible: boolean;
   disruptionId?: string;
+  /** The feed's own identifier for the vehicle, so a live delay can be joined to this row. */
+  tripId?: string;
   /** direction index within the line (0 = A direction, 1 = B direction) */
   directionIndex: 0 | 1;
-  source: 'demo';
+  /**
+   * Where this row came from, and the only thing a screen may trust about its origin.
+   * `timetable` is a scheduled time read out of the national GTFS feed; `demo` is invented.
+   */
+  source: 'demo' | 'timetable' | 'realtime';
 }
 
 export interface TimeWindow {

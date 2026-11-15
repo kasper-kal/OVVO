@@ -1,6 +1,6 @@
 /** A zoom on the rail where one row hands over to the next: blue into a ring, dashes into a ring. */
 import { chromium } from 'playwright'
-const BASE = process.env.BASE || 'https://ovvo.vibecreations.workers.dev'
+const BASE = process.env.BASE || 'https://app.ovvo.us.ci'
 const q = Buffer.from(JSON.stringify({ v: 1, f: 'haarlem', t: 'zaandam', d: '2026-11-02', m: 600, tm: 'depart' })).toString('base64')
 const b = await chromium.launch()
 const p = await b.newPage({ viewport: { width: 390, height: 1200 }, deviceScaleFactor: 4 })

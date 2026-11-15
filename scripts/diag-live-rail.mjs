@@ -1,6 +1,6 @@
 /** Opens the DEPLOYED site, walks to a journey, and reads the rail as it is really served. */
 import { chromium } from 'playwright';
-const BASE = process.env.BASE || 'https://ovvo.vibecreations.workers.dev';
+const BASE = process.env.BASE || 'https://app.ovvo.us.ci';
 const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 await page.addInitScript(() => Object.defineProperty(navigator, 'webdriver', { get: () => false }));
