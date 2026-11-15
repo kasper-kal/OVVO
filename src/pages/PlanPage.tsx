@@ -339,7 +339,8 @@ export function PlanPage() {
                     {leg.mode === 'walk' ? ' · on foot' : ''}
                     {delayLabel(leg) ? (
                       <span style={{ marginLeft: 6, color: delayLabel(leg)?.startsWith('+') ? '#b3261e' : undefined }}>
-                        · {delayLabel(leg)}
+                        {' · '}
+                        {delayLabel(leg)}
                       </span>
                     ) : null}
                   </div>

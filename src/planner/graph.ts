@@ -255,8 +255,6 @@ async function searchPath(graph: DayGraph, origin: number, destination: number, 
 
   const best = new Int32Array(graph.stops.length).fill(INF);
   const labelConn = new Int32Array(graph.stops.length).fill(-1);
-  const walkInto = new Int32Array(graph.stops.length).fill(-1);
-  const walkBase = new Int32Array(graph.stops.length).fill(-1);
   const tripArrival = new Int32Array(graph.tripCount).fill(INF);
   const tripLastConn = new Int32Array(graph.tripCount).fill(-1);
   /* -2 means "this connection was never used", -1 means "this is where the journey began". */
@@ -302,8 +300,7 @@ async function searchPath(graph: DayGraph, origin: number, destination: number, 
       if (candidate >= best[graph.walkTo[link]]) continue;
       best[graph.walkTo[link]] = candidate;
       labelConn[graph.walkTo[link]] = labelConn[base];
-      walkInto[graph.walkTo[link]] = link;
-      walkBase[graph.walkTo[link]] = base;
+      /* The label is mirrored so the ride chain stays continuous through the walk. */
       settle(graph.walkTo[link], candidate);
       changed = true;
     }
@@ -312,25 +309,17 @@ async function searchPath(graph: DayGraph, origin: number, destination: number, 
 
   if (bestArrival === INF || bestStop < 0) return null;
 
+  /*
+   * Rides only. Transfers are worked out *between* consecutive rides, from the stop one arrives at
+   * to the stop the next one boards at. Rebuilding walks from mirrored labels could end the chain at
+   * a different station from the one the traveller started at, and printed a journey beginning at
+   * Centraal for a search that began at Oorsprongpark.
+   */
   const steps: PathStep[] = [];
-  let stop = bestStop;
-  if (walkInto[stop] >= 0 && labelConn[stop] === labelConn[walkBase[stop]]) {
-    steps.push({ kind: 'walk', index: walkInto[stop] });
-    stop = walkBase[stop];
-  }
-
-  let connection = labelConn[stop];
+  let connection = labelConn[bestStop];
   for (let guard = 0; connection >= 0 && guard < 200; guard += 1) {
     steps.push({ kind: 'ride', index: connection });
-    const previousStop = from[connection];
-    const before = pred[connection];
-    if (walkInto[previousStop] >= 0 && before === labelConn[previousStop]) {
-      steps.push({ kind: 'walk', index: walkInto[previousStop] });
-      stop = walkBase[previousStop];
-    } else {
-      stop = previousStop;
-    }
-    connection = before;
+    connection = pred[connection];
   }
   steps.reverse();
   return { seconds: bestArrival, steps, from, to, dep, arr, trip };
@@ -349,9 +338,17 @@ interface BuiltPath {
 }
 
 /** Turn the connections into legs: one leg per vehicle, with the line and both ends named. */
+/** The walking time between two stops, if the graph has a link for it. */
+function walkBetween(graph: DayGraph, fromStop: number, toStop: number): number | null {
+  if (fromStop === toStop) return 0;
+  for (let link = 0; link < graph.walkFrom.length; link += 1) {
+    if (graph.walkFrom[link] === fromStop && graph.walkTo[link] === toStop) return graph.walkSeconds[link];
+  }
+  return null;
+}
+
 function toJourney(graph: DayGraph, path: BuiltPath): PlanJourney | null {
   if (path.steps.length === 0) return null;
-  const legs: PlanLeg[] = [];
 
   const rideLeg = (first: number, last: number): PlanLeg => {
     const info = graph.tripInfo[path.trip[first]] ?? ['', '', 'bus', ''];
@@ -372,54 +369,56 @@ function toJourney(graph: DayGraph, path: BuiltPath): PlanJourney | null {
     };
   };
 
-  /* Steps arrive in travel order; a ride is one vehicle, so consecutive steps of the same trip join. */
+  /* Consecutive connections of one vehicle are one ride. */
+  const rides: { first: number; last: number }[] = [];
   let rideStart: number | null = null;
   let rideLast = -1;
-  const closeRide = () => {
-    if (rideStart !== null) {
-      legs.push(rideLeg(rideStart, rideLast));
-      rideStart = null;
-    }
-  };
-
   for (const step of path.steps) {
-    if (step.kind === 'walk') {
-      const fromStop = graph.stops[graph.walkFrom[step.index]];
-      const toStop = graph.stops[graph.walkTo[step.index]];
-      /* The same station on foot is not a leg of the journey. */
-      if (graph.placeOfStop[graph.walkFrom[step.index]] === graph.placeOfStop[graph.walkTo[step.index]]) continue;
-      closeRide();
-      const minutes = Math.max(1, Math.round(graph.walkSeconds[step.index] / 60));
-      const start = legs.length > 0 ? legs[legs.length - 1].arrival : 0;
-      legs.push({
-        mode: 'walk',
-        line: '',
-        headsign: '',
-        operator: '',
-        fromName: fromStop?.[1] ?? '',
-        toName: toStop?.[1] ?? '',
-        fromPlatform: '',
-        toPlatform: '',
-        departure: start,
-        arrival: start + minutes,
-        tripId: null,
-      });
-      continue;
-    }
+    if (step.kind !== 'ride') continue;
     if (rideStart === null) {
       rideStart = step.index;
     } else if (path.trip[step.index] !== path.trip[rideStart]) {
-      closeRide();
+      rides.push({ first: rideStart, last: rideLast });
       rideStart = step.index;
     }
     rideLast = step.index;
   }
-  closeRide();
+  if (rideStart !== null) rides.push({ first: rideStart, last: rideLast });
+  if (rides.length === 0) return null;
 
-  if (legs.length === 0) return null;
+  const legs: PlanLeg[] = [];
+  for (let index = 0; index < rides.length; index += 1) {
+    const ride = rides[index];
+
+    if (index > 0) {
+      const arrivedAt = path.to[rides[index - 1].last];
+      const boardsAt = path.from[ride.first];
+      const samePlace = graph.placeOfStop[arrivedAt] === graph.placeOfStop[boardsAt];
+      const walking = samePlace ? 0 : walkBetween(graph, arrivedAt, boardsAt);
+      if (walking !== null && walking > 0) {
+        const start = legs[legs.length - 1].arrival;
+        const minutes = Math.max(1, Math.round(walking / 60));
+        legs.push({
+          mode: 'walk',
+          line: '',
+          headsign: '',
+          operator: '',
+          fromName: graph.stops[arrivedAt]?.[1] ?? '',
+          toName: graph.stops[boardsAt]?.[1] ?? '',
+          fromPlatform: '',
+          toPlatform: '',
+          departure: start,
+          arrival: start + minutes,
+          tripId: null,
+        });
+      }
+    }
+
+    legs.push(rideLeg(ride.first, ride.last));
+  }
+
   const departure = legs[0].departure;
   const arrival = legs[legs.length - 1].arrival;
-  const rides = legs.filter((leg) => leg.mode !== 'walk');
   return {
     legs,
     departure,
@@ -429,21 +428,50 @@ function toJourney(graph: DayGraph, path: BuiltPath): PlanJourney | null {
   };
 }
 
-/** The journeys to show: the earliest, then the next after it, a few times over. */
-export async function planRealJourneys(day: string, origin: number, destination: number, startMinutes: number): Promise<PlanJourney[]> {
-  const graph = await loadDay(day);
-  const journeys: PlanJourney[] = [];
-  let start = startMinutes * 60;
+const dayBefore = (day: string): string => {
+  const date = new Date(`${day.slice(0, 4)}-${day.slice(4, 6)}-${day.slice(6, 8)}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, '0')}${String(date.getUTCDate()).padStart(2, '0')}`;
+};
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const path = await searchPath(graph, origin, destination, start);
-    if (!path) break;
-    const journey = toJourney(graph, path);
-    if (!journey) break;
-    journeys.push(journey);
-    start = journey.legs[0].departure * 60 + 60;
+/**
+ * The journeys to show: the earliest, then the next after it, a few times over.
+ *
+ * **After midnight the timetable is still yesterday's.** A bus leaving at 03:08 on a Saturday night
+ * is stored as 27:08 in Saturday's service day, and a Sunday search at 02:08 never reaches it — which
+ * is why a quiet night produced a first journey four hours later, with no live delay to show. So a
+ * search in the small hours also runs against the previous service day, at the time plus a day, and
+ * the two answers are merged in departure order.
+ */
+export async function planRealJourneys(day: string, origin: number, destination: number, startMinutes: number): Promise<PlanJourney[]> {
+  const searches: { day: string; startSeconds: number }[] = [{ day, startSeconds: startMinutes * 60 }];
+  if (startMinutes < 4 * 60) searches.push({ day: dayBefore(day), startSeconds: (startMinutes + 24 * 60) * 60 });
+
+  const journeys: PlanJourney[] = [];
+  for (const search of searches) {
+    let graph;
+    try {
+      graph = await loadDay(search.day);
+    } catch {
+      /* That day was never built; the search still has the day in front of it. */
+      continue;
+    }
+    let start = search.startSeconds;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const path = await searchPath(graph, origin, destination, start);
+      if (!path) break;
+      const journey = toJourney(graph, path);
+      if (!journey) break;
+      const duplicate = journeys.some(
+        (seen) => seen.departure % 1440 === journey.departure % 1440 && seen.arrival % 1440 === journey.arrival % 1440,
+      );
+      if (!duplicate) journeys.push(journey);
+      start = journey.legs[0].departure * 60 + 60;
+    }
   }
-  return journeys;
+
+  journeys.sort((left, right) => left.departure - right.departure || left.arrival - right.arrival);
+  return journeys.slice(0, 4);
 }
 
 /** Search can be slow on a cold cache; this warms the files a day needs. */

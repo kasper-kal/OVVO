@@ -229,14 +229,23 @@ async function loadFeed() {
   const now = Date.now();
   if (cached.value && now - cached.at < CACHE_MS) return cached.value;
 
-  const response = await fetch(LIVE_URL, {
-    headers: { accept: 'application/x-protobuf', 'user-agent': 'OVVO (+https://ovvo.onrender.com)' },
-  });
-  if (!response.ok) throw new Error(`the live feed answered ${response.status}`);
+  try {
+    const response = await fetch(LIVE_URL, {
+      headers: { accept: 'application/x-protobuf', 'user-agent': 'OVVO (+https://ovvo.onrender.com)' },
+    });
+    if (!response.ok) throw new Error(`the live feed answered ${response.status}`);
 
-  const decoded = decodeTripUpdates(new Uint8Array(await response.arrayBuffer()));
-  cached = { at: now, value: decoded };
-  return decoded;
+    const decoded = decodeTripUpdates(new Uint8Array(await response.arrayBuffer()));
+    cached = { at: now, value: decoded };
+    return decoded;
+  } catch (error) {
+    /*
+     * A feed read a minute ago is far better than no answer at all: the source rate-limits a busy
+     * page, and one 429 should not turn every delay on the page into "unavailable".
+     */
+    if (cached.value) return cached.value;
+    throw error;
+  }
 }
 
 /**
