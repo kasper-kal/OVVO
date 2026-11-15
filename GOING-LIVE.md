@@ -235,10 +235,9 @@ could not publish; it was about a sender address shared with every Firebase proj
 Giving the mail its own address, with a service that authenticates it, was enough. Brevo's free
 plan sends the handful of messages a day this site needs, and no card was entered.
 
-**The exact address is on the screen now.** The "check your email" page tells the traveller it
-comes from `ovvo.vibecreations@outlook.com` (`MAIL_FROM` in `src/pages/SignInPage.tsx`), so they
-know what to look for and know the message is ours. If the sender is ever changed in Brevo or in
-Firebase, that one line changes with it.
+**The public contact address is now `support@ovvo.us.ci`.** The sign-in page no longer prints a
+sender address; the support mailbox is separate from the Brevo sender. If the sender is ever changed
+in Brevo or Firebase, the page does not need another address added by hand.
 
 What is true without a domain: **Google sign-in and email with a password need no mail** and are
 unaffected. Email link sign-in is the one path that depends on the mail arriving.

@@ -802,7 +802,7 @@ export function SettingsPage() {
       {/*
         **The foot of the screen: who made this, and how to reach a person.**
 
-        OVVO has no support desk, so the honest thing is a real address that a person reads. The
+        OVVO has a support mailbox, so the honest thing is a real address that a person reads. The
         footer is a footer on purpose: it sits under every setting, says the two facts a traveller
         may want long after they stopped reading this page, and asks for nothing.
 
@@ -820,8 +820,8 @@ export function SettingsPage() {
           )}
         </p>
         <div className="row-wrap" style={{ justifyContent: 'center' }}>
-          <a className="btn" href="mailto:ovvo.vibecreations@outlook.com">
-            ovvo.vibecreations@outlook.com
+          <a className="btn" href="mailto:support@ovvo.us.ci">
+            support@ovvo.us.ci
           </a>
         </div>
       </footer>
