@@ -23,6 +23,12 @@ Here are the rules:
 
 12. NEVER ask permission to commit or to push. When a change is finished and its checks pass, commit it and push it yourself, with a message that says why, and tell the steerer in one line that you did it. A commit that never leaves this workspace can be lost with it, so the push is part of finishing, not a separate favour to ask for. Do not commit half-finished work, and never commit secrets.
 
+## Brand assets
+
+**The official brand logo** is `design/ovvo-logo.svg` and its high-resolution export `design/ovvo-logo-4096.png`: the white rounded tile with the obsidian OVVO mark and transparent outside the corners. Use these for the brand, email signatures, marketing and anywhere the logo represents OVVO. Do not redraw or edit them without the two confirmations rule 6 requires.
+
+**`public/icons/icon-192.png` is not the official logo.** It is the deliberately different small-size app icon for the home screen and the install banner, because the official corner rounding reads as a circle at that size. Keep it for that job only: do not use it as the brand logo, do not put it in the email signature, and do not regenerate it from the official rounded artwork. The other install icons under `public/icons/` serve the same app-install job and are likewise not brand artwork.
+
 ## How the rules are enforced
 
 Pass these three gates on **every** turn, in this order. If one is missed, stop and fix it before sending the final message — never send first and explain afterwards.
