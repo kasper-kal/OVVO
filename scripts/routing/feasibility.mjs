@@ -17,6 +17,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
+import { createScanner } from './scan.mjs';
 
 const CACHE = '.gtfs-cache';
 const current = JSON.parse(fs.readFileSync(path.join(CACHE, 'current.json'), 'utf8'));
@@ -196,58 +197,24 @@ for (let i = 0; i < stops.length; i += 1) {
 const STOP_COUNT = stops.length;
 const INF = 2 ** 30;
 
-function search(origin, destination, startTime, maxRides = 4) {
-  const arrival = new Int32Array(STOP_COUNT).fill(INF);
-  const tripArrival = new Int32Array(tripIndex.size).fill(INF);
-  arrival[origin] = startTime;
+/*
+ * The search itself is imported, not copied: `scripts/routing/scan.mjs` is the one implementation,
+ * used here, by the graph builder and (from step 2) by the app. An experiment that measured a
+ * different algorithm from the one that ships would measure nothing useful.
+ */
+const scanner = createScanner({
+  ...C,
+  walkFrom: Uint32Array.from(walkFrom),
+  walkTo: Uint32Array.from(walkTo),
+  walkSeconds: Uint16Array.from(walkSeconds),
+  stopCount: STOP_COUNT,
+  tripCount: tripIndex.size,
+  minTransferSeconds: MIN_TRANSFER_SECONDS,
+});
 
-  /*
-   * **Walking has to happen *during* the scan, not after it.**
-   *
-   * The first version relaxed footpaths once the connection scan had finished — and every query
-   * came back "no route", including Utrecht to Hilversum, because a station's platforms are
-   * separate stops: the search stood on platform 18 and the train left from platform 5, and the
-   * walk between them was applied only when there was nothing left to board. So the scan and the
-   * footpaths alternate until neither can improve anything, which is what a transfer actually is.
-   */
-  for (let pass = 0; pass < 4; pass += 1) {
-    let changed = false;
-
-    /*
-     * **Stop scanning once nothing later can arrive earlier.**
-     *
-     * Connections are in departure order, so once a connection departs after the best arrival we
-     * already have at the destination, no later one can improve it. Reading the whole day for a
-     * thirty-minute journey was the difference between 53 ms and something a free function can
-     * afford; the day is not the unit, the journey is.
-     */
-    for (let index = 0; index < C.dep.length; index += 1) {
-      if (C.dep[index] < startTime) continue;
-      if (C.dep[index] > arrival[destination]) break;
-      if (C.dep[index] > startTime + WINDOW_SECONDS) break;
-      const tripNumber = C.trip[index];
-      const ready = tripArrival[tripNumber] !== INF
-        ? tripArrival[tripNumber]
-        : arrival[C.from[index]] + MIN_TRANSFER_SECONDS;
-      if (ready <= C.dep[index] && C.arr[index] < arrival[C.to[index]]) {
-        arrival[C.to[index]] = C.arr[index];
-        tripArrival[tripNumber] = C.arr[index];
-        changed = true;
-      }
-    }
-
-    for (let k = 0; k < walkFrom.length; k += 1) {
-      const candidate = arrival[walkFrom[k]] + walkSeconds[k];
-      if (candidate < arrival[walkTo[k]]) {
-        arrival[walkTo[k]] = candidate;
-        changed = true;
-      }
-    }
-
-    if (!changed) break;
-  }
-
-  return arrival[destination] === INF ? null : arrival[destination];
+function search(origin, destination, startTime) {
+  const found = scanner.search(origin, destination, startTime, WINDOW_SECONDS);
+  return found ? found.seconds : null;
 }
 
 const findStop = (fragment) => {

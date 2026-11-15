@@ -11,6 +11,8 @@
     "gtfs:update": "node scripts/gtfs/fetch.mjs",
     "gtfs:check": "node scripts/gtfs/fetch.mjs --check",
     "gtfs:status": "node scripts/gtfs/fetch.mjs --status",
+    "gtfs:graph": "node scripts/gtfs/build-graph.mjs",
+    "gtfs:graph:verify": "node scripts/gtfs/build-graph.mjs --verify",
     "look": "node scripts/look.mjs --sample",
     "look:selftest": "node scripts/look.mjs --selftest",
     "look:full": "node scripts/look.mjs --full",

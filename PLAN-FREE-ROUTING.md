@@ -117,6 +117,41 @@ The builder refuses to publish a graph that fails its own checks: every stop ref
 every connection must move forward in time, every date must have a service. A failed build leaves the
 previous graph in place, exactly as the timetable pipeline does.
 
+### Step 1 — result (built 15 November 2026)
+
+`npm run gtfs:graph:verify` builds the graph and then reads it back. Current build, from the
+verified archive, for Sunday 15 November 2026:
+
+| | |
+| --- | --- |
+| Stops | 53,612 |
+| Trips that day | 76,843 |
+| Connections | 1,133,578 |
+| Walking links (both directions) | 353,968, being 176,984 pairs within 400 m |
+| Slices | 17 files of two hours, 25.0 MiB in total, largest 2.88 MiB |
+| Verification | pass: hashes, sort order, slice bounds, forward-moving times, stop references |
+| Proof journey | Utrecht Centraal from 08:00 arrives Amsterdam Centraal 08:52 (Sunday timetable) |
+
+Three real faults were found and fixed while building it, each one worth recording because each
+would have produced a silently wrong planner:
+
+1. The builder first refused to run at all, because it defaulted to the feed's *first* service day,
+   which had passed. It now builds for today, and refuses only when today is outside the feed.
+2. `Math.max(...rawDep)` over a million-odd departures overflowed the stack. It is a loop now.
+3. The verify pass demanded the exact Saturday arrival time from a Sunday build. It now checks that a
+   plausible journey exists; the exact comparison stays in the experiment, where the dates match.
+
+**Timing a request-shaped search**, loading three slices (392,153 connections, 7.48 MiB) from disk in
+5 ms and then searching: 10.3 ms and 10.5 ms. That is on the line, not under it. The cause is visible
+in the build: a two-hour slice in the middle of the day holds 140,000–150,000 connections, and the
+scan still reads all of them. **This is exactly what step 2 must fix** — visit only stops the search
+has actually reached instead of every connection in the slice.
+
+Open question for step 1, not yet solved: the graph is built for **one service day**. The feed covers
+28 days, so a real deployment needs a graph per day (28 × 17 slices = 476 files, roughly 700 MiB) or
+slices that carry their own date. That decision belongs with step 3, where the request states which
+day it means.
+
 ## Step 2 — the search itself
 
 Connection scan first: one forward pass over departure-sorted connections gives the earliest arrival

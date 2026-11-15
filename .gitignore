@@ -23,3 +23,6 @@ artifacts/
 
 # timetable archives and unpacked data: reproducible, and far too large for Git
 /.gtfs-cache/
+
+# the searchable graph, built from that archive by `npm run gtfs:graph`: reproducible, and tens of MB
+/public/graph/
