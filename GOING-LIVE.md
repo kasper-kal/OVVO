@@ -69,9 +69,11 @@ plan has no IMAP, POP or ActiveSync, so it is used in Zoho's web and mobile apps
 set up in the **Europe (EU)** data centre, because the free plan is offered only in the US, EU
 and India centres.
 
-**Setup status: not live yet.** Cloudflare needs the Zoho verification TXT, the three MX records
-`mx.zoho.eu` (10), `mx2.zoho.eu` (20) and `mx3.zoho.eu` (50), the SPF record
-`v=spf1 include:zohomail.com -all`, the DKIM TXT at `zoho._domainkey`, and DMARC at `_dmarc`.
+**Setup status: live.** Sending and receiving were confirmed working on 15 November 2026.
+Cloudflare has the three MX records `mx.zoho.eu` (10), `mx2.zoho.eu` (20) and `mx3.zoho.eu` (50),
+the single SPF record `v=spf1 include:zohomail.com -all`, the DKIM TXT at `zoho._domainkey`, and
+DMARC at `_dmarc` (`v=DMARC1; p=none; rua=mailto:support@ovvo.us.ci`, monitor-only for now).
+The outgoing display name is **OVVO Support**, set in Zoho Mail under **Settings → Send Mail As**.
 Cloudflare Email Routing must stay off for this domain, because it would replace the MX records.
 
 Rule of thumb, after the subdomain was settled: **`OVVO`** is the name a person sees,
