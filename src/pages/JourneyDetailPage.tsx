@@ -79,6 +79,7 @@ export function JourneyDetailPage() {
         <PageHeader
           title={t('Journey no longer in this session')}
           description={t('Journeys are generated per search, so this option is not available right now.')}
+          showTitle
         />
         <EmptyState
           icon="route"
@@ -198,9 +199,9 @@ export function JourneyDetailPage() {
             <span className="journey-meta__price">€{journey.fare.eur.toFixed(2)}</span>
           </>
         ) : null}
-        {journey.delayMinutes ? (
-          <span className="delay">{t('Delay +{count} min', { count: journey.delayMinutes })}</span>
-        ) : null}
+        {/* No journey-wide delay: the leg that is late carries its own `+N min`, and the times on
+            this line are the timetable's. A summary delay beside an unchanged arrival was the one
+            number on the page that could not be true. */}
       </p>
 
       {/*

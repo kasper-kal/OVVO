@@ -450,6 +450,37 @@ export function NetworkMap({
     return { stopIds: [...calls.keys()], labelled, corridors };
   }, [lines, mode, priority, wantedStops]);
 
+  /*
+   * **The frame is the drawing, not the whole 0–100 sheet.**
+   *
+   * The canvas always showed the full design sheet, so on a wide plate the network sat in a
+   * column through the middle with empty ground either side, and the outermost stops touched the
+   * edge. Fitting the view box to the stops and their names, with a small margin, makes the map
+   * use the plate it is given and keeps every dot and label inside the frame.
+   */
+  const frame = useMemo(() => {
+    const xs: number[] = [];
+    const ys: number[] = [];
+    for (const stopId of drawn.stopIds) {
+      const point = MAP_POINT(stopId);
+      if (point) {
+        xs.push(point.x);
+        ys.push(point.y);
+      }
+    }
+    for (const label of drawn.labelled) {
+      xs.push(label.box.left, label.box.right);
+      ys.push(label.box.top, label.box.bottom);
+    }
+    if (!xs.length) return { x: 0, y: 0, w: 100, h: 100 };
+    const pad = 4;
+    const left = Math.max(0, Math.min(...xs) - pad);
+    const top = Math.max(0, Math.min(...ys) - pad);
+    const right = Math.min(100, Math.max(...xs) + pad);
+    const bottom = Math.min(100, Math.max(...ys) + pad);
+    return { x: left, y: top, w: Math.max(12, right - left), h: Math.max(12, bottom - top) };
+  }, [drawn]);
+
   const journeyPath = useMemo(() => {
     if (!requestedJourney) return null;
     const points = requestedJourney.legs
@@ -495,7 +526,7 @@ export function NetworkMap({
 
       <svg
         className={`map-canvas${variant === 'widget' ? ' map-canvas--widget' : ' map-canvas--screen'}`}
-        viewBox="0 0 100 100"
+        viewBox={`${frame.x.toFixed(2)} ${frame.y.toFixed(2)} ${frame.w.toFixed(2)} ${frame.h.toFixed(2)}`}
         role="img"
         aria-label={t('Network map: {scope}, {count} stops', { scope: t(mode === 'all' ? 'all routes' : '{mode} routes only', { mode: mode === 'all' ? '' : modeLabel(mode) }), count: drawn.stopIds.length })}
       >

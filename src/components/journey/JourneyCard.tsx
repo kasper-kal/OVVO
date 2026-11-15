@@ -85,11 +85,9 @@ export function JourneyCard({ journey, highlight = false }: { journey: Journey; 
         </h2>
         <div className="journey-card__tags">
           {journey.label ? <Pill tone="butter">{t(JOURNEY_LABELS[journey.label])}</Pill> : null}
-          {journey.delayMinutes > 0 ? (
-            <Pill tone="coral" dot dotTone="coral">
-              {t('Delay +{minutes} min', { minutes: journey.delayMinutes })}
-            </Pill>
-          ) : null}
+          {/* The delay belongs to the leg that is late, where the leg list prints it. A journey-wide
+              "+3 min" beside times that had not moved was the contradiction: the card said late and
+              the arrival said on time. */}
           {journey.cancelled ? <Pill tone="coral">{t('Cancelled')}</Pill> : null}
           {/*
             The one control a result needs, beside its own name: a heart, the same control the

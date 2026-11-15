@@ -147,7 +147,7 @@ function StationPicker({
 
 export function PlanPage() {
   const navigate = useNavigate();
-  const { preferences, startSearch, adoptPlanResult } = useApp();
+  const { preferences, settings, startSearch, adoptPlanResult } = useApp();
   const [days, setDays] = useState<PlanDay[]>([]);
   const [day, setDay] = useState<string>('');
   const [places, setPlaces] = useState<PlanPlace[]>([]);
@@ -289,7 +289,17 @@ export function PlanPage() {
               <label className="field__label" htmlFor="plan-time">
                 Leave after
               </label>
-              <input id="plan-time" className="input" type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+              {/* `lang` is what decides a native time control's clock: en-GB draws 24-hour, the
+                  browser's own en-US draws 12-hour with AM/PM, which contradicted the app's own
+                  formatting (G7). */}
+              <input
+                id="plan-time"
+                className="input"
+                type="time"
+                lang={settings.language === 'nl' ? 'nl-NL' : 'en-GB'}
+                value={time}
+                onChange={(event) => setTime(event.target.value)}
+              />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

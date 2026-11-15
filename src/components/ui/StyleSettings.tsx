@@ -172,7 +172,7 @@ export function StyleSettings() {
             <span style={{ background: palette.accent }} />
           </span>
           <span className="style-current__label">
-            <span className="t-faint t-sm">{t('In use')}</span>
+            <span className="t-muted t-sm">{t('In use')}</span>
             <span className="style-current__name">{name(current)}</span>
           </span>
         </div>
@@ -232,7 +232,11 @@ export function StyleSettings() {
           </div>
         )}
         {STYLE_GROUPS.map((group) => {
-          const members = STYLES.filter((style) => style.group === group.id);
+          /* The seasonal tile already stands on its own Upcoming shelf; drawing it again in the
+             Holidays shelf was the exact duplicate the audit counted (Sinterklaas, in November). */
+          const members = STYLES.filter(
+            (style) => style.group === group.id && style.id !== upcoming?.style.id,
+          );
           if (members.length === 0) return null;
           return (
             <div className="style-group" key={group.id}>

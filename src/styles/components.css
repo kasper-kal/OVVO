@@ -12400,3 +12400,46 @@
 :root[data-theme='dark'] .timeline__rail--ride[data-mode='tram'] > .timeline__node { border-color: #9dc19a; }
 :root[data-theme='dark'] .timeline__rail--ride[data-mode='metro'] > .timeline__node { border-color: #dcc04a; }
 :root[data-theme='dark'] .timeline__rail--ride[data-mode='ferry'] > .timeline__node { border-color: #5fb3c4; }
+
+/* --------------------------------------------------------------- Sign-in mark
+ * The sign-in screen carries the same mark as every other screen, so it reads as OVVO rather
+ * than as a third-party form on a white page.
+ */
+.signin-brand {
+  display: flex;
+  justify-content: center;
+  color: var(--ink-strong);
+  text-decoration: none;
+  margin-bottom: var(--s-4);
+}
+
+/* ------------------------------------------------------------- Dock with words
+ * Three unlabeled glyphs asked the traveller to learn them. Each tab now says its name under
+ * the icon; the bar keeps its 64px reserved height.
+ */
+.app-dock__item {
+  width: 64px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+}
+
+.app-dock__label {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.01em;
+}
+
+/* An empty state is a card, not a drop zone: the dashed ring read as "drag a file here". */
+.empty__ring-edge {
+  stroke: var(--border-hairline);
+  stroke-dasharray: none;
+}
+
+/* The older dock label was a screen-reader-only span; the visible one above must not inherit it. */
+.app-dock__label {
+  display: block;
+}

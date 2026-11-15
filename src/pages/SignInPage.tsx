@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Banner, Button, Card } from '../components/ui/primitives';
 import { TurnstileBox } from '../components/account/TurnstileBox';
+import { BrandMark } from '../components/ui/Icons';
 import { useT } from '../lib/useT';
 import { firebaseConfigured } from '../lib/firebase';
 import {
@@ -62,6 +63,8 @@ export function SignInPage() {
   const [sent, setSent] = useState<{ to: string; purpose: 'link' | 'reset' } | null>(null);
   const [resent, setResent] = useState(false);
   const [passkeyReady, setPasskeyReady] = useState(false);
+  /* Whether the question has been answered at all, so a missing route can be said out loud. */
+  const [passkeyChecked, setPasskeyChecked] = useState(false);
   const [newWithPasskey, setNewWithPasskey] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileTrouble, setTurnstileTrouble] = useState(false);
@@ -79,7 +82,10 @@ export function SignInPage() {
     if (!canUsePasskeys) return;
     let alive = true;
     void passkeyStatus().then((status) => {
-      if (alive) setPasskeyReady(status.available);
+      if (alive) {
+        setPasskeyReady(status.available);
+        setPasskeyChecked(true);
+      }
     });
     return () => {
       alive = false;
@@ -141,6 +147,9 @@ export function SignInPage() {
 
     return (
       <main style={SHELL}>
+        <Link to="/" aria-label="OVVO" className="signin-brand">
+          <BrandMark size={44} />
+        </Link>
         <div className="stack-4">
           <div className="stack-1">
             <h1 className="t-h1">{t('Check your email')}</h1>
@@ -210,6 +219,11 @@ export function SignInPage() {
 
   return (
     <main style={SHELL}>
+      {/* The same mark every other screen carries. Without it this page read as somebody else's
+          sign-in form floating on a white page (F73). */}
+      <Link to="/" aria-label="OVVO" className="signin-brand">
+        <BrandMark size={44} />
+      </Link>
       <div className="stack-4">
         <div className="stack-1">
           <h1 className="t-h1">{t('Sign in')}</h1>
@@ -248,13 +262,18 @@ export function SignInPage() {
             ) : null}
 
             <Button
-              variant={passkeyReady ? 'surface' : 'primary'}
+              variant="surface"
               block
               disabled={busy || !firebaseConfigured}
               onClick={() => void go(() => signInWithGoogle(), back)}
             >
               {t('Continue with Google')}
             </Button>
+            {canUsePasskeys && passkeyChecked && !passkeyReady ? (
+              <p className="t-sm t-faint" style={{ margin: 0 }}>
+                {t('Passkeys are not available in this build. Email and Google still work.')}
+              </p>
+            ) : null}
 
             {/*
               * **The wall, said out loud.** Google refusing an address that already has a
@@ -303,7 +322,6 @@ export function SignInPage() {
                   type="email"
                   autoComplete="email"
                   inputMode="email"
-                  autoFocus
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
