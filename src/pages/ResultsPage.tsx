@@ -338,7 +338,7 @@ export function ResultsPage() {
           description={
             unreadable
               ? t('The address is missing a part of the search or names a stop this network does not have. Planning it again takes one step.')
-              : t('Plan a journey first: its results will appear here, and this address will bring them back.')
+              : t('A saved search reopens here. New searches start in the planner.')
           }
         >
           <Link to="/" className="btn btn--primary">

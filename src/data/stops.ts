@@ -422,6 +422,18 @@ const INTERCITY_WALK_MINUTES_PER_UNIT = 53;
 export const METRES_PER_UNIT = 4000;
 
 export function walkMinutesBetween(a: Stop, b: Stop): number {
+  /*
+   * **A real distance first.**
+   *
+   * The canvas is not to scale, so the old factors turned the Domtoren into a 40-minute walk from
+   * Utrecht Centraal and Vaartsche Rijn into 80. Both stops carry a WGS84 position, so the walk
+   * is measured from those, at 80 m a minute (4.8 km/h). The canvas remains only as a fallback
+   * for a stop without a position; every stop in this build has one.
+   */
+  const metres = distanceFromPosition(a, b.geo.lat, b.geo.lon);
+  if (Number.isFinite(metres) && metres > 0) {
+    return Math.max(1, Math.round(metres / 80));
+  }
   const factor = a.city === b.city ? CITY_WALK_MINUTES_PER_UNIT : INTERCITY_WALK_MINUTES_PER_UNIT;
   const fromCanvas = canvasDistance(a, b) * factor;
   /*

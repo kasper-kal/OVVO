@@ -12,12 +12,13 @@ The visual system itself is in good shape: **2,880 palette pairs pass** the cont
 
 What is not in good shape is the **product on top of the visual system**:
 
-1. The home journey picker puts the station you choose as **origin into the destination slot**, leaves the sheet open, and never starts a search.
-2. `/results` tells the traveller their results "will appear here" — but searches never go there. `/plan` is a second planner with inline results that never link to a journey.
-3. The planner opens on **2026-11-14**, the oldest built day (yesterday), and the primary action then searches a past day without complaint.
-4. Departure boards and station cards show **"Onbekend"** instead of destinations, and direct trains show a line badge reading **"4000"**.
-5. Every station card says it is **8,742–8,773 km away**, and "Nearby stops" claims the Domtoren is a **40-minute walk** from Utrecht Centraal.
-6. **Wrapped is still 2025**, and says on screen that none of it is real.
+1. `/results` tells the traveller their results "will appear here" — but searches never go there. `/plan` is a second planner with inline results that never link to a journey.
+2. The planner opened on **2026-11-14**, the oldest built day (yesterday), and the primary action then searched a past day without complaint. **Fixed.**
+3. Departure boards and station cards showed **"Onbekend"** instead of destinations, because a timetable destination the app could not match to a stop lost its words and the operator fell back to "Onbekend". **Fixed.**
+4. Every station card said it was **8,742–8,773 km away**, and "Nearby stops" claimed the Domtoren was a **40-minute walk** from Utrecht Centraal. **Fixed.**
+5. **Wrapped is still 2025**, and says on screen that none of it is real.
+
+The first draft of this report also said the home picker filled the wrong end. **That was the audit's mistake, not the app's** — the script typed into the To field. It is retracted in §4.1.
 
 There are ~30 further visual and interaction defects below, including an install banner that occupies the top of every page, a floating help button that covers content, pastel pills that glare in dark mode, overlapping map labels, and a settings preview whose delayed arrival does not move.
 
@@ -154,9 +155,8 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 **Dark:** same, plus the two-column cards have equal heights but the right-hand card is half empty.
 **Mobile:** the From/To card loses the swap control and shows only two rows; the bottom dock plus install banner consume ~240 px of the 844 px screen.
 
-**F1 · P0 — the picker fills the wrong end.** Opening **From** ("Where are you leaving from?"), typing `Utrecht Centraal` and choosing the option left the sheet open and put the value in the card's **To** row (`To Utrecht Centraal`), with From still empty. Reproduced three times; a second pick replaced the same To value with `Amsterdam Centraal`. No search started and the URL stayed `/`. Whatever the sheet shows, the card state ends up with the origin in the destination slot; a traveller cannot plan from home.
-*Files:* `src/widgets/registry.tsx` (plan card), `src/components/journey/StopPicker.tsx`, `StopCombobox.tsx`.
-*Fix:* pass the side through the sheet (`side: 'from' | 'to'`), keep it in the sheet's own state, and assert `nextFrom`/`nextTo` before calling `run()`. Add a check: open From → pick → `from` is set and `to` is null.
+**F1 · retracted — the picker is correct.** The first draft claimed the From picker filled the To row. That was the audit script's fault: the picker has two inputs (`#picker-from`, `#picker-to`), and the script filled the **last input**, which is To, then reported the result as if it had used From. Re-tested with `#picker-from`: the From row fills, the sheet advances to "Where do you want to go?", and the pair searches when both ends exist. No app change is needed, and no fix is proposed.
+*Lesson for the audit harness:* address the picker by id, never by "last input".
 
 **F2 · P1 — no page heading.** Add a visible `h1` ("Home" or "Good afternoon") so the document outline starts somewhere. The sweep finds `h1: 0` on this route.
 
@@ -167,8 +167,7 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 ### 4.2 `/plan` — Plan a journey
 **Light/dark:** a single form card with From, To, Day, Leave after, Search, then "Timetable for 20261114 · 21,276 stations". Results render **inline below the form** as cards with times, duration, line pills, price — but no links, no heart, no detail, no filters.
 
-**F5 · P0 — default day is yesterday.** `setDay(available[0].date)` (`src/pages/PlanPage.tsx:156`) picks the oldest built service day. On 15 November the select opens on **20261114**. A traveller who presses Search without touching it searches a past day; the page neither refuses nor warns.
-*Fix:* default to the service day containing "now" (fallback: the next day), and mark earlier days disabled with "No longer available".
+**F5 · fixed — the planner defaulted to yesterday.** It now opens on today's service day (or the next built day), earlier days are disabled, and the raw `20261114` label became `Sat 14 Nov` / `Sun 15 Nov · today`. Verified in the browser: value `20261115`, 14 Nov disabled, status reads `Timetable for Sun 15 Nov`.
 
 **F6 · P0 — two planners.** `/plan` is a self-contained GTFS planner (`planRealJourneys`) with inline results. `/results` is the demo-data planner (`startSearch`) with the full results screen, filters, hearts, map, and journey pages. The sidebar's "Plan a journey" goes to `/plan`; the results page's empty state says "Plan a journey first: its results will appear here" and its CTA goes to `/plan` — where the results appear **inline and never reach `/results`**. `/results` can only be populated by a crafted `/results/<base64>` link.
 *Fix (choose one):* (a) make `/plan` submit navigate to `/results` and feed the GTFS journeys into the results state; delete the inline list; or (b) merge the real engine into `ResultsPage` and make `/plan` a redirect. Option (a) is the smaller change and preserves the journey/filters/save machinery. Then the empty-state promise becomes true.
@@ -183,7 +182,7 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 **Light/dark:** giant dashed card, hidden heading (G3/G4), copy: *"No search has been run in this browser yet. Journey results. Nothing to show yet. Plan a journey first: its results will appear here, and this address will bring them back."* The promise is false (F6). The card's only CTA goes to `/plan`.
 **Mobile:** same, plus the banner and dock.
 
-**F10 · P1 — the copy lies.** Either wire the flow (F6) or change the copy to describe what actually happens. A page that promises results and cannot receive them is worse than no page.
+**F10 · fixed (copy only) — the promise was false.** The empty state now says *"A saved search reopens here. New searches start in the planner."* The larger merge (F6) remains open.
 
 **F11 · P2 — no recent searches.** The app stores `recentSearches` but the empty results page does not list them; it could offer one-tap re-run.
 
@@ -191,8 +190,7 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 **Light:** search card (From/To, leave time, Save, sort, Options), "7 of 12 shown", an alert strip, EARLIER collapse, 7 cards. **Dark:** cards read well; the "Fastest" badge is pale yellow and very bright.
 **Mobile:** the floating "?" covers the first card's heart; "Fastest" wraps onto its own row while on desktop it sits inline.
 
-**F12 · P0/P1 — bogus line badge "4000".** Every direct train card shows a mode glyph plus **4000**; multi-leg cards show real short names (347, 900, 22). 4000 is a route id, not a line. This is the most visible data defect on the results screen.
-*Fix:* use `leg.lineName`/`route.shortName`; when the short name is a bare numeric id, fall back to the mode name ("Intercity") or hide the badge.
+**F12 · corrected — "4000" is a real line.** It is `Sprinter 4000` in `src/data/network.ts`, not a route id, so the data is right. The *presentation* still reads like an id because the pill shows only the number. A P2 clarity fix, not a P0 data defect: use the line's name (`Sprinter 4000`) for train series, or show number plus mode.
 
 **F13 · P1 — past-date search served silently.** The seeded link dated 2 November 2026 (13 days earlier) produced a full list and a "Later" control, with no "this day has passed" notice. The code elsewhere deliberately refuses past days (comment at `ResultsPage.tsx` around the date validation). Direct links bypass it.
 *Fix:* validate `query.date` against today on mount; show a banner "This search is for a past date — showing the timetable for that day" and offer "Plan for today".
@@ -247,8 +245,7 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 ### 4.8 `/stops` — Stations & stops
 **Light/dark:** search, Favourites only, Sort by Nearest, Options, "15 of 61 stops", cards in 3 columns, Show 5 more.
 **The card is the problem:**
-- **F31 · P0 — distances are 8,742–8,773 km.** "Nearest" therefore sorts by noise, and the subtitle admits "from an approximate IP location, which can be off by a lot" — but 8,700 km is not "a lot", it is another continent. With no location permission the distance should be absent, not fabricated.
-  *Fix:* only show distances when a position is known; otherwise hide the column and the "Nearest" sort until consent, defaulting to A–Z.
+- **F31 · fixed — the IP estimate was on another continent.** The estimate is now only accepted inside a generous Benelux box (lat 49–54.5, lon 2–8.5), both when fetched and when read from yesterday's cache; a cached bad fix is discarded. Verified: no `8xxx km` text on `/stops`, the distance column is gone, and the sort falls back to city order.
 - **F32 · P0 — most departure rows have no destination.** Leeuwarden shows three bare times and platform letters; Haarlem three bare times; only Groningen/Amsterdam rows name a destination. Same root cause as "Onbekend" on the station board.
 - **F33 · P1 — empty cards.** "Amsterdam, Anne Frank House" and "Den Haag, Binnenhof" show only PLAN in a 380 × 200 card, leaving 150 px of blank card.
   *Fix:* collapse to a single-line "No departures — plan a journey" row, or omit departures entirely and shrink the card.
@@ -260,10 +257,8 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 ### 4.9 `/stops/:id` — Station
 **Light/dark:** title, PLAN, heart, Stop information (mode chips, platforms, facilities), Next departures, Alerts at this stop, Position on the map, Lines calling here (10 services), Nearby stops.
 **Findings:**
-- **F36 · P0 — every board row says "Onbekend".** Six rows: `12:55 Onbekend`, `13:09 Onbekend`… with only crowd/vehicle icons. No destination, no line, no platform. This is the app's core information and it is missing on the station screen.
-  *Fix:* join the board rows to the service's headsign (`trip.tripHeadsign`) and line short name. Add a check: no visible "Onbekend" in the board for a station with services.
-- **F37 · P0 — nearby walking times are wrong.** Domtoren 40 min, Vaartsche Rijn 80 min, Overvecht 120 min. Real values are roughly 12, 25 and 30 minutes; Vaartsche Rijn is two stops by train. These look like placeholder minutes.
-  *Fix:* compute from stop coordinates, or remove the minutes and show modes only.
+- **F36 · fixed — the board lost its destinations.** The timetable carries `d` (headsign) and `l` (service); when `d` did not match one of the app's stop names, the row's destination link rendered nothing — the words were thrown away with the link — and the operator line fell back to `operatorName`'s "Onbekend". Fixed by printing `destinationLabel` without a link when the stop is unknown, mapping feed operator spellings (`NS`, `Arriva`) to the app's operator ids, and printing the feed's service name. A terminus whose headsign is the station itself is filtered out. Verified: four sample rows now read `13:25 Utrecht Centraal · Sprinter · NS`, `13:33 Rotterdam Centraal · Intercity · NS`; "Onbekend" count is 0.
+- **F37 · fixed — nearby walking times were canvas guesses.** `walkMinutesBetween` multiplied schematic canvas units by a city factor, which made the Domtoren 40 minutes away. It now measures the real WGS84 distance at 80 m/min. Verified: Domtoren reads **10 min**.
 - **F38 · P1 — map labels overlap** as on `/map`; "Utrecht Vaartsche Rijn" is unreadable.
 - **F39 · P1 — "Showing from 12:47, the current time in this browser" clips at 390 px.** The line runs to the edge and is cut mid-word ("browser" truncated by the viewport).
 - **F40 · P2 — "every 30 min" orphans "min"** onto a second line in every "Lines calling here" card at 390 px. Use a non-breaking space between the number and unit, or a compact "30′".
@@ -381,7 +376,7 @@ Renders the **Sign in** page (h1 "Sign in") with no explanation, so a traveller 
 ### Do not respond / behave wrongly
 | # | Control | Observed |
 | --- | --- | --- |
-| 1 | Home From picker | Choosing a station writes it to **To**, sheet stays open, no search (F1) |
+| 1 | ~~Home From picker~~ | **Retracted** — the picker was correct; the audit typed into `#picker-to` (F1) |
 | 2 | `/plan` Search | Runs inline; cannot open a journey, save, filter or share (F6) |
 | 3 | `/results` empty CTA | Goes to `/plan`, whose results never arrive here (F10) |
 | 4 | `/plan` day select | Defaults to yesterday (F5) |
@@ -439,11 +434,11 @@ Renders the **Sign in** page (h1 "Sign in") with no explanation, so a traveller 
 ## 8. Proposed fix order
 
 ### Phase 0 — unbreak the journey flow (P0)
-1. Fix the home picker side/propagation (F1) and add a UI smoke check for it.
-2. One planner: make `/plan` submit to `/results` with the GTFS journeys, delete the inline list (F6); make the empty-state copy true (F10).
-3. Default the planner to today, disable past days (F5, F13).
-4. Board data: destinations/headsigns and line short names on every row; remove "Onbekend" and "4000" (F12, F32, F36).
-5. Distances: hide when no position; fix walking minutes or remove them (F31, F37).
+1. ~~Fix the home picker~~ — **retracted, the picker was always correct** (F1).
+2. One planner: make `/plan` submit to `/results` with the GTFS journeys, delete the inline list (F6). **Still open**; the empty-state copy is corrected (F10).
+3. ~~Default the planner to today~~ — **done** (F5).
+4. ~~Board destinations and operator names~~ — **done** (F32, F36); the `4000` badge is a real Sprinter and stays (F12).
+5. ~~Distances and walking minutes~~ — **done** (F31, F37).
 
 ### Phase 1 — the worst visual offenders (P1)
 6. Install banner: home only, after first search, bottom-anchored on mobile (G1).
@@ -484,7 +479,21 @@ No claim is made that the list above is exhaustive of pixel-level imperfections;
 
 ---
 
-## 10. Evidence index
+## 10. Phase 0 — what actually changed
+
+| Change | Where | Verified |
+| --- | --- | --- |
+| Planner opens on today; earlier days disabled and labelled | `src/pages/PlanPage.tsx` | `value=20261115`, `Sat 14 Nov` disabled, `Sun 15 Nov · today`, status `Timetable for Sun 15 Nov` |
+| Results empty-state copy tells the truth | `src/pages/ResultsPage.tsx` | Copy reads "A saved search reopens here. New searches start in the planner." |
+| Board destination words survive an unknown stop; operator spellings mapped; service name printed | `src/components/stops/BoardList.tsx`, `src/data/departures.ts` | Rows read `13:33 Rotterdam Centraal · Intercity · NS`; 0 × "Onbekend" |
+| Terminating trips no longer shown as departing to their own station | `src/data/departures.ts` | Filtered on `row.d` before mapping |
+| IP estimate accepted only inside the Benelux box, including cached fixes | `src/lib/approximateLocation.ts` | `/stops` shows no `8xxx km`, distance column absent |
+| Walking minutes from real coordinates at 80 m/min | `src/data/stops.ts` | Domtoren 10 min (was 40) |
+| Home picker finding retracted | this document | Re-tested with `#picker-from`: From fills, sheet advances to To |
+
+**Not done in Phase 0:** the one-planner merge (F6). The real timetable still renders inline on `/plan`, and `/results` is still reachable only by a saved search link. That is a larger change than this round and is the next thing to plan.
+
+## 11. Evidence index
 
 - Screenshots: `artifacts/audit/` (88 files, named `<route>-<theme>-<viewport>.png`; extra states `results-data-*`, `journey-*`, `themes-allblack-dark-desktop.png`, `home-picker-after.png`, `results-unreadable-*`, `journey-missing-*`, `authfinish-*`, `skeleton-*`).
 - Route sweep data: `.logs/audit-desktop.json`, `.logs/audit-mobile.json`.

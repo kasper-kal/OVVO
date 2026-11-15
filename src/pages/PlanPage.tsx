@@ -19,6 +19,26 @@ const clock = (minutes: number) => {
   return `${String(hours).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
 };
 
+/** The service-day key the graph files are named with, in local time. */
+const pad = (value: number) => String(value).padStart(2, '0');
+const todayKey = () => {
+  const now = new Date();
+  return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+};
+
+/** `20261115` reads as `Sun 15 Nov`; a raw key is a database value, not a date. */
+const dayLabel = (date: string) => {
+  const year = Number(date.slice(0, 4));
+  const month = Number(date.slice(4, 6));
+  const day = Number(date.slice(6, 8));
+  if (!year || !month || !day) return date;
+  return new Date(year, month - 1, day).toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+};
+
 const modeLabel = (mode: string) => {
   if (mode === 'walk') return 'Walk';
   if (mode === 'train') return 'Train';
@@ -152,7 +172,18 @@ export function PlanPage() {
           return;
         }
         setDays(available);
-        const first = available[0].date;
+        /*
+         * **Today, not the oldest file on disk.**
+         *
+         * The day picker used to open on `available[0]` — the first day in the rolling week —
+         * which is yesterday or earlier. The traveller could press Search without touching it and
+         * ask for a timetable that had already gone, and nothing said so. Today is the honest
+         * default; if today is not built, the next built day is; only then the last one.
+         */
+        const today = todayKey();
+        const first = available.find((entry) => entry.date === today)?.date
+          ?? available.find((entry) => entry.date > today)?.date
+          ?? available[available.length - 1].date;
         setDay(first);
         const graph = await loadDay(first);
         if (cancelled) return;
@@ -239,6 +270,7 @@ export function PlanPage() {
                 value={day}
                 onChange={async (event) => {
                   const next = event.target.value;
+                  if (next < todayKey()) return;
                   setDay(next);
                   setStatus('loading');
                   const graph = await loadDay(next);
@@ -247,8 +279,9 @@ export function PlanPage() {
                 }}
               >
                 {days.map((available) => (
-                  <option key={available.date} value={available.date}>
-                    {available.date}
+                  <option key={available.date} value={available.date} disabled={available.date < todayKey()}>
+                    {dayLabel(available.date)}
+                    {available.date === todayKey() ? ' · today' : ''}
                   </option>
                 ))}
               </select>
@@ -265,7 +298,7 @@ export function PlanPage() {
               {status === 'searching' ? 'Searching…' : 'Search'}
             </Button>
             <span style={{ opacity: 0.7 }}>
-              {status === 'loading' ? 'Loading the timetable…' : days.length > 0 ? `Timetable for ${day} · ${places.length.toLocaleString('en')} stations` : ''}
+              {status === 'loading' ? 'Loading the timetable…' : days.length > 0 ? `Timetable for ${dayLabel(day)} · ${places.length.toLocaleString('en')} stations` : ''}
             </span>
           </div>
         </div>

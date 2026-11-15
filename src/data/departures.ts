@@ -1,6 +1,7 @@
 import { getStop, requireStop, STOPS } from './stops';
 import { directions, getLine, isInService, NETWORK, nextDeparture, linesAtStop } from './network';
 import { disruptionForLeg } from './disruptions';
+import { OPERATORS } from './operators';
 import { seededRandom } from '../lib/random';
 import { BOARDS } from './generated/boards';
 import { SAMPLE_DATA_ALLOWED } from '../lib/dataMode';
@@ -42,17 +43,28 @@ function boardFromTimetable(stopId: string, options: BoardOptions): Departure[] 
   if (!rows || rows.length === 0) return [];
   const from = options.fromMinutes;
   const named = (headsign: string) => STOPS.find((candidate) => candidate.id !== stopId && headsign.startsWith(candidate.name));
+  const here = getStop(stopId)?.name ?? '';
   return rows
+    /* A trip that ends here has no onward departure: its headsign is this station, which read as
+       "Utrecht Centraal → Utrecht Centraal" on the board. The sample generator already drops its
+       terminus; the real feed needs the same rule. */
+    .filter((row) => !here || !row.d.startsWith(here))
     .map<Departure>((row) => {
       const planned = Math.round(row.s / 60);
       const destination = named(row.d);
+      /* The feed names operators in its own spelling (`NS`, `Arriva`); the app's operator id is
+         the join key every badge and colour reads. Matching here is what stops a row printing
+         "Onbekend" for an operator the app actually knows. */
+      const operator = OPERATORS.find(
+        (entry) => entry.id === row.o || entry.shortName === row.o || entry.name === row.o,
+      );
       return {
         id: `tt-${stopId}-${row.s}-${row.l}`,
         stopId,
         mode: (row.m as PublicMode) ?? 'bus',
         lineId: `tt-${row.l}`,
         lineNumber: row.l,
-        operatorId: row.o,
+        operatorId: operator?.id ?? '',
         destinationStopId: destination?.id ?? '',
         destinationLabel: row.d || destination?.name || '',
         planned,

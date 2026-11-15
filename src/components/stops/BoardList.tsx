@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getLine } from '../../data/network';
-import { operatorName } from '../../data/operators';
+import { getOperator } from '../../data/operators';
 import { getStop } from '../../data/stops';
 import { useFormat } from '../../lib/useFormat';
 import { useLiveDepartures } from '../../lib/useLiveDepartures';
@@ -94,6 +94,11 @@ export function BoardList({
       <ul className="board-list">
         {shown.map((departure) => {
           const line = getLine(departure.lineId);
+          const operator = getOperator(departure.operatorId)?.shortName ?? '';
+          /* A real-timetable row is not one of the app's own lines, so it carries its service
+             name (`Intercity`, `Sprinter 4000`) in `lineNumber`. Print it rather than a
+             fallback operator called "Onbekend". */
+          const service = line?.name ?? (departure.lineNumber && departure.lineNumber !== '?' ? departure.lineNumber : '');
           const delayed = departure.delayMinutes > 0;
           return (
             <li key={departure.id} className="board-list__row" data-cancelled={departure.cancelled || undefined}>
@@ -147,7 +152,13 @@ export function BoardList({
                     *this* stop — so it is the row's link, and the row keeps its own plan button.
                   */}
                   <span className="board-list__destination">
-                    <StopLink stopId={departure.destinationStopId} label={departure.destinationLabel} />
+                    {/* The feed names the destination even when this build cannot match it to a
+                        stop page. The words stay; only the link goes. */}
+                    {departure.destinationStopId ? (
+                      <StopLink stopId={departure.destinationStopId} label={departure.destinationLabel} />
+                    ) : (
+                      departure.destinationLabel
+                    )}
                   </span>
                 {/*
                   The same word the journey card and the leg list use, from the same entry: it was
@@ -163,10 +174,9 @@ export function BoardList({
                   already free to grow into.
                 */}
                   {departure.cancelled ? <span className="board-list__cancelled">{t('Cancelled')}</span> : null}
-                  <span className="t-sm t-faint">
-                    {line ? `${line.name} · ` : ''}
-                    {operatorName(departure.operatorId)}
-                  </span>
+                  {service || operator ? (
+                    <span className="t-sm t-faint">{[service, operator].filter(Boolean).join(' · ')}</span>
+                  ) : null}
                 </span>
                 {departure.cancelled && departure.disruptionId ? (
                   <Link
