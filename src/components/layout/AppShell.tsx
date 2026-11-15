@@ -259,7 +259,6 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
           onClick={item.to === '/' ? onHomeClick : undefined}
         >
           <Icon name={item.icon} size={20} />
-          <span className="app-dock__label">{t(item.key)}</span>
         </Link>
       ))}
       <button
@@ -271,7 +270,6 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
         onClick={onOpenMenu}
       >
         <Icon name="menu" size={20} />
-        <span className="app-dock__label">{t('More')}</span>
       </button>
     </nav>
   );
