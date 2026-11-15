@@ -106,6 +106,7 @@ export function ResultsPage() {
     updateSearchQuery,
     startSearch,
     adoptSearch,
+    planResult,
     setSortMode,
     setFilter,
     resetFilter,
@@ -425,6 +426,48 @@ export function ResultsPage() {
   };
 
   const accessOf = (side: 'from' | 'to'): AccessMode => (side === 'from' ? preferences.accessFrom : preferences.accessTo);
+
+  /*
+   * **A search answered by the real timetable.**
+   *
+   * `/plan` computes journeys from the official GTFS graph and hands them over (`planResult`). The
+   * demonstration engine below cannot reproduce them, so they are drawn as they are: the same
+   * journey cards, the same journey pages, no invented fare, crowding or live delay. The match is
+   * on the question, not just on "something is stored", so a new search can never show the last
+   * search's trains.
+   */
+  const realResult =
+    planResult &&
+    search &&
+    planResult.query.fromStopId === search.query.fromStopId &&
+    planResult.query.toStopId === search.query.toStopId &&
+    planResult.query.date === search.query.date &&
+    planResult.query.time === search.query.time
+      ? planResult
+      : null;
+
+  if (realResult) {
+    return (
+      <div className="stack-6">
+        <PageHeader title={t('Journey results')} showTitle />
+        <SearchForm inheritSearch />
+        <p className="t-sm t-muted">
+          {t('Real scheduled times from the official Dutch timetable. Fares, crowding and live delays are not part of these results yet.')}
+        </p>
+        <div className="stack-4">
+          {realResult.journeys.map((journey) => (
+            <JourneyCard key={journey.id} journey={journey} />
+          ))}
+        </div>
+        <div className="row-wrap">
+          <Link to="/plan" className="btn">
+            <Icon name="route" size={16} />
+            {t('Change the search')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="stack-6">

@@ -169,7 +169,15 @@ function RideLegRow({
         {/* The headsign is the direction this service is pointed in, in its own grey line. */}
         {leg.headsign ? (
           <p className="t-sm t-muted">
-            {t('Direction')} <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+            {/* A headsign without a stop id is still a direction: print the words. `StopLink`
+                renders nothing without an id, which silently swallowed the destination on real
+                timetable journeys and left a bare "Direction". */}
+            {t('Direction')}{' '}
+            {leg.headsignStopId ? (
+              <StopLink stopId={leg.headsignStopId} label={leg.headsign} />
+            ) : (
+              leg.headsign
+            )}
           </p>
         ) : null}
 

@@ -147,15 +147,17 @@ export interface Journey {
   operatorIds: string[];
   fare: Fare;
   label?: 'fastest' | 'fewestTransfers' | 'leastWalking' | 'direct';
-  occupancy: 'quiet' | 'moderate' | 'busy';
-  occupancyHistory: number[];
-  stepFree: boolean;
-  bikeAllowed: boolean;
+  /** Present only when the source actually knows it; a real timetable row may not. */
+  occupancy?: 'quiet' | 'moderate' | 'busy';
+  occupancyHistory?: number[];
+  stepFree?: boolean;
+  bikeAllowed?: boolean;
   realtime: false;
   delayMinutes: number;
   cancelled: boolean;
   disruptionIds: string[];
-  source: 'demo';
+  /** `timetable` journeys come from the official GTFS graph; `demo` ones are invented. */
+  source: 'demo' | 'timetable';
 }
 
 export type DisruptionType = 'delay' | 'cancellation' | 'works' | 'platformChange' | 'crowding' | 'weather';

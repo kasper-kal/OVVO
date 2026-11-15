@@ -219,6 +219,15 @@ interface AppContextValue {
 
   search: PlannerSearchState | null;
   journeys: Journey[];
+  /**
+   * **A search answered from the official timetable.**
+   *
+   * `/plan` computes journeys from the GTFS graph in the browser; this is that answer, carried to
+   * the results screen instead of being drawn inline on the form. Null means the results screen
+   * is showing its own (demonstration) engine, as every saved search link does.
+   */
+  planResult: { query: SearchQuery; journeys: Journey[] } | null;
+  adoptPlanResult: (query: SearchQuery, journeys: Journey[]) => void;
   startSearch: (query: SearchQuery) => void;
   /*
    * A whole search state taken from an address (`/results/<id>`), rather than a fresh search whose
@@ -342,6 +351,38 @@ function writeSessionSearch(state: PlannerSearchState | null) {
   }
 }
 
+/*
+ * **The real timetable's answer, for the length of the tab.**
+ *
+ * It cannot be recomputed like a demonstration search: the GTFS search needs the graph files and a
+ * few seconds, and a reload of the results screen must not turn real journeys into demo ones. It is
+ * session storage for the same reason the search is — one tab, one answer, forgotten on close.
+ */
+const SESSION_PLAN_KEY = 'ovv:session-plan-result';
+
+function readSessionPlanResult(): { query: SearchQuery; journeys: Journey[] } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_PLAN_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { query?: SearchQuery; journeys?: Journey[] } | null;
+    if (!parsed?.query || typeof parsed.query.fromStopId !== 'string' || !Array.isArray(parsed.journeys)) return null;
+    return { query: parsed.query, journeys: parsed.journeys };
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionPlanResult(state: { query: SearchQuery; journeys: Journey[] } | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (state) window.sessionStorage.setItem(SESSION_PLAN_KEY, JSON.stringify(state));
+    else window.sessionStorage.removeItem(SESSION_PLAN_KEY);
+  } catch {
+    /* Storage can be off; the results screen then lives for this page only. */
+  }
+}
+
 const AppContext = createContext<AppContextValue | null>(null);
 
 let toastCounter = 0;
@@ -428,6 +469,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   /* A reload keeps the search this tab was reading — see `readSessionSearch`. */
   const [search, setSearch] = useState<PlannerSearchState | null>(() => readSessionSearch());
+  const [planResult, setPlanResult] = useState<{ query: SearchQuery; journeys: Journey[] } | null>(() =>
+    readSessionPlanResult(),
+  );
   const [locationConsent, setLocationConsent] = useState<LocationConsent>(() =>
     readStored<LocationConsent>(STORAGE_KEYS.locationConsent, 'unknown'),
   );
@@ -680,11 +724,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* -------------------------------------------------------------- journey planner */
   const journeys = useMemo(() => {
     if (!search) return [];
+    /*
+     * **A real answer is not planned again.**
+     *
+     * The demonstration engine was still being run for every search, including the ones `/plan`
+     * answers from the GTFS graph. Its stop list does not know a timetable place outside the app's
+     * 61 stops (`tt-groningen`), so it threw and the error screen replaced the results. When the
+     * stored real result is the same question, it *is* the list.
+     */
+    if (
+      planResult &&
+      planResult.query.fromStopId === search.query.fromStopId &&
+      planResult.query.toStopId === search.query.toStopId &&
+      planResult.query.date === search.query.date &&
+      planResult.query.time === search.query.time
+    ) {
+      return planResult.journeys;
+    }
     return planJourneys(
       { ...search.query, preferences },
       { windowOffsetMinutes: search.windowOffsetMinutes },
     );
-  }, [search, preferences]);
+  }, [search, preferences, planResult]);
 
   useEffect(() => {
     journeys.forEach((journey) => sessionJourneys.current.set(journey.id, journey));
@@ -770,6 +831,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * pair here and never touches the kept list, so keeping one survives a hundred runs of it.
    */
   const startSearch = useCallback((query: SearchQuery) => {
+    /* A new question ends the real timetable's answer; leaving it would show the previous
+       search's journeys under this search's two ends. */
+    setPlanResult(null);
+    writeSessionPlanResult(null);
     setSearch({ query, windowOffsetMinutes: 0, sortMode: 'best', filter: DEFAULT_RESULTS_FILTER });
     setSearchHistory((current) => {
       const id = searchEntryId(query);
@@ -791,6 +856,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const adoptSearch = useCallback((state: PlannerSearchState) => {
     setSearch(state);
+  }, []);
+
+  const adoptPlanResult = useCallback((query: SearchQuery, journeys: Journey[]) => {
+    const next = { query, journeys };
+    setPlanResult(next);
+    writeSessionPlanResult(next);
   }, []);
 
   /*
@@ -910,6 +981,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     search,
     journeys,
+    planResult,
+    adoptPlanResult,
     startSearch,
     adoptSearch,
     updateSearchQuery: (patch) => {
@@ -936,6 +1009,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return (
         sessionJourneys.current.get(journeyId) ??
         journeys.find((j) => j.id === journeyId) ??
+        planResult?.journeys.find((j) => j.id === journeyId) ??
         savedJourneys.find((item) => item.id === journeyId)?.journey
       );
     },
@@ -1056,6 +1130,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRecentSearches([]);
       setSearchHistory([]);
       setSearch(null);
+      setPlanResult(null);
+      writeSessionPlanResult(null);
       /*
        * The journeys planned this session go with the search they belonged to. They live in memory
        * (`sessionJourneys`), not in storage, so the wipe above does not reach them - and a journey

@@ -12,7 +12,7 @@ The visual system itself is in good shape: **2,880 palette pairs pass** the cont
 
 What is not in good shape is the **product on top of the visual system**:
 
-1. `/results` tells the traveller their results "will appear here" — but searches never go there. `/plan` is a second planner with inline results that never link to a journey.
+1. `/results` and `/plan` were two disconnected planners. **Fixed:** `/plan` now hands its real journeys to `/results`, which draws the same journey cards and opens the same journey page.
 2. The planner opened on **2026-11-14**, the oldest built day (yesterday), and the primary action then searched a past day without complaint. **Fixed.**
 3. Departure boards and station cards showed **"Onbekend"** instead of destinations, because a timetable destination the app could not match to a stop lost its words and the operator fell back to "Onbekend". **Fixed.**
 4. Every station card said it was **8,742–8,773 km away**, and "Nearby stops" claimed the Domtoren was a **40-minute walk** from Utrecht Centraal. **Fixed.**
@@ -169,8 +169,9 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 
 **F5 · fixed — the planner defaulted to yesterday.** It now opens on today's service day (or the next built day), earlier days are disabled, and the raw `20261114` label became `Sat 14 Nov` / `Sun 15 Nov · today`. Verified in the browser: value `20261115`, 14 Nov disabled, status reads `Timetable for Sun 15 Nov`.
 
-**F6 · P0 — two planners.** `/plan` is a self-contained GTFS planner (`planRealJourneys`) with inline results. `/results` is the demo-data planner (`startSearch`) with the full results screen, filters, hearts, map, and journey pages. The sidebar's "Plan a journey" goes to `/plan`; the results page's empty state says "Plan a journey first: its results will appear here" and its CTA goes to `/plan` — where the results appear **inline and never reach `/results`**. `/results` can only be populated by a crafted `/results/<base64>` link.
-*Fix (choose one):* (a) make `/plan` submit navigate to `/results` and feed the GTFS journeys into the results state; delete the inline list; or (b) merge the real engine into `ResultsPage` and make `/plan` a redirect. Option (a) is the smaller change and preserves the journey/filters/save machinery. Then the empty-state promise becomes true.
+**F6 · fixed — one planner, one results screen.** `/plan` computed real journeys and drew them inline, where nothing could open one, save one, or see it on a map. It now converts each real journey into the app's own `Journey` shape, stores the answer for the tab (`planResult`, session storage), and navigates to `/results`. The results screen recognises the search and draws those journeys with the normal cards; each opens `/journey/:id`, including after a reload. The inline list and its duplicate live-delay panel are gone.
+*What is deliberately absent:* fare, crowding, bicycle rules and live delays are not in these results, and the screen says so — the timetable has no fare, and inventing one would be the same sin as the old "Onbekend". The demonstration engine's filters/sort do not apply to real results yet; the journey cards and pages do.
+*Files:* `src/pages/PlanPage.tsx`, `src/pages/ResultsPage.tsx`, `src/state/AppState.tsx`, `src/data/types.ts`.
 
 **F7 · P1 — raw day value and 12-hour time** (see G7).
 
@@ -435,7 +436,7 @@ Renders the **Sign in** page (h1 "Sign in") with no explanation, so a traveller 
 
 ### Phase 0 — unbreak the journey flow (P0)
 1. ~~Fix the home picker~~ — **retracted, the picker was always correct** (F1).
-2. One planner: make `/plan` submit to `/results` with the GTFS journeys, delete the inline list (F6). **Still open**; the empty-state copy is corrected (F10).
+2. ~~One planner~~ — **done**: `/plan` submits to `/results` with the GTFS journeys, and the inline list is deleted (F6).
 3. ~~Default the planner to today~~ — **done** (F5).
 4. ~~Board destinations and operator names~~ — **done** (F32, F36); the `4000` badge is a real Sprinter and stays (F12).
 5. ~~Distances and walking minutes~~ — **done** (F31, F37).
@@ -490,8 +491,11 @@ No claim is made that the list above is exhaustive of pixel-level imperfections;
 | IP estimate accepted only inside the Benelux box, including cached fixes | `src/lib/approximateLocation.ts` | `/stops` shows no `8xxx km`, distance column absent |
 | Walking minutes from real coordinates at 80 m/min | `src/data/stops.ts` | Domtoren 10 min (was 40) |
 | Home picker finding retracted | this document | Re-tested with `#picker-from`: From fills, sheet advances to To |
+| One planner: real journeys reach `/results` and open a journey | `PlanPage.tsx`, `ResultsPage.tsx`, `AppState.tsx`, `types.ts` | Search → `/results` with 2 real cards → journey page with timeline → reload keeps both |
 
-**Not done in Phase 0:** the one-planner merge (F6). The real timetable still renders inline on `/plan`, and `/results` is still reachable only by a saved search link. That is a larger change than this round and is the next thing to plan.
+**Also in Phase 0:** the one-planner merge (F6). A real search is converted to the app's `Journey` shape, kept for the tab, and drawn on `/results`; the journey page, its reload and the results reload were all exercised (two journeys: 13:38→14:07 and 13:41→14:18, Utrecht Centraal → Amsterdam Centraal).
+
+**Known limit of the merge:** a real result lives in the tab that searched. Opening that `/results/<id>` address in another browser falls back to the demonstration engine, because the GTFS answer is not in the address. Making the link itself reproduce a real search is the next step (encode "real" in the search link and run the graph search on arrival).
 
 ## 11. Evidence index
 

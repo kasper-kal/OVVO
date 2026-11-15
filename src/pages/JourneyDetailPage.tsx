@@ -318,12 +318,20 @@ export function JourneyDetailPage() {
             ? t('Direct')
             : plural(journey.transfers, t('transfer'), t('transfers')),
           journey.walkMinutes > 0 ? `${journey.walkMinutes} ${t('min walking')}` : null,
+          /* Only facts the source has. A real timetable journey carries neither crowding nor a
+             bicycle rule, and inventing "Expected quiet" for it would be a lie in grey type. */
           journey.occupancy === 'busy'
             ? t('Expected busy')
             : journey.occupancy === 'moderate'
               ? t('Expected fairly busy')
-              : t('Expected quiet'),
-          journey.bikeAllowed ? t('Bicycle allowed') : t('No bicycle'),
+              : journey.occupancy === 'quiet'
+                ? t('Expected quiet')
+                : null,
+          journey.bikeAllowed === true
+            ? t('Bicycle allowed')
+            : journey.bikeAllowed === false
+              ? t('No bicycle')
+              : null,
         ]
           .filter(Boolean)
           .join(' · ')}

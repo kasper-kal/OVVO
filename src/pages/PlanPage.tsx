@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/layout/AppShell';
 import { Button, Card } from '../components/ui/primitives';
-import { nowMinutes, timeInputValue } from '../lib/format';
-import { loadDay, loadGraphIndex, planRealJourneys, placesOf, type PlanDay, type PlanJourney, type PlanLeg, type PlanPlace } from '../planner/graph';
-import { fetchLiveDelays, type LiveReport } from '../planner/live';
+import { useApp } from '../state/AppState';
+import { STOPS } from '../data/stops';
+import { OPERATORS } from '../data/operators';
+import { loadDay, loadGraphIndex, planRealJourneys, placesOf, type PlanDay, type PlanJourney, type PlanPlace } from '../planner/graph';
+import type { Journey, Leg, TravelMode } from '../data/types';
+import type { SearchQuery } from '../data/journeyEngine';
 
 /**
  * **Plan a journey against the real timetable.**
@@ -11,12 +15,26 @@ import { fetchLiveDelays, type LiveReport } from '../planner/live';
  * Everything on this page comes from the official Dutch timetable, read in the browser. There is no
  * sample data here and no invented journey: if no chain of real connections exists, the page says so
  * instead of filling the space.
+ *
+ * **The search now ends where every other search ends.** It used to draw its results inline, with
+ * no way into a journey, no save and no map — a second results screen behind the first. The answer
+ * is handed to `/results` (`adoptPlanResult`), which draws the same cards a saved search does and
+ * opens the same journey page, so there is one planner and one result screen.
  */
 
 const clock = (minutes: number) => {
   const hours = Math.floor(minutes / 60) % 24;
   const rest = minutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+};
+
+const modeLabel = (mode: string) => {
+  if (mode === 'walk') return 'Walk';
+  if (mode === 'train') return 'Train';
+  if (mode === 'metro') return 'Metro';
+  if (mode === 'tram') return 'Tram';
+  if (mode === 'ferry') return 'Ferry';
+  return 'Bus';
 };
 
 /** The service-day key the graph files are named with, in local time. */
@@ -39,14 +57,88 @@ const dayLabel = (date: string) => {
   });
 };
 
-const modeLabel = (mode: string) => {
-  if (mode === 'walk') return 'Walk';
-  if (mode === 'train') return 'Train';
-  if (mode === 'metro') return 'Metro';
-  if (mode === 'tram') return 'Tram';
-  if (mode === 'ferry') return 'Ferry';
-  return 'Bus';
-};
+const isoDay = (date: string) => `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+const slug = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/**
+ * The app's own stop for a planner place, when there is one.
+ *
+ * The GTFS graph knows 21,276 places; the app's stop file knows 61. A place with the same name is
+ * the same place, so the journey can link to its page. Anything else is a timetable stop outside
+ * this build's small network: its name is kept, and only the link is lost.
+ */
+function appStopFor(name: string) {
+  const direct = STOPS.find((stop) => stop.name === name);
+  if (direct) return direct;
+  /* The feed writes places its own way: "Groningen" for "Groningen Station", and
+     "Amsterdam, Station Bijlmer ArenA" for "Amsterdam Bijlmer ArenA". Comparing the words that
+     are left after dropping the word "station" and all punctuation matches both without a table
+     of aliases. */
+  const key = (text: string) => text.toLowerCase().replace(/\bstation\b/g, '').replace(/[^a-z0-9]/g, '');
+  return STOPS.find((stop) => key(stop.name) === key(name));
+}
+
+function operatorIdFor(name: string) {
+  return OPERATORS.find((operator) => operator.name === name || operator.shortName === name)?.id;
+}
+
+/** One real journey, in the shape every journey card and journey page already understands. */
+function toJourney(plan: PlanJourney, index: number, date: string): Journey {
+  const first = plan.legs[0];
+  const last = plan.legs[plan.legs.length - 1];
+  const fromStop = appStopFor(first.fromName);
+  const toStop = appStopFor(last.toName);
+  const id = `tt-${date}-${slug(fromStop?.id ?? first.fromName)}-${slug(toStop?.id ?? last.toName)}-${plan.departure}-${index}`;
+
+  const legs: Leg[] = plan.legs.map((leg, legIndex) => {
+    const from = appStopFor(leg.fromName);
+    const to = appStopFor(leg.toName);
+    return {
+      id: `${id}-${legIndex}`,
+      mode: leg.mode as TravelMode,
+      fromStopId: from?.id ?? `tt-${slug(leg.fromName)}`,
+      toStopId: to?.id ?? `tt-${slug(leg.toName)}`,
+      /* A label is how a leg names a place that has no page of its own. When the stop is in the
+         app, leaving this unset gives the leg a link instead of a word. */
+      fromLabel: from ? undefined : leg.fromName,
+      toLabel: to ? undefined : leg.toName,
+      departure: leg.departure,
+      arrival: leg.arrival,
+      platform: leg.fromPlatform || undefined,
+      arrivalPlatform: leg.toPlatform || undefined,
+      lineName: leg.mode === 'walk' ? undefined : leg.line || modeLabel(leg.mode),
+      lineNumber: leg.mode === 'walk' ? undefined : leg.line || undefined,
+      /* The feed's headsign can be empty; "Direction" with nothing after it is worse than naming
+         the stop this leg actually reaches. */
+      headsign: leg.mode === 'walk' ? undefined : leg.headsign || leg.toName,
+      operatorId: leg.mode === 'walk' ? undefined : operatorIdFor(leg.operator),
+    };
+  });
+
+  const rides = plan.legs.filter((leg) => leg.mode !== 'walk');
+
+  return {
+    id,
+    signature: id,
+    legs,
+    departure: plan.departure,
+    arrival: plan.arrival,
+    durationMinutes: plan.durationMinutes,
+    transfers: plan.transfers,
+    walkMinutes: plan.legs
+      .filter((leg) => leg.mode === 'walk')
+      .reduce((total, leg) => total + Math.max(0, leg.arrival - leg.departure), 0),
+    modes: [...new Set(rides.map((leg) => leg.mode as TravelMode))],
+    operatorIds: [...new Set(rides.map((leg) => operatorIdFor(leg.operator)).filter((id): id is string => Boolean(id)))],
+    /* The timetable has no fare and no crowding: both are left empty rather than invented. */
+    fare: { eur: 0, label: '' },
+    realtime: false,
+    delayMinutes: 0,
+    cancelled: false,
+    disruptionIds: [],
+    source: 'timetable',
+  };
+}
 
 function StationPicker({
   label,
@@ -145,20 +237,19 @@ function StationPicker({
 }
 
 export function PlanPage() {
+  const navigate = useNavigate();
+  const { preferences, startSearch, adoptPlanResult } = useApp();
   const [days, setDays] = useState<PlanDay[]>([]);
   const [day, setDay] = useState<string>('');
   const [places, setPlaces] = useState<PlanPlace[]>([]);
   const [origin, setOrigin] = useState<PlanPlace | null>(null);
   const [destination, setDestination] = useState<PlanPlace | null>(null);
-  const [time, setTime] = useState(() => timeInputValue(nowMinutes()));
+  const [time, setTime] = useState(() => {
+    const now = new Date();
+    return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  });
   const [status, setStatus] = useState<'idle' | 'loading' | 'searching' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
-  const [journeys, setJourneys] = useState<PlanJourney[]>([]);
-  const [live, setLive] = useState<{
-    delays: Record<string, number>;
-    report: LiveReport | null;
-    state: 'idle' | 'loading' | 'ready' | 'error';
-  }>({ delays: {}, report: null, state: 'idle' });
 
   useEffect(() => {
     let cancelled = false;
@@ -175,15 +266,16 @@ export function PlanPage() {
         /*
          * **Today, not the oldest file on disk.**
          *
-         * The day picker used to open on `available[0]` — the first day in the rolling week —
-         * which is yesterday or earlier. The traveller could press Search without touching it and
-         * ask for a timetable that had already gone, and nothing said so. Today is the honest
-         * default; if today is not built, the next built day is; only then the last one.
+         * The day picker used to open on `available[0]` — the first day in the rolling week — which
+         * is yesterday or earlier. The traveller could press Search without touching it and ask
+         * for a timetable that had already gone, and nothing said so. Today is the honest default;
+         * if today is not built, the next built day is; only then the last one.
          */
         const today = todayKey();
-        const first = available.find((entry) => entry.date === today)?.date
-          ?? available.find((entry) => entry.date > today)?.date
-          ?? available[available.length - 1].date;
+        const first =
+          available.find((entry) => entry.date === today)?.date ??
+          available.find((entry) => entry.date > today)?.date ??
+          available[available.length - 1].date;
         setDay(first);
         const graph = await loadDay(first);
         if (cancelled) return;
@@ -216,36 +308,35 @@ export function PlanPage() {
     setMessage('');
     try {
       const found = await planRealJourneys(day, origin.id, destination.id, (hours || 0) * 60 + (minutes || 0));
-      setJourneys(found);
-
-      /* Ask for live running times for exactly these vehicles, after the timetable has its answer. */
-      const tripIds = found.flatMap((journey) => journey.legs.map((leg) => leg.tripId)).filter((id): id is string => Boolean(id));
-      if (tripIds.length > 0) {
-        setLive({ delays: {}, report: null, state: 'loading' });
-        fetchLiveDelays(tripIds)
-          .then(({ report, delays }) => setLive({ delays, report, state: 'ready' }))
-          .catch(() => setLive({ delays: {}, report: null, state: 'error' }));
+      if (found.length === 0) {
+        setStatus('ready');
+        setMessage('No journey found at that time.');
+        return;
       }
+
+      const fromStop = appStopFor(origin.name);
+      const toStop = appStopFor(destination.name);
+      const query: SearchQuery = {
+        fromStopId: fromStop?.id ?? `tt-${slug(origin.name)}`,
+        toStopId: toStop?.id ?? `tt-${slug(destination.name)}`,
+        fromLabel: fromStop ? undefined : origin.name,
+        toLabel: toStop ? undefined : destination.name,
+        date: isoDay(day),
+        time: (hours || 0) * 60 + (minutes || 0),
+        timeMode: 'depart',
+        preferences,
+      };
+      const journeys = found.map((journey, index) => toJourney(journey, index, isoDay(day)));
+
+      /* One search, one results screen: the real answer is kept for this tab and drawn there. */
+      startSearch(query);
+      adoptPlanResult(query, journeys);
       setStatus('ready');
-      if (found.length === 0) setMessage('No journey found at that time.');
+      navigate('/results');
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'The search failed.');
     }
-  };
-
-  /* Live delays are shown next to the planned time, never instead of it. */
-  const delayLabel = (leg: PlanLeg): string | null => {
-    const delay = leg.tripId ? live.delays[leg.tripId] : undefined;
-    if (delay === undefined) return null;
-    if (Math.abs(delay) < 60) return 'on time';
-    return `${delay > 0 ? '+' : ''}${Math.round(delay / 60)} min`;
-  };
-
-  const arrivalShift = (journey: PlanJourney): number => {
-    const lastRide = [...journey.legs].reverse().find((leg) => leg.mode !== 'walk');
-    const delay = lastRide?.tripId ? live.delays[lastRide.tripId] : undefined;
-    return delay === undefined ? 0 : Math.round(delay / 60);
   };
 
   return (
@@ -298,31 +389,15 @@ export function PlanPage() {
               {status === 'searching' ? 'Searching…' : 'Search'}
             </Button>
             <span style={{ opacity: 0.7 }}>
-              {status === 'loading' ? 'Loading the timetable…' : days.length > 0 ? `Timetable for ${dayLabel(day)} · ${places.length.toLocaleString('en')} stations` : ''}
+              {status === 'loading'
+                ? 'Loading the timetable…'
+                : days.length > 0
+                  ? `Timetable for ${dayLabel(day)} · ${places.length.toLocaleString('en')} stations`
+                  : ''}
             </span>
           </div>
         </div>
       </Card>
-
-      {live.state === 'ready' && live.report ? (
-        <Card>
-          <p style={{ margin: 0, opacity: 0.85 }}>
-            Live running times · feed updated{' '}
-            {live.report.generatedAt
-              ? new Date(live.report.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-              : 'just now'}{' '}
-            {live.report.matched > 0
-              ? ` · ${live.report.matched} of ${live.report.requested} services reporting`
-              : ' · none of these services has started yet'}
-            {live.report.late > 0 ? ` · ${live.report.late} services nationally running late` : ''}
-          </p>
-        </Card>
-      ) : null}
-      {live.state === 'error' ? (
-        <Card>
-          <p style={{ margin: 0, opacity: 0.85 }}>Live running times are unavailable right now, so these are the scheduled times.</p>
-        </Card>
-      ) : null}
 
       {message ? (
         <Card>
@@ -330,59 +405,13 @@ export function PlanPage() {
         </Card>
       ) : null}
 
-      {journeys.map((journey, index) => (
-        <Card key={`${journey.departure}-${index}`}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <strong style={{ fontSize: '1.1rem' }}>
-              {clock(journey.departure)} → {clock(journey.arrival + arrivalShift(journey))}
-              {arrivalShift(journey) !== 0 ? (
-                <span style={{ marginLeft: 8, fontSize: '0.85rem', color: '#b3261e' }}>
-                  {arrivalShift(journey) > 0 ? '+' : ''}
-                  {arrivalShift(journey)} min
-                </span>
-              ) : null}
-            </strong>
-            <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ padding: '4px 10px', borderRadius: 999, border: '1px solid var(--border, #ddd)', fontSize: '0.9em' }}>
-                {journey.durationMinutes} min
-              </span>
-              <span style={{ padding: '4px 10px', borderRadius: 999, border: '1px solid var(--border, #ddd)', fontSize: '0.9em' }}>
-                {journey.transfers === 0 ? 'Direct' : `${journey.transfers} transfer${journey.transfers > 1 ? 's' : ''}`}
-              </span>
-            </span>
-          </div>
-          <ol style={{ margin: '12px 0 0', padding: 0, listStyle: 'none', display: 'grid', gap: 10 }}>
-            {journey.legs.map((leg, legIndex) => (
-              <li key={`${leg.departure}-${legIndex}`} style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 12 }}>
-                <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.8 }}>{clock(leg.departure)}</span>
-                <div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <strong>{leg.line || modeLabel(leg.mode)}</strong>
-                    <span style={{ opacity: 0.7 }}>{modeLabel(leg.mode)}</span>
-                    {leg.mode !== 'walk' && leg.headsign ? <span style={{ opacity: 0.7 }}>towards {leg.headsign}</span> : null}
-                  </div>
-                  <div style={{ opacity: 0.85 }}>
-                    {leg.fromName}
-                    {leg.fromPlatform ? ` · platform ${leg.fromPlatform}` : ''} → {leg.toName}
-                    {leg.toPlatform ? ` · platform ${leg.toPlatform}` : ''}
-                  </div>
-                  <div style={{ opacity: 0.6, fontSize: '0.9em' }}>
-                    {leg.operator ? `${leg.operator} · ` : ''}
-                    {clock(leg.arrival)}
-                    {leg.mode === 'walk' ? ' · on foot' : ''}
-                    {delayLabel(leg) ? (
-                      <span style={{ marginLeft: 6, color: delayLabel(leg)?.startsWith('+') ? '#b3261e' : undefined }}>
-                        {' · '}
-                        {delayLabel(leg)}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ol>
+      {status === 'searching' ? (
+        <Card>
+          <p style={{ margin: 0, opacity: 0.85 }}>
+            Searching the official timetable for {origin?.name} → {destination?.name} around {clock((Number(time.split(':')[0]) || 0) * 60 + (Number(time.split(':')[1]) || 0))}.
+          </p>
         </Card>
-      ))}
+      ) : null}
     </>
   );
 }

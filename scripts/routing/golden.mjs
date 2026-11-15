@@ -48,6 +48,21 @@ const CASES = [
 const failures = [];
 const notes = [];
 
+/**
+ * Close whatever overlay the first visit opens, whenever it opens.
+ *
+ * A single Escape 1.2s after load raced the overlay: it could appear after that, cover the page,
+ * and swallow the press on Search (the scrim closes the overlay instead). The click then did
+ * nothing and the case read "no journey". Press until nothing is left, and again before Search.
+ */
+const dismissOverlays = async (page) => {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    if ((await page.locator('.overlay').count()) === 0) return;
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(350);
+  }
+};
+
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
 
@@ -63,8 +78,7 @@ client.on('Network.dataReceived', (event) => {
 
 await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(1500);
-await page.keyboard.press('Escape').catch(() => {});
-await page.evaluate(() => document.querySelectorAll('.overlay').forEach((element) => element.remove()));
+await dismissOverlays(page);
 
 /* The day list is part of the promise: the page must know the week it can plan for. */
 const dayOptions = await page.locator('#plan-day option').count();
@@ -92,24 +106,45 @@ const pick = async (field, name) => {
 for (const testCase of CASES) {
   await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1200);
-  await page.keyboard.press('Escape').catch(() => {});
-  await page.evaluate(() => document.querySelectorAll('.overlay').forEach((element) => element.remove()));
+  await dismissOverlays(page);
 
   if (!(await pick('From', testCase.from)) || !(await pick('To', testCase.to))) {
     failures.push(`${testCase.name}: a station could not be picked`);
     continue;
   }
   await page.selectOption('#plan-day', testCase.day);
-  await page.waitForTimeout(2000);
+  /* Changing the day loads that day's graph, and Search is disabled until it is ready. Waiting for
+     the enabled control is the honest form of "the page has finished loading"; a fixed 2s was a
+     race that could press a disabled button and report "no journey". */
+  await page
+    .waitForFunction(
+      () => {
+        const button = [...document.querySelectorAll('button')].find((candidate) => /^Search$/.test((candidate.textContent ?? '').trim()));
+        return Boolean(button && !button.disabled);
+      },
+      { timeout: 60000 },
+    )
+    .catch(() => {});
   await page.locator('#plan-time').fill(testCase.time);
+  await dismissOverlays(page);
   await page.getByRole('button', { name: /^Search$/ }).click();
-  await page.waitForTimeout(9000);
+  /*
+   * **The answer is on the results screen now.**
+   *
+   * The planner used to print its journeys inline; it now hands them to `/results` and opens the
+   * same cards every other search uses. The check follows that route rather than asserting the
+   * old page shape: the facts it verifies (departure, arrival, transfers) are unchanged.
+   */
+  await page.waitForURL('**/results', { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(1500);
 
-  const lines = (await page.locator('body').innerText()).split('\n').map((line) => line.trim()).filter(Boolean);
-  const journeys = lines.filter((line) => /^\d\d:\d\d → \d\d:\d\d/.test(line));
-  const first = journeys[0] ?? '';
+  const cards = page.locator('a[href^="/journey/"]');
+  const cardCount = await cards.count();
+  const label = cardCount > 0 ? (await cards.first().getAttribute('aria-label')) ?? '' : '';
+  const times = label.match(/(\d\d:\d\d) to (\d\d:\d\d)/);
+  const first = times ? `${times[1]} → ${times[2]}` : '';
 
-  if (testCase.expect.hasJourney && journeys.length === 0) {
+  if ((testCase.expect.hasJourney || testCase.expect.departure) && cardCount === 0) {
     failures.push(`${testCase.name}: no journey at all`);
     continue;
   }
@@ -117,9 +152,12 @@ for (const testCase of CASES) {
     failures.push(`${testCase.name}: expected ${testCase.expect.departure} → ${testCase.expect.arrival}, page said "${first}"`);
   }
   if (testCase.expect.transfers !== undefined) {
-    const counters = lines.join(' ');
-    if (!counters.includes(`${testCase.expect.transfers} transfer`)) {
-      failures.push(`${testCase.name}: expected ${testCase.expect.transfers} transfers`);
+    /* The count is a fact on the journey's own page, not on the card. */
+    await cards.first().click();
+    await page.waitForTimeout(1200);
+    const facts = await page.locator('.journey-facts-line').innerText().catch(() => '');
+    if (!facts.includes(`${testCase.expect.transfers} transfer`)) {
+      failures.push(`${testCase.name}: expected ${testCase.expect.transfers} transfers, page said "${facts}"`);
     }
   }
   if (testCase.expect.earliestBefore) {
