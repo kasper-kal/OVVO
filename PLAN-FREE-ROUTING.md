@@ -241,8 +241,40 @@ five and eight rounds all return 10:42 — so it is not a tuning problem but a s
 search does not see, most likely a journey the scan finds through a connection this search never
 considers. That is not understood yet, and it is not claimed to be fixed.
 
-The next honest move is a two-way search that meets in the middle: it halves the ground each side
-covers, which addresses both the long-journey cost and the missed connection. It is not built.
+The next honest move was thought to be a two-way search that meets in the middle. **It was not built,
+because the investigation showed it would not fix the failing journey.**
+
+### What the failing journey actually is
+
+The exhaustive scan's journey was reconstructed leg by leg, and it is not a direct train:
+
+```
+08:07  Utrecht Centraal        → 08:20  Amersfoort Centraal     (trip 362)
+08:37  Amersfoort Centraal     → 09:11  Zwolle                  (trip 1710)
+09:11  Zwolle                  → 09:11  Zwolle, Station         (walk)
+09:11  Zwolle, Station         → 09:12  Zwolle                  (walk)
+09:16  Zwolle                  → 09:55  Assen                   (trip 1748)
+09:55  Assen                   → 10:12  Groningen               (trip 1748)
+```
+
+The fast search instead takes the 09:06 from Amersfoort, reaches Zwolle at 09:41, and takes the
+09:46 from there: 10:42. So it is **missing one boarding**, not losing to a slow search. A two-way
+search would halve the ground covered and would still miss that boarding.
+
+### Ruled out by testing, not by reasoning
+
+| Suspect | Tested | Result |
+| --- | --- | --- |
+| Too few rounds | 5, 6 and 8 rounds | 10:42 every time |
+| Too few candidate trips per route | 1, 3 and 8 | 10:42 every time |
+| The 2-minute transfer rule | 0 s and 120 s | 10:42 every time |
+| Destination pruning hiding it | pruning switched off | 10:42, and slower |
+| Station grouping splitting platforms | places added | Maastricht fixed, Groningen not |
+
+What remains: the fast search never boards trip 1710 at Amersfoort or trip 1748 at Zwolle, and nobody
+knows why yet. **The next step is not more tuning.** It is to make the fast search record the path it
+took, the way the exhaustive scan now can, so the boarding that fails can be seen directly. Optimising
+a search that silently takes a worse train would be optimising the wrong thing.
 
 ## Step 3 — the contract between search and screen
 

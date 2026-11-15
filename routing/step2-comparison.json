@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-11-15T01:21:17.851Z",
+  "measuredAt": "2026-11-15T01:24:56.909Z",
   "departAt": "08:00",
   "scannedConnections": 392153,
   "raptorLoadMs": 24,
@@ -7,8 +7,8 @@
     {
       "journey": "Utrecht Centraal → Amsterdam Centraal",
       "arrives": "08:35",
-      "scanMs": 4.37,
-      "raptorMs": 1.69,
+      "scanMs": 4.08,
+      "raptorMs": 1.68,
       "stats": {
         "patternsScanned": 1374,
         "tripsExamined": 2414,
@@ -21,8 +21,8 @@
     {
       "journey": "Amsterdam Centraal → Rotterdam Centraal",
       "arrives": "09:18",
-      "scanMs": 5.13,
-      "raptorMs": 2.26,
+      "scanMs": 5.08,
+      "raptorMs": 2.31,
       "stats": {
         "patternsScanned": 4519,
         "tripsExamined": 7947,
@@ -35,8 +35,8 @@
     {
       "journey": "Utrecht Centraal → Groningen",
       "arrives": "10:42",
-      "scanMs": 9.76,
-      "raptorMs": 12.78,
+      "scanMs": 9.87,
+      "raptorMs": 12.34,
       "stats": {
         "patternsScanned": 10483,
         "tripsExamined": 18631,
@@ -49,8 +49,8 @@
     {
       "journey": "Rotterdam Centraal → Groningen",
       "arrives": "11:12",
-      "scanMs": 14.31,
-      "raptorMs": 12.34,
+      "scanMs": 11.88,
+      "raptorMs": 9.35,
       "stats": {
         "patternsScanned": 9837,
         "tripsExamined": 17179,
@@ -63,8 +63,8 @@
     {
       "journey": "Utrecht Centraal → Maastricht",
       "arrives": "10:36",
-      "scanMs": 13.62,
-      "raptorMs": 15.65,
+      "scanMs": 13.73,
+      "raptorMs": 16.24,
       "stats": {
         "patternsScanned": 10367,
         "tripsExamined": 18415,
@@ -77,8 +77,8 @@
     {
       "journey": "Zwolle → Eindhoven",
       "arrives": "10:14",
-      "scanMs": 10.84,
-      "raptorMs": 6.39,
+      "scanMs": 10.66,
+      "raptorMs": 6.42,
       "stats": {
         "patternsScanned": 8626,
         "tripsExamined": 14660,
