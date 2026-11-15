@@ -59,14 +59,20 @@ is pasted into this project's secrets, not typed into code.
 - Turnstile: the OVVO widget already lists `app.ovvo.us.ci` under **Hostname Management**
   (checked 15 November 2026).
 - Firebase: `app.ovvo.us.ci` must be in **Authentication → Settings → Authorized domains**.
-- Email: Cloudflare Email Routing can now be switched on for `ovvo.us.ci` (see below).
+- Email: Zoho Mail Free is the chosen mailbox for `support@ovvo.us.ci` (see below).
 
 ## Email at ovvo.us.ci (15 November 2026)
 
-Cloudflare Email Routing is free and can make addresses such as `hello@ovvo.us.ci` and
-`support@ovvo.us.ci`, forwarding them to an existing inbox. It does not store mail and cannot
-send. Sending as `@ovvo.us.ci` needs an SMTP provider and its DNS records; Brevo is already used
-for the sign-in mail, so it is the first place to look when sending is wanted.
+**Chosen: Zoho Mail Free** for `support@ovvo.us.ci`. It is a real mailbox that can send and
+receive on one custom domain, with up to 5 users and 5 GB each, and it needs no card. The free
+plan has no IMAP, POP or ActiveSync, so it is used in Zoho's web and mobile apps. It is being
+set up in the **Europe (EU)** data centre, because the free plan is offered only in the US, EU
+and India centres.
+
+**Setup status: not live yet.** Cloudflare needs the Zoho verification TXT, the three MX records
+`mx.zoho.eu` (10), `mx2.zoho.eu` (20) and `mx3.zoho.eu` (50), the SPF record
+`v=spf1 include:zohomail.com -all`, the DKIM TXT at `zoho._domainkey`, and DMARC at `_dmarc`.
+Cloudflare Email Routing must stay off for this domain, because it would replace the MX records.
 
 Rule of thumb, after the subdomain was settled: **`OVVO`** is the name a person sees,
 **`ovvo`** is the short name in front of the address, and **`ovvo-vibecreations`** survives
