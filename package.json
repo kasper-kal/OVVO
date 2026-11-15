@@ -13,6 +13,8 @@
     "gtfs:status": "node scripts/gtfs/fetch.mjs --status",
     "gtfs:graph": "node scripts/gtfs/build-graph.mjs",
     "gtfs:graph:verify": "node scripts/gtfs/build-graph.mjs --verify",
+    "gtfs:graph:index": "node scripts/gtfs/graph-index.mjs",
+    "gtfs:graph:days": "node scripts/gtfs/build-all-days.mjs",
     "look": "node scripts/look.mjs --sample",
     "look:selftest": "node scripts/look.mjs --selftest",
     "look:full": "node scripts/look.mjs --full",

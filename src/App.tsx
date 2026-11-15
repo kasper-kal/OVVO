@@ -18,6 +18,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { StylesPage } from './pages/StylesPage';
 import { ReviewLayer } from './review/ReviewLayer';
 import { DeveloperRoute } from './pages/DeveloperPage';
+import { PlanPage } from './pages/PlanPage';
 import { getDevOverrides } from './lib/dev';
 import { SignInPage } from './pages/SignInPage';
 import { AuthFinishPage } from './pages/AuthFinishPage';
@@ -136,6 +137,7 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
+                  <Route path="/plan" element={<PlanPage />} />
                   <Route path="/wrapped" element={<WrappedPage />} />
                   {/* One search, in full: everything a reload or a pasted link must put back —
                       see `lib/searchLink`. `/results` alone still works and says there is nothing

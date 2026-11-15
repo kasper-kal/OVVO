@@ -28,6 +28,13 @@ const current = JSON.parse(fs.readFileSync(path.join(CACHE, 'current.json'), 'ut
 const archive = path.join(CACHE, current.dataset);
 const OUT = 'src/data/generated/boards.ts';
 const MAX_PER_STOP_PER_DAY = 250;
+/*
+ * The cap has to be spread across the day, not spent in file order. Reading `stop_times` in order
+ * and stopping at 250 per day filled a board with the morning and silently dropped the evening —
+ * the board looked complete and was not. A small allowance per hour keeps every hour of the day
+ * represented, which is what a departure board is for.
+ */
+const MAX_PER_STOP_PER_HOUR = Math.ceil(MAX_PER_STOP_PER_DAY / 24);
 const DAYS = 2;
 
 function csvLine(line) {
@@ -200,7 +207,12 @@ for await (const row of table('stop_times.txt')) {
   const days = boards.get(seedId);
   if (!days.has(date)) days.set(date, []);
   const list = days.get(date);
-  if (list.length >= MAX_PER_STOP_PER_DAY) continue;
+  /* One allowance per hour, so no part of the day is quietly dropped. */
+  if (!days.hourCounts) days.hourCounts = new Map();
+  const hourKey = `${date}:${hours}`;
+  const takenThisHour = days.hourCounts.get(hourKey) ?? 0;
+  if (takenThisHour >= MAX_PER_STOP_PER_HOUR) continue;
+  days.hourCounts.set(hourKey, takenThisHour + 1);
 
   const info = routes.get(route);
   list.push({

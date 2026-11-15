@@ -44,6 +44,7 @@ export function useNavigation(): NavGroup[] {
       title: t('Home'),
       items: [
         { to: '/', label: t('Home'), icon: 'home', hint: t('Plan a journey and browse the network') },
+        { to: '/plan', label: t('Plan a journey'), icon: 'station', hint: t('Search the real timetable') },
         /*
           There was a "Journey results" entry here, and it was a way to a screen that answers a
           question — the results of a search you have just made. The planner's second stop goes

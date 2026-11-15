@@ -329,3 +329,23 @@ search actually chose.
 
 I am asking to execute steps 0 to 5. Step 0 comes first and its result decides national versus
 regional; I will stop and report that result before building on it.
+
+## What actually ships now (15 Nov 2026)
+
+The browser does the search, so no server function is needed and nothing is paid for.
+
+* `/plan` — type a station, pick a day and a time, and the page returns real journeys: each leg has
+  its line, its headsign, both stations, both platforms and the operator, read from the official
+  timetable. Departure, arrival, duration and transfers are counted, not estimated.
+* The search is the exhaustive connection scan, ported to the browser (`src/planner/graph.ts`).
+  Checked against the Node scan on the same day and the same query: Utrecht Centraal → Groningen at
+  08:00 gives 08:07 → 10:12, two changes, identical to `scripts/routing/scan.mjs`.
+* Two service days are built (`20261115`, `20261116`) and `public/graph/index.json` lists exactly
+  the days that exist, so the page can only offer days it can really plan for.
+* Departure boards now take a small allowance **per hour** instead of spending a flat 250 per day in
+  file order — the old cap filled the morning and silently dropped the evening.
+* Walks are modelled as steps of their own, and a walk inside one station is not a leg.
+
+Known gaps, stated plainly: the seven stops that are landmarks rather than stations (Vondelpark,
+Anne Frank House, Binnenhof, Erasmusbrug, Markthal, Domtoren, Buiksloterweg) still have no board,
+and live delays are not shown — the page shows scheduled times from the timetable only.

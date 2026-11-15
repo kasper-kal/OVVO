@@ -29,7 +29,7 @@ import readline from 'node:readline';
 import { createScanner } from '../routing/scan.mjs';
 
 const CACHE = '.gtfs-cache';
-const OUT_DIR = 'public/graph';
+const OUT_DIR = process.env.GRAPH_OUT || 'public/graph';
 const SLICE_SECONDS = 2 * 3600;
 const MIN_TRANSFER_SECONDS = 120;
 const WALK_METRES = 400;
@@ -119,7 +119,7 @@ for await (const row of table('stops.txt')) {
   const lon = Number(row.stop_lon);
   if (!lat || !lon) continue;
   stopIndex.set(row.stop_id, stops.length);
-  stops.push({ id: row.stop_id, name: row.stop_name, lat: Number(lat.toFixed(6)), lon: Number(lon.toFixed(6)) });
+  stops.push({ id: row.stop_id, name: row.stop_name, lat: Number(lat.toFixed(6)), lon: Number(lon.toFixed(6)), platform: row.platform_code || '' });
   parentOf.push(row.parent_station || (row.location_type === '1' ? row.stop_id : ''));
   const place = placeIn(row.stop_name);
   if (row.parent_station && place) stationName.set(row.parent_station, stationName.get(row.parent_station) ?? place);
@@ -266,10 +266,40 @@ if (services.size === 0) {
   process.exit(1);
 }
 
-/* trips ------------------------------------------------------------------ */
+/* routes and operators, so a leg can say which line it is ----------------- */
+const routeInfo = new Map();
+for await (const row of table('routes.txt')) {
+  routeInfo.set(row.route_id, {
+    short: row.route_short_name || row.route_long_name || '',
+    type: Number(row.route_type),
+    agency: row.agency_id || '',
+  });
+}
+const agencyName = new Map();
+for await (const row of table('agency.txt')) {
+  agencyName.set(row.agency_id, row.agency_name || '');
+}
+const modeFor = (type) => {
+  if (type === 0) return 'tram';
+  if (type === 1) return 'metro';
+  if (type === 2) return 'train';
+  if (type === 4) return 'ferry';
+  return 'bus';
+};
+
+/* trips, with what a leg needs to describe them --------------------------- */
 const tripIndex = new Map();
+const tripInfo = [];
 for await (const row of table('trips.txt')) {
-  if (services.has(row.service_id)) tripIndex.set(row.trip_id, tripIndex.size);
+  if (!services.has(row.service_id)) continue;
+  tripIndex.set(row.trip_id, tripIndex.size);
+  const route = routeInfo.get(row.route_id);
+  tripInfo.push([
+    route?.short ?? '',
+    row.trip_headsign || '',
+    route ? modeFor(route.type) : 'bus',
+    route ? (agencyName.get(route.agency) ?? '') : '',
+  ]);
 }
 
 /* connections ------------------------------------------------------------ */
@@ -533,13 +563,15 @@ if (patternConnections !== rawFrom.length) {
 }
 
 const stopsBuffer = Buffer.from(
-  JSON.stringify(stops.map((stop) => [stop.id, stop.name, stop.lat, stop.lon, stationOf[stops.indexOf(stop)]])),
+  JSON.stringify(stops.map((stop, stopAt) => [stop.id, stop.name, stop.lat, stop.lon, stationOf[stopAt], stop.platform ?? ''])),
 );
 fs.writeFileSync(path.join(OUT_DIR, 'stops.json'), stopsBuffer);
 
 const stationsBuffer = Buffer.from(JSON.stringify(stations.map((station) => [station.name, station.stops])));
+const tripsBuffer = Buffer.from(JSON.stringify(tripInfo));
 const placesBuffer = Buffer.from(JSON.stringify(places));
 fs.writeFileSync(path.join(OUT_DIR, 'stations.json'), stationsBuffer);
+fs.writeFileSync(path.join(OUT_DIR, 'trips.json'), tripsBuffer);
 fs.writeFileSync(path.join(OUT_DIR, 'places.json'), placesBuffer);
 
 const manifest = {
@@ -549,6 +581,7 @@ const manifest = {
   stops: { file: 'stops.json', count: stops.length, bytes: stopsBuffer.length, sha256: sha(stopsBuffer) },
   stations: { file: 'stations.json', count: stations.length, bytes: stationsBuffer.length, sha256: sha(stationsBuffer) },
   places: { file: 'places.json', count: places.length, bytes: placesBuffer.length, sha256: sha(placesBuffer) },
+  tripsInfo: { file: 'trips.json', count: tripInfo.length, bytes: tripsBuffer.length, sha256: sha(tripsBuffer) },
   walks: {
     file: 'walks.bin',
     links: walkFrom.length,
