@@ -1,0 +1,48 @@
+{
+  "measuredAt": "2026-11-15T01:10:45.664Z",
+  "departAt": "08:00",
+  "scannedConnections": 392153,
+  "raptorLoadMs": 20,
+  "rows": [
+    {
+      "journey": "Utrecht Centraal → Amsterdam Centraal",
+      "arrives": "08:52",
+      "scanMs": 12.13,
+      "raptorMs": 3.96
+    },
+    {
+      "journey": "Amsterdam Centraal → Rotterdam Centraal",
+      "arrives": "09:20",
+      "scanMs": 11.75,
+      "raptorMs": 3.55
+    },
+    {
+      "journey": "Utrecht Centraal → Groningen",
+      "arrives": "10:51",
+      "scanMs": 15.86,
+      "raptorMs": 14.27
+    },
+    {
+      "journey": "Rotterdam Centraal → Groningen",
+      "arrives": "11:26",
+      "scanMs": 16.5,
+      "raptorMs": 17.12
+    },
+    {
+      "journey": "Utrecht Centraal → Maastricht",
+      "arrives": "11:18",
+      "scanMs": 20.74,
+      "raptorMs": 17.78
+    },
+    {
+      "journey": "Zwolle → Eindhoven",
+      "arrives": "10:15",
+      "scanMs": 14.47,
+      "raptorMs": 7.71
+    }
+  ],
+  "failures": [
+    "Rotterdam Centraal → Groningen: scan arrives 11:21, route search 11:26",
+    "Utrecht Centraal → Maastricht: scan nothing, route search 11:18"
+  ]
+}

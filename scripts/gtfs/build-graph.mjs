@@ -246,6 +246,143 @@ walkFrom.forEach((value, index) => {
 });
 fs.writeFileSync(path.join(OUT_DIR, 'walks.bin'), walks);
 
+/* ------------------------------------------------------------------ routes, for a faster search
+ *
+ * The connection scan reads every connection in the slice: about 140,000 in the middle of the day,
+ * which is more than a free function's 10 ms allows. A round-based search instead visits *routes*:
+ * it stands at a stop it has actually reached, takes the first departure it can catch, and jumps
+ * along that route. That is a fraction of the connections, so this is what the graph must carry.
+ *
+ * A **pattern** is one direction of a line: the order stops are served in. Every trip that serves
+ * exactly that order belongs to it, with its own start time and running times. Trips are sorted by
+ * start time so the first catchable one can be found without reading them all.
+ */
+const chains = new Map();
+for (let index = 0; index < rawFrom.length; index += 1) {
+  const tripNumber = rawTrip[index];
+  let chain = chains.get(tripNumber);
+  if (!chain) {
+    chain = { stops: [rawFrom[index]], times: [rawDep[index]] };
+    chains.set(tripNumber, chain);
+  }
+  chain.stops.push(rawTo[index]);
+  chain.times.push(rawArr[index]);
+}
+
+const patterns = new Map();
+for (const chain of chains.values()) {
+  const key = chain.stops.join(',');
+  let pattern = patterns.get(key);
+  if (!pattern) {
+    pattern = { stops: chain.stops, trips: [] };
+    patterns.set(key, pattern);
+  }
+  const start = chain.times[0];
+  pattern.trips.push({ start, offsets: chain.times.map((time) => time - start) });
+}
+const patternList = [...patterns.values()].sort((a, b) => b.trips.length - a.trips.length);
+for (const pattern of patternList) pattern.trips.sort((a, b) => a.start - b.start);
+
+/* patterns.bin: a count, where each pattern starts, each pattern's largest running time, then the
+ * patterns themselves — stop order, trip count, and per trip a start time and its offsets. */
+const patternOffsets = new Uint32Array(patternList.length);
+const patternLargest = new Uint32Array(patternList.length);
+let patternCursor = 0;
+const patternBlobs = patternList.map((pattern, index) => {
+  const stopsInPattern = pattern.stops.length;
+  let largest = 0;
+  for (const trip of pattern.trips) for (const offset of trip.offsets) if (offset > largest) largest = offset;
+  patternOffsets[index] = patternCursor;
+  patternLargest[index] = largest;
+  /* Layout: stop count, stops, trip count, every trip's start time, then every trip's offsets.
+   * Start times and offsets are separate blocks on purpose: the search reads start times with a
+   * binary search and offsets by position, and interleaving them would make both awkward. */
+  /*
+   * The largest running time **at each position** is stored, not one figure for the whole pattern.
+   * A search asks "which trip is the first I could catch at this stop?", and the answer decides how
+   * far back to start looking. Using the pattern's largest time made that start far too early on long
+   * routes and turned a fast search into a slow one.
+   */
+  const largestByPosition = new Uint32Array(stopsInPattern);
+  for (const trip of pattern.trips) {
+    for (let position = 0; position < stopsInPattern; position += 1) {
+      if (trip.offsets[position] > largestByPosition[position]) largestByPosition[position] = trip.offsets[position];
+    }
+  }
+  const size = 4 + stopsInPattern * 4 + stopsInPattern * 4 + 4 + pattern.trips.length * 4 + pattern.trips.length * stopsInPattern * 4;
+  const blob = Buffer.alloc(size);
+  let at = 0;
+  blob.writeUInt32LE(stopsInPattern, at);
+  at += 4;
+  for (const stop of pattern.stops) {
+    blob.writeUInt32LE(stop, at);
+    at += 4;
+  }
+  for (const largest of largestByPosition) {
+    blob.writeUInt32LE(largest, at);
+    at += 4;
+  }
+  blob.writeUInt32LE(pattern.trips.length, at);
+  at += 4;
+  for (const trip of pattern.trips) {
+    blob.writeUInt32LE(trip.start, at);
+    at += 4;
+  }
+  for (const trip of pattern.trips) {
+    for (const offset of trip.offsets) {
+      blob.writeUInt32LE(offset, at);
+      at += 4;
+    }
+  }
+  patternCursor += size;
+  return blob;
+});
+
+const patternHeader = Buffer.alloc(4 + patternList.length * 8);
+patternHeader.writeUInt32LE(patternList.length, 0);
+for (let index = 0; index < patternList.length; index += 1) {
+  patternHeader.writeUInt32LE(patternOffsets[index], 4 + index * 4);
+  patternHeader.writeUInt32LE(patternLargest[index], 4 + patternList.length * 4 + index * 4);
+}
+const patternsBuffer = Buffer.concat([patternHeader, ...patternBlobs]);
+fs.writeFileSync(path.join(OUT_DIR, 'patterns.bin'), patternsBuffer);
+
+/* index.bin: for every stop, the patterns that serve it and where along them. A search standing at a
+ * stop needs this to know which routes are worth looking at, and nothing else. */
+const indexCounts = new Uint32Array(stops.length);
+for (const pattern of patternList) for (const stop of pattern.stops) indexCounts[stop] += 1;
+const indexCursor = new Uint32Array(stops.length);
+let runningTotal = 0;
+for (let stop = 0; stop < stops.length; stop += 1) {
+  indexCursor[stop] = runningTotal;
+  runningTotal += indexCounts[stop];
+}
+const indexEntries = new Uint32Array(runningTotal * 2);
+const indexFill = Uint32Array.from(indexCursor);
+patternList.forEach((pattern, patternNumber) => {
+  pattern.stops.forEach((stop, position) => {
+    const slot = indexFill[stop] += 1;
+    indexEntries[(slot - 1) * 2] = patternNumber;
+    indexEntries[(slot - 1) * 2 + 1] = position;
+  });
+});
+const indexBuffer = Buffer.alloc(4 + stops.length * 4 + indexEntries.length * 4);
+indexBuffer.writeUInt32LE(stops.length, 0);
+for (let stop = 0; stop < stops.length; stop += 1) indexBuffer.writeUInt32LE(indexCounts[stop], 4 + stop * 4);
+for (let entry = 0; entry < indexEntries.length; entry += 1) {
+  indexBuffer.writeUInt32LE(indexEntries[entry], 4 + stops.length * 4 + entry * 4);
+}
+fs.writeFileSync(path.join(OUT_DIR, 'index.bin'), indexBuffer);
+
+/* A pattern must account for exactly the connections the slices hold, or the two searches would be
+ * looking at different timetables. */
+let patternConnections = 0;
+for (const pattern of patternList) patternConnections += pattern.trips.length * (pattern.stops.length - 1);
+if (patternConnections !== rawFrom.length) {
+  console.error(`patterns describe ${patternConnections} connections but the slices hold ${rawFrom.length}`);
+  process.exit(1);
+}
+
 const stopsBuffer = Buffer.from(
   JSON.stringify(stops.map((stop) => [stop.id, stop.name, stop.lat, stop.lon])),
 );
@@ -264,6 +401,16 @@ const manifest = {
     sha256: sha(walks),
   },
   slices: { seconds: SLICE_SECONDS, recordBytes: RECORD_BYTES, files: slices },
+  patterns: {
+    file: 'patterns.bin',
+    indexFile: 'index.bin',
+    count: patternList.length,
+    stopEntries: indexEntries.length / 2,
+    bytes: patternsBuffer.length,
+    indexBytes: indexBuffer.length,
+    sha256: sha(patternsBuffer),
+    indexSha256: sha(indexBuffer),
+  },
   connections: slices.reduce((sum, slice) => sum + slice.connections, 0),
   trips: tripIndex.size,
   stopTimesRead,
@@ -275,6 +422,7 @@ fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify(manifest, n
 
 console.log(`graph for ${serviceDate}: ${stops.length.toLocaleString('en')} stops · ${tripIndex.size.toLocaleString('en')} trips · ${manifest.connections.toLocaleString('en')} connections · ${walkFrom.length.toLocaleString('en')} walking links`);
 console.log(`${slices.length} slices of ${SLICE_SECONDS / 3600} h, ${(manifest.graphBytes / 1048576).toFixed(1)} MiB total`);
+console.log(`${patternList.length.toLocaleString('en')} patterns · ${indexEntries.length.toLocaleString('en')} stop positions · patterns.bin ${(patternsBuffer.length / 1048576).toFixed(1)} MiB · index.bin ${(indexBuffer.length / 1048576).toFixed(1)} MiB`);
 for (const slice of slices) {
   const at = `${String(slice.from / 3600).padStart(2, '0')}:00`;
   console.log(`  ${slice.file} ${at} · ${slice.connections.toLocaleString('en')} connections · ${(slice.bytes / 1048576).toFixed(2)} MiB`);

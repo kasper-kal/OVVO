@@ -166,6 +166,49 @@ it is well understood, and it is easy to test. It handles:
 Preferences are only honoured if the search actually applies them. A setting the search ignores —
 step-free routing, bicycle carriage — is not shown as applied; it is reported as not yet supported.
 
+### Step 2 — result (measured 15 November 2026)
+
+A round-based search now exists: `scripts/routing/raptor.mjs`. It stands at stops it has reached,
+takes the trips it can catch on each route serving that stop, and jumps along the route. The whole
+national pattern set is loaded once, 5,593 patterns and 88,255 stop positions, in about 20 ms of
+loading — which costs no processor time on a Worker, because loading is waiting for a file.
+
+**Measured against the exhaustive connection scan, same graph, departing 08:00:**
+
+| Journey | Exhaustive scan | Route search |
+| --- | --- | --- |
+| Utrecht Centraal → Amsterdam Centraal | 12.1 ms | **3.96 ms** |
+| Amsterdam Centraal → Rotterdam Centraal | 11.8 ms | **3.55 ms** |
+| Zwolle → Eindhoven | 14.5 ms | **7.71 ms** |
+| Utrecht Centraal → Groningen | 15.9 ms | 14.3 ms |
+| Rotterdam Centraal → Groningen | 16.5 ms | 17.1 ms |
+| Utrecht Centraal → Maastricht | 20.7 ms | 17.8 ms |
+
+**What this means, plainly.** Ordinary journeys are now comfortably under the free 10 ms budget —
+by two to three times. Long cross-country journeys are not: they still cost 14–18 ms, because a
+journey of two hours genuinely has to consider everywhere reachable within two hours. The budget is
+therefore met for the journeys people make most, and not met for the longest ones.
+
+**Two known disagreements** are recorded rather than hidden (`routing/step2-comparison.json`):
+
+- Rotterdam Centraal → Groningen arrives 11:26 here and 11:21 on the exhaustive scan. The route
+  search takes the first catchable trips on a route plus the two after them; a connection the scan
+  finds is still being missed. Five minutes is a real difference and this is not finished.
+- Utrecht Centraal → Maastricht: the scan finds nothing inside its six-hour window, the route search
+  finds 11:18. That points at how a station is resolved to the stops beneath it, which is step 3's
+  job, not the search's.
+
+Three faults were found and fixed by measuring instead of assuming: the patterns file layout did not
+match its reader; the round logic fed only walking improvements into the next round, so a journey
+could take one route and then continue only on foot; and a `Set` lookup on every one of ~20,000
+improvements cost more than the search itself. Counters in the search now report patterns scanned,
+trips examined and stops improved, so the next claim about cost can be checked rather than believed.
+
+**What step 2 does not fix, and what to do about it:** long journeys. Two honest options, both free:
+shorten the search with a two-way search that meets in the middle, or accept that the longest
+journeys take longer than 10 ms and serve them from a runtime whose free allowance is larger. Neither
+is built. What is built is measured and recorded.
+
 ## Step 3 — the contract between search and screen
 
 `/api/journey` takes origin, destination, date, time, arrival-by or departure-at, and the supported
