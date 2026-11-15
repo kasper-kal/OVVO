@@ -5,7 +5,7 @@ file. It is the one place to look, so that a choice made in a chat three weeks a
 lost. Add to it; do not rewrite history. If something changes, change the line and add the
 date.
 
-Last updated: 1 November 2026.
+Last updated: 15 November 2026.
 
 ## What we are building
 
@@ -26,9 +26,11 @@ is pasted into this project's secrets, not typed into code.
 - **Firebase Authentication for sign-in.** Google's sign-in service. Cardless and permanently
   free at our size. Its own mail leaves from a shared `firebaseapp.com` address, which lands in
   spam, so the mail is now sent through **Brevo** from **`ovvo.vibecreations@outlook.com`** and
-  arrives in the inbox. Cardless, no domain, and it works (see "The sign-in mail no longer lands
-  in spam" below). Google sign-in and a password need no mail at all, and both work today.
-- **No custom domain.** Never. The free address Cloudflare gives us is the address.
+  arrives in the inbox. Cardless, no mailbox of our own yet, and it works (see "The sign-in mail
+  no longer lands in spam" below). Google sign-in and a password need no mail at all, and both work today.
+- **The app has a custom domain now (15 November 2026).** It lives at `app.ovvo.us.ci`;
+  the root `ovvo.us.ci` is kept free for a future landing page. This reverses the 1 November
+  decision that there would never be one.
 - **No card anywhere.** Every service must have a permanently free plan. A free plan with
   limits is fine; a free trial that ends is not.
 
@@ -36,14 +38,35 @@ is pasted into this project's secrets, not typed into code.
 
 | Thing | Value | Notes |
 | --- | --- | --- |
-| Cloudflare account | made by the steerer | Account ID still to come — see "Still missing" |
+| Cloudflare account | made by the steerer | Account ID is in the project's `.env` |
 | Cloudflare subdomain | `vibecreations` | The steerer's choice, 1 November 2026. Workers sit under it |
 | Cloudflare Worker name | `ovvo` | Decides the first part of the public address |
-| Public address | `ovvo.vibecreations.workers.dev` | Worker name, then the subdomain |
+| Cloudflare zone | `ovvo.us.ci` | The root the steerer owns; DNS is on Cloudflare |
+| App address | `app.ovvo.us.ci` | The Worker's custom domain, live 15 November 2026 |
+| Old fallback | `ovvo.vibecreations.workers.dev` | Still answers; keep until the new address is trusted |
+| Root address | `ovvo.us.ci` | Reserved for the future landing page; no site yet |
 | Firebase project ID | `ovvo-vibecreations` | Cannot be changed once made |
 | Firebase project name | `OVVO` | Display only |
 | Firebase sign-in domain | `ovvo-vibecreations.firebaseapp.com` | Leave `authDomain` exactly as given |
 | Token name | `OVVO deploy` | Display only |
+
+## The address (15 November 2026)
+
+- The app is **https://app.ovvo.us.ci**. It answers, and `/api/health` answers `{"ok":true}`.
+- `ovvo.us.ci` is the zone. The root has no website yet; it is reserved for the landing page.
+- `https://ovvo.vibecreations.workers.dev` still works as a fallback. Do not remove it until the
+  new address has been used for a while.
+- Turnstile: the OVVO widget already lists `app.ovvo.us.ci` under **Hostname Management**
+  (checked 15 November 2026).
+- Firebase: `app.ovvo.us.ci` must be in **Authentication → Settings → Authorized domains**.
+- Email: Cloudflare Email Routing can now be switched on for `ovvo.us.ci` (see below).
+
+## Email at ovvo.us.ci (15 November 2026)
+
+Cloudflare Email Routing is free and can make addresses such as `hello@ovvo.us.ci` and
+`support@ovvo.us.ci`, forwarding them to an existing inbox. It does not store mail and cannot
+send. Sending as `@ovvo.us.ci` needs an SMTP provider and its DNS records; Brevo is already used
+for the sign-in mail, so it is the first place to look when sending is wanted.
 
 Rule of thumb, after the subdomain was settled: **`OVVO`** is the name a person sees,
 **`ovvo`** is the short name in front of the address, and **`ovvo-vibecreations`** survives
@@ -90,14 +113,14 @@ Asked by the steerer what else the free account is worth. Decided and built the 
 - **Three things wait on the steerer, because the deploy token can read but not create them.**
   Listing Turnstile widgets, Web Analytics sites and R2 buckets all answer 200; every create
   answers 403. So each of these needs one click in the dashboard: a Turnstile widget (name OVVO,
-  domain `ovvo.vibecreations.workers.dev`, Managed), a Web Analytics site for the same address, and
-  an R2 bucket called `ovvo-photos`. The Turnstile secret becomes a Worker secret named
-  `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
+  domain `app.ovvo.us.ci`, Managed — the widget was created for the old address, so add this
+  hostname), a Web Analytics site for the same address, and an R2 bucket called `ovvo-photos`.
+  The Turnstile secret becomes a Worker secret named `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
 - **Done the same day, once the token had Write.** The token needed three additions, all Write:
   `Turnstile`, `Workers R2 Storage` and `Account Settings` (Web Analytics sites are created under
   account settings; Cloudflare offers no Edit of their own for analytics). With those, the analytics
-  site (`ovvo.vibecreations.workers.dev`) and the Turnstile widget were created by script. The
-  Turnstile secret went straight into the Worker as `TURNSTILE_SECRET` from a temporary file, so it
+  site (then the old address; now `app.ovvo.us.ci`) and the Turnstile widget were created by script.
+  The Turnstile secret went straight into the Worker as `TURNSTILE_SECRET` from a temporary file, so it
   was never printed into the chat, and the site key lives in `src/lib/turnstile.ts` because it is
   public by design.
 - **The bot check guards one door only.** `/api/passkey/register/options` refuses a new account
@@ -107,8 +130,8 @@ Asked by the steerer what else the free account is worth. Decided and built the 
 - **R2 still answers "Please enable R2 through the Cloudflare Dashboard"**, so the photo bucket
   waits on one tap in the dashboards' R2 page. The token has Write for it; the product itself is
   not switched on for the account yet.
-- **Not worth doing here.** Email Routing and the one free rate-limiting rule both need a domain,
-  so they stay behind the same wall as the sign-in mail.
+- **Now possible.** Email Routing and the one free rate-limiting rule needed a domain; the
+  domain is here, so Email Routing can be switched on (see "Email at ovvo.us.ci").
 
 ## Passkeys (2 November 2026)
 
@@ -147,9 +170,9 @@ How the three flows work:
 
 Limits worth naming now:
 
-- **A passkey belongs to the address it was made on.** `ovvo.vibecreations.workers.dev` is the
-  address today. Moving to another address means every passkey made before the move stops working,
-  and everybody signs in the old way once more.
+- **A passkey belongs to the address it was made on.** The app address is now
+  `app.ovvo.us.ci`. Passkeys made on the old `ovvo.vibecreations.workers.dev` address do not carry
+  over; there are no users yet, so nothing is lost.
 - **A passkey-only account has no recovery.** If every device holding it is lost and nothing was
   synced, the account cannot be opened. The card says so whenever there is only one passkey.
 - **`FIREBASE_SERVICE_ACCOUNT` must be a Secret, not a Variable.** Added as a plain dashboard
@@ -262,10 +285,10 @@ the site's address and it does not exist until the Cloudflare side is named.
 
 **Everything needed to run this without me is in [HANDOVER.md](HANDOVER.md)** — accounts, names, ids, the commands, and what happens if something is lost.
 
-## What is live now (1 November 2026)
+## What is live now (15 November 2026)
 
-- **Address:** https://ovvo.vibecreations.workers.dev. Worker name `ovvo`, account subdomain
-  `vibecreations`.
+- **Address:** https://app.ovvo.us.ci. Worker name `ovvo`, custom domain inside the
+  `ovvo.us.ci` zone. The old https://ovvo.vibecreations.workers.dev still answers as a fallback.
 - **One deploy carries everything.** `worker/index.js` answers `/api/*` itself and hands every
   other request to the built site. Config: `wrangler.jsonc`.
 - **Database:** Cloudflare D1, name `ovvo`, id `ba996f68-d067-46b6-8ea4-3dc05ce38acc`. One table,

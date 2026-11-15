@@ -82,7 +82,8 @@ It ends by asking the running server for the app with that hostname and failing 
 no hostname and the server stays localhost-only, which is the right default for a plain checkout.
 
 The live site is served by the **Cloudflare Worker `ovvo`** at
-`https://ovvo.vibecreations.workers.dev`. `npm run deploy` builds the app and uploads two
+`https://app.ovvo.us.ci`. The root `https://ovvo.us.ci` is reserved for a future landing page.
+`npm run deploy` builds the app and uploads two
 things in one Worker: the files in `dist/` as static assets, and `worker/index.js`, which answers
 `/api/*` itself and hands every other request to those files (`wrangler.jsonc` ties the two
 together). A deep address is answered by the SPA fallback rather than a 404, so `/stops/utrecht-centraal`
@@ -693,6 +694,7 @@ the day it names, not as a description of the app today:
 | `CONSISTENCY-AUDIT.md`, `STRICT-AUDIT.md`, `TORTURE-AUDIT.md` | What each sweep found and the rules the audits enforce |
 | `TEXT-VS-ICON-AUDIT.md` | Where the interface writes a word it owns a glyph for. An audit, not a fix |
 | `WIDGET-AUDIT.md` | Why the home catalogue holds what it holds |
+| `OVVO-firebase-setup.pdf` | The original Cloudflare and Firebase setup guide, written for the first `workers.dev` address. The app now lives at `app.ovvo.us.ci`; this is kept as a record of how the account was made |
 | `STYLE-SWEEP-FINDINGS.md`, `WALLPAPERS-STYLES.md` | The theme and wallpaper sweeps. The catalogue has since grown to forty themes |
 | `COLOURS_PLAN.md`, `MATCHING_PLAN.md`, `THEMES_PLAN.md` | Plans written before their code, kept as written. All three are built |
 | `DESKTOP-FIXES.md` | An empty placeholder: no desktop batch has been written into it |

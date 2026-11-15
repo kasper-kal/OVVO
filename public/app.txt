@@ -5,9 +5,10 @@ This file exists for anything that reads over HTTP and does not run JavaScript: 
 preview, a crawler, a review bot, a text extractor. The app itself is drawn entirely by
 JavaScript, so a raw fetch of the page cannot show it. This is the honest substitute.
 
-The app: https://ovvo.vibecreations.workers.dev/
+The app: https://app.ovvo.us.ci/
 Support: ovvo.vibecreations@outlook.com
-Made by VibeCreations. No custom domain, no payment card, free tier only, by decision.
+Made by VibeCreations. The root ovvo.us.ci is reserved for a landing page.
+No payment card, free tier only, by decision.
 
 
 What OVVO is

@@ -20,7 +20,7 @@
 const NOMINATIM = 'https://nominatim.openstreetmap.org';
 
 /** Nominatim asks for an identifiable caller; this is the address it can complain to. */
-const AGENT = 'OVVO/1.0 (+https://ovvo.vibecreations.workers.dev)';
+const AGENT = 'OVVO/1.0 (+https://app.ovvo.us.ci)';
 
 /** A street or a place name does not change during the day; a summary changes over months. */
 const DAY = 24 * 60 * 60;

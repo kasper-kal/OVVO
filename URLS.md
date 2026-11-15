@@ -1,8 +1,10 @@
 # Every address OVVO has
 
-Host: `https://ovvo.vibecreations.workers.dev` — generated from the route table in `src/App.tsx` and the ids in
+Host: `https://app.ovvo.us.ci` — generated from the route table in `src/App.tsx` and the ids in
 `src/data/stops.ts` and `src/data/disruptions.ts`, so it lists what the app actually
 answers rather than what it once did. Regenerate it after adding a stop or an alert.
+
+The root `https://ovvo.us.ci` has no routes yet; it is reserved for a future landing page.
 
 ## The screens of the app
 

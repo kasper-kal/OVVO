@@ -1,6 +1,6 @@
 /** Does the rail always meet the arrival square? Checked on several journeys, live. */
 import { chromium } from 'playwright'
-const BASE = process.env.BASE || 'https://ovvo.vibecreations.workers.dev'
+const BASE = process.env.BASE || 'https://app.ovvo.us.ci'
 const routes = [['haarlem', 'hoofddorp'], ['haarlem', 'zaandam'], ['amsterdam', 'hoofddorp'], ['utrecht', 'haarlem']]
 const b = await chromium.launch()
 const p = await b.newPage({ viewport: { width: 390, height: 1200 }, deviceScaleFactor: 3 })

@@ -26,7 +26,7 @@
 
 import { chromium } from 'playwright';
 
-const SITE = process.env.URL ?? 'https://ovvo.vibecreations.workers.dev/';
+const SITE = process.env.URL ?? 'https://app.ovvo.us.ci/';
 
 /**
  * A policy with no `unsafe-eval`, which is what a locked-down sandbox sends.
