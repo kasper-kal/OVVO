@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && node scripts/exclude-local-graph.mjs && wrangler deploy",
     "db:init": "wrangler d1 execute ovvo --remote --file schema.sql",
     "build": "tsc --noEmit && node scripts/em-dash-audit.mjs && node scripts/styles-audit.mjs && node scripts/corner-audit.mjs && node scripts/class-audit.mjs && node scripts/breakpoint-audit.mjs && vite build",
     "gtfs:update": "node scripts/gtfs/fetch.mjs",
