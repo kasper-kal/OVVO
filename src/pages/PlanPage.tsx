@@ -310,7 +310,7 @@ export function PlanPage() {
               {status === 'loading'
                 ? 'Loading the timetable…'
                 : days.length > 0
-                  ? `Timetable for ${dayLabel(day)} · ${places.length.toLocaleString('en')} stations`
+                  ? `Timetable for ${dayLabel(day)} · ${places.length.toLocaleString('en')} stations · up to ${dayLabel(days[days.length - 1].date)}`
                   : ''}
             </span>
           </div>

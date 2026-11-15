@@ -52,7 +52,18 @@ export interface PlanDay {
   trips: number;
 }
 
-const BASE = '/graph';
+/*
+ * **A month of timetable, published once a night, and a week kept on the device.**
+ *
+ * The national feed covers 28 days and one day is tens of megabytes, so the month lives on the
+ * project's own free static host (GitHub Pages, rebuilt nightly) and the copy shipped with the app
+ * stays as the offline fallback. Published files are gzipped one by one: the month is about 400 MB
+ * that way instead of 1.5 GB, and the browser only downloads the day it is asked for.
+ */
+const LOCAL_BASE = '/graph';
+const PUBLISHED_BASE = 'https://kasper-kal.github.io/OVVO/graph';
+const CONFIGURED_BASE = (import.meta.env.VITE_GRAPH_BASE as string | undefined)?.replace(/\/$/, '');
+const BASE = CONFIGURED_BASE || (import.meta.env.DEV ? LOCAL_BASE : PUBLISHED_BASE);
 const RECORD_BYTES = 20;
 const MIN_TRANSFER_SECONDS = 120;
 const INF = 2 ** 30;
@@ -88,6 +99,30 @@ let indexCache: Promise<PlanDay[]> | null = null;
 
 const GRAPH_CACHE = 'ovvo-graph-v1';
 
+/** The published month is gzipped file by file; the local fallback is not. */
+function sourceUrl(base: string, path: string): string {
+  return `${base}/${path}${base === LOCAL_BASE ? '' : '.gz'}`;
+}
+
+function contentTypeFor(path: string): string {
+  if (path.endsWith('.json')) return 'application/json';
+  if (path.endsWith('.txt')) return 'text/plain; charset=utf-8';
+  return 'application/octet-stream';
+}
+
+async function decoded(response: Response, path: string): Promise<Response> {
+  if (!response.ok || !response.body) return response;
+  /* A host that sends `Content-Encoding: gzip` has already been decoded for us. */
+  if (response.headers.get('content-encoding') === 'gzip') return response;
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('This browser cannot unpack the timetable.');
+  }
+  return new Response(response.body.pipeThrough(new DecompressionStream('gzip')), {
+    status: 200,
+    headers: { 'content-type': contentTypeFor(path) },
+  });
+}
+
 /**
  * **The timetable is downloaded once, not on every search.**
  *
@@ -96,26 +131,44 @@ const GRAPH_CACHE = 'ovvo-graph-v1';
  * device, so the first search of the day costs the download and every later one costs nothing. When
  * the cache is unavailable the fetch simply goes to the network, which is also correct.
  */
-async function fetchGraph(path: string): Promise<Response> {
-  const full = `${BASE}/${path}`;
+async function readGraph(base: string, path: string): Promise<Response> {
+  const url = sourceUrl(base, path);
   let cache: Cache | null = null;
   try {
     cache = await caches.open(GRAPH_CACHE);
-    const hit = await cache.match(full);
+    const hit = await cache.match(url);
     if (hit) return hit;
   } catch {
     cache = null;
   }
 
-  const response = await fetch(full, { cache: 'force-cache' });
+  const fetched = await fetch(url, { cache: 'force-cache' });
+  const response = base === LOCAL_BASE ? fetched : await decoded(fetched, path);
   if (cache && response.ok) {
     try {
-      await cache.put(full, response.clone());
+      await cache.put(url, response.clone());
     } catch {
       /* A full or blocked cache must never break a search. */
     }
   }
   return response;
+}
+
+/**
+ * **The published month first, the copy on the device second.**
+ *
+ * A published day that is missing, blocked or unreachable must not turn into an empty result: the
+ * same file is tried in the app's own `/graph` folder, which is where the shipped week lives.
+ */
+async function fetchGraph(path: string): Promise<Response> {
+  if (BASE === LOCAL_BASE) return readGraph(LOCAL_BASE, path);
+  try {
+    const published = await readGraph(BASE, path);
+    if (published.ok) return published;
+  } catch (error) {
+    console.warn(`the published timetable did not answer for ${path}`, error);
+  }
+  return readGraph(LOCAL_BASE, path);
 }
 
 async function fetchJson<T>(path: string): Promise<T> {

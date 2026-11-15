@@ -1,0 +1,61 @@
+# **The month of timetable, rebuilt while nobody is awake.**
+#
+# The national feed covers 28 days. Building one day takes under a minute, so this runs nightly,
+# publishes the month as gzipped files to GitHub Pages (free for a public repository, no card),
+# and the app fetches only the day it is asked for. The workflow can also be run by hand from the
+# Actions tab; it does not touch the live app itself.
+name: Timetable
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/timetable.yml'
+      - 'scripts/gtfs/**'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch and verify the national timetable
+        run: node scripts/gtfs/fetch.mjs
+
+      - name: Build the next 28 days
+        run: node scripts/gtfs/build-all-days.mjs 28
+
+      - name: Compress the month for the app
+        run: node scripts/gtfs/publish-site.mjs
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-timetable
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
