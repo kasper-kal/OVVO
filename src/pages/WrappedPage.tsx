@@ -79,7 +79,15 @@ export function WrappedGate() {
   const now = appNow();
   /* The developer's example deck stays reachable in a development build. */
   const demo = import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === '1';
-  if (now.getMonth() === 0 || demo) return <WrappedPage />;
+  /*
+   * **00:00:01, not midnight.**
+   *
+   * The gate used to be "is it January", which opened at 00:00:00 — a second before the moment the
+   * steerer named. The comparison is against the first second of 1 January, so 23:59:59 and
+   * 00:00:00 are both still closed and 00:00:01 opens.
+   */
+  const opening = new Date(now.getFullYear(), 0, 1, 0, 0, 1).getTime();
+  if ((now.getMonth() === 0 && now.getTime() >= opening) || demo) return <WrappedPage />;
 
   return (
     <div className="stack-4" style={{ maxWidth: 560, margin: '12vh auto 0' }}>
