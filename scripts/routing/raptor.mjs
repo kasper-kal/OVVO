@@ -1,24 +1,30 @@
 /**
- * **A round-based search over routes, so a query reads routes instead of a whole slice.**
+ * **A round-based search over routes, labelled by station rather than by platform.**
  *
- * The connection scan (`scan.mjs`) reads every connection in the window — 140,000 in the middle of a
- * day — and costs about 10 ms, which is the whole free budget. This search stands at stops it has
- * actually reached, takes the first departure it can catch on each route that serves that stop, and
- * jumps along the route to every stop after it. Routes it never touches cost nothing.
+ * The connection scan reads every connection in the window, which is the whole free budget. This
+ * search stands at stations it has actually reached, takes the first departures it can catch on the
+ * routes serving them, and jumps along those routes. Routes it never touches cost nothing.
  *
- * The result must be the same earliest arrival as the connection scan: `compare.mjs` checks exactly
- * that, on real journeys, rather than trusting this comment.
+ * It labels **stations**, because a traveller asks for Utrecht Centraal, not for platform 18. All the
+ * platforms of a station share one arrival time, so the whole station is reached at once and no walk
+ * is charged for changing platform. Labelling platforms separately was both wrong and slow: wrong
+ * because a change of train at a station was never expanded from the other platforms, and slow
+ * because the same work was repeated for every platform of a busy station.
  *
- * What it does not do yet: more than one journey (k-best), "arrive by" (the same search with time
- * reversed), step-free routing, bicycle carriage. Nothing claims those until they are built.
+ * What it does not do yet: more than one journey (k-best), "arrive by", step-free routing, bicycle
+ * carriage. Nothing claims those until they are built and tested.
  */
 
 const INF = 2 ** 30;
 
 /**
  * @param {object} graph
- * @param {Buffer|Uint8Array} graph.patternsBuffer  patterns.bin from the graph builder
- * @param {Buffer|Uint8Array} graph.indexBuffer     index.bin from the graph builder
+ * @param {Buffer|Uint8Array} graph.patternsBuffer
+ * @param {Buffer|Uint8Array} graph.indexBuffer
+ * @param {number[][]} graph.stations          platform stop indices per station
+ * @param {Uint32Array} graph.stationOf        station index of every stop
+ * @param {number[][]} graph.places            station indices per place (one physical station)
+ * @param {Uint32Array} graph.placeOf          place index of every station
  * @param {Uint32Array} graph.walkFrom
  * @param {Uint32Array} graph.walkTo
  * @param {Uint16Array} graph.walkSeconds
@@ -76,7 +82,7 @@ export function createRaptor(graph) {
     indexStart[indexedStops] * 2,
   );
 
-  /* Walking links, grouped by the stop they leave from, so a round only walks where something changed. */
+  /* Walking links, grouped by the stop they leave from. Same-station platforms are not walks. */
   const walkStart = new Uint32Array(graph.stopCount + 1);
   for (let link = 0; link < graph.walkFrom.length; link += 1) walkStart[graph.walkFrom[link] + 1] += 1;
   for (let stop = 0; stop < graph.stopCount; stop += 1) walkStart[stop + 1] += walkStart[stop];
@@ -89,147 +95,148 @@ export function createRaptor(graph) {
     walkTime[slot - 1] = graph.walkSeconds[link];
   }
 
+  const stations = graph.stations;
+  const stationOf = graph.stationOf;
+  const places = graph.places;
+  const placeOf = graph.placeOf;
+  const placeCount = places.length;
+
+  /*
+   * A place is one physical station: the feed can split Groningen's platforms over several station
+   * groups, and a journey must be allowed to leave from, or arrive at, any of them. Flattening the
+   * platforms of a place once keeps the inner loop simple.
+   */
+  const placePlatforms = places.map((members) => {
+    const platforms = [];
+    for (const station of members) for (const platform of stations[station]) platforms.push(platform);
+    return platforms;
+  });
+  const placeOfStop = new Uint32Array(graph.stopCount);
+  for (let stop = 0; stop < graph.stopCount; stop += 1) placeOfStop[stop] = placeOf[stationOf[stop]];
   const minTransferSeconds = graph.minTransferSeconds ?? 120;
   const maxRounds = graph.maxRounds ?? 5;
+  const tripCandidates = graph.tripCandidates ?? 3;
 
-  const best = new Int32Array(graph.stopCount);
+  const stationBest = new Int32Array(placeCount);
   const patternStamp = new Int32Array(patternCount);
-  /* Stamps instead of Sets: a Set lookup on every improvement cost more than the search itself. */
-  const stopStamp = new Int32Array(graph.stopCount);
+  const stationStamp = new Int32Array(placeCount);
   let stampValue = 0;
-  let stopStampValue = 0;
+  let stationStampValue = 0;
 
-  const stats = { patternsScanned: 0, tripsExamined: 0, stopsImproved: 0, roundsUsed: 0, walksRelaxed: 0 };
+  const stats = {
+    patternsScanned: 0,
+    tripsExamined: 0,
+    stationsImproved: 0,
+    roundsUsed: 0,
+    walksRelaxed: 0,
+    stationsVisited: 0,
+  };
 
-  function search(origin, destination, startTime, rounds = maxRounds) {
-    stats.patternsScanned = 0;
-    stats.tripsExamined = 0;
-    stats.stopsImproved = 0;
-    stats.roundsUsed = 0;
-    stats.walksRelaxed = 0;
+  function search(originStation, destinationStation, startTime, rounds = maxRounds) {
+    for (const key of Object.keys(stats)) stats[key] = 0;
 
-    best.fill(INF);
-    best[origin] = startTime;
+    stationBest.fill(INF);
+    stationBest[originStation] = startTime;
+    let destinationBest = INF;
 
-    /*
-     * Walk from the origin before anything else. A station like Utrecht Centraal is a parent node:
-     * the trains leave from its platforms, which are separate stops a short walk away. Without this
-     * the search stands at a stop no route serves and returns nothing at all.
-     */
-    let marked = [origin];
-    for (let link = walkStart[origin]; link < walkStart[origin + 1]; link += 1) {
-      const candidate = startTime + walkTime[link];
-      if (candidate < best[walkTarget[link]]) {
-        best[walkTarget[link]] = candidate;
-        marked.push(walkTarget[link]);
-      }
-    }
+    let marked = [originStation];
 
     for (let round = 0; round < rounds && marked.length > 0; round += 1) {
       stampValue += 1;
       stats.roundsUsed += 1;
-      marked.sort((a, b) => best[a] - best[b]);
+      marked.sort((a, b) => stationBest[a] - stationBest[b]);
 
-      /* Nothing that arrives later than the destination's best arrival can improve it. */
-      let destinationBest = best[destination];
-      let reached = destinationBest !== INF;
-
-      stopStampValue += 1;
+      stationStampValue += 1;
       const improved = [];
 
-      for (const stop of marked) {
-        const ready = best[stop] + minTransferSeconds;
+      const improve = (station, time) => {
+        if (time >= stationBest[station]) return;
+        stationBest[station] = time;
+        stats.stationsImproved += 1;
+        if (station === destinationStation && time < destinationBest) destinationBest = time;
+        if (stationStamp[station] !== stationStampValue) {
+          stationStamp[station] = stationStampValue;
+          improved.push(station);
+        }
+      };
+
+      for (const station of marked) {
+        stats.stationsVisited += 1;
+        const ready = stationBest[station] + minTransferSeconds;
         if (ready >= destinationBest) break;
 
-        for (let entry = indexStart[stop]; entry < indexStart[stop + 1]; entry += 1) {
-          const pattern = indexEntries[entry * 2];
-          const position = indexEntries[entry * 2 + 1];
-          if (patternStamp[pattern] === stampValue) continue;
-          patternStamp[pattern] = stampValue;
-          stats.patternsScanned += 1;
+        for (const platform of placePlatforms[station]) {
+          for (let entry = indexStart[platform]; entry < indexStart[platform + 1]; entry += 1) {
+            const pattern = indexEntries[entry * 2];
+            const position = indexEntries[entry * 2 + 1];
+            if (patternStamp[pattern] === stampValue) continue;
+            patternStamp[pattern] = stampValue;
+            stats.patternsScanned += 1;
 
-          const stops = patternStops[pattern];
-          const deps = patternDeps[pattern];
-          const offsets = patternOffsets[pattern];
-          const largestAtPosition = patternLargestAtPosition[pattern];
-          const stopCount = patternStopCount[pattern];
-          const tripCount = patternTripCount[pattern];
-          if (position + 1 >= stopCount) continue;
+            const stops = patternStops[pattern];
+            const deps = patternDeps[pattern];
+            const offsets = patternOffsets[pattern];
+            const largestAtPosition = patternLargestAtPosition[pattern];
+            const stopCount = patternStopCount[pattern];
+            const tripCount = patternTripCount[pattern];
+            if (position + 1 >= stopCount) continue;
 
-          /* The first trip that could possibly be caught here; trips are sorted by start time, and
-           * the largest running time at this position says how far back the search must look. */
-          const earliestPossible = ready - largestAtPosition[position];
-          let low = 0;
-          let high = tripCount;
-          while (low < high) {
-            const middle = (low + high) >> 1;
-            if (deps[middle] < earliestPossible) low = middle + 1;
-            else high = middle;
-          }
+            /* The first trip that could possibly be caught here. */
+            const earliestPossible = ready - largestAtPosition[position];
+            let low = 0;
+            let high = tripCount;
+            while (low < high) {
+              const middle = (low + high) >> 1;
+              if (deps[middle] < earliestPossible) low = middle + 1;
+              else high = middle;
+            }
 
-          /*
-           * Take the first trip that can be caught **and the next few after it**. Only ever taking
-           * the first one loses journeys: a stopper that leaves first can be overtaken by an express
-           * a few minutes behind it, and the express was then never considered at all — one real
-           * journey arrived five minutes later than the exhaustive scan because of it.
-           */
-          let considered = 0;
-          for (let trip = low; trip < tripCount && considered < 3; trip += 1) {
-            stats.tripsExamined += 1;
-            const departure = deps[trip];
-            const atPosition = departure + offsets[trip * stopCount + position];
-            if (atPosition < ready) continue;
-            considered += 1;
+            /*
+             * The first catchable trip and the next few after it: a stopper that leaves first can be
+             * overtaken by an express, and taking only the first one lost real journeys.
+             */
+            let considered = 0;
+            for (let trip = low; trip < tripCount && considered < tripCandidates; trip += 1) {
+              stats.tripsExamined += 1;
+              const departure = deps[trip];
+              if (departure + offsets[trip * stopCount + position] < ready) continue;
+              considered += 1;
 
-            for (let ahead = position + 1; ahead < stopCount; ahead += 1) {
-              const time = departure + offsets[trip * stopCount + ahead];
-              if (time >= destinationBest) break;
-              const target = stops[ahead];
-              if (time < best[target]) {
-                best[target] = time;
-                stats.stopsImproved += 1;
-                if (target === destination) destinationBest = time;
-                if (stopStamp[target] !== stopStampValue) {
-                  stopStamp[target] = stopStampValue;
-                  improved.push(target);
-                }
+              for (let ahead = position + 1; ahead < stopCount; ahead += 1) {
+                const time = departure + offsets[trip * stopCount + ahead];
+                if (time >= destinationBest) break;
+                improve(placeOfStop[stops[ahead]], time);
               }
             }
           }
         }
       }
 
-      /* Walking between nearby stops, only from stops that just improved. */
+      /* Walking between nearby stops of *different* stations. */
       const next = [];
-      stopStampValue += 1;
-      for (const stop of improved) {
-        /* A walk from a stop that is already at the destination's time cannot beat it. */
-        if (best[stop] + 60 >= destinationBest) continue;
-        for (let link = walkStart[stop]; link < walkStart[stop + 1]; link += 1) {
-          const candidate = best[stop] + walkTime[link];
-          const target = walkTarget[link];
-          if (candidate < best[target]) {
-            best[target] = candidate;
-            stats.walksRelaxed += 1;
-            if (target === destination) destinationBest = candidate;
-            if (stopStamp[target] !== stopStampValue) {
-              stopStamp[target] = stopStampValue;
-              next.push(target);
+      stationStampValue += 1;
+      for (const station of improved) {
+        if (stationBest[station] + 60 >= destinationBest) continue;
+        for (const platform of placePlatforms[station]) {
+          for (let link = walkStart[platform]; link < walkStart[platform + 1]; link += 1) {
+            const candidate = stationBest[station] + walkTime[link];
+            const targetStation = placeOfStop[walkTarget[link]];
+            if (candidate < stationBest[targetStation]) {
+              improve(targetStation, candidate);
+              stats.walksRelaxed += 1;
+              if (stationStamp[targetStation] !== stationStampValue) {
+                stationStamp[targetStation] = stationStampValue;
+                next.push(targetStation);
+              }
             }
           }
         }
       }
 
-      /*
-       * The next round starts from everything that changed: the stops a route reached **and** the
-       * stops a short walk reached. An earlier version carried only the walking ones, so a journey
-       * could take one route and then only continue on foot.
-       */
       marked = next.length > 0 ? improved.concat(next) : improved;
-      void reached;
     }
 
-    return best[destination] === INF ? null : { seconds: best[destination], stop: destination };
+    return destinationBest === INF ? null : { seconds: destinationBest, station: destinationStation };
   }
 
   return { search, patternCount, minTransferSeconds, stats };

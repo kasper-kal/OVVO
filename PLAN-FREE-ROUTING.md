@@ -209,6 +209,41 @@ shorten the search with a two-way search that meets in the middle, or accept tha
 journeys take longer than 10 ms and serve them from a runtime whose free allowance is larger. Neither
 is built. What is built is measured and recorded.
 
+### Step 2 again — stations, places, and what is still wrong (measured 15 November 2026)
+
+A station name used to resolve to a single raw stop. It now resolves to a **place**: every platform a
+traveller can board from. The feed names stops like `[Utrecht Vaartsche Rijn] OV halte Vondellaan
+richting Utrecht Centraal`, so matching on the name sent a journey to a bus stop that merely mentions
+the station. And one physical station can arrive as several parent records — Groningen's platforms
+sit in six of them — so a place joins station groups within 400 m whose names begin the same way.
+
+| Journey | Exhaustive scan | Route search | Agree? |
+| --- | --- | --- | --- |
+| Utrecht Centraal → Amsterdam Centraal | 4.4 ms, 08:35 | **1.7 ms**, 08:35 | yes |
+| Amsterdam Centraal → Rotterdam Centraal | 5.1 ms, 09:18 | **2.3 ms**, 09:18 | yes |
+| Zwolle → Eindhoven | 10.8 ms, 10:15 | **6.4 ms**, 10:14 | yes |
+| Rotterdam Centraal → Groningen | 14.3 ms, 11:12 | 12.3 ms, 11:12 | yes |
+| Utrecht Centraal → Maastricht | 13.6 ms, 10:36 | 15.7 ms, 10:36 | yes |
+| Utrecht Centraal → Groningen | 9.8 ms, **10:12** | 12.8 ms, **10:42** | **no, 30 min late** |
+
+**Fixed by measuring, not guessing:**
+
+1. Station resolution, as above. Utrecht to Maastricht used to find nothing; it now agrees exactly.
+2. Only one platform of the origin was ever queued, so a journey could begin on a platform with no
+   departures and end there, finding nothing.
+3. Only the platform a train stopped at was expanded, so changing trains at a station never happened
+   from its other platforms. Two cross-country journeys were an hour and a half late because of it.
+
+**Still not met.** Five of six journeys match the exhaustive scan exactly, and the fast short
+journeys are well under the free 10 ms. Three long journeys are not: 12–16 ms. And Utrecht to
+Groningen is 30 minutes late at every setting tried — one, three and eight trip candidates per route,
+five and eight rounds all return 10:42 — so it is not a tuning problem but a structure the round-based
+search does not see, most likely a journey the scan finds through a connection this search never
+considers. That is not understood yet, and it is not claimed to be fixed.
+
+The next honest move is a two-way search that meets in the middle: it halves the ground each side
+covers, which addresses both the long-journey cost and the missed connection. It is not built.
+
 ## Step 3 — the contract between search and screen
 
 `/api/journey` takes origin, destination, date, time, arrival-by or departure-at, and the supported

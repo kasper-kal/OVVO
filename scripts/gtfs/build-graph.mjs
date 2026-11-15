@@ -101,13 +101,160 @@ const seconds = (value) => {
 /* stops ------------------------------------------------------------------ */
 const stops = [];
 const stopIndex = new Map();
+const parentOf = []; /* station id from the feed, or '' when a stop has none */
+const stationName = new Map();
+
+/*
+ * Stop names in this feed carry their station in brackets: "[Utrecht Vaartsche Rijn] OV halte
+ * Vondellaan richting Utrecht Centraal". The bracketed part is the place, and the rest is a
+ * description — including, confusingly, the name of a *different* station the stop faces. Taking the
+ * whole string as the station name made "Utrecht Centraal" resolve to a bus stop elsewhere.
+ */
+const placeIn = (name) => {
+  const bracketed = /^\[([^\]]+)\]/.exec(name ?? '');
+  return (bracketed ? bracketed[1] : name ?? '').trim();
+};
 for await (const row of table('stops.txt')) {
   const lat = Number(row.stop_lat);
   const lon = Number(row.stop_lon);
   if (!lat || !lon) continue;
   stopIndex.set(row.stop_id, stops.length);
   stops.push({ id: row.stop_id, name: row.stop_name, lat: Number(lat.toFixed(6)), lon: Number(lon.toFixed(6)) });
+  parentOf.push(row.parent_station || (row.location_type === '1' ? row.stop_id : ''));
+  const place = placeIn(row.stop_name);
+  if (row.parent_station && place) stationName.set(row.parent_station, stationName.get(row.parent_station) ?? place);
 }
+
+/*
+ * **Platforms belong to a station.** A station like Utrecht Centraal is not one stop: it is a parent
+ * record with platforms underneath it, and a journey starting there must be allowed to leave from any
+ * of them without being charged a walk to the right platform. Grouping them also removes tens of
+ * thousands of walking links that only existed to shuffle between platforms of the same station.
+ *
+ * A parent is only trusted when it really is one place: a group that is huge, or spread over more
+ * than 400 m, is split back into individual stops, because some feeds group a whole town's stops
+ * under one area record and treating that as one station would make a journey teleport across town.
+ */
+const stationMembers = new Map();
+for (let index = 0; index < stops.length; index += 1) {
+  const key = parentOf[index] || `stop:${stops[index].id}`;
+  if (!stationMembers.has(key)) stationMembers.set(key, []);
+  stationMembers.get(key).push(index);
+}
+
+const stations = [];
+for (const [key, members] of stationMembers) {
+  let lat = 0;
+  let lon = 0;
+  for (const member of members) {
+    lat += stops[member].lat;
+    lon += stops[member].lon;
+  }
+  lat /= members.length;
+  lon /= members.length;
+  let radius = 0;
+  for (const member of members) {
+    radius = Math.max(radius, Math.hypot((stops[member].lat - lat) * 111320, (stops[member].lon - lon) * 111320 * Math.cos((lat * Math.PI) / 180)));
+  }
+  /*
+   * Split only when a "station" is not one place. The count matters because some feeds group a
+   * whole town's stops under one area record, but a busy station legitimately has many platforms,
+   * and splitting those apart would undo the very grouping this exists for.
+   */
+  const tooLarge = members.length > 200 || radius > 900;
+  if (tooLarge) {
+    for (const member of members) {
+      stations.push({ name: placeIn(stops[member].name), stops: [member] });
+    }
+  } else {
+    stations.push({ name: stationName.get(key) ?? placeIn(stops[members[0]].name), stops: members });
+  }
+}
+
+/*
+ * **Places: one physical station can arrive as several groups.**
+ *
+ * Utrecht Centraal comes out of this feed as more than one parent record — the platforms for one
+ * direction sit under a different record from the others — so a journey leaving "Utrecht Centraal"
+ * could not board the train to Groningen at all: that platform belonged to another group, and no
+ * route joined them. A place joins station groups whose centres are within 400 m, which is the same
+ * station in every sense a traveller cares about.
+ */
+const placeParent = new Int32Array(stations.length);
+for (let index = 0; index < stations.length; index += 1) placeParent[index] = index;
+const findRoot = (index) => {
+  let root = index;
+  while (placeParent[root] !== root) root = placeParent[root];
+  while (placeParent[index] !== root) {
+    const next = placeParent[index];
+    placeParent[index] = root;
+    index = next;
+  }
+  return root;
+};
+const stationCentre = stations.map((station) => {
+  let lat = 0;
+  let lon = 0;
+  for (const stop of station.stops) {
+    lat += stops[stop].lat;
+    lon += stops[stop].lon;
+  }
+  return { lat: lat / station.stops.length, lon: lon / station.stops.length };
+});
+const centreCell = (value) => Math.floor((value * 1000) / 250);
+const centreGrid = new Map();
+stationCentre.forEach((centre, index) => {
+  const key = `${centreCell(centre.lat)}:${centreCell(centre.lon)}`;
+  if (!centreGrid.has(key)) centreGrid.set(key, []);
+  centreGrid.get(key).push(index);
+});
+const centreMetres = (a, b) => {
+  const R = 6371000;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLon = ((b.lon - a.lon) * Math.PI) / 180;
+  const lat = (((a.lat + b.lat) / 2) * Math.PI) / 180;
+  return Math.hypot(dLat * R, dLon * R * Math.cos(lat));
+};
+stationCentre.forEach((centre, index) => {
+  const cx = centreCell(centre.lat);
+  const cy = centreCell(centre.lon);
+  for (let dx = -2; dx <= 2; dx += 1) {
+    for (let dy = -2; dy <= 2; dy += 1) {
+      for (const other of centreGrid.get(`${cx + dx}:${cy + dy}`) ?? []) {
+        if (other <= index) continue;
+        if (centreMetres(centre, stationCentre[other]) > 400) continue;
+        /*
+         * Being close is not enough: chaining through neighbouring stops merged whole cities
+         * (Utrecht came out as 202 station groups). Two groups are the same place only when one
+         * name begins with the other, which is exactly the platform-group case this is for.
+         */
+        const mine = stations[index].name.toLowerCase();
+        const theirs = stations[other].name.toLowerCase();
+        if (!mine.startsWith(theirs) && !theirs.startsWith(mine)) continue;
+        const a = findRoot(index);
+        const b = findRoot(other);
+        if (a !== b) placeParent[a] = b;
+      }
+    }
+  }
+});
+const placeMembers = new Map();
+for (let index = 0; index < stations.length; index += 1) {
+  const root = findRoot(index);
+  if (!placeMembers.has(root)) placeMembers.set(root, []);
+  placeMembers.get(root).push(index);
+}
+const places = [...placeMembers.values()];
+const placeOf = new Uint32Array(stations.length);
+places.forEach((members, index) => {
+  for (const station of members) placeOf[station] = index;
+});
+
+/* Which station each stop belongs to, so a search can spread an arrival to its sibling platforms. */
+const stationOf = new Uint32Array(stops.length);
+stations.forEach((station, index) => {
+  for (const stop of station.stops) stationOf[stop] = index;
+});
 
 /* services running on the target date ------------------------------------ */
 const services = new Set();
@@ -187,6 +334,8 @@ for (let i = 0; i < stops.length; i += 1) {
     for (let dy = -1; dy <= 1; dy += 1) {
       for (const j of grid.get(`${cx + dx}:${cy + dy}`) ?? []) {
         if (j <= i) continue;
+        /* Platforms of the same station are not a walk: they are one place. */
+        if (stationOf[i] === stationOf[j]) continue;
         const metres = metresBetween(stops[i], stops[j]);
         if (metres > WALK_METRES) continue;
         const walk = Math.min(65535, Math.max(30, Math.round(metres / WALK_SPEED)));
@@ -384,15 +533,22 @@ if (patternConnections !== rawFrom.length) {
 }
 
 const stopsBuffer = Buffer.from(
-  JSON.stringify(stops.map((stop) => [stop.id, stop.name, stop.lat, stop.lon])),
+  JSON.stringify(stops.map((stop) => [stop.id, stop.name, stop.lat, stop.lon, stationOf[stops.indexOf(stop)]])),
 );
 fs.writeFileSync(path.join(OUT_DIR, 'stops.json'), stopsBuffer);
+
+const stationsBuffer = Buffer.from(JSON.stringify(stations.map((station) => [station.name, station.stops])));
+const placesBuffer = Buffer.from(JSON.stringify(places));
+fs.writeFileSync(path.join(OUT_DIR, 'stations.json'), stationsBuffer);
+fs.writeFileSync(path.join(OUT_DIR, 'places.json'), placesBuffer);
 
 const manifest = {
   version: 1,
   builtAt: new Date().toISOString(),
   feed: { dataset: current.dataset, sha256: current.sha256, validity: current.validity, serviceDate },
   stops: { file: 'stops.json', count: stops.length, bytes: stopsBuffer.length, sha256: sha(stopsBuffer) },
+  stations: { file: 'stations.json', count: stations.length, bytes: stationsBuffer.length, sha256: sha(stationsBuffer) },
+  places: { file: 'places.json', count: places.length, bytes: placesBuffer.length, sha256: sha(placesBuffer) },
   walks: {
     file: 'walks.bin',
     links: walkFrom.length,
@@ -420,7 +576,7 @@ const manifest = {
 /* Written last, so a half-built graph is never mistaken for a complete one. */
 fs.writeFileSync(path.join(OUT_DIR, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
-console.log(`graph for ${serviceDate}: ${stops.length.toLocaleString('en')} stops · ${tripIndex.size.toLocaleString('en')} trips · ${manifest.connections.toLocaleString('en')} connections · ${walkFrom.length.toLocaleString('en')} walking links`);
+console.log(`graph for ${serviceDate}: ${stops.length.toLocaleString('en')} stops · ${stations.length.toLocaleString('en')} stations · ${tripIndex.size.toLocaleString('en')} trips · ${manifest.connections.toLocaleString('en')} connections · ${walkFrom.length.toLocaleString('en')} walking links`);
 console.log(`${slices.length} slices of ${SLICE_SECONDS / 3600} h, ${(manifest.graphBytes / 1048576).toFixed(1)} MiB total`);
 console.log(`${patternList.length.toLocaleString('en')} patterns · ${indexEntries.length.toLocaleString('en')} stop positions · patterns.bin ${(patternsBuffer.length / 1048576).toFixed(1)} MiB · index.bin ${(indexBuffer.length / 1048576).toFixed(1)} MiB`);
 for (const slice of slices) {

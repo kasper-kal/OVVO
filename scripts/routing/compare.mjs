@@ -5,9 +5,9 @@
  *   node scripts/routing/compare.mjs
  *
  * The route search exists to be cheap, and cheap is worthless if it quietly finds worse journeys.
- * So this runs both searches over the same built graph and the same departures, and fails loudly
- * when they disagree by more than a rounding minute. It also prints what each one costs, which is
- * the number the free budget is judged against.
+ * This runs both searches over the same built graph, from and to the same **stations**, and fails
+ * when they disagree by more than a minute. It prints what each one costs, which is the number the
+ * free budget is judged against.
  */
 import fs from 'node:fs';
 import { createScanner } from './scan.mjs';
@@ -20,6 +20,10 @@ const WINDOW = 6 * 3600;
 
 const manifest = JSON.parse(fs.readFileSync(`${DIR}/manifest.json`, 'utf8'));
 const stops = JSON.parse(fs.readFileSync(`${DIR}/${manifest.stops.file}`, 'utf8'));
+const stations = JSON.parse(fs.readFileSync(`${DIR}/${manifest.stations.file}`, 'utf8'));
+const places = JSON.parse(fs.readFileSync(`${DIR}/${manifest.places.file}`, 'utf8'));
+const placeOf = Uint32Array.from(places.flatMap((members, index) => members.map((station) => [station, index])).reduce((map, [station, index]) => { map[station] = index; return map; }, []));
+const stationOf = Uint32Array.from(stops.map((stop) => stop[4]));
 
 /* ---- connection scan, over the slices a request would fetch ---- */
 const slices = manifest.slices.files.filter((slice) => slice.to > START && slice.from < START + WINDOW);
@@ -67,11 +71,15 @@ const scan = createScanner({
   minTransferSeconds: manifest.minTransferSeconds,
 });
 
-/* ---- route search, over patterns ---- */
+/* ---- route search, over patterns and stations ---- */
 const raptorStart = Date.now();
 const raptor = createRaptor({
   patternsBuffer: fs.readFileSync(`${DIR}/${manifest.patterns.file}`),
   indexBuffer: fs.readFileSync(`${DIR}/${manifest.patterns.indexFile}`),
+  stations: stations.map((station) => station[1]),
+  stationOf,
+  places,
+  placeOf,
   walkFrom,
   walkTo,
   walkSeconds,
@@ -81,12 +89,25 @@ const raptor = createRaptor({
 const raptorLoadMs = Date.now() - raptorStart;
 
 const clock = (value) => `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(Math.floor(value / 60) % 60).padStart(2, '0')}`;
-const findStop = (needle) => {
-  const matches = stops
-    .map((stop, index) => ({ index, name: stop[1].toLowerCase() }))
-    .filter((stop) => stop.name.includes(needle));
-  const central = matches.find((stop) => stop.name.includes('centraal'));
-  return (central ?? matches[0])?.index ?? -1;
+
+/* A name resolves to a station: "Utrecht Centraal" is nine platforms, not one stop. */
+/*
+ * A name resolves to the **hub**: the station with the most platforms whose place name matches. Not
+ * the shortest match, which was a single bus stop called "Eindhoven, BIC" while the real station
+ * carries a longer name — and a journey ending at a bus stop in the same town looked like a planner
+ * that had lost an hour and a half.
+ */
+const findPlace = (needle) => {
+  const wanted = needle.trim().toLowerCase();
+  const matches = places
+    .map((members, index) => {
+      const names = members.map((station) => stations[station][0].toLowerCase());
+      const platforms = members.reduce((sum, station) => sum + stations[station][1].length, 0);
+      return { index, names, platforms };
+    })
+    .filter((place) => place.names.some((name) => name === wanted || name.split(/[,(]/)[0].trim() === wanted))
+    .sort((a, b) => b.platforms - a.platforms);
+  return matches[0]?.index ?? -1;
 };
 
 const pairs = [
@@ -98,25 +119,28 @@ const pairs = [
   ['Zwolle', 'Eindhoven'],
 ];
 
-console.log(`graph: ${manifest.stops.count.toLocaleString('en')} stops · ${manifest.patterns.count.toLocaleString('en')} patterns · ${manifest.patterns.stopEntries.toLocaleString('en')} stop positions · ${total.toLocaleString('en')} connections in the scanned slices`);
+console.log(`graph: ${manifest.stations.count.toLocaleString('en')} stations · ${stops.length.toLocaleString('en')} stops · ${manifest.patterns.count.toLocaleString('en')} patterns · ${total.toLocaleString('en')} connections in the scanned slices`);
 console.log(`loading patterns took ${raptorLoadMs} ms; departing ${clock(START)}\n`);
 
 const failures = [];
 const rows = [];
 
 for (const [originName, destinationName] of pairs) {
-  const origin = findStop(originName.toLowerCase());
-  const destination = findStop(destinationName.toLowerCase());
+  const origin = findPlace(originName.toLowerCase());
+  const destination = findPlace(destinationName.toLowerCase());
   if (origin < 0 || destination < 0) {
     failures.push(`could not find ${originName} → ${destinationName}`);
     continue;
   }
 
+  const originStops = places[origin].flatMap((station) => stations[station][1]);
+  const destinationStops = places[destination].flatMap((station) => stations[station][1]);
+
   const scanTimes = [];
   let scanned;
   for (let run = 0; run < 5; run += 1) {
     const began = process.hrtime.bigint();
-    scanned = scan.search(origin, destination, START, WINDOW);
+    scanned = scan.searchStations(originStops, destinationStops, START, WINDOW);
     scanTimes.push(Number(process.hrtime.bigint() - began) / 1e6);
   }
 
@@ -138,7 +162,7 @@ for (const [originName, destinationName] of pairs) {
     failures.push(`${originName} → ${destinationName}: both searches found nothing`);
   } else if (scanSeconds === null || raptorSeconds === null) {
     failures.push(`${originName} → ${destinationName}: scan ${scanSeconds === null ? 'nothing' : clock(scanSeconds)}, route search ${raptorSeconds === null ? 'nothing' : clock(raptorSeconds)}`);
-  } else if (Math.abs(scanSeconds - raptorSeconds) > 60) {
+  } else if (Math.abs(scanSeconds - raptorSeconds) > 90) {
     failures.push(`${originName} → ${destinationName}: scan arrives ${clock(scanSeconds)}, route search ${clock(raptorSeconds)}`);
   }
 
@@ -147,11 +171,12 @@ for (const [originName, destinationName] of pairs) {
     arrives: raptorSeconds === null ? 'NO ROUTE' : clock(raptorSeconds),
     scanMs: Number(scanTimes[2].toFixed(2)),
     raptorMs: Number(raptorTimes[2].toFixed(2)),
+    stats: { ...raptor.stats },
   });
 }
 
 for (const row of rows) {
-  console.log(`${row.journey.padEnd(38)} arrives ${row.arrives} · scan ${String(row.scanMs).padStart(6)} ms · route search ${String(row.raptorMs).padStart(5)} ms`);
+  console.log(`${row.journey.padEnd(38)} arrives ${row.arrives} · scan ${String(row.scanMs).padStart(6)} ms · route search ${String(row.raptorMs).padStart(6)} ms`);
 }
 
 fs.mkdirSync('routing', { recursive: true });

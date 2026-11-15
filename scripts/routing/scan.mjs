@@ -44,9 +44,16 @@ export function createScanner(graph) {
    * @returns {{ seconds: number, stop: number } | null} earliest arrival, or null if unreachable
    */
   function search(origin, destination, startTime, windowSeconds = 24 * 3600) {
+    const found = searchStations([origin], [destination], startTime, windowSeconds);
+    return found;
+  }
+
+  /** Station-to-station, so this can be compared with the route search on equal terms. */
+  function searchStations(originStops, destinationStops, startTime, windowSeconds = 24 * 3600) {
     arrival.fill(INF);
     tripArrival.fill(INF);
-    arrival[origin] = startTime;
+    for (const origin of originStops) arrival[origin] = startTime;
+    let destinationBest = INF;
 
     /*
      * The scan and the walking links alternate until neither improves anything. Walking applied
@@ -59,7 +66,7 @@ export function createScanner(graph) {
       for (let index = EARLIEST; index < dep.length; index += 1) {
         if (dep[index] < startTime) continue;
         /* Nothing departing after the best arrival can arrive earlier, so stop reading. */
-        if (dep[index] > arrival[destination]) break;
+        if (dep[index] > destinationBest) break;
         if (dep[index] > startTime + windowSeconds) break;
 
         const tripNumber = trip[index];
@@ -71,6 +78,9 @@ export function createScanner(graph) {
           arrival[to[index]] = arr[index];
           tripArrival[tripNumber] = arr[index];
           changed = true;
+          if (arr[index] < destinationBest) {
+            for (const platform of destinationStops) if (arrival[platform] < destinationBest) destinationBest = arrival[platform];
+          }
         }
       }
 
@@ -85,8 +95,10 @@ export function createScanner(graph) {
       if (!changed) break;
     }
 
-    return arrival[destination] === INF ? null : { seconds: arrival[destination], stop: destination };
+    destinationBest = INF;
+    for (const platform of destinationStops) if (arrival[platform] < destinationBest) destinationBest = arrival[platform];
+    return destinationBest === INF ? null : { seconds: destinationBest };
   }
 
-  return { search, minTransferSeconds };
+  return { search, searchStations, minTransferSeconds };
 }
