@@ -5,7 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SkeletonDemoPage } from './pages/SkeletonDemoPage';
 import { ResultsPage } from './pages/ResultsPage';
-import { WrappedPage } from './pages/WrappedPage';
+import { WrappedGate } from './pages/WrappedPage';
 import { JourneyDetailPage } from './pages/JourneyDetailPage';
 import { MapPage } from './pages/MapPage';
 import { StopsPage } from './pages/StopsPage';
@@ -138,7 +138,7 @@ export default function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
                   <Route path="/plan" element={<PlanPage />} />
-                  <Route path="/wrapped" element={<WrappedPage />} />
+                  <Route path="/wrapped" element={<WrappedGate />} />
                   {/* One search, in full: everything a reload or a pasted link must put back —
                       see `lib/searchLink`. `/results` alone still works and says there is nothing
                       to show yet. */}

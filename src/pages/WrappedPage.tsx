@@ -65,6 +65,35 @@ const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D
  * The score is ten licensed pieces, one per chapter (`lib/wrappedSound`), and it never plays before
  * a tap: the cover's Begin is the gesture that starts it, the corner switch starts it without the score.
  */
+/**
+ * **Wrapped is a new-year door, and it is shut until midnight.**
+ *
+ * The story is a review of a finished year, so it opens on 1 January at 00:01 and closes when
+ * January ends. Opening `/wrapped` in November used to show last year's story as if it were still
+ * the season — the page was never gated, only its invitation was. The gate is here rather than in
+ * the router so the closed screen still wears the app's own chrome and has a way back.
+ */
+export function WrappedGate() {
+  const t = useT();
+  const leave = useHistoryBack('/');
+  const now = appNow();
+  /* The developer's example deck stays reachable in a development build. */
+  const demo = import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === '1';
+  if (now.getMonth() === 0 || demo) return <WrappedPage />;
+
+  return (
+    <div className="stack-4" style={{ maxWidth: 560, margin: '12vh auto 0' }}>
+      <h1 className="t-h1">{t('OVVO Wrapped')}</h1>
+      <p className="t-muted">
+        {t('Wrapped opens on 1 January, just after midnight. It looks back at the whole year, every journey, once the year is over.')}
+      </p>
+      <div>
+        <Button onClick={leave}>{t('Back')}</Button>
+      </div>
+    </div>
+  );
+}
+
 export function WrappedPage() {
   const { settings, reduceMotion } = useApp();
   const t = useT();

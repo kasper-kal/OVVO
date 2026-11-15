@@ -16,11 +16,11 @@ What is not in good shape is the **product on top of the visual system**:
 2. The planner opened on **2026-11-14**, the oldest built day (yesterday), and the primary action then searched a past day without complaint. **Fixed.**
 3. Departure boards and station cards showed **"Onbekend"** instead of destinations, because a timetable destination the app could not match to a stop lost its words and the operator fell back to "Onbekend". **Fixed.**
 4. Every station card said it was **8,742–8,773 km away**, and "Nearby stops" claimed the Domtoren was a **40-minute walk** from Utrecht Centraal. **Fixed.**
-5. ~~**Wrapped is still 2025.**~~ **Retracted — the audit was wrong.** Wrapped reviews the last *complete* year, so in November 2026 the correct year is 2025. The real defect was the December pre-open, which wrapped a year still running; it now opens on 1 January. See §4.8.
+5. **Wrapped was open in November.** The year it showed (2025) was the last complete one, but the page itself should not be reachable until 1 January at 00:01, when it reviews the year that just ended. **Fixed:** `/wrapped` is now gated, and the invitation no longer appears in December. See §4.8.
 
 The first draft of this report also said the home picker filled the wrong end. **That was the audit's mistake, not the app's** — the script typed into the To field. It is retracted in §4.1.
 
-There are ~30 further visual and interaction defects below. **Fixed since this report:** the install banner is now on the home screen only (G1); pastel chips and severity pills have dark-appearance values (G8, F46); each journey leg is drawn in its own mode's colour (F17); the Settings preview starts from the current time rather than a fixed 14:05 (F58); a real search link now replays the official timetable in any browser instead of falling back to sample data. **Retracted:** the floating 44 px dot is the developer review tool, present only in development builds (G2); Wrapped's year was correct (F23).
+There are ~30 further visual and interaction defects below. **Fixed since this report:** the install banner is now on the home screen only (G1); pastel chips and severity pills have dark-appearance values (G8, F46); each journey leg is drawn in its own mode's colour (F17); the Settings preview starts from the current time rather than a fixed 14:05 (F58); a real search link now replays the official timetable in any browser instead of falling back to sample data. **Fixed:** Wrapped now opens only from 1 January 00:01 (F23). **Retracted:** the floating 44 px dot is the developer review tool, present only in development builds (G2).
 
 ---
 
@@ -227,7 +227,7 @@ The 44 px coral disc is fixed at the bottom-right with no collision avoidance an
 **Light and dark:** the page always renders its own dark scene, ignoring the chosen appearance. Token strip, "OVVO WRAPPED", **2025**, "Your year in journeys you planned.", "Demo year: none of this is real, and none of it is stored.", BEGIN, Sound on, close.
 **Mobile:** nine progress segments, sound button, year, copy, BEGIN — composition is strong; 2025 is wrong for a page opened on 15 November 2026.
 
-**F23 · RETRACTED — the year is right.** Wrapped reviews the last complete year, so 2025 in November 2026 is correct. The real bug was the season opening on 20 December with the year still running; it now opens on 1 January. The honest "example year" note on an empty tally stays.
+**F23 · P1 — Wrapped opened outside its season.** The page was reachable in November and showed 2025 as if the season were running. Correct behaviour: it opens on 1 January at 00:01, reviews the year that just ended, and is closed the rest of the year. **Fixed:** the route is gated (a closed screen with the opening time), the December pre-open is gone, and the invitation still appears only in the first week of January. The honest "example year" note on an empty tally stays.
 **Fix:** derive the year from the data; replace "Demo year…" with "Your journeys, counted from this device" once real.
 
 **F24 · RETRACTED — no entry point is the design.** The home invitation appears in the first week of January and names the year just ended; the page itself is reachable at `/wrapped`. A permanent link would offer a story that is not being told yet.
