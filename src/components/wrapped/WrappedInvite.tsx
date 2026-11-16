@@ -10,23 +10,21 @@ import { tallyFor } from '../../lib/wrapped';
 /**
  * **When the year is worth opening.**
  *
- * **A year is reviewed only once it is over.** The card appears in the first week of January and
- * names the year that has just ended, so somebody who opens OVVO on 2 January is offered 2026 rather
- * than an empty 2027. It no longer appears on 20 December with the year still running: half a year
- * presented as the whole of it was the one thing this card must not do. Outside that week there is
- * no card at all: Settings still knows about the story, but the home screen does not shout about it.
+ * **A year is reviewed only once it is over.** The card appears on 1 January only, the first day the
+ * finished year can honestly be opened, and names the year that has just ended. It is not shown in
+ * Settings or anywhere else: the home screen is the one place the finished year is announced.
  *
  * The app's own clock is what is read (`appNow`), which is what makes the developer panel's date
- * field able to show this card: set the clock to 31 December and the invitation is simply there.
+ * field able to show this card: set the clock to 1 January and the invitation is simply there.
  */
 export function seasonFor(now: Date): { year: number; opening: boolean } | null {
   const month = now.getMonth();
   const day = now.getDate();
-  if (month === 0 && day <= 7) return { year: now.getFullYear() - 1, opening: true };
+  if (month === 0 && day === 1) return { year: now.getFullYear() - 1, opening: true };
   return null;
 }
 
-export function WrappedInvite({ place = 'home' }: { place?: 'home' | 'settings' }) {
+export function WrappedInvite() {
   /* Subscribed, so moving the panel's clock redraws this card instead of waiting for a reload. */
   useDev();
   const t = useT();
@@ -39,7 +37,7 @@ export function WrappedInvite({ place = 'home' }: { place?: 'home' | 'settings' 
   const to = `/wrapped?year=${season.year}`;
 
   return (
-    <Card className={`stack wrapped-invite wrapped-invite--${place}`}>
+    <Card className="stack wrapped-invite">
       <div className="row-3">
         <span className="empty__icon" style={{ width: 40, height: 40, borderRadius: 'var(--r-compact)' }}>
           <Icon name="star" size={20} />
