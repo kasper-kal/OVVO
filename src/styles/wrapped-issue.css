@@ -1942,15 +1942,15 @@
 
 /* The share sheet is part of the issue, not a white rounded app modal from the old deck. */
 .modal.wrapped-share {
-  --paper: #f2ecdc;
-  --ink: #0b0b0b;
+  --paper: #050505;
+  --ink: #f7f3ea;
   --acid: #d9ff3a;
   max-width: 760px;
   border: 2px solid var(--ink);
   border-radius: 0;
   background: var(--paper);
   color: var(--ink);
-  box-shadow: 12px 12px 0 rgb(11 11 11 / 0.28);
+  box-shadow: 12px 12px 0 rgb(0 0 0 / 0.5);
 }
 
 .wrapped-share .modal__head {
@@ -2058,4 +2058,52 @@
   .wrapped-share__image {
     height: min(34vh, 300px);
   }
+}
+
+/* The share sheet is a dark room, not a sheet of paper. */
+.wrapped-share .modal__head h2 {
+  color: #f7f3ea;
+}
+
+.wrapped-share .modal__head p {
+  color: rgb(247 243 234 / 0.64);
+}
+
+.wrapped-share__tabs {
+  border-color: var(--ink);
+  background: #0b0b0b;
+  color: #f7f3ea;
+}
+
+.wrapped-share__tab {
+  color: #f7f3ea;
+  border-right-color: rgb(247 243 234 / 0.25);
+}
+
+.wrapped-share__tab[aria-selected='true'] {
+  color: #050505;
+}
+
+.wrapped-share__stage {
+  border-color: rgb(247 243 234 / 0.32);
+  background: #0b0b0b;
+}
+
+.wrapped-share__image {
+  border-color: rgb(247 243 234 / 0.7);
+}
+
+.wrapped-share__tabs {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+}
+
+.wrapped-share__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.wrapped-share__tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }

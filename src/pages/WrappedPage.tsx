@@ -13,7 +13,7 @@ import { demoYear, isDemoVariant, type DemoVariant } from '../lib/wrappedDemo';
 import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
 import { WrappedSealed } from '../components/wrapped/WrappedSealed';
-import { WrappedIssue } from '../components/wrapped/WrappedIssue';
+import { WrappedScenes } from '../components/wrapped/WrappedScenes';
 import {
   resumeSound,
   scoreTime,
@@ -648,14 +648,13 @@ export function WrappedPage() {
           data-dir={dir}
           key={chapter.id}
         >
-          <WrappedIssue
+          <WrappedScenes
             chapter={chapter}
-            index={index}
-            total={story.length}
             year={year}
             count={count}
             demo={demo}
             yearOver={yearOver}
+            still={reduceMotion}
             onBegin={() => {
               setStarted(true);
               go(1);

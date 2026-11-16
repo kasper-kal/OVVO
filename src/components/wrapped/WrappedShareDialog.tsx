@@ -110,11 +110,10 @@ function short(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): s
    the header and the footer: a set of cards, not seven prints of one template. */
 
 /*
- * **The export is an issue page too.**
+ * **The export is a still from the film.**
  *
- * The old cards were rounded pink posters from the replaced deck. Sharing one after reading the new
- * issue put the old yearbook back on screen. These cards keep the issue's grammar instead: paper,
- * hard rules, a red field, a huge figure in Archivo and a masthead that matches the deck.
+ * Sharing a card used to put the old yearbook back on screen. These cards carry the scene grammar:
+ * black, a neon ribbon, a red field, a huge figure in Archivo and a lean mono masthead.
  */
 function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   const canvas = document.createElement('canvas');
@@ -123,24 +122,49 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas is unavailable');
 
-  const paper = '#f2ecdc';
-  const ink = '#0b0b0b';
-  const red = '#ff4b2b';
+  const paper = '#050505';
+  const ink = '#f7f3ea';
+  const red = '#ff2d75';
   const acid = '#d9ff3a';
 
   ctx.fillStyle = paper;
   ctx.fillRect(0, 0, W, H);
 
-  /* The red block is the issue's cover mark, carried into every export. */
+  /* The same neon ribbon as the live scenes, frozen into the export. */
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const ribbon = ctx.createLinearGradient(0, 0, W, 260);
+  ribbon.addColorStop(0, '#ff2d75');
+  ribbon.addColorStop(0.5, '#ff4b2b');
+  ribbon.addColorStop(1, '#ff9d00');
+  ctx.strokeStyle = ribbon;
+  ctx.shadowColor = '#ff4b2b';
+  ctx.shadowBlur = 32;
+  for (const [base, flip] of [[160, 1], [H - 150, -1]] as const) {
+    for (let layer = 0; layer < 3; layer += 1) {
+      ctx.lineWidth = 16 + layer * 8;
+      ctx.globalAlpha = 0.8 - layer * 0.18;
+      ctx.beginPath();
+      for (let x = -20; x <= W + 20; x += 8) {
+        const y = base + flip * (Math.sin(x * 0.009 + layer * 1.2) * 58 + Math.cos(x * 0.018) * 22);
+        if (x === -20) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  /* The red block is the live mark, carried into every export. */
   ctx.fillStyle = red;
-  ctx.fillRect(PAD, 250, 190, 330);
+  ctx.fillRect(PAD, 300, 190, 300);
 
   ctx.fillStyle = ink;
   ctx.font = '700 30px "IBM Plex Mono", monospace';
   ctx.fillText('OVVO YEARBOOK', PAD, 100);
   ctx.textAlign = 'right';
   ctx.font = '600 26px "IBM Plex Mono", monospace';
-  ctx.fillText(`ISSUE ${String(year).slice(2)}`, W - PAD, 100);
+  ctx.fillText(`${year} · IN MOTION`, W - PAD, 100);
   ctx.textAlign = 'left';
 
   ctx.strokeStyle = ink;
@@ -204,13 +228,13 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
 
   let rowY = 1390;
   card.rows.slice(0, 3).forEach((row) => {
-    ctx.strokeStyle = 'rgba(11, 11, 11, 0.3)';
+    ctx.strokeStyle = 'rgba(247, 243, 234, 0.3)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(PAD, rowY - 34);
     ctx.lineTo(W - PAD, rowY - 34);
     ctx.stroke();
-    ctx.fillStyle = 'rgba(11, 11, 11, 0.62)';
+    ctx.fillStyle = 'rgba(247, 243, 234, 0.62)';
     ctx.font = '600 20px "IBM Plex Mono", monospace';
     ctx.fillText(row.label.toUpperCase(), PAD, rowY);
     ctx.fillStyle = ink;

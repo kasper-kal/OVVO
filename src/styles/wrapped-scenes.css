@@ -1,0 +1,482 @@
+/*
+ * ---------------------------------------------------------------- WRAPPED, NOT PRINTED
+ *
+ * The reference video is a full-screen film: saturated moving ground, one sentence, one figure, no
+ * masthead, no page number, no grid. This stylesheet is that grammar. Every screen is a scene; the
+ * canvas underneath moves; the copy sits in the quiet middle.
+ */
+
+.wrapped-stage,
+.wrapped-stage[data-chapter] {
+  background: #050505 !important;
+  color: #f7f3ea !important;
+}
+
+.wrapped-stage::before,
+.wrapped-stage::after {
+  display: none !important;
+}
+
+.wrapped-stage .wrapped-body > .scene-page {
+  display: flex !important;
+}
+
+.scene-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #050505;
+  color: #f7f3ea;
+  isolation: isolate;
+}
+
+.scene-motion {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgb(0 0 0 / 0.42) 0%, rgb(0 0 0 / 0.18) 42%, transparent 68%),
+    linear-gradient(180deg, rgb(0 0 0 / 0.18), transparent 24%, transparent 76%, rgb(0 0 0 / 0.28));
+}
+
+.scene-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scene-photo__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.2) 0%, transparent 30%, rgb(0 0 0 / 0.16) 58%, rgb(0 0 0 / 0.88) 100%);
+}
+
+.scene-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(91%, 760px);
+  max-height: 88%;
+  text-align: center;
+  text-shadow: 0 3px 28px rgb(0 0 0 / 0.48);
+}
+
+.scene-page--align-bottom .scene-copy {
+  justify-content: flex-end;
+  align-self: stretch;
+  padding-bottom: 7vh;
+}
+
+.scene-kicker {
+  margin-bottom: 14px;
+  font: 600 11px/1.2 'Archivo', sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.scene-big {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(68px, 15vw, 178px);
+  font-weight: 700;
+  line-height: 0.82;
+  letter-spacing: -0.065em;
+  text-wrap: balance;
+}
+
+.scene-big--number {
+  max-width: none;
+  font-size: clamp(150px, 34vw, 360px);
+  line-height: 0.7;
+  letter-spacing: -0.09em;
+}
+
+.scene-big--name {
+  max-width: 10ch;
+  font-size: clamp(58px, 13vw, 158px);
+  line-height: 0.84;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+}
+
+.scene-big--station {
+  max-width: 11ch;
+  font-size: clamp(56px, 11vw, 138px);
+  line-height: 0.82;
+  text-transform: uppercase;
+}
+
+.scene-big--duration {
+  max-width: 9ch;
+  font-size: clamp(72px, 16vw, 190px);
+  text-transform: uppercase;
+}
+
+.scene-big--look {
+  max-width: 9ch;
+  font-size: clamp(64px, 15vw, 180px);
+  text-transform: uppercase;
+}
+
+.scene-big--list {
+  font-size: clamp(48px, 9vw, 104px);
+  line-height: 0.9;
+}
+
+.scene-big--bookends,
+.scene-big--close {
+  max-width: 11ch;
+  font-size: clamp(58px, 12vw, 138px);
+}
+
+.scene-big--crew {
+  max-width: 9ch;
+  font-size: clamp(64px, 14vw, 164px);
+}
+
+.scene-sub {
+  max-width: 26ch;
+  margin: 20px 0 0;
+  font: 500 clamp(17px, 2.2vw, 26px)/1.22 'Archivo', sans-serif;
+  letter-spacing: -0.01em;
+  opacity: 0.9;
+}
+
+.scene-foot {
+  max-width: 34ch;
+  margin: 16px 0 0;
+  font: 500 11px/1.4 'IBM Plex Mono', monospace;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+.scene-small {
+  margin: 14px 0 0;
+  font: 500 10px/1.4 'IBM Plex Mono', monospace;
+  opacity: 0.62;
+}
+
+.scene-route {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  max-width: 30ch;
+  margin: 18px 0 0;
+  font: 600 clamp(14px, 1.8vw, 20px)/1.25 'Archivo', sans-serif;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.scene-route span {
+  font-size: 1.35em;
+  line-height: 0.8;
+  opacity: 0.65;
+}
+
+.scene-year {
+  margin: 0;
+  font-size: clamp(128px, 34vw, 380px);
+  font-weight: 700;
+  line-height: 0.7;
+  letter-spacing: -0.09em;
+}
+
+.scene-cover {
+  gap: 0;
+}
+
+.scene-begin {
+  min-width: 190px;
+  min-height: 54px;
+  margin-top: 24px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 999px;
+  background: #f7f3ea;
+  color: #050505;
+  font: 700 15px/1 'Archivo', sans-serif;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.scene-begin:hover {
+  background: #d9ff3a;
+}
+
+.scene-list {
+  width: min(92%, 620px);
+  margin-top: 24px;
+  border-top: 1px solid rgb(247 243 234 / 0.45);
+  text-align: left;
+}
+
+.scene-list--tight {
+  margin-top: 18px;
+}
+
+.scene-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgb(247 243 234 / 0.25);
+}
+
+.scene-row__rank {
+  font: 600 18px/1 'IBM Plex Mono', monospace;
+  opacity: 0.7;
+}
+
+.scene-row__title {
+  overflow: hidden;
+  font: 600 clamp(13px, 1.5vw, 17px)/1.18 'Archivo', sans-serif;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-row__stat {
+  font: 700 clamp(22px, 3vw, 38px)/1 'Archivo', sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.scene-versus {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 20px;
+  font: 700 16px/1 'IBM Plex Mono', monospace;
+  opacity: 0.8;
+}
+
+.scene-versus span + span::before {
+  content: 'vs';
+  margin-right: 18px;
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+.scene-code {
+  margin: 22px 0 0;
+  padding: 8px 10px;
+  border: 1px solid rgb(247 243 234 / 0.55);
+  font: 600 11px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.12em;
+}
+
+/* Chrome stays quiet; the scene is the design. */
+.wrapped-close,
+.wrapped-sound,
+.wrapped-demo-mark {
+  border-color: rgb(247 243 234 / 0.55);
+  color: #f7f3ea;
+}
+
+.wrapped-progress {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 7;
+  display: flex;
+  gap: 2px;
+  height: 3px;
+  padding: 0;
+  background: rgb(247 243 234 / 0.16);
+}
+
+.wrapped-progress__seg {
+  flex: 1;
+  background: transparent;
+}
+
+.wrapped-progress__seg.is-done {
+  background: #f7f3ea;
+}
+
+.wrapped-progress__seg.is-now {
+  background: #ff2d75;
+}
+
+.wrapped-progress__seg i {
+  display: none;
+}
+
+.wrapped-foot {
+  z-index: 8;
+  border-top: 0;
+  padding-top: 4px;
+  color: #f7f3ea;
+}
+
+.wrapped-foot .wrapped-chapter {
+  display: none;
+}
+
+.wrapped-foot .btn,
+.wrapped-foot button {
+  border-radius: 999px;
+  font-family: 'Archivo', sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+@media (max-width: 719px) {
+  .scene-copy {
+    width: 88%;
+  }
+
+  .scene-kicker {
+    margin-bottom: 10px;
+    font-size: 10px;
+  }
+
+  .scene-big {
+    font-size: clamp(50px, 14vw, 96px);
+  }
+
+  .scene-big--number {
+    font-size: clamp(128px, 38vw, 250px);
+  }
+
+  .scene-big--name {
+    font-size: clamp(46px, 12vw, 86px);
+  }
+
+  .scene-big--station {
+    font-size: clamp(44px, 11vw, 78px);
+  }
+
+  .scene-big--duration,
+  .scene-big--look {
+    font-size: clamp(52px, 15vw, 100px);
+  }
+
+  .scene-big--list {
+    font-size: clamp(38px, 10vw, 64px);
+  }
+
+  .scene-big--bookends,
+  .scene-big--close {
+    font-size: clamp(48px, 13vw, 90px);
+  }
+
+  .scene-big--crew {
+    font-size: clamp(48px, 14vw, 96px);
+  }
+
+  .scene-sub {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.24;
+  }
+
+  .scene-foot {
+    margin-top: 12px;
+    font-size: 9px;
+  }
+
+  .scene-year {
+    font-size: clamp(110px, 35vw, 200px);
+  }
+
+  .scene-begin {
+    min-height: 48px;
+    min-width: 160px;
+    margin-top: 18px;
+    font-size: 13px;
+  }
+
+  .scene-list {
+    margin-top: 18px;
+  }
+
+  .scene-row {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  .scene-row__rank {
+    font-size: 13px;
+  }
+
+  .scene-row__title {
+    font-size: 12px;
+  }
+
+  .scene-row__stat {
+    font-size: 22px;
+  }
+
+  .scene-photo__shade {
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.16) 0%, transparent 25%, rgb(0 0 0 / 0.28) 52%, rgb(0 0 0 / 0.94) 100%);
+  }
+
+  .scene-page--align-bottom .scene-copy {
+    padding-bottom: 8vh;
+  }
+}
+
+@media (max-width: 379px) {
+  .scene-copy {
+    width: 90%;
+  }
+
+  .scene-big {
+    font-size: 46px;
+  }
+
+  .scene-big--number {
+    font-size: 120px;
+  }
+
+  .scene-big--station {
+    font-size: 42px;
+  }
+
+  .scene-sub {
+    font-size: 14px;
+  }
+
+  .scene-year {
+    font-size: 104px;
+  }
+}
+
+.scene-page--cover .scene-copy {
+  width: min(92%, 860px);
+}
+
+.scene-row__title {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  line-height: 1.16;
+}
