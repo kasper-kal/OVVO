@@ -2149,631 +2149,802 @@ button.wrapped-demo-mark:focus-visible {
   animation: yb-shutter-flash 520ms 120ms linear both;
 }
 
-/* ========================================================== 2026-11 Wrapped visual pass
+/* ========================================================== chapter architectures
 
-   The deck had eighteen careful layouts and no single visual temperature. On a phone it read as a
-   sequence of quiet slides; on a desktop it sat as a small column in the middle of a large empty
-   frame. This pass gives the whole story one Wrapped-scale language: saturated chapter grounds,
-   large type, glass surfaces, an accent that belongs to the chapter, and content that uses the
-   width it has. The chapter compositions stay; only their clothes and their scale change.
+   The deck is not one poster with eighteen colour changes. Each chapter gets a different
+   composition: a split chart, a map spread, a ticket wall, a clock, a ledger, a certificate wall.
+   The layout differences carry the story; colour only reinforces them. */
 
-   The variables are set here rather than on the stage element so every chapter can carry its own
-   colour without the component knowing about CSS. */
-
-.wrapped-stage[data-chapter] {
-  --wrap-ink: #fffaf7;
-  --wrap-muted: #c9c0d4;
-  --wrap-card: rgb(255 255 255 / 0.09);
-  --wrap-card-strong: rgb(255 255 255 / 0.14);
-  --wrap-line: rgb(255 255 255 / 0.2);
-  --wrap-accent: #ff8b74;
-  --wrap-bg-a: #0d0918;
-  --wrap-bg-b: #2a1038;
-  --wrap-glow-a: rgb(255 117 105 / 0.28);
-  --wrap-glow-b: rgb(116 92 255 / 0.24);
-  background:
-    radial-gradient(120% 88% at 92% 0%, var(--wrap-glow-a), transparent 56%),
-    radial-gradient(100% 80% at 0% 100%, var(--wrap-glow-b), transparent 62%),
-    linear-gradient(150deg, var(--wrap-bg-a), var(--wrap-bg-b));
-  color: var(--wrap-ink);
-  transition: background 520ms var(--ease-out), color 320ms var(--ease-out);
-}
-
-/* The dark chapters are rooms, not black holes. */
-.wrapped-stage[data-chapter='cover'] {
-  --wrap-bg-a: #0b0616;
-  --wrap-bg-b: #320d42;
-  --wrap-glow-a: rgb(255 86 112 / 0.46);
-  --wrap-glow-b: rgb(99 82 255 / 0.4);
-  --wrap-accent: #ff8b74;
+/* The shared glow pass is gone. A chapter ground is a flat field, not a gradient behind every page.
+   The photograph keeps its legibility wash; every other chapter's stage decoration is removed. */
+.wrapped-stage[data-chapter]:not([data-chapter='look'])::before,
+.wrapped-stage[data-chapter]:not([data-chapter='look'])::after {
+  content: none;
 }
 
 .wrapped-stage[data-chapter='total'] {
-  --wrap-bg-a: #090918;
-  --wrap-bg-b: #17134a;
-  --wrap-glow-a: rgb(88 255 195 / 0.3);
-  --wrap-glow-b: rgb(255 153 72 / 0.24);
-  --wrap-accent: #d6ff3a;
+  background-image: none;
 }
 
-.wrapped-stage[data-chapter='map'] {
-  --wrap-bg-a: #03110f;
-  --wrap-bg-b: #082c3d;
-  --wrap-glow-a: rgb(89 255 218 / 0.26);
-  --wrap-glow-b: rgb(37 115 255 / 0.3);
-  --wrap-accent: #76ffd8;
+.wrapped-stage[data-chapter='cover'] { background: #0d0b15; }
+.wrapped-stage[data-chapter='total'] { background: #0b0b0d; }
+.wrapped-stage[data-chapter='name'] { background: #e5f1e7; }
+.wrapped-stage[data-chapter='map'] { background: #07110f; }
+.wrapped-stage[data-chapter='distance'] { background: #0b1712; }
+.wrapped-stage[data-chapter='pair'] { background: #0e1620; }
+.wrapped-stage[data-chapter='origin'] { background: #f3e9d7; }
+.wrapped-stage[data-chapter='hour'] { background: #0c1411; }
+.wrapped-stage[data-chapter='direct'] { background: #14111a; }
+.wrapped-stage[data-chapter='longest'] { background: #f8e2de; }
+.wrapped-stage[data-chapter='eras'] { background: #f5eeda; }
+.wrapped-stage[data-chapter='lines'] { background: #11120f; color: #f3f0e6; }
+.wrapped-stage[data-chapter='awards'] { background: #f6ead6; }
+.wrapped-stage[data-chapter='bookends'] { background: #0a0d0c; }
+.wrapped-stage[data-chapter='comparison'] { background: #f2e5ce; }
+.wrapped-stage[data-chapter='crew'] { background: #111419; }
+.wrapped-stage[data-chapter='close'] { background: #0b0b0d; }
+
+/* Each chapter owns a different amount of the frame. None of them is the old 980px column. */
+.wrapped-body[data-chapter='cover'],
+.wrapped-body[data-chapter='total'],
+.wrapped-body[data-chapter='map'],
+.wrapped-body[data-chapter='hour'],
+.wrapped-body[data-chapter='longest'],
+.wrapped-body[data-chapter='lines'] {
+  max-width: min(100%, 1420px);
 }
 
-.wrapped-stage[data-chapter='distance'] {
-  --wrap-bg-a: #06150f;
-  --wrap-bg-b: #10392a;
-  --wrap-glow-a: rgb(198 255 79 / 0.24);
-  --wrap-glow-b: rgb(58 205 158 / 0.28);
-  --wrap-accent: #c8ff57;
+.wrapped-body[data-chapter='distance'],
+.wrapped-body[data-chapter='origin'],
+.wrapped-body[data-chapter='eras'],
+.wrapped-body[data-chapter='awards'],
+.wrapped-body[data-chapter='bookends'],
+.wrapped-body[data-chapter='comparison'],
+.wrapped-body[data-chapter='crew'] {
+  max-width: min(100%, 1260px);
 }
 
-.wrapped-stage[data-chapter='pair'] {
-  --wrap-bg-a: #071126;
-  --wrap-bg-b: #18244d;
-  --wrap-glow-a: rgb(86 220 255 / 0.25);
-  --wrap-glow-b: rgb(255 126 100 / 0.22);
-  --wrap-accent: #91f2ff;
+.wrapped-body[data-chapter='name'],
+.wrapped-body[data-chapter='pair'],
+.wrapped-body[data-chapter='direct'],
+.wrapped-body[data-chapter='close'] {
+  max-width: min(100%, 1000px);
 }
 
-.wrapped-stage[data-chapter='hour'] {
-  --wrap-bg-a: #0a0b1e;
-  --wrap-bg-b: #28133f;
-  --wrap-glow-a: rgb(255 144 239 / 0.28);
-  --wrap-glow-b: rgb(88 126 255 / 0.28);
-  --wrap-accent: #ffabf1;
+/* ---------------------------------------------------------------- the cover as a poster */
+
+.wrapped-body[data-chapter='cover'] {
+  align-content: end;
+  padding-bottom: clamp(18px, 6vh, 72px);
 }
 
-.wrapped-stage[data-chapter='direct'] {
-  --wrap-bg-a: #1b0927;
-  --wrap-bg-b: #3a102f;
-  --wrap-glow-a: rgb(255 142 83 / 0.3);
-  --wrap-glow-b: rgb(211 81 255 / 0.25);
-  --wrap-accent: #ffd06f;
+.wrapped-body[data-chapter='cover'] .wrapped-title {
+  font-size: clamp(96px, 26vw, 360px);
+  line-height: 0.78;
 }
 
-.wrapped-stage[data-chapter='bookends'] {
-  --wrap-bg-a: #070f20;
-  --wrap-bg-b: #17254a;
-  --wrap-glow-a: rgb(255 151 122 / 0.24);
-  --wrap-glow-b: rgb(87 118 255 / 0.3);
-  --wrap-accent: #ffb193;
+.wrapped-body[data-chapter='cover'] .wrapped-line {
+  max-width: 34ch;
+  font-size: clamp(18px, 2.1vw, 30px);
 }
 
-.wrapped-stage[data-chapter='crew'] {
-  --wrap-bg-a: #061225;
-  --wrap-bg-b: #18365c;
-  --wrap-glow-a: rgb(105 189 255 / 0.3);
-  --wrap-glow-b: rgb(160 108 255 / 0.24);
-  --wrap-accent: #a9ceff;
+.wrapped-body[data-chapter='cover']::after {
+  content: 'OVVO / YEARBOOK';
+  position: absolute;
+  right: 0;
+  top: 18%;
+  writing-mode: vertical-rl;
+  font: 600 10px/1 'Space Grotesk', sans-serif;
+  letter-spacing: 0.28em;
+  opacity: 0.38;
+  pointer-events: none;
 }
 
-.wrapped-stage[data-chapter='close'] {
-  --wrap-bg-a: #07070c;
-  --wrap-bg-b: #230d19;
-  --wrap-glow-a: rgb(255 126 103 / 0.28);
-  --wrap-glow-b: rgb(166 89 255 / 0.18);
-  --wrap-accent: #ff9078;
+/* ---------------------------------------------------------------- the total as a chart room */
+
+.wrapped-body[data-chapter='total'] {
+  grid-template-columns: minmax(0, 0.8fr) minmax(360px, 1.2fr);
+  grid-template-areas:
+    'kicker months'
+    'big months'
+    'line months';
+  align-content: center;
+  align-items: end;
+  column-gap: clamp(28px, 5vw, 82px);
 }
 
-/* The paper chapters are still paper, but they are sunlit paper now. */
-.wrapped-stage[data-chapter='name'],
-.wrapped-stage[data-chapter='origin'],
-.wrapped-stage[data-chapter='longest'],
-.wrapped-stage[data-chapter='eras'],
-.wrapped-stage[data-chapter='lines'],
-.wrapped-stage[data-chapter='awards'],
-.wrapped-stage[data-chapter='comparison'] {
-  --wrap-ink: #211713;
-  --wrap-muted: #675548;
-  --wrap-card: rgb(255 255 255 / 0.6);
-  --wrap-card-strong: rgb(255 255 255 / 0.78);
-  --wrap-line: rgb(38 25 18 / 0.16);
+.wrapped-body[data-chapter='total'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='total'] > .wrapped-big { grid-area: big; align-self: end; }
+.wrapped-body[data-chapter='total'] > .wrapped-months { grid-area: months; align-self: center; height: min(62vh, 520px); }
+.wrapped-body[data-chapter='total'] > .wrapped-line { grid-area: line; align-self: start; max-width: 30ch; }
+
+@media (min-width: 1040px) {
+  .wrapped-body[data-chapter='total'] .wrapped-big {
+    font-size: clamp(150px, 18vw, 280px);
+  }
 }
 
-.wrapped-stage[data-chapter='name'] {
-  --wrap-bg-a: #edfff7;
-  --wrap-bg-b: #bdeed9;
-  --wrap-glow-a: rgb(255 219 119 / 0.6);
-  --wrap-glow-b: rgb(76 214 177 / 0.34);
-  --wrap-accent: #087a63;
+/* ---------------------------------------------------------------- the name as a centred plate */
+
+.wrapped-body[data-chapter='name'] {
+  justify-items: center;
+  text-align: center;
 }
 
-.wrapped-stage[data-chapter='origin'] {
-  --wrap-bg-a: #fff4df;
-  --wrap-bg-b: #ffd0a6;
-  --wrap-glow-a: rgb(255 120 82 / 0.4);
-  --wrap-glow-b: rgb(255 215 112 / 0.42);
-  --wrap-accent: #b23b1f;
+.wrapped-body[data-chapter='name'] .wrapped-big {
+  font-size: clamp(64px, 8vw, 118px);
+  max-width: 14ch;
 }
 
-.wrapped-stage[data-chapter='longest'] {
-  --wrap-bg-a: #fff1ee;
-  --wrap-bg-b: #ffc1ca;
-  --wrap-glow-a: rgb(255 106 132 / 0.34);
-  --wrap-glow-b: rgb(255 190 92 / 0.35);
-  --wrap-accent: #b32b54;
+.wrapped-body[data-chapter='name'] .wrapped-line {
+  margin-inline: auto;
 }
 
-.wrapped-stage[data-chapter='eras'] {
-  --wrap-bg-a: #fff9e6;
-  --wrap-bg-b: #ffe29f;
-  --wrap-glow-a: rgb(255 142 77 / 0.32);
-  --wrap-glow-b: rgb(255 215 92 / 0.46);
-  --wrap-accent: #a4520e;
+@media (min-width: 1040px) {
+  .wrapped-body[data-chapter='name'] .wrapped-chips {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(100%, 680px);
+  }
 }
 
-.wrapped-stage[data-chapter='lines'] {
-  --wrap-bg-a: #f8ffda;
-  --wrap-bg-b: #ccecac;
-  --wrap-glow-a: rgb(208 255 77 / 0.4);
-  --wrap-glow-b: rgb(76 210 178 / 0.26);
-  --wrap-accent: #526b0c;
+/* ---------------------------------------------------------------- the map as a spread */
+
+.wrapped-body[data-chapter='map'] .wrapped-map {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.15fr);
+  grid-template-areas:
+    'head frame'
+    'foot frame';
+  align-items: center;
+  column-gap: clamp(30px, 5vw, 78px);
 }
 
-.wrapped-stage[data-chapter='awards'] {
-  --wrap-bg-a: #fff4e3;
-  --wrap-bg-b: #ffd0b9;
-  --wrap-glow-a: rgb(255 133 79 / 0.36);
-  --wrap-glow-b: rgb(255 213 112 / 0.42);
-  --wrap-accent: #ae3d20;
+.wrapped-body[data-chapter='map'] .wrapped-map__head { grid-area: head; align-self: end; }
+.wrapped-body[data-chapter='map'] .wrapped-map__frame { grid-area: frame; width: 100%; height: min(72vh, 650px); }
+.wrapped-body[data-chapter='map'] .wrapped-map__foot { grid-area: foot; align-self: start; max-width: 40ch; }
+.wrapped-body[data-chapter='map'] .wrapped-map__big { font-size: clamp(54px, 5.6vw, 84px); }
+
+/* ---------------------------------------------------------------- distance as two measures */
+
+.wrapped-body[data-chapter='distance'] .wrapped-distance {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.85fr);
+  grid-template-areas:
+    'hero bars'
+    'saved bars'
+    'notes notes';
+  align-items: start;
+  column-gap: clamp(32px, 5vw, 76px);
+  row-gap: 24px;
 }
 
-.wrapped-stage[data-chapter='comparison'] {
-  --wrap-bg-a: #fff3df;
-  --wrap-bg-b: #ffd0a5;
-  --wrap-glow-a: rgb(255 125 83 / 0.34);
-  --wrap-glow-b: rgb(255 216 110 / 0.4);
-  --wrap-accent: #a54922;
+.wrapped-body[data-chapter='distance'] .wrapped-distance__hero { grid-area: hero; }
+.wrapped-body[data-chapter='distance'] .wrapped-distance__bars { grid-area: bars; align-self: center; }
+.wrapped-body[data-chapter='distance'] .wrapped-distance__saved { grid-area: saved; max-width: 42ch; }
+.wrapped-body[data-chapter='distance'] .wrapped-distance__notes { grid-area: notes; max-width: 86ch; }
+.wrapped-body[data-chapter='distance'] .wrapped-distance__big { font-size: clamp(104px, 11.5vw, 196px); }
+
+/* ---------------------------------------------------------------- the rail as a full-height line */
+
+.wrapped-body[data-chapter='pair'] .wrapped-route {
+  min-height: min(74vh, 700px);
 }
 
-.wrapped-stage[data-chapter='look'] {
-  --wrap-accent: #ffb58d;
-  --wrap-muted: #fff;
+.wrapped-body[data-chapter='pair'] .wrapped-route__count {
+  font-size: clamp(112px, 16vw, 270px);
 }
 
-/* The old paper bands are now seams in the new gradient, so they go. */
-.wrapped-stage[data-chapter='origin']::before,
-.wrapped-stage[data-chapter='longest']::before {
-  display: none;
+.wrapped-body[data-chapter='pair'] .wrapped-route__from,
+.wrapped-body[data-chapter='pair'] .wrapped-route__to {
+  font-size: clamp(30px, 3.6vw, 56px);
 }
 
-/* --------------------------------------------------------------- one voice on top */
+/* ---------------------------------------------------------------- the origins as a ticket wall */
 
-.wrapped-stage[data-chapter] .wrapped-kicker {
-  color: var(--wrap-accent);
-  opacity: 1;
-  font-size: clamp(10px, 1.1vw, 13px);
-  letter-spacing: 0.2em;
+.wrapped-body[data-chapter='origin'] {
+  grid-template-columns: minmax(0, 0.72fr) minmax(380px, 1.28fr);
+  grid-template-areas:
+    'kicker chips'
+    'big chips'
+    'line chips';
+  align-content: center;
+  align-items: start;
+  column-gap: clamp(36px, 6vw, 90px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-kicker::after {
-  content: '';
-  display: block;
-  width: 36px;
-  height: 3px;
-  margin-top: 8px;
-  border-radius: 999px;
-  background: var(--wrap-accent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--wrap-accent) 55%, transparent);
+.wrapped-body[data-chapter='origin'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='origin'] > .wrapped-big { grid-area: big; align-self: start; font-size: clamp(64px, 7vw, 108px); }
+.wrapped-body[data-chapter='origin'] > .wrapped-line { grid-area: line; align-self: start; max-width: 28ch; }
+.wrapped-body[data-chapter='origin'] > .wrapped-chips { grid-area: chips; align-self: center; grid-template-columns: 1fr; gap: 12px; }
+.wrapped-body[data-chapter='origin'] .wrapped-chip { min-height: 108px; }
+.wrapped-body[data-chapter='origin'] .wrapped-chip:nth-child(2) { rotate: 0.8deg; }
+.wrapped-body[data-chapter='origin'] .wrapped-chip:nth-child(3) { rotate: -0.7deg; }
+
+/* ---------------------------------------------------------------- the hour as a wide graph */
+
+.wrapped-body[data-chapter='hour'] .wrapped-big {
+  font-size: clamp(96px, 13vw, 210px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-title,
-.wrapped-stage[data-chapter] .wrapped-big {
-  color: var(--wrap-ink);
+.wrapped-body[data-chapter='hour'] .wrapped-bars {
+  height: min(56vh, 500px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-line,
-.wrapped-stage[data-chapter] .wrapped-note,
-.wrapped-stage[data-chapter] .wrapped-unfinished,
-.wrapped-stage[data-chapter] .wrapped-aside,
-.wrapped-stage[data-chapter] .wrapped-demo {
-  color: var(--wrap-muted);
-  opacity: 1;
+.wrapped-body[data-chapter='hour'] .wrapped-line {
+  max-width: 38ch;
 }
 
-.wrapped-stage[data-chapter] .wrapped-chapter,
-.wrapped-stage[data-chapter] .wrapped-count {
-  color: var(--wrap-muted);
-  opacity: 0.88;
+/* ---------------------------------------------------------------- straight through as a dial plate */
+
+.wrapped-body[data-chapter='direct'] {
+  justify-items: center;
+  text-align: center;
 }
 
-.wrapped-stage[data-chapter='cover'] .wrapped-title {
-  text-shadow: 0 0 120px rgb(255 108 111 / 0.34);
+.wrapped-body[data-chapter='direct'] .wrapped-arc {
+  width: min(64vh, 440px);
+  margin-inline: auto;
 }
 
-.wrapped-stage[data-chapter='total'] .wrapped-big {
-  color: var(--wrap-accent);
-  text-shadow: 0 0 90px rgb(214 255 58 / 0.16);
+.wrapped-body[data-chapter='direct'] .wrapped-line {
+  margin-inline: auto;
+  max-width: 34ch;
 }
 
-.wrapped-stage[data-chapter='pair'] .wrapped-route__count {
-  color: var(--wrap-accent);
+.wrapped-body[data-chapter='direct'] .wrapped-big--in {
+  font-size: clamp(96px, 15vw, 220px);
 }
 
-.wrapped-stage[data-chapter='hour'] .wrapped-big {
-  color: var(--wrap-accent);
+/* ---------------------------------------------------------------- the long haul as a route band */
+
+.wrapped-body[data-chapter='longest'] {
+  grid-template-columns: minmax(300px, 0.55fr) minmax(0, 1fr);
+  grid-template-areas:
+    'kicker stretch'
+    'big stretch'
+    'line stretch';
+  align-content: center;
+  align-items: start;
+  column-gap: clamp(36px, 6vw, 90px);
 }
 
-.wrapped-stage[data-chapter='direct'] .wrapped-big--in {
-  color: var(--wrap-accent);
+.wrapped-body[data-chapter='longest'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='longest'] > .wrapped-big { grid-area: big; align-self: start; font-size: clamp(90px, 9vw, 150px); }
+.wrapped-body[data-chapter='longest'] > .wrapped-line { grid-area: line; align-self: start; max-width: 30ch; }
+.wrapped-body[data-chapter='longest'] > .wrapped-stretch { grid-area: stretch; align-self: center; height: 250px; }
+
+.wrapped-body[data-chapter='longest'] .wrapped-stretch__from,
+.wrapped-body[data-chapter='longest'] .wrapped-stretch__end {
+  font-size: clamp(13px, 1.4vw, 17px);
 }
 
-.wrapped-stage[data-chapter='lines'] .wrapped-lines-count strong,
-.wrapped-stage[data-chapter='distance'] .wrapped-distance__saved strong {
-  color: var(--wrap-accent);
+/* ---------------------------------------------------------------- the look as a photograph */
+
+.wrapped-body[data-chapter='look'] .wrapped-big {
+  font-size: clamp(96px, 15vw, 220px);
 }
 
-/* ---------------------------------------------------------------- the bar and controls */
-
-.wrapped-stage[data-chapter] .wrapped-progress {
-  gap: 5px;
+.wrapped-body[data-chapter='look'] .wrapped-days {
+  font-size: clamp(96px, 15vw, 190px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-progress__seg {
-  background: color-mix(in srgb, var(--wrap-ink) 22%, transparent);
+/* ---------------------------------------------------------------- eras as a vertical timeline */
+
+.wrapped-body[data-chapter='eras'] {
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.05fr);
+  grid-template-areas:
+    'kicker eras'
+    'big eras'
+    'line eras';
+  align-content: center;
+  align-items: start;
+  column-gap: clamp(36px, 6vw, 90px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-progress__seg.is-done,
-.wrapped-stage[data-chapter] .wrapped-progress__seg i {
-  background: var(--wrap-accent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--wrap-accent) 50%, transparent);
+.wrapped-body[data-chapter='eras'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='eras'] > .wrapped-big { grid-area: big; align-self: start; font-size: clamp(64px, 7vw, 108px); }
+.wrapped-body[data-chapter='eras'] > .wrapped-line { grid-area: line; align-self: start; max-width: 28ch; }
+.wrapped-body[data-chapter='eras'] > .wrapped-eras { grid-area: eras; align-self: center; width: 100%; }
+.wrapped-body[data-chapter='eras'] .wrapped-eras__list { gap: 18px; }
+.wrapped-body[data-chapter='eras'] .wrapped-eras__copy strong { font-size: clamp(28px, 3vw, 42px); }
+
+/* ---------------------------------------------------------------- lines as a departure board */
+
+.wrapped-body[data-chapter='lines'] {
+  grid-template-columns: minmax(0, 0.8fr) minmax(380px, 1.2fr);
+  grid-template-areas:
+    'kicker chips'
+    'big chips'
+    'count chips';
+  align-content: center;
+  align-items: start;
+  column-gap: clamp(34px, 5vw, 80px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-close,
-.wrapped-stage[data-chapter] .wrapped-sound,
-.wrapped-stage[data-chapter] .wrapped-demo-mark {
-  border-color: var(--wrap-line);
-  background: var(--wrap-card);
-  backdrop-filter: blur(18px) saturate(1.2);
+.wrapped-body[data-chapter='lines'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='lines'] > .wrapped-big { grid-area: big; align-self: start; font-size: clamp(72px, 8vw, 124px); }
+.wrapped-body[data-chapter='lines'] > .wrapped-lines-count { grid-area: count; align-self: start; font-size: clamp(60px, 7vw, 104px); }
+.wrapped-body[data-chapter='lines'] > .wrapped-chips { grid-area: chips; align-self: center; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wrapped-body[data-chapter='lines'] .wrapped-chip { min-height: 108px; }
+
+/* ---------------------------------------------------------------- awards as a certificate spread */
+
+.wrapped-body[data-chapter='awards'] {
+  grid-template-columns: minmax(340px, 0.6fr) minmax(0, 1fr);
+  grid-template-areas:
+    'kicker awards'
+    'big awards'
+    'line awards';
+  align-content: center;
+  align-items: start;
+  column-gap: clamp(36px, 5vw, 74px);
 }
 
-.wrapped-stage[data-chapter] .wrapped-close:hover,
-.wrapped-stage[data-chapter] .wrapped-sound:hover {
-  background: var(--wrap-card-strong);
+.wrapped-body[data-chapter='awards'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='awards'] > .wrapped-big {
+  grid-area: big;
+  align-self: start;
+  font-size: clamp(46px, 4.6vw, 74px);
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
+.wrapped-body[data-chapter='awards'] > .wrapped-line { grid-area: line; align-self: start; max-width: 30ch; }
+.wrapped-body[data-chapter='awards'] > .wrapped-awards { grid-area: awards; align-self: center; width: 100%; }
+.wrapped-body[data-chapter='awards'] .wrapped-awards__grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+.wrapped-body[data-chapter='awards'] .wrapped-award { min-height: 152px; }
+
+/* ---------------------------------------------------------------- bookends as two tickets */
+
+.wrapped-body[data-chapter='bookends'] .wrapped-big {
+  font-size: clamp(72px, 8vw, 116px);
 }
 
-/* ---------------------------------------------------------------- glass surfaces */
-
-.wrapped-stage[data-chapter='origin'] .wrapped-chip,
-.wrapped-stage[data-chapter='awards'] .wrapped-award,
-.wrapped-stage[data-chapter='bookends'] .wrapped-bookend,
-.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat,
-.wrapped-stage[data-chapter='crew'] .wrapped-crew__code {
-  border-color: var(--wrap-line);
-  background: var(--wrap-card);
-  box-shadow: 0 16px 42px rgb(0 0 0 / 0.14);
-  backdrop-filter: blur(20px) saturate(1.25);
+.wrapped-body[data-chapter='bookends'] .wrapped-bookends {
+  gap: 24px;
 }
 
-.wrapped-stage[data-chapter='awards'] .wrapped-award {
-  border-top: 3px solid var(--wrap-accent);
-  border-radius: 20px;
+.wrapped-body[data-chapter='bookends'] .wrapped-bookends__pair {
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
 }
 
-.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat {
-  border-radius: 18px;
+.wrapped-body[data-chapter='bookends'] .wrapped-bookend {
+  min-height: 230px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-top: 4px solid #d6ff3a;
 }
 
-.wrapped-stage[data-chapter='bookends'] .wrapped-bookend {
-  border-radius: 22px;
+.wrapped-body[data-chapter='bookends'] .wrapped-bookend__route {
+  font-size: clamp(26px, 2.6vw, 36px);
+  line-height: 1.12;
 }
 
-/* ------------------------------------------------------------------ bigger pictures */
+/* ---------------------------------------------------------------- comparison as a ledger */
 
-.wrapped-stage[data-chapter='map'] .wrapped-map__frame {
-  width: min(100%, 620px);
-  border: 1px solid var(--wrap-line);
-  background: rgb(0 0 0 / 0.14);
-  box-shadow: 0 24px 70px rgb(0 0 0 / 0.2);
+.wrapped-body[data-chapter='comparison'] .wrapped-big {
+  font-size: clamp(84px, 10vw, 148px);
 }
 
-.wrapped-stage[data-chapter='distance'] .wrapped-distance__big {
-  font-size: clamp(64px, 10vw, 140px);
+.wrapped-body[data-chapter='comparison'] .wrapped-comparison {
+  gap: 30px;
 }
 
-.wrapped-stage[data-chapter='distance'] .wrapped-distance__bar > i {
-  height: 14px;
-  background: var(--wrap-accent);
+.wrapped-body[data-chapter='comparison'] .wrapped-comparison__year > strong {
+  font-size: clamp(62px, 7vw, 104px);
 }
 
-.wrapped-stage[data-chapter='distance'] .wrapped-distance__bar.is-transit > i {
-  background: #8fffd4;
+.wrapped-body[data-chapter='comparison'] .wrapped-comparison__stats {
+  gap: 12px;
 }
 
-.wrapped-stage[data-chapter='eras'] .wrapped-eras__copy strong {
-  font-size: clamp(24px, 3.4vw, 38px);
+.wrapped-body[data-chapter='comparison'] .wrapped-comparison__stat {
+  min-height: 120px;
 }
 
-.wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
-  font-size: clamp(30px, 3.2vw, 48px);
+/* ---------------------------------------------------------------- crew as a boarding pass */
+
+.wrapped-body[data-chapter='crew'] {
+  grid-template-columns: minmax(260px, 0.52fr) minmax(0, 1.1fr);
+  grid-template-areas:
+    'kicker crew'
+    'big crew'
+    'line crew';
+  align-content: center;
+  align-items: start;
+  column-gap: clamp(36px, 6vw, 90px);
 }
 
-.wrapped-stage[data-chapter='awards'] .wrapped-award__title {
-  font-size: clamp(19px, 1.8vw, 26px);
+.wrapped-body[data-chapter='crew'] > .wrapped-kicker { grid-area: kicker; align-self: end; }
+.wrapped-body[data-chapter='crew'] > .wrapped-big { grid-area: big; align-self: start; font-size: clamp(58px, 6vw, 92px); }
+.wrapped-body[data-chapter='crew'] > .wrapped-line { grid-area: line; align-self: start; max-width: 28ch; }
+.wrapped-body[data-chapter='crew'] > .wrapped-crew { grid-area: crew; align-self: center; width: 100%; }
+
+/* ---------------------------------------------------------------- close as a book page */
+
+.wrapped-body[data-chapter='close'] {
+  justify-items: center;
+  text-align: center;
 }
 
-.wrapped-stage[data-chapter='bookends'] .wrapped-bookend__route {
-  font-size: clamp(22px, 3vw, 38px);
+.wrapped-body[data-chapter='close'] .wrapped-big {
+  font-size: clamp(84px, 10vw, 144px);
 }
 
-.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__year > strong {
-  font-size: clamp(44px, 6vw, 78px);
+.wrapped-body[data-chapter='close'] .wrapped-line,
+.wrapped-body[data-chapter='close'] .wrapped-note {
+  margin-inline: auto;
 }
 
-.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat > strong {
-  font-size: clamp(34px, 4vw, 56px);
-}
+/* ---------------------------------------------------------------- stacked on a tablet or phone */
 
-/* ------------------------------------------------------------------- use the width */
-
-.wrapped-stage[data-chapter] .wrapped-map,
-.wrapped-stage[data-chapter] .wrapped-distance,
-.wrapped-stage[data-chapter] .wrapped-eras,
-.wrapped-stage[data-chapter] .wrapped-awards,
-.wrapped-stage[data-chapter] .wrapped-bookends,
-.wrapped-stage[data-chapter] .wrapped-comparison {
-  width: min(100%, 980px);
-}
-
-.wrapped-stage[data-chapter] .wrapped-crew {
-  width: min(100%, 820px);
-}
-
-@media (min-width: 720px) {
-  .wrapped-stage {
-    --pad-x: clamp(28px, 4.5vw, 72px);
+@media (max-width: 1039px) {
+  .wrapped-body[data-chapter] {
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+    column-gap: 0;
   }
 
-  .wrapped-body {
-    max-width: 1240px;
+  .wrapped-body[data-chapter] > * {
+    grid-area: auto !important;
+    grid-row: auto !important;
+    grid-column: auto !important;
   }
 
-  .wrapped-body[data-chapter='cover'] .wrapped-title {
-    font-size: clamp(150px, 23vw, 380px);
+  .wrapped-body[data-chapter='cover'] {
+    align-content: center;
+    padding-bottom: 0;
   }
 
-  .wrapped-stage[data-chapter] .wrapped-big {
-    font-size: clamp(76px, 9vw, 190px);
+  .wrapped-body[data-chapter='cover']::after {
+    display: none;
   }
 
-  .wrapped-stage[data-chapter='total'] .wrapped-big {
-    font-size: clamp(130px, 18vw, 340px);
+  .wrapped-body[data-chapter='map'] .wrapped-map {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'head'
+      'frame'
+      'foot';
+    row-gap: 10px;
   }
 
-  .wrapped-stage[data-chapter='pair'] .wrapped-route__count {
-    font-size: clamp(110px, 15vw, 280px);
+  .wrapped-body[data-chapter='map'] .wrapped-map__frame {
+    height: auto;
+    width: min(100%, 390px);
+    margin-inline: auto;
   }
 
-  .wrapped-stage[data-chapter] .wrapped-line {
-    max-width: 32ch;
-    font-size: clamp(20px, 2vw, 32px);
+  .wrapped-body[data-chapter='distance'] .wrapped-distance {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'hero'
+      'bars'
+      'saved'
+      'notes';
+    row-gap: 16px;
   }
 
-  .wrapped-stage[data-chapter='pair'] .wrapped-route {
-    min-height: min(64vh, 620px);
+  .wrapped-body[data-chapter='origin'] > .wrapped-chips {
+    margin-top: 6px;
   }
 
-  .wrapped-stage[data-chapter='pair'] .wrapped-route__from,
-  .wrapped-stage[data-chapter='pair'] .wrapped-route__to {
-    font-size: clamp(30px, 3.4vw, 54px);
+  .wrapped-body[data-chapter='lines'] > .wrapped-chips {
+    margin-top: 8px;
   }
 
-  .wrapped-stage[data-chapter='awards'] .wrapped-awards__grid {
-    gap: 14px;
+  .wrapped-body[data-chapter='awards'] .wrapped-awards__grid {
+    grid-template-columns: 1fr;
   }
 
-  .wrapped-stage[data-chapter='bookends'] .wrapped-bookends__pair {
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookends__pair {
+    grid-template-columns: 1fr;
   }
 
-  .wrapped-stage[data-chapter='crew'] .wrapped-crew__code code {
-    font-size: 13px;
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookend {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-big {
+    font-size: clamp(62px, 12vw, 100px);
+  }
+}
+
+/* ---------------------------------------------------------------- small screens, kept honest */
+
+@media (max-width: 1039px) {
+  .wrapped-body[data-chapter='total'] > .wrapped-months {
+    height: clamp(150px, 30vh, 260px);
+  }
+
+  .wrapped-body[data-chapter='hour'] .wrapped-bars {
+    height: clamp(180px, 34vh, 280px);
+  }
+
+  .wrapped-body[data-chapter='pair'] .wrapped-route {
+    min-height: clamp(210px, 44vh, 320px);
+  }
+
+  .wrapped-body[data-chapter='map'] .wrapped-map__frame {
+    width: min(70vw, 300px);
   }
 }
 
 @media (max-width: 719px) {
-  .wrapped-stage {
-    --pad-x: clamp(16px, 5vw, 26px);
+  .wrapped-body[data-chapter='name'] .wrapped-big {
+    font-size: clamp(48px, 14vw, 64px);
   }
 
-  .wrapped-body {
-    gap: 12px;
+  .wrapped-body[data-chapter='distance'] .wrapped-distance {
+    row-gap: 8px;
   }
 
-  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
-    width: min(100%, 320px);
+  .wrapped-body[data-chapter='distance'] .wrapped-distance__big {
+    font-size: clamp(66px, 20vw, 88px);
   }
 
-  .wrapped-stage[data-chapter] .wrapped-kicker::after {
-    width: 28px;
-    height: 2px;
-    margin-top: 6px;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__title {
-    font-size: 18px;
-  }
-
-  .wrapped-stage[data-chapter='bookends'] .wrapped-bookend__route {
-    font-size: 21px;
-  }
-}
-
-@media (max-width: 379px) {
-  .wrapped-stage[data-chapter='awards'] .wrapped-award {
-    padding: 11px 10px;
-  }
-
-  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
-    width: min(100%, 278px);
-  }
-}
-
-/* --------------------------------------------------------------- second visual pass
-
-   The first pass made the deck loud. These are the places where loud broke a layout: the trophy
-   cards needed a wider stat column, the map needed to stop growing past the body, and the lines
-   tallies were lost in their own green. */
-
-.wrapped-stage[data-chapter='total'] .wrapped-months__col i {
-  background: linear-gradient(180deg, #fff 0%, var(--wrap-accent) 100%);
-  opacity: calc(0.55 + var(--h, 0.1) * 0.45);
-}
-
-.wrapped-stage[data-chapter='total'] .wrapped-months__col em {
-  opacity: 0.82;
-}
-
-.wrapped-stage[data-chapter='lines'] .wrapped-chip strong {
-  color: var(--wrap-ink);
-  opacity: 0.98;
-}
-
-.wrapped-stage[data-chapter='lines'] .wrapped-chip span,
-.wrapped-stage[data-chapter='lines'] .wrapped-lines-count span {
-  color: var(--wrap-muted);
-  opacity: 1;
-}
-
-@media (min-width: 720px) {
-  /* A Wrapped cover is a poster, not a left-aligned page with half the frame spare. */
-  .wrapped-body[data-chapter='cover'] {
-    text-align: center;
-    justify-items: center;
-  }
-
-  .wrapped-body[data-chapter='cover'] .wrapped-line,
-  .wrapped-body[data-chapter='cover'] .wrapped-demo {
-    margin-inline: auto;
-    text-align: center;
-  }
-
-  .wrapped-body[data-chapter='cover'] .wrapped-actions {
-    justify-content: center;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award {
-    grid-template-columns: 112px minmax(0, 1fr) 44px;
-    column-gap: 14px;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
-    font-size: clamp(26px, 2.2vw, 38px);
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__title {
-    font-size: clamp(18px, 1.65vw, 23px);
-  }
-
-  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
-    width: min(100%, 54vh, 600px);
-  }
-}
-
-@media (max-width: 379px) {
-  .wrapped-body {
-    gap: 8px;
-  }
-
-  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
-    width: min(100%, 240px);
-  }
-
-  .wrapped-stage[data-chapter='distance'] .wrapped-distance,
-  .wrapped-stage[data-chapter='eras'] .wrapped-eras,
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison {
-    gap: 8px;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
-    font-size: 27px;
-  }
-}
-
-/* A 320-wide screen cannot stack four full-size trophy cards and keep the foot on the page. Two
-   compact poster cards per row keep every award, its number and its sentence visible. */
-@media (max-width: 379px) {
-  .wrapped-stage[data-chapter='awards'] .wrapped-big {
-    font-size: 38px;
-    line-height: 0.94;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-awards {
-    gap: 4px;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-awards__grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award {
-    grid-template-columns: minmax(0, 1fr) 44px;
-    grid-template-areas:
-      'stat button'
-      'title title'
-      'line line';
-    grid-template-rows: auto auto auto;
-    gap: 2px 3px;
-    padding: 8px 8px 7px;
-    border-radius: 14px;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
-    font-size: 22px;
-    letter-spacing: -0.04em;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__label {
-    font-size: 8px;
-    letter-spacing: 0.04em;
-  }
-
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__title {
+  .wrapped-body[data-chapter='distance'] .wrapped-distance__label,
+  .wrapped-body[data-chapter='distance'] .wrapped-distance__saved {
     font-size: 13px;
-    line-height: 1.12;
+    line-height: 1.3;
   }
 
-  .wrapped-stage[data-chapter='awards'] .wrapped-award__line {
-    font-size: 9px;
-    line-height: 1.24;
+  .wrapped-body[data-chapter='distance'] .wrapped-distance__notes {
+    font-size: 11px;
+    line-height: 1.3;
   }
 
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison {
-    gap: 5px;
+  .wrapped-body[data-chapter='hour'] .wrapped-big {
+    font-size: clamp(72px, 20vw, 110px);
   }
 
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat {
-    padding: 7px 8px;
-  }
-}
-
-@media (max-width: 379px) {
-  .wrapped-stage[data-chapter='comparison'] .wrapped-body {
-    gap: 4px;
+  .wrapped-body[data-chapter='longest'] .wrapped-big {
+    font-size: clamp(58px, 17vw, 86px);
   }
 
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__counts {
-    gap: 4px;
-    padding-bottom: 0;
+  .wrapped-body[data-chapter='awards'] .wrapped-big {
+    font-size: clamp(34px, 10vw, 50px);
   }
 
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__year > strong {
-    font-size: 30px;
+  .wrapped-body[data-chapter='awards'] .wrapped-awards__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stats {
+  .wrapped-body[data-chapter='awards'] .wrapped-award {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 9px 40px 9px 9px;
     gap: 3px;
   }
 
-  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat {
+  .wrapped-body[data-chapter='awards'] .wrapped-award .btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .wrapped-body[data-chapter='awards'] .wrapped-award__stat {
+    font-size: 24px;
+  }
+
+  .wrapped-body[data-chapter='awards'] .wrapped-award__title {
+    font-size: 14px;
+    line-height: 1.12;
+  }
+
+  .wrapped-body[data-chapter='awards'] .wrapped-award__line {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-big {
+    font-size: clamp(48px, 13vw, 68px);
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookends,
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookends__pair {
+    gap: 8px;
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookend {
     min-height: 0;
-    padding: 5px 7px;
+    padding: 10px;
+    gap: 4px;
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookend__date,
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookend__time {
+    font-size: 11px;
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookend__route {
+    font-size: clamp(20px, 6.2vw, 26px);
+    line-height: 1.08;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-big {
+    font-size: clamp(48px, 13vw, 68px);
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison {
+    gap: 10px;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison__year > strong {
+    font-size: 42px;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison__stat {
+    min-height: 0;
+    padding: 8px;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison__stat em {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .wrapped-body[data-chapter='look'] .wrapped-big,
+  .wrapped-body[data-chapter='look'] .wrapped-days {
+    font-size: clamp(64px, 18vw, 92px);
+  }
+
+  .wrapped-body[data-chapter='close'] .wrapped-big {
+    font-size: clamp(56px, 16vw, 78px);
+  }
+
+  .wrapped-body[data-chapter='close'] .wrapped-line {
+    font-size: 16px;
+  }
+
+  .wrapped-body[data-chapter='close'] .wrapped-note {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-body[data-chapter='awards'] .wrapped-award {
+    padding: 8px 34px 8px 8px;
+  }
+
+  .wrapped-body[data-chapter='awards'] .wrapped-award__stat {
+    font-size: 21px;
+  }
+
+  .wrapped-body[data-chapter='awards'] .wrapped-award__title {
+    font-size: 12px;
+  }
+
+  .wrapped-body[data-chapter='awards'] .wrapped-award__line {
+    display: none;
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookends__lead {
+    display: none;
+  }
+
+  .wrapped-body[data-chapter='bookends'] .wrapped-bookend__time {
+    display: none;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison {
+    gap: 8px;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison__stat {
+    padding: 6px;
+  }
+
+  .wrapped-body[data-chapter='comparison'] .wrapped-comparison__year > strong {
+    font-size: 38px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .wrapped-body[data-chapter='hour'] .wrapped-big {
+    font-size: clamp(96px, 10vw, 170px);
+  }
+
+  .wrapped-body[data-chapter='hour'] .wrapped-bars {
+    height: min(40vh, 370px);
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-body[data-chapter='pair'] .wrapped-route {
+    min-height: 228px;
+  }
+
+  .wrapped-body[data-chapter='longest'] .wrapped-stretch {
+    height: 214px;
+  }
+
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__list {
+    gap: 8px;
+  }
+
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__copy strong {
+    font-size: 24px;
+  }
+
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__switch {
+    font-size: 10px;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew {
+    gap: 8px;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew__code code {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew__privacy {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__list {
+    gap: 4px;
+  }
+
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__copy strong {
+    font-size: 22px;
+  }
+
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__when,
+  .wrapped-body[data-chapter='eras'] .wrapped-eras__days {
+    font-size: 10px;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew {
+    gap: 4px;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew__privacy {
+    font-size: 9px;
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-body[data-chapter='pair'] .wrapped-route__count {
+    font-size: 102px;
+  }
+
+  .wrapped-body[data-chapter='pair'] .wrapped-route__from,
+  .wrapped-body[data-chapter='pair'] .wrapped-route__to {
+    font-size: 26px;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew__code {
+    padding: 6px;
+    gap: 3px;
+  }
+
+  .wrapped-body[data-chapter='crew'] .wrapped-crew__entry {
+    gap: 2px;
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-body[data-chapter='direct'] .wrapped-arc {
+    width: min(52vh, 330px);
   }
 }
