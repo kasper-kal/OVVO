@@ -77,8 +77,14 @@ export function WrappedGate() {
   const t = useT();
   const leave = useHistoryBack('/');
   const now = appNow();
-  /* The developer's example deck stays reachable in a development build. */
-  const demo = import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === '1';
+  /*
+   * **The example deck is not the season.**
+   *
+   * `?demo=1` is a made-up year built in memory, and the developer panel links straight to it so
+   * the story can be worked on in November. It must stay reachable on any date and in any build;
+   * the real year below is the part that is gated to January.
+   */
+  const demo = new URLSearchParams(window.location.search).get('demo') === '1';
   /*
    * **00:00:01, not midnight.**
    *
