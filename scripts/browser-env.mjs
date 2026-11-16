@@ -54,8 +54,11 @@ export function prepareBrowserEnv() {
   const existing = process.env.LD_LIBRARY_PATH;
   process.env.LD_LIBRARY_PATH = existing ? `${libPath}:${existing}` : libPath;
 
-  const fonts = path.join(syslibs, 'fonts.conf');
-  if (fs.existsSync(fonts)) process.env.FONTCONFIG_FILE = fonts;
+  /* The unpacked fontconfig lives at etc/fonts/fonts.conf; older layouts put it at the root. */
+  const fonts = [path.join(syslibs, 'etc/fonts/fonts.conf'), path.join(syslibs, 'fonts.conf')].find((file) =>
+    fs.existsSync(file),
+  );
+  if (fonts) process.env.FONTCONFIG_FILE = fonts;
 
   return true;
 }
