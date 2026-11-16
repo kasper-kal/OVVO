@@ -40,12 +40,12 @@ export function WrappedDemoDirector({
     <Dialog
       open={open}
       title={t('Demo Director')}
-      description={t('Jump to any chapter or switch the demo year. The real Wrapped gate is unchanged.')}
+      description={t('Jump to any chapter or switch the demo year. The real Yearbook gate is unchanged.')}
       onClose={onClose}
       panelClassName="wrapped-director"
       footer={
         <>
-          <Link className="btn btn--ghost" to="/wrapped" onClick={onClose}>
+          <Link className="btn btn--ghost" to="/yearbook" onClick={onClose}>
             {t('See the real gate')}
           </Link>
           <Button variant="ghost" onClick={onClose}>

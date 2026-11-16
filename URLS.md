@@ -20,7 +20,7 @@ The root `https://ovvo.us.ci` has no routes yet; it is reserved for a future lan
 | `/preferences` | Travel preferences — walking, transfers, luggage |
 | `/settings` | Settings — language, appearance, colour, background, storage |
 | `/themes` | Themes, the look of the whole app (the old `/styles` address redirects here) |
-| `/wrapped` | OVVO Wrapped — the traveller's own year |
+| `/yearbook` | OVVO Yearbook — the traveller's own year (the old `/wrapped` address redirects here) |
 | `/signin` | Signing in: Google, a link by email, a password, or a passkey |
 | `/auth/finish` | Where an emailed sign-in link lands (the address named in the mail) |
 | `/developer` | The developer panel, while its switch in Settings is on |

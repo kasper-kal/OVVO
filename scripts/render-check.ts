@@ -57,7 +57,7 @@ const shelled: [string, Page][] = [
   ['/preferences', PreferencesPage],
   ['/settings', SettingsPage],
   ['/themes', StylesPage],
-  ['/wrapped', WrappedPage],
+  ['/yearbook', WrappedPage],
   ['/does-not-exist', NotFoundPage],
 ];
 

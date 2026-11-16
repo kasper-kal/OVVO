@@ -287,7 +287,7 @@ the site's address and it does not exist until the Cloudflare side is named.
 - Verify the token works before using it: a bad token looks exactly like a bad permission.
 - Deploy the Worker and open the address before promising the steerer it works.
 - Test sign-in on a second device, and with storage cleared, before saying the year survives.
-- Then: OVVO Wrapped (planned, not built — see `AGENTS.md`).
+- Then: OVVO Yearbook (planned, not built — see `AGENTS.md`).
 
 
 **Everything needed to run this without me is in [HANDOVER.md](HANDOVER.md)** — accounts, names, ids, the commands, and what happens if something is lost.
@@ -353,7 +353,7 @@ state of the code that carries them out.
   `HIT` with the Worker not running for the second (see above).
 - **The sign-up challenge** is Cloudflare Turnstile, enforced only when `TURNSTILE_SECRET` is set
   (`worker/turnstile.js`).
-- **OVVO Wrapped is built** — `/wrapped`, drawn from what the traveller saved and searched.
+- **OVVO Yearbook is built** — `/yearbook`, drawn from what the traveller saved and searched.
 
 **Checked, and how:** the project's own type check, its style audits and a production build all pass
 in a clean checkout (`npm run typecheck`, `npm run build`). That is a statement about the code, not

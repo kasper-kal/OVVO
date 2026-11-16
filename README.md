@@ -108,7 +108,7 @@ host is named individually: the allow-list is never `true`, so an unknown `Host`
 | `/settings` | Display settings, location access, planner defaults and local data management |
 | `/themes` | Themes: twenty-eight whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. Default is one button away. `/styles` redirects here |
 | `/map` | The network map on a screen of its own (closed below 10% battery, with Settings) |
-| `/wrapped` | OVVO Wrapped: the traveller's own year, drawn from what they saved and searched |
+| `/yearbook` | OVVO Yearbook: the traveller's own year, drawn from what they saved and searched (the old `/wrapped` address redirects here) |
 | `/signin`, `/auth/finish` | Signing in, and the page an emailed sign-in link lands on — both outside the shell |
 | `/developer` | The developer panel, reachable only while its switch in Settings is on |
 | `/skeleton` | Development only: the loading placeholder on a page of its own. Never in a build |
@@ -418,7 +418,7 @@ Firebase Authentication: **Google**, **a link by email**, and **email with a pas
 
 Once signed in, the whole local store travels as **one document per account** in D1
 (`travel_sync`), pushed shortly after any change and read back on the next device, so a saved
-journey or a year of Wrapped is not lost when a browser is cleared. Two rules keep that honest: a
+journey or a year of the Yearbook is not lost when a browser is cleared. Two rules keep that honest: a
 save names the revision it was built on, so two devices merge instead of one erasing the other,
 and a device that has never synced only has its gaps filled, so the first sign-in cannot empty a
 phone that was already in use. A profile photograph is squared and kept in the same database, and
@@ -645,8 +645,8 @@ nothing but the saving.
 
 The interface is feature-complete for the current design, and the account layer is built: sign-in
 three ways plus passkeys, a traveller's store kept in D1 and carried between devices, a profile
-photograph, and rate limits on the doors that need them. OVVO Wrapped exists as its own screen
-(`/wrapped`).
+photograph, and rate limits on the doors that need them. OVVO Yearbook exists as its own screen
+(`/yearbook`).
 
 What is still missing to call it production is **data**, not screens: `src/data` still holds this
 build's own demonstration network, so the planner, the alerts and the boards answer from it rather

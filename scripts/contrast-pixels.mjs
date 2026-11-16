@@ -37,7 +37,7 @@ const ROUTES = [
   { path: '/preferences', name: 'preferences' },
   { path: '/settings', name: 'settings' },
   { path: '/themes', name: 'appearance' },
-  { path: '/wrapped', name: 'wrapped' },
+  { path: '/yearbook', name: 'yearbook' },
   { path: `/results/${SEARCH}`, name: 'results (journeys)' },
   { path: `/results/${SEARCH}`, name: 'journey', openJourney: true },
 ];

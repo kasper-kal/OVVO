@@ -1,4 +1,4 @@
-# OVVO Wrapped share cards: seven cards, five compositions
+# OVVO Yearbook share cards: seven cards, five compositions
 
 The share sheet no longer prints one template seven times.
 

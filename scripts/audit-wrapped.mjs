@@ -154,7 +154,7 @@ for (const state of STATES) {
   });
   page.on('pageerror', (error) => consoleErrors.push(String(error)));
 
-  await page.goto(`${BASE}/wrapped?demo=1&persona=regular`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE}/yearbook?demo=1&persona=regular`, { waitUntil: 'domcontentloaded' });
   /* A first visit opens the location question before the story. It is not a Wrapped chapter. */
   for (let i = 0; i < 4; i += 1) {
     const close = page.locator('.overlay button, .sheet button');

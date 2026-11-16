@@ -109,7 +109,7 @@ const ROUTES = [
   { path: '/preferences', name: 'preferences' },
   { path: '/settings', name: 'settings' },
   { path: '/themes', name: 'appearance' },
-  { path: '/wrapped', name: 'wrapped' },
+  { path: '/yearbook', name: 'yearbook' },
   { path: '/signin', name: 'sign in' },
   { path: '/nope', name: 'not found' },
   { path: `/results/${SEARCH}`, name: 'results (journeys)' },

@@ -75,7 +75,7 @@ const ROUTES = [
   ['settings', '/settings'],
   ['prefs', '/preferences'],
   ['themes', '/themes'],
-  ['wrapped', '/wrapped'],
+  ['yearbook', '/yearbook'],
   ['map', '/map'],
   ['signin', '/signin'],
   ['notfound', '/no-such-screen'],

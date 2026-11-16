@@ -45,6 +45,8 @@ him, and it is the work queue.
 
 | 30 | "The cards you can share all look too similar" — every share card used the same eyebrow, title, giant stat, sentence and receipt plate | the share-card render at 1080x1920, saved as `artifacts/wrapped-share/contact-sheet.jpg` (7 cards, 5 layouts) | yes: the old seven cards all shared one composition; the new sheet shows a dot-field identity, a vertical-rail route, a year poster, two certificate awards and two ticket awards. The dialog renders all seven from the current build |
 
+| 31 | "The Superlatives" as the name of the awards page was horrible and not easy to understand | the awards chapter at `/yearbook?demo=1&persona=regular` at 360x800, plus `npm run build` | yes: the chapter now reads "THE AWARDS" and "Your awards" in the live text, and the word "superlatives" is gone from the chapter and its accessible name |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

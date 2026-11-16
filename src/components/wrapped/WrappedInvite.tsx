@@ -34,7 +34,7 @@ export function WrappedInvite() {
 
   const tally = tallyFor(season.year);
   const count = tally.runs.length;
-  const to = `/wrapped?year=${season.year}`;
+  const to = `/yearbook?year=${season.year}`;
 
   return (
     <Card className="stack wrapped-invite">
@@ -44,7 +44,7 @@ export function WrappedInvite() {
         </span>
         <div className="stack-1">
           <h2 className="t-section">
-            {t('OVVO Wrapped {year}', { year: season.year })}
+            {t('OVVO Yearbook {year}', { year: season.year })}
           </h2>
           <p className="t-sm t-muted">
             {count === 0

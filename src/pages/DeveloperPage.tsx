@@ -339,7 +339,7 @@ export function DeveloperPage() {
           </Card>
 
           <Card className="stack">
-            <h2 className="t-section">{t('OVVO Wrapped')}</h2>
+            <h2 className="t-section">{t('OVVO Yearbook')}</h2>
             {/*
               The deck is built to be read from 20 December. This opens a made-up year — 146
               journeys, a favourite line, a look worn for months — so the cards can be looked at and
@@ -350,7 +350,7 @@ export function DeveloperPage() {
               {t("Opens the year's deck with a made-up year, without touching your own tally.")}
             </p>
             <div className="row-wrap">
-              <Link className="btn btn--accent" to="/wrapped?demo=1">
+              <Link className="btn btn--accent" to="/yearbook?demo=1">
                 <Icon name="star" size={16} />
                 {t('Open a demo year')}
               </Link>

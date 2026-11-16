@@ -37,7 +37,7 @@ export function WrappedSealed({ now, onBack }: { now: Date; onBack: () => void }
         <span className="wrapped-sealed__seal">OVVO</span>
       </div>
 
-      <p className="wrapped-sealed__kicker">{t('OVVO Wrapped {year}', { year })}</p>
+      <p className="wrapped-sealed__kicker">{t('OVVO Yearbook {year}', { year })}</p>
       <h1 className="wrapped-sealed__title">{t('Sealed until January')}</h1>
       <p className="wrapped-sealed__teaser">
         {months > 0
@@ -49,7 +49,7 @@ export function WrappedSealed({ now, onBack }: { now: Date; onBack: () => void }
           : t('Your year is still being written. The rest is sealed until January.')}
       </p>
 
-      <div className="wrapped-sealed__countdown" aria-label={t('Time until Wrapped opens')}>
+      <div className="wrapped-sealed__countdown" aria-label={t('Time until the Yearbook opens')}>
         {units.map((unit) => (
           <span key={unit.label}>
             <strong>{String(unit.value).padStart(2, '0')}</strong>

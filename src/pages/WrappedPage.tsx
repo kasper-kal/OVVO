@@ -114,9 +114,9 @@ export function WrappedGate() {
 
   return (
     <div className="stack-4" style={{ maxWidth: 560, margin: '12vh auto 0' }}>
-      <h1 className="t-h1">{t('OVVO Wrapped')}</h1>
+      <h1 className="t-h1">{t('OVVO Yearbook')}</h1>
       <p className="t-muted">
-        {t('Wrapped opens on 1 January, just after midnight. It looks back at the whole year, every journey, once the year is over.')}
+        {t('The Yearbook opens on 1 January, just after midnight. It looks back at the whole year, every journey, once the year is over.')}
       </p>
       <div>
         <Button onClick={leave}>{t('Back')}</Button>
@@ -414,7 +414,7 @@ export function WrappedPage() {
         } as CSSProperties
       }
       role="region"
-      aria-label={t('OVVO Wrapped {year}', { year })}
+      aria-label={t('OVVO Yearbook {year}', { year })}
       /*
         * **A tap, not a swipe.**
         *

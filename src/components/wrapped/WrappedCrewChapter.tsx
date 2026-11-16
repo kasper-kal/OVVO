@@ -35,8 +35,8 @@ export function WrappedCrewChapter({ crew }: { crew: CrewSummary }) {
     try {
       if (typeof navigator.share === 'function') {
         await navigator.share({
-          title: t('Compare our OVVO Wrapped years'),
-          text: t('My OVVO Wrapped crew code: {code}', { code }),
+          title: t('Compare our OVVO Yearbook years'),
+          text: t('My OVVO Yearbook crew code: {code}', { code }),
         });
         return;
       }

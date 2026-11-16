@@ -11,7 +11,7 @@ import type { YearTally } from '../../lib/wrapped';
  *
  * Copying a sentence asks somebody to describe their year. A card lets them show it. These are
  * made in the browser, at the size a story takes, and nothing is uploaded: the same privacy that
- * keeps Wrapped local also keeps these images local until the traveller shares one.
+ * keeps the Yearbook local also keeps these images local until the traveller shares one.
  *
  * The cards are deliberately a small set: who the year made you, the journey you kept making, and
  * the year in numbers. More than three choices stops being a share sheet and becomes a design app.
@@ -144,7 +144,7 @@ function drawHeader(
   ctx.textAlign = 'left';
   ctx.fillStyle = palette.ink;
   ctx.font = '700 28px "Space Grotesk", sans-serif';
-  ctx.fillText('OVVO WRAPPED', PAD, 92);
+  ctx.fillText('OVVO YEARBOOK', PAD, 92);
 
   ctx.textAlign = 'right';
   ctx.fillStyle = rgba(palette.ink, 0.62);
@@ -783,14 +783,14 @@ export function WrappedShareDialog({
 
   const shareCurrent = async () => {
     if (!image) return;
-    const file = dataUrlToFile(image, `ovvo-wrapped-${year}-${cards[active].id}.png`);
+    const file = dataUrlToFile(image, `ovvo-yearbook-${year}-${cards[active].id}.png`);
     setStatus('');
     try {
       if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: t('My OVVO Wrapped {year}', { year }),
-          text: demo ? t('My demo OVVO Wrapped year.') : t('My year in journeys with OVVO.'),
+          title: t('My OVVO Yearbook {year}', { year }),
+          text: demo ? t('My demo OVVO Yearbook year.') : t('My year in journeys with OVVO.'),
         });
         setStatus(t('Shared'));
         return;
@@ -810,7 +810,7 @@ export function WrappedShareDialog({
     if (!images.length) return;
     images.forEach((dataUrl, index) => {
       window.setTimeout(() => {
-        saveBlob(dataUrlToFile(dataUrl, `ovvo-wrapped-${year}-${cards[index].id}.png`));
+        saveBlob(dataUrlToFile(dataUrl, `ovvo-yearbook-${year}-${cards[index].id}.png`));
       }, index * 240);
     });
     setStatus(t('Downloading all cards'));
@@ -858,7 +858,7 @@ export function WrappedShareDialog({
           <img
             className="wrapped-share__image"
             src={image}
-            alt={t('{card} card for OVVO Wrapped {year}', { card: cards[active].tab, year })}
+            alt={t('{card} card for OVVO Yearbook {year}', { card: cards[active].tab, year })}
           />
         ) : (
           <div className="wrapped-share__loading" role="status">

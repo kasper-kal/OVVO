@@ -2,7 +2,7 @@
 
 ## Music
 
-The score of OVVO Wrapped is the steerer's own music, uploaded to this repository in November 2026
+The score of OVVO Yearbook is the steerer's own music, uploaded to this repository in November 2026
 and licensed for commercial use in OVVO. Ten pieces, one per chapter. The files were renamed on the
 way in so the code names them by mood rather than by working title, and they sit in `public/music`:
 only the chapter being played, and the one after it, are ever fetched.

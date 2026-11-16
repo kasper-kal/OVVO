@@ -138,7 +138,10 @@ export default function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/results" element={<ResultsPage />} />
                   <Route path="/plan" element={<PlanPage />} />
-                  <Route path="/wrapped" element={<WrappedGate />} />
+                  <Route path="/yearbook" element={<WrappedGate />} />
+                  {/* The old address stays a door, not a 404: a bookmark or a shared link
+                      taken before the rename still lands on the same story. */}
+                  <Route path="/wrapped" element={<Navigate to={`/yearbook${window.location.search}`} replace />} />
                   {/* One search, in full: everything a reload or a pasted link must put back —
                       see `lib/searchLink`. `/results` alone still works and says there is nothing
                       to show yet. */}

@@ -51,7 +51,7 @@ Settings    Appearance, language (Dutch and English), clock format, location per
             battery saving, names for favourite stops, developer panel, this account, the reset,
             and the support address at the foot.
 
-Wrapped     A yearly review of the traveller's own year: a deck of chapters built only from what
+Yearbook    A yearly review of the traveller's own year: a deck of chapters built only from what
             this app recorded (searches, boards, hearts, looks), never a made-up number and never
             a comparison with other travellers. It opens in its season and is kept afterwards.
 

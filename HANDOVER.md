@@ -239,7 +239,7 @@ A 401 there is correct: it means the API refuses to answer without a sign-in.
 - The Firebase library adds about 230 kB (gzipped) to the bundle, because every screen ships in one
   file by design.
 - The landing page on `ovvo.us.ci` is not built yet.
-- OVVO Wrapped **is built** (`/wrapped`, `src/pages/WrappedPage.tsx`): the traveller's own year,
+- OVVO Yearbook **is built** (`/yearbook`, `src/pages/WrappedPage.tsx`): the traveller's own year,
   drawn from what they saved and searched. It is a screen of its own rather than a section.
 - A real end-to-end sign-in has not been walked on a phone yet. The code, the routes and the
   database are in place; the one untested step is a person signing in for the first time.
