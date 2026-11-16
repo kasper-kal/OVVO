@@ -18,6 +18,8 @@ import { WrappedAwardsChapter } from '../components/wrapped/WrappedAwardsChapter
 import { WrappedBookendsChapter } from '../components/wrapped/WrappedBookendsChapter';
 import { WrappedDistanceChapter } from '../components/wrapped/WrappedDistanceChapter';
 import { WrappedCrewChapter } from '../components/wrapped/WrappedCrewChapter';
+import { WrappedSealed } from '../components/wrapped/WrappedSealed';
+import { WrappedComparisonChapter } from '../components/wrapped/WrappedComparisonChapter';
 import {
   resumeSound,
   scoreTime,
@@ -84,7 +86,13 @@ const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D
 export function WrappedGate() {
   const t = useT();
   const leave = useHistoryBack('/');
-  const now = appNow();
+  /* December is the only month that needs a ticking clock, so the gate only wakes for it. */
+  const [now, setNow] = useState(() => appNow());
+  useEffect(() => {
+    if (now.getMonth() !== 11) return undefined;
+    const id = window.setInterval(() => setNow(appNow()), 1000);
+    return () => window.clearInterval(id);
+  }, [now.getMonth()]);
   /*
    * **The example deck is not the season.**
    *
@@ -102,6 +110,7 @@ export function WrappedGate() {
    */
   const opening = new Date(now.getFullYear(), 0, 1, 0, 0, 1).getTime();
   if ((now.getMonth() === 0 && now.getTime() >= opening) || demo) return <WrappedPage />;
+  if (now.getMonth() === 11) return <WrappedSealed now={now} onBack={leave} />;
 
   return (
     <div className="stack-4" style={{ maxWidth: 560, margin: '12vh auto 0' }}>
@@ -168,9 +177,16 @@ export function WrappedPage() {
     () => (demo ? demoYear(year, demoVariant) : realTally),
     [demo, year, realTally, demoVariant],
   );
+  const previousTally = useMemo(
+    () =>
+      demo
+        ? demoYear(year - 1, demoVariant, true)
+        : tallyFor(year - 1),
+    [demo, year, demoVariant],
+  );
   const story = useMemo(
-    () => buildStory({ year, tally, language: settings.language }),
-    [year, tally, settings.language],
+    () => buildStory({ year, tally, previous: previousTally, language: settings.language }),
+    [year, tally, previousTally, settings.language],
   );
 
   const [index, setIndex] = useState(0);
@@ -814,6 +830,10 @@ export function WrappedPage() {
 
               {chapter.kind === 'bookends' && chapter.bookends ? (
                 <WrappedBookendsChapter first={chapter.bookends.first} last={chapter.bookends.last} />
+              ) : null}
+
+              {chapter.kind === 'comparison' && chapter.comparison ? (
+                <WrappedComparisonChapter data={chapter.comparison} />
               ) : null}
 
               {chapter.kind === 'crew' && chapter.crew ? <WrappedCrewChapter crew={chapter.crew} /> : null}

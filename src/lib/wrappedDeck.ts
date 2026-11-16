@@ -37,6 +37,7 @@ export type ChapterKind =
   | 'awards'
   | 'bookends'
   | 'distance'
+  | 'comparison'
   | 'crew'
   | 'close';
 
@@ -117,6 +118,19 @@ export interface CrewSummary {
   lines: string[];
 }
 
+export interface YearComparison {
+  previousYear: number;
+  journeys: number;
+  previousJourneys: number;
+  /** Stops used this year that last year's tally never touched. */
+  newStations: string[];
+  newStationCount: number;
+  /** Stops that appeared in both years, the old favourites. */
+  returningStations: number;
+  /** Look ids worn in both years, named in the current language. */
+  survivedThemes: string[];
+}
+
 export interface Chapter {
   id: string;
   kind: ChapterKind;
@@ -169,6 +183,8 @@ export interface Chapter {
   distance?: ChapterDistance;
   /** The safe aggregates a friend can compare with. */
   crew?: CrewSummary;
+  /** The same deck's previous year, when there is one to compare against. */
+  comparison?: YearComparison;
 }
 
 /** How many journeys are enough to make a story. */
@@ -391,13 +407,61 @@ function nameplateFor({
   return best ? { name: best.name, line: best.line, chips: best.chips } : null;
 }
 
+function comparisonFor({
+  year,
+  runs,
+  tally,
+  previous,
+  language,
+}: {
+  year: number;
+  runs: YearTally['runs'];
+  tally: YearTally;
+  previous?: YearTally;
+  language: Language;
+}): YearComparison | null {
+  if (!previous || previous.runs.length === 0) return null;
+
+  const stops = (source: YearTally['runs']) => {
+    const found = new Set<string>();
+    for (const run of source) {
+      if (getStop(run.from)) found.add(run.from);
+      if (getStop(run.to)) found.add(run.to);
+    }
+    return found;
+  };
+  const currentStops = stops(runs);
+  const previousStops = stops(previous.runs);
+  const newStations = [...currentStops]
+    .filter((id) => !previousStops.has(id))
+    .map(nameOf);
+  const returningStations = [...currentStops].filter((id) => previousStops.has(id)).length;
+  const previousThemes = new Set(previous.wears.map((wear) => wear.id));
+  const survivedThemes = [...new Set(tally.wears.map((wear) => wear.id))]
+    .filter((id) => previousThemes.has(id))
+    .flatMap((id) => lookName(id, language) ?? [])
+    .slice(0, 4);
+
+  return {
+    previousYear: year - 1,
+    journeys: runs.length,
+    previousJourneys: previous.runs.length,
+    newStations: newStations.slice(0, 8),
+    newStationCount: newStations.length,
+    returningStations,
+    survivedThemes,
+  };
+}
+
 export function buildStory({
   year,
   tally,
+  previous,
   language,
 }: {
   year: number;
   tally: YearTally;
+  previous?: YearTally;
   language: Language;
 }): Chapter[] {
   const runs = [...tally.runs].sort((a, b) => a.at - b.at);
@@ -582,6 +646,7 @@ export function buildStory({
     era: eraList.length ? eraList[eraList.length - 1].name : null,
     lines: topEntries(lines, 5).map((entry) => entry.value),
   };
+  const comparison = comparisonFor({ year, runs, tally, previous, language });
 
   const story: Array<Chapter | null> = [
     {
@@ -818,6 +883,25 @@ export function buildStory({
         },
       },
     },
+    comparison
+      ? {
+          id: 'comparison',
+          kind: 'comparison',
+          tone: 'cream',
+          track: 'indie-pop',
+          kicker: 'Year over year',
+          big:
+            comparison.journeys === comparison.previousJourneys
+              ? 'Exactly the same'
+              : comparison.journeys > comparison.previousJourneys
+                ? `+${comparison.journeys - comparison.previousJourneys} ${
+                    comparison.journeys - comparison.previousJourneys === 1 ? 'journey' : 'journeys'
+                  }`
+                : `${comparison.previousJourneys - comparison.journeys} fewer`,
+          line: `Against ${comparison.previousYear}, from the tally you kept.`,
+          comparison,
+        }
+      : null,
     {
       id: 'crew',
       kind: 'crew',

@@ -65,17 +65,24 @@ function seeded(seed: number): () => number {
  * the afternoon and thin at three, and a deck that says "you usually set off at eight" is only
  * worth reading if the year behind it looks like a person's week.
  */
-export function demoYear(year: number, variant: DemoVariant = 'regular'): YearTally {
+export function demoYear(
+  year: number,
+  variant: DemoVariant = 'regular',
+  previous = false,
+): YearTally {
   const profile =
     variant === 'night-owl'
       ? { total: 164, peaks: [19, 20, 21, 21, 22, 22, 23], seed: 20270101 }
       : variant === 'thin'
         ? { total: 7, peaks: [8, 17, 22], seed: 20270102 }
         : { total: 146, peaks: [7, 8, 8, 8, 9, 12, 17, 17, 18, 18, 19, 22], seed: 20261231 };
-  const random = seeded(profile.seed);
+  const random = seeded(profile.seed + (previous ? 17 : 0));
   const runs: YearRun[] = [];
   const peaks = profile.peaks;
-  const total = profile.total;
+  /* The demo's previous year is a little quieter and used fewer of the same routes, so the
+     year-over-year chapter has something to show without inventing a second fake town. */
+  const total = previous ? Math.max(5, Math.round(profile.total * 0.78)) : profile.total;
+  const pairs = previous ? DEMO_PAIRS.slice(0, 6) : DEMO_PAIRS;
 
   for (let index = 0; index < total; index += 1) {
     /* Spread across the year, weighted towards the months people actually travel. */
@@ -87,7 +94,7 @@ export function demoYear(year: number, variant: DemoVariant = 'regular'): YearTa
     const month = monthPool[Math.floor(random() * monthPool.length)];
     const day = 1 + Math.floor(random() * 28);
     const hour = peaks[Math.floor(random() * peaks.length)];
-    const [from, to] = DEMO_PAIRS[Math.floor(random() * DEMO_PAIRS.length)];
+    const [from, to] = pairs[Math.floor(random() * pairs.length)];
     const changes = random() < 0.42 ? 0 : random() < 0.75 ? 1 : 2;
     const minutes = 18 + Math.floor(random() * 78) + changes * 9;
     runs.push({
