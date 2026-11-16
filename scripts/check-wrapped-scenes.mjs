@@ -66,6 +66,18 @@ for (let i = 0; i < 18; i += 1) {
       classes: scene.className,
       motion: scene.dataset.motion ?? '',
       big: scene.querySelector('.scene-big, .scene-year')?.textContent?.trim() ?? '',
+      words: [...scene.querySelectorAll('.scene-word')].filter((el) => getComputedStyle(el).display !== 'none').length,
+      bridge: (() => {
+        const el = scene.querySelector('.scene-bridge');
+        if (!el) return '';
+        const style = getComputedStyle(el);
+        return style.display === 'none' || style.visibility === 'hidden' ? '' : el.textContent?.trim() ?? '';
+      })(),
+      cut: Boolean(scene.querySelector('.scene-cut')),
+      animation: (() => {
+        const word = scene.querySelector('.scene-big .scene-word, .scene-year .scene-char');
+        return word ? getComputedStyle(word).animationName : 'none';
+      })(),
       before: document.querySelectorAll('.issue-page').length,
       pseudo: ['::before', '::after'].filter((pseudo) => {
         const style = getComputedStyle(body, pseudo);
@@ -107,10 +119,22 @@ for (const scene of present) {
 const classes = new Set(present.map((scene) => scene.classes));
 const bigs = new Set(present.map((scene) => scene.big).filter(Boolean));
 const modes = new Set(present.map((scene) => scene.motion));
+const bridges = new Set(present.map((scene) => scene.bridge).filter(Boolean));
+const words = present.reduce((total, scene) => total + scene.words, 0);
+const animated = present.filter((scene) => scene.animation && scene.animation !== 'none').length;
+const cuts = present.filter((scene) => scene.cut).length;
 
 if (classes.size < 16) failures.push(`only ${classes.size} distinct scenes`);
 if (bigs.size < 15) failures.push(`only ${bigs.size} distinct headlines`);
 if (modes.size < 5) failures.push(`only ${modes.size} moving grounds`);
+if (bridges.size < 14) failures.push(`only ${bridges.size} story bridges`);
+if (words < 100) failures.push(`only ${words} kinetic words`);
+if (animated < 15) failures.push(`only ${animated} scenes have kinetic type`);
+if (cuts < 16) failures.push(`only ${cuts} scenes have a cut`);
+
+for (const scene of present) {
+  if (scene.chapter !== 'cover' && !scene.bridge) failures.push(`${scene.chapter}: no story bridge`);
+}
 
 if (failures.length) {
   console.log('WRAPPED SCENES: FAIL');
@@ -120,5 +144,6 @@ if (failures.length) {
 
 console.log(
   `WRAPPED SCENES: PASS — ${present.length} full-screen scenes, 0 old layers, ` +
-    `${classes.size} distinct scenes, ${bigs.size} distinct headlines, ${modes.size} moving grounds, no copy spills.`,
+    `${classes.size} distinct scenes, ${bigs.size} distinct headlines, ${modes.size} moving grounds, ` +
+    `${bridges.size} story bridges, ${words} kinetic words, no copy spills.`,
 );
