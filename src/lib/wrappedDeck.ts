@@ -11,7 +11,7 @@
  * nine dressed up ones.
  */
 
-import { getStop } from '../data/stops';
+import { geoDistanceMetres, getStop } from '../data/stops';
 import { MAP_POINT } from '../data/map';
 import type { Language } from '../state/types';
 import { formatDuration } from './format';
@@ -36,6 +36,8 @@ export type ChapterKind =
   | 'map'
   | 'awards'
   | 'bookends'
+  | 'distance'
+  | 'crew'
   | 'close';
 
 export interface EraPhase {
@@ -96,6 +98,25 @@ export interface YearBookend {
   to: string;
 }
 
+export interface ChapterDistance {
+  /** Straight-line kilometres between stops OVVO could place. */
+  km: number;
+  knownRuns: number;
+  totalRuns: number;
+  /** Estimated emissions from the simple, conservative comparison in the chapter. */
+  carKg: number;
+  transitKg: number;
+  avoidedKg: number;
+}
+
+export interface CrewSummary {
+  journeys: number;
+  topLine: string | null;
+  traveller: string | null;
+  era: string | null;
+  lines: string[];
+}
+
 export interface Chapter {
   id: string;
   kind: ChapterKind;
@@ -144,6 +165,10 @@ export interface Chapter {
   awards?: YearAward[];
   /** The first and last journey, for the quiet bookend chapter. */
   bookends?: { first: YearBookend; last: YearBookend };
+  /** Planned distance and the deliberately cautious car comparison. */
+  distance?: ChapterDistance;
+  /** The safe aggregates a friend can compare with. */
+  crew?: CrewSummary;
 }
 
 /** How many journeys are enough to make a story. */
@@ -208,6 +233,13 @@ function topEntries<T extends string>(counts: Map<T, number>, limit: number): Ar
 
 /** How many journeys a year needs before it can be said what kind of traveller it made. */
 export const NAME_MIN_RUNS = 6;
+
+/*
+ * The comparison is deliberately simple and conservative: a petrol car with one occupant and an
+ * average public-transport passenger. It is an illustration, not a measurement of a trip.
+ */
+const CAR_KG_PER_KM = 0.17;
+const TRANSIT_KG_PER_KM = 0.05;
 
 interface Nameplate {
   /** What the year made them, in a few words. */
@@ -406,6 +438,8 @@ export function buildStory({
   const looks = new Map<string, number>();
   const lines = new Map<string, number>();
   const stopCounts = new Map<string, number>();
+  let plannedKm = 0;
+  let placedRuns = 0;
   let direct = 0;
   let longest = runs[0];
 
@@ -417,8 +451,14 @@ export function buildStory({
     if ((run.changes ?? 1) === 0) direct += 1;
     if ((run.minutes ?? 0) > (longest.minutes ?? 0)) longest = run;
     for (const line of run.lines ?? []) lines.set(line, (lines.get(line) ?? 0) + 1);
-    if (getStop(run.from)) stopCounts.set(run.from, (stopCounts.get(run.from) ?? 0) + 1);
-    if (getStop(run.to)) stopCounts.set(run.to, (stopCounts.get(run.to) ?? 0) + 1);
+    const fromStop = getStop(run.from);
+    const toStop = getStop(run.to);
+    if (fromStop) stopCounts.set(run.from, (stopCounts.get(run.from) ?? 0) + 1);
+    if (toStop) stopCounts.set(run.to, (stopCounts.get(run.to) ?? 0) + 1);
+    if (fromStop && toStop) {
+      plannedKm += geoDistanceMetres(fromStop, toStop) / 1000;
+      placedRuns += 1;
+    }
   }
   for (const wear of tally.wears) looks.set(wear.id, (looks.get(wear.id) ?? 0) + 1);
 
@@ -532,6 +572,16 @@ export function buildStory({
     longestMinutes: longest.minutes,
     language,
   });
+  const carKg = plannedKm * CAR_KG_PER_KM;
+  const transitKg = plannedKm * TRANSIT_KG_PER_KM;
+  const avoidedKg = Math.max(0, carKg - transitKg);
+  const crewSummary: CrewSummary = {
+    journeys: runs.length,
+    topLine: lineList[0]?.value ?? null,
+    traveller: plate?.name ?? null,
+    era: eraList.length ? eraList[eraList.length - 1].name : null,
+    lines: topEntries(lines, 5).map((entry) => entry.value),
+  };
 
   const story: Array<Chapter | null> = [
     {
@@ -589,6 +639,25 @@ export function buildStory({
             topLine: lineList[0]?.value ?? null,
             places: stopsOnMap.length,
             routeCount: mapRoutes.length,
+          },
+        }
+      : null,
+    plannedKm > 0
+      ? {
+          id: 'distance',
+          kind: 'distance',
+          tone: 'sage',
+          track: 'electropop',
+          kicker: 'Distance and CO2',
+          big: `${plannedKm >= 10 ? Math.round(plannedKm) : plannedKm.toFixed(1)} km`,
+          line: 'Planned as the crow flies, from the journeys OVVO could place.',
+          distance: {
+            km: plannedKm,
+            knownRuns: placedRuns,
+            totalRuns: runs.length,
+            carKg,
+            transitKg,
+            avoidedKg,
           },
         }
       : null,
@@ -748,6 +817,16 @@ export function buildStory({
           to: nameOf(lastRun.to),
         },
       },
+    },
+    {
+      id: 'crew',
+      kind: 'crew',
+      tone: 'sage',
+      track: 'electro-dance',
+      kicker: 'Travel crew',
+      big: 'Compare your year',
+      line: 'Share a code with a friend. Only counts, lines and looks travel.',
+      crew: crewSummary,
     },
     {
       id: 'close',

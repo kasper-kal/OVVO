@@ -16,6 +16,8 @@ import { WrappedMapChapter } from '../components/wrapped/WrappedMapChapter';
 import { WrappedEraChapter } from '../components/wrapped/WrappedEraChapter';
 import { WrappedAwardsChapter } from '../components/wrapped/WrappedAwardsChapter';
 import { WrappedBookendsChapter } from '../components/wrapped/WrappedBookendsChapter';
+import { WrappedDistanceChapter } from '../components/wrapped/WrappedDistanceChapter';
+import { WrappedCrewChapter } from '../components/wrapped/WrappedCrewChapter';
 import {
   resumeSound,
   scoreTime,
@@ -628,6 +630,8 @@ export function WrappedPage() {
 
               {chapter.kind === 'map' && chapter.map ? (
                 <WrappedMapChapter data={chapter.map} big={chapter.big} line={chapter.line} />
+              ) : chapter.kind === 'distance' && chapter.distance ? (
+                <WrappedDistanceChapter data={chapter.distance} />
               ) : chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
                   <span className="wrapped-arc__spark" aria-hidden="true" />
@@ -788,7 +792,7 @@ export function WrappedPage() {
               ) : null}
 
               {/* The rail prints its own two stations, the look prints its own days, and the map prints its own caption. */}
-              {chapter.kind === 'route' || chapter.kind === 'word' || chapter.kind === 'map' ? null : (
+              {chapter.kind === 'route' || chapter.kind === 'word' || chapter.kind === 'map' || chapter.kind === 'distance' ? null : (
                 <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
                   {t(chapter.line)}
                 </p>
@@ -811,6 +815,8 @@ export function WrappedPage() {
               {chapter.kind === 'bookends' && chapter.bookends ? (
                 <WrappedBookendsChapter first={chapter.bookends.first} last={chapter.bookends.last} />
               ) : null}
+
+              {chapter.kind === 'crew' && chapter.crew ? <WrappedCrewChapter crew={chapter.crew} /> : null}
 
               {chapter.hearts || chapter.boards ? (
                 <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
