@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useHistoryBack } from '../components/layout/AppShell';
@@ -169,7 +169,19 @@ export function WrappedGate() {
 }
 
 export function WrappedPage() {
-  const { settings, reduceMotion } = useApp();
+  const { settings, reduceMotion, suspendBatterySaving } = useApp();
+  /*
+   * **The story is exempt from the phone's saving modes.**
+   *
+   * At 20% the app stills every animation, and at 10% it also removes shadows and switches the
+   * appearance. That is the right trade for a departure board; it is the wrong one for a deck
+   * whose motion and colour are the year. The deck asks for the exception before its first paint
+   * and gives it back when it closes, so the app's own saving mode is untouched everywhere else.
+   */
+  useLayoutEffect(() => {
+    suspendBatterySaving(true);
+    return () => suspendBatterySaving(false);
+  }, [suspendBatterySaving]);
   const t = useT();
   /* Closing the story returns to the screen it was opened from, not to the home screen. */
   const leave = useHistoryBack('/');

@@ -149,6 +149,16 @@ interface AppContextValue {
   reduceMotion: boolean;
 
   /**
+   * **One screen may opt out of battery thinning, and the Yearbook does.**
+   *
+   * The saving modes are a subtraction for the app's working screens. The Yearbook is not a
+   * working screen: its pictures *are* the story, so a stilled deck is a broken deck. While this
+   * is true the document is drawn as `data-power="off"`; the battery reading itself is unchanged,
+   * so closing the Yearbook puts the current mode back in the same frame.
+   */
+  suspendBatterySaving: (suspended: boolean) => void;
+
+  /**
    * Battery saving as the device reports it (see `lib/power.ts`): `save` at 20%, `super` at 10%,
    * `off` above that or while charging.
    *
@@ -428,6 +438,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   const [power, setPower] = useState<PowerState>(NO_BATTERY);
   useEffect(() => watchBattery(setPower), []);
+  /*
+   * **The exception is a page, not a new power mode.** The Yearbook asks for this while it is on
+   * screen; the battery reading and the current mode stay exactly as the device reported them.
+   * Nothing is stored, and the teardown is the page unmounting, so leaving the story restores the
+   * mode without a second decision to remember.
+   */
+  const [batterySuspended, setBatterySuspended] = useState(false);
+  const effectivePowerMode = batterySuspended ? 'off' : power.mode;
   const [savedJourneys, setSavedJourneys] = useState<SavedJourney[]>(() =>
     readStored<SavedJourney[]>(STORAGE_KEYS.savedJourneys, []),
   );
@@ -571,7 +589,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * true without the other.
    */
   useEffect(() => {
-    document.documentElement.dataset.power = power.mode;
+    document.documentElement.dataset.power = effectivePowerMode;
     /*
      * **At the last percent the clock stops too.** A minute timer is a wake, a re-render and a
      * repaint for a number that has nowhere to go: the mode leaves one card on screen and the
@@ -579,8 +597,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * same switch (`lib/useMinuteNow.ts`), so this is the whole of it, and a charger starts them
      * again with the minute read at once rather than a minute late.
      */
-    setClockFrozen(power.mode === 'last');
-  }, [power.mode]);
+    setClockFrozen(effectivePowerMode === 'last');
+  }, [effectivePowerMode]);
 
   /*
    * Appearance. `system` follows the device and keeps following it — a traveller who leaves the
@@ -632,7 +650,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * appearance in the same frame the cards come back.
    */
   const appearance: 'light' | 'dark' =
-    (power.mode === 'super' || power.mode === 'last')
+    (!batterySuspended && (power.mode === 'super' || power.mode === 'last'))
       ? 'dark'
       : settings.theme === 'system'
         ? systemDark
@@ -889,6 +907,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     appearance,
     reduceMotion,
     power,
+    suspendBatterySaving: setBatterySuspended,
 
     preferences,
     updatePreferences: (patch) => setPreferences((current) => ({ ...current, ...patch })),
