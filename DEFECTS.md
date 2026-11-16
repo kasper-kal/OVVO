@@ -47,6 +47,8 @@ him, and it is the work queue.
 
 | 31 | "The Superlatives" as the name of the awards page was horrible and not easy to understand | the awards chapter at `/yearbook?demo=1&persona=regular` at 360x800, plus `npm run build` | yes: the chapter now reads "THE AWARDS" and "Your awards" in the live text, and the word "superlatives" is gone from the chapter and its accessible name |
 
+| 32 | "The Awards is too plain" for the page that holds the yearbook awards | the awards chapter at `/yearbook?demo=1&persona=regular` at 360x800, plus `npm run build` | yes: the chapter now reads "THE TROPHY CASE" and "Your trophies", and has no plain "Your awards" heading; the accessible name is "Your trophies" |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

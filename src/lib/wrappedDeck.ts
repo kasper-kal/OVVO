@@ -854,8 +854,8 @@ export function buildStory({
           kind: 'awards',
           tone: 'cream',
           track: 'afrobeat',
-          kicker: 'The awards',
-          big: 'Your awards',
+          kicker: 'The trophy case',
+          big: 'Your trophies',
           line: `${awards.length} awards your journeys earned.`,
           awards,
         }

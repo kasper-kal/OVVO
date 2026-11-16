@@ -19,7 +19,7 @@ export function WrappedAwardsChapter({
   const t = useT();
 
   return (
-    <section className="wrapped-awards" aria-label={t('Your awards')}>
+    <section className="wrapped-awards" aria-label={t('Your trophies')}>
       <div className="wrapped-awards__grid">
         {awards.map((award) => (
           <article className="wrapped-award" key={award.id}>
