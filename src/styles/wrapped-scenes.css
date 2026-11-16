@@ -1050,3 +1050,1231 @@
     filter: none !important;
   }
 }
+
+/* The world is one canvas for the whole film; the copy layers move over it. */
+.wrapped-scene {
+  position: relative;
+}
+
+.wrapped-world {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.wrapped-scene .wrapped-body {
+  position: relative;
+  z-index: 1;
+}
+
+.scene-page {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------- every beat has its own entrance */
+
+/*
+ * The big line used to appear with the page, which made every chapter feel like the next slide.
+ * Now the frame arrives first and the headline lands inside it in a different direction and weight.
+ */
+.scene-big,
+.scene-year {
+  opacity: 0;
+  animation: scene-big-rise 1150ms 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes scene-big-rise {
+  0% { opacity: 0; transform: translate3d(0, 8%, 0) scale(0.94); filter: blur(16px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes scene-big-slam {
+  0% { opacity: 0; transform: translate3d(-9%, 5%, 0) scale(1.16) rotate(-1.5deg); filter: blur(22px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes scene-big-horizon {
+  0% { opacity: 0; transform: translate3d(-16%, 2%, 0) scaleX(1.18); filter: blur(18px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes scene-big-drop {
+  0% { opacity: 0; transform: translate3d(0, -16%, 0) scale(0.9); filter: blur(18px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes scene-big-slide-right {
+  0% { opacity: 0; transform: translate3d(16%, 3%, 0) scale(0.95); filter: blur(16px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes scene-big-turn {
+  0% { opacity: 0; transform: perspective(900px) rotateY(-10deg) rotateZ(-2deg) scale(0.92); filter: blur(14px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes scene-big-bloom {
+  0% { opacity: 0; transform: scale(0.78); filter: blur(28px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+.scene-page--total .scene-big { animation-name: scene-big-slam; }
+.scene-page--map .scene-big { animation-name: scene-big-drop; }
+.scene-page--distance .scene-big { animation-name: scene-big-horizon; }
+.scene-page--pair .scene-big { animation-name: scene-big-slide-right; }
+.scene-page--origin .scene-big { animation-name: scene-big-rise; }
+.scene-page--hour .scene-big { animation-name: scene-big-slide-right; }
+.scene-page--longest .scene-big { animation-name: scene-big-horizon; }
+.scene-page--look .scene-big { animation-name: scene-big-bloom; }
+.scene-page--eras .scene-big { animation-name: scene-big-turn; }
+.scene-page--lines .scene-big { animation-name: scene-big-slide-right; }
+.scene-page--awards .scene-big { animation-name: scene-big-bloom; }
+.scene-page--bookends .scene-big { animation-name: scene-big-rise; }
+.scene-page--crew .scene-big { animation-name: scene-big-turn; }
+.scene-page--close .scene-big { animation-name: scene-big-rise; }
+
+/* The page already has the full colour; the small type can be cream, not a darker ink. */
+.wrapped-scene .scene-kicker,
+.wrapped-scene .scene-sub,
+.wrapped-scene .scene-note,
+.wrapped-scene .scene-bridge,
+.wrapped-scene .scene-credits,
+.wrapped-scene .scene-credits span,
+.wrapped-scene .scene-list,
+.wrapped-scene .scene-list .scene-row,
+.wrapped-scene .scene-stat-label,
+.wrapped-scene .scene-award-row,
+.wrapped-scene .scene-award-row span,
+.wrapped-scene .scene-foot,
+.wrapped-scene .scene-small {
+  color: #f7f3ea;
+}
+
+.wrapped-scene .scene-kicker,
+.wrapped-scene .scene-note,
+.wrapped-scene .scene-small {
+  opacity: 0.74;
+}
+
+.wrapped-scene .scene-bridge {
+  border-top-color: rgb(247 243 234 / 0.46);
+  opacity: 0.82;
+}
+
+/* The closing credits are the last page of a book, so they enter after the line, not with it. */
+.scene-page--close .scene-credits {
+  animation-delay: 1900ms;
+}
+
+/* The map is a constellation of places, not another paragraph. */
+.scene-atlas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.scene-atlas svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.scene-atlas__route {
+  stroke: rgb(247 243 234 / 0.22);
+  stroke-width: 0.18;
+  stroke-linecap: round;
+}
+
+.scene-atlas__route.is-top {
+  stroke: rgb(247 243 234 / 0.72);
+  stroke-width: 0.42;
+}
+
+.scene-atlas__stop circle:first-child {
+  fill: #f7f3ea;
+  filter: url(#atlas-glow);
+}
+
+.scene-atlas__stop.is-top circle:first-child {
+  fill: #f7f3ea;
+}
+
+.scene-atlas__ring {
+  fill: none;
+  stroke: rgb(247 243 234 / 0.3);
+  stroke-width: 0.16;
+}
+
+.scene-atlas__stop.is-top .scene-atlas__ring {
+  stroke: rgb(247 243 234 / 0.6);
+  stroke-width: 0.22;
+}
+
+.scene-atlas__label {
+  fill: #f7f3ea;
+  font: 600 1.15px/1 'Archivo', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  paint-order: stroke;
+  stroke: rgb(0 0 0 / 0.22);
+  stroke-width: 0.22;
+}
+
+.scene-page--map .scene-copy {
+  position: relative;
+}
+
+.scene-page--bookends .scene-row {
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+}
+
+@media (max-width: 719px) {
+  .scene-page--bookends .scene-row {
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+  }
+}
+
+/* A film does not sit inside a 56px mount. The story runs edge to edge; the corner controls keep
+   the app's own 12px gutter so they still match every other screen. */
+.wrapped-stage {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.wrapped-stage .wrapped-top {
+  margin-inline: 12px;
+}
+
+.wrapped-stage .wrapped-foot {
+  padding-inline: 16px;
+}
+
+/* The controls float over the film instead of living in black bars above and below it. */
+.wrapped-stage .wrapped-body {
+  position: absolute;
+  inset: 0;
+  flex: none;
+  padding: 0;
+}
+
+.wrapped-stage .wrapped-foot {
+  position: absolute;
+  inset: auto 0 0;
+}
+
+.wrapped-stage .wrapped-scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------------------------------------------------------------- the visual facts */
+
+/*
+ * The last version still told every chapter with the same object: a number over a ribbon.
+ * These are the chapter's own diagrams. They arrive after the frame and build while the sentence
+ * is still landing, so the year is shown as routes, months, hours and tickets rather than described
+ * as another statistic.
+ */
+.scene-art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  color: #f7f3ea;
+  opacity: 0;
+  animation: art-arrive 1200ms 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes art-arrive {
+  from { opacity: 0; }
+  to { opacity: 0.82; }
+}
+
+.scene-art__panel {
+  position: absolute;
+  right: clamp(18px, 5vw, 86px);
+  top: 16vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: min(40vw, 600px);
+  height: 56vh;
+}
+
+.art-caption {
+  margin: 12px 0 0;
+  font: 500 9px/1.3 'IBM Plex Mono', monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.art-caption span {
+  opacity: 0.5;
+}
+
+.scene-art--total .scene-art__panel {
+  top: auto;
+  right: clamp(18px, 6vw, 100px);
+  bottom: 10vh;
+  width: min(44vw, 680px);
+  height: 43vh;
+}
+
+.art-months {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(4px, 0.7vw, 9px);
+  width: 100%;
+  height: 100%;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgb(247 243 234 / 0.42);
+}
+
+.art-months__bar {
+  position: relative;
+  flex: 1;
+  min-width: 3px;
+  height: var(--h);
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, rgb(247 243 234 / 0.92), rgb(247 243 234 / 0.3));
+  transform-origin: bottom;
+  animation: art-grow 900ms calc(420ms + var(--i) * 55ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-months__bar.is-peak {
+  background: #f7f3ea;
+}
+
+.art-months__bar em {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  font: 600 8px/1 'IBM Plex Mono', monospace;
+  font-style: normal;
+  opacity: 0.55;
+  transform: translateX(-50%);
+}
+
+@keyframes art-grow {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+.art-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.scene-art--distance .scene-art__panel {
+  top: auto;
+  bottom: 10vh;
+  width: min(46vw, 680px);
+  height: 44vh;
+}
+
+.art-route-art {
+  fill: none;
+  stroke: rgb(247 243 234 / 0.8);
+  stroke-width: 0.5;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  vector-effect: non-scaling-stroke;
+  animation: art-draw 1700ms 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes art-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.art-route-art__node {
+  fill: #f7f3ea;
+  stroke: rgb(5 5 5 / 0.3);
+  stroke-width: 0.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.art-distance text {
+  fill: rgb(247 243 234 / 0.7);
+  font: 600 3.2px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scene-art--pair .scene-art__panel {
+  top: 50%;
+  height: auto;
+  transform: translateY(-50%);
+}
+
+.art-rail {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.art-rail__node {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 1px solid #f7f3ea;
+  border-radius: 50%;
+  background: rgb(5 5 5 / 0.48);
+  box-shadow: 0 0 0 6px rgb(247 243 234 / 0.12);
+}
+
+.art-rail__line {
+  position: relative;
+  display: block;
+  flex: 1;
+  height: 1px;
+  margin: 0 6px;
+  background: rgb(247 243 234 / 0.7);
+}
+
+.art-rail__line::before {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
+  background: repeating-linear-gradient(90deg, transparent 0 12px, rgb(247 243 234 / 0.2) 12px 13px);
+}
+
+.art-rail__line i {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f7f3ea;
+  box-shadow: 0 0 18px 5px rgb(247 243 234 / 0.35);
+  transform: translate(-50%, -50%);
+  animation: art-travel 5.6s 900ms ease-in-out infinite;
+}
+
+@keyframes art-travel {
+  0%, 100% { left: 0; }
+  50% { left: 100%; }
+}
+
+.scene-art--origin .scene-art__panel {
+  top: 13vh;
+  height: 50vh;
+}
+
+.art-origins,
+.art-lines {
+  border-top: 1px solid rgb(247 243 234 / 0.4);
+}
+
+.art-origins__row,
+.art-lines__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgb(247 243 234 / 0.22);
+  font: 600 11px/1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  animation: art-line-in 600ms calc(640ms + var(--i) * 110ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-origins__row b,
+.art-lines__row b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.art-origins__row em,
+.art-lines__row em {
+  flex: none;
+  font-style: normal;
+  opacity: 0.58;
+}
+
+@keyframes art-line-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+.scene-art--hour .scene-art__panel {
+  right: auto;
+  left: clamp(18px, 4vw, 70px);
+  top: 15vh;
+  width: min(40vw, 560px);
+  height: 62vh;
+}
+
+.art-dial {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.art-dial__line {
+  stroke: rgb(247 243 234 / 0.35);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  animation: art-tick-in 700ms calc(420ms + var(--i) * 24ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-dial__line.is-peak {
+  stroke: #f7f3ea;
+  stroke-width: 4;
+}
+
+@keyframes art-tick-in {
+  from { opacity: 0; transform: scale(0.82); transform-origin: 100px 100px; }
+  to { opacity: 1; transform: none; }
+}
+
+.art-dial__ring {
+  fill: none;
+  stroke: rgb(247 243 234 / 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+
+.art-dial__label {
+  fill: rgb(247 243 234 / 0.55);
+  font: 600 6px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.16em;
+}
+
+.art-dial__value {
+  fill: #f7f3ea;
+  font: 700 18px/1 'Archivo', sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.scene-art--arc .scene-art__panel {
+  top: 18vh;
+  height: 46vh;
+}
+
+.art-gauge {
+  max-width: 470px;
+  margin: 0 auto;
+  transform: rotate(-90deg);
+}
+
+.art-gauge text {
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
+}
+
+.art-gauge__track {
+  fill: none;
+  stroke: rgb(247 243 234 / 0.22);
+  stroke-width: 4;
+}
+
+.art-gauge__value {
+  fill: none;
+  stroke: #f7f3ea;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dasharray 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.art-gauge__label {
+  fill: rgb(247 243 234 / 0.6);
+  font: 600 7px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.1em;
+}
+
+.art-gauge__value-text {
+  fill: #f7f3ea;
+  font: 700 11px/1 'Archivo', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.art-gauge__value-text {
+  font-size: 11px;
+}
+
+.scene-art--longest .scene-art__panel {
+  top: 20vh;
+  height: 48vh;
+}
+
+.art-long__path {
+  fill: none;
+  stroke: #f7f3ea;
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: art-draw 1900ms 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.art-long__node {
+  fill: #f7f3ea;
+  stroke: rgb(5 5 5 / 0.28);
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.scene-art--eras .scene-art__panel {
+  top: 22vh;
+  height: 39vh;
+}
+
+.art-eras {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 100%;
+  padding-top: 14px;
+}
+
+.art-eras__block {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 18px;
+  border: 1px solid rgb(247 243 234 / 0.28);
+  background: linear-gradient(180deg, transparent, rgb(247 243 234 / 0.2));
+  transform-origin: bottom;
+  animation: art-grow 900ms calc(520ms + var(--i) * 100ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-eras__block em {
+  padding-bottom: 10px;
+  font: 600 8px/1 'IBM Plex Mono', monospace;
+  font-style: normal;
+  opacity: 0.58;
+}
+
+.scene-art--lines .scene-art__panel {
+  top: 18vh;
+  height: 52vh;
+}
+
+.scene-art--awards .scene-art__panel {
+  top: 13vh;
+  right: 2vw;
+  width: min(46vw, 660px);
+  height: 62vh;
+}
+
+.art-awards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.art-award {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: min(29%, 170px);
+  aspect-ratio: 0.7;
+  margin-left: -22px;
+  padding: 14px;
+  border: 1px solid rgb(247 243 234 / 0.55);
+  background: rgb(5 5 6 / 0.2);
+  backdrop-filter: blur(4px);
+  transform: rotate(calc((var(--i) - 1) * 7deg)) translateY(calc(var(--i) * 5px));
+  animation: art-deal 900ms calc(700ms + var(--i) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-award:first-child {
+  margin-left: 0;
+}
+
+.art-award em {
+  margin-bottom: auto;
+  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font-style: normal;
+  opacity: 0.55;
+}
+
+.art-award b {
+  font: 700 clamp(26px, 4vw, 56px)/0.9 'Archivo', sans-serif;
+  letter-spacing: -0.06em;
+}
+
+.art-award small {
+  margin-top: 9px;
+  font: 500 8px/1.2 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+@keyframes art-deal {
+  from { opacity: 0; transform: translateY(22%) rotate(calc((var(--i) - 1) * 7deg + 9deg)) scale(0.9); }
+  to { opacity: 1; transform: rotate(calc((var(--i) - 1) * 7deg)) translateY(calc(var(--i) * 5px)); }
+}
+
+.scene-art--bookends .scene-art__panel {
+  top: 22vh;
+  height: 38vh;
+}
+
+.art-bookend {
+  position: relative;
+  height: 100%;
+  border-bottom: 1px solid rgb(247 243 234 / 0.38);
+}
+
+.art-bookend__line {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: rgb(247 243 234 / 0.52);
+}
+
+.art-bookend__dot {
+  position: absolute;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #f7f3ea;
+  border-radius: 50%;
+  background: rgb(5 5 5 / 0.4);
+}
+
+.art-bookend__dot.is-first { left: 0; }
+.art-bookend__dot.is-last { right: 0; }
+
+.art-bookend em {
+  position: absolute;
+  bottom: 16px;
+  font: 600 10px/1 'IBM Plex Mono', monospace;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.art-bookend em:first-of-type { left: 0; }
+.art-bookend em:last-of-type { right: 0; }
+
+.scene-art--comparison .scene-art__panel {
+  top: 10vh;
+  left: 50%;
+  width: min(66vw, 920px);
+  height: 62vh;
+  transform: translateX(-50%);
+}
+
+.art-compare {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(34px, 8vw, 130px);
+  height: 100%;
+  padding-bottom: 16px;
+}
+
+.art-compare__bar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: clamp(76px, 10vw, 160px);
+  height: var(--h);
+  min-height: 8px;
+  border-top: 1px solid rgb(247 243 234 / 0.7);
+  background: linear-gradient(180deg, rgb(247 243 234 / 0.42), rgb(247 243 234 / 0.08));
+  transform-origin: bottom;
+  animation: art-grow 1100ms 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-compare__bar.is-now {
+  background: linear-gradient(180deg, rgb(247 243 234 / 0.94), rgb(247 243 234 / 0.24));
+  animation-delay: 820ms;
+}
+
+.art-compare__bar em {
+  padding: 10px;
+  font: 700 clamp(22px, 3vw, 44px)/0.9 'Archivo', sans-serif;
+  font-style: normal;
+  letter-spacing: -0.06em;
+}
+
+.art-compare__bar small {
+  padding: 0 10px 10px;
+  font: 500 8px/1.2 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.scene-art--crew .scene-art__panel {
+  top: 18vh;
+  height: 48vh;
+}
+
+.art-crew {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  height: 100%;
+}
+
+.art-crew__ring {
+  display: grid;
+  place-items: center;
+  width: clamp(84px, 12vw, 168px);
+  aspect-ratio: 1;
+  border: 1px solid rgb(247 243 234 / 0.7);
+  border-radius: 50%;
+  font: 600 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.12em;
+  animation: art-ring-in 900ms 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.art-crew__ring.is-them {
+  animation-delay: 780ms;
+}
+
+.art-crew__line {
+  width: clamp(28px, 5vw, 90px);
+  height: 1px;
+  background: rgb(247 243 234 / 0.6);
+}
+
+@keyframes art-ring-in {
+  from { opacity: 0; transform: scale(0.72); }
+  to { opacity: 1; transform: none; }
+}
+
+.scene-art--close .scene-art__panel {
+  top: 16vh;
+  height: 52vh;
+}
+
+.art-year-ring {
+  position: relative;
+  width: min(38vw, 360px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border: 1px solid rgb(247 243 234 / 0.2);
+  border-radius: 50%;
+}
+
+.art-year-ring__tick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 45%;
+  background: rgb(247 243 234 / 0.4);
+  transform-origin: 50% 0;
+  transform: rotate(calc(var(--i) * 30deg));
+}
+
+.art-year-ring__tick::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f7f3ea;
+}
+
+.art-year-ring__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f7f3ea;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 30px 10px rgb(247 243 234 / 0.28);
+}
+
+.art-year-ring em {
+  position: absolute;
+  bottom: 13%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font-style: normal;
+  letter-spacing: 0.16em;
+  opacity: 0.62;
+}
+
+/* The map needs room to be a shape, not a watermark behind a number. */
+.scene-page--map .scene-atlas {
+  left: 34%;
+  opacity: 0.72;
+}
+
+/* At the narrow widths the diagram becomes a quiet layer behind the words, not a second column. */
+@media (max-width: 719px) {
+  .scene-art {
+    opacity: 0.55;
+  }
+
+  .scene-art__panel,
+  .scene-art--total .scene-art__panel,
+  .scene-art--distance .scene-art__panel,
+  .scene-art--hour .scene-art__panel,
+  .scene-art--origin .scene-art__panel,
+  .scene-art--awards .scene-art__panel,
+  .scene-art--comparison .scene-art__panel,
+  .scene-art--crew .scene-art__panel,
+  .scene-art--close .scene-art__panel {
+    top: auto;
+    right: 0;
+    bottom: 12vh;
+    left: 0;
+    width: 100%;
+    height: 27vh;
+    transform: none;
+  }
+
+  .scene-art--pair .scene-art__panel,
+  .scene-art--arc .scene-art__panel,
+  .scene-art--longest .scene-art__panel,
+  .scene-art--eras .scene-art__panel,
+  .scene-art--lines .scene-art__panel,
+  .scene-art--bookends .scene-art__panel {
+    top: auto;
+    right: 0;
+    bottom: 14vh;
+    left: 0;
+    width: 100%;
+    height: 23vh;
+    transform: none;
+  }
+
+  .scene-page--map .scene-atlas {
+    left: 0;
+    opacity: 0.42;
+  }
+
+  .art-caption {
+    display: none;
+  }
+
+  .art-awards {
+    transform: scale(0.68);
+    transform-origin: center bottom;
+  }
+
+  .art-year-ring {
+    width: 40vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-art,
+  .art-months__bar,
+  .art-eras__block,
+  .art-award,
+  .art-compare__bar,
+  .art-crew__ring,
+  .art-dial__line,
+  .art-route-art,
+  .art-long__path,
+  .art-origins__row,
+  .art-lines__row,
+  .art-rail__line i {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .scene-art {
+    opacity: 0.62 !important;
+  }
+}
+
+.art-long {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.art-crew__ring.is-you {
+  color: #f7f3ea;
+}
+
+.art-gauge__value {
+  stroke-dasharray: 0 100;
+  animation: art-gauge-in 1200ms 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes art-gauge-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* The facts are part of the scene, not a watermark under its shade. */
+.scene-art {
+  z-index: 2;
+  opacity: 1;
+}
+
+.scene-copy {
+  z-index: 3;
+}
+
+.scene-atlas {
+  z-index: 2;
+}
+
+.scene-art {
+  animation-name: art-arrive;
+}
+
+@keyframes art-arrive {
+  from { opacity: 0; }
+  to { opacity: 0.94; }
+}
+
+.art-caption {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* A rail has to read at arm's length, not just at 1:1. */
+.art-rail__node {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.art-rail__line {
+  height: 2px;
+}
+
+.art-rail__line i {
+  width: 12px;
+  height: 12px;
+}
+
+.art-origins__row,
+.art-lines__row {
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+.art-dial__line {
+  stroke: rgb(247 243 234 / 0.56);
+}
+
+.art-dial__line.is-peak {
+  stroke-width: 5;
+}
+
+.art-dial__label {
+  fill: rgb(247 243 234 / 0.8);
+}
+
+/* The comparison bars stand on either side of the sentence, not through it. */
+.art-compare {
+  justify-content: space-between;
+  padding-inline: 2vw;
+}
+
+/* The award cards are a quiet pile, not three dark panels over the copy. */
+.scene-art--awards .scene-art__panel {
+  right: 1vw;
+  width: min(38vw, 540px);
+}
+
+.art-award {
+  background: rgb(5 5 6 / 0.12);
+  border-color: rgb(247 243 234 / 0.42);
+}
+
+@media (max-width: 719px) {
+  .scene-art {
+    opacity: 0.72;
+  }
+
+  .art-caption {
+    display: none;
+  }
+
+  .art-compare {
+    padding-inline: 6vw;
+  }
+}
+
+/* Keep the left-hand lists and the right-hand facts in separate columns on a wide screen. */
+.scene-page--eras .scene-copy,
+.scene-page--awards .scene-copy,
+.scene-page--lines .scene-copy,
+.scene-page--bookends .scene-copy {
+  width: min(46%, 680px);
+}
+
+.scene-art--eras .scene-art__panel {
+  right: 1vw;
+  width: min(28vw, 420px);
+}
+
+.scene-art--awards .scene-art__panel {
+  right: 1vw;
+  width: min(28vw, 420px);
+}
+
+.art-award b {
+  font-size: clamp(24px, 3vw, 38px);
+}
+
+/* The dial gets its own quiet corner; the hour is the only headline this big. */
+.scene-page--hour .scene-big {
+  font-size: clamp(110px, 21vw, 280px);
+}
+
+.scene-art--hour .scene-art__panel {
+  left: 2vw;
+  width: min(28vw, 410px);
+  height: 50vh;
+}
+
+/* The bookend diagram sits above the two ticket rows, not under them. */
+.scene-art--bookends .scene-art__panel {
+  top: 12vh;
+  height: 26vh;
+  width: min(34vw, 500px);
+}
+
+.scene-art--bookends .art-caption {
+  margin-top: 8px;
+}
+
+@media (max-width: 719px) {
+  .scene-page--eras .scene-copy,
+  .scene-page--awards .scene-copy,
+  .scene-page--lines .scene-copy,
+  .scene-page--bookends .scene-copy {
+    width: min(91%, 760px);
+  }
+
+  .scene-art--hour .scene-art__panel {
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* Keep the last few diagrams out of the headline's way. */
+.scene-art--crew .scene-art__panel {
+  top: auto;
+  right: 4vw;
+  bottom: 6vh;
+  height: 27vh;
+}
+
+.scene-art--close .scene-art__panel {
+  top: auto;
+  right: 4vw;
+  bottom: 8vh;
+  height: 34vh;
+}
+
+.art-award b {
+  font-size: clamp(18px, 2vw, 26px);
+  white-space: nowrap;
+}
+
+.art-lines__row {
+  padding-right: 8px;
+}
+
+.art-lines__row em {
+  padding-right: 6px;
+}
+
+@media (max-width: 719px) {
+  .scene-art--crew .scene-art__panel,
+  .scene-art--close .scene-art__panel {
+    top: auto;
+    right: 0;
+    bottom: 12vh;
+    left: 0;
+    width: 100%;
+    height: 24vh;
+  }
+}
+
+.scene-page--cover .scene-small {
+  color: #f7f3ea;
+  opacity: 0.72;
+  background: rgb(5 5 6 / 0.28);
+}
+
+@media (max-width: 719px) {
+  .art-awards {
+    display: none;
+  }
+}
+
+/* The map is drawn, pin by pin, not unfolded as a finished diagram. */
+.scene-atlas__route {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: atlas-draw 1200ms calc(320ms + var(--i) * 45ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes atlas-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.scene-atlas__stop {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: atlas-pin 700ms calc(480ms + var(--i) * 55ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes atlas-pin {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+
+.scene-atlas__label {
+  opacity: 0;
+  animation: scene-fade-strong 700ms 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The directness ring draws itself instead of appearing complete. */
+.art-gauge__value {
+  animation: gauge-draw 1300ms 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes gauge-draw {
+  from { stroke-dashoffset: 100; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+.art-months__bar em {
+  opacity: 0.82;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-atlas__route,
+  .scene-atlas__stop,
+  .scene-atlas__label,
+  .art-gauge__value {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}

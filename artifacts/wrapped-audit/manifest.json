@@ -1,8 +1,266 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-11-16T20:46:29.525Z",
-  "total": 36,
+  "at": "2026-11-16T23:14:07.974Z",
+  "total": 144,
   "states": [
+    {
+      "state": {
+        "id": "phone",
+        "width": 360,
+        "height": 800
+      },
+      "chapters": [
+        {
+          "pageNo": 2,
+          "id": "total"
+        },
+        {
+          "pageNo": 3,
+          "id": "name"
+        },
+        {
+          "pageNo": 4,
+          "id": "map"
+        },
+        {
+          "pageNo": 5,
+          "id": "distance"
+        },
+        {
+          "pageNo": 6,
+          "id": "pair"
+        },
+        {
+          "pageNo": 7,
+          "id": "origin"
+        },
+        {
+          "pageNo": 8,
+          "id": "hour"
+        },
+        {
+          "pageNo": 9,
+          "id": "direct"
+        },
+        {
+          "pageNo": 10,
+          "id": "longest"
+        },
+        {
+          "pageNo": 11,
+          "id": "look"
+        },
+        {
+          "pageNo": 12,
+          "id": "eras"
+        },
+        {
+          "pageNo": 13,
+          "id": "lines"
+        },
+        {
+          "pageNo": 14,
+          "id": "awards"
+        },
+        {
+          "pageNo": 15,
+          "id": "bookends"
+        },
+        {
+          "pageNo": 16,
+          "id": "comparison"
+        },
+        {
+          "pageNo": 17,
+          "id": "crew"
+        },
+        {
+          "pageNo": 18,
+          "id": "close"
+        }
+      ],
+      "consoleErrors": [
+        "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 429 ()",
+        "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 429 ()"
+      ],
+      "shots": 36
+    },
+    {
+      "state": {
+        "id": "small",
+        "width": 320,
+        "height": 568
+      },
+      "chapters": [
+        {
+          "pageNo": 2,
+          "id": "total"
+        },
+        {
+          "pageNo": 3,
+          "id": "name"
+        },
+        {
+          "pageNo": 4,
+          "id": "map"
+        },
+        {
+          "pageNo": 5,
+          "id": "distance"
+        },
+        {
+          "pageNo": 6,
+          "id": "pair"
+        },
+        {
+          "pageNo": 7,
+          "id": "origin"
+        },
+        {
+          "pageNo": 8,
+          "id": "hour"
+        },
+        {
+          "pageNo": 9,
+          "id": "direct"
+        },
+        {
+          "pageNo": 10,
+          "id": "longest"
+        },
+        {
+          "pageNo": 11,
+          "id": "look"
+        },
+        {
+          "pageNo": 12,
+          "id": "eras"
+        },
+        {
+          "pageNo": 13,
+          "id": "lines"
+        },
+        {
+          "pageNo": 14,
+          "id": "awards"
+        },
+        {
+          "pageNo": 15,
+          "id": "bookends"
+        },
+        {
+          "pageNo": 16,
+          "id": "comparison"
+        },
+        {
+          "pageNo": 17,
+          "id": "crew"
+        },
+        {
+          "pageNo": 18,
+          "id": "close"
+        }
+      ],
+      "consoleErrors": [
+        "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 429 ()",
+        "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 429 ()"
+      ],
+      "shots": 72
+    },
+    {
+      "state": {
+        "id": "tablet",
+        "width": 768,
+        "height": 1024
+      },
+      "chapters": [
+        {
+          "pageNo": 2,
+          "id": "total"
+        },
+        {
+          "pageNo": 3,
+          "id": "name"
+        },
+        {
+          "pageNo": 4,
+          "id": "map"
+        },
+        {
+          "pageNo": 5,
+          "id": "distance"
+        },
+        {
+          "pageNo": 6,
+          "id": "pair"
+        },
+        {
+          "pageNo": 7,
+          "id": "origin"
+        },
+        {
+          "pageNo": 8,
+          "id": "hour"
+        },
+        {
+          "pageNo": 9,
+          "id": "direct"
+        },
+        {
+          "pageNo": 10,
+          "id": "longest"
+        },
+        {
+          "pageNo": 11,
+          "id": "look"
+        },
+        {
+          "pageNo": 12,
+          "id": "eras"
+        },
+        {
+          "pageNo": 13,
+          "id": "lines"
+        },
+        {
+          "pageNo": 14,
+          "id": "awards"
+        },
+        {
+          "pageNo": 15,
+          "id": "bookends"
+        },
+        {
+          "pageNo": 16,
+          "id": "comparison"
+        },
+        {
+          "pageNo": 17,
+          "id": "crew"
+        },
+        {
+          "pageNo": 18,
+          "id": "close"
+        }
+      ],
+      "consoleErrors": [
+        "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 429 ()",
+        "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 429 ()"
+      ],
+      "shots": 108
+    },
     {
       "state": {
         "id": "desktop",
@@ -87,7 +345,7 @@
         "Failed to load resource: net::ERR_FAILED",
         "Failed to load resource: the server responded with a status of 429 ()"
       ],
-      "shots": 36
+      "shots": 144
     }
   ]
 }

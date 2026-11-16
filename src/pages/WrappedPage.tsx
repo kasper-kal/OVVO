@@ -14,6 +14,7 @@ import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
 import { WrappedSealed } from '../components/wrapped/WrappedSealed';
 import { WrappedScenes } from '../components/wrapped/WrappedScenes';
+import { WrappedWorld } from '../components/wrapped/WrappedWorld';
 import {
   resumeSound,
   scoreTime,
@@ -488,7 +489,8 @@ export function WrappedPage() {
   const beat = useBeatAnchor(started && sound, chapter.track, chapter.id);
   const armed = beat !== null && beat.key === chapter.id;
   const onBeat = armed && !reduceMotion;
-  const land = barMs(chapter.track) * 2;
+  /* The count is a flourish, not a wait: land it inside two seconds. */
+  const land = Math.min(2000, barMs(chapter.track) * 2);
 
   const count = useCountUp(chapter.count ?? 0, started && !reduceMotion, chapter.id, land);
 
@@ -651,6 +653,7 @@ export function WrappedPage() {
 
       {/* The keyboard is a reader's way through: arrows, Escape to leave. */}
       <div className="wrapped-scene">
+        <WrappedWorld chapter={chapter} still={reduceMotion} />
         <div
           className={`wrapped-body wrapped-body--${chapter.kind}${dealt ? ' is-dealt' : ''}`}
           data-chapter={chapter.id}
@@ -665,7 +668,6 @@ export function WrappedPage() {
             journeys={tally.runs.length}
             demo={demo}
             yearOver={yearOver}
-            still={reduceMotion}
             onBegin={() => {
               setStarted(true);
               go(1);

@@ -100,25 +100,25 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 918,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": null,
       "bodyScroll": {
-        "scrollHeight": 918,
-        "clientHeight": 918,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -141,6 +141,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 1,
@@ -165,32 +183,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -199,6 +217,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -213,6 +236,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 2,
@@ -237,32 +278,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -271,6 +312,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -285,6 +331,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 3,
@@ -309,32 +373,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -343,6 +407,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -357,6 +426,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 4,
@@ -381,32 +468,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -415,6 +502,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -429,6 +521,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 5,
@@ -453,32 +563,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -487,6 +597,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -501,6 +616,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 6,
@@ -525,32 +658,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -559,6 +692,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -573,6 +711,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 7,
@@ -597,32 +753,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -631,6 +787,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -645,6 +806,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 8,
@@ -669,32 +848,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 872,
-        "right": 722,
-        "bottom": 964
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 964,
-        "w": 676,
-        "h": 46,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 872,
-        "clientHeight": 872,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -703,6 +882,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -717,6 +901,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 9,
@@ -741,32 +943,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -775,6 +977,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -789,6 +996,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 10,
@@ -813,32 +1038,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 870,
-        "right": 722,
-        "bottom": 962
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 962,
-        "w": 676,
-        "h": 48,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 870,
-        "clientHeight": 870,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -847,6 +1072,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -861,6 +1091,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 11,
@@ -885,32 +1133,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -919,6 +1167,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -933,6 +1186,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 12,
@@ -957,32 +1228,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -991,6 +1262,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -1005,6 +1281,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 13,
@@ -1029,32 +1323,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -1063,6 +1357,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -1077,6 +1376,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 14,
@@ -1101,32 +1418,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -1135,6 +1452,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -1149,6 +1471,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 15,
@@ -1173,32 +1513,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -1207,6 +1547,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -1221,6 +1566,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 16,
@@ -1245,32 +1608,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 873,
-        "right": 722,
-        "bottom": 965
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 965,
-        "w": 676,
-        "h": 45,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 26,
+        "right": 768,
+        "bottom": 96
       },
       "bodyScroll": {
-        "scrollHeight": 873,
-        "clientHeight": 873,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -1279,6 +1642,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -1293,6 +1661,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 17,
@@ -1317,32 +1703,32 @@
         "bottom": 1024
       },
       "body": {
-        "x": 46,
-        "y": 92,
-        "w": 676,
-        "h": 814,
-        "right": 722,
-        "bottom": 906
+        "x": 0,
+        "y": 0,
+        "w": 768,
+        "h": 1024,
+        "right": 768,
+        "bottom": 1024
       },
       "top": {
         "x": 12,
-        "y": 38,
+        "y": 20,
         "w": 744,
-        "h": 54,
+        "h": 50,
         "right": 756,
-        "bottom": 92
+        "bottom": 70
       },
       "foot": {
-        "x": 46,
-        "y": 906,
-        "w": 676,
-        "h": 104,
-        "right": 722,
-        "bottom": 1010
+        "x": 0,
+        "y": 70,
+        "w": 768,
+        "h": 70,
+        "right": 768,
+        "bottom": 140
       },
       "bodyScroll": {
-        "scrollHeight": 814,
-        "clientHeight": 814,
+        "scrollHeight": 1024,
+        "clientHeight": 1024,
         "scrollTop": 0,
         "overflowY": "auto"
       },
@@ -1351,6 +1737,11 @@
           "kind": "past-left",
           "key": "a.skip-link",
           "detail": "-9999"
+        },
+        {
+          "kind": "body-under-footer",
+          "key": "body",
+          "detail": "body ends 1024, footer starts 70"
         }
       ],
       "smallControls": [
@@ -1365,6 +1756,24 @@
           "w": 36,
           "h": 36,
           "text": ""
+        },
+        {
+          "key": "button.wrapped-close",
+          "w": 40,
+          "h": 40,
+          "text": ""
+        },
+        {
+          "key": "button.wrapped-demo-mark",
+          "w": 45,
+          "h": 40,
+          "text": "Demo"
+        },
+        {
+          "key": "button.wrapped-sound",
+          "w": 73,
+          "h": 40,
+          "text": "Sound off"
         }
       ],
       "pageNo": 18,

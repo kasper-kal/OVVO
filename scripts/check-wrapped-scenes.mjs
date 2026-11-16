@@ -34,6 +34,13 @@ if (!(await cover.isVisible().catch(() => false))) {
   process.exit(1);
 }
 
+if (process.env.BREAK_WORLD) {
+  await page.addStyleTag({ content: '.wrapped-world { display: none !important; }' });
+}
+if (process.env.BREAK_ART) {
+  await page.addStyleTag({ content: '.scene-art, .scene-atlas { display: none !important; }' });
+}
+
 await page.getByRole('button', { name: /Begin/i }).click();
 await page.waitForTimeout(500);
 
@@ -84,7 +91,21 @@ for (let i = 0; i < 18; i += 1) {
         const style = getComputedStyle(body, pseudo);
         return style.display !== 'none' && style.content !== 'none' && style.content !== 'normal' && style.content !== '';
       }),
-      canvas: Boolean(scene.querySelector('canvas')) || Boolean(scene.querySelector('.scene-photo')),
+      world: (() => {
+        const world = document.querySelector('.wrapped-world');
+        if (!world) return false;
+        const style = getComputedStyle(world);
+        return style.display !== 'none' && style.visibility !== 'hidden' && world.getBoundingClientRect().width > 0;
+      })(),
+      atlas: Boolean(scene.querySelector('.scene-atlas')),
+      art: (() => {
+        const art = scene.querySelector('.scene-art, .scene-atlas');
+        if (!art) return false;
+        const style = getComputedStyle(art);
+        return style.display !== 'none' && style.visibility !== 'hidden' && art.getBoundingClientRect().width > 0;
+      })(),
+      film: Boolean(scene.closest('.film-stage')),
+      canvas: Boolean(document.querySelector('.wrapped-world')) || Boolean(scene.querySelector('.scene-photo')),
       height: scene.clientHeight,
       docWidth: document.documentElement.scrollWidth,
       width: window.innerWidth,
@@ -111,7 +132,8 @@ for (const scene of present) {
   if (scene.oldVisible.length) failures.push(`${scene.chapter}: old layer visible (${scene.oldVisible.join(', ')})`);
   if (scene.before) failures.push(`${scene.chapter}: ${scene.before} old issue page(s) still in the document`);
   if (scene.pseudo.length) failures.push(`${scene.chapter}: old printed layer still painted (${scene.pseudo.join(', ')})`);
-  if (!scene.canvas) failures.push(`${scene.chapter}: no moving ground or photograph`);
+  if (!scene.world) failures.push(`${scene.chapter}: no continuous world`);
+  if (!scene.canvas) failures.push(`${scene.chapter}: no scene media`);
   if (scene.spilled.length) failures.push(`${scene.chapter}: copy spills (${scene.spilled.slice(0, 3).join(', ')})`);
   if (scene.docWidth > scene.width + 1) failures.push(`${scene.chapter}: document is wider than the viewport`);
   if (scene.height < 400) failures.push(`${scene.chapter}: scene is only ${scene.height}px tall`);
@@ -119,7 +141,6 @@ for (const scene of present) {
 
 const classes = new Set(present.map((scene) => scene.classes));
 const bigs = new Set(present.map((scene) => scene.big).filter(Boolean));
-const modes = new Set(present.map((scene) => scene.motion));
 const bridges = new Set(present.map((scene) => scene.bridge).filter(Boolean));
 const words = present.reduce((total, scene) => total + scene.words, 0);
 const animated = present.filter((scene) => scene.animation && scene.animation !== 'none').length;
@@ -127,7 +148,6 @@ const cuts = present.filter((scene) => scene.cut).length;
 
 if (classes.size < 16) failures.push(`only ${classes.size} distinct scenes`);
 if (bigs.size < 15) failures.push(`only ${bigs.size} distinct headlines`);
-if (modes.size < 5) failures.push(`only ${modes.size} moving grounds`);
 if (bridges.size < 14) failures.push(`only ${bridges.size} story bridges`);
 if (words < 100) failures.push(`only ${words} kinetic words`);
 if (animated < 15) failures.push(`only ${animated} scenes have kinetic type`);
@@ -136,6 +156,9 @@ if (cuts < 16) failures.push(`only ${cuts} scenes have a cut`);
 for (const scene of present) {
   if (scene.chapter !== 'cover' && !scene.bridge) failures.push(`${scene.chapter}: no story bridge`);
   if (scene.chapter === 'close' && !scene.credits) failures.push(`${scene.chapter}: no closing credits`);
+  if (scene.chapter === 'map' && !scene.atlas) failures.push(`${scene.chapter}: no map atlas`);
+  if (!scene.film) failures.push(`${scene.chapter}: not inside the film stage`);
+  if (!['cover', 'name', 'look'].includes(scene.chapter) && !scene.art) failures.push(`${scene.chapter}: no chapter diagram`);
 }
 
 if (failures.length) {
@@ -146,6 +169,6 @@ if (failures.length) {
 
 console.log(
   `WRAPPED SCENES: PASS — ${present.length} full-screen scenes, 0 old layers, ` +
-    `${classes.size} distinct scenes, ${bigs.size} distinct headlines, ${modes.size} moving grounds, ` +
+    `${classes.size} distinct scenes, ${bigs.size} distinct headlines, one continuous world, ` +
     `${bridges.size} story bridges, ${words} kinetic words, no copy spills.`,
 );

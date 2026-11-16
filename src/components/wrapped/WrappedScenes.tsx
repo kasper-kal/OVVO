@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
-import { WrappedMotion, type MotionMode } from './WrappedMotion';
 
 /*
  * **The year as a film, not a spread.**
@@ -18,7 +17,7 @@ import { WrappedMotion, type MotionMode } from './WrappedMotion';
  * `WrappedPage`.
  */
 
-type Palette = [string, string, string];
+export type Palette = [string, string, string];
 
 const EMBER: Palette = ['#ff2d75', '#ff4b2b', '#ff9d00'];
 const ACID: Palette = ['#ff3b1f', '#7dff00', '#00b34a'];
@@ -41,47 +40,26 @@ const SHORT_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'sh
  * version did not have at all.
  */
 const STORY: Record<string, { kicker: string; bridge: string }> = {
-  total: { kicker: 'It started with one journey', bridge: 'But a number is only the beginning.' },
-  name: { kicker: 'The year noticed something', bridge: 'That name came from somewhere.' },
-  map: { kicker: 'Your year happened here', bridge: 'This is where it happened.' },
-  distance: { kicker: 'You went a long way', bridge: 'The map only tells half the story.' },
-  pair: { kicker: 'The route that became a reflex', bridge: 'Some journeys become a habit.' },
-  origin: { kicker: 'Every habit has a front door', bridge: 'And one station kept pulling you back.' },
-  hour: { kicker: 'And a time it likes best', bridge: 'One hour kept winning.' },
-  direct: { kicker: 'The straight-through', bridge: 'You usually took the straight line.' },
-  longest: { kicker: 'The one that took its time', bridge: 'Except once.' },
-  look: { kicker: 'You had a look', bridge: 'You also had a look.' },
-  eras: { kicker: 'The look moved with the seasons', bridge: 'The look did not stay still.' },
-  lines: { kicker: 'One line saw most of it', bridge: 'One line knew you best.' },
-  awards: { kicker: 'The year handed out awards', bridge: 'So the year handed out awards.' },
-  bookends: { kicker: 'The first. The last.', bridge: 'It began and ended with a journey.' },
-  comparison: { kicker: 'One more question', bridge: 'And how did it compare?' },
-  crew: { kicker: 'One last thing', bridge: 'The year is better shared.' },
-  close: { kicker: 'End of the year', bridge: 'See you next year.' },
+  total: { kicker: 'A year of leaving', bridge: 'It began with one journey. Then another.' },
+  name: { kicker: 'The pattern has a name', bridge: 'The year gave the pattern a name.' },
+  map: { kicker: 'The shape of the year', bridge: 'And the pattern had a shape.' },
+  distance: { kicker: 'The long way round', bridge: 'A shape that kept getting bigger.' },
+  pair: { kicker: 'The line you wore out', bridge: 'But it kept folding back to the same line.' },
+  origin: { kicker: 'The door you kept returning to', bridge: 'Every loop passed through the same door.' },
+  hour: { kicker: 'The hour that owned you', bridge: 'At almost the same time each morning.' },
+  direct: { kicker: 'The straight-through', bridge: 'You learned which changes to avoid.' },
+  longest: { kicker: 'The one that took its time', bridge: 'Then one day, the usual route let go.' },
+  look: { kicker: 'The year had a look', bridge: 'The year changed its clothes as it went.' },
+  eras: { kicker: 'It changed with the seasons', bridge: 'Underneath, though, the same traveller.' },
+  lines: { kicker: 'One line saw most of it', bridge: 'One line carried most of it.' },
+  awards: { kicker: "The year's small trophies", bridge: 'The year noticed the details.' },
+  bookends: { kicker: 'First out. Last home.', bridge: 'It opened in one place. It closed in another.' },
+  comparison: { kicker: 'Against last year', bridge: 'And the next year is already different.' },
+  crew: { kicker: 'The other seat', bridge: 'A year is better with someone beside you.' },
+  close: { kicker: 'End of the year', bridge: 'That was the year.' },
 };
 
-const MODES: Record<string, MotionMode> = {
-  cover: 'ribbons',
-  total: 'ribbons',
-  name: 'stairs',
-  map: 'stairs',
-  distance: 'wave',
-  pair: 'ribbons',
-  origin: 'stairs',
-  hour: 'wave',
-  direct: 'tunnel',
-  longest: 'ribbons',
-  look: 'bloom',
-  eras: 'stairs',
-  lines: 'wave',
-  awards: 'stairs',
-  bookends: 'ribbons',
-  comparison: 'bloom',
-  crew: 'tunnel',
-  close: 'wave',
-};
-
-const PALETTES: Record<string, Palette> = {
+export const PALETTES: Record<string, Palette> = {
   cover: EMBER,
   total: LIME,
   name: ACID,
@@ -123,38 +101,344 @@ function Words({ text }: { text: string }) {
   );
 }
 
+function MapAtlas({ map }: { map: NonNullable<Chapter['map']> }) {
+  const topStop = map.stops.find((stop) => stop.id === map.topStopId);
+  return (
+    <div className="scene-atlas" aria-hidden="true">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <filter id="atlas-glow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="0.45" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {map.routes.map((route, index) => (
+          <line
+            key={`${route.from.id}-${route.to.id}-${index}`}
+            className={route.top ? 'scene-atlas__route is-top' : 'scene-atlas__route'}
+            pathLength="100"
+            style={{ '--i': index } as CSSProperties}
+            x1={route.from.x}
+            y1={route.from.y}
+            x2={route.to.x}
+            y2={route.to.y}
+          />
+        ))}
+        {map.stops.map((stop) => (
+          <g className={stop.id === map.topStopId ? 'scene-atlas__stop is-top' : 'scene-atlas__stop'} style={{ '--i': map.stops.indexOf(stop) } as CSSProperties} key={stop.id}>
+            <circle cx={stop.x} cy={stop.y} r={stop.id === map.topStopId ? 1.25 : 0.62} />
+            <circle className="scene-atlas__ring" cx={stop.x} cy={stop.y} r={stop.id === map.topStopId ? 2.5 : 1.25} />
+          </g>
+        ))}
+        {topStop ? (
+          <text className="scene-atlas__label" x={topStop.x + 2.6} y={topStop.y + 0.5}>
+            {topStop.name}
+          </text>
+        ) : null}
+      </svg>
+    </div>
+  );
+}
+
+function SceneArt({ chapter }: { chapter: Chapter }) {
+  if (chapter.kind === 'map' || (chapter.kind === 'word' && chapter.photo)) return null;
+
+  if (chapter.kind === 'number') {
+    const months = chapter.months?.length ? chapter.months : Array.from({ length: 12 }, () => 0);
+    const max = Math.max(1, ...months);
+    return (
+      <div className="scene-art scene-art--total" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-months">
+            {months.map((value, index) => (
+              <span
+                className={`art-months__bar${value === max ? ' is-peak' : ''}`}
+                style={{ '--h': `${Math.max(4, (value / max) * 100)}%`, '--i': index } as CSSProperties}
+                key={index}
+              >
+                <em>{'JFMAMJJASOND'[index]}</em>
+              </span>
+            ))}
+          </div>
+          <p className="art-caption">A month at a time</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'distance' && chapter.distance) {
+    return (
+      <div className="scene-art scene-art--distance" aria-hidden="true">
+        <div className="scene-art__panel">
+          <svg className="art-svg art-distance" viewBox="0 0 100 70" preserveAspectRatio="none">
+            <path className="art-route-art" d="M 4 58 C 22 8, 76 8, 96 54" />
+            <circle className="art-route-art__node" cx="4" cy="58" r="1.8" />
+            <circle className="art-route-art__node" cx="96" cy="54" r="1.8" />
+            <text x="50" y="60" textAnchor="middle">{KILOMETRES.format(chapter.distance.km)} km</text>
+          </svg>
+          <p className="art-caption">As the crow flies</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'route' && chapter.route) {
+    return (
+      <div className="scene-art scene-art--pair" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-rail">
+            <span className="art-rail__node" />
+            <span className="art-rail__line"><i /></span>
+            <span className="art-rail__node" />
+          </div>
+          <p className="art-caption">{chapter.route.from} <span>to</span> {chapter.route.to}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'chips' && chapter.id === 'origin') {
+    return (
+      <div className="scene-art scene-art--origin" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-origins">
+            {chapter.chips?.slice(0, 4).map((chip, index) => (
+              <span className="art-origins__row" style={{ '--i': index } as CSSProperties} key={chip.label}>
+                <b>{chip.label}</b><em>{chip.detail}</em>
+              </span>
+            ))}
+          </div>
+          <p className="art-caption">The other doors</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'bars') {
+    const bars = chapter.bars ?? Array.from({ length: 24 }, () => 0);
+    const peak = chapter.peak ?? 0;
+    const max = Math.max(1, ...bars);
+    return (
+      <div className="scene-art scene-art--hour" aria-hidden="true">
+        <div className="scene-art__panel">
+          <svg className="art-svg art-dial" viewBox="0 0 200 200">
+            {bars.map((value, index) => {
+              const angle = ((index / 24) * 360 - 90) * (Math.PI / 180);
+              const inner = 53;
+              const outer = 53 + 36 * (value / max);
+              return (
+                <line
+                  className={index === peak ? 'art-dial__line is-peak' : 'art-dial__line'}
+                  style={{ '--i': index } as CSSProperties}
+                  key={index}
+                  x1={100 + Math.cos(angle) * inner}
+                  y1={100 + Math.sin(angle) * inner}
+                  x2={100 + Math.cos(angle) * outer}
+                  y2={100 + Math.sin(angle) * outer}
+                />
+              );
+            })}
+            <circle className="art-dial__ring" cx="100" cy="100" r="43" />
+            <text className="art-dial__label" x="100" y="97" textAnchor="middle">24 HOURS</text>
+            <text className="art-dial__value" x="100" y="113" textAnchor="middle">{chapter.big}</text>
+          </svg>
+          <p className="art-caption">When the year left</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'arc') {
+    const pct = Math.round((chapter.arc ?? 0) * 100);
+    return (
+      <div className="scene-art scene-art--arc" aria-hidden="true">
+        <div className="scene-art__panel">
+          <svg className="art-svg art-gauge" viewBox="0 0 120 120">
+            <circle className="art-gauge__track" cx="60" cy="60" r="50" />
+            <circle className="art-gauge__value" pathLength="100" cx="60" cy="60" r="50" style={{ strokeDasharray: `${pct} 100`, strokeDashoffset: 100 }} />
+            <text className="art-gauge__label" x="60" y="57" textAnchor="middle">NO</text>
+            <text className="art-gauge__value-text" x="60" y="70" textAnchor="middle">CHANGES</text>
+          </svg>
+          <p className="art-caption">No changes, no detours</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'stretch' && chapter.route) {
+    return (
+      <div className="scene-art scene-art--longest" aria-hidden="true">
+        <div className="scene-art__panel">
+          <svg className="art-svg art-long" viewBox="0 0 100 60" preserveAspectRatio="none">
+            <path className="art-long__path" d="M 3 47 C 26 21, 42 3, 55 29 S 81 47, 97 17" />
+            <circle className="art-long__node" cx="3" cy="47" r="1.7" />
+            <circle className="art-long__node" cx="97" cy="17" r="1.7" />
+          </svg>
+          <p className="art-caption">{chapter.big} on one route</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'eras') {
+    const eras = chapter.eras ?? [];
+    const maxDays = Math.max(1, ...eras.map((era) => era.days));
+    return (
+      <div className="scene-art scene-art--eras" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-eras">
+            {eras.slice(0, 8).map((era, index) => (
+              <span className="art-eras__block" style={{ '--i': index, flexGrow: Math.max(1, era.days), height: `${Math.max(18, (era.days / maxDays) * 100)}%` } as CSSProperties} key={`${era.id}-${era.start}`}>
+                <em>{era.days}</em>
+              </span>
+            ))}
+          </div>
+          <p className="art-caption">A year in seasons</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'chips' && chapter.id === 'lines') {
+    return (
+      <div className="scene-art scene-art--lines" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-lines">
+            {chapter.chips?.slice(0, 4).map((chip, index) => (
+              <span className="art-lines__row" style={{ '--i': index } as CSSProperties} key={chip.label}>
+                <b>{chip.label}</b><em>{chip.detail}</em>
+              </span>
+            ))}
+          </div>
+          <p className="art-caption">The rest of the board</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'awards') {
+    return (
+      <div className="scene-art scene-art--awards" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-awards">
+            {chapter.awards?.slice(0, 3).map((award, index) => (
+              <span className="art-award" style={{ '--i': index } as CSSProperties} key={award.id}>
+                <em>{String(index + 1).padStart(2, '0')}</em>
+                <b>{award.stat}</b>
+                <small>{award.statLabel}</small>
+              </span>
+            ))}
+          </div>
+          <p className="art-caption">For the record</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'bookends' && chapter.bookends) {
+    return (
+      <div className="scene-art scene-art--bookends" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-bookend">
+            <span className="art-bookend__line" />
+            <span className="art-bookend__dot is-first" />
+            <span className="art-bookend__dot is-last" />
+            <em>{SHORT_DATE.format(new Date(chapter.bookends.first.at))}</em>
+            <em>{SHORT_DATE.format(new Date(chapter.bookends.last.at))}</em>
+          </div>
+          <p className="art-caption">The first and the last</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'comparison' && chapter.comparison) {
+    const data = chapter.comparison;
+    const max = Math.max(1, data.journeys, data.previousJourneys);
+    return (
+      <div className="scene-art scene-art--comparison" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-compare">
+            <span className="art-compare__bar" style={{ '--h': `${(data.previousJourneys / max) * 100}%` } as CSSProperties}>
+              <em>{data.previousJourneys}</em><small>{data.previousYear}</small>
+            </span>
+            <span className="art-compare__bar is-now" style={{ '--h': `${(data.journeys / max) * 100}%` } as CSSProperties}>
+              <em>{data.journeys}</em><small>this year</small>
+            </span>
+          </div>
+          <p className="art-caption">Two years, side by side</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'crew' && chapter.crew) {
+    return (
+      <div className="scene-art scene-art--crew" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-crew">
+            <span className="art-crew__ring is-you">YOU</span>
+            <span className="art-crew__line" />
+            <span className="art-crew__ring is-them">THEM</span>
+          </div>
+          <p className="art-caption">A year is better shared</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chapter.kind === 'close') {
+    return (
+      <div className="scene-art scene-art--close" aria-hidden="true">
+        <div className="scene-art__panel">
+          <div className="art-year-ring">
+            {Array.from({ length: 12 }, (_, index) => (
+              <span className="art-year-ring__tick" style={{ '--i': index } as CSSProperties} key={index} />
+            ))}
+            <span className="art-year-ring__dot" />
+            <em>ONE YEAR</em>
+          </div>
+          <p className="art-caption">See you next year</p>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function Scene({
   chapter,
-  mode,
   palette,
-  still,
   children,
   bridge,
   photo,
+  atlas,
   align = 'center',
 }: {
   chapter: Chapter;
-  mode: MotionMode;
   palette: Palette;
-  still: boolean;
   children: ReactNode;
   bridge?: string;
   photo?: string;
+  atlas?: ReactNode;
   align?: 'center' | 'bottom';
 }) {
   return (
     <div
       className={`scene-page scene-page--${chapter.id} scene-page--align-${align}`}
-      data-motion={photo ? 'photo' : mode}
+      data-motion={photo ? 'photo' : 'world'}
     >
       {photo ? (
         <>
           <img className="scene-photo" src={photo} alt="" aria-hidden="true" />
           <span className="scene-photo__shade" aria-hidden="true" />
         </>
-      ) : (
-        <WrappedMotion mode={mode} palette={palette} still={still} />
-      )}
+      ) : null}
+      {atlas ?? <SceneArt chapter={chapter} />}
       <span
         className="scene-cut"
         style={{ background: `linear-gradient(150deg, ${palette[0]}, ${palette[1]} 55%, ${palette[2]})` }}
@@ -180,7 +464,6 @@ function SceneView({
   journeys,
   demo,
   yearOver,
-  still,
   onBegin,
 }: {
   chapter: Chapter;
@@ -189,17 +472,14 @@ function SceneView({
   journeys: number;
   demo: boolean;
   yearOver: boolean;
-  still: boolean;
   onBegin: () => void;
 }) {
   const story = STORY[chapter.id] ?? { kicker: chapter.kicker, bridge: '' };
   const palette = PALETTES[chapter.id] ?? EMBER;
-  const mode = MODES[chapter.id] ?? 'ribbons';
 
   if (chapter.kind === 'cover') {
     return (
-      <div className="scene-page scene-page--cover" data-motion="ribbons">
-        <WrappedMotion mode="ribbons" palette={EMBER} still={still} />
+      <div className="scene-page scene-page--cover" data-motion="world">
         <span
           className="scene-cut"
           style={{ background: `linear-gradient(150deg, ${EMBER[0]}, ${EMBER[1]} 55%, ${EMBER[2]})` }}
@@ -236,9 +516,8 @@ function SceneView({
     return (
       <Scene
         chapter={chapter}
-        mode={mode}
         palette={palette}
-        still={still}
+       
         bridge={story.bridge}
       >
         <span className="scene-kicker">{story.kicker}</span>
@@ -254,7 +533,7 @@ function SceneView({
 
   if (chapter.kind === 'name') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--name">
           <Words text={chapter.big} />
@@ -268,7 +547,7 @@ function SceneView({
 
   if (chapter.kind === 'map') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge} atlas={chapter.map ? <MapAtlas map={chapter.map} /> : null}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--number">
           <Words text={String(chapter.map?.places ?? chapter.big)} />
@@ -285,7 +564,7 @@ function SceneView({
 
   if (chapter.kind === 'distance' && chapter.distance) {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big">
           <Words text={KILOMETRES.format(chapter.distance.km)} />
@@ -300,7 +579,7 @@ function SceneView({
 
   if (chapter.kind === 'route' && chapter.route) {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--number" aria-label={`${count} times`}>
           <span className="scene-count">{count}</span>
@@ -319,7 +598,7 @@ function SceneView({
 
   if (chapter.kind === 'chips' && chapter.id === 'origin') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--station">
           <Words text={chapter.big} />
@@ -333,7 +612,7 @@ function SceneView({
 
   if (chapter.kind === 'bars') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big">
           <Words text={chapter.big} />
@@ -348,7 +627,7 @@ function SceneView({
   if (chapter.kind === 'arc') {
     const pct = Math.round((chapter.arc ?? 0) * 100);
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big" aria-label={`${pct} percent`}>
           <Words text={`${pct}%`} />
@@ -362,7 +641,7 @@ function SceneView({
 
   if (chapter.kind === 'stretch') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--duration">
           <Words text={chapter.big} />
@@ -386,9 +665,8 @@ function SceneView({
       <Scene
         chapter={chapter}
         photo={chapter.photo}
-        mode={mode}
         palette={palette}
-        still={still}
+       
         align="bottom"
         bridge={story.bridge}
       >
@@ -406,7 +684,7 @@ function SceneView({
   if (chapter.kind === 'eras') {
     const eras = chapter.eras ?? [];
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big">
           <Words text={String(chapter.big)} />
@@ -429,7 +707,7 @@ function SceneView({
 
   if (chapter.kind === 'chips' && chapter.id === 'lines') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big">
           <Words text={chapter.big} />
@@ -446,7 +724,7 @@ function SceneView({
 
   if (chapter.kind === 'awards') {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--list">
           <Words text="Your top moments" />
@@ -469,7 +747,7 @@ function SceneView({
 
   if (chapter.kind === 'bookends' && chapter.bookends) {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--bookends">
           <Words text="First out. Last home." />
@@ -502,7 +780,7 @@ function SceneView({
     const data = chapter.comparison;
     const diff = data.journeys - data.previousJourneys;
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big">
           <Words text={diff >= 0 ? `+${diff}` : String(diff)} />
@@ -528,7 +806,7 @@ function SceneView({
 
   if (chapter.kind === 'crew' && chapter.crew) {
     return (
-      <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+      <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
         <span className="scene-kicker">{story.kicker}</span>
         <p className="scene-big scene-big--crew">
           <Words text="Bring someone" />
@@ -544,7 +822,7 @@ function SceneView({
   }
 
   return (
-    <Scene chapter={chapter} mode={mode} palette={palette} still={still} bridge={story.bridge}>
+    <Scene chapter={chapter} palette={palette} bridge={story.bridge}>
       <span className="scene-kicker">{story.kicker}</span>
       <p className="scene-big scene-big--close">
         <Words text="That was the year." />
@@ -571,7 +849,6 @@ type SceneProps = {
   journeys: number;
   demo: boolean;
   yearOver: boolean;
-  still: boolean;
   onBegin: () => void;
 };
 
