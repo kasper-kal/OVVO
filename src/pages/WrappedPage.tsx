@@ -232,6 +232,9 @@ export function WrappedPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareTarget, setShareTarget] = useState<string | null>(null);
   const [director, setDirector] = useState(false);
+  /* The scene that is leaving, kept on screen under the new one for one film cut. */
+  const [previous, setPrevious] = useState<Chapter | null>(null);
+  const previousTimer = useRef(0);
 
   /*
    * **Every page hands its words out one piece at a time.**
@@ -351,12 +354,19 @@ export function WrappedPage() {
   const go = useCallback(
     (next: number) => {
       const target = Math.max(0, Math.min(story.length - 1, next));
+      if (target !== index) {
+        setPrevious(chapter);
+        window.clearTimeout(previousTimer.current);
+        previousTimer.current = window.setTimeout(() => setPrevious(null), 920);
+      }
       setDir(target < index ? -1 : 1);
       setIndex(target);
     },
-    [index, story.length],
+    [chapter, index, story.length],
   );
   const step = useCallback((direction: number) => go(index + direction), [go, index]);
+
+  useEffect(() => () => window.clearTimeout(previousTimer.current), []);
 
   /*
    * Every chapter brings its own piece of music, crossfading in under the one before it.
@@ -646,12 +656,13 @@ export function WrappedPage() {
           data-chapter={chapter.id}
           data-index={String(index + 1).padStart(2, '0')}
           data-dir={dir}
-          key={chapter.id}
         >
           <WrappedScenes
             chapter={chapter}
+            previous={previous}
             year={year}
             count={count}
+            journeys={tally.runs.length}
             demo={demo}
             yearOver={yearOver}
             still={reduceMotion}

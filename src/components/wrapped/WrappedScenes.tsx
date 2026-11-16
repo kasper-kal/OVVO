@@ -173,10 +173,11 @@ function Scene({
   );
 }
 
-export function WrappedScenes({
+function SceneView({
   chapter,
   year,
   count,
+  journeys,
   demo,
   yearOver,
   still,
@@ -185,6 +186,7 @@ export function WrappedScenes({
   chapter: Chapter;
   year: number;
   count: number;
+  journeys: number;
   demo: boolean;
   yearOver: boolean;
   still: boolean;
@@ -205,6 +207,7 @@ export function WrappedScenes({
         />
         <span className="scene-shade" aria-hidden="true" />
         <div className="scene-copy scene-cover">
+          <span className="scene-presents">OVVO PRESENTS</span>
           <p className="scene-hello">Hi there.</p>
           <span className="scene-kicker">OVVO YEARBOOK</span>
           <p className="scene-year" aria-label={String(year)}>
@@ -550,6 +553,46 @@ export function WrappedScenes({
         <Words text="Every number here comes from journeys you planned in this app, and nothing else." />
       </p>
       {chapter.note ? <p className="scene-foot">{chapter.note}</p> : null}
+      <div className="scene-credits">
+        <span>PLANNED BY YOU</span>
+        <span>{journeys} journeys</span>
+        <span>MADE BY OVVO</span>
+        <span>Your year, in motion</span>
+      </div>
     </Scene>
+  );
+}
+
+
+type SceneProps = {
+  chapter: Chapter;
+  year: number;
+  count: number;
+  journeys: number;
+  demo: boolean;
+  yearOver: boolean;
+  still: boolean;
+  onBegin: () => void;
+};
+
+/*
+ * **The scene that is leaving stays under the scene that is arriving.**
+ *
+ * A cut to black between every chapter is what made the last version feel like a presentation.
+ * Here the outgoing picture keeps breathing for less than a second while the new one grows through
+ * it, so the film changes scene instead of changing slide.
+ */
+export function WrappedScenes({ previous, ...scene }: SceneProps & { previous?: Chapter | null }) {
+  return (
+    <div className="film-stage">
+      {previous ? (
+        <div className="film-scene film-scene--out" key={`out-${previous.id}`} aria-hidden="true">
+          <SceneView {...scene} chapter={previous} />
+        </div>
+      ) : null}
+      <div className="film-scene film-scene--in" key={`in-${scene.chapter.id}`}>
+        <SceneView {...scene} />
+      </div>
+    </div>
   );
 }

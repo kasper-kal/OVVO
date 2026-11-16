@@ -42,11 +42,11 @@ const scenes = [];
 for (let i = 0; i < 18; i += 1) {
   const reading = await page.evaluate(() => {
     const body = document.querySelector('.wrapped-body');
-    const scene = body?.querySelector('.scene-page');
+    const scene = body?.querySelector('.film-scene--in .scene-page') ?? body?.querySelector('.scene-page');
     if (!body || !scene) return null;
     const frame = scene.getBoundingClientRect();
     const oldVisible = [...body.children].filter((child) => {
-      if (child === scene) return false;
+      if (child === scene || child.classList.contains('film-stage')) return false;
       const style = getComputedStyle(child);
       return style.display !== 'none' && style.visibility !== 'hidden' && child.getBoundingClientRect().width > 0;
     });
@@ -74,6 +74,7 @@ for (let i = 0; i < 18; i += 1) {
         return style.display === 'none' || style.visibility === 'hidden' ? '' : el.textContent?.trim() ?? '';
       })(),
       cut: Boolean(scene.querySelector('.scene-cut')),
+      credits: Boolean(scene.querySelector('.scene-credits')),
       animation: (() => {
         const word = scene.querySelector('.scene-big .scene-word, .scene-year .scene-char');
         return word ? getComputedStyle(word).animationName : 'none';
@@ -134,6 +135,7 @@ if (cuts < 16) failures.push(`only ${cuts} scenes have a cut`);
 
 for (const scene of present) {
   if (scene.chapter !== 'cover' && !scene.bridge) failures.push(`${scene.chapter}: no story bridge`);
+  if (scene.chapter === 'close' && !scene.credits) failures.push(`${scene.chapter}: no closing credits`);
 }
 
 if (failures.length) {
