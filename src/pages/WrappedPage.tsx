@@ -602,21 +602,6 @@ export function WrappedPage() {
             </>
           ) : (
             <>
-              {/*
-                * **Two decorations, and neither is a second copy of the content.**
-                *
-                * The look page gets a vertical ticker of its own name over the photograph, and
-                * the lines page gets a ghost line-number ticker and an equaliser. They are
-                * absolutely positioned, silent to a screen reader and hidden from the reduced
-                * motion setting, so they add movement without adding another thing to read.
-                */}
-              {chapter.kind === 'word' ? (
-                <span className="wrapped-look-rail" aria-hidden="true">
-                  {[0, 1, 2].map((repeat) => (
-                    <b key={repeat}>{chapter.big}</b>
-                  ))}
-                </span>
-              ) : null}
               {chapter.id === 'lines' ? (
                 <>
                   <span className="wrapped-lines-ticker" aria-hidden="true">

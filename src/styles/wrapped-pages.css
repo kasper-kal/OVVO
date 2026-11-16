@@ -1,177 +1,11 @@
 /*
- * **Pages nine and ten: the look and the lines, rebuilt as rooms rather than paper with words on it.**
+ * **Page ten: the lines, rebuilt as a room rather than a white board.**
  *
- * The look was a photograph above a pile of type, padded down by the height of the picture and then
- * anchored to the foot of the screen. On a short phone the padding and the type were taller than the
- * page, so the name, the days and the sentence fought the photograph and the footer for the same
- * pixels. It is now a bottom-anchored caption on a real paper shelf, with the picture above it and a
- * safe line between them. The name is a magazine masthead, the days are a station-clock figure, and
- * a vertical ticker and a moving light keep the photo alive even when the score is muted.
- *
- * The lines page was a white board with three quiet rows. It is a dark rap poster now: acid numbers,
- * a ghost ticker of the line name and an equaliser that moves on its own. The rows keep their own
- * grid tracks, so nothing can land on top of anything else.
+ * The look page keeps the earlier spread: its photograph is an object on paper, and its name and
+ * days are printed underneath it. The lines page was a white board with three quiet rows. It is a
+ * dark rap poster now: acid numbers, a ghost ticker of the line name and an equaliser that moves on
+ * its own. The rows keep their own grid tracks, so nothing can land on top of anything else.
  */
-
-/* Page nine: the photograph is the top plate; the shelf below it holds the words. */
-.wrapped-body[data-chapter='look'] {
-  padding-top: 0;
-  grid-template-rows: auto auto auto auto;
-  align-content: end;
-  gap: clamp(6px, 1.4vh, 12px);
-  padding-bottom: clamp(8px, 2.4vh, 20px);
-  isolation: isolate;
-}
-
-.wrapped-body[data-chapter='look']::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  left: calc(var(--pad-x) * -1);
-  right: calc(var(--pad-x) * -1);
-  top: 42%;
-  bottom: 0;
-  background:
-    repeating-linear-gradient(180deg, transparent 0 31px, rgba(36, 28, 20, 0.055) 31px 32px),
-    #f4ede1;
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-photo {
-  filter: saturate(1.08) contrast(1.04);
-}
-
-.wrapped-stage[data-chapter='look']::before {
-  content: '';
-  position: fixed;
-  top: -20%;
-  right: -20%;
-  bottom: -20%;
-  left: -20%;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(
-    112deg,
-    transparent 36%,
-    rgba(255, 231, 197, 0.02) 44%,
-    rgba(255, 231, 197, 0.24) 50%,
-    rgba(255, 231, 197, 0.02) 56%,
-    transparent 64%
-  );
-  animation: wrapped-look-sheen 8s ease-in-out infinite;
-}
-
-@keyframes wrapped-look-sheen {
-  0%,
-  18% {
-    transform: translate3d(-18%, 0, 0);
-  }
-  78%,
-  100% {
-    transform: translate3d(18%, 0, 0);
-  }
-}
-
-.wrapped-look-rail {
-  position: absolute;
-  z-index: 0;
-  top: clamp(8px, 2vh, 22px);
-  right: 0;
-  display: flex;
-  gap: 0.4em;
-  writing-mode: vertical-rl;
-  color: rgba(255, 255, 255, 0.72);
-  font-family: 'Archivo', sans-serif;
-  font-size: clamp(10px, 3.2vw, 17px);
-  font-weight: 700;
-  letter-spacing: 0.26em;
-  line-height: 1;
-  text-transform: uppercase;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.85);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-.wrapped-look-rail b {
-  font-weight: 700;
-  animation: wrapped-look-rail 13s ease-in-out infinite alternate;
-}
-
-.wrapped-look-rail b:nth-child(2) {
-  animation-delay: -4s;
-}
-
-.wrapped-look-rail b:nth-child(3) {
-  animation-delay: -8s;
-}
-
-@keyframes wrapped-look-rail {
-  from {
-    opacity: 0.42;
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    opacity: 0.92;
-    transform: translate3d(0, -8px, 0);
-  }
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-kicker {
-  color: #6b6156;
-  font-family: 'Archivo', sans-serif;
-  letter-spacing: 0.24em;
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-big {
-  color: #241c14;
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: clamp(42px, 14vw, 112px);
-  font-weight: 700;
-  letter-spacing: -0.055em;
-  line-height: 0.82;
-  text-transform: uppercase;
-  animation: wrapped-look-name 900ms var(--ease-out) both;
-}
-
-@keyframes wrapped-look-name {
-  from {
-    opacity: 0;
-    clip-path: inset(0 0 92% 0);
-    transform: translate3d(0, 18px, 0);
-  }
-  to {
-    opacity: 1;
-    clip-path: inset(0);
-    transform: none;
-  }
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-days {
-  color: #241c14;
-  font-family: 'Archivo', sans-serif;
-  font-size: clamp(64px, 23vw, 150px);
-  font-weight: 700;
-  letter-spacing: -0.075em;
-  line-height: 0.72;
-  text-shadow: none;
-  /* The old float lifted this 26px, straight into the name above it. It breathes in place now. */
-  animation: wrapped-days-breathe 8s ease-in-out infinite alternate;
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-days span {
-  color: #6b6156;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.15em;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  opacity: 1;
-}
-
-.wrapped-stage[data-chapter='look'] .wrapped-line {
-  color: #4a423a;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(15px, 4vw, 21px);
-  max-width: 24ch;
-}
 
 /* Page ten: the board at night, with the line name huge and the count in acid. */
 .wrapped-stage[data-chapter='lines'] {
@@ -358,9 +192,6 @@
   opacity: 1;
 }
 
-.wrapped-stage.is-still .wrapped-look-rail b,
-.wrapped-stage.is-still[data-chapter='look']::before,
-.wrapped-stage.is-still .wrapped-look-rail,
 .wrapped-stage.is-still .wrapped-lines-ticker,
 .wrapped-stage.is-still .wrapped-lines-eq i,
 .wrapped-stage.is-still[data-chapter='lines']::before {
@@ -368,18 +199,6 @@
 }
 
 @media (max-height: 720px) {
-  .wrapped-body[data-chapter='look']::before {
-    top: 36%;
-  }
-
-  .wrapped-stage[data-chapter='look'] .wrapped-big {
-    font-size: clamp(36px, 11vw, 82px);
-  }
-
-  .wrapped-stage[data-chapter='look'] .wrapped-days {
-    font-size: clamp(52px, 19vw, 116px);
-  }
-
   .wrapped-stage[data-chapter='lines'] .wrapped-big {
     font-size: clamp(44px, 14vw, 100px);
   }
