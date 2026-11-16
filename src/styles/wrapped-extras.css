@@ -711,6 +711,39 @@ button.wrapped-demo-mark:focus-visible {
   white-space: nowrap;
 }
 
+/* Four awards plus the header can be taller than a short phone. Start at the top and let the
+   page scroll inside the deck instead of clipping the first or last card. */
+.wrapped-body[data-chapter='awards'] {
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding-bottom: 8px;
+}
+
+@media (max-width: 719px) {
+  /* The share button used to sit in the same row as the title, squeezing the title into a
+     seven-pixel column: every letter dropped onto its own line. It gets its own row now. */
+  .wrapped-award {
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-areas:
+      'stat title'
+      'stat line'
+      'button button';
+    column-gap: 10px;
+    padding: 9px 10px;
+  }
+
+  .wrapped-award__top {
+    align-self: start;
+  }
+
+  .wrapped-award .btn {
+    justify-self: start;
+    margin-top: 2px;
+  }
+}
+
 @media (min-width: 720px) {
   .wrapped-awards__grid {
     grid-template-columns: 1fr 1fr;

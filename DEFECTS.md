@@ -39,6 +39,8 @@ him, and it is the work queue.
 
 | 27 | "The things should be automatically collapsed" / "automatically collapsed when you open the page instead of the current automatically opened" — every service opened its stop list on load, so a journey of twenty stops arrived as a wall of station names | `scripts/check-map.mjs`: on load there are no stop rows and every service reports `aria-expanded="false"`; a tap then produces the stops, and the rail order is read from that opened state | yes: putting the open-on-load state back prints **FAIL every service arrives with its stop list closed (2 stop row(s))** |
 
+| 28 | "This looks HORRIBLE" — on the Wrapped yearbook page, the share button squeezed the award title into a seven-pixel column, so every letter stood on its own line | not covered: no automated check reads the Wrapped yearbook at phone width; measured by hand at 360×800 and 320×568, before and after the fix | — |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is
