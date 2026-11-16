@@ -56,6 +56,7 @@ import {
   Clock,
   Crop,
   Crosshair,
+  Download,
   ExternalLink,
   Focus,
   Funnel,
@@ -80,6 +81,7 @@ import {
   Route,
   Search,
   Settings,
+  Share2,
   Ship,
   ShoppingBag,
   SlidersHorizontal,
@@ -173,6 +175,8 @@ const GLYPHS = {
    */
   crop: Crop,
   close: X,
+  download: Download,
+  share: Share2,
   /*
    * **Read it somewhere else** — Lucide's `ExternalLink`: a box with its arrow leaving the
    * corner, the glyph the web has used for "this opens a different page" for as long as it has

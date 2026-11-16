@@ -12,7 +12,27 @@
 
 import type { YearRun, YearTally } from './wrapped';
 
-/** The stops a made-up year travels between. Real ids, so the labels are the app's own. */
+/**
+ * **Three demo years, because one happy year hides three kinds of fault.**
+ *
+ * The regular year is the showcase. The night-owl year puts every journey after six, so the
+ * traveller name, the hour chapter and the copy have to change with it. The thin year has too
+ * few journeys to earn a nameplate, so a developer can see the deck with chapters missing rather
+ * than discovering that hole on somebody's real January.
+ */
+export type DemoVariant = 'regular' | 'night-owl' | 'thin';
+
+export const DEMO_VARIANTS: Array<{ id: DemoVariant; label: string; labelNl: string }> = [
+  { id: 'regular', label: 'The regular year', labelNl: 'Het gewone jaar' },
+  { id: 'night-owl', label: 'The night owl', labelNl: 'De nachtbraker' },
+  { id: 'thin', label: 'The thin year', labelNl: 'Het dunne jaar' },
+];
+
+export function isDemoVariant(value: string | null): value is DemoVariant {
+  return value === 'regular' || value === 'night-owl' || value === 'thin';
+}
+
+/* The stops a made-up year travels between. Real ids, so the labels are the app's own. */
 const DEMO_PAIRS: Array<[string, string]> = [
   ['utrecht-centraal', 'amsterdam-centraal'],
   ['amsterdam-centraal', 'utrecht-centraal'],
@@ -45,11 +65,17 @@ function seeded(seed: number): () => number {
  * the afternoon and thin at three, and a deck that says "you usually set off at eight" is only
  * worth reading if the year behind it looks like a person's week.
  */
-export function demoYear(year: number): YearTally {
-  const random = seeded(20261231);
+export function demoYear(year: number, variant: DemoVariant = 'regular'): YearTally {
+  const profile =
+    variant === 'night-owl'
+      ? { total: 164, peaks: [19, 20, 21, 21, 22, 22, 23], seed: 20270101 }
+      : variant === 'thin'
+        ? { total: 7, peaks: [8, 17, 22], seed: 20270102 }
+        : { total: 146, peaks: [7, 8, 8, 8, 9, 12, 17, 17, 18, 18, 19, 22], seed: 20261231 };
+  const random = seeded(profile.seed);
   const runs: YearRun[] = [];
-  const peaks = [7, 8, 8, 8, 9, 12, 17, 17, 18, 18, 19, 22];
-  const total = 146;
+  const peaks = profile.peaks;
+  const total = profile.total;
 
   for (let index = 0; index < total; index += 1) {
     /* Spread across the year, weighted towards the months people actually travel. */

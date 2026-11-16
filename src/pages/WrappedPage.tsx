@@ -9,7 +9,9 @@ import { useT } from '../lib/useT';
 import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
-import { demoYear } from '../lib/wrappedDemo';
+import { demoYear, isDemoVariant, type DemoVariant } from '../lib/wrappedDemo';
+import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
+import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
 import {
   resumeSound,
   scoreTime,
@@ -115,6 +117,10 @@ export function WrappedPage() {
   const leave = useHistoryBack('/');
   const [params] = useSearchParams();
   const askedForDemo = params.get('demo') === '1';
+  const requestedVariant = params.get('persona');
+  const [demoVariant, setDemoVariant] = useState<DemoVariant>(() =>
+    isDemoVariant(requestedVariant) ? requestedVariant : 'regular',
+  );
   const now = appNow();
 
   /*
@@ -152,7 +158,10 @@ export function WrappedPage() {
    */
   const realTally = useMemo(() => tallyFor(year), [year]);
   const demo = askedForDemo || realTally.runs.length === 0;
-  const tally = useMemo(() => (demo ? demoYear(year) : realTally), [demo, year, realTally]);
+  const tally = useMemo(
+    () => (demo ? demoYear(year, demoVariant) : realTally),
+    [demo, year, realTally, demoVariant],
+  );
   const story = useMemo(
     () => buildStory({ year, tally, language: settings.language }),
     [year, tally, settings.language],
@@ -166,6 +175,8 @@ export function WrappedPage() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [director, setDirector] = useState(false);
 
   /*
    * **Every page hands its words out one piece at a time.**
@@ -244,13 +255,14 @@ export function WrappedPage() {
    */
   useEffect(() => {
     whenTrackEnds(() => {
-      if (last) return;
+      /* A workshop stays on the chapter being worked on. */
+      if (last || director) return;
       /* The cover's piece ending is the story starting, exactly as Begin is. */
       if (index === 0) setStarted(true);
       go(index + 1);
     });
     return () => whenTrackEnds(null);
-  }, [go, index, last]);
+  }, [go, index, last, director]);
 
   /*
    * **The story turns itself in silence too.**
@@ -262,14 +274,14 @@ export function WrappedPage() {
    * music that turns the page and this never gets there first.
    */
   useEffect(() => {
-    if (last) return undefined;
+    if (last || director) return undefined;
     const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
     const timer = window.setTimeout(() => {
       if (index === 0) setStarted(true);
       go(index + 1);
     }, quiet);
     return () => window.clearTimeout(timer);
-  }, [last, chapter.track, index, go]);
+  }, [last, chapter.track, index, go, director]);
 
   /* Two frames: one to paint the pieces hidden, one to start them. */
   useEffect(() => {
@@ -471,6 +483,22 @@ export function WrappedPage() {
         <button type="button" className="wrapped-close" onClick={leave} aria-label={t('Close')}>
           <Icon name="close" size={20} />
         </button>
+        {demo ? (
+          askedForDemo ? (
+            <button
+              type="button"
+              className="wrapped-demo-mark"
+              aria-label={t('Open the Demo Director')}
+              onClick={() => setDirector(true)}
+            >
+              {t('Demo')}
+            </button>
+          ) : (
+            <span className="wrapped-demo-mark" aria-label={t('Demo year')}>
+              {t('Demo')}
+            </span>
+          )
+        ) : null}
         {/*
           * **The switch says what a thumb will get, not what is already true.**
           *
@@ -791,7 +819,10 @@ export function WrappedPage() {
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
-              <Button variant="accent" size="sm" icon="bookmark" onClick={() => void share()}>
+              <Button variant="accent" size="sm" icon="share" onClick={() => setShareOpen(true)}>
+                {t('Share cards')}
+              </Button>
+              <Button variant="ghost" size="sm" icon="bookmark" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => go(0)}>
@@ -811,6 +842,36 @@ export function WrappedPage() {
         <p className="wrapped-toast" role="status">
           <Icon name="check" size={14} /> {t('The year has been emptied.')}
         </p>
+      ) : null}
+
+      <WrappedShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        year={year}
+        demo={demo}
+        story={story}
+        tally={tally}
+      />
+
+      {askedForDemo ? (
+        <WrappedDemoDirector
+          open={director}
+          onClose={() => setDirector(false)}
+          story={story}
+          index={index}
+          variant={demoVariant}
+          onJump={(at) => {
+            setStarted(at > 0);
+            go(at);
+            setDirector(false);
+          }}
+          onVariant={(next) => {
+            setDemoVariant(next);
+            setIndex(0);
+            setDir(1);
+            setStarted(false);
+          }}
+        />
       ) : null}
 
       <Dialog
