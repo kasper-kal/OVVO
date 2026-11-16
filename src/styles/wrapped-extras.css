@@ -10,13 +10,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
+  min-height: 44px;
   margin-left: var(--s-2);
-  padding: 0 13px;
+  padding: 0 14px;
   border: 1px solid color-mix(in srgb, var(--accent) 44%, transparent);
   border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--ink-strong);
+  /* The stage owns the ink: dark chapters need a light mark, paper chapters a dark one. */
+  color: inherit;
   font: 700 11px/1 'Space Grotesk', sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -642,7 +643,7 @@ button.wrapped-demo-mark:focus-visible {
 }
 
 .wrapped-awards {
-  width: min(100%, 760px);
+  width: min(100%, 920px);
   margin: 0 auto;
   text-align: left;
 }
@@ -655,12 +656,12 @@ button.wrapped-demo-mark:focus-visible {
 
 .wrapped-award {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 88px minmax(0, 1fr) 44px;
   grid-template-areas:
     'stat title button'
     'stat line line';
   align-items: center;
-  column-gap: 12px;
+  column-gap: 10px;
   row-gap: 3px;
   padding: 10px 12px;
   border: 1px solid rgb(36 28 20 / 0.13);
@@ -691,11 +692,11 @@ button.wrapped-demo-mark:focus-visible {
 .wrapped-award__title {
   grid-area: title;
   margin: 0;
-  overflow: hidden;
   color: #241c14;
-  font: 700 16px/1.1 'Fraunces', Georgia, serif;
+  font: 700 16px/1.15 'Fraunces', Georgia, serif;
   letter-spacing: -0.02em;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .wrapped-award__line {
@@ -707,40 +708,29 @@ button.wrapped-demo-mark:focus-visible {
 
 .wrapped-award .btn {
   grid-area: button;
-  align-self: center;
+  align-self: start;
+  justify-self: end;
   white-space: nowrap;
 }
 
-/* Four awards plus the header can be taller than a short phone. Start at the top and let the
-   page scroll inside the deck instead of clipping the first or last card. */
+/* Four awards plus the header can be taller than a short phone. The body is the deck's scroll
+   container (see the audit fixes at the foot of this file), so the cards are never clipped. */
 .wrapped-body[data-chapter='awards'] {
-  align-content: start;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  padding-bottom: 8px;
+  align-content: safe center;
 }
 
-@media (max-width: 719px) {
-  /* The share button used to sit in the same row as the title, squeezing the title into a
-     seven-pixel column: every letter dropped onto its own line. It gets its own row now. */
+@media (max-width: 379px) {
   .wrapped-award {
-    grid-template-columns: 88px minmax(0, 1fr);
-    grid-template-areas:
-      'stat title'
-      'stat line'
-      'button button';
-    column-gap: 10px;
-    padding: 9px 10px;
+    grid-template-columns: 72px minmax(0, 1fr) 44px;
+    padding: 9px 9px;
   }
 
-  .wrapped-award__top {
-    align-self: start;
+  .wrapped-award__stat {
+    font-size: 22px;
   }
 
-  .wrapped-award .btn {
-    justify-self: start;
-    margin-top: 2px;
+  .wrapped-award__title {
+    font-size: 15px;
   }
 }
 
@@ -1435,5 +1425,452 @@ button.wrapped-demo-mark:focus-visible {
 
   .wrapped-comparison__stat > em {
     grid-column: 1;
+  }
+}
+
+/* ========================================================== 2026-11 audit fixes
+
+   One pass for the 144-shot review. The rules here are deliberately after the chapter styles so
+   they win without copying their selectors: the deck stays the deck, but every page now has the
+   same safe frame, the yearbook has a readable title column, and the short-phone pages scroll
+   inside the body instead of painting through the header and footer. */
+
+/* The body, not the viewport, owns an overflowing chapter. `safe center` keeps the first line
+   reachable when the content is taller than the phone; without it centred overflow starts above
+   the top of the scroll box and can never be scrolled back into view. */
+.wrapped-body {
+  align-content: safe center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding-bottom: max(10px, 1.6vh);
+}
+
+/* The rail needs its full height, so it keeps stretch rather than safe centring. */
+.wrapped-body--route {
+  overflow-y: auto;
+}
+
+/* The controls are real 44px targets now, not 34px labels inside a 44px row. */
+.wrapped-sound {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+/* The page wash is painted above the body and below the controls. The footer was on the same
+   z-index as the wash, so the warm close-page gradient dimmed the coral Share cards button. */
+.wrapped-stage .wrapped-foot {
+  z-index: 3;
+}
+
+/* The chapter count is information, not a watermark. */
+.wrapped-chapter {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* The year fills more of the cover at 1440; at phone widths the old 56px floor was a small stamp. */
+.wrapped-body[data-chapter='cover'] .wrapped-title {
+  font-size: clamp(82px, 22vw, 300px);
+}
+
+/* The photograph was busy exactly where the title sat. */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  text-shadow:
+    0 2px 24px rgb(0 0 0 / 0.8),
+    0 1px 2px rgb(0 0 0 / 0.9);
+}
+
+/* The award's number and title both start at the top; the share control keeps its 44px column. */
+.wrapped-award__top {
+  align-self: start;
+}
+
+/* The notes' rule belongs to the whole content column, not to the longest line of text. */
+.wrapped-distance__notes {
+  width: 100%;
+  align-self: stretch;
+}
+
+.wrapped-distance__notes p {
+  font-size: 11.5px;
+}
+
+/* The unit rides with its number instead of drifting to the far side of the rail. */
+.wrapped-route__count {
+  gap: 0.04em;
+}
+
+.wrapped-route__count i {
+  margin-left: 3px;
+}
+
+/* One centred, quiet watermark. The old marquee deliberately ran off both edges, which read as
+   clipped text at rest; a single centred copy is legible at every width. */
+.wrapped-stage[data-chapter='lines'] .wrapped-lines-ticker {
+  left: 50%;
+  right: auto;
+  width: max-content;
+  transform: translateX(-50%);
+  animation: none;
+  font-size: clamp(48px, 14vw, 120px);
+}
+
+.wrapped-lines-ticker b:not(:first-child) {
+  display: none;
+}
+
+/* Four board figures means four plates. Two of them used to be display:none in the stylesheet. */
+.wrapped-body[data-chapter='lines'] .wrapped-chip {
+  display: grid;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  display: block;
+}
+
+.wrapped-body[data-chapter='lines'] .wrapped-chips {
+  grid-auto-rows: auto;
+  align-content: start;
+}
+
+.wrapped-body--chips[data-chapter='lines'] {
+  grid-template-rows: auto auto auto auto;
+  align-content: safe center;
+}
+
+/* The board's captions were 11px; they are labels, not fine print. */
+.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  opacity: 0.78;
+}
+
+/* Bookends: the connector was a floating yellow hairline between the cards, attached to neither.
+   Two cards and one gap say the same thing without a stray mark. */
+@media (min-width: 720px) {
+  .wrapped-bookends__pair {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wrapped-bookends__connector {
+    display: none;
+  }
+}
+
+.wrapped-bookend__time {
+  font-size: 12px;
+  color: #c1d2c8;
+}
+
+/* Name: on a short phone the three-column ticket squeezed "88 of 146" into a vertical stack.
+   The first figure takes the full width and the two smaller figures share the row beneath it. */
+@media (max-width: 400px) {
+  .wrapped-body--name .wrapped-chips {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wrapped-body--name .wrapped-chip:first-child {
+    grid-column: span 2;
+    padding-right: 0;
+  }
+
+  .wrapped-body--name .wrapped-chip:nth-child(2) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .wrapped-body--name .wrapped-chip:nth-child(3) {
+    padding-left: 10px;
+  }
+
+  .wrapped-body--name .wrapped-chip span {
+    font-size: 10px;
+  }
+}
+
+/* Map: at 320 the three labels sat on top of the marks and each other. The two largest stations
+   keep their labels; the legend still names the top station. */
+@media (max-width: 379px) {
+  .wrapped-map__labels text:nth-of-type(n + 3) {
+    display: none;
+  }
+
+  .wrapped-map__labels text {
+    font-size: 3px;
+  }
+
+  /* The long-haul endpoints were ellipsised by eight pixels. Let the name wrap in its own half. */
+  .wrapped-stage[data-chapter='longest'] .wrapped-stretch__from,
+  .wrapped-stage[data-chapter='longest'] .wrapped-stretch__end {
+    max-width: 50%;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.15;
+  }
+}
+
+/* Crew: the code is data, not a decorative barcode. */
+.wrapped-crew__code code {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.wrapped-crew__privacy {
+  font-size: 11px;
+  color: #a9b8cc;
+}
+
+.wrapped-crew__input-row input {
+  min-height: 44px;
+}
+
+.wrapped-crew__actions .btn[disabled] {
+  opacity: 0.62;
+}
+
+/* The close page's three actions were the smallest labels in the deck. */
+.wrapped-foot .btn {
+  font-size: 12px;
+}
+
+/* The footer sits above the page wash. The earlier `[data-chapter]` rule is more specific than the
+   one in the first audit block, so this one repeats the selector at the same weight. */
+.wrapped-stage[data-chapter] .wrapped-foot {
+  z-index: 3;
+}
+
+/* The cover is the first thing a slow phone paints. Its staggered deal is the one entrance that
+   must not leave the year invisible on the first frame. */
+.wrapped-body[data-chapter='cover'] {
+  animation: none;
+}
+
+.wrapped-body--cover > * {
+  animation: none;
+}
+
+/* The number and its unit are one phrase on the rail. */
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count {
+  gap: 0;
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count i {
+  margin-left: 0.08em;
+  font-size: 0.24em;
+}
+
+/* The close chapter's three actions used to take three rows at 320, leaving a 265px body under a
+   170px footer. Two rows at the shortest width give the note back and keep every action reachable. */
+@media (max-width: 379px) {
+  .wrapped-stage .wrapped-foot {
+    gap: 8px;
+    row-gap: 6px;
+    padding-top: 8px;
+  }
+
+  .wrapped-foot:has(.wrapped-foot__actions) {
+    gap: 8px;
+    row-gap: 6px;
+  }
+
+  .wrapped-foot .wrapped-actions {
+    gap: 6px;
+  }
+
+  .wrapped-foot .btn {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+
+  .wrapped-foot .btn .icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Bookends: keep the pair together for as long as a 568px screen allows; the rest scrolls. */
+  .wrapped-stage[data-chapter='bookends'] .wrapped-big {
+    font-size: 34px;
+    line-height: 1;
+  }
+
+  .wrapped-stage[data-chapter='bookends'] .wrapped-line {
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .wrapped-bookends {
+    gap: 8px;
+  }
+
+  .wrapped-bookends__lead {
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  .wrapped-bookend {
+    gap: 2px;
+    padding: 10px 11px;
+  }
+
+  .wrapped-bookend__route {
+    font-size: 17px;
+    line-height: 1.1;
+  }
+
+  /* Map: the whole chapter, including its caption, fits a 568px screen. */
+  .wrapped-map {
+    gap: 6px;
+  }
+
+  .wrapped-map__big {
+    font-size: 34px;
+  }
+
+  .wrapped-map__line {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .wrapped-map__frame {
+    width: min(100%, 240px);
+  }
+
+  .wrapped-map__legend {
+    gap: 3px 10px;
+    font-size: 10px;
+  }
+
+  .wrapped-map__foot {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 379px) {
+  /* Give the bookends the last 30px they needed to show both cards at once. */
+  .wrapped-stage[data-chapter='bookends'] .wrapped-big {
+    font-size: 32px;
+  }
+
+  .wrapped-bookends {
+    gap: 2px;
+  }
+
+  .wrapped-bookends__pair {
+    gap: 4px;
+  }
+
+  .wrapped-bookends__lead {
+    font-size: 12px;
+  }
+
+  .wrapped-bookend {
+    gap: 1px;
+    padding: 8px 10px;
+  }
+
+  .wrapped-bookend__route {
+    font-size: 16px;
+  }
+
+  .wrapped-bookend__time {
+    font-size: 11.5px;
+  }
+}
+
+/* The look's cut-out word took its colour from the darkest part of the roof. A warm screen wash over
+   the photograph keeps the cut-out idea but lifts the letters above the picture. */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  background-image:
+    linear-gradient(rgb(255 248 235 / 0.78), rgb(255 248 235 / 0.78)),
+    var(--look-photo, none);
+  background-blend-mode: screen;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 0.55);
+  filter: drop-shadow(0 4px 24px rgb(0 0 0 / 0.7));
+}
+
+/* The pair's unit belonged to the number, not to the far edge of the rail. */
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count i {
+  margin-left: -3px;
+}
+
+/* The cut-out word was still mostly roof. It is solid warm ink now: the photograph behind it is
+   already the page, and the word has to be read before it is admired. */
+.wrapped-stage[data-chapter='look'] .wrapped-big {
+  color: #f5efe3;
+  background-image: none;
+  -webkit-text-stroke: 0;
+}
+
+@media (max-width: 379px) {
+  /* Tighten the crew page by the last 30px so its privacy note is on the first paint, not below it.
+     The code itself keeps its 11.5px mono type; only the gaps and padding give way. */
+  .wrapped-stage[data-chapter='crew'] .wrapped-big {
+    font-size: 36px;
+  }
+
+  .wrapped-crew {
+    gap: 6px;
+  }
+
+  .wrapped-crew__code {
+    gap: 4px;
+    padding: 9px;
+  }
+
+  .wrapped-crew__code code {
+    font-size: 11.5px;
+    line-height: 1.45;
+  }
+
+  .wrapped-crew__actions {
+    gap: 4px;
+    padding-top: 0;
+  }
+
+  .wrapped-crew__entry {
+    gap: 3px;
+  }
+
+  .wrapped-crew__privacy {
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+}
+
+/* The look's words sit above its photographic wash, not inside it. */
+.wrapped-stage[data-chapter='look'] .wrapped-body {
+  z-index: 3;
+}
+
+@media (max-width: 379px) {
+  /* The crew page's last 21px: the privacy note was the only thing below the fold. */
+  .wrapped-stage[data-chapter='crew'] .wrapped-big {
+    font-size: 34px;
+  }
+
+  .wrapped-crew {
+    gap: 5px;
+  }
+
+  .wrapped-crew__code {
+    padding: 8px;
+  }
+
+  .wrapped-crew__code code {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .wrapped-crew__privacy {
+    font-size: 10px;
+    line-height: 1.3;
   }
 }

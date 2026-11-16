@@ -11775,14 +11775,6 @@
   gap: 0;
 }
 
-.wrapped-body[data-chapter='lines'] .wrapped-chip:nth-child(n + 3) {
-  display: none;
-}
-
-.wrapped-body[data-chapter='lines'] .wrapped-chip strong {
-  display: none;
-}
-
 .wrapped-body[data-chapter='lines'] .wrapped-chip span {
   font-size: clamp(26px, 7.6vw, 34px);
   letter-spacing: -0.01em;

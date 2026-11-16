@@ -276,6 +276,15 @@ function mount(): void {
 function takeDownSplash(): void {
   const splash = document.getElementById('splash');
   if (!splash) return;
+  /*
+   * **Wrapped has no opening mark.** Its cover is the opening, and the splash's 320ms hold put a
+   * grey OVVO tile over the year on the first frame. On this one deep link the app has already
+   * painted its cover when this runs, so the splash can go at once rather than sit on top of it.
+   */
+  if (window.location.pathname.startsWith('/wrapped')) {
+    splash.remove();
+    return;
+  }
   const shownAt = (window as unknown as { __ovvoSplash?: number }).__ovvoSplash ?? 0;
   const remaining = Math.max(0, 320 - (Date.now() - shownAt));
   window.setTimeout(() => {

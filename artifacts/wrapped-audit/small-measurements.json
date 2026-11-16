@@ -1,0 +1,1391 @@
+{
+  "state": {
+    "id": "small",
+    "width": 320,
+    "height": 568
+  },
+  "chapters": [
+    {
+      "pageNo": 2,
+      "id": "total"
+    },
+    {
+      "pageNo": 3,
+      "id": "name"
+    },
+    {
+      "pageNo": 4,
+      "id": "map"
+    },
+    {
+      "pageNo": 5,
+      "id": "distance"
+    },
+    {
+      "pageNo": 6,
+      "id": "pair"
+    },
+    {
+      "pageNo": 7,
+      "id": "origin"
+    },
+    {
+      "pageNo": 8,
+      "id": "hour"
+    },
+    {
+      "pageNo": 9,
+      "id": "direct"
+    },
+    {
+      "pageNo": 10,
+      "id": "longest"
+    },
+    {
+      "pageNo": 11,
+      "id": "look"
+    },
+    {
+      "pageNo": 12,
+      "id": "eras"
+    },
+    {
+      "pageNo": 13,
+      "id": "lines"
+    },
+    {
+      "pageNo": 14,
+      "id": "awards"
+    },
+    {
+      "pageNo": 15,
+      "id": "bookends"
+    },
+    {
+      "pageNo": 16,
+      "id": "comparison"
+    },
+    {
+      "pageNo": 17,
+      "id": "crew"
+    },
+    {
+      "pageNo": 18,
+      "id": "close"
+    }
+  ],
+  "consoleErrors": [
+    "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 429 ()",
+    "Access to XMLHttpRequest at 'https://cloudflareinsights.com/cdn-cgi/rum' from origin 'http://127.0.0.1:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header has a value 'http://127.0.0.1' that is not equal to the supplied origin.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "measurements": [
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "cover",
+      "chapterText": null,
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 467,
+        "right": 300,
+        "bottom": 554
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": null,
+      "bodyScroll": {
+        "scrollHeight": 467,
+        "clientHeight": 467,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 1,
+      "id": "cover",
+      "entry": "artifacts/wrapped-audit/small/01-cover-entry.png",
+      "settled": "artifacts/wrapped-audit/small/01-cover-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "total",
+      "chapterText": "02 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 2,
+      "id": "total",
+      "entry": "artifacts/wrapped-audit/small/02-total-entry.png",
+      "settled": "artifacts/wrapped-audit/small/02-total-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "name",
+      "chapterText": "03 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 3,
+      "id": "name",
+      "entry": "artifacts/wrapped-audit/small/03-name-entry.png",
+      "settled": "artifacts/wrapped-audit/small/03-name-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "map",
+      "chapterText": "04 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 4,
+      "id": "map",
+      "entry": "artifacts/wrapped-audit/small/04-map-entry.png",
+      "settled": "artifacts/wrapped-audit/small/04-map-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "distance",
+      "chapterText": "05 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 5,
+      "id": "distance",
+      "entry": "artifacts/wrapped-audit/small/05-distance-entry.png",
+      "settled": "artifacts/wrapped-audit/small/05-distance-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "pair",
+      "chapterText": "06 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 6,
+      "id": "pair",
+      "entry": "artifacts/wrapped-audit/small/06-pair-entry.png",
+      "settled": "artifacts/wrapped-audit/small/06-pair-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "origin",
+      "chapterText": "07 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 7,
+      "id": "origin",
+      "entry": "artifacts/wrapped-audit/small/07-origin-entry.png",
+      "settled": "artifacts/wrapped-audit/small/07-origin-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "hour",
+      "chapterText": "08 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 8,
+      "id": "hour",
+      "entry": "artifacts/wrapped-audit/small/08-hour-entry.png",
+      "settled": "artifacts/wrapped-audit/small/08-hour-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "direct",
+      "chapterText": "09 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 439,
+        "right": 300,
+        "bottom": 526
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 526,
+        "w": 280,
+        "h": 28,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 439,
+        "clientHeight": 439,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 9,
+      "id": "direct",
+      "entry": "artifacts/wrapped-audit/small/09-direct-entry.png",
+      "settled": "artifacts/wrapped-audit/small/09-direct-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "longest",
+      "chapterText": "10 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 10,
+      "id": "longest",
+      "entry": "artifacts/wrapped-audit/small/10-longest-entry.png",
+      "settled": "artifacts/wrapped-audit/small/10-longest-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "look",
+      "chapterText": "11 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 437,
+        "right": 300,
+        "bottom": 524
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 524,
+        "w": 280,
+        "h": 30,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 437,
+        "clientHeight": 437,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 11,
+      "id": "look",
+      "entry": "artifacts/wrapped-audit/small/11-look-entry.png",
+      "settled": "artifacts/wrapped-audit/small/11-look-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "eras",
+      "chapterText": "12 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 12,
+      "id": "eras",
+      "entry": "artifacts/wrapped-audit/small/12-eras-entry.png",
+      "settled": "artifacts/wrapped-audit/small/12-eras-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "lines",
+      "chapterText": "13 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 13,
+      "id": "lines",
+      "entry": "artifacts/wrapped-audit/small/13-lines-entry.png",
+      "settled": "artifacts/wrapped-audit/small/13-lines-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "awards",
+      "chapterText": "14 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 592,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "body-overflow",
+          "key": "body",
+          "detail": "592 in 440; overflow auto"
+        },
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        },
+        {
+          "kind": "under-footer",
+          "key": "p.wrapped-award__line",
+          "detail": "text at 526-556, footer 527-554"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 14,
+      "id": "awards",
+      "entry": "artifacts/wrapped-audit/small/14-awards-entry.png",
+      "settled": "artifacts/wrapped-audit/small/14-awards-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "bookends",
+      "chapterText": "15 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 15,
+      "id": "bookends",
+      "entry": "artifacts/wrapped-audit/small/15-bookends-entry.png",
+      "settled": "artifacts/wrapped-audit/small/15-bookends-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "comparison",
+      "chapterText": "16 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 440,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 16,
+      "id": "comparison",
+      "entry": "artifacts/wrapped-audit/small/16-comparison-entry.png",
+      "settled": "artifacts/wrapped-audit/small/16-comparison-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "crew",
+      "chapterText": "17 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 440,
+        "right": 300,
+        "bottom": 527
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 527,
+        "w": 280,
+        "h": 27,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 443,
+        "clientHeight": 440,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "body-overflow",
+          "key": "body",
+          "detail": "443 in 440; overflow auto"
+        },
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 17,
+      "id": "crew",
+      "entry": "artifacts/wrapped-audit/small/17-crew-entry.png",
+      "settled": "artifacts/wrapped-audit/small/17-crew-settled.png"
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "page": "OVVO",
+      "chapter": "close",
+      "chapterText": "18 / 18",
+      "stage": {
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 568,
+        "right": 320,
+        "bottom": 568
+      },
+      "body": {
+        "x": 20,
+        "y": 87,
+        "w": 280,
+        "h": 339,
+        "right": 300,
+        "bottom": 426
+      },
+      "top": {
+        "x": 12,
+        "y": 33,
+        "w": 296,
+        "h": 54,
+        "right": 308,
+        "bottom": 87
+      },
+      "foot": {
+        "x": 20,
+        "y": 426,
+        "w": 280,
+        "h": 128,
+        "right": 300,
+        "bottom": 554
+      },
+      "bodyScroll": {
+        "scrollHeight": 339,
+        "clientHeight": 339,
+        "scrollTop": 0,
+        "overflowY": "auto"
+      },
+      "faults": [
+        {
+          "kind": "past-left",
+          "key": "a.skip-link",
+          "detail": "-9999"
+        }
+      ],
+      "smallControls": [
+        {
+          "key": "a.skip-link",
+          "w": 131,
+          "h": 18,
+          "text": "Skip to main content"
+        },
+        {
+          "key": "a.app-header__alerts",
+          "w": 36,
+          "h": 36,
+          "text": ""
+        }
+      ],
+      "pageNo": 18,
+      "id": "close",
+      "entry": "artifacts/wrapped-audit/small/18-close-entry.png",
+      "settled": "artifacts/wrapped-audit/small/18-close-settled.png"
+    }
+  ]
+}

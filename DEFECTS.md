@@ -41,6 +41,8 @@ him, and it is the work queue.
 
 | 28 | "This looks HORRIBLE" — on the Wrapped yearbook page, the share button squeezed the award title into a seven-pixel column, so every letter stood on its own line | not covered: no automated check reads the Wrapped yearbook at phone width; measured by hand at 360×800 and 320×568, before and after the fix | — |
 
+| 29 | "Fix all of those" — the 144-shot Wrapped audit: squeezed yearbook titles, short-phone footer collisions, two missing line totals, an invisible Demo badge, a dim close button and the smaller type faults | `node scripts/audit-wrapped.mjs` at 360x800, 320x568, 768x1024 and 1440x900, with the measurements JSON and the after-report | partly: the same matrix recorded a 19px award title, two `display:none` line plates and 320px under-footer text before; the after run records 156px at 768, 279px at 1440, four line plates, and no clipped-text, page-overflow or under-footer fault at 360/768/1440. The 320 yearbook still scrolls, named in `artifacts/wrapped-audit/report.md` |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

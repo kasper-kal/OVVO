@@ -1,4 +1,4 @@
-import { Button } from '../ui/primitives';
+import { IconButton } from '../ui/primitives';
 import { useT } from '../../lib/useT';
 import type { YearAward } from '../../lib/wrappedDeck';
 
@@ -29,14 +29,11 @@ export function WrappedAwardsChapter({
             </div>
             <h2 className="wrapped-award__title">{t(award.title)}</h2>
             <p className="wrapped-award__line">{t(award.line)}</p>
-            <Button
-              variant="ghost"
-              size="sm"
+            <IconButton
               icon="share"
+              label={t('Share this award')}
               onClick={() => onShare(`award-${award.id}`)}
-            >
-              {t('Share this award')}
-            </Button>
+            />
           </article>
         ))}
       </div>

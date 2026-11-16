@@ -609,19 +609,6 @@ export function WrappedPage() {
                       <b key={repeat}>{chapter.big}</b>
                     ))}
                   </span>
-                  <span className="wrapped-lines-eq" aria-hidden="true">
-                    {Array.from({ length: 16 }, (_, bar) => (
-                      <i
-                        key={bar}
-                        style={
-                          {
-                            '--i': bar,
-                            height: `${18 + ((bar * 37) % 76)}%`,
-                          } as CSSProperties
-                        }
-                      />
-                    ))}
-                  </span>
                 </>
               ) : null}
 
@@ -869,7 +856,7 @@ export function WrappedPage() {
               <Button variant="ghost" size="sm" icon="bookmark" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => go(0)}>
+              <Button variant="ghost" size="sm" icon="refresh" onClick={() => go(0)}>
                 {t('Start again')}
               </Button>
               {demo ? null : (
