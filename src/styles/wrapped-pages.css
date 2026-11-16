@@ -264,6 +264,10 @@
   pointer-events: none;
 }
 
+.wrapped-body.is-dealt[data-chapter='lines'] > .wrapped-lines-eq {
+  opacity: 0.5;
+}
+
 .wrapped-lines-eq i {
   flex: 1;
   min-width: 3px;
