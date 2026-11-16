@@ -1,13 +1,13 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-11-16T20:22:51.533Z",
+  "at": "2026-11-16T20:46:29.525Z",
   "total": 36,
   "states": [
     {
       "state": {
-        "id": "small",
-        "width": 320,
-        "height": 568
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
       },
       "chapters": [
         {

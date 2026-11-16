@@ -57,11 +57,18 @@ try {
         const s = getComputedStyle(el);
         return s.backdropFilter && s.backdropFilter !== 'none';
       }).length;
+      const fullWidth = [...body.querySelectorAll(
+        '.wrapped-distance, .wrapped-eras, .wrapped-awards, .wrapped-bookends, .wrapped-comparison, .wrapped-crew',
+      )].map((el) => ({
+        className: String(el.className).split(' ')[0],
+        pct: Math.round((el.getBoundingClientRect().width / body.clientWidth) * 100),
+      }));
 
       return {
         id: body.dataset.chapter,
         stageImage: getComputedStyle(stage).backgroundImage,
         glass,
+        fullWidth,
         display: style.display,
         columns: style.gridTemplateColumns,
         areas: style.gridTemplateAreas,
@@ -120,6 +127,13 @@ try {
   const namedAreas = chapters.filter((c) => c.areas && c.areas !== 'none').length;
   if (namedAreas < 6) {
     failures.push(`only ${namedAreas} chapter(s) use a named grid composition`);
+  }
+
+  const narrow = chapters.flatMap((c) =>
+    c.fullWidth.filter((section) => section.pct < 75).map((section) => `${c.id}:${section.className} at ${section.pct}%`),
+  );
+  if (narrow.length) {
+    failures.push(`a full-width piece shrank back into a column (${narrow.join(', ')})`);
   }
 
   if (failures.length) {
