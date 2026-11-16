@@ -1,8 +1,8 @@
 # Drop the Yearbook sounds here
 
 Drag your generated files into this folder. The watcher imports each one into the Yearbook slot and
-moves it to `imported/`. You do not need to rename anything if the file already uses one of the exact
-names below.
+keeps a record copy in `imported/`; your file stays here. You do not need to rename anything if the
+file already uses one of the exact names below.
 
 Accepted: **WAV** and **MP3**. WAV is best if you want the length fitted. The watcher trims leading
 and trailing silence, pads a short cue, cuts an overlong cue at its maximum, and normalizes the peak.
@@ -29,7 +29,9 @@ generated.
 | `crew-connect.wav` | Travel crew | 0.70s | 0.90s |
 | `yearbook-close.wav` | The close | 1.00s | 1.30s |
 
-The watcher also accepts `film-advance` or the old `tape-reel` name for `era-advance`.
+The watcher also accepts `film-advance` or the old `tape-reel` name for `era-advance`, and maps
+`page-turning` to `page-turn`, `map-pin-drop` to `map-pin`, `train-bell` to `rail-chime`,
+`trophy-case` to `trophy-triumph`, and `book-closing` to `yearbook-close`.
 
 Leave no other audio in this folder. If a name is not recognised, the file stays here and is logged;
 it will not be forced into the wrong moment. Keep the name your generator gave it if you like. I will

@@ -3,8 +3,8 @@
  * Watch the sound-effects drop folder and put every file in its Yearbook slot.
  *
  * WAV files are trimmed, padded and normalized by `scripts/fit-sfx.py`; MP3 files are copied as-is
- * and the browser's MP3 fallback plays them. A processed source is moved into `imported/` so the
- * same file is never imported twice.
+ * and the browser's MP3 fallback plays them. A record copy is placed in `imported/`; the source stays
+ * in the drop folder. A source older than its fitted output is skipped on later scans.
  *
  * Run: node scripts/watch-sfx.mjs
  * One pass: node scripts/watch-sfx.mjs --once
@@ -54,6 +54,11 @@ const ALIASES = {
   clock: 'clock-chime',
   shutter: 'camera-shutter',
   'film-advance': 'era-advance',
+  'page-turning': 'page-turn',
+  'map-pin-drop': 'map-pin',
+  'train-bell': 'rail-chime',
+  'trophy-case': 'trophy-triumph',
+  'book-closing': 'yearbook-close',
   'tape-reel': 'era-advance',
   tapereel: 'era-advance',
   stamp: 'board-stamp',
@@ -127,7 +132,7 @@ function importOne(file, effect) {
   }
 
   mkdirSync(IMPORTED, { recursive: true });
-  renameSync(source, uniqueDestination(file));
+  copyFileSync(source, uniqueDestination(file));
   pending.delete(file);
 }
 
@@ -152,6 +157,13 @@ function scan() {
       failed.add(file);
       continue;
     }
+    /* A source that is already represented by a newer fitted file does not need importing again. */
+    const outputs = [`${effect}.wav`, `${effect}.mp3`].map((name) => path.join(PUBLIC, name));
+    const newestOutput = outputs
+      .filter((candidate) => existsSync(candidate))
+      .map((candidate) => statSync(candidate).mtimeMs)
+      .sort((a, b) => b - a)[0];
+    if (newestOutput && statSync(source).mtimeMs <= newestOutput + 500) continue;
     /* Wait for a copy to finish before reading it. */
     if (pending.get(file) !== size) {
       pending.set(file, size);

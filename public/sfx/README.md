@@ -1,7 +1,8 @@
 # Yearbook sound effects
 
-These are the short cues under the Yearbook score. The files checked in here are synthesized
-stand-ins, not the final AI-generated sounds.
+These are the short cues under the Yearbook score. The uploaded batch is in place and fitted to the
+page lengths. `begin.wav` is still a synthesized stand-in because the upload did not include a Begin
+sound.
 
 To replace one, drop a WAV or MP3 with the same base name into this folder. The player tries the WAV
 first and falls back to the MP3, so an export can be dropped in without changing code. Or drag files
