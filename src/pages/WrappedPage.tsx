@@ -12,14 +12,8 @@ import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear, isDemoVariant, type DemoVariant } from '../lib/wrappedDemo';
 import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
-import { WrappedMapChapter } from '../components/wrapped/WrappedMapChapter';
-import { WrappedEraChapter } from '../components/wrapped/WrappedEraChapter';
-import { WrappedAwardsChapter } from '../components/wrapped/WrappedAwardsChapter';
-import { WrappedBookendsChapter } from '../components/wrapped/WrappedBookendsChapter';
-import { WrappedDistanceChapter } from '../components/wrapped/WrappedDistanceChapter';
-import { WrappedCrewChapter } from '../components/wrapped/WrappedCrewChapter';
 import { WrappedSealed } from '../components/wrapped/WrappedSealed';
-import { WrappedComparisonChapter } from '../components/wrapped/WrappedComparisonChapter';
+import { WrappedIssue } from '../components/wrapped/WrappedIssue';
 import {
   resumeSound,
   scoreTime,
@@ -32,23 +26,6 @@ import {
 } from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
 import { playYearbookEffect, preloadYearbookEffects, type YearbookEffect } from '../lib/yearbookEffects';
-
-/*
- * **The year as twelve bars, one a month.**
- *
- * The heights are the tally's, not the design's: a quiet February is a stub and a heavy September
- * nearly reaches the top, so the shape of the year is read left to right before the number under it
- * is read at all. A month with nothing in it keeps a three pixel mark, because a bar chart with a
- * missing month lies about the space between the others.
- */
-function monthBars(months?: number[]): number[] {
-  const counts = months && months.length === 12 ? months : new Array<number>(12).fill(0);
-  const max = Math.max(1, ...counts);
-  return counts.map((count) => (count ? Math.max(0.06, count / max) : 0.06));
-}
-
-/* The twelve month letters, and Dutch and English share all of them but the first. */
-const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 /*
  * **A chapter's sound, and the moment its picture lands.**
@@ -579,30 +556,6 @@ export function WrappedPage() {
         step(forward ? 1 : -1);
       }}
     >
-      {/* The look's own photograph, behind everything, when that look has one. */}
-      {chapter.kind === 'word' && chapter.photo ? (
-        <img
-          className="wrapped-photo"
-          src={chapter.photo}
-          alt=""
-          aria-hidden="true"
-          onError={(event) => {
-            event.currentTarget.style.display = 'none';
-          }}
-        />
-      ) : null}
-
-      {/*
-        * **The dotted ground, exactly as the first versions drew it.**
-        *
-        * One-pixel dots three pixels apart: paper grain, not a pattern of discs. It was taken off every
-        * chapter when each page got its own surface; this is the one page that asked for it back. It is a
-        * child of the stage rather than of the body, because the ground belongs to the whole page: drawn
-        * inside the body it started where the words start and stopped where they stop, and the paper shelf
-        * at the foot of the page covered the rest.
-        */}
-      {chapter.id === 'origin' ? <span className="wrapped-grain" aria-hidden="true" /> : null}
-
       {/*
         * **Where you are, in ten pieces.**
         *
@@ -691,280 +644,23 @@ export function WrappedPage() {
         <div
           className={`wrapped-body wrapped-body--${chapter.kind}${dealt ? ' is-dealt' : ''}`}
           data-chapter={chapter.id}
+          data-index={String(index + 1).padStart(2, '0')}
           data-dir={dir}
           key={chapter.id}
         >
-          {chapter.kind === 'cover' ? (
-            <>
-              <span className="wrapped-orbit" aria-hidden="true" />
-              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
-                {t(chapter.kicker)}
-              </span>
-              <h1 className="wrapped-title" style={{ '--i': 1 } as CSSProperties}>
-                {chapter.big}
-              </h1>
-              <p className="wrapped-line" style={{ '--i': 2 } as CSSProperties}>
-                {t(chapter.line)}
-              </p>
-              {!yearOver ? (
-                <p className="wrapped-unfinished" style={{ '--i': 2 } as CSSProperties}>
-                  {t('This year is not over yet. This is it so far.')}
-                </p>
-              ) : null}
-              {demo ? (
-                <p className="wrapped-demo" style={{ '--i': 3 } as CSSProperties}>
-                  <strong>{t('Demo year:')}</strong> {t('none of this is real, and none of it is stored.')}
-                </p>
-              ) : null}
-              <div className="wrapped-actions" style={{ '--i': 4 } as CSSProperties}>
-                <Button
-                  variant="accent"
-                  size="md"
-                  onClick={() => {
-                    setStarted(true);
-                    /* On by default, so Begin starts the score unless it was muted before the tap. */
-                    /*
-                     * **One press, one song.**
-                     *
-                     * Begin used to start the cover's track and hand over to the next chapter's from an
-                     * effect, outside the tap. A phone allows the first play and refuses the second, so the
-                     * room went quiet a second in and only came back when the switch was tapped again. The
-                     * score now opens on the chapter the traveller lands on, in the same gesture.
-                     */
-                    go(1);
-                  }}
-                >
-                  {t('Begin')}
-                </Button>
-                {/* The cover asks one thing. The score has its own switch in the corner. */}
-              </div>
-            </>
-          ) : (
-            <>
-              {chapter.id === 'lines' ? (
-                <>
-                  <span className="wrapped-lines-ticker" aria-hidden="true">
-                    {[0, 1, 2, 3, 4, 5].map((repeat) => (
-                      <b key={repeat}>{chapter.big}</b>
-                    ))}
-                  </span>
-                </>
-              ) : null}
-
-              <span className="wrapped-kicker" style={{ '--i': 0 } as CSSProperties}>
-                {t(chapter.kicker)}
-              </span>
-
-              {chapter.kind === 'map' && chapter.map ? (
-                <WrappedMapChapter data={chapter.map} big={chapter.big} line={chapter.line} />
-              ) : chapter.kind === 'distance' && chapter.distance ? (
-                <WrappedDistanceChapter data={chapter.distance} />
-              ) : chapter.kind === 'arc' ? (
-                <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
-                  <span className="wrapped-arc__spark" aria-hidden="true" />
-                  <p className="wrapped-big wrapped-big--in">{count}%</p>
-                </div>
-              ) : chapter.kind === 'route' ? null : (
-                <p className="wrapped-big" style={{ '--i': 1 } as CSSProperties}>
-                  {chapter.kind === 'word' || chapter.kind === 'chips' || chapter.count === undefined ? chapter.big : count}
-                </p>
-              )}
-
-              {chapter.kind === 'word' && chapter.count !== undefined ? (
-                <p className="wrapped-days" style={{ '--i': 2 } as CSSProperties}>
-                  {count}
-                  <span>{chapter.count === 1 ? t('day') : t('days')}</span>
-                </p>
-              ) : null}
-
-              {/*
-                * The line's own count, at the size a year of journeys earns. It was a sentence under
-                * the name ("24 journeys on it."), which is the smallest type on the page saying the
-                * biggest thing the page knows.
-                */}
-              {chapter.id === 'lines' ? (
-                <p className="wrapped-lines-count" style={{ '--i': 2 } as CSSProperties}>
-                  <strong>{chapter.count ?? 0}</strong>
-                  <span>{t('journeys')}</span>
-                </p>
-              ) : null}
-
-              {chapter.kind === 'number' ? (
-                <div className="wrapped-months" aria-hidden="true">
-                  {monthBars(chapter.months).map((bar, month) => (
-                    <span
-                      key={month}
-                      className="wrapped-months__col"
-                      style={{ '--i': month } as CSSProperties}
-                    >
-                      <i style={{ '--h': bar } as CSSProperties} />
-                      <em>{MONTH_LETTERS[month]}</em>
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-
-              {/*
-                * The markers are children of the rail, not of the labels: drawn on the labels they
-                * were placed from a different origin and sat four pixels off the line, which is the
-                * kind of thing nobody notices until somebody does.
-                */}
-              {chapter.kind === 'route' && chapter.route ? (
-                <div className="wrapped-route" style={{ '--i': 2 } as CSSProperties}>
-                  <span className="wrapped-route__rail" aria-hidden="true">
-                    {/*
-                      * One tick per journey down the line. The rail was a dashed rule with a dot
-                      * sliding on it, which is a diagram of the idea rather than the idea: the
-                      * journeys happened this many times and the line should be countable.
-                      */}
-                    {Array.from({ length: Math.min(chapter.route.count, 40) }, (_, tick) => (
-                      <b
-                        key={tick}
-                        className="wrapped-route__tick"
-                        style={{ '--k': tick } as CSSProperties}
-                      />
-                    ))}
-                    {/* The moving dot is the traveller. The two markers are empty rings it fills. */}
-                    <span className="wrapped-route__traveller" />
-                  </span>
-                  <span className="wrapped-route__dot wrapped-route__dot--start" aria-hidden="true" />
-                  <span className="wrapped-route__dot wrapped-route__dot--end" aria-hidden="true" />
-                  <span className="wrapped-route__count">
-                    {count}
-                    <i>{t(chapter.line)}</i>
-                  </span>
-                  <span className="wrapped-route__from">{chapter.route.from}</span>
-                  <span className="wrapped-route__to">{chapter.route.to}</span>
-                </div>
-              ) : null}
-
-              {chapter.kind === 'bars' && chapter.bars ? (
-                <>
-                  <span className="wrapped-ruler" aria-hidden="true">
-                    <i>00</i>
-                    <i>06</i>
-                    <i>12</i>
-                    <i>18</i>
-                    <i>23</i>
-                  </span>
-                  <div className="wrapped-bars" style={{ '--i': 1 } as CSSProperties} aria-hidden="true">
-                  {chapter.bars.map((value, hour) => (
-                    <span
-                      key={hour}
-                      className={`wrapped-bars__bar${hour === chapter.peak ? ' is-peak' : ''}`}
-                      style={
-                        {
-                          height: `${Math.max(4, (value / Math.max(1, ...(chapter.bars ?? [1]))) * 100)}%`,
-                          '--i': hour,
-                        } as CSSProperties
-                      }
-                    />
-                  ))}
-                  </div>
-                </>
-              ) : null}
-
-              {chapter.kind === 'stretch' && chapter.route ? (
-                <div className="wrapped-stretch" style={{ '--i': 2 } as CSSProperties}>
-                  <span className="wrapped-stretch__line" aria-hidden="true" />
-                  <span className="wrapped-stretch__dot" aria-hidden="true" />
-                  <span className="wrapped-stretch__from">{chapter.route.from}</span>
-                  <span className="wrapped-stretch__end">{chapter.route.to}</span>
-                </div>
-              ) : null}
-
-              {chapter.chips?.length ? (
-                <ul className="wrapped-chips">
-                  {chapter.chips.map((chip, position) => (
-                    <Chip
-                      key={chip.label}
-                      label={chip.label}
-                      detail={chip.detail}
-                      index={position}
-                      counting={chapter.id === 'lines'}
-                      rowDelay={position * barMs(chapter.track)}
-                      share={
-                        chapter.chips && chapter.chips.length > 1
-                          ? Math.max(0, Math.min(1, (parseInt(chip.detail, 10) || 0) / (parseInt(chapter.chips[0].detail, 10) || 1)))
-                          : 0
-                      }
-                    />
-                  ))}
-                  {/*
-                    * The board keeps its own tally on the page too. It was a sentence at the foot
-                    * ("23 stops hearted, 0 boards pinned"), which is small print on a page about
-                    * numbers. The two counts are plates in the same grid as the lines now, so the
-                    * page is four figures in two rows: what you rode, and what you kept.
-                    */}
-                  {chapter.id === 'lines' ? (
-                    <>
-                      <Chip
-                        label={String(chapter.hearts ?? 0)}
-                        detail={t('stops hearted')}
-                        index={chapter.chips.length}
-                        counting={false}
-                        rowDelay={0}
-                        share={0}
-                      />
-                      <Chip
-                        label={String(chapter.boards ?? 0)}
-                        detail={t('boards pinned')}
-                        index={chapter.chips.length + 1}
-                        counting={false}
-                        rowDelay={0}
-                        share={0}
-                      />
-                    </>
-                  ) : null}
-                </ul>
-              ) : null}
-
-              {/* The rail prints its own two stations, the look prints its own days, and the map prints its own caption. */}
-              {chapter.kind === 'route' || chapter.kind === 'word' || chapter.kind === 'map' || chapter.kind === 'distance' ? null : (
-                <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
-                  {t(chapter.line)}
-                </p>
-              )}
-
-              {chapter.kind === 'eras' && chapter.eras?.length ? (
-                <WrappedEraChapter eras={chapter.eras} />
-              ) : null}
-
-              {chapter.kind === 'awards' && chapter.awards?.length ? (
-                <WrappedAwardsChapter
-                  awards={chapter.awards}
-                  onShare={(cardId) => {
-                    setShareTarget(cardId);
-                    setShareOpen(true);
-                  }}
-                />
-              ) : null}
-
-              {chapter.kind === 'bookends' && chapter.bookends ? (
-                <WrappedBookendsChapter first={chapter.bookends.first} last={chapter.bookends.last} />
-              ) : null}
-
-              {chapter.kind === 'comparison' && chapter.comparison ? (
-                <WrappedComparisonChapter data={chapter.comparison} />
-              ) : null}
-
-              {chapter.kind === 'crew' && chapter.crew ? <WrappedCrewChapter crew={chapter.crew} /> : null}
-
-              {chapter.hearts || chapter.boards ? (
-                <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
-                  {t('{hearts} stops hearted, {boards} boards pinned.', {
-                    hearts: chapter.hearts ?? 0,
-                    boards: chapter.boards ?? 0,
-                  })}
-                </p>
-              ) : null}
-              {chapter.note ? (
-                <p className="wrapped-note" style={{ '--i': 4 } as CSSProperties}>
-                  {t(chapter.note)}
-                </p>
-              ) : null}
-            </>
-          )}
+          <WrappedIssue
+            chapter={chapter}
+            index={index}
+            total={story.length}
+            year={year}
+            count={count}
+            demo={demo}
+            yearOver={yearOver}
+            onBegin={() => {
+              setStarted(true);
+              go(1);
+            }}
+          />
         </div>
       </div>
 
@@ -1158,61 +854,3 @@ function useBeatAnchor(
   return anchor;
 }
 
-/**
- * **A board row that counts its own number.**
- *
- * The board's counts used to be printed and left there, so the one chapter about lines did not count
- * anything while every other chapter's figure climbed. Each row now counts up on its own bar, one row
- * after another, so the board fills in time with the music instead of arriving finished. A row that
- * is not a number (a name, a platform) is printed as it always was.
- */
-function Chip({
-  label,
-  detail,
-  index,
-  counting,
-  rowDelay,
-  share = 0,
-}: {
-  label: string;
-  detail: string;
-  index: number;
-  counting: boolean;
-  rowDelay: number;
-  /* How long this row is against the longest one, for the board's own rule under each line. */
-  share?: number;
-}) {
-  const target = Number(detail);
-  const numeric = Number.isFinite(target) && detail.trim() !== '';
-  /* A counting row starts at zero; a printed row starts at its number. */
-  const [shown, setShown] = useState(counting && numeric ? 0 : numeric ? target : 0);
-
-  useEffect(() => {
-    if (!counting || !numeric) {
-      setShown(numeric ? target : 0);
-      return undefined;
-    }
-    let frame = 0;
-    let started = 0;
-    const tick = (now: number) => {
-      if (!started) started = now;
-      const progress = Math.min(1, (now - started) / 620);
-      setShown(Math.round(target * (1 - Math.pow(1 - progress, 3))));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    const timer = window.setTimeout(() => {
-      frame = requestAnimationFrame(tick);
-    }, rowDelay);
-    return () => {
-      window.clearTimeout(timer);
-      cancelAnimationFrame(frame);
-    };
-  }, [counting, numeric, target, rowDelay]);
-
-  return (
-    <li className="wrapped-chip" style={{ '--i': index, '--share': share } as CSSProperties}>
-      <span>{label}</span>
-      <strong>{numeric ? (counting ? shown : target) : detail}</strong>
-    </li>
-  );
-}

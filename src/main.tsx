@@ -15,6 +15,7 @@ import './styles/map.css';
 import './styles/styles-panel.css';
 import './styles/wrapped-pages.css';
 import './styles/wrapped-extras.css';
+import './styles/wrapped-issue.css';
 
 /**
  * **An address that still carries a `#/` is an old address, not an error.**
