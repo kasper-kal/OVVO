@@ -480,3 +480,10 @@
   text-overflow: clip;
   line-height: 1.16;
 }
+
+/* The old printed deck left a vertical cover label on the body; the film has no spine. */
+.wrapped-body::before,
+.wrapped-body::after {
+  display: none !important;
+  content: none !important;
+}

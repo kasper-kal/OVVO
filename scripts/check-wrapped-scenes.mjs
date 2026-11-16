@@ -67,6 +67,10 @@ for (let i = 0; i < 18; i += 1) {
       motion: scene.dataset.motion ?? '',
       big: scene.querySelector('.scene-big, .scene-year')?.textContent?.trim() ?? '',
       before: document.querySelectorAll('.issue-page').length,
+      pseudo: ['::before', '::after'].filter((pseudo) => {
+        const style = getComputedStyle(body, pseudo);
+        return style.display !== 'none' && style.content !== 'none' && style.content !== 'normal' && style.content !== '';
+      }),
       canvas: Boolean(scene.querySelector('canvas')) || Boolean(scene.querySelector('.scene-photo')),
       height: scene.clientHeight,
       docWidth: document.documentElement.scrollWidth,
@@ -93,6 +97,7 @@ if (present.length !== scenes.length) failures.push(`${scenes.length - present.l
 for (const scene of present) {
   if (scene.oldVisible.length) failures.push(`${scene.chapter}: old layer visible (${scene.oldVisible.join(', ')})`);
   if (scene.before) failures.push(`${scene.chapter}: ${scene.before} old issue page(s) still in the document`);
+  if (scene.pseudo.length) failures.push(`${scene.chapter}: old printed layer still painted (${scene.pseudo.join(', ')})`);
   if (!scene.canvas) failures.push(`${scene.chapter}: no moving ground or photograph`);
   if (scene.spilled.length) failures.push(`${scene.chapter}: copy spills (${scene.spilled.slice(0, 3).join(', ')})`);
   if (scene.docWidth > scene.width + 1) failures.push(`${scene.chapter}: document is wider than the viewport`);
