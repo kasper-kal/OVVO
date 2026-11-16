@@ -27,6 +27,10 @@ data/
 # refuses a file over 100MB, which is how the first push of this work was rejected. `tools/` holds
 # what a machine downloads for itself.
 tools/
+# Dropped sound sources are local; the fitted copies in public/sfx are what the app uses.
+/sound-effects/*
+!/sound-effects/README.md
+
 # generated screenshots from scripts/look.mjs
 /.look-shots/
 

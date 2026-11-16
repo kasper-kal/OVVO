@@ -16,6 +16,8 @@
     "gtfs:graph:index": "node scripts/gtfs/graph-index.mjs",
     "gtfs:graph:days": "node scripts/gtfs/build-all-days.mjs",
     "look": "node scripts/look.mjs --sample",
+    "sfx:watch": "node scripts/watch-sfx.mjs",
+    "sfx:import": "node scripts/watch-sfx.mjs --once",
     "look:selftest": "node scripts/look.mjs --selftest",
     "look:full": "node scripts/look.mjs --full",
     "browser:deps": "bash scripts/browser-deps.sh",

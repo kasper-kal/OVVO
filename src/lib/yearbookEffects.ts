@@ -21,7 +21,7 @@ export type YearbookEffect =
   | 'distance-whoosh'
   | 'clock-chime'
   | 'camera-shutter'
-  | 'tape-reel'
+  | 'era-advance'
   | 'board-stamp'
   | 'trophy-triumph'
   | 'comparison-two-tone'
@@ -40,7 +40,7 @@ const FILES: Record<YearbookEffect, string> = {
   'distance-whoosh': 'distance-whoosh.wav',
   'clock-chime': 'clock-chime.wav',
   'camera-shutter': 'camera-shutter.wav',
-  'tape-reel': 'tape-reel.wav',
+  'era-advance': 'era-advance.wav',
   'board-stamp': 'board-stamp.wav',
   'trophy-triumph': 'trophy-triumph.wav',
   'comparison-two-tone': 'comparison-two-tone.wav',

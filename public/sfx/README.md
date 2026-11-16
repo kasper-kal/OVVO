@@ -4,7 +4,9 @@ These are the short cues under the Yearbook score. The files checked in here are
 stand-ins, not the final AI-generated sounds.
 
 To replace one, drop a WAV or MP3 with the same base name into this folder. The player tries the WAV
-first and falls back to the MP3, so an export can be dropped in without changing code.
+first and falls back to the MP3, so an export can be dropped in without changing code. Or drag files
+into `sound-effects/` at the project root and the watcher will fit their length and place them here;
+see `sound-effects/README.md` for the names and target durations.
 
 | File | Moment |
 | --- | --- |
@@ -19,7 +21,7 @@ first and falls back to the MP3, so an export can be dropped in without changing
 | `distance-whoosh.wav` | Distance and the long haul |
 | `clock-chime.wav` | Your hour |
 | `camera-shutter.wav` | The look |
-| `tape-reel.wav` | Your OVVO era |
+| `era-advance.wav` | Your OVVO era |
 | `board-stamp.wav` | Your lines and first and last |
 | `trophy-triumph.wav` | The trophy case |
 | `comparison-two-tone.wav` | Year over year |

@@ -171,14 +171,15 @@ mix(x, highpass(noise(d), 1200) * env_ad(len(t), 0.001, 0.01), 0.07)
 mix(x, thump(1750, 0.04, 0.35), 0.07)
 save("camera-shutter.wav", x, d, 0.28)
 
-# 12. Tape reel: motor whir and one soft clunk.
-d = 0.9
+# 12. Era advance: one short film-advance ratchet, then a stop.
+d = 0.8
 t = tt(d)
-flutter = 0.72 + 0.28 * np.sin(2 * math.pi * 13 * t) ** 2
-x = bandpass(noise(d), 180, 3200) * flutter * env_ad(len(t), 0.03, 0.55) * 0.55
-x += 0.18 * np.sin(2 * math.pi * 88 * t) * flutter
-mix(x, thump(115, 0.12, 0.8), 0.74)
-save("tape-reel.wav", x, d, 0.22)
+click = highpass(noise(d), 1800) * env_ad(len(t), 0.001, 0.018)
+wind = bandpass(noise(d), 500, 3800) * env_ad(len(t), 0.02, 0.28) * 0.55
+x = click * 0.8 + wind
+mix(x, highpass(noise(d), 1200) * env_ad(len(t), 0.001, 0.012), 0.62)
+mix(x, thump(180, 0.06, 0.35), 0.62)
+save("era-advance.wav", x, d, 0.25)
 
 # 13. Board stamp: one solid impact with paper texture.
 d = 0.3
