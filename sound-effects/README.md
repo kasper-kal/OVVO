@@ -31,5 +31,6 @@ generated.
 
 The watcher also accepts `film-advance` or the old `tape-reel` name for `era-advance`.
 
-Leave no other audio in this folder. Unknown names are skipped so a stray file does not land in the
-wrong moment.
+Leave no other audio in this folder. If a name is not recognised, the file stays here and is logged;
+it will not be forced into the wrong moment. Keep the name your generator gave it if you like. I will
+map it. Files in this folder are kept in the project so a reload cannot lose an upload.
