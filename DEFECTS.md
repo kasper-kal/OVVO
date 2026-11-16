@@ -49,6 +49,8 @@ him, and it is the work queue.
 
 | 32 | "The Awards is too plain" for the page that holds the yearbook awards | the awards chapter at `/yearbook?demo=1&persona=regular` at 360x800, plus `npm run build` | yes: the chapter now reads "THE TROPHY CASE" and "Your trophies", and has no plain "Your awards" heading; the accessible name is "Your trophies" |
 
+| 33 | The sound prompts described a name reveal, a map pin, a tape reel and other movements that were not on the page; the traveller name simply appeared | 18-chapter run at 360x800 with every media `play()` recorded, plus computed animation names for the new entrances; all 17 cue files returned 200 | yes: the run recorded begin, page-turn, stat-tick, name-reveal, map-pin, distance-whoosh, rail-chime, clock-chime, camera-shutter, tape-reel, board-stamp, trophy-triumph, comparison-two-tone, crew-connect, yearbook-close, share-confirmation and sound-toggle. The name, map pin, distance bars, era rail, trophy cards, bookends, comparison, crew and close all reported their new animation names |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

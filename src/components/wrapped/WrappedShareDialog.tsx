@@ -3,6 +3,7 @@ import { Button, Dialog, Switch } from '../ui/primitives';
 import { useApp } from '../../state/AppState';
 import { useT } from '../../lib/useT';
 import { styleById, stylePalette } from '../../lib/styles';
+import { playYearbookEffect } from '../../lib/yearbookEffects';
 import type { Chapter } from '../../lib/wrappedDeck';
 import type { YearTally } from '../../lib/wrapped';
 
@@ -615,6 +616,7 @@ export function WrappedShareDialog({
   initialCardId,
   year,
   demo,
+  soundOn = true,
   story,
   tally,
 }: {
@@ -624,6 +626,8 @@ export function WrappedShareDialog({
   initialCardId?: string;
   year: number;
   demo: boolean;
+  /** Follows the story's own sound switch; muting the score mutes these confirmations too. */
+  soundOn?: boolean;
   story: Chapter[];
   tally: YearTally;
 }) {
@@ -792,15 +796,18 @@ export function WrappedShareDialog({
           title: t('My OVVO Yearbook {year}', { year }),
           text: demo ? t('My demo OVVO Yearbook year.') : t('My year in journeys with OVVO.'),
         });
+        if (soundOn) playYearbookEffect('share-confirmation');
         setStatus(t('Shared'));
         return;
       }
       saveBlob(file);
+      if (soundOn) playYearbookEffect('share-confirmation');
       setStatus(t('Downloaded'));
     } catch (error) {
       /* A dismissed share sheet is not a failed share. */
       if ((error as Error)?.name !== 'AbortError') {
         saveBlob(file);
+        if (soundOn) playYearbookEffect('share-confirmation');
         setStatus(t('Downloaded instead'));
       }
     }
@@ -813,6 +820,7 @@ export function WrappedShareDialog({
         saveBlob(dataUrlToFile(dataUrl, `ovvo-yearbook-${year}-${cards[index].id}.png`));
       }, index * 240);
     });
+    if (soundOn) playYearbookEffect('share-confirmation');
     setStatus(t('Downloading all cards'));
   };
 

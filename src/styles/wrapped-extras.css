@@ -1874,3 +1874,277 @@ button.wrapped-demo-mark:focus-visible {
     line-height: 1.3;
   }
 }
+
+/*
+ * ======================================================== Yearbook motion cues
+ *
+ * The sound effects name a moment, not a decoration. These are the pictures those moments were
+ * missing: the name lands, the pin drops, the distance bars grow, the eras deal down, the comparison
+ * arrives as two sides, the crew code appears, and the book closes. The older chapters already have
+ * their own movement (the route train, the hour bars, the dial, the long-haul sweep, the tickets);
+ * these rules only add the chapters that were still.
+ *
+ * Every animation is an entrance with `both`, so the page is complete when the cue has passed. The
+ * deck's existing `.is-still` rule switches all of them off for reduced motion.
+ */
+
+@keyframes yb-fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* The name is the title of the page, not a caption that arrives already set. */
+@keyframes yb-name-reveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.985);
+    filter: blur(7px);
+    letter-spacing: 0.015em;
+  }
+  58% {
+    opacity: 1;
+    filter: blur(1px);
+    letter-spacing: -0.018em;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    letter-spacing: -0.025em;
+  }
+}
+
+.wrapped-body--name .wrapped-big {
+  animation: yb-name-reveal 900ms 140ms var(--ease-out) both;
+}
+
+/* The trophy cards deal in, one after another, under the triumph. */
+@keyframes yb-award-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) rotate(0.8deg) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.wrapped-awards .wrapped-award {
+  animation: yb-award-in 720ms 180ms var(--ease-out) both;
+}
+
+.wrapped-awards .wrapped-award:nth-child(2) {
+  animation-delay: 280ms;
+}
+
+.wrapped-awards .wrapped-award:nth-child(3) {
+  animation-delay: 380ms;
+}
+
+.wrapped-awards .wrapped-award:nth-child(4) {
+  animation-delay: 480ms;
+}
+
+/* The top station is placed, not merely already present. */
+@keyframes yb-pin-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.35);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(0) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wrapped-map__stops circle.is-top {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: yb-pin-drop 560ms 220ms var(--ease-out) both;
+}
+
+/* The two distance bars are measured from the left, not painted at full length. */
+@keyframes yb-bar-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.wrapped-distance__bar > i {
+  transform-origin: left center;
+  animation: yb-bar-draw 900ms 220ms var(--ease-out) both;
+}
+
+.wrapped-distance__bar.is-transit > i {
+  animation-delay: 420ms;
+}
+
+/* The era rail grows and the eras deal down it. */
+@keyframes yb-rail-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.wrapped-eras__rail span {
+  transform-origin: left center;
+  animation: yb-rail-grow 620ms var(--ease-out) both;
+}
+
+.wrapped-eras__rail span:nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.wrapped-eras__rail span:nth-child(3) {
+  animation-delay: 180ms;
+}
+
+.wrapped-eras__rail span:nth-child(4) {
+  animation-delay: 270ms;
+}
+
+.wrapped-eras__era {
+  animation: yb-fade-up 620ms 220ms var(--ease-out) both;
+}
+
+.wrapped-eras__era:nth-child(2) {
+  animation-delay: 320ms;
+}
+
+.wrapped-eras__era:nth-child(3) {
+  animation-delay: 420ms;
+}
+
+/* Two years, two sides, then the three small ledgers. */
+.wrapped-comparison__year {
+  animation: yb-fade-up 620ms 200ms var(--ease-out) both;
+}
+
+.wrapped-comparison__year:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+.wrapped-comparison__stats .wrapped-comparison__stat {
+  animation: yb-fade-up 600ms 400ms var(--ease-out) both;
+}
+
+.wrapped-comparison__stats .wrapped-comparison__stat:nth-child(2) {
+  animation-delay: 480ms;
+}
+
+.wrapped-comparison__stats .wrapped-comparison__stat:nth-child(3) {
+  animation-delay: 560ms;
+}
+
+/* The crew code is the first thing that connects the two people, so it arrives first. */
+.wrapped-crew__code,
+.wrapped-crew__entry {
+  animation: yb-fade-up 620ms 180ms var(--ease-out) both;
+}
+
+.wrapped-crew__entry {
+  animation-delay: 300ms;
+}
+
+.wrapped-crew__result {
+  animation: yb-fade-up 600ms var(--ease-out) both;
+}
+
+.wrapped-crew__privacy {
+  animation: yb-fade-up 560ms 430ms var(--ease-out) both;
+}
+
+/* The first and last journeys arrive as a pair, from opposite sides. */
+@keyframes yb-bookend-in {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(-12px * var(--bookend-direction, 1)), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wrapped-bookends__pair .wrapped-bookend:first-child {
+  animation: yb-bookend-in 640ms 220ms var(--ease-out) both;
+}
+
+.wrapped-bookends__pair .wrapped-bookend:last-child {
+  animation: yb-bookend-in 640ms 340ms var(--ease-out) both;
+  --bookend-direction: -1;
+}
+
+/* The close is the one page that is allowed to feel final. */
+@keyframes yb-close-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.wrapped-body--close .wrapped-big {
+  animation: yb-close-in 900ms 160ms var(--ease-out) both;
+}
+
+.wrapped-body--close .wrapped-line,
+.wrapped-body--close .wrapped-note {
+  animation: yb-fade-up 700ms 380ms var(--ease-out) both;
+}
+
+.wrapped-body--close .wrapped-note {
+  animation-delay: 520ms;
+}
+
+/* The look gets its shutter, once, over the photograph. */
+@keyframes yb-shutter-flash {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.34;
+  }
+  32% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.wrapped-stage[data-chapter='look'] .wrapped-body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: #fff;
+  animation: yb-shutter-flash 520ms 120ms linear both;
+}

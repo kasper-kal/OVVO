@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useHistoryBack } from '../components/layout/AppShell';
@@ -31,6 +31,7 @@ import {
   whenTrackEnds,
 } from '../lib/wrappedSound';
 import { barMs, beatAt, beatMs } from '../lib/wrappedBeats';
+import { playYearbookEffect, preloadYearbookEffects, type YearbookEffect } from '../lib/yearbookEffects';
 
 /*
  * **The year as twelve bars, one a month.**
@@ -48,6 +49,33 @@ function monthBars(months?: number[]): number[] {
 
 /* The twelve month letters, and Dutch and English share all of them but the first. */
 const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+
+/*
+ * **A chapter's sound, and the moment its picture lands.**
+ *
+ * The sound is not the chapter's clock; the score is. This only catches the page's own gesture: the
+ * map pin lands, the name arrives, the trophy cards deal. Keeping the table outside the component
+ * makes the cue map readable beside the chapter ids it names.
+ */
+const CHAPTER_EFFECTS: Partial<Record<string, YearbookEffect>> = {
+  total: 'stat-tick',
+  name: 'name-reveal',
+  map: 'map-pin',
+  distance: 'distance-whoosh',
+  pair: 'rail-chime',
+  origin: 'rail-chime',
+  hour: 'clock-chime',
+  direct: 'stat-tick',
+  longest: 'distance-whoosh',
+  look: 'camera-shutter',
+  eras: 'tape-reel',
+  lines: 'board-stamp',
+  awards: 'trophy-triumph',
+  bookends: 'board-stamp',
+  comparison: 'comparison-two-tone',
+  crew: 'crew-connect',
+  close: 'yearbook-close',
+};
 
 /**
  * **OVVO Wrapped: the year as a short film, not a report.**
@@ -215,6 +243,63 @@ export function WrappedPage() {
 
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
   const last = index >= story.length - 1;
+
+  /*
+   * **A page gets one entrance and one sound, not one of each per re-render.**
+   *
+   * `soundRef` keeps the latest switch value without making the cue effect rerun when the traveller
+   * mutes the score. The chapter id is the key: going back to a chapter is a new turn, but a render
+   * that leaves it alone is not.
+   */
+  const soundRef = useRef(sound);
+  const lastCue = useRef<string | null>(null);
+  useEffect(() => {
+    soundRef.current = sound;
+  }, [sound]);
+  useEffect(() => {
+    if (started) preloadYearbookEffects();
+  }, [started]);
+  useEffect(() => {
+    if (!started) {
+      lastCue.current = null;
+      return undefined;
+    }
+    const previous = lastCue.current;
+    lastCue.current = chapter.id;
+    if (!soundRef.current) return undefined;
+
+    /* The first chapter after Begin is the start, not a page turn. */
+    if (!previous) {
+      playYearbookEffect('begin');
+    } else if (previous !== chapter.id) {
+      playYearbookEffect('page-turn');
+    }
+
+    const cue = CHAPTER_EFFECTS[chapter.id];
+    if (!cue) return undefined;
+    const timers: number[] = [];
+    const at = cue === 'trophy-triumph' ? 500 : cue === 'yearbook-close' ? 550 : 380;
+    timers.push(
+      window.setTimeout(() => {
+        if (soundRef.current) playYearbookEffect(cue);
+      }, at),
+    );
+
+    /* Count pages get a short run of ticks, not one tick for a number that keeps climbing. */
+    if (cue === 'stat-tick') {
+      [600, 780, 960].forEach((delay) => {
+        timers.push(
+          window.setTimeout(() => {
+            if (soundRef.current) playYearbookEffect('stat-tick');
+          }, delay),
+        );
+      });
+    }
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [chapter.id, started]);
 
   /*
    * **The corner switch tells the truth about the speaker, on every page.**
@@ -390,6 +475,7 @@ export function WrappedPage() {
       : t('In {year} I planned {count} journeys with OVVO.', { year, count: tally.runs.length });
     try {
       await navigator.clipboard.writeText(text);
+      if (sound) playYearbookEffect('share-confirmation');
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2600);
     } catch {
@@ -534,6 +620,8 @@ export function WrappedPage() {
           className="wrapped-sound"
           aria-label={soundLabel}
           onClick={() => {
+            /* The switch is a control, so it answers before it changes the state. */
+            playYearbookEffect('sound-toggle');
             /* "Sound off" mutes what is playing; "Sound on" starts it, in this tap, on any page. */
             if (sound && audible) {
               setSound(false);
@@ -881,6 +969,7 @@ export function WrappedPage() {
         initialCardId={shareTarget ?? undefined}
         year={year}
         demo={demo}
+        soundOn={sound}
         story={story}
         tally={tally}
       />
