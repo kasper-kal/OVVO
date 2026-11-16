@@ -46,33 +46,6 @@ const W = 1080;
 const H = 1920;
 const PAD = 72;
 
-function rgba(hex: string, alpha: number): string {
-  const value = hex.replace('#', '');
-  const full = value.length === 3 ? value.split('').map((part) => part + part).join('') : value;
-  const red = parseInt(full.slice(0, 2), 16);
-  const green = parseInt(full.slice(2, 4), 16);
-  const blue = parseInt(full.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-): void {
-  const corner = Math.min(radius, width / 2, height / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + corner, y);
-  ctx.arcTo(x + width, y, x + width, y + height, corner);
-  ctx.arcTo(x + width, y + height, x, y + height, corner);
-  ctx.arcTo(x, y + height, x, y, corner);
-  ctx.arcTo(x, y, x + width, y, corner);
-  ctx.closePath();
-}
-
 function wordsOf(text: string): string[] {
   return text.split(/\s+/).filter(Boolean);
 }
@@ -136,458 +109,136 @@ function short(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): s
    and the yearbook awards alternate between a certificate and a ticket. They share only the paper,
    the header and the footer: a set of cards, not seven prints of one template. */
 
-function drawHeader(
-  ctx: CanvasRenderingContext2D,
-  palette: Palette,
-  year: number,
-  demo: boolean,
-): void {
-  ctx.textAlign = 'left';
-  ctx.fillStyle = palette.ink;
-  ctx.font = '700 28px "Space Grotesk", sans-serif';
-  ctx.fillText('OVVO YEARBOOK', PAD, 92);
-
-  ctx.textAlign = 'right';
-  ctx.fillStyle = rgba(palette.ink, 0.62);
-  ctx.font = '600 26px "Space Grotesk", sans-serif';
-  ctx.fillText(String(year), W - PAD, 92);
-
-  if (demo) {
-    ctx.fillStyle = palette.accent;
-    roundedRect(ctx, W - PAD - 132, 118, 132, 44, 22);
-    ctx.fill();
-    ctx.fillStyle = palette.canvas;
-    ctx.textAlign = 'center';
-    ctx.font = '700 19px "Space Grotesk", sans-serif';
-    ctx.fillText('DEMO', W - PAD - 66, 147);
-  }
-  ctx.textAlign = 'left';
-}
-
-function drawFooter(ctx: CanvasRenderingContext2D, palette: Palette): void {
-  ctx.strokeStyle = rgba(palette.ink, 0.18);
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(PAD, 1790);
-  ctx.lineTo(W - PAD, 1790);
-  ctx.stroke();
-
-  ctx.fillStyle = rgba(palette.ink, 0.56);
-  ctx.font = '600 20px "Space Grotesk", sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('PLAN THE NETHERLANDS', PAD, 1840);
-  ctx.textAlign = 'right';
-  ctx.fillText('OVVO', W - PAD, 1840);
-  ctx.textAlign = 'left';
-}
-
-function drawEyebrow(ctx: CanvasRenderingContext2D, palette: Palette, text: string, y = 300): void {
-  ctx.fillStyle = palette.accent;
-  ctx.font = '700 24px "Space Grotesk", sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText(text.toUpperCase(), PAD, y);
-}
-
-function drawTitle(
-  ctx: CanvasRenderingContext2D,
-  palette: Palette,
-  text: string,
-  y: number,
-  maxWidth: number,
-  maxLines: number,
-  startSize: number,
-  minSize: number,
-): number {
-  const fitted = fitText(ctx, text, maxWidth, maxLines, startSize, minSize);
-  ctx.fillStyle = palette.ink;
-  ctx.font = `700 ${fitted.size}px "Archivo", sans-serif`;
-  let lineY = y;
-  for (const line of fitted.lines) {
-    ctx.fillText(line, PAD, lineY);
-    lineY += fitted.size * 0.92;
-  }
-  return lineY;
-}
-
-function drawStackedFacts(
-  ctx: CanvasRenderingContext2D,
-  palette: Palette,
-  rows: ShareCard['rows'],
-  y: number,
-): void {
-  rows.slice(0, 3).forEach((row, index) => {
-    const rowY = y + index * 82;
-    ctx.strokeStyle = rgba(palette.ink, 0.13);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(PAD, rowY - 28);
-    ctx.lineTo(W - PAD, rowY - 28);
-    ctx.stroke();
-
-    ctx.fillStyle = rgba(palette.ink, 0.46);
-    ctx.font = '600 18px "Space Grotesk", sans-serif';
-    ctx.fillText(row.label.toUpperCase(), PAD, rowY);
-
-    ctx.fillStyle = palette.ink;
-    ctx.font = '700 32px "Archivo", sans-serif';
-    ctx.fillText(short(ctx, row.value, W - PAD * 2), PAD, rowY + 36);
-  });
-}
-
-function drawColumnFacts(
-  ctx: CanvasRenderingContext2D,
-  palette: Palette,
-  rows: ShareCard['rows'],
-  y: number,
-  valueSize: number,
-): void {
-  const visible = rows.slice(0, 3);
-  const column = (W - PAD * 2) / Math.max(1, visible.length);
-  visible.forEach((row, index) => {
-    const x = PAD + index * column;
-    if (index) {
-      ctx.strokeStyle = rgba(palette.ink, 0.14);
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 20, y - 38);
-      ctx.lineTo(x - 20, y + 118);
-      ctx.stroke();
-    }
-    ctx.fillStyle = rgba(palette.ink, 0.46);
-    ctx.font = '600 17px "Space Grotesk", sans-serif';
-    ctx.fillText(row.label.toUpperCase(), x, y);
-    const value = fitText(ctx, row.value, column - 34, 2, valueSize, 22);
-    ctx.fillStyle = palette.ink;
-    ctx.font = `700 ${value.size}px "Archivo", sans-serif`;
-    value.lines.forEach((line, lineIndex) => {
-      ctx.fillText(line, x, y + 48 + lineIndex * (value.size * 0.94));
-    });
-  });
-}
-
-function drawIdentity(
-  ctx: CanvasRenderingContext2D,
-  card: ShareCard,
-  palette: Palette,
-  year: number,
-  demo: boolean,
-): void {
-  ctx.fillStyle = palette.canvas;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.save();
-  ctx.globalAlpha = 0.16;
-  ctx.fillStyle = palette.accent;
-  ctx.beginPath();
-  ctx.arc(W + 40, 180, 360, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 0.055;
-  ctx.beginPath();
-  ctx.arc(-80, H - 280, 420, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  drawHeader(ctx, palette, year, demo);
-  drawEyebrow(ctx, palette, card.eyebrow);
-
-  let y = 420;
-  y = drawTitle(ctx, palette, card.title, y, W - PAD * 2, 3, 132, 56) + 24;
-
-  /* One dot for every journey. It is the card's own number, drawn as a field rather than repeated. */
-  const count = Math.min(180, Math.max(1, parseInt(card.stat, 10) || 1));
-  const cols = 18;
-  const dotGap = (W - PAD * 2) / cols;
-  const dotTop = Math.min(850, y + 26);
-  ctx.fillStyle = palette.accent;
-  for (let index = 0; index < count; index += 1) {
-    ctx.globalAlpha = 0.24 + (index % 4) * 0.08;
-    ctx.beginPath();
-    ctx.arc(PAD + (index % cols) * dotGap + dotGap / 2, dotTop + Math.floor(index / cols) * 28, 4.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = '700 300px "Archivo", sans-serif';
-  ctx.fillText(short(ctx, card.stat, W - PAD * 2), PAD, 1250);
-
-  ctx.fillStyle = rgba(palette.ink, 0.64);
-  ctx.font = '600 26px "Space Grotesk", sans-serif';
-  ctx.fillText(card.statLabel.toUpperCase(), PAD, 1308);
-
-  drawStackedFacts(ctx, palette, card.rows, 1418);
-  drawFooter(ctx, palette);
-}
-
-function drawRoute(
-  ctx: CanvasRenderingContext2D,
-  card: ShareCard,
-  palette: Palette,
-  year: number,
-  demo: boolean,
-): void {
-  ctx.fillStyle = palette.canvas;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.save();
-  ctx.globalAlpha = 0.075;
-  ctx.strokeStyle = palette.ink;
-  ctx.lineWidth = 2;
-  for (let x = 0; x <= W; x += 72) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  drawHeader(ctx, palette, year, demo);
-  drawEyebrow(ctx, palette, card.eyebrow);
-
-  const titleWidth = W - PAD * 2;
-  const titleEnd = drawTitle(ctx, palette, card.title, 390, titleWidth, 3, 96, 48);
-
-  const from = card.from ?? card.title;
-  const to = card.to ?? '';
-  const railX = 154;
-  const railTop = Math.max(780, titleEnd + 50);
-  const railBottom = 1460;
-
-  ctx.strokeStyle = rgba(palette.ink, 0.22);
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(railX, railTop);
-  ctx.lineTo(railX, railBottom);
-  ctx.stroke();
-
-  for (let index = 0; index < 10; index += 1) {
-    const tickY = railTop + 18 + (index * (railBottom - railTop - 36)) / 9;
-    ctx.strokeStyle = rgba(palette.accent, 0.72);
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(railX - 20, tickY);
-    ctx.lineTo(railX + 20, tickY);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = palette.canvas;
-  [railTop, railBottom].forEach((point) => {
-    ctx.beginPath();
-    ctx.arc(railX, point, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = palette.accent;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-  });
-
-  ctx.fillStyle = rgba(palette.ink, 0.55);
-  ctx.font = '600 17px "Space Grotesk", sans-serif';
-  ctx.fillText('FROM', railX + 42, railTop + 6);
-  ctx.fillText('TO', railX + 42, railBottom + 6);
-
-  ctx.fillStyle = palette.ink;
-  ctx.font = '700 28px "Space Grotesk", sans-serif';
-  ctx.fillText(short(ctx, from, W - PAD - railX - 50), railX + 42, railTop + 42);
-  if (to) ctx.fillText(short(ctx, to, W - PAD - railX - 50), railX + 42, railBottom - 18);
-
-  ctx.fillStyle = palette.accent;
-  const stat = fitText(ctx, card.stat, W - railX - PAD - 30, 2, 230, 56);
-  ctx.font = `700 ${stat.size}px "Archivo", sans-serif`;
-  stat.lines.forEach((line, index) => {
-    ctx.fillText(line, railX + 42, 1040 + index * (stat.size * 0.9));
-  });
-
-  ctx.fillStyle = rgba(palette.ink, 0.64);
-  ctx.font = '600 24px "Space Grotesk", sans-serif';
-  ctx.fillText(card.statLabel.toUpperCase(), railX + 42, 1092);
-
-  drawColumnFacts(ctx, palette, card.rows, 1610, 28);
-  drawFooter(ctx, palette);
-}
-
-function drawYear(
-  ctx: CanvasRenderingContext2D,
-  card: ShareCard,
-  palette: Palette,
-  year: number,
-  demo: boolean,
-): void {
-  ctx.fillStyle = palette.canvas;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.save();
-  ctx.globalAlpha = 0.11;
-  ctx.fillStyle = palette.accent;
-  ctx.beginPath();
-  ctx.arc(W / 2, 760, 500, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  drawHeader(ctx, palette, year, demo);
-  drawEyebrow(ctx, palette, card.eyebrow);
-
-  ctx.fillStyle = 'transparent';
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 3;
-  ctx.textAlign = 'center';
-  ctx.font = '700 250px "Archivo", sans-serif';
-  ctx.strokeText(String(year), W / 2, 640);
-  ctx.textAlign = 'left';
-
-  roundedRect(ctx, PAD, 780, W - PAD * 2, 330, 38);
-  ctx.fillStyle = palette.accent;
-  ctx.fill();
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = palette.canvas;
-  ctx.font = '700 270px "Archivo", sans-serif';
-  ctx.fillText(short(ctx, card.stat, W - PAD * 2 - 48), W / 2, 1015);
-  ctx.font = '600 25px "Space Grotesk", sans-serif';
-  ctx.fillText(card.statLabel.toUpperCase(), W / 2, 1070);
-  ctx.textAlign = 'left';
-
-  drawColumnFacts(ctx, palette, card.rows, 1290, 40);
-  drawFooter(ctx, palette);
-}
-
-function drawAward(
-  ctx: CanvasRenderingContext2D,
-  card: ShareCard,
-  palette: Palette,
-  year: number,
-  demo: boolean,
-): void {
-  ctx.fillStyle = palette.canvas;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.save();
-  ctx.strokeStyle = rgba(palette.accent, 0.46);
-  ctx.lineWidth = 3;
-  ctx.setLineDash([16, 12]);
-  roundedRect(ctx, 34, 34, W - 68, H - 68, 34);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.globalAlpha = 0.08;
-  ctx.fillStyle = palette.accent;
-  ctx.beginPath();
-  ctx.arc(W - 160, 420, 280, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  drawHeader(ctx, palette, year, demo);
-  drawEyebrow(ctx, palette, card.eyebrow);
-
-  const titleEnd = drawTitle(ctx, palette, card.title, 370, W - PAD * 2, 3, 90, 46);
-
-  const sealY = Math.max(830, titleEnd + 130);
-  ctx.save();
-  ctx.strokeStyle = palette.accent;
-  ctx.fillStyle = rgba(palette.accent, 0.1);
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(W / 2, sealY, 175, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-
-  const stat = fitText(ctx, card.stat, 310, 1, 120, 54);
-  ctx.textAlign = 'center';
-  ctx.fillStyle = palette.accent;
-  ctx.font = `700 ${stat.size}px "Archivo", sans-serif`;
-  ctx.fillText(stat.lines[0], W / 2, sealY + 30);
-  ctx.fillStyle = rgba(palette.ink, 0.56);
-  ctx.font = '600 19px "Space Grotesk", sans-serif';
-  ctx.fillText(card.statLabel.toUpperCase(), W / 2, sealY + 75);
-  ctx.textAlign = 'left';
-
-  const line = wrapText(ctx, card.line, W - PAD * 2);
-  ctx.fillStyle = rgba(palette.ink, 0.82);
-  ctx.font = '500 30px "Space Grotesk", sans-serif';
-  let lineY = sealY + 260;
-  line.slice(0, 3).forEach((part) => {
-    ctx.fillText(part, PAD, lineY);
-    lineY += 40;
-  });
-
-  drawStackedFacts(ctx, palette, card.rows, Math.max(1530, lineY + 30));
-  drawFooter(ctx, palette);
-}
-
-function drawAwardTicket(
-  ctx: CanvasRenderingContext2D,
-  card: ShareCard,
-  palette: Palette,
-  year: number,
-  demo: boolean,
-): void {
-  ctx.fillStyle = palette.canvas;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = palette.accent;
-  roundedRect(ctx, PAD, 240, W - PAD * 2, 300, 30);
-  ctx.fill();
-
-  drawHeader(ctx, palette, year, demo);
-
-  ctx.fillStyle = palette.canvas;
-  ctx.font = '600 20px "Space Grotesk", sans-serif';
-  ctx.fillText(card.eyebrow.toUpperCase(), PAD + 34, 310);
-
-  const stat = fitText(ctx, card.stat, W - PAD * 2 - 70, 1, 150, 62);
-  ctx.fillStyle = palette.canvas;
-  ctx.font = `700 ${stat.size}px "Archivo", sans-serif`;
-  ctx.fillText(short(ctx, stat.lines[0], W - PAD * 2 - 70), PAD + 34, 445);
-  ctx.font = '600 22px "Space Grotesk", sans-serif';
-  ctx.fillText(card.statLabel.toUpperCase(), PAD + 36, 495);
-
-  ctx.strokeStyle = rgba(palette.ink, 0.24);
-  ctx.lineWidth = 3;
-  ctx.setLineDash([12, 10]);
-  ctx.beginPath();
-  ctx.moveTo(PAD, 590);
-  ctx.lineTo(W - PAD, 590);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawTitle(ctx, palette, card.title, 690, W - PAD * 2, 3, 88, 44);
-
-  const line = wrapText(ctx, card.line, W - PAD * 2);
-  ctx.fillStyle = rgba(palette.ink, 0.8);
-  ctx.font = '500 30px "Space Grotesk", sans-serif';
-  line.slice(0, 3).forEach((part, index) => {
-    ctx.fillText(part, PAD, 1080 + index * 40);
-  });
-
-  drawStackedFacts(ctx, palette, card.rows, 1390);
-  drawFooter(ctx, palette);
-}
-
-function drawCard(card: ShareCard, palette: Palette, year: number, demo: boolean): string {
+/*
+ * **The export is an issue page too.**
+ *
+ * The old cards were rounded pink posters from the replaced deck. Sharing one after reading the new
+ * issue put the old yearbook back on screen. These cards keep the issue's grammar instead: paper,
+ * hard rules, a red field, a huge figure in Archivo and a masthead that matches the deck.
+ */
+function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas is unavailable');
 
-  switch (card.layout) {
-    case 'identity':
-      drawIdentity(ctx, card, palette, year, demo);
-      break;
-    case 'route':
-      drawRoute(ctx, card, palette, year, demo);
-      break;
-    case 'year':
-      drawYear(ctx, card, palette, year, demo);
-      break;
-    case 'award':
-      drawAward(ctx, card, palette, year, demo);
-      break;
-    case 'award-ticket':
-      drawAwardTicket(ctx, card, palette, year, demo);
-      break;
+  const paper = '#f2ecdc';
+  const ink = '#0b0b0b';
+  const red = '#ff4b2b';
+  const acid = '#d9ff3a';
+
+  ctx.fillStyle = paper;
+  ctx.fillRect(0, 0, W, H);
+
+  /* The red block is the issue's cover mark, carried into every export. */
+  ctx.fillStyle = red;
+  ctx.fillRect(PAD, 250, 190, 330);
+
+  ctx.fillStyle = ink;
+  ctx.font = '700 30px "IBM Plex Mono", monospace';
+  ctx.fillText('OVVO YEARBOOK', PAD, 100);
+  ctx.textAlign = 'right';
+  ctx.font = '600 26px "IBM Plex Mono", monospace';
+  ctx.fillText(`ISSUE ${String(year).slice(2)}`, W - PAD, 100);
+  ctx.textAlign = 'left';
+
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(PAD, 130);
+  ctx.lineTo(W - PAD, 130);
+  ctx.stroke();
+
+  ctx.fillStyle = ink;
+  ctx.font = '700 24px "IBM Plex Mono", monospace';
+  ctx.fillText(card.eyebrow.toUpperCase(), PAD, 210);
+
+  if (demo) {
+    ctx.fillStyle = acid;
+    ctx.fillRect(W - PAD - 150, 180, 150, 42);
+    ctx.fillStyle = ink;
+    ctx.font = '700 18px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('DEMO', W - PAD - 75, 208);
+    ctx.textAlign = 'left';
   }
 
+  ctx.fillStyle = ink;
+  const title = fitText(ctx, card.title, W - PAD * 2 - 230, 3, 100, 44);
+  ctx.font = `700 ${title.size}px "Archivo", sans-serif`;
+  title.lines.forEach((line, index) => {
+    ctx.fillText(line, PAD + 230, 310 + index * (title.size * 0.9));
+  });
+
+  ctx.fillStyle = red;
+  ctx.font = '700 250px "Archivo", sans-serif';
+  ctx.fillText(short(ctx, card.stat, W - PAD * 2), PAD, 850);
+
+  ctx.fillStyle = ink;
+  ctx.font = '700 24px "IBM Plex Mono", monospace';
+  ctx.fillText(card.statLabel.toUpperCase(), PAD, 910);
+
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(PAD, 960);
+  ctx.lineTo(W - PAD, 960);
+  ctx.stroke();
+
+  if (card.from) {
+    ctx.font = '700 46px "Archivo", sans-serif';
+    ctx.fillText(short(ctx, card.from, W - PAD * 2), PAD, 1060);
+    ctx.fillStyle = red;
+    ctx.font = '700 46px "Archivo", sans-serif';
+    ctx.fillText('↓', PAD, 1125);
+    ctx.fillStyle = ink;
+    ctx.fillText(short(ctx, card.to ?? '', W - PAD * 2), PAD, 1200);
+  } else {
+    const line = wrapText(ctx, card.line, W - PAD * 2);
+    ctx.font = '500 38px "Archivo", sans-serif';
+    line.slice(0, 3).forEach((part, index) => {
+      ctx.fillText(part, PAD, 1060 + index * 48);
+    });
+  }
+
+  let rowY = 1390;
+  card.rows.slice(0, 3).forEach((row) => {
+    ctx.strokeStyle = 'rgba(11, 11, 11, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(PAD, rowY - 34);
+    ctx.lineTo(W - PAD, rowY - 34);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(11, 11, 11, 0.62)';
+    ctx.font = '600 20px "IBM Plex Mono", monospace';
+    ctx.fillText(row.label.toUpperCase(), PAD, rowY);
+    ctx.fillStyle = ink;
+    ctx.font = '700 28px "Archivo", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(short(ctx, row.value, W * 0.5), W - PAD, rowY);
+    ctx.textAlign = 'left';
+    rowY += 72;
+  });
+
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(PAD, 1780);
+  ctx.lineTo(W - PAD, 1780);
+  ctx.stroke();
+  ctx.fillStyle = ink;
+  ctx.font = '600 22px "IBM Plex Mono", monospace';
+  ctx.fillText('PLAN THE NETHERLANDS', PAD, 1840);
+  ctx.textAlign = 'right';
+  ctx.fillText('OVVO', W - PAD, 1840);
+  ctx.textAlign = 'left';
+
   return canvas.toDataURL('image/png');
+}
+
+function drawCard(card: ShareCard, _palette: Palette, year: number, demo: boolean): string {
+  return drawIssueCard(card, year, demo);
 }
 
 function dataUrlToFile(dataUrl: string, filename: string): File {
