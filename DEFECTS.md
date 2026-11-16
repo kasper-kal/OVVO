@@ -51,6 +51,8 @@ him, and it is the work queue.
 
 | 33 | The sound prompts described a name reveal, a map pin, a tape reel and other movements that were not on the page; the traveller name simply appeared | 18-chapter run at 360x800 with every media `play()` recorded, plus computed animation names for the new entrances; all 17 cue files returned 200 | yes: the run recorded begin, page-turn, stat-tick, name-reveal, map-pin, distance-whoosh, rail-chime, clock-chime, camera-shutter, era-advance, board-stamp, trophy-triumph, comparison-two-tone, crew-connect, yearbook-close, share-confirmation and sound-toggle. The name, map pin, distance bars, era rail, trophy cards, bookends, comparison, crew and close all reported their new animation names |
 
+| 34 | "The train bell should go off everytime the dot hits either sides on page 6. The top dot should also be empty if the moving dot isn't in (the bottom dot already has this. The dot that moves should signal as the traveller)" — the top station marker was a filled disc, and the rail bell played once on page entry instead of at each end | `node scripts/check-yearbook-route.mjs`: on page 6 the top marker has no fill and a 2px ring, the moving dot is the traveller element, and at least three rail-chime plays are recorded over 13 seconds | yes: before the fix the top marker's computed background is the page ink and no chime is recorded after the route opens; after the fix the top marker is transparent and the check records three chimes at the two ends |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is

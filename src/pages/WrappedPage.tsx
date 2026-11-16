@@ -62,7 +62,6 @@ const CHAPTER_EFFECTS: Partial<Record<string, YearbookEffect>> = {
   name: 'name-reveal',
   map: 'map-pin',
   distance: 'distance-whoosh',
-  pair: 'rail-chime',
   origin: 'rail-chime',
   hour: 'clock-chime',
   direct: 'stat-tick',
@@ -76,6 +75,22 @@ const CHAPTER_EFFECTS: Partial<Record<string, YearbookEffect>> = {
   crew: 'crew-connect',
   close: 'yearbook-close',
 };
+
+/*
+ * **The route traveller's clock.**
+ *
+ * Page 6's moving dot is not a decorative train: it is the traveller, and the two station markers
+ * are empty rings that it fills when it arrives. The CSS animation starts after 1.2s and lasts 7.6s;
+ * these are the points where it reaches the top, the bottom, and the top again. The bell belongs to
+ * those arrivals, not to the page entrance, so the times are kept beside the cue table.
+ */
+const ROUTE_TRAVELLER = {
+  delayMs: 1200,
+  durationMs: 7600,
+  topAt: 0.03,
+  bottomAt: 0.408,
+  returnTopAt: 0.947,
+} as const;
 
 /**
  * **OVVO Wrapped: the year as a short film, not a report.**
@@ -300,6 +315,30 @@ export function WrappedPage() {
       timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [chapter.id, started]);
+
+  /*
+   * **The bell rings at the stations, not at the page turn.**
+   *
+   * The traveller rests at each end before it turns around. Schedule the cue for those arrivals; the
+   * timer is cleaned up when the story moves on, and muting leaves the next arrival silent.
+   */
+  useEffect(() => {
+    if (!started || reduceMotion || chapter.id !== 'pair') return undefined;
+    const { delayMs, durationMs, topAt, bottomAt, returnTopAt } = ROUTE_TRAVELLER;
+    const firstTop = delayMs + durationMs * topAt;
+    const firstBottom = delayMs + durationMs * bottomAt;
+    const returnTop = delayMs + durationMs * returnTopAt;
+    const arrivals = [firstTop, firstBottom, returnTop];
+    for (let cycle = 1; cycle < 8; cycle += 1) {
+      arrivals.push(firstBottom + cycle * durationMs, returnTop + cycle * durationMs);
+    }
+    const timers = arrivals.map((at) =>
+      window.setTimeout(() => {
+        if (soundRef.current) playYearbookEffect('rail-chime');
+      }, at),
+    );
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [chapter.id, started, reduceMotion]);
 
   /*
    * **The corner switch tells the truth about the speaker, on every page.**
@@ -773,7 +812,8 @@ export function WrappedPage() {
                         style={{ '--k': tick } as CSSProperties}
                       />
                     ))}
-                    <span className="wrapped-route__train" />
+                    {/* The moving dot is the traveller. The two markers are empty rings it fills. */}
+                    <span className="wrapped-route__traveller" />
                   </span>
                   <span className="wrapped-route__dot wrapped-route__dot--start" aria-hidden="true" />
                   <span className="wrapped-route__dot wrapped-route__dot--end" aria-hidden="true" />

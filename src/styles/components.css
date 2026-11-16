@@ -8308,6 +8308,12 @@
   }
 }
 
+/* Reduced motion keeps the traveller at the top station, so the page still says where it is. */
+.wrapped-stage.is-still .wrapped-route__traveller {
+  animation: none;
+  opacity: 1;
+}
+
 .wrapped-stage.is-still .wrapped-rings__hand {
   animation: none;
 }
@@ -8436,7 +8442,7 @@
 }
 
 /*
- * **The train fits inside the station, and its light does not bleed.**
+ * **The traveller fits inside the station, and its light does not bleed.**
  *
  * It used to be the same size as the end marker with a hard six-pixel ring of colour around it, so on
  * arrival that ring sat on top of the hollow station dot and read as a stripe bleeding out of it. The
@@ -8447,10 +8453,10 @@
 /*
  * The dot rides the line slowly and rests a full second in the station. It used to loop in five
  * seconds, so the arrival lasted three frames and was gone. Three seconds each way, one second
- * standing inside the hollow marker, and a short rest at the solid start: long enough for the eye to
+ * standing inside the hollow marker, and a short rest at the top: long enough for the eye to
  * read "twenty-one times" between the two stations.
  */
-.wrapped-route__train {
+.wrapped-route__traveller {
   position: absolute;
   left: 50%;
   top: -4px;
@@ -8493,14 +8499,19 @@
   }
 }
 
-/* The two markers are drawn from the line's own origin, so they sit on it exactly. */
+/*
+ * The two station markers are empty rings, drawn from the line's own origin. The moving dot is the
+ * traveller; when it stands in a ring it fills the hole, and when it leaves, the ring is empty again.
+ */
 .wrapped-route__dot {
   position: absolute;
   left: 4px;
   width: 12px;
   height: 12px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
   border-radius: 50%;
-  background: currentColor;
+  background: none;
 }
 
 .wrapped-route__dot--start {
@@ -8509,9 +8520,6 @@
 
 .wrapped-route__dot--end {
   bottom: 0;
-  background: none;
-  border: 2px solid currentColor;
-  box-sizing: border-box;
 }
 
 .wrapped-route__from,
@@ -9767,7 +9775,7 @@
 }
 
 /* Page 3 · the dot keeps its own slow journey when the music plays, so the beat never overtakes it. */
-.wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__train {
+.wrapped-stage.is-beat:not(.is-still)[data-chapter='pair'] .wrapped-route__traveller {
   opacity: 1;
 }
 
