@@ -173,13 +173,7 @@ function SceneArt({ chapter }: { chapter: Chapter }) {
     return (
       <div className="scene-art scene-art--distance" aria-hidden="true">
         <div className="scene-art__panel">
-          <svg className="art-svg art-distance" viewBox="0 0 100 70" preserveAspectRatio="none">
-            <path className="art-route-art" d="M 4 58 C 22 8, 76 8, 96 54" />
-            <circle className="art-route-art__node" cx="4" cy="58" r="1.8" />
-            <circle className="art-route-art__node" cx="96" cy="54" r="1.8" />
-            <text x="50" y="60" textAnchor="middle">{KILOMETRES.format(chapter.distance.km)} km</text>
-          </svg>
-          <p className="art-caption">As the crow flies</p>
+          <p className="art-caption">{KILOMETRES.format(chapter.distance.km)} km, as the crow flies</p>
         </div>
       </div>
     );
@@ -323,15 +317,6 @@ function SceneArt({ chapter }: { chapter: Chapter }) {
     return (
       <div className="scene-art scene-art--awards" aria-hidden="true">
         <div className="scene-art__panel">
-          <div className="art-awards">
-            {chapter.awards?.slice(0, 3).map((award, index) => (
-              <span className="art-award" style={{ '--i': index } as CSSProperties} key={award.id}>
-                <em>{String(index + 1).padStart(2, '0')}</em>
-                <b>{award.stat}</b>
-                <small>{award.statLabel}</small>
-              </span>
-            ))}
-          </div>
           <p className="art-caption">For the record</p>
         </div>
       </div>
@@ -356,19 +341,9 @@ function SceneArt({ chapter }: { chapter: Chapter }) {
   }
 
   if (chapter.kind === 'comparison' && chapter.comparison) {
-    const data = chapter.comparison;
-    const max = Math.max(1, data.journeys, data.previousJourneys);
     return (
       <div className="scene-art scene-art--comparison" aria-hidden="true">
         <div className="scene-art__panel">
-          <div className="art-compare">
-            <span className="art-compare__bar" style={{ '--h': `${(data.previousJourneys / max) * 100}%` } as CSSProperties}>
-              <em>{data.previousJourneys}</em><small>{data.previousYear}</small>
-            </span>
-            <span className="art-compare__bar is-now" style={{ '--h': `${(data.journeys / max) * 100}%` } as CSSProperties}>
-              <em>{data.journeys}</em><small>this year</small>
-            </span>
-          </div>
           <p className="art-caption">Two years, side by side</p>
         </div>
       </div>

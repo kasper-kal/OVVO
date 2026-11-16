@@ -200,11 +200,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -221,7 +221,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -295,11 +295,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -316,7 +316,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -390,11 +390,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -411,7 +411,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -485,11 +485,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -506,7 +506,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -580,11 +580,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -601,7 +601,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -675,11 +675,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -696,7 +696,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -770,11 +770,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -791,7 +791,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -865,11 +865,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -886,7 +886,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -960,11 +960,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -981,7 +981,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1055,11 +1055,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1076,7 +1076,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1150,11 +1150,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1171,7 +1171,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1245,11 +1245,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1266,7 +1266,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1340,11 +1340,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1361,7 +1361,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1435,11 +1435,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1456,7 +1456,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1530,11 +1530,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1551,7 +1551,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1625,11 +1625,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 875,
         "w": 1440,
         "h": 25,
         "right": 1440,
-        "bottom": 95
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1646,7 +1646,7 @@
         {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 875"
         }
       ],
       "smallControls": [
@@ -1720,11 +1720,11 @@
       },
       "foot": {
         "x": 0,
-        "y": 70,
+        "y": 831,
         "w": 1440,
         "h": 69,
         "right": 1440,
-        "bottom": 139
+        "bottom": 900
       },
       "bodyScroll": {
         "scrollHeight": 900,
@@ -1739,19 +1739,9 @@
           "detail": "-9999"
         },
         {
-          "kind": "under-footer",
-          "key": "span.scene-kicker",
-          "detail": "text at 98-113, footer 70-139"
-        },
-        {
-          "kind": "under-footer",
-          "key": "span.scene-word",
-          "detail": "text at 127-240, footer 70-139"
-        },
-        {
           "kind": "body-under-footer",
           "key": "body",
-          "detail": "body ends 900, footer starts 70"
+          "detail": "body ends 900, footer starts 831"
         }
       ],
       "smallControls": [

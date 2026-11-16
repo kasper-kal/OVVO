@@ -47,6 +47,12 @@ await page.waitForTimeout(500);
 const scenes = [];
 
 for (let i = 0; i < 18; i += 1) {
+  if (process.env.SAME_WORLD) {
+    await page.evaluate(() => {
+      const world = document.querySelector('.wrapped-world');
+      if (world) world.dataset.world = 'same';
+    });
+  }
   const reading = await page.evaluate(() => {
     const body = document.querySelector('.wrapped-body');
     const scene = body?.querySelector('.film-scene--in .scene-page') ?? body?.querySelector('.scene-page');
@@ -105,6 +111,7 @@ for (let i = 0; i < 18; i += 1) {
         return style.display !== 'none' && style.visibility !== 'hidden' && art.getBoundingClientRect().width > 0;
       })(),
       film: Boolean(scene.closest('.film-stage')),
+      worldSet: document.querySelector('.wrapped-world')?.getAttribute('data-world') ?? '',
       canvas: Boolean(document.querySelector('.wrapped-world')) || Boolean(scene.querySelector('.scene-photo')),
       height: scene.clientHeight,
       docWidth: document.documentElement.scrollWidth,
@@ -118,7 +125,7 @@ for (let i = 0; i < 18; i += 1) {
 
   if (i < 17) {
     await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(260);
+    await page.waitForTimeout(560);
   }
 }
 
@@ -143,6 +150,7 @@ const classes = new Set(present.map((scene) => scene.classes));
 const bigs = new Set(present.map((scene) => scene.big).filter(Boolean));
 const bridges = new Set(present.map((scene) => scene.bridge).filter(Boolean));
 const words = present.reduce((total, scene) => total + scene.words, 0);
+const worlds = new Set(present.map((scene) => scene.worldSet).filter(Boolean));
 const animated = present.filter((scene) => scene.animation && scene.animation !== 'none').length;
 const cuts = present.filter((scene) => scene.cut).length;
 
@@ -152,6 +160,7 @@ if (bridges.size < 14) failures.push(`only ${bridges.size} story bridges`);
 if (words < 100) failures.push(`only ${words} kinetic words`);
 if (animated < 15) failures.push(`only ${animated} scenes have kinetic type`);
 if (cuts < 16) failures.push(`only ${cuts} scenes have a cut`);
+if (worlds.size < 15) failures.push(`only ${worlds.size} distinct 3D worlds`);
 
 for (const scene of present) {
   if (scene.chapter !== 'cover' && !scene.bridge) failures.push(`${scene.chapter}: no story bridge`);
@@ -169,6 +178,6 @@ if (failures.length) {
 
 console.log(
   `WRAPPED SCENES: PASS — ${present.length} full-screen scenes, 0 old layers, ` +
-    `${classes.size} distinct scenes, ${bigs.size} distinct headlines, one continuous world, ` +
+    `${classes.size} distinct scenes, ${bigs.size} distinct headlines, ${worlds.size} distinct 3D worlds, ` +
     `${bridges.size} story bridges, ${words} kinetic words, no copy spills.`,
 );

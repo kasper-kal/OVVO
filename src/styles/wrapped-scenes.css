@@ -2278,3 +2278,32 @@
     stroke-dashoffset: 0 !important;
   }
 }
+
+/* The foot must beat the old chapter rule that put it back in the flex column. */
+.wrapped-stage[data-chapter] .wrapped-foot {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 4;
+}
+
+/* The distance, award and comparison diagrams were a second drawing under the 3D set. */
+.scene-art--distance .scene-art__panel,
+.scene-art--awards .scene-art__panel,
+.scene-art--comparison .scene-art__panel {
+  height: auto;
+  bottom: 9vh;
+  top: auto;
+  transform: none;
+}
+
+/* On a phone the credits and the actions are the last screen; the ring would sit under them. */
+@media (max-width: 719px) {
+  .scene-art--close .scene-art__panel {
+    display: none;
+  }
+}
+
+/* The place count is set tighter than its own line box, so on desktop its 9 climbed over the kicker. */
+.scene-page--map .scene-big--number {
+  padding-top: 0.08em;
+}
