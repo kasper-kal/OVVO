@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { Card, Field, Segmented } from './primitives';
+import { Button, Card, Field, Segmented } from './primitives';
 import { useApp } from '../../state/AppState';
 import { useT } from '../../lib/useT';
 import {
+  DEFAULT_STYLE_ID,
   STYLES,
   STYLE_GROUPS,
   styleById,
@@ -85,7 +86,9 @@ export function StyleSettings() {
    * answers the arrow keys. Selection follows focus, because choosing is instant; Tab enters at the
    * chosen tile and leaves from it instead of walking through fifty buttons.
    */
-  const ordered = STYLE_GROUPS.flatMap((group) => STYLES.filter((style) => style.group === group.id));
+  const ordered = STYLE_GROUPS.flatMap((group) =>
+    STYLES.filter((style) => style.group === group.id && style.id !== DEFAULT_STYLE_ID),
+  );
   const tileRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const moveTo = (index: number) => {
@@ -164,6 +167,17 @@ export function StyleSettings() {
 
   return (
     <div className="style-picker">
+      <div className="row-wrap">
+        <Button
+          icon="refresh"
+          variant="ghost"
+          disabled={current.id === DEFAULT_STYLE_ID}
+          onClick={() => updateSettings({ styleId: DEFAULT_STYLE_ID })}
+        >
+          {t('Back to default')}
+        </Button>
+      </div>
+
       <Card className="style-current">
         <div className="style-current__head">
           <span className="style-current__swatches" aria-hidden="true">
@@ -235,7 +249,10 @@ export function StyleSettings() {
           /* The seasonal tile already stands on its own Upcoming shelf; drawing it again in the
              Holidays shelf was the exact duplicate the audit counted (Sinterklaas, in November). */
           const members = STYLES.filter(
-            (style) => style.group === group.id && style.id !== upcoming?.style.id,
+            (style) =>
+              style.group === group.id &&
+              style.id !== DEFAULT_STYLE_ID &&
+              style.id !== upcoming?.style.id,
           );
           if (members.length === 0) return null;
           return (
@@ -251,7 +268,11 @@ export function StyleSettings() {
                       type="button"
                       role="radio"
                       aria-checked={selected}
-                      tabIndex={selected ? 0 : -1}
+                      tabIndex={
+                        selected || (current.id === DEFAULT_STYLE_ID && style.id === ordered[0]?.id)
+                          ? 0
+                          : -1
+                      }
                       ref={(node) => {
                         tileRefs.current[ordered.findIndex((item) => item.id === style.id)] = node;
                       }}

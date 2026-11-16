@@ -121,6 +121,93 @@
       }
     </style>
     <!--
+      **A page that can never leave the loading screen, by design.**
+
+      With JavaScript switched off, the script that removes the splash never runs, so the logo
+      sits over the fallback forever. The splash is removed by CSS in this `<noscript>` block
+      instead. The body's `<noscript>` card below is then the only thing on the page, and it says
+      plainly that nothing is still loading and what to do next.
+    -->
+    <noscript>
+      <style>
+        #splash {
+          display: none !important;
+        }
+        #nojs {
+          position: fixed;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          z-index: 2147483647;
+          overflow: auto;
+          display: grid;
+          place-items: center;
+          padding: 24px 20px;
+          box-sizing: border-box;
+          background: #fcfbfa;
+          color: #18181b;
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          -webkit-text-size-adjust: 100%;
+        }
+        #nojs .nojs__card {
+          width: 100%;
+          max-width: 460px;
+          padding: 28px 24px;
+          box-sizing: border-box;
+          background: #ffffff;
+          border: 1px solid #e8e6df;
+          border-radius: 28px;
+        }
+        #nojs .nojs__logo {
+          display: block;
+          width: 48px;
+          height: 48px;
+          margin: 0 0 20px;
+        }
+        #nojs .nojs__label {
+          display: block;
+          margin: 0 0 12px;
+          color: #7a766d;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        #nojs .nojs__title {
+          margin: 0 0 12px;
+          font-size: 23px;
+          line-height: 1.2;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+        }
+        #nojs .nojs__body {
+          margin: 0 0 13px;
+          color: #3f3c37;
+          font-size: 16px;
+          line-height: 1.5;
+        }
+        #nojs .nojs__body:last-child {
+          margin-bottom: 0;
+        }
+        #nojs a {
+          color: #18181b;
+          font-weight: 700;
+          text-underline-offset: 3px;
+        }
+        #nojs .nojs__rule {
+          height: 1px;
+          margin: 20px 0;
+          background: #e8e6df;
+        }
+        #nojs .nojs__nl {
+          color: #5e584f;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+      </style>
+    </noscript>
+    <!--
       **The splash's ground, taken from the appearance the traveller saved, before it is painted.**
 
       The app's canvas is `#fcfbfa` in light and `#121211` in dark, and the choice is stored as
@@ -264,19 +351,28 @@
       none of this either way; a raw fetch no longer meets a sentence that is untrue.
     -->
     <noscript>
-      <div class="too-old__card" style="max-width: 520px; margin: 32px auto; padding: 0 20px">
-        <span class="too-old__label">OVVO</span>
-        <h1 class="too-old__title">OVVO needs JavaScript</h1>
-        <p class="too-old__body">
-          OVVO is a Dutch public transport planner and every screen is drawn by JavaScript. With it
-          switched off there is nothing to show here. Turn JavaScript on, or open OVVO in a current
-          browser, and the planner, the departure boards and your stops appear.
-        </p>
-        <p class="too-old__body">
-          A plain text account of what the app does, for anything that reads files rather than pages,
-          is at <a href="/app.txt">/app.txt</a>. Questions go to
-          <a href="mailto:support@ovvo.us.ci">support@ovvo.us.ci</a>.
-        </p>
+      <div id="nojs">
+        <div class="nojs__card">
+          <img class="nojs__logo" src="/favicon.svg" alt="" width="48" height="48" />
+          <span class="nojs__label">OVVO</span>
+          <h1 class="nojs__title">OVVO cannot start without JavaScript</h1>
+          <p class="nojs__body">
+            Nothing is still loading. OVVO draws every screen with JavaScript, so this page has
+            stopped here on purpose. Turn JavaScript on, then reload this page.
+          </p>
+          <p class="nojs__body">
+            If you cannot turn it on, open OVVO in a current browser on another device.
+          </p>
+          <div class="nojs__rule"></div>
+          <p class="nojs__body nojs__nl" lang="nl">
+            JavaScript staat uit. Zet het aan en herlaad deze pagina. Lukt dat niet, open OVVO dan
+            in een actuele browser op een ander apparaat.
+          </p>
+          <p class="nojs__body">
+            <a href="/">Reload OVVO</a> · <a href="/app.txt">Plain text about OVVO</a> ·
+            <a href="mailto:support@ovvo.us.ci">Support</a>
+          </p>
+        </div>
       </div>
     </noscript>
 

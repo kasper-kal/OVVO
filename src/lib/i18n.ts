@@ -316,6 +316,7 @@ const NL: Record<string, string> = {
   'Pick a theme. Every one is checked for readability.':
     'Kies een thema. Elk ervan is op leesbaarheid gecontroleerd.',
   Themes: "Thema's",
+  'Back to default': 'Terug naar standaard',
   'In use': 'In gebruik',
   /* A photograph, not the act of photographing. */
   Photograph: 'Foto',

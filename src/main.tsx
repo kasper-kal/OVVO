@@ -13,6 +13,7 @@ import './styles/base.css';
 import './styles/components.css';
 import './styles/map.css';
 import './styles/styles-panel.css';
+import './styles/wrapped-pages.css';
 
 /**
  * **An address that still carries a `#/` is an old address, not an error.**

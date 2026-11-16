@@ -106,7 +106,7 @@ host is named individually: the allow-list is never `true`, so an unknown `Host`
 | `/disruptions`, `/disruptions/:id` | Service alerts with filters, detail, advice, navigation |
 | `/preferences` | Travel preferences with a live preview of their effect |
 | `/settings` | Display settings, location access, planner defaults and local data management |
-| `/themes` | Themes: forty whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. `/styles` redirects here |
+| `/themes` | Themes: twenty-eight whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. Default is one button away. `/styles` redirects here |
 | `/map` | The network map on a screen of its own (closed below 10% battery, with Settings) |
 | `/wrapped` | OVVO Wrapped: the traveller's own year, drawn from what they saved and searched |
 | `/signin`, `/auth/finish` | Signing in, and the page an emailed sign-in link lands on — both outside the shell |

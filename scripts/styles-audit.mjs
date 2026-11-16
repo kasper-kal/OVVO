@@ -193,8 +193,15 @@ const nightOf = ([canvas, card, ink, accent]) => {
 /* ------------------------------------------------------------------ read the registry */
 
 const source = await readFile(SOURCE, 'utf8');
-const registryStart = source.indexOf('export const STYLES');
+const registryStart = source.indexOf('const ALL_STYLES');
 const registry = source.slice(registryStart);
+
+/* Retired looks stay in the source as an archive; the gate checks only what ships. */
+const retiredStart = source.indexOf('const RETIRED_STYLE_IDS');
+const retiredEnd = source.indexOf(']);', retiredStart);
+const retiredIds = new Set(
+  [...source.slice(retiredStart, retiredEnd).matchAll(/'([^']+)'/g)].map((found) => found[1]),
+);
 
 /* A comment may sit between any two fields, so each gap allows a block comment. */
 const gap = String.raw`(?:\s*\/\*[\s\S]*?\*\/)?\s*\n\s*`;
@@ -242,6 +249,7 @@ const readPinned = (slice) => {
 const styles = [];
 let match;
 while ((match = entryPattern.exec(registry))) {
+  if (retiredIds.has(match[1])) continue;
   const tuple = (text) => [...text.matchAll(/'([^']+)'/g)].map((found) => found[1]);
   const idIndex = registry.indexOf(`id: '${match[1]}'`);
   const nextIndex = registry.indexOf("\n    id: '", idIndex + 1);

@@ -86,6 +86,12 @@ export const FONT_FAMILIES: Record<FontId, string> = {
 /* ------------------------------------------------------------------ the shape of a style */
 
 export type StyleGroupId =
+  | 'daylight'
+  | 'after-dark'
+  | 'statement'
+  | 'quiet'
+  | 'celebration'
+  /* Retired group ids are kept only so the archived styles at the bottom of this file still type. */
   | 'black'
   | 'cream'
   | 'gold'
@@ -103,64 +109,40 @@ export interface StyleGroup {
 }
 
 export const STYLE_GROUPS: StyleGroup[] = [
-  /* The shelves the picker draws, one per colour the page can be: no colour, paper, yellow, blue,
-     green, and the wine-coloured end. Nothing here describes a place, a mood, or whether a style has
-     a photograph — the photograph is a choice on every style's own row, and a shelf called *Photo*
-     held fourteen looks and told nobody anything (reported). */
   {
-    id: 'black',
-    label: 'Black',
-    labelNl: 'Zwart',
-    note: 'No colour at all: black pages, white words.',
-    noteNl: 'Geen kleur: zwarte bladzijden, witte letters.',
+    id: 'daylight',
+    label: 'Daylight',
+    labelNl: 'Daglicht',
+    note: 'Pale pages, paper and clear air.',
+    noteNl: 'Lichte bladzijden, papier en heldere lucht.',
   },
   {
-    id: 'cream',
-    label: 'Cream',
-    labelNl: 'Crème',
-    note: 'Paper and daylight, warm and quiet.',
-    noteNl: 'Papier en daglicht, warm en rustig.',
+    id: 'after-dark',
+    label: 'After Dark',
+    labelNl: 'Na donker',
+    note: 'Night pages, low light and deep ink.',
+    noteNl: 'Nachtbladen, weinig licht en diepe inkt.',
   },
   {
-    id: 'gold',
-    label: 'Gold',
-    labelNl: 'Goud',
-    note: 'Yellow, sand and brass.',
-    noteNl: 'Geel, zand en messing.',
+    id: 'statement',
+    label: 'Statement',
+    labelNl: 'Statement',
+    note: 'Strong colour, strong material.',
+    noteNl: 'Sterke kleur, sterk materiaal.',
   },
   {
-    id: 'blue',
-    label: 'Blue',
-    labelNl: 'Blauw',
-    note: 'Navy, sky and glass.',
-    noteNl: 'Marine, lucht en glas.',
+    id: 'quiet',
+    label: 'Quiet',
+    labelNl: 'Rustig',
+    note: 'Muted, close and easy on the eyes.',
+    noteNl: 'Ingetogen, dichtbij en rustig voor de ogen.',
   },
   {
-    id: 'green',
-    label: 'Green',
-    labelNl: 'Groen',
-    note: 'Moss, teal and enamel.',
-    noteNl: 'Mos, teal en emaille.',
-  },
-  {
-    id: 'wine',
-    label: 'Wine & Rose',
-    labelNl: 'Wijn en roos',
-    note: 'Wine, plum and dusty pink.',
-    noteNl: 'Wijn, pruim en stoffig roze.',
-  },
-  /*
-   * **Holidays sits at the bottom, and is the one shelf that is about a day rather than a colour.**
-   * It holds the four seasonal looks all year, so nothing about them depends on the date; when one
-   * of those days is within three weeks the Themes page announces it at the top (see
-   * `lib/holidays.ts`) and this shelf is where the look itself lives.
-   */
-  {
-    id: 'holidays',
-    label: 'Holidays',
-    labelNl: 'Feestdagen',
-    note: 'Four days the app dresses for: Sinterklaas, Christmas, New Year and Easter.',
-    noteNl: 'Vier dagen waarvoor de app zich aankleedt: Sinterklaas, Kerstmis, oud en nieuw en Pasen.',
+    id: 'celebration',
+    label: 'Celebration',
+    labelNl: 'Feest',
+    note: 'The days the app dresses for.',
+    noteNl: 'De dagen waarvoor de app zich aankleedt.',
   },
 ];
 
@@ -355,6 +337,11 @@ const SHAPES: Record<ShapeId, Shape> = {
 
 /** Where a style does not name a shape, its group decides. */
 const SHAPE_BY_GROUP: Record<StyleGroupId, ShapeId> = {
+  daylight: 'soft',
+  'after-dark': 'round',
+  statement: 'round',
+  quiet: 'soft',
+  celebration: 'soft',
   black: 'square',
   cream: 'soft',
   gold: 'soft',
@@ -546,13 +533,14 @@ const DEEP = '#0B0B0C';
 /* ------------------------------------------------------------------ the styles */
 
 /**
- * Fifty styles, authored in one place.
+ * Every style, authored in one place.
  *
- * The order is the order the picker draws them, grouped by `group`. `tram` is the app's own look —
- * the cream page, white cards, obsidian ink and the coral accent — so it is the default and
- * nobody's page changes on the day this ships.
+ * The shipping ones are filtered and given their new shelf in `STYLES` below; the retired ones stay
+ * here as archived definitions but never reach a picker. `tram` is the app's own look — the cream
+ * page, white cards, obsidian ink and the coral accent — so it is the default and nobody's page
+ * changes on the day this ships.
  */
-export const STYLES: StyleDef[] = [
+const ALL_STYLES: StyleDef[] = [
   /* ------------------------------------------------------------------ luxe */
   /* Navy is the page and gold is the accent: two colours in the name should be two on the screen. */
   {
@@ -1271,7 +1259,8 @@ export const STYLES: StyleDef[] = [
     name: 'Chrome',
     nameNl: 'Chroom',
     group: 'black',
-    light: ['#0B0B0D', '#17181B', '#EEF1F4', '#9FB0BE'],
+    /* Silver, polished white and dark steel: chrome is a material, so it should look like one. */
+    light: ['#CFD6DB', '#F7F9FA', '#0E1216', '#5E6D79'],
     display: 'manrope',
     sub: 'grotesk',
     body: 'jakarta',
@@ -1404,6 +1393,71 @@ export const STYLES: StyleDef[] = [
     ui: 'work',
   },
 ];
+
+/*
+ * **The retired looks stay here as history, not as choices.**
+ *
+ * Their palettes and photographs are kept in the source so a later decision can bring one back
+ * without reconstructing it, but they are filtered out before anything in the app sees STYLES:
+ * no picker tile, no group, no count, no saved choice. A saved id that points at one falls back
+ * to Default through `styleById`.
+ */
+const RETIRED_STYLE_IDS = new Set([
+  'palazzo',
+  'summit',
+  'avondglas',
+  'riviera',
+  'mustard',
+  'loggia',
+  'pro',
+  'ultraviolet',
+  'storm-tide',
+  'arena',
+  'binnenplaats',
+]);
+
+/*
+ * **Five shelves, balanced by mood rather than by hue.**
+ *
+ * The old categories were colours, and several of them had become catch-alls. These group the
+ * shipping looks by when a traveller would reach for them; Default is in Daylight for ordering
+ * only and is filtered out of the picker by `StyleSettings`.
+ */
+const GROUP_BY_STYLE: Record<string, StyleGroupId> = {
+  'poppy-blue': 'daylight',
+  broadsheet: 'daylight',
+  rijksmuseum: 'daylight',
+  sprinter: 'daylight',
+  tram: 'daylight',
+  marble: 'daylight',
+  travertine: 'daylight',
+  'midnight-silk': 'after-dark',
+  bordeaux: 'after-dark',
+  obsidian: 'after-dark',
+  'night-aa': 'after-dark',
+  contact: 'after-dark',
+  chrome: 'after-dark',
+  'navy-gold': 'statement',
+  'cyber-teal': 'statement',
+  blueprint: 'statement',
+  skyline: 'statement',
+  nostalgia: 'statement',
+  toscane: 'statement',
+  sage: 'quiet',
+  terminal: 'quiet',
+  cloudbank: 'quiet',
+  arches: 'quiet',
+  fog: 'quiet',
+  christmas: 'celebration',
+  sinterklaas: 'celebration',
+  'new-year': 'celebration',
+  easter: 'celebration',
+  halloween: 'celebration',
+};
+
+export const STYLES: StyleDef[] = ALL_STYLES
+  .filter((style) => !RETIRED_STYLE_IDS.has(style.id))
+  .map((style) => ({ ...style, group: GROUP_BY_STYLE[style.id] ?? style.group }));
 
 /** The app's own look — the cream page, white cards, obsidian ink and coral. */
 export const DEFAULT_STYLE_ID = 'tram';

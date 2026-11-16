@@ -357,6 +357,30 @@ export function SettingsPage() {
           </Card>
 
           {/*
+            **Themes, as a row that opens a screen.** The grid of fifty looks is too much to stand
+            in the middle of a list of settings, so Settings names the look in force and one
+            control opens the picker (`pages/StylesPage.tsx`).
+          */}
+          <Card className="stack">
+            <div className="between">
+              <h2 className="t-section">{t('Themes')}</h2>
+              <span className="t-strong t-sm">
+                {settings.language === 'nl'
+                  ? styleById(settings.styleId).nameNl
+                  : styleById(settings.styleId).name}
+              </span>
+            </div>
+            <p className="field__hint">
+              {t('The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.')}
+            </p>
+            <div className="row">
+              <Link className="btn" to="/themes">
+                {t('Choose a theme')}
+              </Link>
+            </div>
+          </Card>
+
+          {/*
             **Developer mode, and the way into its panel, in one card of its own.**
 
             The panel had a group of its own in the menu, which made a screen for one person a
@@ -386,30 +410,6 @@ export function SettingsPage() {
                 </Link>
               </div>
             ) : null}
-          </Card>
-
-          {/*
-            **Themes, as a row that opens a screen.** The grid of fifty looks is too much to stand
-            in the middle of a list of settings, so Settings names the look in force and one
-            control opens the picker (`pages/StylesPage.tsx`).
-          */}
-          <Card className="stack">
-            <div className="between">
-              <h2 className="t-section">{t('Themes')}</h2>
-              <span className="t-strong t-sm">
-                {settings.language === 'nl'
-                  ? styleById(settings.styleId).nameNl
-                  : styleById(settings.styleId).name}
-              </span>
-            </div>
-            <p className="field__hint">
-              {t('The whole look: the page, the cards, the ink, the lettering and the photograph behind the page.')}
-            </p>
-            <div className="row">
-              <Link className="btn" to="/themes">
-                {t('Choose a theme')}
-              </Link>
-            </div>
           </Card>
 
           <Card className="stack">

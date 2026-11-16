@@ -48,9 +48,16 @@ const REPORT = 'audit/register.md';
 
 function themeIds() {
   const source = fs.readFileSync('src/lib/styles.ts', 'utf8');
-  const start = source.indexOf('export const STYLES');
-  const body = start === -1 ? source : source.slice(start, source.indexOf('];', start));
-  const ids = [...body.matchAll(/^\s{2,4}id: '([^']+)'/gm)].map((m) => m[1]);
+  const start = source.indexOf('const ALL_STYLES');
+  const body = start === -1 ? source : source.slice(start, source.indexOf('\n];', start));
+  const retiredStart = source.indexOf('const RETIRED_STYLE_IDS');
+  const retiredEnd = source.indexOf(']);', retiredStart);
+  const retired = new Set(
+    [...source.slice(retiredStart, retiredEnd).matchAll(/'([^']+)'/g)].map((found) => found[1]),
+  );
+  const ids = [...body.matchAll(/^\s{2,4}id: '([^']+)'/gm)]
+    .map((m) => m[1])
+    .filter((id) => !retired.has(id));
   if (ids.length === 0) throw new Error('could not read any theme id from src/lib/styles.ts');
   return ids;
 }
