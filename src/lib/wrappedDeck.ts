@@ -12,6 +12,7 @@
  */
 
 import { getStop } from '../data/stops';
+import { MAP_POINT } from '../data/map';
 import type { Language } from '../state/types';
 import { formatDuration } from './format';
 import { styleById, stylePhotoPath } from './styles';
@@ -31,7 +32,49 @@ export type ChapterKind =
   | 'stretch'
   | 'word'
   | 'name'
+  | 'eras'
+  | 'map'
   | 'close';
+
+export interface EraPhase {
+  /** The style id, so the timeline can use that look's own accent. */
+  id: string;
+  /** The look's name and the season it belonged to, e.g. "Nostalgia spring". */
+  name: string;
+  /** First and last day the look was worn in this run of days. */
+  start: number;
+  end: number;
+  /** How many recorded days this era lasted. */
+  days: number;
+}
+
+export interface MapStop {
+  id: string;
+  name: string;
+  /** Position on the map module's 0–100 canvas. */
+  x: number;
+  y: number;
+  /** How often this stop appeared at either end of a journey. */
+  count: number;
+}
+
+export interface MapRoute {
+  from: MapStop;
+  to: MapStop;
+  count: number;
+  /** The pair the year returned to most. */
+  top: boolean;
+}
+
+export interface ChapterMap {
+  stops: MapStop[];
+  routes: MapRoute[];
+  topStopId: string | null;
+  topRoute: { fromId: string; toId: string; count: number } | null;
+  topLine: string | null;
+  places: number;
+  routeCount: number;
+}
 
 export interface Chapter {
   id: string;
@@ -73,6 +116,10 @@ export interface Chapter {
   months?: number[];
   /** The photograph of the look that was worn, when that look has one. */
   photo?: string;
+  /** The looks in the order they were worn, for the year's era timeline. */
+  eras?: EraPhase[];
+  /** The year's own web of journeys, for the map chapter. */
+  map?: ChapterMap;
 }
 
 /** How many journeys are enough to make a story. */
@@ -80,13 +127,52 @@ export const DECK_MIN_RUNS = 5;
 
 const nameOf = (id: string): string => getStop(id)?.name ?? id;
 
-function lookName(id: string): string | null {
+function lookName(id: string, language: Language): string | null {
   try {
-    const style = styleById(id) as { name?: string } | null | undefined;
-    return style?.name ?? null;
+    const style = styleById(id);
+    return language === 'nl' ? style.nameNl : style.name;
   } catch {
     return null;
   }
+}
+
+const SEASONS = {
+  en: ['winter', 'spring', 'summer', 'autumn'],
+  nl: ['winter', 'lente', 'zomer', 'herfst'],
+} as const;
+
+/** The season a date belongs to, in the language the deck is speaking. */
+function seasonOf(at: number, language: Language): string {
+  const month = new Date(at).getMonth();
+  const index = month === 11 || month <= 1 ? 0 : month <= 4 ? 1 : month <= 7 ? 2 : 3;
+  return SEASONS[language][index];
+}
+
+/**
+ * **The year as a sequence of looks.**
+ *
+ * A wear line is written once a day, so a run of the same id is one era and a different id starts
+ * the next one. The name pairs the look with the season at the middle of its run, which is the
+ * difference between a settings log and a chapter a person would recognise: "Nostalgia spring" is
+ * a period of their year, not a theme they clicked.
+ */
+function erasFor(wears: YearTally['wears'], language: Language): EraPhase[] {
+  const sorted = [...wears].sort((a, b) => a.at - b.at);
+  const phases: Array<Omit<EraPhase, 'name'>> = [];
+  for (const wear of sorted) {
+    const last = phases[phases.length - 1];
+    if (last && last.id === wear.id) {
+      last.end = wear.at;
+      last.days += 1;
+    } else {
+      phases.push({ id: wear.id, start: wear.at, end: wear.at, days: 1 });
+    }
+  }
+  return phases.map((phase) => {
+    const name = lookName(phase.id, language) ?? phase.id;
+    const middle = phase.start + (phase.end - phase.start) / 2;
+    return { ...phase, name: `${name} ${seasonOf(middle, language)}` };
+  });
 }
 
 function topEntries<T extends string>(counts: Map<T, number>, limit: number): Array<{ value: T; count: number }> {
@@ -295,6 +381,7 @@ export function buildStory({
   const months = new Array<number>(12).fill(0);
   const looks = new Map<string, number>();
   const lines = new Map<string, number>();
+  const stopCounts = new Map<string, number>();
   let direct = 0;
   let longest = runs[0];
 
@@ -306,6 +393,8 @@ export function buildStory({
     if ((run.changes ?? 1) === 0) direct += 1;
     if ((run.minutes ?? 0) > (longest.minutes ?? 0)) longest = run;
     for (const line of run.lines ?? []) lines.set(line, (lines.get(line) ?? 0) + 1);
+    if (getStop(run.from)) stopCounts.set(run.from, (stopCounts.get(run.from) ?? 0) + 1);
+    if (getStop(run.to)) stopCounts.set(run.to, (stopCounts.get(run.to) ?? 0) + 1);
   }
   for (const wear of tally.wears) looks.set(wear.id, (looks.get(wear.id) ?? 0) + 1);
 
@@ -315,8 +404,24 @@ export function buildStory({
   const peak = hours.indexOf(Math.max(...hours));
   const lookList = topEntries(looks, 1);
   const wearDays = lookList[0]?.count ?? 0;
-  const named = lookList[0] ? lookName(lookList[0].value) : null;
+  const named = lookList[0] ? lookName(lookList[0].value, language) : null;
   const lineList = topEntries(lines, 3);
+  const eraList = erasFor(tally.wears, language);
+  const stopsOnMap: MapStop[] = topEntries(stopCounts, 60)
+    .flatMap((entry) => {
+      const point = MAP_POINT(entry.value);
+      if (!point) return [];
+      return [{ id: entry.value, name: nameOf(entry.value), x: point.x, y: point.y, count: entry.count }];
+    });
+  const mapByStop = new Map(stopsOnMap.map((stop) => [stop.id, stop]));
+  const mapRoutes: MapRoute[] = topEntries(pairs, 26).flatMap((entry) => {
+    const [fromId, toId] = entry.value.split('→');
+    const from = mapByStop.get(fromId);
+    const to = mapByStop.get(toId);
+    if (!from || !to) return [];
+    return [{ from, to, count: entry.count, top: pair?.value === entry.value }];
+  });
+  const topStop = topEntries(stopCounts, 1)[0]?.value ?? null;
   const directShare = runs.length ? direct / runs.length : 0;
   const directPct = Math.round(directShare * 100);
   const destinations = new Set(runs.map((run) => run.to)).size;
@@ -374,6 +479,29 @@ export function buildStory({
           big: plate.name,
           line: plate.line,
           chips: plate.chips,
+        }
+      : null,
+    mapRoutes.length
+      ? {
+          id: 'map',
+          kind: 'map',
+          tone: 'ink',
+          track: 'electro-dance',
+          kicker: 'Your year as a map',
+          big: `${stopsOnMap.length} places`,
+          line: 'A year of journeys, drawn between the stops you used.',
+          map: {
+            stops: stopsOnMap,
+            routes: mapRoutes,
+            topStopId: topStop,
+            topRoute:
+              pair && mapByStop.has(pairFrom) && mapByStop.has(pairTo)
+                ? { fromId: pairFrom, toId: pairTo, count: pair.count }
+                : null,
+            topLine: lineList[0]?.value ?? null,
+            places: stopsOnMap.length,
+            routeCount: mapRoutes.length,
+          },
         }
       : null,
     pair
@@ -458,6 +586,18 @@ export function buildStory({
           line: 'in this look.',
           /* The page wears the look too: its own photograph, full bleed, behind the words. */
           photo: lookList[0] ? stylePhotoPath(lookList[0].value) : undefined,
+        }
+      : null,
+    eraList.length
+      ? {
+          id: 'eras',
+          kind: 'eras',
+          tone: 'cream',
+          track: 'indie-pop',
+          kicker: 'Your OVVO era',
+          big: eraList.length === 1 ? eraList[0].name : `${eraList.length} eras`,
+          line: 'The looks you lived in, in the order you wore them.',
+          eras: eraList,
         }
       : null,
     lineList.length

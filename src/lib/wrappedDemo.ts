@@ -103,18 +103,20 @@ export function demoYear(year: number, variant: DemoVariant = 'regular'): YearTa
 
   runs.sort((a, b) => a.at - b.at);
 
-  /* A look worn most of the year, with two changes of heart in the spring. */
+  /*
+   * Three looks, in three seasons, so the demo shows the era timeline as phases rather than as a
+   * colour change in January. The dark look still carries the most days, which keeps the look
+   * chapter and its photograph on the same story beat.
+   */
   const wears = [] as YearTally['wears'];
-  const looks: Array<[string, number]> = [
-    ['nostalgia', 96],
-    ['marble', 38],
-    ['arches', 12],
+  const looks: Array<[string, number, number, number]> = [
+    ['nostalgia', 64, 2, 1],
+    ['marble', 48, 4, 5],
+    ['chrome', 34, 8, 1],
   ];
-  let day = 0;
-  for (const [id, days] of looks) {
+  for (const [id, days, month, firstDay] of looks) {
     for (let n = 0; n < days; n += 1) {
-      day += 1;
-      const at = new Date(year, 0, 1 + (day % 355), 9, 0).getTime();
+      const at = new Date(year, month, firstDay + n, 9, 0).getTime();
       wears.push({ at, id });
     }
   }

@@ -12,6 +12,8 @@ import { buildStory, type Chapter } from '../lib/wrappedDeck';
 import { demoYear, isDemoVariant, type DemoVariant } from '../lib/wrappedDemo';
 import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
+import { WrappedMapChapter } from '../components/wrapped/WrappedMapChapter';
+import { WrappedEraChapter } from '../components/wrapped/WrappedEraChapter';
 import {
   resumeSound,
   scoreTime,
@@ -621,7 +623,9 @@ export function WrappedPage() {
                 {t(chapter.kicker)}
               </span>
 
-              {chapter.kind === 'arc' ? (
+              {chapter.kind === 'map' && chapter.map ? (
+                <WrappedMapChapter data={chapter.map} big={chapter.big} line={chapter.line} />
+              ) : chapter.kind === 'arc' ? (
                 <div className="wrapped-arc" style={{ '--arc': chapter.arc ?? 0, '--i': 1 } as CSSProperties}>
                   <span className="wrapped-arc__spark" aria-hidden="true" />
                   <p className="wrapped-big wrapped-big--in">{count}%</p>
@@ -780,12 +784,16 @@ export function WrappedPage() {
                 </ul>
               ) : null}
 
-              {/* The rail prints its own two stations, and the look prints its own days. */}
-              {chapter.kind === 'route' || chapter.kind === 'word' ? null : (
+              {/* The rail prints its own two stations, the look prints its own days, and the map prints its own caption. */}
+              {chapter.kind === 'route' || chapter.kind === 'word' || chapter.kind === 'map' ? null : (
                 <p className="wrapped-line" style={{ '--i': 3 } as CSSProperties}>
                   {t(chapter.line)}
                 </p>
               )}
+
+              {chapter.kind === 'eras' && chapter.eras?.length ? (
+                <WrappedEraChapter eras={chapter.eras} />
+              ) : null}
 
               {chapter.hearts || chapter.boards ? (
                 <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
