@@ -27,7 +27,8 @@ async function openDeck(level, name) {
     localStorage.setItem('ov-planner:v1:dev', JSON.stringify({ battery, charging: false }));
   }, level);
   const page = await context.newPage();
-  await page.goto(`${BASE}/yearbook?demo=1`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/yearbook?demo=1`, { waitUntil: 'domcontentloaded' });
+  await page.locator('.wrapped-stage').waitFor({ timeout: 20000 });
   await page.waitForTimeout(700);
   const notNow = page.getByRole('button', { name: /not now/i });
   if (await notNow.count()) await notNow.first().click();
@@ -93,8 +94,9 @@ await context.addInitScript(() => {
   localStorage.setItem('ov-planner:v1:dev', JSON.stringify({ battery: 0.15, charging: false }));
 });
 const home = await context.newPage();
-await home.goto(BASE, { waitUntil: 'networkidle' });
-await home.waitForTimeout(700);
+await home.goto(BASE, { waitUntil: 'domcontentloaded' });
+await home.locator('.app-shell, .home-page, main').first().waitFor({ timeout: 20000 }).catch(() => undefined);
+await home.waitForTimeout(900);
 const homePower = await home.evaluate(() => document.documentElement.dataset.power);
 console.log(`home at 15%: data-power=${homePower}`);
 if (homePower !== 'save') fail(`the exception leaked: the home screen is ${homePower} at 15%`);
@@ -105,4 +107,4 @@ if (failed) {
   console.log('YEARBOOK BATTERY: FAIL');
   process.exit(1);
 }
-console.log('YEARBOOK BATTERY: PASS (deck exempt at 15% and 5%; other screens still save)');
+console.log('YEARBOOK BATTERY: PASS (deck exempt at 15%, 5% and 1%; other screens still save)');
