@@ -34,6 +34,8 @@ export type ChapterKind =
   | 'name'
   | 'eras'
   | 'map'
+  | 'awards'
+  | 'bookends'
   | 'close';
 
 export interface EraPhase {
@@ -74,6 +76,24 @@ export interface ChapterMap {
   topLine: string | null;
   places: number;
   routeCount: number;
+}
+
+export interface YearAward {
+  id: string;
+  title: string;
+  /** The number or short phrase the award is built on. */
+  stat: string;
+  /** What that number means. */
+  statLabel: string;
+  line: string;
+  facts: Array<{ label: string; value: string }>;
+}
+
+export interface YearBookend {
+  at: number;
+  hour: number;
+  from: string;
+  to: string;
 }
 
 export interface Chapter {
@@ -120,6 +140,10 @@ export interface Chapter {
   eras?: EraPhase[];
   /** The year's own web of journeys, for the map chapter. */
   map?: ChapterMap;
+  /** The playful awards the year earned. */
+  awards?: YearAward[];
+  /** The first and last journey, for the quiet bookend chapter. */
+  bookends?: { first: YearBookend; last: YearBookend };
 }
 
 /** How many journeys are enough to make a story. */
@@ -424,11 +448,75 @@ export function buildStory({
   const topStop = topEntries(stopCounts, 1)[0]?.value ?? null;
   const directShare = runs.length ? direct / runs.length : 0;
   const directPct = Math.round(directShare * 100);
+  const topStopName = topStop ? nameOf(topStop) : null;
+  const topStopCount = topStop ? stopCounts.get(topStop) ?? 0 : 0;
   const destinations = new Set(runs.map((run) => run.to)).size;
   const beforeNine = hours.slice(0, 9).reduce((sum, count) => sum + count, 0);
   const afterSix = hours.slice(18).reduce((sum, count) => sum + count, 0);
   const latestHour = hours.reduce((at, count, hour) => (count > 0 ? hour : at), 0);
   const secondPair = topEntries(pairs, 2)[1];
+  const hourLabel = (hour: number) => `${hour < 10 ? '0' : ''}${hour}:00`;
+  const awards: YearAward[] = [];
+
+  /* The year's own awards. Each one has a number a person can quote back to a friend. */
+  if (runs.length) {
+    awards.push({
+      id: 'sprint',
+      title: `Most likely to sprint for the ${hourLabel(peak)}`,
+      stat: hourLabel(peak),
+      statLabel: 'your busiest hour',
+      line: `${hours[peak]} ${hours[peak] === 1 ? 'journey' : 'journeys'} asked to leave then, more than any other hour.`,
+      facts: [
+        { label: 'Journeys then', value: String(hours[peak]) },
+        { label: 'Before nine', value: `${beforeNine} of ${runs.length}` },
+      ],
+    });
+  }
+
+  if (topStopName) {
+    awards.push({
+      id: 'station',
+      title: 'Station main character',
+      stat: String(topStopCount),
+      statLabel: 'appearances',
+      line: `${topStopName} was at one end of your year ${topStopCount} ${topStopCount === 1 ? 'time' : 'times'}.`,
+      facts: [
+        { label: 'The station', value: topStopName },
+        { label: 'Places in your year', value: String(destinations) },
+      ],
+    });
+  }
+
+  if (direct > 0) {
+    awards.push({
+      id: 'changes',
+      title: 'Best at avoiding changes',
+      stat: `${directPct}%`,
+      statLabel: 'change-free',
+      line: `${direct} of ${runs.length} journeys had no changes at all.`,
+      facts: [
+        { label: 'Change-free', value: `${direct} of ${runs.length}` },
+        { label: 'Longest trip', value: longest.minutes ? formatDuration(longest.minutes, language) : 'Not recorded' },
+      ],
+    });
+  }
+
+  if (lineList[0] && lineList[0].count >= 2) {
+    awards.push({
+      id: 'loyal',
+      title: 'Most loyal to one line',
+      stat: lineList[0].value,
+      statLabel: 'your line',
+      line: `${lineList[0].count} journeys on it, more than any other line.`,
+      facts: [
+        { label: 'Journeys on it', value: String(lineList[0].count) },
+        { label: 'Your top route', value: pair ? `${nameOf(pairFrom)} to ${nameOf(pairTo)}` : 'Not enough journeys' },
+      ],
+    });
+  }
+
+  const firstRun = runs[0];
+  const lastRun = runs[runs.length - 1];
   const plate = nameplateFor({
     runs: runs.length,
     pair: pair ? { from: nameOf(pairFrom), to: nameOf(pairTo), count: pair.count } : null,
@@ -626,6 +714,41 @@ export function buildStory({
           boards: tally.boards.length,
         }
       : null,
+    awards.length
+      ? {
+          id: 'awards',
+          kind: 'awards',
+          tone: 'cream',
+          track: 'afrobeat',
+          kicker: 'The yearbook',
+          big: 'Your superlatives',
+          line: `${awards.length} awards your journeys earned.`,
+          awards,
+        }
+      : null,
+    {
+      id: 'bookends',
+      kind: 'bookends',
+      tone: 'ink',
+      track: 'acoustic',
+      kicker: 'First and last',
+      big: 'The year, bookended',
+      line: 'The first journey you planned, and the last one.',
+      bookends: {
+        first: {
+          at: firstRun.at,
+          hour: firstRun.hour,
+          from: nameOf(firstRun.from),
+          to: nameOf(firstRun.to),
+        },
+        last: {
+          at: lastRun.at,
+          hour: lastRun.hour,
+          from: nameOf(lastRun.from),
+          to: nameOf(lastRun.to),
+        },
+      },
+    },
     {
       id: 'close',
       kind: 'close',

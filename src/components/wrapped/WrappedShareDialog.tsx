@@ -273,6 +273,7 @@ function saveBlob(file: File): void {
 export function WrappedShareDialog({
   open,
   onClose,
+  initialCardId,
   year,
   demo,
   story,
@@ -280,6 +281,8 @@ export function WrappedShareDialog({
 }: {
   open: boolean;
   onClose: () => void;
+  /** The award that opened the sheet, if it was a share button on the yearbook page. */
+  initialCardId?: string;
   year: number;
   demo: boolean;
   story: Chapter[];
@@ -304,6 +307,7 @@ export function WrappedShareDialog({
     const direct = story.find((chapter) => chapter.id === 'direct');
     const lines = story.find((chapter) => chapter.id === 'lines');
     const look = story.find((chapter) => chapter.id === 'look');
+    const awards = story.find((chapter) => chapter.kind === 'awards')?.awards ?? [];
     const total = tally.runs.length;
     const journeyWord = total === 1 ? t('journey') : t('journeys');
     const topStation = hideStations ? t('Hidden for sharing') : origin?.big ?? t('Not enough journeys');
@@ -322,7 +326,7 @@ export function WrappedShareDialog({
       ? t('The journey you kept coming back to.')
       : t('The line your year kept returning to.');
 
-    return [
+    const baseCards: ShareCard[] = [
       {
         id: 'identity',
         tab: t('Who you were'),
@@ -369,7 +373,27 @@ export function WrappedShareDialog({
         ],
       },
     ];
+
+    return [
+      ...baseCards,
+      ...awards.map((award) => ({
+        id: `award-${award.id}`,
+        tab: t(award.title),
+        eyebrow: t('Yearbook award'),
+        title: t(award.title),
+        stat: award.stat,
+        statLabel: t(award.statLabel),
+        line: t(award.line),
+        rows: award.facts.map((fact) => ({ label: t(fact.label), value: fact.value })),
+      })),
+    ];
   }, [story, tally, hideStations, t, settings.language, style.name, style.nameNl]);
+
+  useEffect(() => {
+    if (!open) return;
+    const index = initialCardId ? cards.findIndex((card) => card.id === initialCardId) : 0;
+    setActive(index >= 0 ? index : 0);
+  }, [open, initialCardId]);
 
   useEffect(() => {
     if (!open) {
@@ -440,14 +464,14 @@ export function WrappedShareDialog({
         saveBlob(dataUrlToFile(dataUrl, `ovvo-wrapped-${year}-${cards[index].id}.png`));
       }, index * 240);
     });
-    setStatus(t('Downloading all three'));
+    setStatus(t('Downloading all cards'));
   };
 
   return (
     <Dialog
       open={open}
       title={t('Share your year')}
-      description={t('Three story-sized cards, made in this browser. Nothing is uploaded.')}
+      description={t('Story-sized cards, made in this browser. Nothing is uploaded.')}
       onClose={onClose}
       panelClassName="wrapped-share"
       footer={
@@ -456,7 +480,7 @@ export function WrappedShareDialog({
             {t('Share this card')}
           </Button>
           <Button variant="ghost" icon="download" onClick={downloadAll} disabled={!images.length || busy}>
-            {t('Download all three')}
+            {t('Download all cards')}
           </Button>
         </>
       }

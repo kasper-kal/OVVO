@@ -14,6 +14,8 @@ import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
 import { WrappedMapChapter } from '../components/wrapped/WrappedMapChapter';
 import { WrappedEraChapter } from '../components/wrapped/WrappedEraChapter';
+import { WrappedAwardsChapter } from '../components/wrapped/WrappedAwardsChapter';
+import { WrappedBookendsChapter } from '../components/wrapped/WrappedBookendsChapter';
 import {
   resumeSound,
   scoreTime,
@@ -178,6 +180,7 @@ export function WrappedPage() {
   const [cleared, setCleared] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState<string | null>(null);
   const [director, setDirector] = useState(false);
 
   /*
@@ -795,6 +798,20 @@ export function WrappedPage() {
                 <WrappedEraChapter eras={chapter.eras} />
               ) : null}
 
+              {chapter.kind === 'awards' && chapter.awards?.length ? (
+                <WrappedAwardsChapter
+                  awards={chapter.awards}
+                  onShare={(cardId) => {
+                    setShareTarget(cardId);
+                    setShareOpen(true);
+                  }}
+                />
+              ) : null}
+
+              {chapter.kind === 'bookends' && chapter.bookends ? (
+                <WrappedBookendsChapter first={chapter.bookends.first} last={chapter.bookends.last} />
+              ) : null}
+
               {chapter.hearts || chapter.boards ? (
                 <p className="wrapped-aside" style={{ '--i': 4 } as CSSProperties}>
                   {t('{hearts} stops hearted, {boards} boards pinned.', {
@@ -827,7 +844,15 @@ export function WrappedPage() {
 
           {last ? (
             <div className="wrapped-actions wrapped-foot__actions">
-              <Button variant="accent" size="sm" icon="share" onClick={() => setShareOpen(true)}>
+              <Button
+                variant="accent"
+                size="sm"
+                icon="share"
+                onClick={() => {
+                  setShareTarget(null);
+                  setShareOpen(true);
+                }}
+              >
                 {t('Share cards')}
               </Button>
               <Button variant="ghost" size="sm" icon="bookmark" onClick={() => void share()}>
@@ -855,6 +880,7 @@ export function WrappedPage() {
       <WrappedShareDialog
         open={shareOpen}
         onClose={() => setShareOpen(false)}
+        initialCardId={shareTarget ?? undefined}
         year={year}
         demo={demo}
         story={story}
