@@ -2148,3 +2148,632 @@ button.wrapped-demo-mark:focus-visible {
   background: #fff;
   animation: yb-shutter-flash 520ms 120ms linear both;
 }
+
+/* ========================================================== 2026-11 Wrapped visual pass
+
+   The deck had eighteen careful layouts and no single visual temperature. On a phone it read as a
+   sequence of quiet slides; on a desktop it sat as a small column in the middle of a large empty
+   frame. This pass gives the whole story one Wrapped-scale language: saturated chapter grounds,
+   large type, glass surfaces, an accent that belongs to the chapter, and content that uses the
+   width it has. The chapter compositions stay; only their clothes and their scale change.
+
+   The variables are set here rather than on the stage element so every chapter can carry its own
+   colour without the component knowing about CSS. */
+
+.wrapped-stage[data-chapter] {
+  --wrap-ink: #fffaf7;
+  --wrap-muted: #c9c0d4;
+  --wrap-card: rgb(255 255 255 / 0.09);
+  --wrap-card-strong: rgb(255 255 255 / 0.14);
+  --wrap-line: rgb(255 255 255 / 0.2);
+  --wrap-accent: #ff8b74;
+  --wrap-bg-a: #0d0918;
+  --wrap-bg-b: #2a1038;
+  --wrap-glow-a: rgb(255 117 105 / 0.28);
+  --wrap-glow-b: rgb(116 92 255 / 0.24);
+  background:
+    radial-gradient(120% 88% at 92% 0%, var(--wrap-glow-a), transparent 56%),
+    radial-gradient(100% 80% at 0% 100%, var(--wrap-glow-b), transparent 62%),
+    linear-gradient(150deg, var(--wrap-bg-a), var(--wrap-bg-b));
+  color: var(--wrap-ink);
+  transition: background 520ms var(--ease-out), color 320ms var(--ease-out);
+}
+
+/* The dark chapters are rooms, not black holes. */
+.wrapped-stage[data-chapter='cover'] {
+  --wrap-bg-a: #0b0616;
+  --wrap-bg-b: #320d42;
+  --wrap-glow-a: rgb(255 86 112 / 0.46);
+  --wrap-glow-b: rgb(99 82 255 / 0.4);
+  --wrap-accent: #ff8b74;
+}
+
+.wrapped-stage[data-chapter='total'] {
+  --wrap-bg-a: #090918;
+  --wrap-bg-b: #17134a;
+  --wrap-glow-a: rgb(88 255 195 / 0.3);
+  --wrap-glow-b: rgb(255 153 72 / 0.24);
+  --wrap-accent: #d6ff3a;
+}
+
+.wrapped-stage[data-chapter='map'] {
+  --wrap-bg-a: #03110f;
+  --wrap-bg-b: #082c3d;
+  --wrap-glow-a: rgb(89 255 218 / 0.26);
+  --wrap-glow-b: rgb(37 115 255 / 0.3);
+  --wrap-accent: #76ffd8;
+}
+
+.wrapped-stage[data-chapter='distance'] {
+  --wrap-bg-a: #06150f;
+  --wrap-bg-b: #10392a;
+  --wrap-glow-a: rgb(198 255 79 / 0.24);
+  --wrap-glow-b: rgb(58 205 158 / 0.28);
+  --wrap-accent: #c8ff57;
+}
+
+.wrapped-stage[data-chapter='pair'] {
+  --wrap-bg-a: #071126;
+  --wrap-bg-b: #18244d;
+  --wrap-glow-a: rgb(86 220 255 / 0.25);
+  --wrap-glow-b: rgb(255 126 100 / 0.22);
+  --wrap-accent: #91f2ff;
+}
+
+.wrapped-stage[data-chapter='hour'] {
+  --wrap-bg-a: #0a0b1e;
+  --wrap-bg-b: #28133f;
+  --wrap-glow-a: rgb(255 144 239 / 0.28);
+  --wrap-glow-b: rgb(88 126 255 / 0.28);
+  --wrap-accent: #ffabf1;
+}
+
+.wrapped-stage[data-chapter='direct'] {
+  --wrap-bg-a: #1b0927;
+  --wrap-bg-b: #3a102f;
+  --wrap-glow-a: rgb(255 142 83 / 0.3);
+  --wrap-glow-b: rgb(211 81 255 / 0.25);
+  --wrap-accent: #ffd06f;
+}
+
+.wrapped-stage[data-chapter='bookends'] {
+  --wrap-bg-a: #070f20;
+  --wrap-bg-b: #17254a;
+  --wrap-glow-a: rgb(255 151 122 / 0.24);
+  --wrap-glow-b: rgb(87 118 255 / 0.3);
+  --wrap-accent: #ffb193;
+}
+
+.wrapped-stage[data-chapter='crew'] {
+  --wrap-bg-a: #061225;
+  --wrap-bg-b: #18365c;
+  --wrap-glow-a: rgb(105 189 255 / 0.3);
+  --wrap-glow-b: rgb(160 108 255 / 0.24);
+  --wrap-accent: #a9ceff;
+}
+
+.wrapped-stage[data-chapter='close'] {
+  --wrap-bg-a: #07070c;
+  --wrap-bg-b: #230d19;
+  --wrap-glow-a: rgb(255 126 103 / 0.28);
+  --wrap-glow-b: rgb(166 89 255 / 0.18);
+  --wrap-accent: #ff9078;
+}
+
+/* The paper chapters are still paper, but they are sunlit paper now. */
+.wrapped-stage[data-chapter='name'],
+.wrapped-stage[data-chapter='origin'],
+.wrapped-stage[data-chapter='longest'],
+.wrapped-stage[data-chapter='eras'],
+.wrapped-stage[data-chapter='lines'],
+.wrapped-stage[data-chapter='awards'],
+.wrapped-stage[data-chapter='comparison'] {
+  --wrap-ink: #211713;
+  --wrap-muted: #675548;
+  --wrap-card: rgb(255 255 255 / 0.6);
+  --wrap-card-strong: rgb(255 255 255 / 0.78);
+  --wrap-line: rgb(38 25 18 / 0.16);
+}
+
+.wrapped-stage[data-chapter='name'] {
+  --wrap-bg-a: #edfff7;
+  --wrap-bg-b: #bdeed9;
+  --wrap-glow-a: rgb(255 219 119 / 0.6);
+  --wrap-glow-b: rgb(76 214 177 / 0.34);
+  --wrap-accent: #087a63;
+}
+
+.wrapped-stage[data-chapter='origin'] {
+  --wrap-bg-a: #fff4df;
+  --wrap-bg-b: #ffd0a6;
+  --wrap-glow-a: rgb(255 120 82 / 0.4);
+  --wrap-glow-b: rgb(255 215 112 / 0.42);
+  --wrap-accent: #b23b1f;
+}
+
+.wrapped-stage[data-chapter='longest'] {
+  --wrap-bg-a: #fff1ee;
+  --wrap-bg-b: #ffc1ca;
+  --wrap-glow-a: rgb(255 106 132 / 0.34);
+  --wrap-glow-b: rgb(255 190 92 / 0.35);
+  --wrap-accent: #b32b54;
+}
+
+.wrapped-stage[data-chapter='eras'] {
+  --wrap-bg-a: #fff9e6;
+  --wrap-bg-b: #ffe29f;
+  --wrap-glow-a: rgb(255 142 77 / 0.32);
+  --wrap-glow-b: rgb(255 215 92 / 0.46);
+  --wrap-accent: #a4520e;
+}
+
+.wrapped-stage[data-chapter='lines'] {
+  --wrap-bg-a: #f8ffda;
+  --wrap-bg-b: #ccecac;
+  --wrap-glow-a: rgb(208 255 77 / 0.4);
+  --wrap-glow-b: rgb(76 210 178 / 0.26);
+  --wrap-accent: #526b0c;
+}
+
+.wrapped-stage[data-chapter='awards'] {
+  --wrap-bg-a: #fff4e3;
+  --wrap-bg-b: #ffd0b9;
+  --wrap-glow-a: rgb(255 133 79 / 0.36);
+  --wrap-glow-b: rgb(255 213 112 / 0.42);
+  --wrap-accent: #ae3d20;
+}
+
+.wrapped-stage[data-chapter='comparison'] {
+  --wrap-bg-a: #fff3df;
+  --wrap-bg-b: #ffd0a5;
+  --wrap-glow-a: rgb(255 125 83 / 0.34);
+  --wrap-glow-b: rgb(255 216 110 / 0.4);
+  --wrap-accent: #a54922;
+}
+
+.wrapped-stage[data-chapter='look'] {
+  --wrap-accent: #ffb58d;
+  --wrap-muted: #fff;
+}
+
+/* The old paper bands are now seams in the new gradient, so they go. */
+.wrapped-stage[data-chapter='origin']::before,
+.wrapped-stage[data-chapter='longest']::before {
+  display: none;
+}
+
+/* --------------------------------------------------------------- one voice on top */
+
+.wrapped-stage[data-chapter] .wrapped-kicker {
+  color: var(--wrap-accent);
+  opacity: 1;
+  font-size: clamp(10px, 1.1vw, 13px);
+  letter-spacing: 0.2em;
+}
+
+.wrapped-stage[data-chapter] .wrapped-kicker::after {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--wrap-accent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--wrap-accent) 55%, transparent);
+}
+
+.wrapped-stage[data-chapter] .wrapped-title,
+.wrapped-stage[data-chapter] .wrapped-big {
+  color: var(--wrap-ink);
+}
+
+.wrapped-stage[data-chapter] .wrapped-line,
+.wrapped-stage[data-chapter] .wrapped-note,
+.wrapped-stage[data-chapter] .wrapped-unfinished,
+.wrapped-stage[data-chapter] .wrapped-aside,
+.wrapped-stage[data-chapter] .wrapped-demo {
+  color: var(--wrap-muted);
+  opacity: 1;
+}
+
+.wrapped-stage[data-chapter] .wrapped-chapter,
+.wrapped-stage[data-chapter] .wrapped-count {
+  color: var(--wrap-muted);
+  opacity: 0.88;
+}
+
+.wrapped-stage[data-chapter='cover'] .wrapped-title {
+  text-shadow: 0 0 120px rgb(255 108 111 / 0.34);
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-big {
+  color: var(--wrap-accent);
+  text-shadow: 0 0 90px rgb(214 255 58 / 0.16);
+}
+
+.wrapped-stage[data-chapter='pair'] .wrapped-route__count {
+  color: var(--wrap-accent);
+}
+
+.wrapped-stage[data-chapter='hour'] .wrapped-big {
+  color: var(--wrap-accent);
+}
+
+.wrapped-stage[data-chapter='direct'] .wrapped-big--in {
+  color: var(--wrap-accent);
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-lines-count strong,
+.wrapped-stage[data-chapter='distance'] .wrapped-distance__saved strong {
+  color: var(--wrap-accent);
+}
+
+/* ---------------------------------------------------------------- the bar and controls */
+
+.wrapped-stage[data-chapter] .wrapped-progress {
+  gap: 5px;
+}
+
+.wrapped-stage[data-chapter] .wrapped-progress__seg {
+  background: color-mix(in srgb, var(--wrap-ink) 22%, transparent);
+}
+
+.wrapped-stage[data-chapter] .wrapped-progress__seg.is-done,
+.wrapped-stage[data-chapter] .wrapped-progress__seg i {
+  background: var(--wrap-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--wrap-accent) 50%, transparent);
+}
+
+.wrapped-stage[data-chapter] .wrapped-close,
+.wrapped-stage[data-chapter] .wrapped-sound,
+.wrapped-stage[data-chapter] .wrapped-demo-mark {
+  border-color: var(--wrap-line);
+  background: var(--wrap-card);
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+
+.wrapped-stage[data-chapter] .wrapped-close:hover,
+.wrapped-stage[data-chapter] .wrapped-sound:hover {
+  background: var(--wrap-card-strong);
+}
+
+/* ---------------------------------------------------------------- glass surfaces */
+
+.wrapped-stage[data-chapter='origin'] .wrapped-chip,
+.wrapped-stage[data-chapter='awards'] .wrapped-award,
+.wrapped-stage[data-chapter='bookends'] .wrapped-bookend,
+.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat,
+.wrapped-stage[data-chapter='crew'] .wrapped-crew__code {
+  border-color: var(--wrap-line);
+  background: var(--wrap-card);
+  box-shadow: 0 16px 42px rgb(0 0 0 / 0.14);
+  backdrop-filter: blur(20px) saturate(1.25);
+}
+
+.wrapped-stage[data-chapter='awards'] .wrapped-award {
+  border-top: 3px solid var(--wrap-accent);
+  border-radius: 20px;
+}
+
+.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat {
+  border-radius: 18px;
+}
+
+.wrapped-stage[data-chapter='bookends'] .wrapped-bookend {
+  border-radius: 22px;
+}
+
+/* ------------------------------------------------------------------ bigger pictures */
+
+.wrapped-stage[data-chapter='map'] .wrapped-map__frame {
+  width: min(100%, 620px);
+  border: 1px solid var(--wrap-line);
+  background: rgb(0 0 0 / 0.14);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.2);
+}
+
+.wrapped-stage[data-chapter='distance'] .wrapped-distance__big {
+  font-size: clamp(64px, 10vw, 140px);
+}
+
+.wrapped-stage[data-chapter='distance'] .wrapped-distance__bar > i {
+  height: 14px;
+  background: var(--wrap-accent);
+}
+
+.wrapped-stage[data-chapter='distance'] .wrapped-distance__bar.is-transit > i {
+  background: #8fffd4;
+}
+
+.wrapped-stage[data-chapter='eras'] .wrapped-eras__copy strong {
+  font-size: clamp(24px, 3.4vw, 38px);
+}
+
+.wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
+  font-size: clamp(30px, 3.2vw, 48px);
+}
+
+.wrapped-stage[data-chapter='awards'] .wrapped-award__title {
+  font-size: clamp(19px, 1.8vw, 26px);
+}
+
+.wrapped-stage[data-chapter='bookends'] .wrapped-bookend__route {
+  font-size: clamp(22px, 3vw, 38px);
+}
+
+.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__year > strong {
+  font-size: clamp(44px, 6vw, 78px);
+}
+
+.wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat > strong {
+  font-size: clamp(34px, 4vw, 56px);
+}
+
+/* ------------------------------------------------------------------- use the width */
+
+.wrapped-stage[data-chapter] .wrapped-map,
+.wrapped-stage[data-chapter] .wrapped-distance,
+.wrapped-stage[data-chapter] .wrapped-eras,
+.wrapped-stage[data-chapter] .wrapped-awards,
+.wrapped-stage[data-chapter] .wrapped-bookends,
+.wrapped-stage[data-chapter] .wrapped-comparison {
+  width: min(100%, 980px);
+}
+
+.wrapped-stage[data-chapter] .wrapped-crew {
+  width: min(100%, 820px);
+}
+
+@media (min-width: 720px) {
+  .wrapped-stage {
+    --pad-x: clamp(28px, 4.5vw, 72px);
+  }
+
+  .wrapped-body {
+    max-width: 1240px;
+  }
+
+  .wrapped-body[data-chapter='cover'] .wrapped-title {
+    font-size: clamp(150px, 23vw, 380px);
+  }
+
+  .wrapped-stage[data-chapter] .wrapped-big {
+    font-size: clamp(76px, 9vw, 190px);
+  }
+
+  .wrapped-stage[data-chapter='total'] .wrapped-big {
+    font-size: clamp(130px, 18vw, 340px);
+  }
+
+  .wrapped-stage[data-chapter='pair'] .wrapped-route__count {
+    font-size: clamp(110px, 15vw, 280px);
+  }
+
+  .wrapped-stage[data-chapter] .wrapped-line {
+    max-width: 32ch;
+    font-size: clamp(20px, 2vw, 32px);
+  }
+
+  .wrapped-stage[data-chapter='pair'] .wrapped-route {
+    min-height: min(64vh, 620px);
+  }
+
+  .wrapped-stage[data-chapter='pair'] .wrapped-route__from,
+  .wrapped-stage[data-chapter='pair'] .wrapped-route__to {
+    font-size: clamp(30px, 3.4vw, 54px);
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-awards__grid {
+    gap: 14px;
+  }
+
+  .wrapped-stage[data-chapter='bookends'] .wrapped-bookends__pair {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .wrapped-stage[data-chapter='crew'] .wrapped-crew__code code {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 719px) {
+  .wrapped-stage {
+    --pad-x: clamp(16px, 5vw, 26px);
+  }
+
+  .wrapped-body {
+    gap: 12px;
+  }
+
+  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
+    width: min(100%, 320px);
+  }
+
+  .wrapped-stage[data-chapter] .wrapped-kicker::after {
+    width: 28px;
+    height: 2px;
+    margin-top: 6px;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__title {
+    font-size: 18px;
+  }
+
+  .wrapped-stage[data-chapter='bookends'] .wrapped-bookend__route {
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-stage[data-chapter='awards'] .wrapped-award {
+    padding: 11px 10px;
+  }
+
+  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
+    width: min(100%, 278px);
+  }
+}
+
+/* --------------------------------------------------------------- second visual pass
+
+   The first pass made the deck loud. These are the places where loud broke a layout: the trophy
+   cards needed a wider stat column, the map needed to stop growing past the body, and the lines
+   tallies were lost in their own green. */
+
+.wrapped-stage[data-chapter='total'] .wrapped-months__col i {
+  background: linear-gradient(180deg, #fff 0%, var(--wrap-accent) 100%);
+  opacity: calc(0.55 + var(--h, 0.1) * 0.45);
+}
+
+.wrapped-stage[data-chapter='total'] .wrapped-months__col em {
+  opacity: 0.82;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chip strong {
+  color: var(--wrap-ink);
+  opacity: 0.98;
+}
+
+.wrapped-stage[data-chapter='lines'] .wrapped-chip span,
+.wrapped-stage[data-chapter='lines'] .wrapped-lines-count span {
+  color: var(--wrap-muted);
+  opacity: 1;
+}
+
+@media (min-width: 720px) {
+  /* A Wrapped cover is a poster, not a left-aligned page with half the frame spare. */
+  .wrapped-body[data-chapter='cover'] {
+    text-align: center;
+    justify-items: center;
+  }
+
+  .wrapped-body[data-chapter='cover'] .wrapped-line,
+  .wrapped-body[data-chapter='cover'] .wrapped-demo {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .wrapped-body[data-chapter='cover'] .wrapped-actions {
+    justify-content: center;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award {
+    grid-template-columns: 112px minmax(0, 1fr) 44px;
+    column-gap: 14px;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
+    font-size: clamp(26px, 2.2vw, 38px);
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__title {
+    font-size: clamp(18px, 1.65vw, 23px);
+  }
+
+  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
+    width: min(100%, 54vh, 600px);
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-body {
+    gap: 8px;
+  }
+
+  .wrapped-stage[data-chapter='map'] .wrapped-map__frame {
+    width: min(100%, 240px);
+  }
+
+  .wrapped-stage[data-chapter='distance'] .wrapped-distance,
+  .wrapped-stage[data-chapter='eras'] .wrapped-eras,
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison {
+    gap: 8px;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
+    font-size: 27px;
+  }
+}
+
+/* A 320-wide screen cannot stack four full-size trophy cards and keep the foot on the page. Two
+   compact poster cards per row keep every award, its number and its sentence visible. */
+@media (max-width: 379px) {
+  .wrapped-stage[data-chapter='awards'] .wrapped-big {
+    font-size: 38px;
+    line-height: 0.94;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-awards {
+    gap: 4px;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-awards__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award {
+    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-areas:
+      'stat button'
+      'title title'
+      'line line';
+    grid-template-rows: auto auto auto;
+    gap: 2px 3px;
+    padding: 8px 8px 7px;
+    border-radius: 14px;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__stat {
+    font-size: 22px;
+    letter-spacing: -0.04em;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__label {
+    font-size: 8px;
+    letter-spacing: 0.04em;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__title {
+    font-size: 13px;
+    line-height: 1.12;
+  }
+
+  .wrapped-stage[data-chapter='awards'] .wrapped-award__line {
+    font-size: 9px;
+    line-height: 1.24;
+  }
+
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison {
+    gap: 5px;
+  }
+
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat {
+    padding: 7px 8px;
+  }
+}
+
+@media (max-width: 379px) {
+  .wrapped-stage[data-chapter='comparison'] .wrapped-body {
+    gap: 4px;
+  }
+
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__counts {
+    gap: 4px;
+    padding-bottom: 0;
+  }
+
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__year > strong {
+    font-size: 30px;
+  }
+
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stats {
+    gap: 3px;
+  }
+
+  .wrapped-stage[data-chapter='comparison'] .wrapped-comparison__stat {
+    min-height: 0;
+    padding: 5px 7px;
+  }
+}

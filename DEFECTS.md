@@ -53,6 +53,8 @@ him, and it is the work queue.
 
 | 34 | "The train bell should go off everytime the dot hits either sides on page 6. The top dot should also be empty if the moving dot isn't in (the bottom dot already has this. The dot that moves should signal as the traveller)" — the top station marker was a filled disc, and the rail bell played once on page entry instead of at each end | `node scripts/check-yearbook-route.mjs`: on page 6 the top marker has no fill and a 2px ring, the moving dot is the traveller element, and at least three rail-chime plays are recorded over 13 seconds | yes: before the fix the top marker's computed background is the page ink and no chime is recorded after the route opens; after the fix the top marker is transparent and the check records three chimes at the two ends |
 
+| 35 | "There are tens and tens of visual imperfections in OVVO Yearbook, every single page has at least one issue and the visual style is nowhere NEAR Spotify Wrapped." — the deck read as muted pages in a narrow column, especially on desktop, with weak colour and too much empty space | `node scripts/audit-wrapped.mjs` at 360x800, 320x568, 768x1024 and 1440x900, plus the four contact sheets; the visual pass is a full-deck comparison, not a single-page screenshot | yes for the system pass: the deck now uses one saturated gradient language, chapter accents, glass surfaces, larger desktop scale and a 2x2 trophy grid at 320. The 144-shot after audit is clean at 360x800, 320x568, 768x1024 and 1440x900 (skip-link artifacts excluded); taste is still the steerer's call, but the previous muted-column layout is gone |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is
