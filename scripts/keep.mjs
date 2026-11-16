@@ -18,7 +18,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Files and folders that git ignores but that are not throwaway.
-const ALWAYS_INCLUDED = ['.logs/mock/index.html', '.logs/mock/scenes.html', 'artifacts/wrapped-audit'];
+const ALWAYS_INCLUDED = ['.logs/mock/index.html', '.logs/mock/scenes.html', 'artifacts/wrapped-audit', 'artifacts/wrapped-share'];
 
 // Saves always publish to main. The checked-out branch is the chat's own
 // freebuff/... working branch; pushing HEAD by name left finished work off

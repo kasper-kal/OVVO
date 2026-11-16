@@ -17,8 +17,11 @@ import type { YearTally } from '../../lib/wrapped';
  * the year in numbers. More than three choices stops being a share sheet and becomes a design app.
  */
 
+type ShareLayout = 'identity' | 'route' | 'year' | 'award' | 'award-ticket';
+
 interface ShareCard {
   id: string;
+  layout: ShareLayout;
   tab: string;
   eyebrow: string;
   title: string;
@@ -26,6 +29,9 @@ interface ShareCard {
   statLabel: string;
   line: string;
   rows: Array<{ label: string; value: string }>;
+  /* Only the route card has the two ends; its picture is built around them. */
+  from?: string;
+  to?: string;
 }
 
 interface Palette {
@@ -125,35 +131,206 @@ function short(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): s
   return `${result}...`;
 }
 
-function drawCard(card: ShareCard, palette: Palette, year: number, demo: boolean): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas is unavailable');
+/* Every shared card is a different picture. The three base cards each have their own composition,
+   and the yearbook awards alternate between a certificate and a ticket. They share only the paper,
+   the header and the footer: a set of cards, not seven prints of one template. */
 
-  const ink = palette.ink;
-  const accent = palette.accent;
+function drawHeader(
+  ctx: CanvasRenderingContext2D,
+  palette: Palette,
+  year: number,
+  demo: boolean,
+): void {
+  ctx.textAlign = 'left';
+  ctx.fillStyle = palette.ink;
+  ctx.font = '700 28px "Space Grotesk", sans-serif';
+  ctx.fillText('OVVO WRAPPED', PAD, 92);
 
+  ctx.textAlign = 'right';
+  ctx.fillStyle = rgba(palette.ink, 0.62);
+  ctx.font = '600 26px "Space Grotesk", sans-serif';
+  ctx.fillText(String(year), W - PAD, 92);
+
+  if (demo) {
+    ctx.fillStyle = palette.accent;
+    roundedRect(ctx, W - PAD - 132, 118, 132, 44, 22);
+    ctx.fill();
+    ctx.fillStyle = palette.canvas;
+    ctx.textAlign = 'center';
+    ctx.font = '700 19px "Space Grotesk", sans-serif';
+    ctx.fillText('DEMO', W - PAD - 66, 147);
+  }
+  ctx.textAlign = 'left';
+}
+
+function drawFooter(ctx: CanvasRenderingContext2D, palette: Palette): void {
+  ctx.strokeStyle = rgba(palette.ink, 0.18);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(PAD, 1790);
+  ctx.lineTo(W - PAD, 1790);
+  ctx.stroke();
+
+  ctx.fillStyle = rgba(palette.ink, 0.56);
+  ctx.font = '600 20px "Space Grotesk", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('PLAN THE NETHERLANDS', PAD, 1840);
+  ctx.textAlign = 'right';
+  ctx.fillText('OVVO', W - PAD, 1840);
+  ctx.textAlign = 'left';
+}
+
+function drawEyebrow(ctx: CanvasRenderingContext2D, palette: Palette, text: string, y = 300): void {
+  ctx.fillStyle = palette.accent;
+  ctx.font = '700 24px "Space Grotesk", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(text.toUpperCase(), PAD, y);
+}
+
+function drawTitle(
+  ctx: CanvasRenderingContext2D,
+  palette: Palette,
+  text: string,
+  y: number,
+  maxWidth: number,
+  maxLines: number,
+  startSize: number,
+  minSize: number,
+): number {
+  const fitted = fitText(ctx, text, maxWidth, maxLines, startSize, minSize);
+  ctx.fillStyle = palette.ink;
+  ctx.font = `700 ${fitted.size}px "Archivo", sans-serif`;
+  let lineY = y;
+  for (const line of fitted.lines) {
+    ctx.fillText(line, PAD, lineY);
+    lineY += fitted.size * 0.92;
+  }
+  return lineY;
+}
+
+function drawStackedFacts(
+  ctx: CanvasRenderingContext2D,
+  palette: Palette,
+  rows: ShareCard['rows'],
+  y: number,
+): void {
+  rows.slice(0, 3).forEach((row, index) => {
+    const rowY = y + index * 82;
+    ctx.strokeStyle = rgba(palette.ink, 0.13);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(PAD, rowY - 28);
+    ctx.lineTo(W - PAD, rowY - 28);
+    ctx.stroke();
+
+    ctx.fillStyle = rgba(palette.ink, 0.46);
+    ctx.font = '600 18px "Space Grotesk", sans-serif';
+    ctx.fillText(row.label.toUpperCase(), PAD, rowY);
+
+    ctx.fillStyle = palette.ink;
+    ctx.font = '700 32px "Archivo", sans-serif';
+    ctx.fillText(short(ctx, row.value, W - PAD * 2), PAD, rowY + 36);
+  });
+}
+
+function drawColumnFacts(
+  ctx: CanvasRenderingContext2D,
+  palette: Palette,
+  rows: ShareCard['rows'],
+  y: number,
+  valueSize: number,
+): void {
+  const visible = rows.slice(0, 3);
+  const column = (W - PAD * 2) / Math.max(1, visible.length);
+  visible.forEach((row, index) => {
+    const x = PAD + index * column;
+    if (index) {
+      ctx.strokeStyle = rgba(palette.ink, 0.14);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 20, y - 38);
+      ctx.lineTo(x - 20, y + 118);
+      ctx.stroke();
+    }
+    ctx.fillStyle = rgba(palette.ink, 0.46);
+    ctx.font = '600 17px "Space Grotesk", sans-serif';
+    ctx.fillText(row.label.toUpperCase(), x, y);
+    const value = fitText(ctx, row.value, column - 34, 2, valueSize, 22);
+    ctx.fillStyle = palette.ink;
+    ctx.font = `700 ${value.size}px "Archivo", sans-serif`;
+    value.lines.forEach((line, lineIndex) => {
+      ctx.fillText(line, x, y + 48 + lineIndex * (value.size * 0.94));
+    });
+  });
+}
+
+function drawIdentity(
+  ctx: CanvasRenderingContext2D,
+  card: ShareCard,
+  palette: Palette,
+  year: number,
+  demo: boolean,
+): void {
   ctx.fillStyle = palette.canvas;
   ctx.fillRect(0, 0, W, H);
 
-  /* A material, not a flat poster: one large accent field and a quiet grid. */
   ctx.save();
   ctx.globalAlpha = 0.16;
-  ctx.fillStyle = accent;
+  ctx.fillStyle = palette.accent;
   ctx.beginPath();
-  ctx.arc(W + 70, 160, 390, 0, Math.PI * 2);
+  ctx.arc(W + 40, 180, 360, 0, Math.PI * 2);
   ctx.fill();
-  ctx.globalAlpha = 0.08;
+  ctx.globalAlpha = 0.055;
   ctx.beginPath();
-  ctx.arc(-40, H - 220, 330, 0, Math.PI * 2);
+  ctx.arc(-80, H - 280, 420, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
+  drawHeader(ctx, palette, year, demo);
+  drawEyebrow(ctx, palette, card.eyebrow);
+
+  let y = 420;
+  y = drawTitle(ctx, palette, card.title, y, W - PAD * 2, 3, 132, 56) + 24;
+
+  /* One dot for every journey. It is the card's own number, drawn as a field rather than repeated. */
+  const count = Math.min(180, Math.max(1, parseInt(card.stat, 10) || 1));
+  const cols = 18;
+  const dotGap = (W - PAD * 2) / cols;
+  const dotTop = Math.min(850, y + 26);
+  ctx.fillStyle = palette.accent;
+  for (let index = 0; index < count; index += 1) {
+    ctx.globalAlpha = 0.24 + (index % 4) * 0.08;
+    ctx.beginPath();
+    ctx.arc(PAD + (index % cols) * dotGap + dotGap / 2, dotTop + Math.floor(index / cols) * 28, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = palette.accent;
+  ctx.font = '700 300px "Archivo", sans-serif';
+  ctx.fillText(short(ctx, card.stat, W - PAD * 2), PAD, 1250);
+
+  ctx.fillStyle = rgba(palette.ink, 0.64);
+  ctx.font = '600 26px "Space Grotesk", sans-serif';
+  ctx.fillText(card.statLabel.toUpperCase(), PAD, 1308);
+
+  drawStackedFacts(ctx, palette, card.rows, 1418);
+  drawFooter(ctx, palette);
+}
+
+function drawRoute(
+  ctx: CanvasRenderingContext2D,
+  card: ShareCard,
+  palette: Palette,
+  year: number,
+  demo: boolean,
+): void {
+  ctx.fillStyle = palette.canvas;
+  ctx.fillRect(0, 0, W, H);
+
   ctx.save();
-  ctx.globalAlpha = 0.09;
-  ctx.strokeStyle = ink;
+  ctx.globalAlpha = 0.075;
+  ctx.strokeStyle = palette.ink;
   ctx.lineWidth = 2;
   for (let x = 0; x <= W; x += 72) {
     ctx.beginPath();
@@ -163,89 +340,251 @@ function drawCard(card: ShareCard, palette: Palette, year: number, demo: boolean
   }
   ctx.restore();
 
-  /* Top line: the deck, the year, and the honest demo mark. */
-  ctx.fillStyle = ink;
-  ctx.font = '700 28px "Space Grotesk", sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('OVVO WRAPPED', PAD, 92);
+  drawHeader(ctx, palette, year, demo);
+  drawEyebrow(ctx, palette, card.eyebrow);
 
-  ctx.textAlign = 'right';
-  ctx.fillStyle = rgba(ink, 0.62);
-  ctx.font = '600 26px "Space Grotesk", sans-serif';
-  ctx.fillText(String(year), W - PAD, 92);
+  const titleWidth = W - PAD * 2;
+  const titleEnd = drawTitle(ctx, palette, card.title, 390, titleWidth, 3, 96, 48);
 
-  if (demo) {
-    ctx.fillStyle = accent;
-    roundedRect(ctx, W - PAD - 132, 118, 132, 44, 22);
-    ctx.fill();
-    ctx.fillStyle = palette.canvas;
-    ctx.textAlign = 'center';
-    ctx.font = '700 19px "Space Grotesk", sans-serif';
-    ctx.fillText('DEMO', W - PAD - 66, 147);
-  }
+  const from = card.from ?? card.title;
+  const to = card.to ?? '';
+  const railX = 154;
+  const railTop = Math.max(780, titleEnd + 50);
+  const railBottom = 1460;
 
-  ctx.textAlign = 'left';
-  ctx.fillStyle = accent;
-  ctx.font = '700 24px "Space Grotesk", sans-serif';
-  ctx.fillText(card.eyebrow.toUpperCase(), PAD, 300);
-
-  const fitted = fitText(ctx, card.title, W - PAD * 2, 3, 126, 52);
-  let y = 430;
-  ctx.fillStyle = ink;
-  ctx.font = `700 ${fitted.size}px "Archivo", sans-serif`;
-  for (const line of fitted.lines) {
-    ctx.fillText(line, PAD, y);
-    y += fitted.size * 0.9;
-  }
-
-  ctx.fillStyle = accent;
-  const statSize = card.stat.length > 4 ? 132 : 210;
-  ctx.font = `700 ${statSize}px "Archivo", sans-serif`;
-  ctx.fillText(short(ctx, card.stat, W - PAD * 2), PAD, 1120);
-
-  ctx.fillStyle = rgba(ink, 0.66);
-  ctx.font = '600 28px "Space Grotesk", sans-serif';
-  ctx.fillText(card.statLabel.toUpperCase(), PAD, 1170);
-
-  ctx.fillStyle = rgba(ink, 0.82);
-  ctx.font = '500 32px "Space Grotesk", sans-serif';
-  const line = wrapText(ctx, card.line, W - PAD * 2);
-  let lineY = 1260;
-  for (const part of line.slice(0, 3)) {
-    ctx.fillText(part, PAD, lineY);
-    lineY += 44;
-  }
-
-  /* The facts sit on one plate, so three small rows read as a receipt, not three paragraphs. */
-  ctx.fillStyle = rgba(palette.card, 0.92);
-  ctx.strokeStyle = rgba(ink, 0.16);
-  ctx.lineWidth = 2;
-  roundedRect(ctx, PAD, 1440, W - PAD * 2, 292, 28);
-  ctx.fill();
+  ctx.strokeStyle = rgba(palette.ink, 0.22);
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(railX, railTop);
+  ctx.lineTo(railX, railBottom);
   ctx.stroke();
 
-  card.rows.forEach((row, index) => {
-    const rowY = 1508 + index * 78;
-    ctx.fillStyle = rgba(ink, 0.5);
-    ctx.font = '600 20px "Space Grotesk", sans-serif';
-    ctx.fillText(row.label.toUpperCase(), PAD + 30, rowY);
-    ctx.fillStyle = ink;
-    ctx.font = '700 34px "Archivo", sans-serif';
-    ctx.fillText(short(ctx, row.value, W - PAD * 2 - 300), PAD + 300, rowY);
+  for (let index = 0; index < 10; index += 1) {
+    const tickY = railTop + 18 + (index * (railBottom - railTop - 36)) / 9;
+    ctx.strokeStyle = rgba(palette.accent, 0.72);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(railX - 20, tickY);
+    ctx.lineTo(railX + 20, tickY);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = palette.canvas;
+  [railTop, railBottom].forEach((point) => {
+    ctx.beginPath();
+    ctx.arc(railX, point, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = palette.accent;
+    ctx.lineWidth = 4;
+    ctx.stroke();
   });
 
-  ctx.strokeStyle = rgba(ink, 0.18);
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(PAD, 1790);
-  ctx.lineTo(W - PAD, 1790);
-  ctx.stroke();
+  ctx.fillStyle = rgba(palette.ink, 0.55);
+  ctx.font = '600 17px "Space Grotesk", sans-serif';
+  ctx.fillText('FROM', railX + 42, railTop + 6);
+  ctx.fillText('TO', railX + 42, railBottom + 6);
 
-  ctx.fillStyle = rgba(ink, 0.56);
+  ctx.fillStyle = palette.ink;
+  ctx.font = '700 28px "Space Grotesk", sans-serif';
+  ctx.fillText(short(ctx, from, W - PAD - railX - 50), railX + 42, railTop + 42);
+  if (to) ctx.fillText(short(ctx, to, W - PAD - railX - 50), railX + 42, railBottom - 18);
+
+  ctx.fillStyle = palette.accent;
+  const stat = fitText(ctx, card.stat, W - railX - PAD - 30, 2, 230, 56);
+  ctx.font = `700 ${stat.size}px "Archivo", sans-serif`;
+  stat.lines.forEach((line, index) => {
+    ctx.fillText(line, railX + 42, 1040 + index * (stat.size * 0.9));
+  });
+
+  ctx.fillStyle = rgba(palette.ink, 0.64);
+  ctx.font = '600 24px "Space Grotesk", sans-serif';
+  ctx.fillText(card.statLabel.toUpperCase(), railX + 42, 1092);
+
+  drawColumnFacts(ctx, palette, card.rows, 1610, 28);
+  drawFooter(ctx, palette);
+}
+
+function drawYear(
+  ctx: CanvasRenderingContext2D,
+  card: ShareCard,
+  palette: Palette,
+  year: number,
+  demo: boolean,
+): void {
+  ctx.fillStyle = palette.canvas;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.globalAlpha = 0.11;
+  ctx.fillStyle = palette.accent;
+  ctx.beginPath();
+  ctx.arc(W / 2, 760, 500, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  drawHeader(ctx, palette, year, demo);
+  drawEyebrow(ctx, palette, card.eyebrow);
+
+  ctx.fillStyle = 'transparent';
+  ctx.strokeStyle = palette.accent;
+  ctx.lineWidth = 3;
+  ctx.textAlign = 'center';
+  ctx.font = '700 250px "Archivo", sans-serif';
+  ctx.strokeText(String(year), W / 2, 640);
+  ctx.textAlign = 'left';
+
+  roundedRect(ctx, PAD, 780, W - PAD * 2, 330, 38);
+  ctx.fillStyle = palette.accent;
+  ctx.fill();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = palette.canvas;
+  ctx.font = '700 270px "Archivo", sans-serif';
+  ctx.fillText(short(ctx, card.stat, W - PAD * 2 - 48), W / 2, 1015);
+  ctx.font = '600 25px "Space Grotesk", sans-serif';
+  ctx.fillText(card.statLabel.toUpperCase(), W / 2, 1070);
+  ctx.textAlign = 'left';
+
+  drawColumnFacts(ctx, palette, card.rows, 1290, 40);
+  drawFooter(ctx, palette);
+}
+
+function drawAward(
+  ctx: CanvasRenderingContext2D,
+  card: ShareCard,
+  palette: Palette,
+  year: number,
+  demo: boolean,
+): void {
+  ctx.fillStyle = palette.canvas;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.strokeStyle = rgba(palette.accent, 0.46);
+  ctx.lineWidth = 3;
+  ctx.setLineDash([16, 12]);
+  roundedRect(ctx, 34, 34, W - 68, H - 68, 34);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 0.08;
+  ctx.fillStyle = palette.accent;
+  ctx.beginPath();
+  ctx.arc(W - 160, 420, 280, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  drawHeader(ctx, palette, year, demo);
+  drawEyebrow(ctx, palette, card.eyebrow);
+
+  const titleEnd = drawTitle(ctx, palette, card.title, 370, W - PAD * 2, 3, 90, 46);
+
+  const sealY = Math.max(830, titleEnd + 130);
+  ctx.save();
+  ctx.strokeStyle = palette.accent;
+  ctx.fillStyle = rgba(palette.accent, 0.1);
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(W / 2, sealY, 175, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  const stat = fitText(ctx, card.stat, 310, 1, 120, 54);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = palette.accent;
+  ctx.font = `700 ${stat.size}px "Archivo", sans-serif`;
+  ctx.fillText(stat.lines[0], W / 2, sealY + 30);
+  ctx.fillStyle = rgba(palette.ink, 0.56);
+  ctx.font = '600 19px "Space Grotesk", sans-serif';
+  ctx.fillText(card.statLabel.toUpperCase(), W / 2, sealY + 75);
+  ctx.textAlign = 'left';
+
+  const line = wrapText(ctx, card.line, W - PAD * 2);
+  ctx.fillStyle = rgba(palette.ink, 0.82);
+  ctx.font = '500 30px "Space Grotesk", sans-serif';
+  let lineY = sealY + 260;
+  line.slice(0, 3).forEach((part) => {
+    ctx.fillText(part, PAD, lineY);
+    lineY += 40;
+  });
+
+  drawStackedFacts(ctx, palette, card.rows, Math.max(1530, lineY + 30));
+  drawFooter(ctx, palette);
+}
+
+function drawAwardTicket(
+  ctx: CanvasRenderingContext2D,
+  card: ShareCard,
+  palette: Palette,
+  year: number,
+  demo: boolean,
+): void {
+  ctx.fillStyle = palette.canvas;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = palette.accent;
+  roundedRect(ctx, PAD, 240, W - PAD * 2, 300, 30);
+  ctx.fill();
+
+  drawHeader(ctx, palette, year, demo);
+
+  ctx.fillStyle = palette.canvas;
   ctx.font = '600 20px "Space Grotesk", sans-serif';
-  ctx.fillText('PLAN THE NETHERLANDS', PAD, 1840);
-  ctx.textAlign = 'right';
-  ctx.fillText('OVVO', W - PAD, 1840);
+  ctx.fillText(card.eyebrow.toUpperCase(), PAD + 34, 310);
+
+  const stat = fitText(ctx, card.stat, W - PAD * 2 - 70, 1, 150, 62);
+  ctx.fillStyle = palette.canvas;
+  ctx.font = `700 ${stat.size}px "Archivo", sans-serif`;
+  ctx.fillText(short(ctx, stat.lines[0], W - PAD * 2 - 70), PAD + 34, 445);
+  ctx.font = '600 22px "Space Grotesk", sans-serif';
+  ctx.fillText(card.statLabel.toUpperCase(), PAD + 36, 495);
+
+  ctx.strokeStyle = rgba(palette.ink, 0.24);
+  ctx.lineWidth = 3;
+  ctx.setLineDash([12, 10]);
+  ctx.beginPath();
+  ctx.moveTo(PAD, 590);
+  ctx.lineTo(W - PAD, 590);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawTitle(ctx, palette, card.title, 690, W - PAD * 2, 3, 88, 44);
+
+  const line = wrapText(ctx, card.line, W - PAD * 2);
+  ctx.fillStyle = rgba(palette.ink, 0.8);
+  ctx.font = '500 30px "Space Grotesk", sans-serif';
+  line.slice(0, 3).forEach((part, index) => {
+    ctx.fillText(part, PAD, 1080 + index * 40);
+  });
+
+  drawStackedFacts(ctx, palette, card.rows, 1390);
+  drawFooter(ctx, palette);
+}
+
+function drawCard(card: ShareCard, palette: Palette, year: number, demo: boolean): string {
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas is unavailable');
+
+  switch (card.layout) {
+    case 'identity':
+      drawIdentity(ctx, card, palette, year, demo);
+      break;
+    case 'route':
+      drawRoute(ctx, card, palette, year, demo);
+      break;
+    case 'year':
+      drawYear(ctx, card, palette, year, demo);
+      break;
+    case 'award':
+      drawAward(ctx, card, palette, year, demo);
+      break;
+    case 'award-ticket':
+      drawAwardTicket(ctx, card, palette, year, demo);
+      break;
+  }
 
   return canvas.toDataURL('image/png');
 }
@@ -329,6 +668,7 @@ export function WrappedShareDialog({
     const baseCards: ShareCard[] = [
       {
         id: 'identity',
+        layout: 'identity',
         tab: t('Who you were'),
         eyebrow: t('The traveller you were'),
         title: named?.big ?? t('The year in journeys'),
@@ -346,6 +686,7 @@ export function WrappedShareDialog({
       },
       {
         id: 'route',
+        layout: 'route',
         tab: t('Your route'),
         eyebrow: t('The line you kept'),
         title: routeTitle,
@@ -360,6 +701,7 @@ export function WrappedShareDialog({
       },
       {
         id: 'year',
+        layout: 'year',
         tab: t('Your year'),
         eyebrow: t('The year in numbers'),
         title: String(year),
@@ -374,10 +716,17 @@ export function WrappedShareDialog({
       },
     ];
 
+    const routeCard = baseCards[1];
+    if (route?.route && !hideStations) {
+      routeCard.from = route.route.from;
+      routeCard.to = route.route.to;
+    }
+
     return [
       ...baseCards,
-      ...awards.map((award) => ({
+      ...awards.map((award, index) => ({
         id: `award-${award.id}`,
+        layout: (index % 2 === 0 ? 'award' : 'award-ticket') as ShareLayout,
         tab: t(award.title),
         eyebrow: t('Yearbook award'),
         title: t(award.title),

@@ -43,6 +43,8 @@ him, and it is the work queue.
 
 | 29 | "Fix all of those" — the 144-shot Wrapped audit: squeezed yearbook titles, short-phone footer collisions, two missing line totals, an invisible Demo badge, a dim close button and the smaller type faults | `node scripts/audit-wrapped.mjs` at 360x800, 320x568, 768x1024 and 1440x900, with the measurements JSON and the after-report | partly: the same matrix recorded a 19px award title, two `display:none` line plates and 320px under-footer text before; the after run records 156px at 768, 279px at 1440, four line plates, and no clipped-text, page-overflow or under-footer fault at 360/768/1440. The 320 yearbook still scrolls, named in `artifacts/wrapped-audit/report.md` |
 
+| 30 | "The cards you can share all look too similar" — every share card used the same eyebrow, title, giant stat, sentence and receipt plate | the share-card render at 1080x1920, saved as `artifacts/wrapped-share/contact-sheet.jpg` (7 cards, 5 layouts) | yes: the old seven cards all shared one composition; the new sheet shows a dot-field identity, a vertical-rail route, a year poster, two certificate awards and two ticket awards. The dialog renders all seven from the current build |
+
 ## The rule that keeps this file honest
 
 When he reports something new, its row is written here *first*, then the check, then the fix. Nothing is
