@@ -40,8 +40,9 @@ const LOOK: Record<string, Look> = {
     mass: ['#006633', '#b6ff00'],
   },
   name: {
+    /* The field ends in bright pink, so the sentence is ink, not paper: 6.9:1 instead of 3.6:1. */
     ground: 'linear-gradient(160deg, #ff8a00 0%, #ff2d75 58%, #c4006b 100%)',
-    ink: '#fff7ea',
+    ink: '#2a0014',
     mass: ['#4a0026', '#ffc400'],
   },
   map: {
@@ -96,8 +97,9 @@ const LOOK: Record<string, Look> = {
     mass: ['#004a3d', '#00ff9d'],
   },
   awards: {
+    /* The words sit at the orange end; dark ink reads on it, white did not (3.3:1). */
     ground: 'linear-gradient(180deg, #ff6a00 0%, #e02400 52%, #8a0d00 100%)',
-    ink: '#fff7ea',
+    ink: '#2a1000',
     mass: ['#b32400', '#ffe27a'],
   },
   bookends: {

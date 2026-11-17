@@ -68,10 +68,12 @@ colour, not a tint of black. Four colour families rotate so no two neighbours ma
 magenta, orange), acid (green, lime, yellow), cold (blue, cyan, violet), and paper (cream or white
 with a strong hue form on it).
 
-**Layer 1, the mega-form.** A single 3D mass built from stacked CSS facets, conic and linear
-gradients, and a slight blur where it turns away. It is sized 60 to 120 per cent of the frame and
-always cropped by at least one edge. Each chapter gets a different silhouette: a ribbon, a staircase,
-a column, a folded shell, a stepped diamond, a tunnel, a wing.
+**Layer 1, the mega-form.** A single 3D mass drawn as real geometry with the three.js the project
+already shipped (`src/components/wrapped/WrappedMasses.tsx`): ribbon solids swept along a curve,
+stacked slabs, rings, discs and capsules, lit by a key light with a shadow map, a rim and a
+hemisphere fill, so faces shade and stack against each other. The canvas is transparent and larger
+than the frame, and `.film2-art` clips it, so every mass is cut off by an edge. Each chapter gets a
+different body: a ribbon, a stepped column, a badge, a grid, a tunnel, a wing, a slab.
 
 **Layer 2, the focal layer.** The thing the chapter is actually about: the photo for the artist-like
 chapter, a ticket stack for the total, a numbered list for the top-things chapter, a route line for
@@ -129,21 +131,42 @@ they become the *ground*, not a glow.
 Every step stays in the `freebuff/...` branch, is saved with `node scripts/keep.mjs --save`, and gets
 pushed.
 
+### What each step produced, and what proves it
+
+1. **Cover** — `WrappedMasses.tsx` case `cover` (two swept ribbon solids) with its ground and mass
+   colours in `lib/wrappedLook.ts`. Proved by the check, which now reads the cover *before* Begin
+   (it used to start after and never measure it), and by the first tile of
+   `artifacts/wrapped-visuals/sheet-full.png`.
+2. **Total** — case `total`, a six-ticket stepped column starting above the frame. Same check walk.
+3. **The sentence back on** — `WrappedScenes.tsx` keeps one `h1`; `styles/wrapped-film.css` sets it in
+   `var(--ink)`, still, with the plate removed. Proved by the contrast pass: the stripped page is
+   sampled where the sentence sits, and the weakest chapter is **4.6:1**.
+4. **The batches** — all 18 bodies in `WrappedMasses.tsx` and all 18 grounds, inks and mass pairs in
+   `lib/wrappedLook.ts`. Proved by the walk: **18 colour fields, 18 grounds, 18 masses, 18 distinct
+   still sentences** at 1440, plus **18 pages inside 360×800** with nothing clipped and no sideways
+   scroll.
+5. **The close card** — the ring and the stub are built (case `close`), but the two-column figures
+   list is **open on a decision**: see the end of section 9.
+
 ## 7. What "close enough" means, in checks
 
-The existing check proves grammar, not beauty. These are the measurable things that separate the two
-worlds, and they can be added to `scripts/check-wrapped-scenes.mjs` as a new `VISUAL=1` pass:
+These are the measurable things that separate the two worlds. They were meant to be a separate
+`VISUAL=1` pass; they are now the default assertions in `scripts/check-wrapped-scenes.mjs`, so the
+ordinary run cannot pass a deck that has gone flat again:
 
-- no chapter's stage background is `rgb(5, 5, 6)`;
-- the art layer covers at least 85 per cent of the frame's area;
-- at least one edge of the mega-form is cropped by the frame;
-- the largest form's bounding box is at least 55 per cent of the frame's short side;
-- no visible `.film2-scrim` or `.film2-glow`;
-- the type has no per-word stagger left;
-- at 360 × 800 nothing clips and there is no sideways scroll.
+- no chapter's stage background is `rgb(5, 5, 6)` — asserted as a gradient on the stage;
+- the art layer covers at least 85 per cent of the frame's area — asserted at 1440 and at 360;
+- at least one edge of the mega-form is cropped by the frame — asserted on `.w-mass`;
+- the largest mass is at least 55 per cent of the frame's short side — asserted on `.w-mass`;
+- no visible `.film2-scrim` or `.film2-glow` — counted and forbidden;
+- the type has no per-word stagger left — the computed `animation-name` must be `none`;
+- the sentence is readable on the field with no plate behind it — the stripped page is sampled where
+  the sentence sits, and every chapter must clear 4.5:1 against its own ink;
+- at 360 × 800 nothing clips and there is no sideways scroll — a full 18-chapter phone walk.
 
-The check is only trusted after it is shown to fail on the current build (it will: every chapter is
-black and every prop is small).
+Every one of those has been shown to fail on a deliberate break: `FLAT=1` (black stage),
+`NO_MASS=1` (masses hidden), `WORD_ANIM=1` (words performing), `LOW_CONTRAST=1` (ink forced white),
+`HUGE_TYPE=1` (a 190px sentence), `NO_ART=1`, `NO_SHARE=1` and `NO_LINE=1`.
 
 ## 8. What does not change
 
@@ -172,8 +195,16 @@ away at an edge. The canvas is transparent and larger than the page, and `.film2
 the volumes are still cut off by the frame rather than fitted inside it. The colour field, the
 sentence and the share stay DOM and are untouched.
 
-One item from section 4 is **not** done, and it needs your decision: the closing poster was meant to
-carry a small two-column list of the year's figures, like the reference's last card. That is a second
-block of text on a chapter, and it contradicts the one-sentence rule you asked me to keep (the scene
-check counts copy blocks and would fail it). Tell me to allow the closing card one list and I will
-build it; otherwise the close stays a sentence, a ring and the share.
+**Open, and only you can settle it: the closing card's two-column figures list.**
+
+- The plan line is section 6, item 5 — *"The close card last, as a poster with the small two-column
+  list"* — and the matching row of section 5, row 18: *"the poster: photo, list, share"*.
+- It collides with section 8 — *"One human sentence per chapter"* — the rule you asked me to keep.
+- It also collides with the check itself: `scripts/check-wrapped-scenes.mjs` counts every visible
+  `h1`, `h2` and `p` inside the chapter and fails when the number is not one
+  (`"N copy blocks, expected one sentence"`). A figures list is a second block of text, so shipping
+  it would mean either weakening that assertion or exempting the closing card.
+
+So it is left open rather than guessed at. The close currently ships a sentence, the ring, the stub
+and the share. Say the word and I will allow the closing card exactly one figures list and exempt it
+by name in the check; otherwise it stays as it is.
