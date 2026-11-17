@@ -676,45 +676,35 @@ export function WrappedPage() {
         </div>
       </div>
 
-      {started || chapter.kind !== 'cover' ? (
-        <footer className="wrapped-foot">
-          {chapter.kind === 'cover' ? null : (
-            <span
-              className="wrapped-chapter"
-              role="status"
-              aria-label={t('Chapter {n} of {total}', { n: index + 1, total: story.length })}
-            >
-              {String(index + 1).padStart(2, '0')} / {story.length}
-            </span>
-          )}
+      {started && chapter.kind !== 'cover' ? (
+        <div className="film2-dock">
+          <button
+            type="button"
+            className="film2-share"
+            onClick={() => {
+              setShareTarget(null);
+              setShareOpen(true);
+            }}
+          >
+            <Icon name="share" size={15} /> {t('Share this story')}
+          </button>
 
           {last ? (
-            <div className="wrapped-actions wrapped-foot__actions">
-              <Button
-                variant="accent"
-                size="sm"
-                icon="share"
-                onClick={() => {
-                  setShareTarget(null);
-                  setShareOpen(true);
-                }}
-              >
-                {t('Share cards')}
-              </Button>
-              <Button variant="ghost" size="sm" icon="bookmark" onClick={() => void share()}>
+            <div className="film2-end-actions">
+              <button type="button" className="film2-action" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
-              </Button>
-              <Button variant="ghost" size="sm" icon="refresh" onClick={() => go(0)}>
+              </button>
+              <button type="button" className="film2-action" onClick={() => go(0)}>
                 {t('Start again')}
-              </Button>
+              </button>
               {demo ? null : (
-                <Button variant="ghost" size="sm" icon="trash" onClick={() => setConfirmClear(true)}>
+                <button type="button" className="film2-action" onClick={() => setConfirmClear(true)}>
                   {t('Empty this year')}
-                </Button>
+                </button>
               )}
             </div>
           ) : null}
-        </footer>
+        </div>
       ) : null}
 
       {cleared ? (

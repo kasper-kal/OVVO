@@ -1,719 +1,373 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import type { Chapter } from '../../lib/wrappedDeck';
-import { PALETTES } from './WrappedScenes';
 
 /*
- * **One camera, many rooms.**
+ * **One object for the whole year.**
  *
- * The first WebGL pass kept the same five ribbons for the whole year and only changed their colour.
- * That is still one background. Each chapter now gets its own set: a galaxy of journeys, a
- * constellation, two portals, station columns, a clock, a tunnel, colour strata, rails, medals,
- * arches, towers or two linked spheres. The renderer and camera never remount, so the year is still
- * one continuous film; only the room the camera is flying through changes.
+ * The old world swapped a different sculpture in for every chapter, which is how a year of
+ * chapters still felt like slides. This is one ribbon. Every chapter gives the ribbon a new
+ * path, width and colour, and the same mesh bends from the old path into the new one. The
+ * camera, lights and black stage never remount.
+ *
+ * The paths are the data, not decoration beside it: the map is a loop through the places, the
+ * hour is a 24-lobed clock, the comparison is two columns of different heights, the awards are
+ * four loops, and the closing ring closes the year. Nothing here carries a label. The sentence
+ * in `WrappedScenes` carries the words.
  */
 
-type SetBundle = {
-  group: THREE.Group;
-  update: (t: number, surge: number) => void;
-  dispose: () => void;
+const SEGMENTS = 300;
+const TAU = Math.PI * 2;
+const CAMERA_DIR = new THREE.Vector3(0, 0, 1);
+
+type FilmPlace = 'top' | 'center' | 'bottom';
+
+const PLACE: Record<string, FilmPlace> = {
+  cover: 'center',
+  total: 'bottom',
+  name: 'center',
+  map: 'bottom',
+  distance: 'top',
+  pair: 'center',
+  origin: 'bottom',
+  hour: 'top',
+  direct: 'center',
+  longest: 'top',
+  look: 'bottom',
+  eras: 'bottom',
+  lines: 'center',
+  awards: 'bottom',
+  bookends: 'top',
+  comparison: 'center',
+  crew: 'bottom',
+  close: 'center',
 };
 
-function makeBundle(): SetBundle & { add: (object: THREE.Object3D) => THREE.Object3D } {
-  const group = new THREE.Group();
-  const geometries = new Set<THREE.BufferGeometry>();
-  const materials = new Set<THREE.Material>();
-
-  const add = (object: THREE.Object3D) => {
-    group.add(object);
-    object.traverse((child) => {
-      const part = child as THREE.Object3D & {
-        geometry?: THREE.BufferGeometry;
-        material?: THREE.Material | THREE.Material[];
-      };
-      if (part.geometry) geometries.add(part.geometry);
-      if (Array.isArray(part.material)) part.material.forEach((material) => materials.add(material));
-      else if (part.material) materials.add(part.material);
-    });
-    return object;
-  };
-
-  return {
-    group,
-    add,
-    update: () => {},
-    dispose: () => {
-      geometries.forEach((geometry) => geometry.dispose());
-      materials.forEach((material) => material.dispose());
-    },
-  };
-}
-
-function surface(color: THREE.Color, options: Record<string, unknown> = {}): THREE.MeshPhysicalMaterial {
-  return new THREE.MeshPhysicalMaterial({
-    color,
-    roughness: 0.26,
-    metalness: 0.22,
-    clearcoat: 0.7,
-    clearcoatRoughness: 0.2,
-    emissive: color.clone().multiplyScalar(0.06),
-    side: THREE.DoubleSide,
-    ...options,
-  } as THREE.MeshPhysicalMaterialParameters);
-}
-
-function curveFor(index: number, phase: number): THREE.CatmullRomCurve3 {
-  const points: THREE.Vector3[] = [];
-  const y = (index - 2) * 1.35;
-  for (let step = 0; step <= 14; step += 1) {
-    const x = -8.6 + step * 1.24;
-    points.push(
-      new THREE.Vector3(
-        x,
-        y + Math.sin(step * 0.72 + phase) * 1.5 + Math.cos(step * 0.33 + phase * 0.7) * 0.55,
-        Math.sin(step * 0.46 + phase) * 1.8 + (index - 2) * 0.7,
-      ),
-    );
-  }
-  return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.42);
-}
-
-function ribbonGeometry(curve: THREE.CatmullRomCurve3, width: number, segments = 220): THREE.BufferGeometry {
-  const frames = curve.computeFrenetFrames(segments, false);
-  const positions: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-
-  for (let index = 0; index <= segments; index += 1) {
-    const point = curve.getPointAt(index / segments);
-    const normal = frames.binormals[index] ?? frames.binormals[frames.binormals.length - 1];
-    const wobble = 0.82 + Math.sin(index * 0.13 + width * 2.2) * 0.18;
-    const half = width * 0.5 * wobble;
-    positions.push(
-      point.x + normal.x * half,
-      point.y + normal.y * half,
-      point.z + normal.z * half,
-      point.x - normal.x * half,
-      point.y - normal.y * half,
-      point.z - normal.z * half,
-    );
-    uvs.push(0, index / segments, 1, index / segments);
-    if (index < segments) {
-      const a = index * 2;
-      const b = a + 1;
-      const c = a + 2;
-      const d = a + 3;
-      indices.push(a, b, c, b, d, c);
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function clothTexture(): THREE.CanvasTexture {
-  const cloth = document.createElement('canvas');
-  cloth.width = 16;
-  cloth.height = 256;
-  const context = cloth.getContext('2d');
-  if (context) {
-    const across = context.createLinearGradient(0, 0, 16, 0);
-    across.addColorStop(0, '#151515');
-    across.addColorStop(0.22, '#8a8a8a');
-    across.addColorStop(0.48, '#ffffff');
-    across.addColorStop(0.72, '#8a8a8a');
-    across.addColorStop(1, '#151515');
-    context.fillStyle = across;
-    context.fillRect(0, 0, 16, 256);
-    context.globalAlpha = 0.12;
-    for (let y = 0; y < 256; y += 5) {
-      context.fillStyle = y % 10 === 0 ? '#ffffff' : '#000000';
-      context.fillRect(0, y, 16, 1);
-    }
-  }
-  const texture = new THREE.CanvasTexture(cloth);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(1, 3);
-  texture.anisotropy = 4;
-  return texture;
-}
-
-function ribbonSet(colors: THREE.Color[], texture: THREE.CanvasTexture, count: number): SetBundle {
-  const bundle = makeBundle();
-  const ribbons: THREE.Mesh[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const material = surface(colors[index % colors.length], {
-      map: texture,
-      transparent: true,
-      opacity: 0.94,
-      roughness: 0.32,
-      metalness: 0.2,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.22,
-    });
-    const mesh = new THREE.Mesh(
-      ribbonGeometry(curveFor(count === 1 ? 2 : index, index * 1.7 + 0.4), count === 1 ? 1.25 : 0.72 + (index % 3) * 0.22),
-      material,
-    );
-    mesh.position.z = -1.4 + index * 0.55;
-    mesh.rotation.z = (index - 2) * 0.035;
-    bundle.add(mesh);
-    ribbons.push(mesh);
-  }
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.09) * 0.1;
-    bundle.group.rotation.x = Math.sin(t * 0.07) * 0.045;
-    ribbons.forEach((ribbon, index) => {
-      ribbon.rotation.z = (index - 2) * 0.035 + Math.sin(t * 0.12 + index) * 0.025;
-    });
-  };
-  return bundle;
-}
-
-function totalSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const positions: number[] = [];
-  for (let index = 0; index < 520; index += 1) {
-    const angle = index * 0.31;
-    const radius = 0.35 + Math.sqrt(index) * 0.2;
-    positions.push(
-      Math.cos(angle) * radius,
-      Math.sin(index * 0.58) * 0.9 + Math.sin(angle * 0.7) * 0.5,
-      Math.sin(angle) * radius * 0.7,
-    );
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  const material = new THREE.PointsMaterial({
-    color: colors[1],
-    size: 0.045,
-    transparent: true,
-    opacity: 0.82,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    sizeAttenuation: true,
-  });
-  bundle.add(new THREE.Points(geometry, material));
-
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(3.1, 0.008, 8, 160),
-    surface(new THREE.Color('#f7f3ea'), { emissiveIntensity: 0.2 }),
-  );
-  ring.rotation.x = Math.PI / 2.6;
-  bundle.add(ring);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = t * 0.035;
-    bundle.group.rotation.z = Math.sin(t * 0.1) * 0.05;
-    ring.scale.setScalar(1 + Math.sin(t * 0.5) * 0.035);
-  };
-  return bundle;
-}
-
-function nameSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const knot = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(1.75, 0.28, 220, 28),
-    surface(colors[0], { roughness: 0.18, metalness: 0.35, clearcoat: 0.9 }),
-  );
-  bundle.add(knot);
-  const shell = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(3.2, 1),
-    new THREE.MeshBasicMaterial({ color: colors[2], wireframe: true, transparent: true, opacity: 0.13 }),
-  );
-  bundle.add(shell);
-  bundle.update = (t) => {
-    knot.rotation.x = t * 0.12;
-    knot.rotation.y = t * 0.18;
-    shell.rotation.x = -t * 0.04;
-    shell.rotation.y = -t * 0.07;
-  };
-  return bundle;
-}
-
-function mapSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const nodes: THREE.Vector3[] = [];
-  for (let index = 0; index < 38; index += 1) {
-    const angle = index * 2.399;
-    const radius = 0.7 + (index % 9) * 0.32;
-    nodes.push(
-      new THREE.Vector3(
-        Math.cos(angle) * radius + Math.sin(index * 0.8) * 0.35,
-        Math.sin(index * 1.7) * 1.2,
-        Math.sin(angle) * radius * 0.55 - 0.4,
-      ),
-    );
-  }
-
-  const nodeGeometry = new THREE.SphereGeometry(0.055, 12, 12);
-  const nodeMaterial = surface(new THREE.Color('#f7f3ea'), { emissiveIntensity: 0.4 });
-  const nodeMeshes: THREE.Mesh[] = [];
-  nodes.forEach((node, index) => {
-    const mesh = new THREE.Mesh(nodeGeometry, nodeMaterial);
-    mesh.position.copy(node);
-    if (index === 17) mesh.scale.setScalar(2.5);
-    bundle.add(mesh);
-    nodeMeshes.push(mesh);
-  });
-
-  const linePositions: number[] = [];
-  nodes.forEach((node, index) => {
-    if (index === 0) return;
-    const from = nodes[index - 1];
-    linePositions.push(from.x, from.y, from.z, node.x, node.y, node.z);
-  });
-  const lineGeometry = new THREE.BufferGeometry();
-  lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-  bundle.add(
-    new THREE.LineSegments(
-      lineGeometry,
-      new THREE.LineBasicMaterial({ color: colors[2], transparent: true, opacity: 0.34 }),
-    ),
-  );
-
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.11) * 0.24;
-    bundle.group.rotation.x = Math.sin(t * 0.08) * 0.12;
-    nodeMeshes.forEach((node, index) => {
-      if (index === 17) node.scale.setScalar(2.2 + Math.sin(t * 1.4) * 0.35);
-    });
-  };
-  return bundle;
-}
-
-function distanceSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const curve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-5.2, -1.7, -0.5),
-    new THREE.Vector3(-2.8, -0.4, 0.8),
-    new THREE.Vector3(0, -2.2, -1.2),
-    new THREE.Vector3(2.9, 0.5, 0.4),
-    new THREE.Vector3(5.2, -1.1, -0.3),
-  ]);
-  bundle.add(
-    new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 120, 0.055, 10, false),
-      surface(new THREE.Color('#f7f3ea'), { emissiveIntensity: 0.3 }),
-    ),
-  );
-  [
-    new THREE.Vector3(-5.2, -1.7, -0.5),
-    new THREE.Vector3(5.2, -1.1, -0.3),
-  ].forEach((point) => {
-    const node = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 20, 20),
-      surface(colors[2], { emissiveIntensity: 0.4 }),
-    );
-    node.position.copy(point);
-    bundle.add(node);
-  });
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.08) * 0.16;
-    bundle.group.rotation.z = Math.sin(t * 0.11) * 0.03;
-  };
-  return bundle;
-}
-
-function pairSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const left = new THREE.Mesh(
-    new THREE.TorusGeometry(1.55, 0.07, 20, 80),
-    surface(colors[0], { emissiveIntensity: 0.18 }),
-  );
-  left.position.x = -2.25;
-  bundle.add(left);
-  const right = left.clone();
-  right.position.x = 2.25;
-  bundle.add(right);
-  const bridge = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.018, 0.018, 4.5, 8),
-    new THREE.MeshBasicMaterial({ color: colors[2] }),
-  );
-  bridge.rotation.z = Math.PI / 2;
-  bundle.add(bridge);
-  bundle.update = (t) => {
-    left.rotation.z = t * 0.08;
-    right.rotation.z = -t * 0.08;
-    bundle.group.rotation.y = Math.sin(t * 0.12) * 0.22;
-  };
-  return bundle;
-}
-
-function originSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const heights = [2.2, 3.1, 2.6, 3.7, 2.8, 3.4, 2.4];
-  heights.forEach((height, index) => {
-    const column = new THREE.Mesh(
-      new THREE.BoxGeometry(0.28, height, 0.28),
-      surface(colors[index % colors.length], { roughness: 0.4, metalness: 0.15 }),
-    );
-    column.position.set((index - 3) * 0.82, height / 2 - 1.8, (index % 2) * 0.4 - 0.2);
-    bundle.add(column);
-  });
-  const line = new THREE.Mesh(
-    new THREE.BoxGeometry(6.2, 0.035, 0.035),
-    new THREE.MeshBasicMaterial({ color: colors[2] }),
-  );
-  line.position.y = 1.5;
-  bundle.add(line);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.1) * 0.2;
-    bundle.group.rotation.x = Math.sin(t * 0.07) * 0.04;
-  };
-  return bundle;
-}
-
-function hourSet(colors: THREE.Color[], chapter: Chapter): SetBundle {
-  const bundle = makeBundle();
-  const bars = chapter.bars ?? Array.from({ length: 24 }, () => 1);
-  const max = Math.max(1, ...bars);
-  const peak = chapter.peak ?? 0;
-  let peakMesh: THREE.Mesh | null = null;
-  bars.forEach((value, index) => {
-    const angle = (index / 24) * Math.PI * 2 - Math.PI / 2;
-    const length = 0.35 + (value / max) * 1.8;
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.1, length, 0.1),
-      surface(index === peak ? new THREE.Color('#f7f3ea') : colors[1], { emissiveIntensity: index === peak ? 0.5 : 0.08 }),
-    );
-    mesh.position.set(Math.cos(angle) * 1.8, Math.sin(angle) * 1.8, 0);
-    mesh.rotation.z = angle + Math.PI / 2;
-    bundle.add(mesh);
-    if (index === peak) peakMesh = mesh;
-  });
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(1.45, 0.012, 8, 120),
-    new THREE.MeshBasicMaterial({ color: colors[2], transparent: true, opacity: 0.5 }),
-  );
-  bundle.add(ring);
-  bundle.update = (t) => {
-    bundle.group.rotation.z = t * 0.035;
-    bundle.group.rotation.y = Math.sin(t * 0.08) * 0.16;
-    if (peakMesh) peakMesh.scale.y = 1.12 + Math.sin(t * 2.1) * 0.18;
-  };
-  return bundle;
-}
-
-function directSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  for (let index = 0; index < 15; index += 1) {
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.25 + index * 0.26, 0.012, 8, 80),
-      surface(index % 3 === 0 ? colors[2] : new THREE.Color('#f7f3ea'), { emissiveIntensity: 0.1 }),
-    );
-    ring.position.z = -index * 0.35;
-    bundle.add(ring);
-  }
-  const center = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.012, 0.012, 8, 8),
-    new THREE.MeshBasicMaterial({ color: colors[2], transparent: true, opacity: 0.65 }),
-  );
-  center.rotation.x = Math.PI / 2;
-  bundle.add(center);
-  bundle.update = (t) => {
-    bundle.group.rotation.z = Math.sin(t * 0.1) * 0.04;
-    bundle.group.rotation.y = Math.sin(t * 0.09) * 0.08;
-  };
-  return bundle;
-}
-
-function longestSet(colors: THREE.Color[], texture: THREE.CanvasTexture): SetBundle {
-  const bundle = ribbonSet(colors, texture, 1);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.12) * 0.25;
-    bundle.group.rotation.z = Math.sin(t * 0.08) * 0.05;
-  };
-  return bundle;
-}
-
-function erasSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  for (let index = 0; index < 6; index += 1) {
-    const slab = new THREE.Mesh(
-      new THREE.BoxGeometry(7.2, 0.12, 1.6),
-      surface(colors[index % colors.length], { roughness: 0.5, metalness: 0.1 }),
-    );
-    slab.position.y = (index - 2.5) * 0.78;
-    slab.rotation.y = (index - 2.5) * 0.06;
-    bundle.add(slab);
-  }
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.08) * 0.22;
-    bundle.group.rotation.z = Math.sin(t * 0.1) * 0.03;
-  };
-  return bundle;
-}
-
-function linesSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  for (let index = 0; index < 7; index += 1) {
-    const rail = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.024, 0.024, 10, 8),
-      surface(index === 3 ? new THREE.Color('#f7f3ea') : colors[1], { emissiveIntensity: 0.15 }),
-    );
-    rail.rotation.z = Math.PI / 2;
-    rail.position.set(0, (index - 3) * 0.5, (index - 3) * 0.35);
-    bundle.add(rail);
-  }
-  const cross = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.02, 0.02, 5, 8),
-    new THREE.MeshBasicMaterial({ color: colors[2] }),
-  );
-  cross.position.y = -1.5;
-  bundle.add(cross);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.09) * 0.18;
-    bundle.group.rotation.x = Math.sin(t * 0.11) * 0.03;
-  };
-  return bundle;
-}
-
-function awardsSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const medals: THREE.Object3D[] = [];
-  for (let index = 0; index < 3; index += 1) {
-    const medal = new THREE.Group();
-    const rim = new THREE.Mesh(
-      new THREE.TorusGeometry(0.72, 0.1, 16, 48),
-      surface(colors[index % colors.length], { metalness: 0.42, roughness: 0.18 }),
-    );
-    const face = new THREE.Mesh(
-      new THREE.SphereGeometry(0.42, 28, 28),
-      surface(new THREE.Color('#f7f3ea'), { emissiveIntensity: 0.2 }),
-    );
-    medal.add(rim, face);
-    medal.position.set((index - 1) * 2.3, Math.sin(index * 1.6) * 0.6, (index - 1) * 0.6);
-    medal.rotation.z = index * 0.35 - 0.3;
-    bundle.add(medal);
-    medals.push(medal);
-  }
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.1) * 0.25;
-    medals.forEach((medal, index) => {
-      medal.rotation.y = t * (0.12 + index * 0.03);
-    });
-  };
-  return bundle;
-}
-
-function bookendsSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  [-2.35, 2.35].forEach((x, index) => {
-    const arch = new THREE.Mesh(
-      new THREE.TorusGeometry(1.25, 0.07, 16, 64, Math.PI),
-      surface(colors[index], { emissiveIntensity: 0.16 }),
-    );
-    arch.position.set(x, -0.4, 0);
-    bundle.add(arch);
-  });
-  const line = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.018, 0.018, 4.7, 8),
-    new THREE.MeshBasicMaterial({ color: colors[2] }),
-  );
-  line.rotation.z = Math.PI / 2;
-  line.position.y = -1.55;
-  bundle.add(line);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.1) * 0.2;
-    bundle.group.rotation.z = Math.sin(t * 0.08) * 0.03;
-  };
-  return bundle;
-}
-
-function comparisonSet(colors: THREE.Color[], chapter: Chapter): SetBundle {
-  const bundle = makeBundle();
-  const data = chapter.comparison;
-  const now = data?.journeys ?? 100;
-  const before = data?.previousJourneys ?? 80;
-  const max = Math.max(now, before, 1);
-  [
-    { value: before, x: -1.5, color: colors[0] },
-    { value: now, x: 1.5, color: new THREE.Color('#f7f3ea') },
-  ].forEach((tower) => {
-    const height = 1.2 + (tower.value / max) * 3.8;
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.95, height, 0.95),
-      surface(tower.color, { roughness: 0.38, metalness: 0.25 }),
-    );
-    mesh.position.set(tower.x, height / 2 - 2.4, 0);
-    bundle.add(mesh);
-  });
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.08) * 0.3;
-    bundle.group.rotation.x = Math.sin(t * 0.06) * 0.03;
-  };
-  return bundle;
-}
-
-function crewSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const spheres: THREE.Mesh[] = [];
-  [-1.65, 1.65].forEach((x, index) => {
-    const sphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1.12, 48, 48),
-      surface(colors[index], {
-        transparent: true,
-        opacity: 0.34,
-        roughness: 0.12,
-        metalness: 0.35,
-        clearcoat: 1,
-      }),
-    );
-    sphere.position.x = x;
-    bundle.add(sphere);
-    spheres.push(sphere);
-    const halo = new THREE.Mesh(
-      new THREE.TorusGeometry(1.45, 0.012, 8, 80),
-      new THREE.MeshBasicMaterial({ color: colors[2], transparent: true, opacity: 0.45 }),
-    );
-    halo.position.x = x;
-    halo.rotation.x = Math.PI / 2.4;
-    bundle.add(halo);
-  });
-  const bridge = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.018, 0.018, 1.3, 8),
-    new THREE.MeshBasicMaterial({ color: new THREE.Color('#f7f3ea') }),
-  );
-  bridge.rotation.z = Math.PI / 2;
-  bundle.add(bridge);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = Math.sin(t * 0.1) * 0.18;
-    spheres.forEach((sphere, index) => {
-      sphere.rotation.y = t * (0.12 + index * 0.05);
-    });
-  };
-  return bundle;
-}
-
-function closeSet(colors: THREE.Color[]): SetBundle {
-  const bundle = makeBundle();
-  const positions: number[] = [];
-  for (let index = 0; index < 640; index += 1) {
-    positions.push(
-      (Math.random() - 0.5) * 14,
-      (Math.random() - 0.5) * 9,
-      -6 + Math.random() * 8,
-    );
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  const material = new THREE.PointsMaterial({
-    color: new THREE.Color('#f7f3ea'),
-    size: 0.035,
-    transparent: true,
-    opacity: 0.64,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-  bundle.add(new THREE.Points(geometry, material));
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(3, 0.01, 8, 180),
-    new THREE.MeshBasicMaterial({ color: colors[2], transparent: true, opacity: 0.56 }),
-  );
-  ring.rotation.x = 1.1;
-  bundle.add(ring);
-  bundle.update = (t) => {
-    bundle.group.rotation.y = t * 0.018;
-    ring.rotation.z = t * 0.04;
-  };
-  return bundle;
-}
-
-const POSES: Record<string, { x: number; y: number; z: number }> = {
-  cover: { x: 0, y: 0, z: 9.4 },
-  total: { x: 0.3, y: 0.2, z: 9.2 },
-  name: { x: 0, y: 0, z: 8.8 },
-  map: { x: 0.2, y: 0.1, z: 9.5 },
-  distance: { x: 0, y: 0.3, z: 9.8 },
-  pair: { x: 0, y: 0, z: 9.2 },
-  origin: { x: 0.2, y: 0.15, z: 8.8 },
-  hour: { x: 0, y: 0, z: 9.1 },
-  direct: { x: 0, y: 0, z: 8.7 },
-  longest: { x: 0, y: 0, z: 9.4 },
-  look: { x: 0, y: 0, z: 10.2 },
-  eras: { x: 0, y: 0.2, z: 9.3 },
-  lines: { x: 0, y: 0, z: 8.6 },
-  awards: { x: 0, y: 0.1, z: 9.3 },
-  bookends: { x: 0, y: 0, z: 9.4 },
-  comparison: { x: 0, y: 0, z: 9.7 },
-  crew: { x: 0, y: 0, z: 9.3 },
-  close: { x: 0, y: 0, z: 10.4 },
+const TINT: Record<string, [string, string]> = {
+  cover: ['#ff2d75', '#ff7a00'],
+  total: ['#7dff00', '#00e676'],
+  name: ['#ff4b1f', '#ffb000'],
+  map: ['#ff2d55', '#ff8a00'],
+  distance: ['#0a7cff', '#00d4ff'],
+  pair: ['#ff2d75', '#ff4b2b'],
+  origin: ['#ff4b1f', '#ffb000'],
+  hour: ['#ffb000', '#ff2d75'],
+  direct: ['#5a2bff', '#00d9ff'],
+  longest: ['#ff1744', '#ffb000'],
+  look: ['#ffb000', '#ff2d75'],
+  eras: ['#ffb000', '#ff4b2b'],
+  lines: ['#00e676', '#b6ff00'],
+  awards: ['#ff1744', '#ffb000'],
+  bookends: ['#0057ff', '#00c2ff'],
+  comparison: ['#00e676', '#b6ff00'],
+  crew: ['#5a2bff', '#00d9ff'],
+  close: ['#0066ff', '#00e5ff'],
 };
 
-function poseFor(id: string): { x: number; y: number; z: number } {
-  return { ...(POSES[id] ?? POSES.cover) };
+const LIFT: Record<FilmPlace, number> = { top: -1.05, center: 0, bottom: 1.0 };
+
+interface Shape {
+  points: THREE.Vector3[];
+  width: number;
 }
 
-function dark(colors: THREE.Color[], amount: number): THREE.Color {
-  return colors[1].clone().multiplyScalar(amount).add(new THREE.Color('#050506').multiplyScalar(1 - amount));
+function v(x: number, y: number, z: number): THREE.Vector3 {
+  return new THREE.Vector3(x, y, z);
 }
 
-function buildSet(chapter: Chapter, colors: THREE.Color[], texture: THREE.CanvasTexture): SetBundle {
+/** Sample a Catmull-Rom path into the fixed number of points the ribbon mesh holds. */
+function pathFrom(points: THREE.Vector3[], closed: boolean): THREE.Vector3[] {
+  const curve = new THREE.CatmullRomCurve3(points, closed, 'centripetal', 0.45);
+  return curve.getPoints(SEGMENTS);
+}
+
+function wave(closed: boolean, fn: (t: number) => THREE.Vector3): THREE.Vector3[] {
+  const controls: THREE.Vector3[] = [];
+  const steps = 96;
+  for (let i = 0; i < steps; i += 1) controls.push(fn(i / steps));
+  return pathFrom(controls, closed);
+}
+
+function shapeFor(chapter: Chapter): Shape {
+  const place = PLACE[chapter.id] ?? 'center';
+  let points: THREE.Vector3[] = [];
+  let width = 0.32;
+
   switch (chapter.id) {
     case 'cover':
-      return ribbonSet(colors, texture, 5);
+      points = wave(false, (t) => {
+        const angle = t * TAU * 2.4;
+        return v(
+          Math.cos(angle) * (2.05 + 0.3 * Math.sin(t * TAU * 3)),
+          (t - 0.5) * 4.2,
+          Math.sin(angle) * (1.15 + 0.25 * Math.sin(t * TAU * 3)),
+        );
+      });
+      width = 0.42;
+      break;
+
     case 'total':
-      return totalSet(colors);
+      points = wave(false, (t) => {
+        const angle = t * TAU * 4.4;
+        const radius = 0.5 + 4.7 * t;
+        return v(Math.cos(angle) * radius, Math.sin(angle) * radius * 0.72, 0.48 * Math.sin(angle * 0.7));
+      });
+      width = 0.26;
+      break;
+
     case 'name':
-      return nameSet(colors);
-    case 'map':
-      return mapSet(colors);
+      points = wave(true, (t) => {
+        const angle = t * TAU;
+        const radius = 2.05 + 0.58 * Math.cos(3 * angle);
+        return v(radius * Math.cos(2 * angle), radius * Math.sin(2 * angle) * 0.78, 0.8 * Math.sin(3 * angle));
+      });
+      width = 0.32;
+      break;
+
+    case 'map': {
+      const stops = chapter.map?.stops ?? [];
+      const controls = [...stops]
+        .sort((a, b) => Math.atan2(a.y - 50, a.x - 50) - Math.atan2(b.y - 50, b.x - 50))
+        .slice(0, 15)
+        .map((stop) => v((stop.x - 50) / 11.5, (50 - stop.y) / 11.5, 0.3 * Math.sin(stop.x * 0.16)));
+      points = controls.length >= 3
+        ? pathFrom(controls, true)
+        : wave(true, (t) => v(Math.cos(t * TAU) * 3.3, Math.sin(t * TAU) * 2.3, 0.4));
+      width = 0.3;
+      break;
+    }
+
     case 'distance':
-      return distanceSet(colors);
+      points = wave(false, (t) => v(
+        -6.4 + 12.8 * t,
+        -1.55 + 2.9 * Math.sin(t * Math.PI) + 0.28 * Math.sin(t * TAU * 3),
+        0.85 * Math.sin(t * TAU * 1.4),
+      ));
+      width = 0.3;
+      break;
+
     case 'pair':
-      return pairSet(colors);
+      points = wave(true, (t) => v(
+        3.15 * Math.sin(t * TAU),
+        1.95 * Math.sin(t * TAU * 2),
+        0.62 * Math.cos(t * TAU),
+      ));
+      width = 0.3;
+      break;
+
     case 'origin':
-      return originSet(colors);
+      points = wave(false, (t) => v(
+        Math.cos(t * TAU * 3) * 1.5,
+        -2.2 + 4.4 * t,
+        Math.sin(t * TAU * 3) * 1.5,
+      ));
+      width = 0.28;
+      break;
+
     case 'hour':
-      return hourSet(colors, chapter);
+      points = wave(true, (t) => {
+        const angle = t * TAU;
+        const radius = 2.18 + 0.36 * (0.5 + 0.5 * Math.sin(24 * angle));
+        return v(Math.cos(angle) * radius, Math.sin(angle) * radius * 0.84, 0.3 * Math.sin(24 * angle));
+      });
+      width = 0.24;
+      break;
+
     case 'direct':
-      return directSet(colors);
+      points = wave(false, (t) => v(
+        -5.9 + 11.8 * t,
+        2.75 - 5.5 * t + 0.14 * Math.sin(t * TAU * 4),
+        0.42 * Math.sin(t * TAU * 2),
+      ));
+      width = 0.3;
+      break;
+
     case 'longest':
-      return longestSet(colors, texture);
+      points = wave(true, (t) => v(
+        4.85 * Math.cos(t * TAU),
+        2.2 * Math.sin(t * TAU) + 0.4 * Math.sin(t * TAU * 3),
+        0.9 * Math.sin(t * TAU * 1.5),
+      ));
+      width = 0.26;
+      break;
+
     case 'look':
-      return makeBundle();
+      points = wave(true, (t) => v(
+        3.1 * Math.cos(t * TAU),
+        2.25 * Math.sin(t * TAU),
+        0.55 * Math.sin(t * TAU * 2),
+      ));
+      width = 0.3;
+      break;
+
     case 'eras':
-      return erasSet(colors);
+      points = wave(false, (t) => v(
+        -5.6 + 11.2 * t,
+        -2.4 + 2.7 * (0.5 + 0.5 * Math.sin(t * TAU * 3)),
+        0.38 * Math.sin(t * TAU * 2),
+      ));
+      width = 0.34;
+      break;
+
     case 'lines':
-      return linesSet(colors);
+      points = wave(false, (t) => {
+        const pass = Math.min(3, Math.floor(t * 4));
+        const local = t * 4 - pass;
+        const direction = pass % 2 === 0 ? 1 : -1;
+        return v(
+          direction * (-5.1 + 10.2 * local),
+          2.75 - pass * 1.65,
+          0.34 * Math.sin(local * Math.PI),
+        );
+      });
+      width = 0.2;
+      break;
+
     case 'awards':
-      return awardsSet(colors);
-    case 'bookends':
-      return bookendsSet(colors);
-    case 'comparison':
-      return comparisonSet(colors, chapter);
+      points = wave(false, (t) => {
+        const loop = Math.min(3, Math.floor(t * 4));
+        const local = t * 4 - loop;
+        const angle = local * TAU;
+        const centers = [[-2.1, 1.05], [2.1, 1.05], [-2.1, -1.35], [2.1, -1.35]];
+        const [x, y] = centers[loop];
+        return v(x + 0.92 * Math.cos(angle), y + 0.92 * Math.sin(angle), 0.35 * Math.sin(angle));
+      });
+      width = 0.24;
+      break;
+
+    case 'bookends': {
+      const controls: THREE.Vector3[] = [];
+      for (let i = 0; i <= 24; i += 1) {
+        const angle = (i / 24) * Math.PI;
+        controls.push(v(-3.15 + 1.65 * Math.cos(angle), -1.9 + 3.7 * Math.sin(angle), 0.1));
+      }
+      for (let i = 1; i <= 10; i += 1) {
+        controls.push(v(-4.8 + (i / 10) * 9.6, -1.9, 0.1));
+      }
+      for (let i = 0; i <= 24; i += 1) {
+        const angle = (i / 24) * Math.PI;
+        controls.push(v(3.15 + 1.65 * Math.cos(angle), -1.9 + 3.7 * Math.sin(angle), -0.1));
+      }
+      points = pathFrom(controls, false);
+      width = 0.3;
+      break;
+    }
+
+    case 'comparison': {
+      const controls: THREE.Vector3[] = [];
+      for (let i = 0; i <= 16; i += 1) {
+        controls.push(v(-2.15, -2.45 + (3.1 * i) / 16, 0.15));
+      }
+      for (let i = 1; i <= 14; i += 1) {
+        controls.push(v(-2.15 + (4.3 * i) / 14, -2.45, 0.05));
+      }
+      for (let i = 0; i <= 16; i += 1) {
+        controls.push(v(2.15, -2.45 + (5.3 * i) / 16, -0.1));
+      }
+      points = pathFrom(controls, false);
+      width = 0.46;
+      break;
+    }
+
     case 'crew':
-      return crewSet(colors);
+      points = wave(true, (t) => v(
+        2.85 * Math.sin(t * TAU * 2),
+        2.2 * Math.sin(t * TAU),
+        0.72 * Math.cos(t * TAU * 2),
+      ));
+      width = 0.3;
+      break;
+
     case 'close':
-      return closeSet(colors);
     default:
-      return closeSet(colors);
+      points = wave(true, (t) => v(
+        3.05 * Math.cos(t * TAU),
+        2.22 * Math.sin(t * TAU),
+        0.55 * Math.sin(t * TAU * 2),
+      ));
+      width = 0.28;
+      break;
   }
+
+  const lift = LIFT[place];
+  return {
+    points: points.map((point) => point.clone().add(new THREE.Vector3(0, lift, 0))),
+    width,
+  };
+}
+
+function ribbonGeometry(shape: Shape, from: string, to: string): {
+  positions: Float32Array;
+  colors: Float32Array;
+  geometry: THREE.BufferGeometry;
+} {
+  const count = (SEGMENTS + 1) * 2;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const colorA = new THREE.Color(from);
+  const colorB = new THREE.Color(to);
+  const mixed = new THREE.Color();
+  const closed = shape.points[0].distanceTo(shape.points[shape.points.length - 1]) < 0.0001;
+  let firstNormal: THREE.Vector3 | null = null;
+  let firstLeft: [number, number, number] | null = null;
+  let firstRight: [number, number, number] | null = null;
+
+  for (let i = 0; i <= SEGMENTS; i += 1) {
+    const point = shape.points[Math.min(i, shape.points.length - 1)];
+    const previous = shape.points[Math.max(0, i - 1)];
+    const next = shape.points[Math.min(shape.points.length - 1, i + 1)];
+    const tangent = next.clone().sub(previous).normalize();
+    const normal = tangent.clone().cross(CAMERA_DIR);
+    if (normal.lengthSq() < 0.0001) normal.set(0, 1, 0);
+    normal.normalize();
+    if (i === 0) firstNormal = normal.clone();
+    if (i === SEGMENTS && closed && firstNormal) normal.copy(firstNormal);
+
+    const t = i / SEGMENTS;
+    const width = shape.width * (0.78 + 0.22 * Math.sin(t * TAU * 2.2));
+    const left = point.clone().addScaledVector(normal, width / 2);
+    const right = point.clone().addScaledVector(normal, -width / 2);
+
+    positions.set([left.x, left.y, left.z, right.x, right.y, right.z], i * 6);
+
+    mixed.copy(colorA).lerp(colorB, t * 0.78);
+    const leftColor: [number, number, number] = [mixed.r, mixed.g, mixed.b];
+    mixed.copy(colorB).lerp(colorA, t * 0.64);
+    const rightColor: [number, number, number] = [mixed.r, mixed.g, mixed.b];
+    if (i === 0) {
+      firstLeft = leftColor;
+      firstRight = rightColor;
+    }
+    colors.set(closed && i === SEGMENTS && firstLeft && firstRight ? firstLeft : leftColor, i * 6);
+    colors.set(closed && i === SEGMENTS && firstLeft && firstRight ? firstRight : rightColor, i * 6 + 3);
+  }
+
+  const indices = new Uint16Array(SEGMENTS * 6);
+  for (let i = 0; i < SEGMENTS; i += 1) {
+    const a = i * 2;
+    indices.set([a, a + 1, a + 2, a + 1, a + 3, a + 2], i * 6);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  geometry.computeVertexNormals();
+
+  return { positions, colors, geometry };
 }
 
 export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: boolean }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
-  const targetColors = useRef<THREE.Color[]>(
-    (PALETTES[chapter.id] ?? PALETTES.cover).map((hex) => new THREE.Color(hex)),
-  );
   const stillRef = useRef(still);
-  const rebuildRef = useRef<(next: Chapter) => void>(() => {});
+  const currentPositions = useRef<Float32Array>(new Float32Array(0));
+  const currentColors = useRef<Float32Array>(new Float32Array(0));
+  const targetPositions = useRef<Float32Array>(new Float32Array(0));
+  const targetColors = useRef<Float32Array>(new Float32Array(0));
+  const materialRef = useRef<THREE.MeshBasicMaterial | null>(null);
+  const geometryRef = useRef<THREE.BufferGeometry | null>(null);
   const renderRef = useRef<(() => void) | null>(null);
-  const poseTarget = useRef(poseFor(chapter.id));
-  const poseLive = useRef(poseFor(chapter.id));
-  const surge = useRef(1);
-
-  useEffect(() => {
-    targetColors.current = (PALETTES[chapter.id] ?? PALETTES.cover).map((hex) => new THREE.Color(hex));
-    poseTarget.current = poseFor(chapter.id);
-    surge.current = 1;
-    rebuildRef.current(chapter);
-  }, [chapter.id]);
+  const frameRef = useRef(0);
 
   useEffect(() => {
     stillRef.current = still;
@@ -724,132 +378,130 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
     const canvas = ref.current;
     if (!canvas) return undefined;
 
-    let renderer: THREE.WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    } catch {
-      return undefined;
-    }
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+    renderer.setClearColor(0x050506, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2('#050506', 0.045);
-    const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 80);
-    camera.position.set(0, 0, 9.2);
+    const camera = new THREE.PerspectiveCamera(43, 1, 0.1, 80);
+    camera.position.set(0, 0, 13.2);
+    camera.lookAt(0, 0, 0);
 
-    const texture = clothTexture();
-    const dustGeometry = new THREE.BufferGeometry();
-    const dustPositions = new Float32Array(230 * 3);
-    for (let index = 0; index < 230; index += 1) {
-      dustPositions[index * 3] = (Math.random() - 0.5) * 18;
-      dustPositions[index * 3 + 1] = (Math.random() - 0.5) * 11;
-      dustPositions[index * 3 + 2] = -8 + Math.random() * 12;
-    }
-    dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
-    const dustMaterial = new THREE.PointsMaterial({
-      color: targetColors.current[1],
-      size: 0.035,
-      transparent: true,
-      opacity: 0.55,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      sizeAttenuation: true,
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const first = shapeFor(chapter);
+    const [firstFrom, firstTo] = TINT[chapter.id] ?? TINT.cover;
+    const built = ribbonGeometry(first, firstFrom, firstTo);
+    targetPositions.current = built.positions.slice();
+    targetColors.current = built.colors.slice();
+    /* Tick mutates these exact arrays, because the BufferAttributes own them. */
+    currentPositions.current = built.positions;
+    currentColors.current = built.colors;
+    geometryRef.current = built.geometry;
+
+    const material = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      side: THREE.DoubleSide,
+      toneMapped: false,
     });
-    const dust = new THREE.Points(dustGeometry, dustMaterial);
-    scene.add(dust);
+    materialRef.current = material;
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-    const key = new THREE.DirectionalLight(0xffffff, 3);
-    key.position.set(4, 5, 7);
-    const leftLight = new THREE.PointLight(targetColors.current[0], 32, 28);
-    leftLight.position.set(-5.5, -2.5, 4);
-    const rightLight = new THREE.PointLight(targetColors.current[2], 28, 28);
-    rightLight.position.set(5.5, 3, 3);
-    scene.add(ambient, key, leftLight, rightLight);
+    const mesh = new THREE.Mesh(built.geometry, material);
+    group.add(mesh);
 
-    let bundle: SetBundle = makeBundle();
-    scene.add(bundle.group);
-
-    const setMood = () => {
-      const colors = targetColors.current;
-      scene.background = dark(colors, 0.66);
-      (scene.fog as THREE.FogExp2).color = dark(colors, 0.66);
-      dustMaterial.color.copy(colors[1]);
-      leftLight.color.copy(colors[0]);
-      rightLight.color.copy(colors[2]);
-      ambient.color.copy(colors[1]);
-      canvas.dataset.world = chapter.id;
-    };
-
-    rebuildRef.current = (next) => {
-      bundle.dispose();
-      scene.remove(bundle.group);
-      bundle = buildSet(next, targetColors.current, texture);
-      scene.add(bundle.group);
-      setMood();
-      canvas.dataset.world = next.id;
-    };
-
-    const render = () => renderer.render(scene, camera);
-    renderRef.current = render;
+    scene.add(new THREE.AmbientLight(0xffffff, 1.7));
+    const key = new THREE.DirectionalLight(0xffffff, 3.2);
+    key.position.set(3, 6, 8);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0xffffff, 1.7);
+    rim.position.set(-6, -3, 4);
+    scene.add(rim);
 
     const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      renderer.setSize(rect.width, rect.height, false);
-      camera.aspect = rect.width / rect.height;
+      const box = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.round(box.width));
+      const height = Math.max(1, Math.round(box.height));
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      render();
     };
-
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-    setMood();
-    rebuildRef.current(chapter);
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
 
-    const clock = new THREE.Clock();
-    let frame = 0;
-    const paint = () => {
-      const stillNow = stillRef.current;
-      const t = stillNow ? 2.4 : clock.getElapsedTime();
-      const drift = stillNow ? 0 : t;
-      surge.current = Math.max(0, surge.current - 0.012);
-      bundle.update(drift, surge.current);
-      const pose = poseLive.current;
-      const target = poseTarget.current;
-      pose.x += (target.x - pose.x) * 0.055;
-      pose.y += (target.y - pose.y) * 0.055;
-      pose.z += (target.z - pose.z) * 0.055;
-      camera.position.x = pose.x + Math.sin(t * 0.16) * 0.55;
-      camera.position.y = pose.y + Math.cos(t * 0.12) * 0.32;
-      camera.position.z = pose.z + Math.sin(t * 0.08) * 0.22 - surge.current * 0.35;
-      camera.lookAt(0, 0, 0);
-      dust.rotation.y = drift * 0.012;
-      dust.rotation.z = drift * 0.008;
-      texture.offset.y = (drift * 0.012) % 1;
+    const renderOnce = () => {
       renderer.render(scene, camera);
-      if (!stillNow) frame = requestAnimationFrame(paint);
     };
+    renderRef.current = renderOnce;
 
-    frame = requestAnimationFrame(paint);
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      if (!stillRef.current) {
+        const k = 1 - Math.exp(-dt * 7);
+        const current = currentPositions.current;
+        const target = targetPositions.current;
+        const currentColor = currentColors.current;
+        const targetColor = targetColors.current;
+        for (let i = 0; i < current.length; i += 1) {
+          current[i] += (target[i] - current[i]) * k;
+          currentColor[i] += (targetColor[i] - currentColor[i]) * k;
+        }
+        built.geometry.attributes.position.needsUpdate = true;
+        built.geometry.attributes.color.needsUpdate = true;
+        built.geometry.computeVertexNormals();
+
+        const seconds = now / 1000;
+        group.rotation.y = Math.sin(seconds * 0.22) * 0.12;
+        group.rotation.z = Math.sin(seconds * 0.17) * 0.018;
+        group.scale.setScalar(1 + 0.008 * Math.sin(seconds * 1.25));
+      }
+
+      renderer.render(scene, camera);
+      frameRef.current = requestAnimationFrame(tick);
+    };
+    frameRef.current = requestAnimationFrame(tick);
 
     return () => {
+      cancelAnimationFrame(frameRef.current);
       observer.disconnect();
-      cancelAnimationFrame(frame);
-      bundle.dispose();
-      dustGeometry.dispose();
-      dustMaterial.dispose();
-      texture.dispose();
-      renderRef.current = null;
-      rebuildRef.current = () => {};
+      built.geometry.dispose();
+      material.dispose();
       renderer.dispose();
+      materialRef.current = null;
+      geometryRef.current = null;
+      renderRef.current = null;
     };
+    // The scene is built once. Chapters morph the same mesh through the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <canvas ref={ref} className="wrapped-world" aria-hidden="true" />;
+  useEffect(() => {
+    const target = shapeFor(chapter);
+    const [from, to] = TINT[chapter.id] ?? TINT.cover;
+    const built = ribbonGeometry(target, from, to);
+    targetPositions.current = built.positions;
+    targetColors.current = built.colors;
+
+    if (stillRef.current) {
+      currentPositions.current.set(built.positions);
+      currentColors.current.set(built.colors);
+      const position = geometryRef.current?.attributes.position;
+      const color = geometryRef.current?.attributes.color;
+      if (position) position.needsUpdate = true;
+      if (color) color.needsUpdate = true;
+      renderRef.current?.();
+    }
+
+    /* The arrays above are targets; the temporary geometry is not mounted. */
+    built.geometry.dispose();
+  }, [chapter.id]);
+
+  return <canvas ref={ref} className="wrapped-world" data-shape={chapter.id} aria-hidden="true" />;
 }

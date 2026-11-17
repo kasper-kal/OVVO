@@ -17,6 +17,7 @@ import './styles/wrapped-pages.css';
 import './styles/wrapped-extras.css';
 import './styles/wrapped-issue.css';
 import './styles/wrapped-scenes.css';
+import './styles/wrapped-film.css';
 
 /**
  * **An address that still carries a `#/` is an old address, not an error.**
