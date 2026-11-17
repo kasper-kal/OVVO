@@ -688,6 +688,7 @@ export function WrappedPage() {
             journeys={tally.runs.length}
             demo={demo}
             yearOver={yearOver}
+            still={reduceMotion}
             onBegin={() => {
               setStarted(true);
               go(1);

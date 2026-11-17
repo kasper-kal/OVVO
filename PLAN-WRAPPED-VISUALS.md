@@ -163,7 +163,17 @@ breaks (`FLAT=1`, `NO_MASS=1`, `WORD_ANIM=1`). `scripts/shots-wrapped.mjs` rende
 chapters in both modes at 1440 and 390 and lays them into contact sheets, which is how the pass was
 judged; its output is not a claim about the live site.
 
-The honest gap that is left: the masses are gradient-and-facet shapes, not modelled objects. They
-read as Wrapped's surfaces at a glance, but they do not have the true turning volume of a rendered
-ribbon. Closing that means either heavier layered CSS per mass or a 3D layer, and it is the next
-piece of work, not a tweak.
+The last open item in section 4 was the mass itself: gradient-and-facet silhouettes do not turn. It
+is closed. Each chapter's mass is now real geometry drawn with the three.js the project already
+shipped (`WrappedMasses`), lit by a key, a rim and a hemisphere fill, with a shadow map so folds and
+stacked steps occlude one another. The cover, the distance and the long haul are swept ribbon solids
+- four corners per step, twisted along a curve - so the surfaces have faces that catch light and fall
+away at an edge. The canvas is transparent and larger than the page, and `.film2-art` clips it, so
+the volumes are still cut off by the frame rather than fitted inside it. The colour field, the
+sentence and the share stay DOM and are untouched.
+
+One item from section 4 is **not** done, and it needs your decision: the closing poster was meant to
+carry a small two-column list of the year's figures, like the reference's last card. That is a second
+block of text on a chapter, and it contradicts the one-sentence rule you asked me to keep (the scene
+check counts copy blocks and would fail it). Tell me to allow the closing card one list and I will
+build it; otherwise the close stays a sentence, a ring and the share.

@@ -174,6 +174,8 @@ type SceneProps = {
   journeys: number;
   demo: boolean;
   yearOver: boolean;
+  /** The traveller's motion setting: the geometry is drawn once and left alone. */
+  still?: boolean;
   onBegin: () => void;
 };
 
@@ -183,6 +185,7 @@ export function WrappedScenes({
   count,
   demo,
   yearOver,
+  still,
   onBegin,
 }: SceneProps & { previous?: Chapter | null }) {
   const place = PLACE[chapter.id] ?? 'center';
@@ -199,7 +202,7 @@ export function WrappedScenes({
       data-size={size}
       key={chapter.id}
     >
-      <WrappedArt chapter={chapter} count={count} year={year} />
+      <WrappedArt chapter={chapter} count={count} year={year} still={still} />
 
       <div className="film2-copy">
         <h1 className="film2-line">
