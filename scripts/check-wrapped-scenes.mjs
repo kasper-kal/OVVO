@@ -54,6 +54,12 @@ if (process.env.OLD_CHROME) {
 await page.locator('.film2-begin').click();
 await page.waitForTimeout(520);
 
+/* A still object is the old failure wearing a new surface: two frames must differ. */
+const motionBefore = await page.screenshot();
+await page.waitForTimeout(760);
+const motionAfter = await page.screenshot();
+const moving = !motionBefore.equals(motionAfter);
+
 const scenes = [];
 for (let i = 0; i < 18; i += 1) {
   if (process.env.SAME_SHAPE) {
@@ -70,6 +76,7 @@ for (let i = 0; i < 18; i += 1) {
     const copy = film?.querySelector('.film2-copy');
     const share = document.querySelector('.film2-share');
     const world = document.querySelector('.wrapped-world');
+    const sound = document.querySelector('.wrapped-sound');
     if (!film || !stage || !line) return null;
 
     const filmRect = film.getBoundingClientRect();
@@ -91,6 +98,8 @@ for (let i = 0; i < 18; i += 1) {
       shape: world?.dataset.shape ?? '',
       line: line.textContent?.trim() ?? '',
       share: Boolean(share && shareRect && shareRect.width > 0 && shareRect.height > 0),
+      soundRight: sound?.getBoundingClientRect().right ?? 0,
+      viewport: window.innerWidth,
       tags,
       legacy,
       oldLayers,
@@ -116,6 +125,7 @@ const failures = [];
 const present = scenes.filter((scene) => !scene.missing);
 if (present.length !== scenes.length) failures.push(`${scenes.length - present.length} page(s) had no film page`);
 if (pageErrors.length) failures.push(`page errors: ${pageErrors.slice(0, 2).join(' / ')}`);
+if (!moving) failures.push('the object is still inside a chapter');
 
 for (const scene of present) {
   if (scene.oldLayers) failures.push(`${scene.chapter}: old scene layer is still in the document`);
@@ -123,6 +133,7 @@ for (const scene of present) {
   if (scene.tags !== 1) failures.push(`${scene.chapter}: ${scene.tags} copy blocks, expected one sentence`);
   if (!scene.line) failures.push(`${scene.chapter}: no sentence`);
   if (scene.chapter !== 'cover' && !scene.share) failures.push(`${scene.chapter}: no share on the beat`);
+  if (scene.soundRight > scene.viewport + 1) failures.push(`${scene.chapter}: the sound control is off screen`);
   if (scene.clipped) failures.push(`${scene.chapter}: the sentence is clipped`);
   if (scene.overflow) failures.push(`${scene.chapter}: document is wider than the viewport`);
   if (scene.film[0] < scene.stage[0] - 1 || scene.film[1] < scene.stage[1] - 1) {
@@ -148,5 +159,5 @@ if (failures.length) {
 
 console.log(
   `WRAPPED FILM: PASS — ${present.length} black stages, ${lines.size} sentences, ` +
-    `${shapes.size} morphing shapes, ${shares} shares, no old labels or diagrams, no spills.`,
+    `${shapes.size} moving shapes, ${shares} shares, no old labels or diagrams, no spills.`,
 );

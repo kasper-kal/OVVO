@@ -210,16 +210,17 @@
 /* ---------------------------------------------------------------- the quiet chrome */
 
 .wrapped-stage .wrapped-top {
-  position: fixed;
-  top: 12px;
-  right: 14px;
-  left: 14px;
+  position: fixed !important;
+  top: 12px !important;
+  right: 14px !important;
+  left: 14px !important;
   z-index: 20;
   display: flex;
+  width: auto !important;
   align-items: center;
   gap: 8px;
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   pointer-events: none;
 }
 
@@ -476,4 +477,131 @@
   .wrapped-stage.is-beat .wrapped-world {
     animation: none !important;
   }
+}
+
+/* ---------------------------------------------------------------- type that arrives */
+
+/*
+ * A sentence is one thought, not one lump. Each word lands in its own beat, so the line feels
+ * written while the object is already moving. The h1 keeps the single copy block the checks and
+ * screen readers depend on; only its children are staggered.
+ */
+.film2-line {
+  animation: none;
+}
+
+.film2-word {
+  display: inline-block;
+  animation: film2-word-in 680ms calc(var(--i) * 42ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes film2-word-in {
+  0% {
+    opacity: 0;
+    transform: translateY(0.55em) scale(0.94);
+    filter: blur(3px);
+  }
+  65% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/*
+ * The object does not have to be the same size on every beat. A small caption lets a shape fill the
+ * frame; a huge line lets the words become the shape. This is the difference between a template and
+ * a film.
+ */
+.film2--size-small .film2-line {
+  max-width: 24ch;
+  font-size: clamp(32px, 4.4vw, 72px);
+  line-height: 1;
+}
+
+.film2--size-medium .film2-line {
+  max-width: 21ch;
+  font-size: clamp(36px, 5.2vw, 88px);
+  line-height: 0.96;
+}
+
+.film2-photo {
+  transform-origin: 50% 48%;
+  animation: film2-photo-pan 18s ease-in-out infinite alternate;
+}
+
+@keyframes film2-photo-pan {
+  from {
+    transform: scale(1.03) translate3d(-1%, 1%, 0);
+  }
+  to {
+    transform: scale(1.09) translate3d(1%, -1.5%, 0);
+  }
+}
+
+.film2-glow {
+  animation: film2-glow-drift 12s ease-in-out infinite;
+}
+
+@keyframes film2-glow-drift {
+  0%, 100% {
+    transform: translate3d(-1.5%, 1%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(1.5%, -1.5%, 0) scale(1.07);
+  }
+}
+
+@media (max-width: 719px) {
+  .film2--size-small .film2-line {
+    max-width: 20ch;
+    font-size: clamp(30px, 7.8vw, 46px);
+    line-height: 1.01;
+  }
+
+  .film2--size-medium .film2-line {
+    max-width: 17ch;
+    font-size: clamp(32px, 8.7vw, 50px);
+    line-height: 0.98;
+  }
+}
+
+@media (max-width: 379px) {
+  .film2--size-small .film2-line {
+    font-size: clamp(28px, 8.2vw, 38px);
+  }
+
+  .film2--size-medium .film2-line {
+    font-size: clamp(30px, 8.8vw, 40px);
+  }
+}
+
+/* The object may breathe on the song's beat, while the sentence lands word by word. */
+@keyframes film2-beat {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.028); }
+}
+
+.wrapped-stage.is-beat .wrapped-world {
+  animation: film2-beat var(--beat-ms) cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film2-word,
+  .film2-photo,
+  .film2-glow,
+  .wrapped-stage.is-beat .wrapped-world {
+    animation: none !important;
+  }
+}
+
+.wrapped-stage.is-still .film2-word,
+.wrapped-stage.is-still .film2-photo,
+.wrapped-stage.is-still .film2-glow {
+  animation: none !important;
 }

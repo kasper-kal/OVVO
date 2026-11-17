@@ -66,6 +66,34 @@ const TINT: Record<string, [string, string]> = {
 
 const LIFT: Record<FilmPlace, number> = { top: -1.05, center: 0, bottom: 1.0 };
 
+/*
+ * **Each shot has its own push.**
+ *
+ * The same object, but the camera is not parked. A chapter opens close, drifts through the shape,
+ * and lets it settle back before the next one; the zoom and roll are deliberately different per
+ * chapter so the film has cuts even when the object's silhouette is similar.
+ */
+const SHOT: Record<string, { zoom: number; roll: number; drift: number }> = {
+  cover: { zoom: 0.75, roll: 0.04, drift: 0.16 },
+  total: { zoom: 1.1, roll: 0.1, drift: 0.3 },
+  name: { zoom: 0.95, roll: 0.07, drift: 0.24 },
+  map: { zoom: 0.85, roll: 0.05, drift: 0.2 },
+  distance: { zoom: 1.0, roll: 0.1, drift: 0.26 },
+  pair: { zoom: 0.9, roll: 0.08, drift: 0.22 },
+  origin: { zoom: 0.8, roll: 0.04, drift: 0.18 },
+  hour: { zoom: 1.0, roll: 0.14, drift: 0.24 },
+  direct: { zoom: 0.95, roll: 0.09, drift: 0.22 },
+  longest: { zoom: 1.15, roll: 0.06, drift: 0.28 },
+  look: { zoom: 0.8, roll: 0.05, drift: 0.18 },
+  eras: { zoom: 0.9, roll: 0.08, drift: 0.22 },
+  lines: { zoom: 1.0, roll: 0.06, drift: 0.2 },
+  awards: { zoom: 0.9, roll: 0.1, drift: 0.24 },
+  bookends: { zoom: 1.0, roll: 0.05, drift: 0.22 },
+  comparison: { zoom: 1.05, roll: 0.06, drift: 0.26 },
+  crew: { zoom: 0.9, roll: 0.08, drift: 0.2 },
+  close: { zoom: 0.7, roll: 0.04, drift: 0.16 },
+};
+
 interface Shape {
   points: THREE.Vector3[];
   width: number;
@@ -296,6 +324,55 @@ function shapeFor(chapter: Chapter): Shape {
   };
 }
 
+/*
+ * **A second pose inside the chapter.**
+ *
+ * Crossing from one chapter to the next is one transformation, but a Wrapped beat is not finished
+ * when it arrives. Each object gets a modest accent: the route X opens, the award loops breathe,
+ * the comparison columns rise, the closing ring tightens. It is the same mesh, so it reads as the
+ * object thinking, not a new slide.
+ */
+const ACCENT: Record<string, { x?: number; y?: number; twist?: number }> = {
+  cover: { x: 1.04, y: 1.04, twist: 0.06 },
+  total: { x: 1.06, y: 1.06 },
+  name: { x: 1.03, y: 1.03, twist: 0.1 },
+  map: { x: 1.08, y: 1.08 },
+  distance: { y: 1.06, twist: 0.04 },
+  pair: { x: 1.12, y: 0.92 },
+  origin: { x: 1.06, y: 1.06 },
+  hour: { x: 1.05, y: 1.05, twist: 0.08 },
+  direct: { x: 1.05, y: 1.05 },
+  longest: { x: 1.08, y: 1.08 },
+  look: { x: 1.08, y: 1.08 },
+  eras: { y: 1.1 },
+  lines: { x: 1.04, y: 1.12 },
+  awards: { x: 1.1, y: 1.1 },
+  bookends: { x: 1.08, y: 0.95 },
+  comparison: { x: 0.96, y: 1.1 },
+  crew: { x: 1.08, y: 1.08, twist: 0.08 },
+  close: { x: 0.92, y: 0.92 },
+};
+
+function accentFor(chapter: Chapter, base: Shape): Shape {
+  const accent = ACCENT[chapter.id] ?? {};
+  return {
+    width: base.width,
+    points: base.points.map((point) => {
+      const next = point.clone();
+      next.x *= accent.x ?? 1;
+      next.y *= accent.y ?? 1;
+      if (accent.twist) {
+        const angle = Math.sin((next.y / 5.2) * Math.PI) * accent.twist;
+        const x = next.x;
+        const z = next.z;
+        next.x = x * Math.cos(angle) - z * Math.sin(angle);
+        next.z = x * Math.sin(angle) + z * Math.cos(angle);
+      }
+      return next;
+    }),
+  };
+}
+
 function ribbonGeometry(shape: Shape, from: string, to: string): {
   positions: Float32Array;
   colors: Float32Array;
@@ -360,10 +437,13 @@ function ribbonGeometry(shape: Shape, from: string, to: string): {
 export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: boolean }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const stillRef = useRef(still);
+  const chapterRef = useRef(chapter);
   const currentPositions = useRef<Float32Array>(new Float32Array(0));
   const currentColors = useRef<Float32Array>(new Float32Array(0));
   const targetPositions = useRef<Float32Array>(new Float32Array(0));
   const targetColors = useRef<Float32Array>(new Float32Array(0));
+  const displayPositions = useRef<Float32Array>(new Float32Array(0));
+  const entryAt = useRef(0);
   const materialRef = useRef<THREE.MeshBasicMaterial | null>(null);
   const geometryRef = useRef<THREE.BufferGeometry | null>(null);
   const renderRef = useRef<(() => void) | null>(null);
@@ -401,6 +481,12 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
     /* Tick mutates these exact arrays, because the BufferAttributes own them. */
     currentPositions.current = built.positions;
     currentColors.current = built.colors;
+    /* The rendered ribbon is the settled shape plus a shallow, continuous ripple. */
+    const display = built.positions.slice();
+    displayPositions.current = display;
+    built.geometry.setAttribute('position', new THREE.BufferAttribute(display, 3));
+    entryAt.current = performance.now() / 1000;
+    chapterRef.current = chapter;
     geometryRef.current = built.geometry;
 
     const material = new THREE.MeshBasicMaterial({
@@ -425,8 +511,11 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
       const box = canvas.getBoundingClientRect();
       const width = Math.max(1, Math.round(box.width));
       const height = Math.max(1, Math.round(box.height));
+      const aspect = width / height;
       renderer.setSize(width, height, false);
-      camera.aspect = width / height;
+      camera.aspect = aspect;
+      /* A portrait frame has a much narrower horizontal field; open the lens so the object fits. */
+      camera.fov = aspect < 0.8 ? 66 : 43;
       camera.updateProjectionMatrix();
     };
     resize();
@@ -453,14 +542,64 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
           current[i] += (target[i] - current[i]) * k;
           currentColor[i] += (targetColor[i] - currentColor[i]) * k;
         }
+
+        /*
+         * **The ribbon is never a photograph.**
+         *
+         * The settled path gets a travelling wave a few millimetres deep. It is small enough to
+         * keep the shape legible and large enough that the object has a pulse between the page
+         * turns, instead of waiting six seconds to move again.
+         */
+        const seconds = now / 1000;
+        const display = displayPositions.current;
+        for (let i = 0; i <= SEGMENTS; i += 1) {
+          const at = i * 6;
+          const seam = i === SEGMENTS ? 0 : i;
+          const sway = Math.sin(seconds * 1.65 + seam * 0.14) * 0.13;
+          const lift = Math.cos(seconds * 1.23 + seam * 0.11) * 0.1;
+          const depth = Math.sin(seconds * 1.05 + seam * 0.17) * 0.18;
+          display[at] = current[at] + sway;
+          display[at + 1] = current[at + 1] + lift;
+          display[at + 2] = current[at + 2] + depth;
+          display[at + 3] = current[at + 3] + sway;
+          display[at + 4] = current[at + 4] + lift;
+          display[at + 5] = current[at + 5] + depth;
+        }
         built.geometry.attributes.position.needsUpdate = true;
         built.geometry.attributes.color.needsUpdate = true;
         built.geometry.computeVertexNormals();
 
-        const seconds = now / 1000;
-        group.rotation.y = Math.sin(seconds * 0.22) * 0.12;
-        group.rotation.z = Math.sin(seconds * 0.17) * 0.018;
-        group.scale.setScalar(1 + 0.008 * Math.sin(seconds * 1.25));
+        const shot = SHOT[chapterRef.current.id] ?? SHOT.cover;
+        const elapsed = Math.max(0, seconds - entryAt.current);
+        const entry = 1 - Math.pow(1 - Math.min(1, elapsed / 1.05), 3);
+        const accent = Math.sin(Math.PI * Math.min(1, elapsed / 7.2));
+        /* A portrait frame is already tight; keep the accent from pushing the wide shapes out. */
+        const narrow = camera.aspect < 0.8;
+
+        group.rotation.x = Math.sin(seconds * 0.34) * 0.12 + shot.roll * 0.24 * accent;
+        group.rotation.y = Math.sin(seconds * 0.21) * 0.34 + (1 - entry) * 0.24;
+        group.rotation.z = Math.sin(seconds * 0.18) * 0.06 + shot.roll * accent;
+        group.position.x = Math.sin(seconds * 0.23) * 0.22 + shot.drift * 0.35 * accent;
+        group.position.y = Math.cos(seconds * 0.27) * 0.16;
+        const portraitFit = narrow ? 0.86 : 1;
+        group.scale.setScalar(
+          portraitFit *
+            (0.92 + 0.08 * entry) *
+            (1 + shot.zoom * (narrow ? 0.02 : 0.045) * accent + 0.018 * Math.sin(seconds * 1.2)),
+        );
+
+        camera.position.x = Math.sin(seconds * 0.19) * (narrow ? 0.35 : 0.7);
+        camera.position.y = Math.cos(seconds * 0.17) * 0.35;
+        camera.position.z =
+          13.4 -
+          0.5 * entry -
+          (narrow ? 0 : shot.zoom * 0.65 * accent) +
+          Math.sin(seconds * 0.29) * (narrow ? 0.18 : 0.35);
+        camera.lookAt(0, 0, 0);
+
+        if (materialRef.current) {
+          materialRef.current.color.setScalar(0.96 + 0.04 * Math.sin(seconds * 2.1));
+        }
       }
 
       renderer.render(scene, camera);
@@ -488,10 +627,26 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
     const built = ribbonGeometry(target, from, to);
     targetPositions.current = built.positions;
     targetColors.current = built.colors;
+    chapterRef.current = chapter;
+    entryAt.current = performance.now() / 1000;
+
+    let accentTimer = 0;
+    let returnTimer = 0;
+    if (!stillRef.current) {
+      accentTimer = window.setTimeout(() => {
+        const accentBuilt = ribbonGeometry(accentFor(chapter, target), from, to);
+        targetPositions.current = accentBuilt.positions;
+        accentBuilt.geometry.dispose();
+      }, 2400);
+      returnTimer = window.setTimeout(() => {
+        targetPositions.current = built.positions;
+      }, 5200);
+    }
 
     if (stillRef.current) {
       currentPositions.current.set(built.positions);
       currentColors.current.set(built.colors);
+      displayPositions.current.set(built.positions);
       const position = geometryRef.current?.attributes.position;
       const color = geometryRef.current?.attributes.color;
       if (position) position.needsUpdate = true;
@@ -501,6 +656,10 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
 
     /* The arrays above are targets; the temporary geometry is not mounted. */
     built.geometry.dispose();
+    return () => {
+      window.clearTimeout(accentTimer);
+      window.clearTimeout(returnTimer);
+    };
   }, [chapter.id]);
 
   return <canvas ref={ref} className="wrapped-world" data-shape={chapter.id} aria-hidden="true" />;

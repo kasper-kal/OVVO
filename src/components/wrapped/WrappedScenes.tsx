@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
 
 /*
@@ -15,6 +15,27 @@ import type { Chapter } from '../../lib/wrappedDeck';
  */
 
 type Place = 'top' | 'center' | 'bottom';
+
+const SIZE: Record<string, 'small' | 'medium' | 'large'> = {
+  cover: 'large',
+  total: 'large',
+  name: 'large',
+  map: 'small',
+  distance: 'medium',
+  pair: 'medium',
+  origin: 'small',
+  hour: 'large',
+  direct: 'large',
+  longest: 'medium',
+  look: 'large',
+  eras: 'small',
+  lines: 'medium',
+  awards: 'medium',
+  bookends: 'large',
+  comparison: 'large',
+  crew: 'small',
+  close: 'large',
+};
 
 const PLACE: Record<string, Place> = {
   cover: 'center',
@@ -73,18 +94,16 @@ const TINT: Record<string, [string, string]> = {
 function lineFor({
   chapter,
   year,
-  journeys,
   demo,
   yearOver,
+  count,
 }: {
   chapter: Chapter;
   year: number;
-  journeys: number;
   demo: boolean;
   yearOver: boolean;
+  count: number;
 }): string {
-  const count = chapter.count ?? journeys;
-
   if (chapter.kind === 'cover') {
     if (demo) return 'Hi there. Your demo year is ready.';
     if (!yearOver) return 'Hi there. Your year so far is ready.';
@@ -96,7 +115,7 @@ function lineFor({
   }
 
   if (chapter.kind === 'number') {
-    return `${count} ${count === 1 ? 'journey' : 'journeys'}. One year of leaving.`;
+    return `${NUMBER.format(count)} ${count === 1 ? 'journey' : 'journeys'}. You don't stay in much.`;
   }
 
   if (chapter.kind === 'name') {
@@ -104,32 +123,32 @@ function lineFor({
   }
 
   if (chapter.kind === 'map') {
-    const places = chapter.map?.places ?? count;
-    return `${places} ${places === 1 ? 'place' : 'places'}. One shape.`;
+    const places = chapter.map?.places ?? chapter.count ?? count;
+    return `${places} ${places === 1 ? 'place' : 'places'}. You got around.`;
   }
 
   if (chapter.kind === 'distance' && chapter.distance) {
-    return `${NUMBER.format(Math.round(chapter.distance.km))} km. The long way round.`;
+    return `${NUMBER.format(Math.round(chapter.distance.km))} km. That's a lot of window-gazing.`;
   }
 
   if (chapter.kind === 'route' && chapter.route) {
-    return `${chapter.route.count} times: ${shortStop(chapter.route.from)} ↔ ${shortStop(chapter.route.to)}.`;
+    return `${count} times: ${shortStop(chapter.route.from)}\u00a0↔\u00a0${shortStop(chapter.route.to)}. You two are close.`;
   }
 
   if (chapter.id === 'origin') {
-    return `${chapter.big} knew you by name.`;
+    return `${chapter.big}. Your second address.`;
   }
 
   if (chapter.kind === 'bars') {
-    return `${chapter.big}. Your hour.`;
+    return `${chapter.big}. Your daily appointment.`;
   }
 
   if (chapter.kind === 'arc') {
-    return `${chapter.big}. No changes.`;
+    return `${chapter.big}. No changes. No drama.`;
   }
 
   if (chapter.kind === 'stretch') {
-    return `The long haul: ${chapter.big}.`;
+    return `${chapter.big}. Worth every minute.`;
   }
 
   if (chapter.kind === 'word') {
@@ -138,11 +157,11 @@ function lineFor({
 
   if (chapter.kind === 'eras') {
     const eras = chapter.eras?.length ?? 0;
-    return eras === 1 ? 'One era. One traveller.' : `${eras} eras. One traveller.`;
+    return eras === 1 ? 'One era. A full character arc.' : `${eras} eras. A full character arc.`;
   }
 
   if (chapter.id === 'lines') {
-    return `${chapter.big} carried your year.`;
+    return `${chapter.big}. Your main character line.`;
   }
 
   if (chapter.kind === 'awards') {
@@ -150,18 +169,18 @@ function lineFor({
   }
 
   if (chapter.kind === 'bookends') {
-    return 'First out. Last home.';
+    return "First out. Last home. That's commitment.";
   }
 
   if (chapter.kind === 'comparison') {
-    return `${chapter.big}. You vs. you.`;
+    return `${chapter.big}. Show-off.`;
   }
 
   if (chapter.kind === 'crew') {
-    return 'A year is better shared.';
+    return "You didn't do this alone.";
   }
 
-  return `That was the year. ${journeys} ${journeys === 1 ? 'journey' : 'journeys'}, all yours.`;
+  return "That was the year. Don't be a stranger.";
 }
 
 type SceneProps = {
@@ -177,21 +196,24 @@ type SceneProps = {
 export function WrappedScenes({
   chapter,
   year,
-  count: _count,
-  journeys,
+  count,
   demo,
   yearOver,
   onBegin,
 }: SceneProps & { previous?: Chapter | null }) {
   const place = PLACE[chapter.id] ?? 'center';
+  const size = SIZE[chapter.id] ?? 'large';
   const [from, to] = TINT[chapter.id] ?? TINT.cover;
-  const line = lineFor({ chapter, year, journeys, demo, yearOver });
+  const line = lineFor({ chapter, year, demo, yearOver, count });
+  /* Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. */
+  const words = line.split(/ +/);
 
   return (
     <div
-      className={`film2 film2--${chapter.id} film2--place-${place}`}
+      className={`film2 film2--${chapter.id} film2--place-${place} film2--size-${size}`}
       data-chapter={chapter.id}
       data-place={place}
+      data-size={size}
       style={{ '--accent': from, '--accent-2': to } as CSSProperties}
       key={chapter.id}
     >
@@ -206,7 +228,16 @@ export function WrappedScenes({
       <span className="film2-scrim" aria-hidden="true" />
 
       <div className="film2-copy">
-        <h1 className="film2-line">{line}</h1>
+        <h1 className="film2-line">
+          {words.map((word, at) => (
+            <Fragment key={at}>
+              <span className="film2-word" style={{ '--i': at } as CSSProperties}>
+                {word}
+              </span>
+              {at < words.length - 1 ? ' ' : null}
+            </Fragment>
+          ))}
+        </h1>
         {chapter.kind === 'cover' ? (
           <button type="button" className="film2-begin" onClick={onBegin}>
             Begin
