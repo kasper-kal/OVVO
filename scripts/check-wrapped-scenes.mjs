@@ -45,6 +45,15 @@ if (process.env.NO_ART) {
 if (process.env.NO_LINE) {
   await page.addStyleTag({ content: '.film2-line { display: none !important; }' });
 }
+if (process.env.FLAT) {
+  await page.addStyleTag({ content: '.wrapped-stage[data-chapter] { background: #050506 !important; }' });
+}
+if (process.env.NO_MASS) {
+  await page.addStyleTag({ content: '.w-mass { display: none !important; }' });
+}
+if (process.env.WORD_ANIM) {
+  await page.addStyleTag({ content: '.film2-word { animation: film-word-x 1s infinite !important; }' });
+}
 if (process.env.OLD_CHROME) {
   await page.evaluate(() => {
     const note = document.createElement('span');
@@ -97,6 +106,10 @@ for (let i = 0; i < 18; i += 1) {
       return style.display !== 'none' && style.visibility !== 'hidden';
     }).length;
 
+    const mass = film.querySelector('.w-mass');
+    const massRect = mass?.getBoundingClientRect();
+    const word = film.querySelector('.film2-word');
+
     return {
       chapter: film.dataset.chapter ?? '',
       place: film.dataset.place ?? '',
@@ -117,7 +130,20 @@ for (let i = 0; i < 18; i += 1) {
       lineRect: [lineRect.left, lineRect.top, lineRect.right, lineRect.bottom],
       clipped: line.scrollWidth > line.clientWidth + 1,
       overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
-      black: getComputedStyle(stage).backgroundColor,
+      /* The field is a gradient, so the colour lives in the image, not the background colour. */
+      ground: getComputedStyle(stage).backgroundImage,
+      mass: massRect ? [massRect.left, massRect.top, massRect.right, massRect.bottom] : null,
+      massBig: massRect
+        ? Math.max(massRect.width, massRect.height) >= Math.min(filmRect.width, filmRect.height) * 0.55
+        : false,
+      massCropped: massRect
+        ? massRect.left < filmRect.left - 0.5 ||
+          massRect.top < filmRect.top - 0.5 ||
+          massRect.right > filmRect.right + 0.5 ||
+          massRect.bottom > filmRect.bottom + 0.5
+        : false,
+      scrims: film.querySelectorAll('.film2-scrim, .film2-glow, .film2-photo-shade').length,
+      stagger: word ? getComputedStyle(word).animationName : 'none',
     };
   });
 
@@ -180,13 +206,22 @@ for (const scene of present) {
   if (scene.film[0] < scene.stage[0] - 1 || scene.film[1] < scene.stage[1] - 1) {
     failures.push(`${scene.chapter}: the page is not full screen`);
   }
-  if (scene.black !== 'rgb(5, 5, 6)') failures.push(`${scene.chapter}: the stage is not black (${scene.black})`);
+  if (!scene.ground || !scene.ground.includes('gradient')) {
+    failures.push(`${scene.chapter}: the stage is not a colour field`);
+  }
+  if (!scene.mass) failures.push(`${scene.chapter}: there is no mass on the page`);
+  if (scene.mass && !scene.massBig) failures.push(`${scene.chapter}: the mass fits inside the frame`);
+  if (scene.mass && !scene.massCropped) failures.push(`${scene.chapter}: the mass is not cut by the frame`);
+  if (scene.scrims) failures.push(`${scene.chapter}: a scrim or glow is back over the picture`);
+  if (scene.stagger !== 'none') failures.push(`${scene.chapter}: the words are performing again (${scene.stagger})`);
 }
 
 const lines = new Set(present.map((scene) => scene.line));
 const shapes = new Set(present.map((scene) => scene.shape).filter(Boolean));
 const places = new Set(present.map((scene) => scene.place).filter(Boolean));
 const shares = present.filter((scene) => scene.share).length;
+const grounds = new Set(present.map((scene) => scene.ground));
+if (grounds.size < 16) failures.push(`only ${grounds.size} colour fields`);
 
 if (lines.size < 16) failures.push(`only ${lines.size} distinct sentences`);
 if (shapes.size < 16) failures.push(`only ${shapes.size} distinct shapes`);
@@ -199,7 +234,7 @@ if (failures.length) {
 }
 
 console.log(
-  `WRAPPED FILM: PASS — ${present.length} black stages, ${lines.size} sentences, ` +
-    `${shapes.size} moving shapes, ${shares} shares, no old labels or diagrams, no spills, ` +
+  `WRAPPED FILM: PASS — ${present.length} colour fields, ${grounds.size} grounds, ${shapes.size} masses, ` +
+    `${lines.size} still sentences, ${shares} shares, no scrim, no old labels or diagrams, no spills, ` +
     'and bare=1 shows the picture alone.',
 );

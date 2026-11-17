@@ -9,6 +9,7 @@ import { useT } from '../lib/useT';
 import { appNow } from '../lib/format';
 import { clearTally, tallyFor, yearOf } from '../lib/wrapped';
 import { buildStory, type Chapter } from '../lib/wrappedDeck';
+import { lookFor } from '../lib/wrappedLook';
 import { demoYear, isDemoVariant, type DemoVariant } from '../lib/wrappedDemo';
 import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
@@ -259,6 +260,13 @@ export function WrappedPage() {
 
   const chapter: Chapter = story[Math.min(index, story.length - 1)];
   const last = index >= story.length - 1;
+  /*
+   * **The chapter's colour, in one place.**
+   *
+   * The stage paints `--ground` and sets the sentence in `--ink`, so the chrome, the progress dots
+   * and the words all agree with the field they are sitting on. `lib/wrappedLook` owns the pairs.
+   */
+  const look = lookFor(chapter.id);
 
   /*
    * **A page gets one entrance and one sound, not one of each per re-render.**
@@ -543,6 +551,8 @@ export function WrappedPage() {
           '--bar-ms': `${barMs(chapter.track)}ms`,
           '--beat-phase': `${armed && beat ? beat.beatPhase : 0}ms`,
           '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
+          '--ground': look.ground,
+          '--ink': look.ink,
           /* The look's own photograph, for the chapter that sets its name inside it. */
           ...(chapter.photo ? { '--look-photo': `url(${chapter.photo})` } : {}),
         } as CSSProperties

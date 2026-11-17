@@ -150,7 +150,20 @@ black and every prop is small).
 One human sentence per chapter. A share on every beat. Fixed navigation. Real numbers from the
 tally. The OVVO logo, untouched. The story order. The words themselves.
 
-## 9. First step
+## 9. Where this got to
 
-The cover, in bare mode, with the words still off. That is the proof, and it is small on purpose: if
-the cover does not look like a Wrapped card, no other chapter will either.
+Steps 1 to 5 are built. All eighteen chapters now paint a full-bleed colour field, carry a mass that
+is cut by the frame and melted into the field before the words, and keep the focal layer where the
+chapter has one (the map's pins, the photograph, the awards, the crew, the closing ring). The
+sentence went back on in the same pass rather than later, because a picture you cannot read on is
+not finished: it is set in the chapter's `--ink`, dead still, with no plate behind it.
+
+The checks in section 7 are live in `scripts/check-wrapped-scenes.mjs`, with three deliberate
+breaks (`FLAT=1`, `NO_MASS=1`, `WORD_ANIM=1`). `scripts/shots-wrapped.mjs` renders all eighteen
+chapters in both modes at 1440 and 390 and lays them into contact sheets, which is how the pass was
+judged; its output is not a claim about the live site.
+
+The honest gap that is left: the masses are gradient-and-facet shapes, not modelled objects. They
+read as Wrapped's surfaces at a glance, but they do not have the true turning volume of a rendered
+ribbon. Closing that means either heavier layered CSS per mass or a 3D layer, and it is the next
+piece of work, not a tweak.

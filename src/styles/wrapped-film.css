@@ -1,16 +1,18 @@
 /*
  * **The Wrapped grammar, not the yearbook grammar.**
  *
- * Black stage. One hand-made object. One sentence. The only bright control on the page is the
- * share pill. There is no kicker, no caption, no footnote, no chart, no chapter count, no card
- * around the words. This file deliberately lives after the older wrapped styles so it can take
- * the stage back without leaving a second visual language behind.
+ * A colour field, one enormous shape cut off by the frame, one sentence. The only bright control on
+ * the page is the share pill. There is no kicker, no caption, no footnote, no chart, no chapter
+ * count, no card around the words, and no black stage under them: the stage is painted with the
+ * chapter's own `--ground`, and the sentence is set in its `--ink`. This file deliberately lives
+ * after the older wrapped styles so it can take the stage back without leaving a second visual
+ * language behind.
  */
 
 .wrapped-stage,
 .wrapped-stage[data-chapter] {
-  background: #050506 !important;
-  color: #f7f3ea !important;
+  background: var(--ground, #050506) !important;
+  color: var(--ink, #f7f3ea) !important;
   padding: 0 !important;
   overflow: hidden;
 }
@@ -68,7 +70,7 @@
   z-index: 1;
   overflow: hidden;
   background: transparent;
-  color: #f7f3ea;
+  color: var(--ink, #f7f3ea);
   pointer-events: none;
 }
 
@@ -156,15 +158,16 @@
   isolation: isolate;
 }
 
-/* The object can come right up behind the words; the words still need black to land on. */
+/*
+ * **There is no plate behind the sentence.**
+ *
+ * It used to be a blurred black hole punched into the picture, and it is the single thing that made
+ * all eighteen chapters read as the same dark slide. The mass now fades into the colour field
+ * before it reaches the words, so the type lands on the field itself. If a chapter ever needs this
+ * plate again, the composition is wrong, not the type.
+ */
 .film2-copy::before {
-  content: '';
-  position: absolute;
-  inset: -24% -10%;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, rgb(5 5 6 / 0.82) 0%, rgb(5 5 6 / 0.58) 52%, transparent 78%);
-  filter: blur(22px);
+  display: none;
 }
 
 .film2--place-top .film2-copy {
@@ -180,18 +183,25 @@
   transform: translate(-50%, -50%);
 }
 
+/*
+ * **The type is dead still.**
+ *
+ * Wrapped's sentence does not arrive word by word, or slide, or glow. It is simply there, in a
+ * plain bold grotesque, at the size the page can carry, and the picture is what moves. A line that
+ * performs itself is the difference between a story and a slideshow.
+ */
 .film2-line {
   margin: 0;
-  max-width: 19ch;
+  max-width: 18ch;
   font-family: 'Archivo', sans-serif;
-  font-size: clamp(40px, 6vw, 104px);
+  font-size: clamp(46px, 7vw, 122px);
   font-weight: 800;
-  line-height: 0.94;
-  letter-spacing: -0.06em;
-  color: #f7f3ea;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  color: var(--ink, #f7f3ea);
   text-wrap: balance;
-  text-shadow: 0 3px 30px rgb(0 0 0 / 0.7);
-  animation: film2-line-in 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  text-shadow: none;
+  animation: none;
 }
 
 .film2--cover .film2-line,
@@ -202,7 +212,7 @@
 }
 
 .film2--look .film2-line {
-  color: #fff8ea;
+  color: var(--ink, #fff8ea);
 }
 
 .film2-begin {
@@ -259,9 +269,9 @@
 .wrapped-stage .wrapped-sound,
 .wrapped-stage .wrapped-demo-mark {
   pointer-events: auto;
-  border: 1px solid rgb(247 243 234 / 0.22);
-  background: rgb(5 5 6 / 0.38);
-  color: #f7f3ea;
+  border: 1px solid color-mix(in srgb, var(--ink, #f7f3ea) 36%, transparent);
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 18%, transparent);
+  color: var(--ink, #f7f3ea);
   backdrop-filter: blur(12px);
 }
 
@@ -314,17 +324,17 @@
   width: 5px;
   height: 2px;
   border-radius: 999px;
-  background: rgb(247 243 234 / 0.22);
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 30%, transparent);
   transition: flex-basis 300ms ease, background 300ms ease;
 }
 
 .wrapped-stage .wrapped-progress__seg.is-done {
-  background: rgb(247 243 234 / 0.7);
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 66%, transparent);
 }
 
 .wrapped-stage .wrapped-progress__seg.is-now {
   flex-basis: 18px;
-  background: #f7f3ea;
+  background: var(--ink, #f7f3ea);
 }
 
 .wrapped-stage .wrapped-progress__seg i {
@@ -513,18 +523,23 @@
 /* ---------------------------------------------------------------- type that arrives */
 
 /*
- * A sentence is one thought, not one lump. Each word lands in its own beat, so the line feels
- * written while the object is already moving. The h1 keeps the single copy block the checks and
- * screen readers depend on; only its children are staggered.
+ * **The words do not perform.**
+ *
+ * Each word used to land in its own beat, which read as a title sequence rather than a story. The
+ * h1 is still split into spans (a route's non-breaking gap has to stay in one piece), but they are
+ * plain inline words now: no delay, no blur, no lift.
  */
-.film2-line {
+.film2-word {
+  display: inline;
   animation: none;
 }
 
-.film2-word {
-  display: inline-block;
-  animation: film2-word-in 680ms calc(var(--i) * 42ms) cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity, filter;
+.film2--place-bottom .film2-copy {
+  bottom: clamp(120px, 19vh, 196px);
+}
+
+.film2--place-top .film2-copy {
+  top: clamp(84px, 12vh, 132px);
 }
 
 @keyframes film2-word-in {
