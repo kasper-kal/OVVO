@@ -14,7 +14,6 @@ import { WrappedShareDialog } from '../components/wrapped/WrappedShareDialog';
 import { WrappedDemoDirector } from '../components/wrapped/WrappedDemoDirector';
 import { WrappedSealed } from '../components/wrapped/WrappedSealed';
 import { WrappedScenes } from '../components/wrapped/WrappedScenes';
-import { WrappedWorld } from '../components/wrapped/WrappedWorld';
 import {
   resumeSound,
   scoreTime,
@@ -653,7 +652,7 @@ export function WrappedPage() {
 
       {/* The keyboard is a reader's way through: arrows, Escape to leave. */}
       <div className="wrapped-scene">
-        <WrappedWorld chapter={chapter} still={reduceMotion} />
+
         <div
           className={`wrapped-body wrapped-body--${chapter.kind}${dealt ? ' is-dealt' : ''}`}
           data-chapter={chapter.id}

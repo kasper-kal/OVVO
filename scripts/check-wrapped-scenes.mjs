@@ -39,6 +39,9 @@ if (!(await cover.isVisible().catch(() => false))) {
 if (process.env.NO_SHARE) {
   await page.addStyleTag({ content: '.film2-share { display: none !important; }' });
 }
+if (process.env.NO_ART) {
+  await page.addStyleTag({ content: '.film2-art { display: none !important; }' });
+}
 if (process.env.NO_LINE) {
   await page.addStyleTag({ content: '.film2-line { display: none !important; }' });
 }
@@ -64,8 +67,8 @@ const scenes = [];
 for (let i = 0; i < 18; i += 1) {
   if (process.env.SAME_SHAPE) {
     await page.evaluate(() => {
-      const world = document.querySelector('.wrapped-world');
-      if (world) world.dataset.shape = 'same';
+      const art = document.querySelector('.film2-art');
+      if (art) art.dataset.art = 'same';
     });
   }
 
@@ -75,7 +78,9 @@ for (let i = 0; i < 18; i += 1) {
     const line = film?.querySelector('.film2-line');
     const copy = film?.querySelector('.film2-copy');
     const share = document.querySelector('.film2-share');
-    const world = document.querySelector('.wrapped-world');
+    const art = film.querySelector('.film2-art');
+    const artStyle = art ? getComputedStyle(art) : null;
+    const artRect = art?.getBoundingClientRect();
     const sound = document.querySelector('.wrapped-sound');
     if (!film || !stage || !line) return null;
 
@@ -95,7 +100,11 @@ for (let i = 0; i < 18; i += 1) {
     return {
       chapter: film.dataset.chapter ?? '',
       place: film.dataset.place ?? '',
-      shape: world?.dataset.shape ?? '',
+      shape: art?.dataset.art ?? '',
+      artVisible: Boolean(
+        art && artStyle && artStyle.display !== 'none' && artStyle.visibility !== 'hidden' &&
+          (artRect?.width ?? 0) > 0 && (artRect?.height ?? 0) > 0,
+      ),
       line: line.textContent?.trim() ?? '',
       share: Boolean(share && shareRect && shareRect.width > 0 && shareRect.height > 0),
       soundRight: sound?.getBoundingClientRect().right ?? 0,
@@ -130,6 +139,7 @@ if (!moving) failures.push('the object is still inside a chapter');
 for (const scene of present) {
   if (scene.oldLayers) failures.push(`${scene.chapter}: old scene layer is still in the document`);
   if (scene.legacy) failures.push(`${scene.chapter}: old label, footnote, diagram or credit block is back`);
+  if (!scene.artVisible) failures.push(`${scene.chapter}: its scene object is missing or hidden`);
   if (scene.tags !== 1) failures.push(`${scene.chapter}: ${scene.tags} copy blocks, expected one sentence`);
   if (!scene.line) failures.push(`${scene.chapter}: no sentence`);
   if (scene.chapter !== 'cover' && !scene.share) failures.push(`${scene.chapter}: no share on the beat`);

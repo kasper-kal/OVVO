@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
+import { WrappedArt } from './WrappedArt';
 
 /*
  * **One sentence. One object. Black around both.**
@@ -223,6 +224,8 @@ export function WrappedScenes({
           <span className="film2-photo-shade" aria-hidden="true" />
         </>
       ) : null}
+
+      <WrappedArt chapter={chapter} count={count} year={year} />
 
       <span className="film2-glow" aria-hidden="true" />
       <span className="film2-scrim" aria-hidden="true" />
