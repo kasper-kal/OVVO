@@ -103,7 +103,8 @@ you. Our eighteen dashes are hairlines under the Share pill, so the film feels e
 a surprise.
 
 **10. Objects with depth.** Theirs are continuous 3D renders with stepped edges and real glow, cropped
-by the frame. Ours are lit three.js bodies, but one simple form each. The smallest of the ten.
+by the frame. Ours are smooth gradient bodies behind the words — one simple form each, and no stepped
+edges anywhere. The smallest of the ten, and the least worth a week.
 
 ---
 
@@ -138,14 +139,26 @@ and direct export to TikTok and Instagram.
 
 ---
 
+## What the two already share, now that I have looked properly
+
+This is the part my first pass got wrong in the other direction. At full size our cards are much
+closer to theirs than I described: a full-bleed colour field per chapter, one big centred sentence, a
+"Share this story" pill at the bottom, a close button, a sound switch, and progress dashes. Even the
+placements rhyme. So the list above is not "they have a language and we don't" — it is ten specific
+moves inside a language we already speak. That is a much cheaper list to act on than it looked.
+
+The differences that survive a close look are: their objects are pixel-stepped renders cropped hard by
+the frame, ours are smooth gradient bodies; their cards carry a second, smaller line and ours carry
+one; and they end on a card you can page through and send, where we end on a sentence.
+
 ## What the Yearbook has that Wrapped doesn't
 
 - **Eighteen chapters against their fourteen** — more, but only just. My last version claimed this as a
   win by counting their edit instead of their run. That was wrong.
 - **Geography.** Wrapped 2024 has no map and no places at all. Our nine places across a blue field is
   something Wrapped cannot do.
-- **A journey you can name.** "IC 3100. Your main character line." is concrete in a way "1,742 minutes
-  together" is not.
+- **A journey you can name.** "9 times: Amsterdam ↔ Haarlem. You two are close." is concrete in a way
+  "1,742 minutes together" is not.
 - **A year against the year before.** "+32 journeys. Show-off." Their film never compares you to
   yourself.
 - **A score of our own, one piece per chapter,** and the song keeps the time.
