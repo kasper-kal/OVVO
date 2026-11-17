@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import type { Chapter } from '../../lib/wrappedDeck';
 
 /*
@@ -193,12 +197,12 @@ function shapeFor(chapter: Chapter): Shape {
       break;
 
     case 'hour':
+      /* A clean clock rim. The hour lives in the sentence; the surface does not need a necklace. */
       points = wave(true, (t) => {
         const angle = t * TAU;
-        const radius = 2.18 + 0.36 * (0.5 + 0.5 * Math.sin(24 * angle));
-        return v(Math.cos(angle) * radius, Math.sin(angle) * radius * 0.84, 0.3 * Math.sin(24 * angle));
+        return v(Math.cos(angle) * 2.65, Math.sin(angle) * 2.65 * 0.82, 0.16 * Math.sin(angle * 2));
       });
-      width = 0.24;
+      width = 0.2;
       break;
 
     case 'direct':
@@ -238,16 +242,12 @@ function shapeFor(chapter: Chapter): Shape {
       break;
 
     case 'lines':
-      points = wave(false, (t) => {
-        const pass = Math.min(3, Math.floor(t * 4));
-        const local = t * 4 - pass;
-        const direction = pass % 2 === 0 ? 1 : -1;
-        return v(
-          direction * (-5.1 + 10.2 * local),
-          2.75 - pass * 1.65,
-          0.34 * Math.sin(local * Math.PI),
-        );
-      });
+      /* One line, one sweep: a broad route stroke rather than four disconnected platforms. */
+      points = wave(false, (t) => v(
+        -6.0 + 12.0 * t,
+        2.55 * Math.sin(t * TAU * 2.2) + 0.35 * Math.sin(t * TAU * 5),
+        0.55 * Math.cos(t * TAU * 1.1),
+      ));
       width = 0.2;
       break;
 
@@ -281,21 +281,14 @@ function shapeFor(chapter: Chapter): Shape {
       break;
     }
 
-    case 'comparison': {
-      const controls: THREE.Vector3[] = [];
-      for (let i = 0; i <= 16; i += 1) {
-        controls.push(v(-2.15, -2.45 + (3.1 * i) / 16, 0.15));
-      }
-      for (let i = 1; i <= 14; i += 1) {
-        controls.push(v(-2.15 + (4.3 * i) / 14, -2.45, 0.05));
-      }
-      for (let i = 0; i <= 16; i += 1) {
-        controls.push(v(2.15, -2.45 + (5.3 * i) / 16, -0.1));
-      }
-      points = pathFrom(controls, false);
-      width = 0.46;
+    case 'comparison':
+      /* One vertical stroke for "you vs you", rather than a U that reads as a broken frame. */
+      points = wave(false, (t) => {
+        const angle = t * TAU * 1.15;
+        return v(Math.sin(angle) * 2.9, -3.0 + 6.0 * t, 0.55 * Math.cos(angle * 2));
+      });
+      width = 0.24;
       break;
-    }
 
     case 'crew':
       points = wave(true, (t) => v(
@@ -401,16 +394,21 @@ function ribbonGeometry(shape: Shape, from: string, to: string): {
     if (i === SEGMENTS && closed && firstNormal) normal.copy(firstNormal);
 
     const t = i / SEGMENTS;
-    const width = shape.width * (0.78 + 0.22 * Math.sin(t * TAU * 2.2));
+    /* A Wrapped shape is a surface, not a pen stroke: keep the ribbon broad enough to fold light. */
+    const width = shape.width * 3.25 * (0.78 + 0.22 * Math.sin(t * TAU * 2.2));
     const left = point.clone().addScaledVector(normal, width / 2);
     const right = point.clone().addScaledVector(normal, -width / 2);
 
     positions.set([left.x, left.y, left.z, right.x, right.y, right.z], i * 6);
 
     mixed.copy(colorA).lerp(colorB, t * 0.78);
-    const leftColor: [number, number, number] = [mixed.r, mixed.g, mixed.b];
-    mixed.copy(colorB).lerp(colorA, t * 0.64);
-    const rightColor: [number, number, number] = [mixed.r, mixed.g, mixed.b];
+    /* One edge falls into shadow, the other catches the light: a surface, not a stripe. */
+    const leftColor: [number, number, number] = [mixed.r * 0.48, mixed.g * 0.48, mixed.b * 0.48];
+    const rightColor: [number, number, number] = [
+      Math.min(1, mixed.r * 1.12),
+      Math.min(1, mixed.g * 1.12),
+      Math.min(1, mixed.b * 1.12),
+    ];
     if (i === 0) {
       firstLeft = leftColor;
       firstRight = rightColor;
@@ -463,12 +461,19 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
     renderer.setClearColor(0x050506, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.05;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(43, 1, 0.1, 80);
     camera.position.set(0, 0, 13.2);
     camera.lookAt(0, 0, 0);
+
+    /* The ribbon glows into the black instead of sitting on top of it. */
+    const composer = new EffectComposer(renderer);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.5, 0.55, 0.7);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
 
     const group = new THREE.Group();
     scene.add(group);
@@ -513,6 +518,8 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
       const height = Math.max(1, Math.round(box.height));
       const aspect = width / height;
       renderer.setSize(width, height, false);
+      composer.setSize(width, height);
+      bloom.setSize(width, height);
       camera.aspect = aspect;
       /* A portrait frame has a much narrower horizontal field; open the lens so the object fits. */
       camera.fov = aspect < 0.8 ? 66 : 43;
@@ -523,7 +530,7 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
     observer.observe(canvas);
 
     const renderOnce = () => {
-      renderer.render(scene, camera);
+      composer.render();
     };
     renderRef.current = renderOnce;
 
@@ -602,7 +609,7 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
         }
       }
 
-      renderer.render(scene, camera);
+      composer.render();
       frameRef.current = requestAnimationFrame(tick);
     };
     frameRef.current = requestAnimationFrame(tick);
@@ -612,6 +619,7 @@ export function WrappedWorld({ chapter, still }: { chapter: Chapter; still: bool
       observer.disconnect();
       built.geometry.dispose();
       material.dispose();
+      composer.dispose();
       renderer.dispose();
       materialRef.current = null;
       geometryRef.current = null;
