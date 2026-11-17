@@ -194,3 +194,146 @@ three is the one that does the most work, which is why it now leads the list.
 Then, in order: the small second line (your call — it bends our one-sentence rule), a busiest day ("Your
 busiest day was 14 March, 9 journeys"), a streak ("You travelled 11 days in a row in October"), a pause
 button, and one chapter with real footage in it.
+
+---
+
+## The fix, in four phases
+
+The four things above are the same four phases below, with the work written out. They go in this order
+because each one stands on the one before: phase 1 is the medium itself, phase 2 is the colour and the
+legibility, phase 3 is the content that makes a card worth screenshotting, phase 4 is the ending and
+the controls. Nothing is rebuilt from nothing — the twenty chapters, the words, the score and the share
+sheet already exist, and every phase changes either what is behind the words or what sits beside them.
+
+Each phase follows the same three rules. Build one chapter and look at it before doing the next four.
+Add one assertion to `node scripts/check-wrapped-scenes.mjs`, and show that assertion failing on a
+deliberate break before trusting it. Finish with `npm run typecheck`, that check, and
+`node scripts/keep.mjs --save`.
+
+### Phase 1 — A lit object, cut off by the edge
+
+**What is wrong.** Our bodies are smooth solids that sit politely inside the card. Theirs are
+stair-stepped volumes that run off all four edges, with one light on them, and they move.
+
+**What changes.**
+
+- `src/components/wrapped/WrappedMasses.tsx`: rebuild the bodies out of **stacked slabs** — six to
+  fourteen boxes of shrinking size, each turned a few degrees — so the outline is a staircase and not a
+  curve. No cylinder, torus or sphere may keep a smooth silhouette; a round body is only allowed if it
+  is wrapped in steps.
+- Scale goes up: every mass becomes 110 to 140 per cent of the card's short side, and the camera is
+  pulled back only far enough to leave it cropped on at least two edges. `.film2-art` keeps clipping,
+  so the cut belongs to the frame and not to the shape.
+- Light: one key at roughly 40 degrees, a cold rim opposite, shadows on, so the steps fall on each
+  other. A step that casts no shadow on the step below it is not a step yet.
+- Motion: every body drifts or turns on its own twenty-to-forty-second clock, and the chapter's first
+  second adds one quick move — a quarter turn, a rise. The words stay dead still.
+- Every chapter leaves one **flat patch** where the sentence will land, either dark enough or light
+  enough for that chapter's ink. The patch is part of the picture, never a scrim laid over it.
+
+**How it is proved.** Three assertions, on the live page, in `scripts/check-wrapped-scenes.mjs`:
+*cropped* — the mass's box must pass the frame on at least two edges, at 1440 and at 360; *stepped* —
+sampling the silhouette every three pixels must find at least five staircase steps on one side;
+*alive* — two shots of the same chapter 1.5 seconds apart must differ by a real share of their pixels.
+Each is shown to fail first: `INSIDE=1` shrinks every mass to 60 per cent, `SMOOTH=1` swaps a body for a
+cylinder, `STILL=1` freezes the clock.
+
+**Done when** all chapters pass and one of our cards beside one of theirs reads as the same medium at a
+glance.
+
+### Phase 2 — A world per card, colour that can be read
+
+**What is wrong.** Every chapter is the same two-colour blend, so they blur into one another, and a few
+put dark red on magenta. Theirs changes world on every card, and every card has something real to look
+at — a photo, a list — not only a shape.
+
+**What changes.**
+
+- `src/lib/wrappedLook.ts`: four families — hot (red, magenta, orange), acid (green, lime, yellow), cold
+  (blue, cyan, violet) and paper (cream with one loud form on it) — rotate so that no two neighbouring
+  chapters share a family. This is checked in the file, not by eye.
+- Grounds get a chroma floor: no chapter may be a tint of black, and no ground may sit at the same
+  temperature as the one before it. The cover, the close and "the look" are the three that still read
+  flat, so they get worlds of their own instead of the leftovers.
+- Ink is picked by measurement where the words actually sit. The weakest chapter is about 4.6:1 now;
+  the target is 7:1, and the Creature of Habit card — dark red on magenta — is the first to fix.
+- Each chapter gets a **focal layer** under its sentence: a picture, a numbered row, or a route line.
+  The form alone is never the whole card again.
+- We have no photographs of stations, so a picture here means a drawn tile: the stop's initial in the
+  chapter's own colour on a stepped square, or a line's colour with its number on it. It is ours, it is
+  honest, and it is not pretending to be a photo.
+
+**How it is proved.** The contrast sampler is already in the check; it grows a chroma floor and a
+neighbour test. Shown to fail with `DIM=1` (every ground pushed to near-black), `SAME_GROUND=1` (two
+neighbours given one gradient) and `SAME_INK=1` (white ink everywhere, which fails on cream and lime).
+
+**Done when** the sheet of all chapters has no two tiles you could mistake for each other, and no
+sentence needs a plate behind it to be read.
+
+### Phase 3 — The list, and a number on one day
+
+**What is wrong.** We name one line, one route, one hour. Wrapped ranks five things with pictures,
+prints ten, and puts a number on a single day and on a streak. The data is already here: the tally
+keeps every run with its two ends, its hour, its lines and its minutes, plus every look worn and every
+board pinned.
+
+**What changes.**
+
+- `src/lib/wrapped.ts`: three small readers over the stored runs — the five most-travelled stops or
+  lines with their counts, the busiest single day with its journey count, and the longest run of
+  consecutive days with travel. Pure functions, with the demo tally giving the same shapes.
+- `src/lib/wrappedDeck.ts`: two new chapter kinds, `ranked` and `day`, placed after "the look" and
+  before "eras" so the story still builds. The chapter count rises, and the deck check's expected
+  counts rise with it — that number is not left to drift.
+- A new scene and body for `ranked`: five numbered rows, each with a small stepped tile and a count,
+  the rows sitting on the colour with no card behind them, the fifth row half out of the frame so the
+  list reads as continuing past the edge.
+- The day chapter: one date, one number, one sentence. Nothing else.
+- The share card gains those five names and counts in a column, so the thing you send carries what the
+  list showed.
+- **A rank among other people stays out.** We hold the traveller's own runs and nothing else. An
+  invented "top 5 per cent" is a lie printed on a card people post. If OVVO ever has aggregate numbers,
+  it becomes a real chapter then and not before.
+
+**How it is proved.** A new assertion that the ranked rows are strictly ordered, that their counts add
+up to no more than the year's total, and that the closing card prints the same five names in the same
+order. Shown to fail with `SHUFFLE=1` (rows sorted at random) and `SHARE_MISMATCH=1` (the share card
+handed the last five instead of the first five).
+
+**Done when** the list card is the one people screenshot, and the closing card prints exactly what it
+printed.
+
+### Phase 4 — The ending, and the controls around it
+
+**What is wrong.** Our film ends on a sentence, the share lives behind a pill, nothing can be paused,
+and the progress is eighteen hairlines under that pill.
+
+**What changes.**
+
+- `src/pages/WrappedPage.tsx` and `WrappedScenes.tsx`: the closing chapter becomes the **poster** — the
+  object or the photo, the two columns, Share under it, "Replay from beginning" below — and it is the
+  end of the film rather than a sheet fetched from a pill.
+- `WrappedShareDialog.tsx`: the poster layout is reused as the close, in three colourways you page
+  through with arrows or a swipe, and Share sends whichever one is on screen.
+- A **pause** control in the header beside the sound switch. It stops the score and the silent fallback
+  timer together, so a card can be held; a tap and the space bar both work.
+- Progress you can read: one dash per chapter across the top with the current one filled, and the rail
+  down the left. Chapter count and dash count are the same number, checked.
+- The small second line from gap 2, **only if you lift the one-sentence rule**. If you do, it is a
+  quieter line under the headline a beat later, and the "one copy block" assertion is relaxed for that
+  element by name rather than switched off.
+
+**How it is proved.** A pause assertion: a chapter held with pause for ten seconds must not move, and
+must move within two seconds of resuming — shown to fail with `NO_PAUSE=1`. Plus a share control that
+is visible on the closing chapter without opening anything, a dash count equal to the chapter count,
+and the 320-wide phone walk still showing nothing clipped and no sideways scroll.
+
+**Done when** a screenshot of the last card, on its own, is something you would post.
+
+### Order, and what to expect
+
+Phase 1 is the one that changes how it feels; do not start phase 2 until a single chapter passes it.
+Phases 2 to 4 can each go chapter by chapter, but only in this order: a palette picked before the
+geometry exists gets thrown away, and a share card drawn before the list exists has nothing to print.
+Every phase is looked at on the real page before the next one starts — not from a contact sheet I chose
+and cropped myself — and every phase is saved and pushed the moment its check passes.
