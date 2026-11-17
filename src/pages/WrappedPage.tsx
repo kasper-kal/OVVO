@@ -164,6 +164,15 @@ export function WrappedPage() {
   const leave = useHistoryBack('/');
   const [params] = useSearchParams();
   const askedForDemo = params.get('demo') === '1';
+  /*
+   * **The visual workshop.**
+   *
+   * `?bare=1` takes the words, the share, the score and the effects off the page and stops the
+   * deck turning itself, so the colour and the form can be judged on their own. Nothing is
+   * deleted: the same chapters, the same numbers, the same navigation. It is the mode the next
+   * art pass is built in, and it is never the mode a traveller sees.
+   */
+  const bare = params.get('bare') === '1';
   const requestedVariant = params.get('persona');
   const [demoVariant, setDemoVariant] = useState<DemoVariant>(() =>
     isDemoVariant(requestedVariant) ? requestedVariant : 'regular',
@@ -264,10 +273,10 @@ export function WrappedPage() {
     soundRef.current = sound;
   }, [sound]);
   useEffect(() => {
-    if (started) preloadYearbookEffects();
-  }, [started]);
+    if (started && !bare) preloadYearbookEffects();
+  }, [bare, started]);
   useEffect(() => {
-    if (!started) {
+    if (bare || !started) {
       lastCue.current = null;
       return undefined;
     }
@@ -306,7 +315,7 @@ export function WrappedPage() {
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [chapter.id, started]);
+  }, [bare, chapter.id, started]);
 
   /*
    * **The bell rings at the stations, not at the page turn.**
@@ -315,7 +324,7 @@ export function WrappedPage() {
    * timer is cleaned up when the story moves on, and muting leaves the next arrival silent.
    */
   useEffect(() => {
-    if (!started || reduceMotion || chapter.id !== 'pair') return undefined;
+    if (bare || !started || reduceMotion || chapter.id !== 'pair') return undefined;
     const { delayMs, durationMs, topAt, bottomAt, returnTopAt } = ROUTE_TRAVELLER;
     const firstTop = delayMs + durationMs * topAt;
     const firstBottom = delayMs + durationMs * bottomAt;
@@ -330,7 +339,7 @@ export function WrappedPage() {
       }, at),
     );
     return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [chapter.id, started, reduceMotion]);
+  }, [bare, chapter.id, started, reduceMotion]);
 
   /*
    * **The corner switch tells the truth about the speaker, on every page.**
@@ -383,12 +392,12 @@ export function WrappedPage() {
      * made a sound. They are one door now. Starting the story sets `started`, the switch turns `sound`
      * over, and what is applied here is exactly what the switch has always done.
      */
-    if (!sound) {
+    if (bare || !sound) {
       stopSound();
       return;
     }
     startSound(chapter.track, story[index + 1]?.track);
-  }, [index, sound, chapter.track, story]);
+  }, [bare, index, sound, chapter.track, story]);
 
   /*
    * **The story keeps time with the music.**
@@ -420,14 +429,14 @@ export function WrappedPage() {
    * music that turns the page and this never gets there first.
    */
   useEffect(() => {
-    if (last || director) return undefined;
+    if (bare || last || director) return undefined;
     const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
     const timer = window.setTimeout(() => {
       if (index === 0) setStarted(true);
       go(index + 1);
     }, quiet);
     return () => window.clearTimeout(timer);
-  }, [last, chapter.track, index, go, director]);
+  }, [bare, last, chapter.track, index, go, director]);
 
   /* Two frames: one to paint the pieces hidden, one to start them. */
   useEffect(() => {
@@ -526,7 +535,7 @@ export function WrappedPage() {
     <div
       className={`wrapped-stage wrapped-stage--${chapter.tone}${reduceMotion ? ' is-still' : ''}${
         onBeat ? ' is-beat' : ''
-      }`}
+      }${bare ? ' is-bare' : ''}`}
       data-chapter={chapter.id}
       style={
         {
@@ -551,7 +560,7 @@ export function WrappedPage() {
         */
       /* Every touch repairs a score that never started. */
       onPointerDown={() => {
-        if (started && sound) resumeSound(chapter.track, story[index + 1]?.track);
+        if (!bare && started && sound) resumeSound(chapter.track, story[index + 1]?.track);
       }}
       onClick={(event) => {
         const target = event.target as HTMLElement | null;
@@ -630,6 +639,7 @@ export function WrappedPage() {
           * steerer asked for it this way, and he is right that it is the plainer reading: a control that
           * describes its own action needs no legend, and no coloured light beside it either.
           */}
+        {bare ? null : (
         <button
           type="button"
           className="wrapped-sound"
@@ -648,6 +658,7 @@ export function WrappedPage() {
         >
           <span>{soundLabel}</span>
         </button>
+        )}
       </header>
 
       {/* The keyboard is a reader's way through: arrows, Escape to leave. */}
@@ -675,7 +686,7 @@ export function WrappedPage() {
         </div>
       </div>
 
-      {started && chapter.kind !== 'cover' ? (
+      {!bare && started && chapter.kind !== 'cover' ? (
         <div className="film2-dock">
           <button
             type="button"

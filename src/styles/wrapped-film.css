@@ -644,3 +644,24 @@
     font-size: clamp(26px, 8vw, 36px);
   }
 }
+
+/* ---------------------------------------------------------------- the visual workshop */
+/*
+ * **`?bare=1` is for judging the picture, so the picture has to be all that is left.**
+ *
+ * The words, the share and the switch are not deleted from the page, they are put away, along
+ * with the scrim, the glow and the photo shade: those three exist only to make a sentence
+ * readable, and with no sentence on the stage they are a dark hand over the colour we are
+ * trying to look at. The grain stays, because the grain is part of the surface.
+ *
+ * The progress dots and the close button stay too: this is a workshop, not a poster, and a
+ * chapter you cannot leave is not a chapter you can work on.
+ */
+.wrapped-stage.is-bare .film2-copy,
+.wrapped-stage.is-bare .film2-dock,
+.wrapped-stage.is-bare .wrapped-sound,
+.wrapped-stage.is-bare .film2-scrim,
+.wrapped-stage.is-bare .film2-glow,
+.wrapped-stage.is-bare .film2-photo-shade {
+  display: none !important;
+}

@@ -128,9 +128,40 @@ for (let i = 0; i < 18; i += 1) {
   }
 }
 
+/*
+ * **The workshop mode has to actually be bare.**
+ *
+ * The next art pass is built with the words, the share and the score off the page, so this
+ * proves the mode puts them away and still leaves the picture and the way through the deck.
+ */
+const bareFailures = [];
+await page.goto(`${BASE}${BASE.includes('?') ? '&' : '?'}bare=1`, { waitUntil: 'domcontentloaded' });
+await page.locator('.wrapped-stage').waitFor();
+await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(520);
+
+const bareState = await page.evaluate(() => {
+  const shown = (node) => Boolean(node && getComputedStyle(node).display !== 'none');
+  return {
+    marked: document.querySelector('.wrapped-stage')?.classList.contains('is-bare') ?? false,
+    copy: shown(document.querySelector('.film2-copy')),
+    dock: shown(document.querySelector('.film2-dock')),
+    sound: Boolean(document.querySelector('.wrapped-sound')),
+    art: shown(document.querySelector('.film2-art')),
+    nav: Boolean(document.querySelector('.wrapped-progress')),
+  };
+});
+
+if (!bareState.marked) bareFailures.push('bare=1 did not mark the stage');
+if (bareState.copy) bareFailures.push('bare=1 still shows the sentence');
+if (bareState.dock) bareFailures.push('bare=1 still shows the share dock');
+if (bareState.sound) bareFailures.push('bare=1 still renders the sound switch');
+if (!bareState.art) bareFailures.push('bare=1 hid the art as well as the words');
+if (!bareState.nav) bareFailures.push('bare=1 removed the way through the deck');
+
 await browser.close();
 
-const failures = [];
+const failures = [...bareFailures];
 const present = scenes.filter((scene) => !scene.missing);
 if (present.length !== scenes.length) failures.push(`${scenes.length - present.length} page(s) had no film page`);
 if (pageErrors.length) failures.push(`page errors: ${pageErrors.slice(0, 2).join(' / ')}`);
@@ -169,5 +200,6 @@ if (failures.length) {
 
 console.log(
   `WRAPPED FILM: PASS — ${present.length} black stages, ${lines.size} sentences, ` +
-    `${shapes.size} moving shapes, ${shares} shares, no old labels or diagrams, no spills.`,
+    `${shapes.size} moving shapes, ${shares} shares, no old labels or diagrams, no spills, ` +
+    'and bare=1 shows the picture alone.',
 );
