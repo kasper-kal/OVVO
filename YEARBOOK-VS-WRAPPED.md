@@ -2,6 +2,10 @@
 
 Written 17 November 2026, from the steerer's own capture of Wrapped 2024.
 
+**Re-read frame by frame on 18 November 2026**, every 0.1 second of both films, with the measurements:
+`design/wrapped-comparison/REVIEW-2026-11-18.md`. It scores the Yearbook **6/10** and names the three
+things that would take it to eight: movement on every card, photography, and a second line of copy.
+
 **Corrected.** My first pass kept one frame per card and read maybe a quarter of what is on the
 screen — it threw away the small second line under every card, six of the eight share-card colourways,
 and the numbering on the closing card. The steerer caught it. This version reads all 134 seconds at
