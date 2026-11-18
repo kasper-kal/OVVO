@@ -722,3 +722,134 @@
 .wrapped-stage.is-bare .film2-photo-shade {
   display: none !important;
 }
+
+/*
+ * **The line under the line, and the grain over the picture.**
+ *
+ * Two things the reference has on every card that ours did not. The small line beneath the big one
+ * was the single biggest editorial difference — one sentence set once, for fifteen seconds, is a
+ * poster; a big line with a small line that swaps at the halfway point is a film. It crossfades on
+ * the card's own clock, so it changes even while the object is mid-turn.
+ *
+ * The grain and the corner darkening are the difference between a print and a photograph: a tenth of
+ * soft-light noise over a flat field reads as emulsion, and the vignette pulls the eye to the middle
+ * without ever being a scrim over the words.
+ */
+.film2-sub {
+  margin-top: 0.55rem;
+  display: grid;
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(13px, 1.1vw, 18px);
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: 0.005em;
+  max-width: 36ch;
+  color: currentColor;
+}
+
+.film2-sub__a,
+.film2-sub__b {
+  grid-area: 1 / 1;
+  animation-duration: 10s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+
+.film2-sub__a {
+  animation-name: film-sub-a;
+}
+
+.film2-sub__b {
+  opacity: 0;
+  animation-name: film-sub-b;
+}
+
+@keyframes film-sub-a {
+  0%, 42% { opacity: 0.82; }
+  54%, 100% { opacity: 0; }
+}
+
+@keyframes film-sub-b {
+  0%, 46% { opacity: 0; }
+  58%, 100% { opacity: 0.82; }
+}
+
+.film2-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.11;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+/*
+ * The corner darkening stays off the words. At 0.3 of black starting halfway down it took the total
+ * chapter from 9:1 to 4.5:1, because that card's sentence sits on a light field at the very bottom
+ * the gradient was darkest on. It is now a soft edge that only touches the last few per cent.
+ */
+.film2-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(125% 95% at 50% 45%, transparent 66%, rgba(0, 0, 0, 0.16) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film2-sub__a,
+  .film2-sub__b {
+    animation: none;
+  }
+
+  .film2-sub__b {
+    display: none;
+  }
+}
+
+/*
+ * **The grain drifts, because a photograph is never quite still.**
+ *
+ * With the object moving but the field painted flat, three cards measured under a fifth of the
+ * reference's motion: the body was small in frame and the other eighty per cent of the picture was a
+ * still colour. Real film is never still anywhere. The noise over the card now travels about a
+ * hundred and forty pixels every second and a half, which a tenth of a second turns into nine pixels
+ * of change across the whole frame — the reference's own texture, at the reference's own rate.
+ */
+.film2-grain {
+  animation: film-grain 1.6s steps(12, end) infinite;
+}
+
+@keyframes film-grain {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 140px 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film2-grain {
+    animation: none;
+  }
+}
+
+/*
+ * **The small line sits above a bottom headline, not under it.**
+ *
+ * The copy block on a bottom-placed card grows upwards, so putting the small line beneath the big
+ * one lifted the headline thirty pixels — on the total chapter that was thirty pixels of ticket
+ * column, and its contrast fell from 7.2:1 to 6.1:1. Above the headline the block keeps the height it
+ * always had, the big line stays exactly where it was approved, and the small line reads as the
+ * label Wrapped puts over its own headline anyway.
+ */
+/* The copy block is already positioned by its place rule, so the small line hangs off it. */
+.film2--place-bottom .film2-sub {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin: 0 0 0.45rem;
+  width: 100%;
+}

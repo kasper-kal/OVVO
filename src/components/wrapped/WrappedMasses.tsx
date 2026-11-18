@@ -30,6 +30,7 @@ type Piece = {
   amp: number;
   spin: number;
   rotZ: number;
+  rotX: number;
 };
 
 type Built = { group: THREE.Group; pieces: Piece[]; steps: number };
@@ -66,6 +67,7 @@ function add(built: Built, mesh: THREE.Object3D, opts: { phase?: number; amp?: n
     amp: opts.amp ?? 0.1,
     spin: opts.spin ?? 0.03,
     rotZ: mesh.rotation.z,
+    rotX: mesh.rotation.x,
   });
 }
 
@@ -262,7 +264,8 @@ function build(chapter: Chapter): Built {
     }
 
     case 'direct': {
-      slabs(built, { count: 7, w: 4.0, h: 1.15, d: 2.6, x: -7.2, y: -6.6, dx: 2.3, dy: 1.1, shrink: 0.02, yaw: -0.1, colour: base, accent });
+      /* A thin band of the frame: the run carries the wave hard, or the card is a still with a line on it. */
+      slabs(built, { count: 7, w: 4.0, h: 1.15, d: 2.6, x: -7.2, y: -6.6, dx: 2.3, dy: 1.1, shrink: 0.02, yaw: -0.1, colour: base, accent, amp: 0.26 });
       break;
     }
 
@@ -553,6 +556,24 @@ export function WrappedMasses({
 
     const film = host.closest('.film2') as HTMLElement | null;
     let nominal = 1;
+    /*
+     * **A wide body turns less.**
+     *
+     * The first pass at real motion turned every body by the same angle. On the ranked bar chart and
+     * the hour's beams — seven times wider than they are tall — turning by a quarter of a radian
+     * narrows the silhouette by about a tenth, which pulled both cut edges back inside the frame and
+     * failed the crop. Wide bodies keep their edges and spend the motion on the push instead.
+     */
+    let swayScale = 1;
+    /*
+     * Where `fit()` finally put the body. The motion adds to this; it must never write over it.
+     *
+     * The first pass set `group.position.x` and `.z` outright from the clock, which threw away the
+     * centred position and the off-centre shove `fit()` had just solved — the body jumped off its
+     * measured crop, the hour and ranked chapters came back inside the frame, and three cards' words
+     * ended up under it. The fitted position is kept and the motion is an offset from it.
+     */
+    const fitted = new THREE.Vector3();
 
     /*
      * **Where the object actually lands on the page.**
@@ -613,7 +634,18 @@ export function WrappedMasses({
        * longer a coin toss.
        */
       const wideBody = local.max.x - local.min.x > 2.4 * (local.max.y - local.min.y);
-      const target = (wideBody ? 1.32 : 1.2) * Math.max(frame.width, frame.height);
+      swayScale = wideBody ? 0.35 : 1;
+      /*
+       * **The overhang is what the motion spends.**
+       *
+       * With the camera panning and the beat lurching, the body leaves its fitted pose for the whole
+       * card; when it only overhung by a fifth, the hour and ranked chapters came back inside the
+       * frame for part of their turn and the crop check failed them. The overshoot is raised so the
+       * two cut edges survive the movement rather than only the still.
+       */
+      /* The ranking's bar chart is the widest body in the deck and the least forgiving of a shove. */
+      const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.32 : 1.2;
+      const target = overshoot * Math.max(frame.width, frame.height);
 
       /*
        * **Scaling is not linear on screen, so the fit is solved, not assumed.**
@@ -637,13 +669,24 @@ export function WrappedMasses({
       };
 
       let factor = 1;
-      for (let pass = 0; pass < 3; pass += 1) {
+      /*
+       * Six passes, not three. "Three passes converge in practice" was true for the tall bodies it was
+       * written on; the direct chapter's thin diagonal and the ranking's shallow chart landed about a
+       * fifth short of the target, which is precisely the edge that went missing from their crop.
+       */
+      for (let pass = 0; pass < 6; pass += 1) {
         place(factor);
         const at = measure();
         factor = THREE.MathUtils.clamp((factor * target) / Math.max(1, at.w, at.h), 0.3, 12);
       }
-      place(factor);
-      nominal = factor;
+      /*
+       * The ranking's chart is the one body the projection solve cannot reach its target with: six
+       * passes leave it about a third short, so its right edge sat inside the frame however wide the
+       * target was set. It is scaled the rest of the way here, on the one chapter that needs it.
+       */
+      const finalScale = chapter.id === 'ranked' ? factor * 1.3 : factor;
+      place(finalScale);
+      nominal = finalScale;
 
       /* Then off-centre, so the two cut edges are not a symmetrical crop. */
       const [signX, signY] = pieceAxis(chapter.id);
@@ -672,7 +715,14 @@ export function WrappedMasses({
       const copyPlace = (film as HTMLElement | null)?.dataset.place ?? 'center';
       const crossesX = settled.w > frame.width + 1;
       const crossesY = settled.h > frame.height + 1;
-      if (copyPlace === 'top' && crossesX) {
+      /*
+       * The closing card is dodged whether or not its body crosses the frame sideways. Its ring is
+       * taller than the frame rather than wider, so the sideways test never fired and the drag from
+       * the ring sat behind the largest sentence in the deck — 6.4:1 where the rule asks for 7.
+       */
+      if (chapter.id === 'close') {
+        built.group.position.y += (0.3 * frame.height) / pxPerUnit;
+      } else if (copyPlace === 'top' && crossesX) {
         built.group.position.y -= (0.13 * frame.height) / pxPerUnit;
       } else if (copyPlace === 'bottom' && crossesX) {
         built.group.position.y += (0.13 * frame.height) / pxPerUnit;
@@ -682,8 +732,8 @@ export function WrappedMasses({
         built.group.position.y += (signY * 0.03 * frame.height) / pxPerUnit;
       }
 
+      fitted.copy(built.group.position);
     };
-
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const width = Math.max(1, Math.round(rect.width));
@@ -702,8 +752,28 @@ export function WrappedMasses({
 
     const seed = pieceAxis(chapter.id)[0] * 0.5 + 0.5;
     const drift = 0.05 + seed * 0.05;
+    /*
+     * `?stillmotion=1` pins the clock at zero. It is the break the deck check uses to prove that the
+     * motion below is real: with the flag on, two canvas frames a tenth of a second apart are equal.
+     */
+    const frozen = new URLSearchParams(window.location.search).has('stillmotion');
     const started = performance.now();
     let frame = 0;
+
+    /*
+     * **The card is a loop, not a photograph.**
+     *
+     * Measured against the reference, our cards moved at about half its rate and every one of them
+     * sat on one arrangement for fifteen seconds: three slow sine waves on a forty-eight second
+     * period, which is a still picture with a wobble. The reference changes the whole frame every
+     * tenth of a second, so this draws on three clocks at once: a **sway** that turns the body while
+     * it is on screen, a **push** that brings it a fifth closer across the card, and a **beat** every
+     * couple of seconds that lurches it towards the camera with the key light coming with it. The
+     * slabs ride a wave that travels along the stack rather than bobbing in place, so the steps catch
+     * the light one after another.
+     */
+    const CARD_SECONDS = 10;
+    const BEAT_SECONDS = 2.4;
 
     const draw = (now: number, animate: boolean) => {
       /*
@@ -713,21 +783,41 @@ export function WrappedMasses({
        * so only the small bobs stopped and the page kept turning. When there is no motion to give, the
        * clock is pinned and every transform stays where it was at zero: one frame, no drift.
        */
-      const t = animate ? now / 1000 : 0;
+      const clock = animate && !frozen ? now / 1000 : 0;
       const enter = animate ? Math.min(1, (now - started) / 900) : 1;
       const ease = 1 - (1 - enter) ** 3;
+      /* How far through this card we are, 0 to 1, so the push restarts with every chapter. */
+      const through = (clock % CARD_SECONDS) / CARD_SECONDS;
+      /* The beat: a sharp hit that decays over half a second. */
+      const beat = Math.max(0, 1 - (clock % BEAT_SECONDS) / 0.5) ** 2;
 
-      built.group.rotation.y = Math.sin(t * 0.13 + seed * 2) * 0.2 + (animate ? (1 - ease) * -0.16 : 0);
-      built.group.rotation.z = Math.sin(t * 0.1 + seed) * 0.035;
-      built.group.scale.setScalar(nominal * (1 + (1 - ease) * 0.16));
-      camera.position.x = Math.sin(t * (0.07 + drift) + seed * 3) * 0.5;
-      camera.position.y = Math.cos(t * 0.06) * 0.22;
+      built.group.rotation.y =
+        Math.sin(clock * (0.85 + drift) + seed * 2) * 0.3 * swayScale + (animate ? (1 - ease) * -0.16 : 0);
+      /* The whole body travels as well as turns: a distant one turns by millimetres on screen. */
+      built.group.position.x = fitted.x + Math.sin(clock * 0.7 + seed * 1.7) * 0.28;
+      built.group.position.y = fitted.y;
+      built.group.rotation.z = Math.sin(clock * 0.27 + seed) * 0.05;
+      built.group.rotation.x = Math.sin(clock * 0.19 + seed * 2) * 0.04;
+      built.group.scale.setScalar(nominal * (1 + 0.09 * through + (1 - ease) * 0.16));
+      /* The lurch. A tenth of a second on the beat is a step of several pixels, which is what makes
+         a film read as alive at a glance rather than as a picture that breathes. */
+      built.group.position.z = fitted.z + beat * 0.75;
+
+      camera.position.x = Math.sin(clock * 0.85 + seed * 3) * 1.1;
+      camera.position.y = 0.45 - through * 0.9 + Math.cos(clock * 0.6) * 0.5;
+      camera.position.z = 14 - 1.4 * through;
       camera.lookAt(0, 0, 0);
+      key.intensity = 3.6 + beat * 1.5;
 
       if (animate) {
         for (const piece of built.pieces) {
-          piece.mesh.position.y = piece.y + Math.sin(t * 0.55 + piece.phase) * piece.amp;
-          piece.mesh.rotation.z = piece.rotZ + Math.sin(t * 0.42 + piece.phase) * piece.spin;
+          /* A wave that runs along the stack, not every slab humming on its own. */
+          const wave = Math.sin(clock * 1.5 - piece.phase * 1.1);
+          /* Wide bodies turn little, so their slabs carry the wave further to make up for it. */
+          const reach = 3.2 / Math.max(0.35, swayScale);
+          piece.mesh.position.y = piece.y + (wave * reach + Math.sin(clock * 0.7 + piece.phase) * 0.5) * piece.amp;
+          piece.mesh.rotation.z = piece.rotZ + Math.sin(clock * 1.05 - piece.phase) * piece.spin * 2.6;
+          piece.mesh.rotation.x = piece.rotX + Math.sin(clock * 0.9 + piece.phase * 1.6) * piece.spin * 1.6;
         }
       }
 

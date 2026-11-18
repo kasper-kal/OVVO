@@ -14,7 +14,14 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
-const BASE = process.env.YEARBOOK_URL ?? 'http://127.0.0.1:3000/yearbook?demo=1&persona=regular';
+/*
+ * `STILL_MOTION=1` pins every object's clock at zero (`?stillmotion=1`), which is the deck as it was
+ * before the film was given something to do: a picture per card instead of a film per card. It is the
+ * break that proves the motion score below is measuring motion and not a drifting grain.
+ */
+const BASE =
+  (process.env.YEARBOOK_URL ?? 'http://127.0.0.1:3000/yearbook?demo=1&persona=regular') +
+  (process.env.STILL_MOTION ? '&stillmotion=1' : '');
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const pageErrors = [];
@@ -383,6 +390,17 @@ const judgeObject = (scene, box) => {
 
 /* Filled by the motion sampler below, which the cover reaches before its own definition. */
 const stillChapters = [];
+/* How far each card's picture moved in a tenth of a second, 0–255 per channel. */
+const motionScores = [];
+/*
+ * **The floor is a proof of life, not a speed limit.**
+ *
+ * A frozen canvas measures exactly nought (`STILL_MOTION=1` proves it), and the quietest real card —
+ * the ranking, whose bars are wide and shallow — measures between a third and one. The floor sits
+ * above nought and below every card that turns. How fast the film moves is the recording's job to
+ * answer, not this file's: `design/wrapped-comparison/REVIEW-2026-11-18.md` measures it at 0.1s.
+ */
+const MOTION_FLOOR = Number(process.env.MOTION_FLOOR ?? 0.1);
 
 /* The cover first, before Begin: the walk used to start after it and never measured it at all. */
 const coverScene = await readScene();
@@ -407,13 +425,58 @@ const moving = !motionBefore.equals(motionAfter);
  * thing this pass exists to end. Two 800ms frames stay well inside the short book's page timer.
  */
 /* A function declaration, not a const: the cover is sampled before this line is reached. */
+/*
+ * **A tenth of a second, which is the reference's own beat.**
+ *
+ * The old test asked whether two frames 700ms apart were different at all, so a card that swayed one
+ * pixel passed. Read against the recording, our cards moved at about half the reference's rate and a
+ * third of them barely moved at all. This measures the mean change per channel across a tenth of a
+ * second of the canvas — the picture, without the grain over it — and holds every card to a floor.
+ */
+/* A declaration, not a const: the walk calls it before this line is reached. */
+function filmFrame() {
+  return page.evaluate(() => {
+    const source = document.querySelector('.film2 .w-canvas');
+    if (!source) return null;
+    const small = document.createElement('canvas');
+    small.width = 24;
+    small.height = 52;
+    const context = small.getContext('2d');
+    if (!context) return null;
+    context.drawImage(source, 0, 0, small.width, small.height);
+    return Array.from(context.getImageData(0, 0, small.width, small.height).data);
+  });
+}
+
+/* The pause button holds the picture without moving it; a second press lets it go again. */
+async function holdFrame(hold) {
+  const button = page.locator('.wrapped-pause');
+  if (!(await button.count())) return;
+  const paused = await page.evaluate(
+    () => document.querySelector('.wrapped-pause')?.getAttribute('aria-pressed') === 'true' ||
+      document.querySelector('.wrapped-pause')?.dataset.paused === '1',
+  );
+  if (hold === paused) return;
+  await button.click({ timeout: 4000 }).catch(() => {});
+  await page.waitForTimeout(140);
+}
+
 async function sampleMotion(name) {
-  await page.waitForTimeout(700);
-  const first = await page.evaluate(() => document.querySelector('.film2 .w-canvas')?.toDataURL() ?? '');
-  await page.waitForTimeout(700);
-  const second = await page.evaluate(() => document.querySelector('.film2 .w-canvas')?.toDataURL() ?? '');
-  /* The canvas alone: a screenshot also carries the grain, which drifted even with the mass frozen. */
-  if (!first || first === second) stillChapters.push(name);
+  await page.waitForTimeout(1250);
+  const first = await filmFrame();
+  await page.waitForTimeout(100);
+  const second = await filmFrame();
+  if (!first || !second) {
+    stillChapters.push(name);
+    return;
+  }
+  let sum = 0;
+  for (let i = 0; i < first.length; i += 4) {
+    sum += Math.abs(first[i] - second[i]) + Math.abs(first[i + 1] - second[i + 1]) + Math.abs(first[i + 2] - second[i + 2]);
+  }
+  const mean = sum / (first.length * 0.75);
+  motionScores.push({ name, mean: Math.round(mean * 100) / 100 });
+  if (mean < MOTION_FLOOR) stillChapters.push(`${name} (moved ${Math.round(mean * 100) / 100} of ${MOTION_FLOOR})`);
 }
 
 for (let i = 0; i < chapterCount - 1; i += 1) {
@@ -424,9 +487,20 @@ for (let i = 0; i < chapterCount - 1; i += 1) {
     });
   }
 
+  /*
+   * **Composition is measured on a held frame.**
+   *
+   * A card that turns for its whole life has no single pose, and sampling the crop and the contrast
+   * at whatever instant the walk arrives gave two different answers on two runs — the object could
+   * be mid-sway over the sentence on one and clear of it on the next. Pause holds the picture where
+   * it stands, so these two rules measure the composition the card settles into. Motion is measured
+   * after the hold is released, one tenth of a second at a time.
+   */
+  await holdFrame(true);
   const scene = await readScene();
   if (scene) judgeObject(scene, await objectAlphaBox(scene.filmBox));
   scenes.push(scene);
+  await holdFrame(false);
   if (scene) await sampleMotion(scene.chapter);
 
   if (i < chapterCount - 2) {
@@ -1009,11 +1083,14 @@ if (failures.length) {
 }
 
 const fewestSteps = Math.min(...present.map((scene) => scene.steps));
+const weakestMotion = motionScores.length ? Math.min(...motionScores.map((entry) => entry.mean)) : 0;
+const strongestMotion = motionScores.length ? Math.max(...motionScores.map((entry) => entry.mean)) : 0;
 
 console.log(
   `WRAPPED FILM: PASS — ${present.length} colour fields, ${grounds.size} grounds, ${shapes.size} masses, ` +
     `${lines.size} still sentences (weakest ${weakest.toFixed(1)}:1 on its own field), ${shares} shares, ` +
-    `every object cut on two edges and built of steps (fewest ${fewestSteps}), every chapter moving on its own clock, ` +
+    `every object cut on two edges and built of steps (fewest ${fewestSteps}), ` +
+    `every card moving in a tenth of a second (weakest ${weakestMotion}, strongest ${strongestMotion}, floor ${MOTION_FLOOR}), ` +
     `${new Set(families).size} colour families with no two neighbours sharing one and every ink over 7:1, ` +
     'something to look at on every card, ' +
     `five ranked rows in order and cut by the bottom of the frame, one busiest day with its date and count, ` +

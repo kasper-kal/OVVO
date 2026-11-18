@@ -448,7 +448,15 @@ export function WrappedPage() {
    */
   useEffect(() => {
     if (bare || last || director || paused) return undefined;
-    const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
+    /*
+     * **The card's clock, capped.**
+     *
+     * Read frame by frame against the reference, our cards sat for 15.6 seconds each where its parts
+     * turn over at 9.6: four and a half seconds of every card were spent asking to be swiped away.
+     * The cap brings a card in at ten and a half seconds at the outside, which is the reference's own
+     * pace with a beat of room. The song still owns the turn when it finishes first.
+     */
+    const quiet = Math.max(6500, Math.min(10500, (trackSeconds(chapter.track) + 1) * 1000));
     const timer = window.setTimeout(() => {
       if (index === 0) setStarted(true);
       go(index + 1);

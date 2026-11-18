@@ -2,6 +2,21 @@
 
 Written 17 November 2026, from the steerer's own capture of Wrapped 2024.
 
+**Phase 5, 18 November 2026 — the film moves.** The re-read scored the deck 6/10 and named three
+causes. Two are answered here. Every card now runs on three clocks: a sway, a push that brings the
+body a fifth closer across the card, and a pulse on the beat every 2.4 seconds that lurches it at the
+camera with the key light. The slabs ride a wave that travels along the stack. A **small line under
+the big one** arrives with the card and swaps at the halfway point, which is the thing that made the
+reference read as written rather than printed. Grain drifts over the field and the corners darken.
+The card clock is capped at ten and a half seconds.
+
+Measured on a fresh hands-off recording, 0.1 seconds at a time, against the same measurement of the
+old film: **19 cards in 190.9 seconds** (was 295.5), **79 visual changes in 200 seconds** — one every
+2.5 seconds, against the reference's one every 3.4 — and the smallest movement across a card up from
+nearly nothing to a tenth of the frame. The one gap left is photography: brightness is 124 against
+the reference's 48, because it is all colour field and no photographs, and the deck has no artwork to
+put in them.
+
 **Re-read frame by frame on 18 November 2026**, every 0.1 second of both films, with the measurements:
 `design/wrapped-comparison/REVIEW-2026-11-18.md`. It scores the Yearbook **6/10** and names the three
 things that would take it to eight: movement on every card, photography, and a second line of copy.

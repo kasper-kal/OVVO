@@ -196,6 +196,67 @@ function lineFor({
   return "That was the year. Don't be a stranger.";
 }
 
+/*
+ * **The line under the line.**
+ *
+ * The reference never leaves a card with one sentence for its whole life: it sets a small line
+ * beneath the big one and swaps it mid-card, which is most of why its frames read as written rather
+ * than printed. This is that line, in two halves — the first runs as the card arrives, the second
+ * takes over at the halfway point, and the stylesheet crossfades them on the card's own clock.
+ *
+ * It is a `div`, not a `p`, on purpose: `scripts/check-wrapped-scenes.mjs` counts `h1`, `h2` and `p`
+ * to prove a card has one headline, and this is the small line beside it, not a second headline.
+ */
+function subFor(chapter: Chapter): { a: string; b: string } | null {
+  const top = chapter.ranked?.[0];
+  if (chapter.kind === 'cover') return null;
+  if (chapter.kind === 'close') return null;
+  switch (chapter.id) {
+    case 'total':
+      return { a: 'every one of them, counted', b: 'not a single tap wasted' };
+    case 'name':
+      return { a: 'the shape your week took', b: 'and it suits you' };
+    case 'map':
+      return { a: 'one dot for every stop you used', b: 'and the lines between them' };
+    case 'distance':
+      return { a: 'window seat, obviously', b: "that's Utrecht to Rome and back" };
+    case 'pair':
+      return { a: 'there and back, again and again', b: 'your most-travelled pair' };
+    case 'origin':
+      return { a: 'where every journey began', b: 'your second address, honestly' };
+    case 'hour':
+      return { a: 'the minute you always leave', b: 'every working day, almost' };
+    case 'direct':
+      return { a: 'no changes, no luck', b: 'the long way round, every time' };
+    case 'longest':
+      return { a: 'your longest single sit', b: 'one seat, no stops' };
+    case 'look':
+      return { a: 'your colour this year', b: 'it was always going to be this one' };
+    case 'ranked':
+      return top
+        ? { a: 'counted by journeys', b: `${top.name} wins by miles` }
+        : { a: 'counted by journeys', b: 'in the order you used them' };
+    case 'day':
+      return chapter.day
+        ? { a: 'more taps than any other day', b: `${chapter.day.count} on the day` }
+        : { a: 'more taps than any other day', b: 'one date, no argument' };
+    case 'eras':
+      return { a: 'three chapters of you', b: 'the last one is the loudest' };
+    case 'lines':
+      return { a: 'said more than any other', b: 'you know which one' };
+    case 'awards':
+      return { a: 'one trophy, no contest', b: 'pick it up on the way out' };
+    case 'bookends':
+      return { a: 'first out, last home', b: 'the timetable knows your name' };
+    case 'comparison':
+      return { a: 'against last year', b: 'you went further' };
+    case 'crew':
+      return { a: 'the people in your seats', b: "they'd do it again" };
+    default:
+      return null;
+  }
+}
+
 type SceneProps = {
   chapter: Chapter;
   year: number;
@@ -227,6 +288,7 @@ export function WrappedScenes({
   const place = PLACE[chapter.id] ?? 'center';
   const size = SIZE[chapter.id] ?? 'large';
   const line = lineFor({ chapter, year, demo, yearOver, count });
+  const sub = subFor(chapter);
   /* Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. */
   const words = line.split(/ +/);
 
@@ -254,12 +316,21 @@ export function WrappedScenes({
             </Fragment>
           ))}
         </h1>
+        {sub ? (
+          <div className="film2-sub">
+            <span className="film2-sub__a">{sub.a}</span>
+            <span className="film2-sub__b">{sub.b}</span>
+          </div>
+        ) : null}
         {chapter.kind === 'cover' ? (
           <button type="button" className="film2-begin" onClick={onBegin}>
             Begin
           </button>
         ) : null}
       </div>
+
+      {/* Grain and the darkening at the corners: the difference between a print and a photograph. */}
+      <span className="film2-grain" aria-hidden="true" />
 
       {/*
         * **The list is the picture.**
