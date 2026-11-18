@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
+import { lookFor } from '../../lib/wrappedLook';
 import { WrappedArt } from './WrappedArt';
 import { WrappedPoster } from './WrappedPoster';
 
@@ -14,6 +15,33 @@ import { WrappedPoster } from './WrappedPoster';
  * The number is inside the sentence, not a separate monument. Every kicker, sub-line, route label,
  * footnote, story bridge, diagram and credit block is gone on purpose, and stays gone.
  */
+
+
+/*
+ * **Stepped hills, drawn from the chapter's own name.**
+ *
+ * Two rungs of hills per card, each a staircase of whole units rather than a curve, so the horizon
+ * reads as cut paper the way the reference's does. The same chapter always draws the same hills.
+ */
+function hillsFor(id: string, layer: number): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i) + layer * 17) % 100003;
+  let state = hash || 1;
+  const rand = () => {
+    state = (state * 1103515245 + 12345) % 2147483648;
+    return state / 2147483648;
+  };
+  const base = layer === 0 ? 62 : 100;
+  const span = layer === 0 ? 24 : 32;
+  const columns = 25;
+  const parts = ['M0 200', `L0 ${Math.round(base + rand() * span)}`];
+  for (let i = 1; i <= columns; i += 1) {
+    parts.push(`H${Math.round((100 / columns) * i)}`);
+    parts.push(`V${Math.round(base + rand() * span)}`);
+  }
+  parts.push('H100', 'V200', 'Z');
+  return parts.join(' ');
+}
 
 type Place = 'top' | 'center' | 'bottom';
 
@@ -303,6 +331,33 @@ export function WrappedScenes({
       data-day-count={chapter.day ? String(chapter.day.count) : ''}
       key={chapter.id}
     >
+      {/*
+        * **The background is the picture.**
+        *
+        * The reference does not put one shape on a colour field. Every card is a whole scene: a sky
+        * with a sunk glow in it, two rungs of stepped hills that bleed off both edges, a darker floor
+        * under them, and the print texture of a reprocessed photograph over all of it. That is the
+        * thing that was wrong — not the object, not the type, the *backdrop*.
+        *
+        * The scene is drawn from the chapter's own look, so it cannot disagree with the field, and its
+        * layers move at different speeds, which is what gives a flat picture depth.
+        */}
+      <div className={`w-scene w-scene--${place}`} aria-hidden="true">
+      <svg viewBox="0 0 100 200" preserveAspectRatio="none">
+        <defs>
+          <radialGradient id={`glow-${chapter.id}`} cx="50%" cy="34%" r="52%">
+            <stop offset="0%" stopColor={lookFor(chapter.id).mass[1]} stopOpacity="0.95" />
+            <stop offset="55%" stopColor={lookFor(chapter.id).mass[1]} stopOpacity="0.25" />
+            <stop offset="100%" stopColor={lookFor(chapter.id).mass[1]} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle className="w-scene__sun" cx="62" cy="46" r="46" fill={`url(#glow-${chapter.id})`} />
+        <path className="w-scene__far" d={hillsFor(chapter.id, 0)} fill={lookFor(chapter.id).mass[0]} opacity="0.55" />
+        <path className="w-scene__near" d={hillsFor(chapter.id, 1)} fill={lookFor(chapter.id).mass[0]} opacity="0.92" />
+        <path className="w-scene__floor" d="M0 168 H100 V200 H0 Z" fill={lookFor(chapter.id).mass[0]} opacity="0.97" />
+      </svg>
+      </div>
+
       <WrappedArt chapter={chapter} count={count} year={year} still={still} hold={hold} />
 
       <div className="film2-copy">

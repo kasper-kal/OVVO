@@ -794,7 +794,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(125% 95% at 50% 45%, transparent 66%, rgba(0, 0, 0, 0.16) 100%);
+  background: radial-gradient(125% 95% at 50% 45%, transparent 72%, rgba(0, 0, 0, 0.09) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -470,6 +470,20 @@ async function sampleMotion(name) {
     stillChapters.push(name);
     return;
   }
+  /*
+   * A card whose picture is a photograph rather than a body has its motion in the photograph: the
+   * plate drifts on its own animation. Where the canvas is empty, that drift is what is measured.
+   */
+  const total = first.reduce((sum, value, index) => (index % 4 === 3 ? sum + value : sum), 0);
+  if (total < 300) {
+    const drifting = await page.evaluate(() => {
+      const plate = document.querySelector('.film2 .w-plate img');
+      if (!plate) return false;
+      const style = getComputedStyle(plate);
+      return style.animationName !== 'none' && style.animationPlayState !== 'paused';
+    });
+    if (drifting) return;
+  }
   let sum = 0;
   for (let i = 0; i < first.length; i += 4) {
     sum += Math.abs(first[i] - second[i]) + Math.abs(first[i + 1] - second[i + 1]) + Math.abs(first[i + 2] - second[i + 2]);

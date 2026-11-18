@@ -685,7 +685,7 @@ export function WrappedMasses({
        * passes leave it about a third short, so its right edge sat inside the frame however wide the
        * target was set. It is scaled the rest of the way here, on the one chapter that needs it.
        */
-      const finalScale = chapter.id === 'ranked' ? factor * 1.3 : factor;
+      const finalScale = chapter.id === 'ranked' ? factor * 1.3 : chapter.id === 'crew' ? factor * 1.16 : factor;
       place(finalScale);
       nominal = finalScale;
 
