@@ -644,7 +644,8 @@ export function WrappedMasses({
        * two cut edges survive the movement rather than only the still.
        */
       /* The ranking's bar chart is the widest body in the deck and the least forgiving of a shove. */
-      const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.32 : 1.2;
+      /* Every body overhangs a little more: the sway and the beat spend part of the overhang now. */
+      const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.36 : 1.26;
       const target = overshoot * Math.max(frame.width, frame.height);
 
       /*
@@ -720,8 +721,9 @@ export function WrappedMasses({
        * taller than the frame rather than wider, so the sideways test never fired and the drag from
        * the ring sat behind the largest sentence in the deck — 6.4:1 where the rule asks for 7.
        */
-      if (chapter.id === 'close') {
-        built.group.position.y += (0.3 * frame.height) / pxPerUnit;
+      if (chapter.id === 'close' || chapter.id === 'total') {
+        /* Both grew a small line above their headline and need their body further off it. */
+        built.group.position.y += ((chapter.id === 'close' ? 0.3 : 0.2) * frame.height) / pxPerUnit;
       } else if (copyPlace === 'top' && crossesX) {
         built.group.position.y -= (0.13 * frame.height) / pxPerUnit;
       } else if (copyPlace === 'bottom' && crossesX) {

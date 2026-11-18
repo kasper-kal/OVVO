@@ -845,11 +845,26 @@
  * always had, the big line stays exactly where it was approved, and the small line reads as the
  * label Wrapped puts over its own headline anyway.
  */
-/* The copy block is already positioned by its place rule, so the small line hangs off it. */
+/*
+ * **In the flow, under the headline.**
+ *
+ * Absolute positioning was the wrong tool: the copy block's top edge is inside the headline's own
+ * line box, so the small line landed on the first line and ghosted through it at the crossfade —
+ * visible in the second frame review, invisible in the contact sheets. It sits under the headline in
+ * the flow now, which cannot overlap it whatever the type size, and a bottom-placed card grows
+ * upwards as it always did.
+ */
 .film2--place-bottom .film2-sub {
-  position: absolute;
-  left: 0;
-  bottom: 100%;
-  margin: 0 0 0.45rem;
-  width: 100%;
+  margin-top: 0.4rem;
+}
+
+/* A shorter crossfade with a gap, so the two halves are never both half-visible at once. */
+@keyframes film-sub-a {
+  0%, 46% { opacity: 0.8; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes film-sub-b {
+  0%, 50% { opacity: 0; }
+  54%, 100% { opacity: 0.8; }
 }
