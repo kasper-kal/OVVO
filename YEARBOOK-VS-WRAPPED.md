@@ -241,6 +241,19 @@ cylinder, `STILL=1` freezes the clock.
 **Done when** all chapters pass and one of our cards beside one of theirs reads as the same medium at a
 glance.
 
+**Built, 18 November 2026.** Every chapter's body is now a staircase: a run of shrinking slabs that
+climbs, or a ring of boxes standing shoulder to shoulder, from 7 steps at the fewest to 80 in the
+hour's tunnel. Each body is measured by projecting its own vertices through the live camera and sized
+until its long side runs a fifth past the frame, then nudged off centre, then stepped away from
+whichever side the sentence sits on. All eighteen are cut by two or three edges. They are lit by a
+key, a cold rim and a fill, with a 2048 shadow map so each step shades the one below it, and they
+drift on their own clock with a one-second entrance while the words stay still. The check was
+extended and every new assertion shown to fail first: eighteen crop failures with the fit at 55 per
+cent, eighteen step failures with the count forced to 1, eighteen motion failures with the clock
+pinned. Then it prints PASS. Two things fell out of the work and were fixed with it: the close
+chapter's white share stub swept through its last sentence as the body turned (2.3:1), and reduced
+motion used to stop only the small bobs, so a page meant to be still kept drifting.
+
 ### Phase 2 — A world per card, colour that can be read
 
 **What is wrong.** Every chapter is the same two-colour blend, so they blur into one another, and a few

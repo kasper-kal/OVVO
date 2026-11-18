@@ -87,8 +87,12 @@ const LOOK: Record<string, Look> = {
     photo: true,
   },
   eras: {
+    /*
+     * Cream, not near-black. The sentence sits in the lower third, where the field has already gone
+     * dark red and the slabs are darker still; dark ink there was 2.5:1 against its own ground.
+     */
     ground: 'linear-gradient(160deg, #ffd7b0 0%, #ff5a1f 54%, #a01500 100%)',
-    ink: '#2a0800',
+    ink: '#fff7ea',
     mass: ['#5a0500', '#ffb37a'],
   },
   lines: {
