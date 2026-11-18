@@ -28,6 +28,8 @@ const SIZE: Record<string, 'small' | 'medium' | 'large'> = {
   direct: 'large',
   longest: 'medium',
   look: 'large',
+  ranked: 'medium',
+  day: 'large',
   eras: 'small',
   lines: 'medium',
   awards: 'medium',
@@ -54,6 +56,8 @@ const PLACE: Record<string, Place> = {
   direct: 'top',
   longest: 'top',
   look: 'bottom',
+  ranked: 'top',
+  day: 'bottom',
   eras: 'bottom',
   lines: 'bottom',
   awards: 'top',
@@ -139,6 +143,30 @@ function lineFor({
     return `${chapter.big} was the mood.`;
   }
 
+  /*
+   * **The list and the day.**
+   *
+   * The ranked card's rows carry the five names and their counts, so the sentence says what the
+   * rows are and nothing that is already printed beside it. The day card is the one date and one
+   * number, said as a sentence rather than a stack of figures.
+   */
+  if (chapter.kind === 'ranked') {
+    const places = chapter.ranked?.length ?? 0;
+    return places === 1
+      ? 'One place, again and again.'
+      : `${places} places, in the order you used them.`;
+  }
+
+  if (chapter.kind === 'day' && chapter.day) {
+    /*
+     * The number is the day's own count, not the deck's counting figure: a date with a figure that
+     * climbs towards it reads as a dashboard, and it changed the sentence under the check's feet
+     * while it climbed. A day is a fact that is simply true.
+     */
+    const onTheDay = chapter.day.count;
+    return `Your busiest day: ${chapter.day.date}, ${onTheDay} ${onTheDay === 1 ? 'journey' : 'journeys'}.`;
+  }
+
   if (chapter.kind === 'eras') {
     const eras = chapter.eras?.length ?? 0;
     return eras === 1 ? 'One era. A full character arc.' : `${eras} eras. A full character arc.`;
@@ -183,6 +211,7 @@ export function WrappedScenes({
   chapter,
   year,
   count,
+  journeys,
   demo,
   yearOver,
   still,
@@ -200,6 +229,9 @@ export function WrappedScenes({
       data-chapter={chapter.id}
       data-place={place}
       data-size={size}
+      /* The day card's own two facts, so the deck check can read what the sentence was built from. */
+      data-day={chapter.day?.date ?? ''}
+      data-day-count={chapter.day ? String(chapter.day.count) : ''}
       key={chapter.id}
     >
       <WrappedArt chapter={chapter} count={count} year={year} still={still} />
@@ -221,6 +253,28 @@ export function WrappedScenes({
           </button>
         ) : null}
       </div>
+
+      {/*
+        * **The list is the picture.**
+        *
+        * Five rows on the colour itself: the place's first letter on a stepped tile, the name, the
+        * count. No card behind them, and the last row runs past the bottom of the frame so the list
+        * reads as carrying on past the edge instead of stopping neatly at five.
+        */}
+      {chapter.kind === 'ranked' && chapter.ranked?.length ? (
+        <ol className="w-rank" data-total={journeys}>
+          {chapter.ranked.map((row, at) => (
+            <li className="w-rank__row" key={row.name} data-pos={at + 1} data-count={row.count}>
+              <span className="w-rank__no">{at + 1}</span>
+              <span className="w-rank__tile" aria-hidden="true">
+                {row.initial}
+              </span>
+              <span className="w-rank__name">{row.name}</span>
+              <span className="w-rank__count">{row.count}</span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
     </div>
   );
 }

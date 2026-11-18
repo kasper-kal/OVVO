@@ -165,6 +165,98 @@ export function tallyYears(): number[] {
   return [...years].sort((a, b) => b - a);
 }
 
+/*
+ * **Three questions the cards ask that a total cannot answer.**
+ *
+ * Every card before this one counted the year as a whole: how many, how far, which hour. Wrapped
+ * also picks things out — five names in order, one date, a run of days — because a total is a fact
+ * and a ranking is a story. These three readers are the only place those answers come from, they
+ * are pure, and they take a tally rather than reading storage, so the demo year and a real one give
+ * the answers by exactly the same route.
+ */
+
+/** A day with no clock on it: two searches on one day are one day. */
+function dayOf(at: number): number {
+  const date = new Date(at);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+export interface RankedStop {
+  id: string;
+  count: number;
+}
+
+/**
+ * **The five places the year used most.**
+ *
+ * A stop counts once for every journey it stood at either end of, which is what "the place you kept
+ * going back to" means. Ties are broken by id rather than by chance, so the list is the same list
+ * every time the page is opened and the closing card can print exactly what the film showed.
+ */
+export function rankedStops(tally: YearTally, limit = 5): RankedStop[] {
+  const counts = new Map<string, number>();
+  for (const run of tally.runs) {
+    for (const id of [run.from, run.to]) {
+      if (id) counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .map(([id, count]) => ({ id, count }))
+    .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))
+    .slice(0, limit);
+}
+
+export interface BusiestDay {
+  at: number;
+  count: number;
+}
+
+/** **One day, with a number on it.** The day with the most journeys; a tie goes to the earlier one. */
+export function busiestDay(tally: YearTally): BusiestDay | null {
+  const counts = new Map<number, number>();
+  for (const run of tally.runs) {
+    const day = dayOf(run.at);
+    counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+  let best: BusiestDay | null = null;
+  for (const [at, count] of counts) {
+    if (!best || count > best.count || (count === best.count && at < best.at)) best = { at, count };
+  }
+  return best;
+}
+
+export interface TravelStreak {
+  days: number;
+  first: number;
+  last: number;
+}
+
+/**
+ * **The longest run of days in a row with a journey.**
+ *
+ * Days are compared as calendar days rather than as twenty-four-hour gaps, so a run through a clock
+ * change is still a run. A single day is a streak of one rather than nothing: the traveller did go.
+ */
+export function longestStreak(tally: YearTally): TravelStreak | null {
+  const days = [...new Set(tally.runs.map((run) => dayOf(run.at)))].sort((a, b) => a - b);
+  if (!days.length) return null;
+  let best: TravelStreak = { days: 1, first: days[0], last: days[0] };
+  let run = 1;
+  for (let index = 1; index < days.length; index += 1) {
+    const next = new Date(days[index - 1]);
+    next.setDate(next.getDate() + 1);
+    if (next.getTime() === days[index]) {
+      run += 1;
+      if (run > best.days) {
+        best = { days: run, first: days[index - run + 1], last: days[index] };
+      }
+    } else {
+      run = 1;
+    }
+  }
+  return best;
+}
+
 /** **Empty the year.** One control, one action: the tally starts again with nothing in it. */
 export function clearTally(): void {
   writeTally(EMPTY);

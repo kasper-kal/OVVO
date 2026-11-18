@@ -228,3 +228,80 @@
     top: 15%;
   }
 }
+
+/* ---------------------------------------------------------------- the ranked list */
+
+/*
+ * **The list is the picture.**
+ *
+ * Five rows stand on the colour itself: a hairline between them, the place's own letter on a stepped
+ * tile, the name, the count on the right. There is no card behind them and no plate under the words,
+ * because a list on a card is a table and a list on the colour is a ranking.
+ *
+ * The rows start just past the middle and each one is a tenth of the frame, so the fifth runs past
+ * the bottom edge: the list reads as carrying on instead of stopping neatly at five, which is the
+ * same trick the masses use on the edges.
+ */
+.film2--ranked .w-rank {
+  position: absolute;
+  top: 56%;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  margin: 0;
+  padding: 0 clamp(18px, 5vw, 68px);
+  color: var(--ink, #f4ffe6);
+  list-style: none;
+  pointer-events: none;
+}
+
+.w-rank__row {
+  display: grid;
+  grid-template-columns: clamp(18px, 2.4vw, 32px) clamp(30px, 3.4vw, 44px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(10px, 1.6vw, 22px);
+  height: 10vh;
+  border-top: 1px solid color-mix(in srgb, var(--ink, #f4ffe6) 26%, transparent);
+}
+
+.w-rank__row:first-child {
+  border-top: 0;
+}
+
+.w-rank__no {
+  font: 700 clamp(11px, 1.1vw, 15px) / 1 'Archivo', sans-serif;
+  letter-spacing: 0.06em;
+  opacity: 0.66;
+}
+
+.w-rank__tile {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--accent, #e6ff6a);
+  color: #06210a;
+  font: 800 clamp(12px, 1.2vw, 17px) / 1 'Archivo', sans-serif;
+}
+
+.w-rank__name {
+  overflow: hidden;
+  font: 700 clamp(16px, 2.1vw, 32px) / 1.1 'Archivo', sans-serif;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-rank__count {
+  font: 800 clamp(18px, 2.4vw, 36px) / 1 'Archivo', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The workshop mode is judged on the picture, so the rows go with the sentence, the share and the
+ * sound: a contrast reading taken over the words with the words still in it is not a reading.
+ */
+.wrapped-stage.is-bare .w-rank {
+  display: none;
+}

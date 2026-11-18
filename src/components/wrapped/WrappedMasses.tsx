@@ -264,6 +264,48 @@ function build(chapter: Chapter): Built {
       break;
     }
 
+    case 'ranked': {
+      /*
+       * Five stepped columns, tallest first: the ranking itself, standing in a row so wide that the
+       * frame cuts both ends off it. The columns are one colour on purpose - the five names and
+       * their counts are set over this, and a bright slab behind a row would take the row's reading
+       * away with it.
+       */
+      const heights = [2.6, 2.2, 1.9, 1.5, 1.1];
+      heights.forEach((height, i) => {
+        slabs(built, {
+          count: 4,
+          w: 1.8,
+          h: height / 4,
+          d: 1.6,
+          x: -8.4 + i * 4.2,
+          y: -1.4 + height / 2,
+          dy: -(height / 4) * 0.94,
+          shrink: 0.04,
+          colour: shade(base, i * 0.05),
+          amp: 0.04,
+        });
+      });
+      break;
+    }
+
+    case 'day': {
+      /* One day, one shaft: a single stepped column that runs past the top and the bottom. */
+      slabs(built, {
+        count: 9,
+        w: 1.7,
+        h: 1.5,
+        d: 1.5,
+        y: -6.4,
+        dy: 1.55,
+        shrink: 0.02,
+        tilt: 0.012,
+        colour: base,
+        amp: 0.06,
+      });
+      break;
+    }
+
     case 'eras': {
       for (let i = 0; i < 3; i += 1) {
         slabs(built, {
@@ -566,7 +608,17 @@ export function WrappedMasses({ chapter, still }: { chapter: Chapter; still?: bo
       const [signX, signY] = pieceAxis(chapter.id);
       const settled = measure();
       const pxPerUnit = settled.w / Math.max(0.001, (local.max.x - local.min.x) * factor);
-      built.group.position.x += (signX * 0.06 * frame.width) / pxPerUnit;
+      /*
+       * **A wide body gets a smaller shove.**
+       *
+       * The fit leaves a tenth of the frame hanging past each side, and six per cent of the frame is
+       * more than half of that: on the ranked chapter's bar chart the nudge and the entrance's own
+       * turn together pulled the right edge back inside the frame, so the crop came and went from one
+       * run to the next. The shove is measured against the body's own shape now - wide bodies keep
+       * their overshoot, tall ones keep the full off-centre crop.
+       */
+      const wide = settled.w / Math.max(1, settled.h) > 2.4;
+      built.group.position.x += (signX * (wide ? 0.02 : 0.06) * frame.width) / pxPerUnit;
 
       /*
        * **The flat patch is where the words are not.**

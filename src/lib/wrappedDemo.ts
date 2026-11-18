@@ -92,7 +92,15 @@ export function demoYear(
       for (let n = 0; n < weight; n += 1) monthPool.push(month);
     });
     const month = monthPool[Math.floor(random() * monthPool.length)];
-    const day = 1 + Math.floor(random() * 28);
+    /*
+     * **A real year travels on a handful of days a month, not on all twenty-eight.**
+     *
+     * Spreading the runs evenly over the calendar made every day hold nought or one journey, so the
+     * busiest day chapter read "2 journeys" in a hundred and forty-six journey year: technically
+     * true, and nothing like a person's week. Five travelling days a month is what a commute looks
+     * like, and it gives the single-day card a number worth printing.
+     */
+    const day = 1 + Math.floor(random() * 5) * 6;
     const hour = peaks[Math.floor(random() * peaks.length)];
     const [from, to] = pairs[Math.floor(random() * pairs.length)];
     const changes = random() < 0.42 ? 0 : random() < 0.75 ? 1 : 2;

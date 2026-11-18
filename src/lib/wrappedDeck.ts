@@ -16,7 +16,7 @@ import { MAP_POINT } from '../data/map';
 import type { Language } from '../state/types';
 import { formatDuration } from './format';
 import { styleById, stylePhotoPath } from './styles';
-import type { YearTally } from './wrapped';
+import { busiestDay, longestStreak, rankedStops, type TravelStreak, type YearTally } from './wrapped';
 import type { Track } from './wrappedSound';
 
 /** The colour a chapter is painted in. Each is a token, so the look still shows through. */
@@ -32,6 +32,8 @@ export type ChapterKind =
   | 'stretch'
   | 'word'
   | 'name'
+  | 'ranked'
+  | 'day'
   | 'eras'
   | 'map'
   | 'awards'
@@ -110,6 +112,22 @@ export interface ChapterDistance {
   avoidedKg: number;
 }
 
+export interface RankedRow {
+  /** The stop's name, as the app spells it. */
+  name: string;
+  /** The letter on the row's tile: we have no photographs, so the place is drawn. */
+  initial: string;
+  /** How many journeys stood at this stop, either end. */
+  count: number;
+}
+
+export interface BusiestDayCard {
+  at: number;
+  count: number;
+  /** The day in the deck's language: "14 March", "14 maart". */
+  date: string;
+}
+
 export interface CrewSummary {
   journeys: number;
   topLine: string | null;
@@ -175,6 +193,12 @@ export interface Chapter {
   eras?: EraPhase[];
   /** The year's own web of journeys, for the map chapter. */
   map?: ChapterMap;
+  /** The five places used most, in order, for the ranked chapter. */
+  ranked?: RankedRow[];
+  /** The one day the year did the most travelling, for the day chapter. */
+  day?: BusiestDayCard;
+  /** The longest run of days with a journey. The film does not say it yet; the share card prints it. */
+  streak?: TravelStreak;
   /** The playful awards the year earned. */
   awards?: YearAward[];
   /** The first and last journey, for the quiet bookend chapter. */
@@ -648,6 +672,27 @@ export function buildStory({
   };
   const comparison = comparisonFor({ year, runs, tally, previous, language });
 
+  /*
+   * **Five names, one date.**
+   *
+   * The readers in `lib/wrapped` answer with ids and moments; the deck is the only place that knows
+   * the app's words for a place, so the naming happens here and the share sheet receives the same
+   * list rather than looking it up a second time. That is what makes "the card prints what the list
+   * showed" a fact about the data instead of a hope about two pieces of code agreeing.
+   */
+  const rankRows: RankedRow[] = rankedStops(tally, 5).map((entry) => {
+    const name = nameOf(entry.id);
+    return { name, initial: name.trim().charAt(0).toUpperCase(), count: entry.count };
+  });
+  const busiest = busiestDay(tally);
+  const streak = longestStreak(tally);
+  const busiestDate = busiest
+    ? new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+      }).format(busiest.at)
+    : '';
+
   const story: Array<Chapter | null> = [
     {
       id: 'cover',
@@ -808,6 +853,32 @@ export function buildStory({
           line: 'in this look.',
           /* The page wears the look too: its own photograph, full bleed, behind the words. */
           photo: lookList[0] ? stylePhotoPath(lookList[0].value) : undefined,
+        }
+      : null,
+    rankRows.length >= 3
+      ? {
+          id: 'ranked',
+          kind: 'ranked',
+          tone: 'ink',
+          track: 'afrobeat',
+          kicker: 'Your top five',
+          big: `${rankRows.length} places`,
+          line: `${rankRows.length} places, in the order you used them.`,
+          ranked: rankRows,
+        }
+      : null,
+    busiest && busiest.count >= 2
+      ? {
+          id: 'day',
+          kind: 'day',
+          tone: 'cream',
+          track: 'acoustic',
+          kicker: 'Your busiest day',
+          big: busiestDate,
+          /* No counting figure: the day is stated, not counted up to. */
+          line: `${busiest.count} ${busiest.count === 1 ? 'journey' : 'journeys'} on one day.`,
+          day: { at: busiest.at, count: busiest.count, date: busiestDate },
+          streak: streak ?? undefined,
         }
       : null,
     eraList.length

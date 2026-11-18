@@ -18,7 +18,7 @@ import type { YearTally } from '../../lib/wrapped';
  * the year in numbers. More than three choices stops being a share sheet and becomes a design app.
  */
 
-type ShareLayout = 'identity' | 'route' | 'year' | 'award' | 'award-ticket';
+type ShareLayout = 'identity' | 'route' | 'year' | 'ranked' | 'award' | 'award-ticket';
 
 interface ShareCard {
   id: string;
@@ -30,6 +30,8 @@ interface ShareCard {
   statLabel: string;
   line: string;
   rows: Array<{ label: string; value: string }>;
+  /** The ranked card's list, kept as data so what was drawn can be read back and compared. */
+  rank?: Array<{ name: string; count: number }>;
   /* Only the route card has the two ends; its picture is built around them. */
   from?: string;
   to?: string;
@@ -226,23 +228,27 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
     });
   }
 
-  let rowY = 1390;
-  card.rows.slice(0, 3).forEach((row) => {
+  /* The ranked card prints the whole list, so it draws six rows rather than the usual three. */
+  const ranked = card.layout === 'ranked';
+  const rowLimit = ranked ? 6 : 3;
+  const rowStep = ranked ? 62 : 72;
+  let rowY = ranked ? 1300 : 1390;
+  card.rows.slice(0, rowLimit).forEach((row) => {
     ctx.strokeStyle = 'rgba(247, 243, 234, 0.3)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(PAD, rowY - 34);
     ctx.lineTo(W - PAD, rowY - 34);
     ctx.stroke();
-    ctx.fillStyle = 'rgba(247, 243, 234, 0.62)';
-    ctx.font = '600 20px "IBM Plex Mono", monospace';
-    ctx.fillText(row.label.toUpperCase(), PAD, rowY);
-    ctx.fillStyle = ink;
-    ctx.font = '700 28px "Archivo", sans-serif';
+    ctx.fillStyle = ranked ? ink : 'rgba(247, 243, 234, 0.62)';
+    ctx.font = ranked ? '700 26px "Archivo", sans-serif' : '600 20px "IBM Plex Mono", monospace';
+    ctx.fillText(ranked ? short(ctx, row.label, W * 0.62) : row.label.toUpperCase(), PAD, rowY);
+    ctx.fillStyle = ranked ? red : ink;
+    ctx.font = ranked ? '700 30px "Archivo", sans-serif' : '700 28px "Archivo", sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(short(ctx, row.value, W * 0.5), W - PAD, rowY);
+    ctx.fillText(short(ctx, row.value, W * 0.26), W - PAD, rowY);
     ctx.textAlign = 'left';
-    rowY += 72;
+    rowY += rowStep;
   });
 
   ctx.strokeStyle = ink;
@@ -325,6 +331,8 @@ export function WrappedShareDialog({
     const direct = story.find((chapter) => chapter.id === 'direct');
     const lines = story.find((chapter) => chapter.id === 'lines');
     const look = story.find((chapter) => chapter.id === 'look');
+    const rankedChapter = story.find((chapter) => chapter.kind === 'ranked');
+    const dayChapter = story.find((chapter) => chapter.kind === 'day');
     const awards = story.find((chapter) => chapter.kind === 'awards')?.awards ?? [];
     const total = tally.runs.length;
     const journeyWord = total === 1 ? t('journey') : t('journeys');
@@ -401,8 +409,46 @@ export function WrappedShareDialog({
       routeCard.to = route.route.to;
     }
 
+    /*
+     * **The card carries the list the film showed.**
+     *
+     * The five names come from the ranked chapter itself rather than from a second count, so the
+     * thing sent cannot print a different five from the thing watched. `?shareorder=reverse` is the
+     * deliberate break the deck check uses to prove this is read and compared, not assumed: it hands
+     * the card the same five backwards.
+     */
+    const rankRows = rankedChapter?.ranked ?? [];
+    const order =
+      typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('shareorder');
+    const handed = order === 'reverse' ? [...rankRows].reverse() : rankRows;
+    const rankCard: ShareCard[] = handed.length
+      ? [
+          {
+            id: 'ranked',
+            layout: 'ranked',
+            tab: t('Your top five'),
+            eyebrow: t('The places you used most'),
+            title: t('Your year, in order'),
+            stat: String(handed[0].count),
+            statLabel: hideStations ? t('A place you know') : handed[0].name,
+            line: t('The places your year kept returning to.'),
+            rows: [
+              ...handed.map((row) => ({
+                label: hideStations ? t('A place you used') : row.name,
+                value: String(row.count),
+              })),
+              ...(dayChapter?.streak
+                ? [{ label: t('Longest streak'), value: `${dayChapter.streak.days} ${t('days')}` }]
+                : []),
+            ],
+            rank: handed,
+          },
+        ]
+      : [];
+
     return [
       ...baseCards,
+      ...rankCard,
       ...awards.map((award, index) => ({
         id: `award-${award.id}`,
         layout: (index % 2 === 0 ? 'award' : 'award-ticket') as ShareLayout,
@@ -532,7 +578,13 @@ export function WrappedShareDialog({
         ))}
       </div>
 
-      <div className="wrapped-share__stage">
+      <div
+        className="wrapped-share__stage"
+        /* What the card was handed, in order, so the deck check can read it without looking at pixels. */
+        data-share-rank={(cards.find((card) => card.rank)?.rank ?? [])
+          .map((row) => `${row.name}:${row.count}`)
+          .join('|')}
+      >
         {busy ? (
           <div className="wrapped-share__loading" role="status">
             {t('Making your cards')}

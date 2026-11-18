@@ -62,7 +62,8 @@ export function WrappedArt({ chapter, still }: ArtProps) {
         </span>
       ) : null}
 
-      {id !== 'look' ? (
+      {/* The ranked chapter's own five rows are the thing to look at, so it gets no second object. */}
+      {id !== 'look' && id !== 'ranked' ? (
         <span className={`w-focal w-focal--${kind}`} data-focal={kind}>
           <i />
           <i />

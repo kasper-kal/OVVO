@@ -114,6 +114,24 @@ const LOOK: Record<string, Look> = {
     mass: ['#3a0055', '#ff2d75'],
     photo: true,
   },
+  ranked: {
+    /*
+     * A deep forest field, not the lime of the year's totals: the list is read at a glance, and a
+     * dark page with cream type is what makes five rows feel like a ranking rather than a table.
+     */
+    family: 'acid',
+    ground: 'linear-gradient(180deg, #04140a 0%, #05701f 52%, #00b832 100%)',
+    ink: '#f4ffe6',
+    /* A forest green rather than near-black: on the dark field the slabs have to read as steps, not as holes. */
+    mass: ['#0b4a1e', '#e6ff6a'],
+  },
+  day: {
+    /* Cream paper with one bright gold form: a single date is a thing printed on a page. */
+    family: 'paper',
+    ground: 'linear-gradient(180deg, #fff6e0 0%, #ffe7c4 54%, #ffd39c 100%)',
+    ink: '#2a0a00',
+    mass: ['#ffe08a', '#ffb000'],
+  },
   eras: {
     /*
      * Cream, not near-black. The sentence sits in the lower third, where the field has already gone

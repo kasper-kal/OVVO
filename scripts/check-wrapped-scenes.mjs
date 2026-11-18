@@ -33,6 +33,15 @@ await page.reload({ waitUntil: 'domcontentloaded' });
 await page.locator('.wrapped-stage').waitFor();
 await page.waitForTimeout(700);
 
+/*
+ * **How many chapters the deck has, read from the deck.**
+ *
+ * The walk used to count to seventeen because seventeen was right on the day it was written. Two
+ * chapters were added in phase 3, and a hard-coded number would have quietly stopped walking the
+ * end of the film. The progress dashes are one per chapter, so the page is asked instead.
+ */
+const chapterCount = await page.locator('.wrapped-progress__seg').count();
+
 const cover = page.locator('.film2--cover');
 if (!(await cover.isVisible().catch(() => false))) {
   console.log('WRAPPED FILM: FAIL — the cover is not a film page');
@@ -164,7 +173,32 @@ const readScene = async () => {
       chroma: stops.length ? Math.max(...stops.map(chromaOf)) : 0,
       light: stops.length ? Math.max(...stops.map(lightOf)) : 0,
       massChroma: massColours.length ? Math.max(...massColours.map(hexChroma)) : 0,
-      focal: film.querySelectorAll('.w-focal, .w-pins, .w-photo').length,
+      focal: film.querySelectorAll('.w-focal, .w-pins, .w-photo, .w-rank').length,
+      /*
+       * **The list, read as a list.**
+       *
+       * Every row's number, its name, its count and where its bottom lands: the ordering, the
+       * arithmetic and the cut are all read off the page rather than rebuilt from the deck's data.
+       */
+      rank: (() => {
+        const list = film.querySelector('.w-rank');
+        if (!list) return null;
+        const frameRect = film.getBoundingClientRect();
+        const rows = [...list.querySelectorAll('.w-rank__row')].map((row) => {
+          const rect = row.getBoundingClientRect();
+          return {
+            pos: Number(row.dataset.pos ?? 0),
+            count: Number(row.dataset.count ?? -1),
+            name: row.querySelector('.w-rank__name')?.textContent?.trim() ?? '',
+            tile: row.querySelector('.w-rank__tile')?.textContent?.trim() ?? '',
+            top: rect.top,
+            bottom: rect.bottom,
+          };
+        });
+        return { rows, total: Number(list.dataset.total ?? 0), frameBottom: frameRect.bottom };
+      })(),
+      day: film.dataset.day ?? '',
+      dayCount: Number(film.dataset.dayCount ?? 0),
       noWebgl: Boolean(mass?.hasAttribute('data-fallback')),
       filmBox: [filmRect.left, filmRect.top, filmRect.width, filmRect.height],
       scrims: film.querySelectorAll('.film2-scrim, .film2-glow, .film2-photo-shade').length,
@@ -313,7 +347,7 @@ async function sampleMotion(name) {
   if (!first || first === second) stillChapters.push(name);
 }
 
-for (let i = 0; i < 17; i += 1) {
+for (let i = 0; i < chapterCount - 1; i += 1) {
   if (process.env.SAME_SHAPE) {
     await page.evaluate(() => {
       const art = document.querySelector('.film2-art');
@@ -326,7 +360,7 @@ for (let i = 0; i < 17; i += 1) {
   scenes.push(scene);
   if (scene) await sampleMotion(scene.chapter);
 
-  if (i < 16) {
+  if (i < chapterCount - 2) {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(460);
   }
@@ -508,9 +542,9 @@ const phonePages = [await readPhone()];
 await page.locator('.film2-begin').click();
 await page.waitForTimeout(420);
 
-for (let i = 0; i < 17; i += 1) {
+for (let i = 0; i < chapterCount - 1; i += 1) {
   phonePages.push(await readPhone());
-  if (i < 16) {
+  if (i < chapterCount - 2) {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(430);
   }
@@ -528,6 +562,34 @@ for (const phone of phonePages) {
   if (!phone.soundInside) phoneFailures.push(`phone ${phone.chapter}: the sound control is off screen`);
   if (phone.artArea < 0.85) phoneFailures.push(`phone ${phone.chapter}: the art covers ${Math.round(phone.artArea * 100)}% of the frame`);
 }
+
+/*
+ * **The card you send has to print the list you watched.**
+ *
+ * The share sheet is opened on the ranked chapter and asked what it was handed, in order. The
+ * card's own rows are the only thing it draws, so this compares the two channels instead of two
+ * pictures: `SHARE_MISMATCH=1` reopens the sheet with `?shareorder=reverse`, which hands the same
+ * five backwards, and the run must catch it.
+ */
+const shareUrl = process.env.SHARE_MISMATCH ? `${BASE}&shareorder=reverse` : BASE;
+await page.setViewportSize({ width: 1440, height: 900 });
+await page.goto(shareUrl, { waitUntil: 'domcontentloaded' });
+await page.locator('.wrapped-stage').waitFor();
+await page.locator('.film2-begin').click().catch(() => {});
+await page.waitForTimeout(420);
+for (let i = 0; i < chapterCount; i += 1) {
+  if (await page.locator('.film2--ranked').count()) break;
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(200);
+}
+await page.locator('.film2-share').click().catch(() => {});
+await page.waitForTimeout(760);
+const shareRankHanded =
+  (await page
+    .locator('[data-share-rank]')
+    .first()
+    .getAttribute('data-share-rank')
+    .catch(() => null)) ?? '';
 
 await browser.close();
 
@@ -578,6 +640,79 @@ for (const scene of present) {
   }
 }
 
+/*
+ * **Phase 3's two chapters, on trial.**
+ *
+ * A ranked list is only a ranking if the rows are in order and the numbers are possible; a day
+ * chapter is only worth a card if the day holds more than one journey and the sentence carries both
+ * the date and the count it was built from. The last row must also run past the bottom of the frame,
+ * which is what makes five rows read as the head of a longer list. `SHUFFLE=1` reverses the rows
+ * after they are read, the way a deck that sorted nothing would look.
+ */
+const ids = present.map((scene) => scene.chapter);
+const where = (id) => ids.indexOf(id);
+const rankedScene = present.find((scene) => scene.chapter === 'ranked') ?? null;
+const dayScene = present.find((scene) => scene.chapter === 'day') ?? null;
+let rank = rankedScene?.rank ?? null;
+if (process.env.SHUFFLE && rank) rank = { ...rank, rows: [...rank.rows].reverse() };
+
+if (!rankedScene || !rank) {
+  failures.push('the deck has no ranked list, so there is nothing to screenshot');
+} else {
+  const { rows, total, frameBottom } = rank;
+  if (rows.length !== 5) failures.push(`ranked: ${rows.length} rows, expected five`);
+  const sum = rows.reduce((running, row) => running + row.count, 0);
+  rows.forEach((row, at) => {
+    if (row.pos !== at + 1) failures.push(`ranked: row ${at + 1} is numbered ${row.pos}`);
+    if (!row.name) failures.push(`ranked: row ${at + 1} has no name`);
+    if (!row.tile) failures.push(`ranked: row ${at + 1} has no tile to look at`);
+    if (!(row.count > 0)) failures.push(`ranked: row ${at + 1} carries no count`);
+    if (row.bottom <= row.top) failures.push(`ranked: row ${at + 1} has no height`);
+    if (at > 0) {
+      const before = rows[at - 1];
+      const ordered =
+        row.count < before.count || (row.count === before.count && row.name > before.name);
+      if (!ordered) {
+        failures.push(
+          `ranked: row ${at + 1} (${row.name}, ${row.count}) is not below row ${at} (${before.name}, ${before.count})`,
+        );
+      }
+    }
+  });
+  /* A stop counts once for each journey it ended, so five stops cannot pass twice the year. */
+  if (sum > 2 * total) {
+    failures.push(`ranked: the five rows add up to ${sum} appearances, more than both ends of ${total} journeys`);
+  }
+  if (rows.length && rows[rows.length - 1].bottom <= frameBottom) {
+    failures.push('ranked: the last row ends inside the frame, so the list looks complete');
+  }
+  if (rows.length && rows[0].top >= frameBottom) failures.push('ranked: the list starts below the frame');
+  if (where('ranked') <= where('look')) failures.push('ranked: the list does not follow the look');
+  if (where('eras') >= 0 && where('ranked') >= where('eras')) {
+    failures.push('ranked: the list is not before the eras');
+  }
+}
+
+if (!dayScene) {
+  failures.push('the deck has no busiest-day chapter');
+} else {
+  const held = dayScene.dayCount;
+  if (!(held >= 2)) failures.push(`day: the busiest day holds ${held} journey(s), which is not a story`);
+  if (!dayScene.day) failures.push('day: the chapter carries no date');
+  if (!dayScene.line.includes(String(held))) failures.push(`day: the sentence leaves the count out (${dayScene.line})`);
+  if (dayScene.day && !dayScene.line.includes(dayScene.day)) {
+    failures.push(`day: the sentence leaves the date out (${dayScene.line})`);
+  }
+  if (rank && held > rank.total) failures.push(`day: ${held} journeys on one day, out of ${rank.total} in the year`);
+  if (where('ranked') >= 0 && where('day') < where('ranked')) failures.push('day: the single day comes before the list');
+}
+
+const shownList = rank ? rank.rows.map((row) => `${row.name}:${row.count}`).join('|') : '';
+if (!shareRankHanded) failures.push('the share sheet carries no ranked card');
+else if (shareRankHanded !== shownList) {
+  failures.push(`the share card prints a different list (${shareRankHanded}) from the film (${shownList})`);
+}
+
 const lines = new Set(present.map((scene) => scene.line));
 const shapes = new Set(present.map((scene) => scene.shape).filter(Boolean));
 const places = new Set(present.map((scene) => scene.place).filter(Boolean));
@@ -594,9 +729,11 @@ for (let i = 1; i < families.length; i += 1) {
 }
 if (families.some((family) => !family)) failures.push('a chapter did not report its colour family');
 
-if (grounds.size < 16) failures.push(`only ${grounds.size} colour fields`);
-if (lines.size < 16) failures.push(`only ${lines.size} distinct sentences`);
-if (shapes.size < 16) failures.push(`only ${shapes.size} distinct shapes`);
+/* The floor follows the deck: two fewer than its chapter count, so a lost chapter is caught. */
+const floor = Math.max(16, chapterCount - 2);
+if (grounds.size < floor) failures.push(`only ${grounds.size} colour fields of ${chapterCount} chapters`);
+if (lines.size < floor) failures.push(`only ${lines.size} distinct sentences of ${chapterCount} chapters`);
+if (shapes.size < floor) failures.push(`only ${shapes.size} distinct shapes of ${chapterCount} chapters`);
 if (places.size < 3) failures.push(`only ${places.size} text placements`);
 
 if (failures.length) {
@@ -613,5 +750,7 @@ console.log(
     `every object cut on two edges and built of steps (fewest ${fewestSteps}), every chapter moving on its own clock, ` +
     `${new Set(families).size} colour families with no two neighbours sharing one and every ink over 7:1, ` +
     'something to look at on every card, ' +
-    'no scrim, no old labels or diagrams, no spills, 18 phone pages fit 360x800, and bare=1 shows the picture alone.',
+    `five ranked rows in order and cut by the bottom of the frame, one busiest day with its date and count, ` +
+    'the share card printing the same five in the same order, ' +
+    `no scrim, no old labels or diagrams, no spills, ${chapterCount} phone pages fit 360x800, and bare=1 shows the picture alone.`,
 );

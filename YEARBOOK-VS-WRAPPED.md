@@ -329,6 +329,33 @@ handed the last five instead of the first five).
 **Done when** the list card is the one people screenshot, and the closing card prints exactly what it
 printed.
 
+**Built, 18 November 2026.** Three readers over the tally now answer the questions a total cannot:
+five places in order, the busiest single day, and the longest run of days with a journey. Two
+chapters are new — `ranked` and `day` — placed after the look and before the eras, so the deck is
+twenty cards. The list card puts five numbered rows on the colour itself: a lime tile carrying the
+place's own letter, the name, the count, a hairline between the rows, and a fifth row that runs past
+the bottom of the frame so the list reads as the head of a longer one. The day card is a single date
+and a single number in one sentence on a cream page, with a pale gold shaft behind the words. The
+share sheet gained a fourth base card that prints the same five names and counts in the same order,
+plus the longest streak as a sixth row — measured and printed, but not yet a chapter of the film,
+because a second line on the day card would break the one-sentence rule. **A rank among other people
+stays out**, for the reason written above: OVVO holds this traveller's runs and nobody else's.
+
+The check now reads the chapter count from the page's own progress dashes instead of counting to
+seventeen, so a new chapter can no longer leave the end of the film unwalked, and it grew the rules
+this phase promised: the rows numbered in order, each with a tile and a count, the five adding up to
+no more than both ends of every journey, the last row cut by the bottom of the frame, one day with
+two or more journeys whose date and count both appear in its sentence, and the share card handed the
+same five in the same order. `SHUFFLE=1` reverses the rows and fails on four of them plus a share
+mismatch; `SHARE_MISMATCH=1` hands the card the five backwards and fails on the comparison alone.
+Two faults came out of proving it. The day's number was still counting up when the card was read, so
+the sentence said "1 journey" for a two-journey day — the day's figure is now stated rather than
+counted up to. And the ranked body's crop came and went between runs: a body much wider than it is
+tall has only a tenth of the frame of overshoot on each side, and the six-per-cent off-centre shove
+ate it, so the shove is now measured against the body's own shape. The demo year also travels on five
+days a month instead of all twenty-eight, which is what a commute looks like: its busiest day is now
+five journeys instead of two.
+
 ### Phase 4 — The ending, and the controls around it
 
 **What is wrong.** Our film ends on a sentence, the share lives behind a pill, nothing can be paused,

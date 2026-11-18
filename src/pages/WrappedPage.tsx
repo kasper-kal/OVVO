@@ -45,6 +45,8 @@ const CHAPTER_EFFECTS: Partial<Record<string, YearbookEffect>> = {
   direct: 'stat-tick',
   longest: 'distance-whoosh',
   look: 'camera-shutter',
+  ranked: 'board-stamp',
+  day: 'clock-chime',
   eras: 'era-advance',
   lines: 'board-stamp',
   awards: 'trophy-triumph',
