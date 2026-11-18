@@ -838,3 +838,25 @@
   width: 100%;
   height: 100%;
 }
+
+/*
+ * **The bands are the copy's bands.**
+ *
+ * With shapes now cut off the corners, the mask only has to protect the strip the words actually
+ * occupy: the bottom sixth on a bottom card, the top on a top card, and a middle window on a centred
+ * one. Everything else is picture.
+ */
+.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 68%);
+  mask-image: linear-gradient(to bottom, #000 58%, transparent 68%);
+}
+
+.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 58%, transparent 68%);
+  mask-image: linear-gradient(to top, #000 58%, transparent 68%);
+}
+
+.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, #000 26%, transparent 34%, transparent 60%, #000 70%);
+  mask-image: linear-gradient(to bottom, #000 26%, transparent 34%, transparent 60%, #000 70%);
+}
