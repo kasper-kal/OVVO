@@ -1,6 +1,7 @@
 import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
 import { WrappedArt } from './WrappedArt';
+import { WrappedPoster } from './WrappedPoster';
 
 /*
  * **One sentence, on a colour field.**
@@ -204,7 +205,11 @@ type SceneProps = {
   yearOver: boolean;
   /** The traveller's motion setting: the geometry is drawn once and left alone. */
   still?: boolean;
+  /** The film is paused: the object holds its pose instead of being drawn again from zero. */
+  hold?: boolean;
   onBegin: () => void;
+  /** Back to the cover, from the poster. */
+  onReplay: () => void;
 };
 
 export function WrappedScenes({
@@ -215,7 +220,9 @@ export function WrappedScenes({
   demo,
   yearOver,
   still,
+  hold,
   onBegin,
+  onReplay,
 }: SceneProps & { previous?: Chapter | null }) {
   const place = PLACE[chapter.id] ?? 'center';
   const size = SIZE[chapter.id] ?? 'large';
@@ -234,7 +241,7 @@ export function WrappedScenes({
       data-day-count={chapter.day ? String(chapter.day.count) : ''}
       key={chapter.id}
     >
-      <WrappedArt chapter={chapter} count={count} year={year} still={still} />
+      <WrappedArt chapter={chapter} count={count} year={year} still={still} hold={hold} />
 
       <div className="film2-copy">
         <h1 className="film2-line">
@@ -274,6 +281,11 @@ export function WrappedScenes({
             </li>
           ))}
         </ol>
+      ) : null}
+
+      {/* The film ends on the card, not on a sentence with a share behind a pill. */}
+      {chapter.kind === 'close' && chapter.poster ? (
+        <WrappedPoster poster={chapter.poster} onReplay={onReplay} />
       ) : null}
     </div>
   );

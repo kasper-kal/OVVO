@@ -85,6 +85,8 @@ const LOOK: Record<string, Look> = {
     family: 'paper',
     ground: 'linear-gradient(180deg, #fff6e2 0%, #ffe3bd 58%, #ffc98a 100%)',
     ink: '#2a0a00',
+    /* Deep red: the loud form a paper chapter needs, now that the body is a skyline at the top and
+       the sentence keeps the cream field at the bottom to itself. */
     mass: ['#a01500', '#ff8a00'],
   },
   hour: {
@@ -122,8 +124,13 @@ const LOOK: Record<string, Look> = {
     family: 'acid',
     ground: 'linear-gradient(180deg, #04140a 0%, #05701f 52%, #00b832 100%)',
     ink: '#f4ffe6',
-    /* A forest green rather than near-black: on the dark field the slabs have to read as steps, not as holes. */
-    mass: ['#0b4a1e', '#e6ff6a'],
+    /*
+     * A deep teal rather than the field's own green. The first pass used a forest green that the key
+     * light lifted to almost exactly the field's colour where the slabs meet it, so parts of the
+     * object were invisible - invisible enough that a pixel diff of the card with the object and
+     * without it found no change there at all.
+     */
+    mass: ['#07241c', '#e6ff6a'],
   },
   day: {
     /* Cream paper with one bright gold form: a single date is a thing printed on a page. */

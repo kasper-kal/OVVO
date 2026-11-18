@@ -305,3 +305,201 @@
 .wrapped-stage.is-bare .w-rank {
   display: none;
 }
+
+/* ---------------------------------------------------------------- the closing poster */
+
+/*
+ * **The last card is the one you send.**
+ *
+ * Not a sentence with a share behind a pill: a card, with the year's number, the five places and the
+ * days that mattered, in one of three colourways you can page through. Its own Share sits under the
+ * columns and Replay under that, so the end of the film offers the two things worth doing at the
+ * end of one. The colours come from `lib/wrappedPoster`, which also paints the exported picture.
+ */
+.film2--close .w-poster {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  width: min(86vw, 420px);
+  flex-direction: column;
+  gap: clamp(8px, 1.2vh, 14px);
+  padding: clamp(14px, 2vh, 22px) clamp(14px, 1.8vw, 20px);
+  border: 2px solid currentColor;
+  border-radius: 16px;
+  transform: translateX(-50%);
+  font-family: 'Archivo', sans-serif;
+  text-align: left;
+  pointer-events: none;
+}
+
+.w-poster__head {
+  display: flex;
+  justify-content: space-between;
+  font: 700 clamp(9px, 0.9vw, 11px) / 1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--poster-soft, currentColor);
+}
+
+.w-poster__count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.w-poster__big {
+  font: 800 clamp(32px, 4.4vw, 56px) / 0.9 'Archivo', sans-serif;
+  letter-spacing: -0.045em;
+  color: var(--poster-mark, currentColor);
+}
+
+.w-poster__unit {
+  font: 600 clamp(8px, 0.8vw, 10px) / 1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--poster-soft, currentColor);
+}
+
+.w-poster__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.6vw, 18px);
+}
+
+.w-poster__col {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.w-poster__label {
+  font: 600 clamp(8px, 0.8vw, 10px) / 1.2 'IBM Plex Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--poster-soft, currentColor);
+}
+
+.w-poster__row {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.w-poster__name {
+  overflow: hidden;
+  font: 700 clamp(10px, 1.05vw, 13px) / 1.25 'Archivo', sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-poster__value {
+  font: 800 clamp(10px, 1.05vw, 13px) / 1.25 'Archivo', sans-serif;
+  color: var(--poster-mark, currentColor);
+}
+
+.w-poster__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.w-poster__factValue {
+  font: 700 clamp(10px, 1.05vw, 13px) / 1.2 'Archivo', sans-serif;
+}
+
+.w-poster__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.w-poster__share {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #f7f3ea;
+  color: #050506;
+  font: 700 11px/1 'Archivo', sans-serif;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.w-poster__replay {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: 700 11px/1 'Archivo', sans-serif;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.w-poster__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.w-poster__arrow {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: 700 14px/1 'Archivo', sans-serif;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.w-poster__dots {
+  display: flex;
+  gap: 5px;
+}
+
+.w-poster__dots i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.w-poster__dots i.is-now {
+  width: 16px;
+  opacity: 1;
+}
+
+/* The workshop judges the picture, and the poster is words on a card. */
+.wrapped-stage.is-bare .w-poster {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .film2--close .w-poster {
+    top: 14%;
+    width: min(88vw, 360px);
+  }
+}
+
+@media (max-width: 379px) {
+  .film2--close .w-poster {
+    top: 13%;
+    gap: 6px;
+  }
+}

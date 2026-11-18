@@ -383,6 +383,43 @@ and the 320-wide phone walk still showing nothing clipped and no sideways scroll
 
 **Done when** a screenshot of the last card, on its own, is something you would post.
 
+**Built, 18 November 2026.** The last chapter is the poster now. It carries the year's number, the five
+places in order, the busiest day and the longest streak, with Share under the columns and "Replay from
+beginning" under that — and the share pill is gone from that card, so the end of the film is the thing
+you send rather than a sheet fetched from a button. The card pages through three colourways with two
+arrows (ember, indigo, paper), and Share sends whichever one is on screen; the page and the exported
+1080 × 1920 picture read the same palette table, so they cannot disagree. **Pause sits beside the sound
+switch**, and the space bar does the same thing. It stops the score and the silent page timer together
+— those are the two things that turn a page — and it holds the object where it stands rather than
+snapping it back to its entrance pose, because the loop stops drawing and adds the paused time back
+when it resumes. **Progress can be read**: one dash per chapter across the top with the current one
+drawn wider, and a rail down the left that fills as you go. The dash count is the chapter count, read
+from the page rather than remembered.
+
+The check grew four rules and each was shown failing first. A card held with pause for ten seconds
+must not move a pixel and must move again within two seconds of resuming — `NO_PAUSE=1` swallows the
+pause button's own click, which is exactly the deck as it was before this phase, and the run prints
+**the object moved while the card was held for ten seconds**. The closing card must carry a visible
+poster with its own Share, a Replay, and three colourways that come back round to the first; the dashes
+must equal the chapter count and sit across the top with a rail beside them; and the whole deck is
+walked again at **320 × 568**, which it had never been. The clean run prints **PASS — 20 colour fields,
+… one dash per chapter across the top and a rail down the left, a pause that holds the picture for ten
+seconds and lets it go, a closing poster with three colourways and its own Share and Replay, … 20 phone
+pages fit 360x800 and 320x568**.
+
+Three faults came out of proving it, and two of them were not this phase's. The ranked list's crop
+came and went between runs; the cause was the measurement, not the geometry — two page screenshots
+with the object hidden and shown is blind wherever a lit face happens to land on the field's own
+colour, so the crop is measured from the canvas's own alpha channel now, which is the object and
+nothing else. The origin chapter's sentence was sitting on its own deep-red form and reading at 6.2:1,
+because that body was taller than the frame and went everywhere the sentence went; it is a skyline
+along the top now, and the sentence keeps the cream field below it (13.6:1). And the demo's longest
+streak was always one day, because its travel days never touched; its three-day clusters make that
+number a number.
+
+**The small second line from gap 2 was not built.** It needs the one-sentence rule lifted, and that is
+your decision, not a fix: say the word and it is a quieter line under each headline, a beat later.
+
 ### Order, and what to expect
 
 Phase 1 is the one that changes how it feels; do not start phase 2 until a single chapter passes it.

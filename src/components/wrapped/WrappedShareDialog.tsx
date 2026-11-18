@@ -438,7 +438,14 @@ export function WrappedShareDialog({
                 value: String(row.count),
               })),
               ...(dayChapter?.streak
-                ? [{ label: t('Longest streak'), value: `${dayChapter.streak.days} ${t('days')}` }]
+                ? [
+                    {
+                      label: t('Longest streak'),
+                      value: `${dayChapter.streak.days} ${
+                        dayChapter.streak.days === 1 ? t('day') : t('days')
+                      }`,
+                    },
+                  ]
                 : []),
             ],
             rank: handed,

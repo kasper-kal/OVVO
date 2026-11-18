@@ -101,7 +101,8 @@ const readScene = async () => {
     const film = document.querySelector('.film2');
     const stage = document.querySelector('.wrapped-stage');
     const line = film?.querySelector('.film2-line');
-    const share = document.querySelector('.film2-share');
+    /* The closing card carries its own share on the poster, so the beat's share is either one. */
+    const share = document.querySelector('.film2-share, .w-poster__share');
     const art = film.querySelector('.film2-art');
     const artStyle = art ? getComputedStyle(art) : null;
     const artRect = art?.getBoundingClientRect();
@@ -199,6 +200,25 @@ const readScene = async () => {
       })(),
       day: film.dataset.day ?? '',
       dayCount: Number(film.dataset.dayCount ?? 0),
+      /* The closing poster: which colourway is on screen, and whether it fits in the frame. */
+      poster: (() => {
+        const card = film.querySelector('.w-poster');
+        if (!card) return null;
+        const rect = card.getBoundingClientRect();
+        const shareRect = card.querySelector('.w-poster__share')?.getBoundingClientRect();
+        return {
+          colour: card.dataset.poster ?? '',
+          share: Boolean(shareRect && shareRect.width > 0),
+          replay: Boolean(card.querySelector('.w-poster__replay')),
+          arrows: card.querySelectorAll('.w-poster__arrow').length,
+          shareHeight: shareRect ? Math.round(shareRect.height) : 0,
+          inside:
+            rect.top >= -1 &&
+            rect.left >= -1 &&
+            rect.right <= window.innerWidth + 1 &&
+            rect.bottom <= window.innerHeight + 1,
+        };
+      })(),
       noWebgl: Boolean(mass?.hasAttribute('data-fallback')),
       filmBox: [filmRect.left, filmRect.top, filmRect.width, filmRect.height],
       scrims: film.querySelectorAll('.film2-scrim, .film2-glow, .film2-photo-shade').length,
@@ -285,6 +305,55 @@ const objectBox = async ([left, top, width, height]) => {
   );
 };
 
+/*
+ * **Where the object actually is, read from its own canvas.**
+ *
+ * Two page screenshots with the mass hidden and the mass shown is how this was measured before, and
+ * it is honest for an object that is nothing like its field. It stops being honest when a lit face
+ * of the body happens to land on the field's own colour: the pixel is unchanged, so the diff says
+ * the object is not there, and the ranked chapter's crop came and went between runs for exactly
+ * that reason. The canvas is the object: its alpha channel has no field, no grain and no DOM layers
+ * over it, so the box of everything it drew is the body's extent, mapped into the frame.
+ */
+const objectAlphaBox = async ([frameLeft, frameTop, frameWidth, frameHeight]) =>
+  page.evaluate(
+    async ([left, top, width, height]) => {
+      const canvas = document.querySelector('.film2 .w-canvas');
+      if (!canvas) return null;
+      const rect = canvas.getBoundingClientRect();
+      const image = new Image();
+      image.src = canvas.toDataURL();
+      await image.decode();
+      if (!image.width || !image.height) return null;
+      const work = document.createElement('canvas');
+      work.width = image.width;
+      work.height = image.height;
+      const context = work.getContext('2d');
+      context.drawImage(image, 0, 0);
+      const { data } = context.getImageData(0, 0, work.width, work.height);
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (let y = 0; y < work.height; y += 1) {
+        for (let x = 0; x < work.width; x += 1) {
+          if (data[(y * work.width + x) * 4 + 3] > 12) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (!Number.isFinite(minX)) return null;
+      /* Canvas pixels to frame fractions, so a body can run past the frame and still be measured. */
+      const toX = (value) => (rect.left + (value / work.width) * rect.width - left) / width;
+      const toY = (value) => (rect.top + (value / work.height) * rect.height - top) / height;
+      return [toX(minX), toY(minY), toX(maxX), toY(maxY)];
+    },
+    [frameLeft, frameTop, frameWidth, frameHeight],
+  );
+
 const judgeObject = (scene, box) => {
   if (!scene) return;
   if (!box) {
@@ -317,7 +386,7 @@ const stillChapters = [];
 
 /* The cover first, before Begin: the walk used to start after it and never measured it at all. */
 const coverScene = await readScene();
-if (coverScene) judgeObject(coverScene, await objectBox(coverScene.filmBox));
+if (coverScene) judgeObject(coverScene, await objectAlphaBox(coverScene.filmBox));
 const scenes = [coverScene];
 if (coverScene) await sampleMotion(coverScene.chapter);
 
@@ -356,7 +425,7 @@ for (let i = 0; i < chapterCount - 1; i += 1) {
   }
 
   const scene = await readScene();
-  if (scene) judgeObject(scene, await objectBox(scene.filmBox));
+  if (scene) judgeObject(scene, await objectAlphaBox(scene.filmBox));
   scenes.push(scene);
   if (scene) await sampleMotion(scene.chapter);
 
@@ -513,7 +582,7 @@ const readPhone = () =>
   page.evaluate(() => {
     const film = document.querySelector('.film2');
     const line = film?.querySelector('.film2-line');
-    const share = document.querySelector('.film2-share');
+    const share = document.querySelector('.film2-share, .w-poster__share');
     const sound = document.querySelector('.wrapped-sound');
     const art = film?.querySelector('.film2-art');
     if (!film || !line) return null;
@@ -535,6 +604,18 @@ const readPhone = () =>
       shareInside: shareRect ? shareRect.bottom <= window.innerHeight + 1 && shareRect.right <= window.innerWidth + 1 : false,
       soundInside: soundRect ? soundRect.right <= window.innerWidth + 1 : true,
       artArea: artRect ? (artRect.width * artRect.height) / (filmRect.width * filmRect.height) : 0,
+      /* The closing poster is the one piece that could hang out of a small phone. */
+      posterInside: (() => {
+        const card = document.querySelector('.w-poster');
+        if (!card) return true;
+        const rect = card.getBoundingClientRect();
+        return (
+          rect.top >= -1 &&
+          rect.left >= -1 &&
+          rect.right <= window.innerWidth + 1 &&
+          rect.bottom <= window.innerHeight + 1
+        );
+      })(),
     };
   });
 
@@ -550,17 +631,195 @@ for (let i = 0; i < chapterCount - 1; i += 1) {
   }
 }
 
-for (const phone of phonePages) {
-  if (!phone) {
-    phoneFailures.push('phone: a chapter had no film page');
-    continue;
+const judgePhone = (pages, width) => {
+  for (const phone of pages) {
+    if (!phone) {
+      phoneFailures.push(`${width}px: a chapter had no film page`);
+      continue;
+    }
+    if (phone.clipped) phoneFailures.push(`${width}px ${phone.chapter}: the sentence is clipped`);
+    if (phone.overflow) phoneFailures.push(`${width}px ${phone.chapter}: the page scrolls sideways`);
+    if (!phone.lineInside) phoneFailures.push(`${width}px ${phone.chapter}: the sentence leaves the screen`);
+    if (!phone.shareInside && phone.chapter !== 'cover') {
+      phoneFailures.push(`${width}px ${phone.chapter}: the share is off screen`);
+    }
+    if (!phone.soundInside) phoneFailures.push(`${width}px ${phone.chapter}: the sound control is off screen`);
+    if (phone.artArea < 0.85) {
+      phoneFailures.push(`${width}px ${phone.chapter}: the art covers ${Math.round(phone.artArea * 100)}% of the frame`);
+    }
+    if (!phone.posterInside) phoneFailures.push(`${width}px ${phone.chapter}: the poster hangs out of the frame`);
   }
-  if (phone.clipped) phoneFailures.push(`phone ${phone.chapter}: the sentence is clipped`);
-  if (phone.overflow) phoneFailures.push(`phone ${phone.chapter}: the page scrolls sideways`);
-  if (!phone.lineInside) phoneFailures.push(`phone ${phone.chapter}: the sentence leaves the screen`);
-  if (!phone.shareInside && phone.chapter !== 'cover') phoneFailures.push(`phone ${phone.chapter}: the share is off screen`);
-  if (!phone.soundInside) phoneFailures.push(`phone ${phone.chapter}: the sound control is off screen`);
-  if (phone.artArea < 0.85) phoneFailures.push(`phone ${phone.chapter}: the art covers ${Math.round(phone.artArea * 100)}% of the frame`);
+};
+judgePhone(phonePages, 360);
+
+/*
+ * **320 is the smallest phone the app supports, and the deck is one card taller than it was.**
+ *
+ * The poster, the dashes across the top and the rail are all new furniture on a 320-wide screen, so
+ * the same walk is done again at the narrowest width: nothing clipped, nothing sideways, the poster
+ * inside the frame.
+ */
+await page.setViewportSize({ width: 320, height: 568 });
+await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+await page.locator('.wrapped-stage').waitFor();
+await page.waitForTimeout(400);
+for (let i = 0; i < 3; i += 1) {
+  if (await overlays.count()) await overlays.first().click().catch(() => {});
+  await page.waitForTimeout(100);
+}
+await page.reload({ waitUntil: 'domcontentloaded' });
+await page.locator('.wrapped-stage').waitFor();
+await page.waitForTimeout(450);
+
+const smallPages = [await readPhone()];
+await page.locator('.film2-begin').click();
+await page.waitForTimeout(420);
+for (let i = 0; i < chapterCount - 1; i += 1) {
+  smallPages.push(await readPhone());
+  if (i < chapterCount - 2) {
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(430);
+  }
+}
+judgePhone(smallPages, 320);
+
+/*
+ * **The map, the hold, and the end.**
+ *
+ * Three things phase 4 promised and none of them is a picture: one dash per chapter across the top
+ * with a rail down the left, a pause that actually holds a chapter still and lets it go again, and a
+ * closing poster that carries its own Share and Replay instead of a pill. Each is read from the page
+ * and each has a break that makes it fail: `NO_PAUSE=1` swallows the pause button's own click, which
+ * is exactly the deck as it was before this phase.
+ */
+const progressFailures = [];
+const pauseFailures = [];
+const posterFailures = [];
+
+await page.setViewportSize({ width: 1440, height: 900 });
+await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+await page.locator('.wrapped-stage').waitFor();
+await page.waitForTimeout(400);
+const lifelines = page.locator('.overlay button, .sheet button');
+for (let i = 0; i < 3; i += 1) {
+  if (await lifelines.count()) await lifelines.first().click().catch(() => {});
+  await page.waitForTimeout(120);
+}
+await page.locator('.film2-begin').click().catch(() => {});
+await page.waitForTimeout(520);
+for (let i = 0; i < 4; i += 1) {
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(420);
+}
+
+const progress = await page.evaluate(() => {
+  const nav = document.querySelector('.wrapped-progress');
+  const segments = [...document.querySelectorAll('.wrapped-progress__seg')];
+  const rail = document.querySelector('.wrapped-rail');
+  if (!nav) return null;
+  return {
+    dashes: segments.length,
+    top: Math.round(nav.getBoundingClientRect().top),
+    filled: segments.filter((segment) => segment.classList.contains('is-now')).length,
+    railHeight: rail ? Math.round(rail.getBoundingClientRect().height) : 0,
+    railFill: rail ? Math.round(rail.querySelector('i').getBoundingClientRect().height) : 0,
+  };
+});
+
+if (!progress) progressFailures.push('the deck has no progress map');
+else {
+  if (progress.dashes !== scenes.length) {
+    progressFailures.push(`progress: ${progress.dashes} dashes for ${scenes.length} chapters`);
+  }
+  if (progress.top > 90) progressFailures.push(`progress: the dashes sit ${progress.top}px down, not across the top`);
+  if (progress.filled !== 1) progressFailures.push(`progress: ${progress.filled} dashes are marked as the one you are on`);
+  if (progress.railHeight < 60) progressFailures.push(`progress: the rail down the left is ${progress.railHeight}px tall`);
+  if (!(progress.railFill > 0 && progress.railFill <= progress.railHeight)) {
+    progressFailures.push('progress: the rail does not fill with the story');
+  }
+}
+
+/* The hold: ten seconds still, then moving again within two seconds of letting go. */
+const canvasFrame = () => page.evaluate(() => document.querySelector('.film2 .w-canvas')?.toDataURL() ?? '');
+const pauseControl = page.locator('.wrapped-pause');
+if (!(await pauseControl.count())) {
+  pauseFailures.push('the header has no pause control beside the sound switch');
+} else {
+  if (process.env.NO_PAUSE) {
+    /* The deck before this phase: a button that looks like a control and changes nothing. */
+    await page.evaluate(() => {
+      document
+        .querySelector('.wrapped-pause')
+        ?.addEventListener('click', (event) => event.stopPropagation(), true);
+    });
+  }
+  await pauseControl.click();
+  await page.waitForTimeout(300);
+  const heldFrame = await canvasFrame();
+  await page.waitForTimeout(10000);
+  const afterHold = await canvasFrame();
+  if (!heldFrame || heldFrame !== afterHold) {
+    pauseFailures.push('the object moved while the card was held for ten seconds');
+  }
+  await pauseControl.click();
+  await page.waitForTimeout(1600);
+  const movedFrame = await canvasFrame();
+  await page.waitForTimeout(800);
+  const laterFrame = await canvasFrame();
+  if (!movedFrame || movedFrame === laterFrame) {
+    pauseFailures.push('the object did not move again within two seconds of resuming');
+  }
+}
+
+/* The end: the poster, its own Share and Replay, and three colourways that come back round. */
+for (let i = 0; i < chapterCount; i += 1) {
+  if (await page.locator('.film2--close').count()) break;
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(210);
+}
+await page.waitForTimeout(700);
+
+const poster = await page.evaluate(() => {
+  const card = document.querySelector('.w-poster');
+  if (!card) return null;
+  const rect = card.getBoundingClientRect();
+  const shareRect = card.querySelector('.w-poster__share')?.getBoundingClientRect();
+  return {
+    colour: card.dataset.poster ?? '',
+    share: Boolean(shareRect && shareRect.width > 0),
+    shareHeight: shareRect ? Math.round(shareRect.height) : 0,
+    replay: Boolean(card.querySelector('.w-poster__replay')),
+    arrows: card.querySelectorAll('.w-poster__arrow').length,
+    dockPill: Boolean(document.querySelector('.film2-dock .film2-share')),
+    inside:
+      rect.top >= -1 &&
+      rect.left >= -1 &&
+      rect.right <= window.innerWidth + 1 &&
+      rect.bottom <= window.innerHeight + 1,
+  };
+});
+
+if (!poster) posterFailures.push('the closing chapter has no poster');
+else {
+  if (!poster.share) posterFailures.push('the poster has no share of its own');
+  if (poster.shareHeight < 44) posterFailures.push(`the poster's share is ${poster.shareHeight}px tall`);
+  if (!poster.replay) posterFailures.push('the poster has no Replay from beginning');
+  if (poster.arrows !== 2) posterFailures.push(`the poster has ${poster.arrows} arrows for three colourways`);
+  if (!poster.inside) posterFailures.push('the poster does not fit inside the frame');
+  if (poster.dockPill) posterFailures.push('the closing card still fetches its share from a pill');
+
+  const colours = [poster.colour];
+  for (let i = 0; i < 3; i += 1) {
+    await page.locator('.w-poster__arrow').last().click();
+    await page.waitForTimeout(180);
+    colours.push(await page.locator('.w-poster').getAttribute('data-poster'));
+  }
+  if (new Set(colours.slice(0, 3)).size !== 3) {
+    posterFailures.push(`the poster has ${new Set(colours.slice(0, 3)).size} colourways, expected three (${colours.join(',')})`);
+  }
+  if (colours[3] !== colours[0]) {
+    posterFailures.push(`paging three times did not come back to the first colourway (${colours.join(',')})`);
+  }
 }
 
 /*
@@ -593,7 +852,14 @@ const shareRankHanded =
 
 await browser.close();
 
-const failures = [...bareFailures, ...contrastFailures, ...phoneFailures];
+const failures = [
+  ...bareFailures,
+  ...contrastFailures,
+  ...phoneFailures,
+  ...progressFailures,
+  ...pauseFailures,
+  ...posterFailures,
+];
 const present = scenes.filter((scene) => !scene.missing);
 if (present.length !== scenes.length) failures.push(`${scenes.length - present.length} page(s) had no film page`);
 if (pageErrors.length) failures.push(`page errors: ${pageErrors.slice(0, 2).join(' / ')}`);
@@ -752,5 +1018,7 @@ console.log(
     'something to look at on every card, ' +
     `five ranked rows in order and cut by the bottom of the frame, one busiest day with its date and count, ` +
     'the share card printing the same five in the same order, ' +
-    `no scrim, no old labels or diagrams, no spills, ${chapterCount} phone pages fit 360x800, and bare=1 shows the picture alone.`,
+    `one dash per chapter across the top and a rail down the left, a pause that holds the picture for ten seconds and lets it go, ` +
+    'a closing poster with three colourways and its own Share and Replay, ' +
+    `no scrim, no old labels or diagrams, no spills, ${chapterCount} phone pages fit 360x800 and 320x568, and bare=1 shows the picture alone.`,
 );

@@ -18,6 +18,7 @@ import { formatDuration } from './format';
 import { styleById, stylePhotoPath } from './styles';
 import { busiestDay, longestStreak, rankedStops, type TravelStreak, type YearTally } from './wrapped';
 import type { Track } from './wrappedSound';
+import type { PosterData } from './wrappedPoster';
 
 /** The colour a chapter is painted in. Each is a token, so the look still shows through. */
 export type Tone = 'ink' | 'cream' | 'sage' | 'coral';
@@ -199,6 +200,8 @@ export interface Chapter {
   day?: BusiestDayCard;
   /** The longest run of days with a journey. The film does not say it yet; the share card prints it. */
   streak?: TravelStreak;
+  /** Everything the closing poster prints, in the order it prints it. */
+  poster?: PosterData;
   /** The playful awards the year earned. */
   awards?: YearAward[];
   /** The first and last journey, for the quiet bookend chapter. */
@@ -992,6 +995,21 @@ export function buildStory({
       big: 'That was the year.',
       line: 'Every number here comes from journeys you planned in this app, and nothing else.',
       note: 'OVVO counts what you planned, not what you caught. It never sees you get on.',
+      /*
+       * **The card at the end.**
+       *
+       * The last chapter stops being a sentence and becomes the thing a traveller would actually
+       * send: the year's number, the five places in order, the busiest day and the longest streak.
+       * It is built here, from the same figures the chapters behind it used, so the poster cannot
+       * print a year the film never showed.
+       */
+      poster: {
+        year,
+        journeys: runs.length,
+        places: rankRows.map((row) => ({ name: row.name, count: row.count })),
+        day: busiest ? { date: busiestDate, count: busiest.count } : null,
+        streakDays: streak?.days ?? null,
+      },
     },
   ];
 

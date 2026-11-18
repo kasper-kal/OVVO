@@ -267,6 +267,7 @@
 
 .wrapped-stage .wrapped-close,
 .wrapped-stage .wrapped-sound,
+.wrapped-stage .wrapped-pause,
 .wrapped-stage .wrapped-demo-mark {
   pointer-events: auto;
   border: 1px solid color-mix(in srgb, var(--ink, #f7f3ea) 36%, transparent);
@@ -285,7 +286,7 @@
 
 .wrapped-stage .wrapped-sound {
   height: 40px;
-  margin-left: auto;
+  margin-left: 0;
   padding: 0 14px;
   border-radius: 999px;
   font: 600 10px/1 'Archivo', sans-serif;
@@ -303,42 +304,83 @@
   opacity: 0.6;
 }
 
+/*
+ * **One dash per chapter, across the top, and a rail down the left.**
+ *
+ * The dashes used to be hairlines hidden under the Share pill at the bottom, which made eighteen
+ * cards feel endless and the ending a surprise. They are a map now: one dash per chapter, the ones
+ * behind you filled, the one you are on drawn wider. The rail is the same fact as a thumb in a
+ * page, for a reader who would rather see where they are than count.
+ */
 .wrapped-stage .wrapped-progress {
   position: fixed;
+  top: 58px;
   right: 0;
-  bottom: 0;
+  bottom: auto;
   left: 0;
   z-index: 22;
   display: flex;
-  height: 12px;
+  height: 14px;
   justify-content: center;
-  align-items: flex-end;
-  gap: 5px;
-  padding: 0 12px 7px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 44px;
   background: transparent;
   pointer-events: none;
 }
 
 .wrapped-stage .wrapped-progress__seg {
-  flex: 0 0 5px;
-  width: 5px;
-  height: 2px;
+  flex: 0 0 14px;
+  width: auto;
+  height: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ink, #f7f3ea) 30%, transparent);
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 26%, transparent);
   transition: flex-basis 300ms ease, background 300ms ease;
 }
 
 .wrapped-stage .wrapped-progress__seg.is-done {
-  background: color-mix(in srgb, var(--ink, #f7f3ea) 66%, transparent);
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 62%, transparent);
 }
 
 .wrapped-stage .wrapped-progress__seg.is-now {
-  flex-basis: 18px;
+  flex-basis: 30px;
   background: var(--ink, #f7f3ea);
+}
+
+/* The rail down the left: a page held open, not a scrollbar. */
+.wrapped-stage .wrapped-rail {
+  position: fixed;
+  top: 32%;
+  bottom: 32%;
+  left: 9px;
+  z-index: 22;
+  width: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 18%, transparent);
+  pointer-events: none;
+}
+
+.wrapped-stage .wrapped-rail i {
+  display: block;
+  width: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink, #f7f3ea) 78%, transparent);
+  transition: height 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .wrapped-stage .wrapped-progress__seg i {
   display: none;
+}
+
+/* The sound switch's twin: a word, beside it, that holds the film where it is. */
+.wrapped-stage .wrapped-pause {
+  height: 40px;
+  margin-left: auto;
+  padding: 0 14px;
+  border-radius: 999px;
+  font: 600 10px/1 'Archivo', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* The one bright control: a share on every beat. */

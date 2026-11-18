@@ -216,13 +216,29 @@ function build(chapter: Chapter): Built {
     }
 
     case 'origin': {
-      /* A totem of slabs, each one a little smaller and further round: read as a stack of cards. */
-      slabs(built, { count: 6, w: 5.6, h: 1.9, d: 3.2, x: 0.8, y: 7.4, dy: -1.85, shrink: 0.09, yaw: 0.06, colour: base, accent });
-      const back = box(4.2, 6.2, 2.2, shade(base, 0.28));
-      back.position.set(-5.6, 6.8, -3);
-      back.rotation.set(0.18, 0.5, 0.1);
-      add(built, back, { amp: 0.1, spin: 0.04, phase: 2 });
-      built.steps += 1;
+      /*
+       * A skyline of departure points, not a totem.
+       *
+       * The old body was a stack as tall as the frame was tall, so it sat behind the sentence
+       * wherever the sentence went, and the dark ink was reading against its own shadowed side
+       * (6.2:1). A wide, shallow run along the top keeps the crop - it runs off both sides - and
+       * leaves the lower half of the card as the colour field the words are written on.
+       */
+      const heights = [1.2, 1.9, 1.5, 2.4, 1.7, 2.1, 1.3, 2.6, 1.6];
+      heights.forEach((height, i) => {
+        slabs(built, {
+          count: 3,
+          w: 1.7,
+          h: height / 3,
+          d: 1.6,
+          x: -9.2 + i * 2.4,
+          y: -1.6 + height / 2,
+          dy: -(height / 3) * 0.94,
+          shrink: 0.03,
+          colour: i % 2 === 0 ? base : accent,
+          amp: 0.05,
+        });
+      });
       break;
     }
 
@@ -437,13 +453,27 @@ function pieceAxis(id: string): [number, number] {
   return [hash % 2 === 0 ? 1 : -1, (hash >> 1) % 2 === 0 ? 1 : -1];
 }
 
-export function WrappedMasses({ chapter, still }: { chapter: Chapter; still?: boolean }) {
+export function WrappedMasses({
+  chapter,
+  still,
+  hold,
+}: {
+  chapter: Chapter;
+  still?: boolean;
+  /** Paused: the loop stops drawing and the time it lost is added back on resume. */
+  hold?: boolean;
+}) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const stillRef = useRef(Boolean(still));
+  const holdRef = useRef(Boolean(hold));
 
   useEffect(() => {
     stillRef.current = Boolean(still);
   }, [still]);
+
+  useEffect(() => {
+    holdRef.current = Boolean(hold);
+  }, [hold]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -571,7 +601,19 @@ export function WrappedMasses({ chapter, still }: { chapter: Chapter; still?: bo
     const fit = () => {
       camera.updateProjectionMatrix();
       const frame = (film?.getBoundingClientRect() ?? canvas.getBoundingClientRect());
-      const target = 1.2 * Math.max(frame.width, frame.height);
+      const local = new THREE.Box3().setFromObject(built.group);
+      /*
+       * **A wide body is pushed further past the edges.**
+       *
+       * The fit leaves a tenth of the frame past each side, and three things spend it: the
+       * off-centre shove, the camera's own pan, and the turn the body makes. On the ranked
+       * chapter's bar chart, which is seven times wider than it is tall, those three together once
+       * ate the whole overhang and the crop appeared and vanished between runs. A body much wider
+       * than it is tall is fitted to a third past the frame instead, which is still a crop and no
+       * longer a coin toss.
+       */
+      const wideBody = local.max.x - local.min.x > 2.4 * (local.max.y - local.min.y);
+      const target = (wideBody ? 1.32 : 1.2) * Math.max(frame.width, frame.height);
 
       /*
        * **Scaling is not linear on screen, so the fit is solved, not assumed.**
@@ -588,7 +630,6 @@ export function WrappedMasses({ chapter, still }: { chapter: Chapter; still?: bo
        * and holding it at the middle means the growth is symmetrical, and the nudge afterwards is the
        * only thing that decides which two edges get cut.
        */
-      const local = new THREE.Box3().setFromObject(built.group);
       const centre = local.getCenter(new THREE.Vector3());
       const place = (scale: number) => {
         built.group.scale.setScalar(scale);
@@ -693,15 +734,32 @@ export function WrappedMasses({ chapter, still }: { chapter: Chapter; still?: bo
       renderer.render(scene, camera);
     };
 
-    if (stillRef.current) {
-      draw(performance.now(), false);
-    } else {
-      const tick = (now: number) => {
-        if (!document.hidden) draw(now, !stillRef.current);
-        frame = window.requestAnimationFrame(tick);
-      };
+    /*
+     * **A held card keeps the frame it was showing.**
+     *
+     * Pause cannot simply stop the clock: the old still mode drew one frame at t = 0, which would
+     * have snapped a half-turned body back to its entrance pose the moment it was paused. The loop
+     * stops drawing instead, the canvas keeps its last pixels, and the time spent paused is added
+     * back to the clock so the object carries on from where it stopped rather than jumping forward.
+     */
+    let heldMs = 0;
+    let holdStart = 0;
+    const tick = (now: number) => {
+      if (holdRef.current) {
+        if (!holdStart) holdStart = now;
+      } else {
+        if (holdStart) {
+          heldMs += now - holdStart;
+          holdStart = 0;
+        }
+        if (!document.hidden) draw(now - heldMs, !stillRef.current);
+      }
       frame = window.requestAnimationFrame(tick);
-    }
+    };
+
+    /* The first frame is drawn now, so a paused card is a picture rather than an empty canvas. */
+    draw(performance.now(), !stillRef.current);
+    if (!stillRef.current) frame = window.requestAnimationFrame(tick);
 
     return () => {
       window.cancelAnimationFrame(frame);

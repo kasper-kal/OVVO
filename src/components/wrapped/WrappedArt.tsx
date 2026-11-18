@@ -20,6 +20,8 @@ type ArtProps = {
   count: number;
   year: number;
   still?: boolean;
+  /** The film is paused: the object holds the pose it was in. */
+  hold?: boolean;
 };
 
 function shortStop(name: string): string {
@@ -33,7 +35,7 @@ function focalKind(chapter: Chapter): 'tickets' | 'rail' | 'mosaic' {
   return 'mosaic';
 }
 
-export function WrappedArt({ chapter, still }: ArtProps) {
+export function WrappedArt({ chapter, still, hold }: ArtProps) {
   const id = chapter.id;
   const stops = chapter.map?.stops ?? [];
   const kind = focalKind(chapter);
@@ -71,7 +73,7 @@ export function WrappedArt({ chapter, still }: ArtProps) {
         </span>
       ) : null}
 
-      <WrappedMasses chapter={chapter} still={still} />
+      <WrappedMasses chapter={chapter} still={still} hold={hold} />
     </div>
   );
 }

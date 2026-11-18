@@ -100,7 +100,7 @@ export function demoYear(
      * true, and nothing like a person's week. Five travelling days a month is what a commute looks
      * like, and it gives the single-day card a number worth printing.
      */
-    const day = 1 + Math.floor(random() * 5) * 6;
+    const day = 1 + Math.floor(random() * 5) * 6 + Math.floor(random() * 3);
     const hour = peaks[Math.floor(random() * peaks.length)];
     const [from, to] = pairs[Math.floor(random() * pairs.length)];
     const changes = random() < 0.42 ? 0 : random() < 0.75 ? 1 : 2;

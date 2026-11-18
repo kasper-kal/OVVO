@@ -244,6 +244,14 @@ export function WrappedPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareTarget, setShareTarget] = useState<string | null>(null);
   const [director, setDirector] = useState(false);
+  /*
+   * **A card you can hold.**
+   *
+   * The film runs itself, and until now the only way to stop on a sentence was to swipe away from
+   * it. Pause stops the score and the silent clock together, because those are the two things that
+   * turn the page, and it holds the object where it stands. A tap and the space bar both work.
+   */
+  const [paused, setPaused] = useState(false);
   /* The scene that is leaving, kept on screen under the new one for one film cut. */
   const [previous, setPrevious] = useState<Chapter | null>(null);
   const previousTimer = useRef(0);
@@ -402,12 +410,12 @@ export function WrappedPage() {
      * made a sound. They are one door now. Starting the story sets `started`, the switch turns `sound`
      * over, and what is applied here is exactly what the switch has always done.
      */
-    if (bare || !sound) {
+    if (bare || !sound || paused) {
       stopSound();
       return;
     }
     startSound(chapter.track, story[index + 1]?.track);
-  }, [bare, index, sound, chapter.track, story]);
+  }, [bare, index, sound, paused, chapter.track, story]);
 
   /*
    * **The story keeps time with the music.**
@@ -439,14 +447,14 @@ export function WrappedPage() {
    * music that turns the page and this never gets there first.
    */
   useEffect(() => {
-    if (bare || last || director) return undefined;
+    if (bare || last || director || paused) return undefined;
     const quiet = Math.max(4000, (trackSeconds(chapter.track) + 1) * 1000);
     const timer = window.setTimeout(() => {
       if (index === 0) setStarted(true);
       go(index + 1);
     }, quiet);
     return () => window.clearTimeout(timer);
-  }, [bare, last, chapter.track, index, go, director]);
+  }, [bare, last, paused, chapter.track, index, go, director]);
 
   /* Two frames: one to paint the pieces hidden, one to start them. */
   useEffect(() => {
@@ -484,6 +492,15 @@ export function WrappedPage() {
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault();
         step(-1);
+      } else if (event.key === ' ') {
+        /*
+         * The space bar is the second way to pause. A focused button keeps its own space, so this
+         * does nothing when the press belongs to a control.
+         */
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('button, a, input, textarea, select, [role="button"]')) return;
+        event.preventDefault();
+        setPaused((value) => !value);
       } else if (event.key === 'Escape') {
         /* Escape is the same door as the X, so it returns the same way. */
         leave();
@@ -622,6 +639,17 @@ export function WrappedPage() {
         ))}
       </nav>
 
+      {/*
+        * **The rail down the left.**
+        *
+        * The dashes say how many cards there are; the rail says how far into them you are, at a
+        * glance and without counting. It is the same fact twice on purpose: one is a map, the other
+        * is a thumb on a page.
+        */}
+      <div className="wrapped-rail" aria-hidden="true">
+        <i style={{ height: `${(Math.min(index, story.length - 1) / Math.max(1, story.length - 1)) * 100}%` }} />
+      </div>
+
       {showDiagnostics ? (
         <div className="wrapped-diag" aria-live="polite">
           {diagnostics.map((line) => (
@@ -658,6 +686,25 @@ export function WrappedPage() {
           * describes its own action needs no legend, and no coloured light beside it either.
           */}
         {bare ? null : (
+        <>
+        {/*
+          * **Hold the card.**
+          *
+          * Beside the sound switch, where the reference keeps its own pause: a word, not a glyph,
+          * because the switch beside it is a word too and two controls of one weight read as a pair.
+          */}
+        <button
+          type="button"
+          className="wrapped-pause"
+          aria-label={paused ? t('Play') : t('Pause')}
+          aria-pressed={paused}
+          onClick={() => {
+            setPaused((value) => !value);
+            playYearbookEffect('sound-toggle');
+          }}
+        >
+          <span>{paused ? t('Play') : t('Pause')}</span>
+        </button>
         <button
           type="button"
           className="wrapped-sound"
@@ -676,6 +723,7 @@ export function WrappedPage() {
         >
           <span>{soundLabel}</span>
         </button>
+        </>
         )}
       </header>
 
@@ -697,34 +745,40 @@ export function WrappedPage() {
             demo={demo}
             yearOver={yearOver}
             still={reduceMotion}
+            hold={paused}
             onBegin={() => {
               setStarted(true);
               go(1);
+            }}
+            onReplay={() => {
+              setPaused(false);
+              setStarted(false);
+              go(0);
             }}
           />
         </div>
       </div>
 
       {!bare && started && chapter.kind !== 'cover' ? (
-        <div className="film2-dock">
-          <button
-            type="button"
-            className="film2-share"
-            onClick={() => {
-              setShareTarget(null);
-              setShareOpen(true);
-            }}
-          >
-            <Icon name="share" size={15} /> {t('Share this story')}
-          </button>
+        <div className={`film2-dock${chapter.kind === 'close' ? ' is-poster' : ''}`}>
+          {/* The closing card carries its own Share and Replay, so the pill is not there to fetch it. */}
+          {chapter.kind === 'close' ? null : (
+            <button
+              type="button"
+              className="film2-share"
+              onClick={() => {
+                setShareTarget(null);
+                setShareOpen(true);
+              }}
+            >
+              <Icon name="share" size={15} /> {t('Share this story')}
+            </button>
+          )}
 
           {last ? (
             <div className="film2-end-actions">
               <button type="button" className="film2-action" onClick={() => void share()}>
                 {copied ? t('Copied') : t('Copy my year')}
-              </button>
-              <button type="button" className="film2-action" onClick={() => go(0)}>
-                {t('Start again')}
               </button>
               {demo ? null : (
                 <button type="button" className="film2-action" onClick={() => setConfirmClear(true)}>
