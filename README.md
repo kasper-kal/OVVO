@@ -680,6 +680,7 @@ the day it names, not as a description of the app today:
 | `HANDOVER.md` | Everything needed to run, move or rebuild the site without the agent that built it |
 | `DESIGN_DECISIONS.md` | The decision log: what was decided, why, and which values are approved |
 | `USER-FIXES.md` | The work order: every request in the steerer's words, and whether it was done |
+| `PLAN-9292-DATA-PARITY.md` | The data and the journeys: what is real today, the fourteen steps to 9292 parity, and the four things the steerer accepted as out of reach |
 | `CREDITS.md` | Where the music, photographs and fonts came from |
 | `URLS.md` | Every address the app answers, generated from the route table and the data |
 
