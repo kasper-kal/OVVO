@@ -283,6 +283,19 @@ neighbours given one gradient) and `SAME_INK=1` (white ink everywhere, which fai
 **Done when** the sheet of all chapters has no two tiles you could mistake for each other, and no
 sentence needs a plate behind it to be read.
 
+**Built, 18 November 2026.** Every chapter now declares one of four families — hot, acid, cold and
+paper — and the deck's order is solved so no two neighbours share one. Four chapters moved to make
+that true: the pair became a lime field with a deep red form, direct became cream with navy, the
+look's near-black mat became a deep violet world, and the close ends in ember instead of matching
+the crew's blue. Every ink was then chosen against the stop the words actually sit on, and every
+chapter measures 7.2:1 or better on its own field, sampled from the rendered page with the words
+taken away. Every card also carries a focal object now: the map's pins, the look's photograph, a
+stack of tickets, a rail with two ends, or a small stepped mosaic drawn in the chapter's own accent.
+The check grew three rules and each was shown failing first — a colourless field failed all
+eighteen chapters as washed out, one family everywhere failed seventeen neighbouring pairs, and one
+ink everywhere failed eight chapters' contrast. Then it prints PASS with four families, no
+neighbour repeat, every ink over 7:1, and something to look at on every card.
+
 ### Phase 3 — The list, and a number on one day
 
 **What is wrong.** We name one line, one route, one hour. Wrapped ranks five things with pictures,

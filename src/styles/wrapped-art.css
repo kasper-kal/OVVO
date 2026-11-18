@@ -109,3 +109,122 @@
 .wrapped-stage.is-still .film2-art--map .w-pin {
   animation: none !important;
 }
+
+/* ---------------------------------------------------------------- the focal layer */
+
+/*
+ * **One thing to look at, on every card.**
+ *
+ * The reference never shows a form and nothing else: there is a sleeve, a photo or a short list
+ * sitting on the colour. Ours is drawn, because there are no photographs of stations to use, and it
+ * is placed on the side the sentence is not, so it can never be the reason a line is hard to read.
+ * It carries no words: the one-sentence rule stays intact.
+ */
+.w-focal {
+  position: absolute;
+  z-index: 2;
+  right: 7%;
+  bottom: 17%;
+  display: grid;
+  gap: 6px;
+  width: clamp(74px, 9vw, 118px);
+  color: var(--accent, var(--ink, #fff7ea));
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+/* The sentence at the bottom means the object goes up, and the other way round. */
+.film2--place-bottom .w-focal {
+  bottom: auto;
+  top: 13%;
+}
+
+.film2--place-center .w-focal {
+  bottom: auto;
+  top: 12%;
+  right: 6%;
+}
+
+/* Tickets: a stack of three, each shorter than the one above it. */
+.w-focal--tickets i {
+  display: block;
+  height: clamp(12px, 1.6vw, 18px);
+  border-radius: 5px;
+  background: currentColor;
+}
+
+.w-focal--tickets i:nth-child(2) {
+  width: 86%;
+}
+
+.w-focal--tickets i:nth-child(3) {
+  width: 70%;
+}
+
+/* A rail with two ends: the pair's two stations, and the line between them. */
+.w-focal--rail {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: clamp(96px, 13vw, 156px);
+  height: 12px;
+}
+
+.w-focal--rail::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.w-focal--rail i {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.w-focal--rail i:nth-child(2) {
+  width: 7px;
+  height: 7px;
+  opacity: 0.8;
+}
+
+/* The rest: three stepped tiles, the same grammar as the masses. */
+.w-focal--mosaic {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.w-focal--mosaic i {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: currentColor;
+}
+
+.w-focal--mosaic i:nth-child(2) {
+  transform: translateY(28%);
+}
+
+.w-focal--mosaic i:nth-child(3) {
+  transform: translateX(28%);
+  width: 68%;
+}
+
+@media (max-width: 420px) {
+  .w-focal {
+    width: 64px;
+    right: 9%;
+    bottom: 20%;
+  }
+
+  .film2--place-bottom .w-focal {
+    top: 15%;
+  }
+}

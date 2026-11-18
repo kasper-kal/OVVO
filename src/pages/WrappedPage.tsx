@@ -545,6 +545,9 @@ export function WrappedPage() {
         onBeat ? ' is-beat' : ''
       }${bare ? ' is-bare' : ''}`}
       data-chapter={chapter.id}
+      /* The colour world, and whether its field carries a real chroma, read by the deck's check. */
+      data-family={look.family}
+      data-mass={look.mass.join(',')}
       style={
         {
           '--beat-ms': `${beatMs(chapter.track)}ms`,
@@ -553,6 +556,9 @@ export function WrappedPage() {
           '--bar-phase': `${armed && beat ? beat.barPhase : 0}ms`,
           '--ground': look.ground,
           '--ink': look.ink,
+          /* The focal layer is drawn in the form's own accent, not in the ink: a grey smudge is not
+             something to look at. */
+          '--accent': look.mass[1],
           /* The look's own photograph, for the chapter that sets its name inside it. */
           ...(chapter.photo ? { '--look-photo': `url(${chapter.photo})` } : {}),
         } as CSSProperties

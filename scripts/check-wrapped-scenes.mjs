@@ -60,6 +60,15 @@ if (process.env.WORD_ANIM) {
 if (process.env.LOW_CONTRAST) {
   await page.addStyleTag({ content: '.film2-line { color: #ffffff !important; }' });
 }
+/* Phase 2's breaks: one ink everywhere, and a field with no colour in it at all. */
+if (process.env.SAME_INK) {
+  await page.addStyleTag({ content: '.film2-line { color: #ffffff !important; }' });
+}
+if (process.env.DIM) {
+  await page.addStyleTag({
+    content: '.wrapped-stage[data-chapter] { background: linear-gradient(180deg, #1a1a1a, #050505) !important; }',
+  });
+}
 if (process.env.HUGE_TYPE) {
   await page.addStyleTag({ content: '.film2-line { font-size: 190px !important; line-height: 1 !important; }' });
 }
@@ -78,8 +87,8 @@ if (process.env.OLD_CHROME) {
  * Every rectangle is page-space: a tapped Begin can leave the page scrolled, and a rectangle that
  * silently carried the scroll offset put the contrast sampler one chapter out of step.
  */
-const readScene = () =>
-  page.evaluate(() => {
+const readScene = async () => {
+  const scene = await page.evaluate(() => {
     const film = document.querySelector('.film2');
     const stage = document.querySelector('.wrapped-stage');
     const line = film?.querySelector('.film2-line');
@@ -106,6 +115,27 @@ const readScene = () =>
 
     const mass = film.querySelector('.w-mass');
     const word = film.querySelector('.film2-word');
+    /*
+     * **The field has to be a colour, and it has to be its own colour.**
+     *
+     * Every stop of the gradient is read and reduced to two numbers the eye actually notices: how
+     * much colour is in it (the gap between the largest and smallest channel) and how light it is.
+     * A tint of black scores near zero on the first and is not a world; two neighbours with the same
+     * family read as one long card, so the family is read too.
+     */
+    const stops = (getComputedStyle(stage).backgroundImage.match(/rgba?\([^)]+\)/g) ?? []).map((entry) =>
+      (entry.match(/\d+(\.\d+)?/g) ?? ['0', '0', '0']).slice(0, 3).map(Number),
+    );
+    const chromaOf = ([r, g, b]) => Math.max(r, g, b) - Math.min(r, g, b);
+    const lightOf = ([r, g, b]) => (Math.max(r, g, b) + Math.min(r, g, b)) / 2;
+    const hexChroma = (hex) => {
+      const value = parseInt(hex.replace('#', ''), 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      return Math.max(r, g, b) - Math.min(r, g, b);
+    };
+    const massColours = (stage.dataset.mass ?? '').split(',').filter((entry) => entry.startsWith('#'));
 
     return {
       chapter: film.dataset.chapter ?? '',
@@ -130,6 +160,11 @@ const readScene = () =>
       /* The field is a gradient, so the colour lives in the image, not the background colour. */
       ground: getComputedStyle(stage).backgroundImage,
       steps: Number(mass?.dataset.steps ?? 0),
+      family: stage.dataset.family ?? '',
+      chroma: stops.length ? Math.max(...stops.map(chromaOf)) : 0,
+      light: stops.length ? Math.max(...stops.map(lightOf)) : 0,
+      massChroma: massColours.length ? Math.max(...massColours.map(hexChroma)) : 0,
+      focal: film.querySelectorAll('.w-focal, .w-pins, .w-photo').length,
       noWebgl: Boolean(mass?.hasAttribute('data-fallback')),
       filmBox: [filmRect.left, filmRect.top, filmRect.width, filmRect.height],
       scrims: film.querySelectorAll('.film2-scrim, .film2-glow, .film2-photo-shade').length,
@@ -140,6 +175,11 @@ const readScene = () =>
       ink: getComputedStyle(line).color,
     };
   });
+
+  /* The one break that lives in the reader rather than the page: every chapter in one family. */
+  if (scene && process.env.SAME_GROUND) scene.family = 'hot';
+  return scene;
+};
 
 /*
  * **Where the object is on screen, measured from the picture.**
@@ -403,8 +443,9 @@ for (let i = 0; i < walked.length; i += 1) {
       );
     }
 
-    if (ratio < 4.5) {
-      contrastFailures.push(`${scene.chapter}: the sentence is ${ratio.toFixed(1)}:1 on its field`);
+    /* 7:1, not 4.5:1: the weakest card was passing the small-text bar on a headline nobody could read. */
+    if (ratio < 7) {
+      contrastFailures.push(`${scene.chapter}: the sentence is ${ratio.toFixed(1)}:1 on its field, under 7:1`);
     }
   }
 
@@ -519,6 +560,17 @@ for (const scene of present) {
     failures.push(`${scene.chapter}: the object is cut by ${scene.massEdges} edge(s), expected two`);
   }
   if (scene.steps < 5) failures.push(`${scene.chapter}: the body is not built of steps (${scene.steps})`);
+  if (!scene.focal) failures.push(`${scene.chapter}: there is nothing to look at but the form`);
+  if (!scene.family) failures.push(`${scene.chapter}: the chapter has no colour family`);
+  if (scene.light < 60 && scene.chroma < 50) failures.push(`${scene.chapter}: the field is a tint of black`);
+  if (scene.family !== 'paper' && scene.chroma < 70) {
+    failures.push(`${scene.chapter}: the field is washed out (chroma ${scene.chroma})`);
+  }
+  if (scene.family === 'paper' && (scene.light < 200 || scene.massChroma < 70)) {
+    failures.push(
+      `${scene.chapter}: a paper field needs a light ground and a loud form (light ${Math.round(scene.light)}, form ${scene.massChroma})`,
+    );
+  }
   if (scene.scrims) failures.push(`${scene.chapter}: a scrim or glow is back over the picture`);
   if (scene.stagger !== 'none') failures.push(`${scene.chapter}: the words are performing again (${scene.stagger})`);
   if (scene.artArea < 0.85) {
@@ -532,6 +584,15 @@ const places = new Set(present.map((scene) => scene.place).filter(Boolean));
 const shares = present.filter((scene) => scene.share).length;
 const grounds = new Set(present.map((scene) => scene.ground));
 const weakest = Math.min(...present.map((scene) => scene.contrast ?? 0));
+const families = present.map((scene) => scene.family);
+
+/* Two neighbours in one colour world read as one long card, so the rotation has to hold. */
+for (let i = 1; i < families.length; i += 1) {
+  if (families[i] && families[i] === families[i - 1]) {
+    failures.push(`${present[i].chapter}: shares its colour family (${families[i]}) with ${present[i - 1].chapter}`);
+  }
+}
+if (families.some((family) => !family)) failures.push('a chapter did not report its colour family');
 
 if (grounds.size < 16) failures.push(`only ${grounds.size} colour fields`);
 if (lines.size < 16) failures.push(`only ${lines.size} distinct sentences`);
@@ -550,5 +611,7 @@ console.log(
   `WRAPPED FILM: PASS — ${present.length} colour fields, ${grounds.size} grounds, ${shapes.size} masses, ` +
     `${lines.size} still sentences (weakest ${weakest.toFixed(1)}:1 on its own field), ${shares} shares, ` +
     `every object cut on two edges and built of steps (fewest ${fewestSteps}), every chapter moving on its own clock, ` +
+    `${new Set(families).size} colour families with no two neighbours sharing one and every ink over 7:1, ` +
+    'something to look at on every card, ' +
     'no scrim, no old labels or diagrams, no spills, 18 phone pages fit 360x800, and bare=1 shows the picture alone.',
 );

@@ -5,13 +5,14 @@ import { WrappedMasses } from './WrappedMasses';
 /*
  * **The picture is a field with a lit mass in it, not a prop on a table.**
  *
- * Every chapter now has the same two layers: one canvas of real geometry (`WrappedMasses`), and,
- * where the chapter is about something you can point at, a small focal layer over it - the map's lit
- * pins, or the photograph the look chapter is built on.
+ * Every chapter has three layers now: the colour field, one canvas of real geometry
+ * (`WrappedMasses`), and a small focal layer over it - the thing the chapter is actually about.
+ * The reference never shows a form and nothing else: there is always a sleeve, a photo or a short
+ * list sitting on the colour, and that second object is what tells the eye where to look.
  *
- * Nothing sits neatly inside the frame. The canvas is larger than the page and is clipped by
- * `.film2-art`, and the geometry inside it is composed to run past the edges, because a shape you
- * can see all of is a logo and Wrapped never shows you the whole thing.
+ * Here the focal layer is drawn, never photographed, because OVVO has no photographs of its
+ * stations: a stack of tickets for a counting chapter, a rail with two ends for the pair, and a
+ * small stepped mosaic everywhere else. It carries no words, so the one-sentence rule holds.
  */
 
 type ArtProps = {
@@ -25,16 +26,27 @@ function shortStop(name: string): string {
   return name.replace(/ (Centraal|Station)$/i, '');
 }
 
+/** Which drawn object the focal layer uses. */
+function focalKind(chapter: Chapter): 'tickets' | 'rail' | 'mosaic' {
+  if (chapter.id === 'pair' || chapter.kind === 'route') return 'rail';
+  if (chapter.kind === 'number' || chapter.kind === 'bars') return 'tickets';
+  return 'mosaic';
+}
+
 export function WrappedArt({ chapter, still }: ArtProps) {
   const id = chapter.id;
   const stops = chapter.map?.stops ?? [];
+  const kind = focalKind(chapter);
 
   return (
     <div className={`film2-art film2-art--${id}`} data-art={id} aria-hidden="true">
       {id === 'look' && chapter.photo ? <img className="w-photo" src={chapter.photo} alt="" /> : null}
 
-      <WrappedMasses chapter={chapter} still={still} />
-
+      {/*
+        * **Something to look at, on every card.** The map keeps its pins and the look keeps its
+        * photograph; every other chapter gets the drawn object that suits it. It sits where the
+        * sentence is not, so it can never be the reason a line is hard to read.
+        */}
       {id === 'map' ? (
         <span className="w-pins">
           {(stops.length
@@ -49,6 +61,16 @@ export function WrappedArt({ chapter, still }: ArtProps) {
           ))}
         </span>
       ) : null}
+
+      {id !== 'look' ? (
+        <span className={`w-focal w-focal--${kind}`} data-focal={kind}>
+          <i />
+          <i />
+          <i />
+        </span>
+      ) : null}
+
+      <WrappedMasses chapter={chapter} still={still} />
     </div>
   );
 }
