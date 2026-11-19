@@ -45,6 +45,18 @@ const SCENE_KIND: Record<string, SceneKind> = {
   close: 'stars',
 };
 
+/* Which rendered loop each chapter plays: its colour family decides. */
+const LOOP: Record<string, string> = {
+  cover: 'magenta', total: 'magenta', name: 'magenta', map: 'blue', distance: 'magenta',
+  pair: 'magenta', origin: 'blue', hour: 'blue', direct: 'blue', longest: 'magenta',
+  look: 'green', ranked: 'amber', day: 'magenta', eras: 'green', lines: 'blue',
+  awards: 'amber', bookends: 'amber', comparison: 'magenta', crew: 'amber', close: 'magenta',
+};
+
+function loopFor(id: string): string {
+  return LOOP[id] ?? 'magenta';
+}
+
 function kindOf(id: string): SceneKind {
   return SCENE_KIND[id] ?? 'ribbons';
 }
@@ -345,9 +357,13 @@ export function WrappedScenes({
         * grey on white and is multiplied into the chapter's own field here, so one render serves every
         * card and a backdrop can never disagree with the colour it sits on.
         */}
-      <div
-        className={`w-scene w-scene--${place} w-backdrop w-backdrop--${kindOf(chapter.id)}`}
-        style={{ backgroundImage: `url(/wrapped-scenes/${kindOf(chapter.id)}.png)` }}
+      <video
+        className={`w-scene w-scene--${place} w-backdrop`}
+        src={`/wrapped-loops/${loopFor(chapter.id)}0001-0060.webm`}
+        autoPlay
+        muted
+        loop
+        playsInline
         aria-hidden="true"
       />
 
