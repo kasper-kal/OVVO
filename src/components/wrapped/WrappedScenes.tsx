@@ -324,6 +324,9 @@ export function WrappedScenes({
         * grey on white and is multiplied into the chapter's own field here, so one render serves every
         * card and a backdrop can never disagree with the colour it sits on.
         */}
+      {/* A dark ground under the colour: the reference is a dark film with bright light in it. */}
+      <div className={`w-scene w-scene--${place} w-shade`} aria-hidden="true" />
+
       <video
         className={`w-scene w-scene--${place} w-backdrop`}
         src={`/wrapped-loops/${loopFor(chapter.id)}0001-0060.webm`}
