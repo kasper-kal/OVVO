@@ -860,3 +860,40 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 26%, transparent 34%, transparent 60%, #000 70%);
   mask-image: linear-gradient(to bottom, #000 26%, transparent 34%, transparent 60%, #000 70%);
 }
+
+/*
+ * **A grey render, multiplied into the field.**
+ *
+ * The plates from Blender are grey shapes on white, lit so every edge falls off. Multiplied over the
+ * chapter's colour they become that colour's own light and shade — the way the reference's blocks are
+ * darker and lighter folds of one red, not a second colour sitting on top of it.
+ */
+.w-backdrop {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+}
+
+/*
+ * **A long, soft fall-off instead of a slab.**
+ *
+ * The plate was being cut off with a short ramp, which read as a pale band across the bottom of every
+ * card. The ramp now runs long enough to look like light leaving the frame, and still ends before the
+ * sentence begins.
+ */
+.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 44%, transparent 66%);
+  mask-image: linear-gradient(to bottom, #000 44%, transparent 66%);
+}
+
+.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 44%, transparent 66%);
+  mask-image: linear-gradient(to top, #000 44%, transparent 66%);
+}
+
+.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, #000 22%, transparent 38%, transparent 54%, #000 72%);
+  mask-image: linear-gradient(to bottom, #000 22%, transparent 38%, transparent 54%, #000 72%);
+}

@@ -1,6 +1,5 @@
 import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
-import { lookFor } from '../../lib/wrappedLook';
 import { WrappedArt } from './WrappedArt';
 import { WrappedPoster } from './WrappedPoster';
 
@@ -17,36 +16,12 @@ import { WrappedPoster } from './WrappedPoster';
  */
 
 
-/*
- * **Stepped hills, drawn from the chapter's own name.**
- *
- * Two rungs of hills per card, each a staircase of whole units rather than a curve, so the horizon
- * reads as cut paper the way the reference's does. The same chapter always draws the same hills.
- */
-function hillsFor(id: string, layer: number): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i) + layer * 17) % 100003;
-  let state = hash || 1;
-  const rand = () => {
-    state = (state * 1103515245 + 12345) % 2147483648;
-    return state / 2147483648;
-  };
-  const base = layer === 0 ? 62 : 100;
-  const span = layer === 0 ? 24 : 32;
-  const columns = 25;
-  const parts = ['M0 200', `L0 ${Math.round(base + rand() * span)}`];
-  for (let i = 1; i <= columns; i += 1) {
-    parts.push(`H${Math.round((100 / columns) * i)}`);
-    parts.push(`V${Math.round(base + rand() * span)}`);
-  }
-  parts.push('H100', 'V200', 'Z');
-  return parts.join(' ');
-}
-
-
 type SceneKind = 'blades' | 'wedges' | 'collage' | 'horizon' | 'arches' | 'rays' | 'bars';
 
-/* Which kind of scene each chapter is: the shape the reference would use for that card. */
+/*
+ * Which kind of backdrop each chapter gets: the shape the reference would use for that card. The
+ * plates themselves are rendered in `scripts/render-backdrops.py`.
+ */
 const SCENE_KIND: Record<string, SceneKind> = {
   cover: 'wedges',
   total: 'blades',
@@ -72,172 +47,6 @@ const SCENE_KIND: Record<string, SceneKind> = {
 
 function kindOf(id: string): SceneKind {
   return SCENE_KIND[id] ?? 'horizon';
-}
-
-function seedOf(id: string, salt = 0): () => number {
-  let state = 0;
-  for (let i = 0; i < id.length; i += 1) state = (state * 31 + id.charCodeAt(i) + salt) % 100003;
-  return () => {
-    state = (state * 1103515245 + 12345) % 2147483648;
-    return state / 2147483648;
-  };
-}
-
-/* A staircase line between two points, in whole units — the edge of a pixel shape. */
-function stair(x1: number, y1: number, x2: number, y2: number, steps: number): string {
-  let d = '';
-  for (let i = 1; i <= steps; i += 1) {
-    d += ` V${Math.round(y1 + ((y2 - y1) * i) / steps)}`;
-    d += ` H${Math.round(x1 + ((x2 - x1) * i) / steps)}`;
-  }
-  return d;
-}
-
-/* Layered ribbons cut off a corner: the biggest-day card's scene. */
-function bladePaths(id: string): string[] {
-  const rand = seedOf(id, 7);
-  return Array.from({ length: 5 }, (_, i) => {
-    const near = Math.round(6 + i * 7 + rand() * 6);
-    const depth = Math.round(30 + i * 13 + rand() * 10);
-    return `M100 0 L${near} 0${stair(near, 0, 100, depth, 8)} Z`;
-  });
-}
-
-/* Stacked pixel wedges peeking out of a corner: the list card's scene. */
-function wedgePaths(id: string): string[] {
-  const rand = seedOf(id, 11);
-  return Array.from({ length: 4 }, (_, i) => {
-    const top = Math.round(126 + i * 11 + rand() * 6);
-    const right = Math.round(58 + i * 12 + rand() * 8);
-    return `M0 200 L0 ${top}${stair(0, top, right, 200, 7)} Z`;
-  });
-}
-
-/* A torn collage of stepped blocks: the summary-card scene. */
-function collageRects(id: string): Array<[number, number, number, number]> {
-  const rand = seedOf(id, 13);
-  return Array.from({ length: 5 }, (_, i) => {
-    const w = 34 + Math.round(rand() * 26);
-    const h = 20 + Math.round(rand() * 22);
-    return [Math.round(i * 8 + rand() * 10), Math.round(112 + i * 15 + rand() * 8), w, h] as [number, number, number, number];
-  });
-}
-
-/* Stepped columns rising from the floor: the long-line and crew scenes. */
-function barRects(id: string): Array<[number, number, number, number]> {
-  const rand = seedOf(id, 17);
-  return Array.from({ length: 15 }, (_, i) => {
-    const h = 18 + Math.round(rand() * 66);
-    return [Math.round(i * 6.7), 200 - h, 6, h] as [number, number, number, number];
-  });
-}
-
-/* Nested arches of steps: the doorway and hour scenes. */
-function archPaths(id: string): string[] {
-  const rand = seedOf(id, 19);
-  return Array.from({ length: 4 }, (_, i) => {
-    const w = 30 + i * 11 + Math.round(rand() * 6);
-    const h = 26 + i * 15 + Math.round(rand() * 8);
-    const x = 50 - w / 2;
-    return `M${Math.round(x)} 200 V${200 - h} H${Math.round(x + w)} V200 Z`;
-  });
-}
-
-/* Stepped rays fanning from a corner: the pair and closing scenes. */
-function rayPaths(id: string): string[] {
-  const rand = seedOf(id, 23);
-  return Array.from({ length: 6 }, (_, i) => {
-    const a = 8 + i * 13;
-    const b = a + 5 + Math.round(rand() * 4);
-    const reach = 128 - i * 9;
-    return `M100 200 L${Math.round(100 - reach)} 200 L${Math.round(100 - reach * Math.cos((b * Math.PI) / 180))} ${Math.round(200 - reach * Math.sin((b * Math.PI) / 180))} Z`;
-  });
-}
-
-/*
- * The scene itself. One flat field, then the chapter's kind of shape at a corner, then a sunk glow —
- * and nothing at all in the band where the sentence is.
- */
-function sceneFor(id: string, mass: string, glow: string) {
-  const kind = kindOf(id);
-  const shade = (index: number, total: number) => 0.34 + (0.5 * (index + 1)) / total;
-
-  return (
-    <>
-      <defs>
-        <radialGradient id={`glow-${id}`} cx="50%" cy="30%" r="58%">
-          <stop offset="0%" stopColor={glow} stopOpacity="0.85" />
-          <stop offset="55%" stopColor={glow} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={glow} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="100" height="200" fill={`url(#glow-${id})`} className="w-scene__sun" />
-      {kind === 'blades' ? (
-        <>
-          <g>
-            {bladePaths(id).map((d, i, all) => (
-              <path key={d} d={d} fill={mass} opacity={shade(i, all.length)} />
-            ))}
-          </g>
-          <g transform="translate(100 200) scale(-1 -1)">
-            {bladePaths(id).map((d, i, all) => (
-              <path key={`b-${d}`} d={d} fill={mass} opacity={shade(i, all.length) * 0.8} />
-            ))}
-          </g>
-        </>
-      ) : null}
-      {kind === 'wedges' ? (
-        <>
-          <g>
-            {wedgePaths(id).map((d, i, all) => (
-              <path key={d} d={d} fill={mass} opacity={shade(i, all.length)} />
-            ))}
-          </g>
-          <g transform="translate(100 0) scale(-1 1)">
-            {wedgePaths(id).map((d, i, all) => (
-              <path key={`w-${d}`} d={d} fill={mass} opacity={shade(i, all.length) * 0.7} />
-            ))}
-          </g>
-        </>
-      ) : null}
-      {kind === 'collage' ? (
-        <g>
-          {collageRects(id).map(([x, y, w, h], i, all) => (
-            <rect key={`${x}-${y}`} x={x} y={y} width={w} height={h} fill={mass} opacity={shade(i, all.length)} />
-          ))}
-          <rect x="74" y="-12" width="40" height="52" fill={mass} opacity="0.55" />
-        </g>
-      ) : null}
-      {kind === 'bars' ? (
-        <g>
-          {barRects(id).map(([x, y, w, h], i, all) => (
-            <rect key={`${x}-${y}`} x={x} y={y} width={w} height={h} fill={mass} opacity={shade(i, all.length)} />
-          ))}
-        </g>
-      ) : null}
-      {kind === 'arches' ? (
-        <g>
-          {archPaths(id).map((d, i, all) => (
-            <path key={d} d={d} fill={mass} opacity={shade(i, all.length)} />
-          ))}
-        </g>
-      ) : null}
-      {kind === 'rays' ? (
-        <g>
-          {rayPaths(id).map((d, i, all) => (
-            <path key={d} d={d} fill={mass} opacity={shade(i, all.length)} />
-          ))}
-        </g>
-      ) : null}
-      {kind === 'horizon' ? (
-        <>
-          <path className="w-scene__far" d={hillsFor(id, 0)} fill={mass} opacity="0.5" />
-          <path className="w-scene__near" d={hillsFor(id, 1)} fill={mass} opacity="0.9" />
-        </>
-      ) : null}
-      <path className="w-scene__floor" d="M0 184 H100 V200 H0 Z" fill={mass} opacity="0.97" />
-    </>
-  );
 }
 
 type Place = 'top' | 'center' | 'bottom';
@@ -529,18 +338,18 @@ export function WrappedScenes({
       key={chapter.id}
     >
       {/*
-        * **Every card gets the kind of scene its own card would have.**
+        * **The backdrop is a render, not a drawing.**
         *
-        * The reference does not draw one landscape twenty times. It has a small grammar: a flat field,
-        * then huge stepped shapes cut off at a corner (layered ribbons on its biggest-day card, pixel
-        * wedges on its list, a torn collage on its summary), and clear space where the words go.
-        * Each chapter is given its own kind of shape below, drawn from its own colours.
+        * Each kind of card — ribbons, wedges, collage, columns, arches, rays, ridges — is a small scene
+        * built and lit in Blender (`scripts/render-backdrops.py`) and rendered portrait. It comes in
+        * grey on white and is multiplied into the chapter's own field here, so one render serves every
+        * card and a backdrop can never disagree with the colour it sits on.
         */}
-      <div className={`w-scene w-scene--${place} w-scene--${kindOf(chapter.id)}`} aria-hidden="true">
-        <svg viewBox="0 0 100 200" preserveAspectRatio="none">
-          {sceneFor(chapter.id, lookFor(chapter.id).mass[0], lookFor(chapter.id).mass[1])}
-        </svg>
-      </div>
+      <div
+        className={`w-scene w-scene--${place} w-backdrop w-backdrop--${kindOf(chapter.id)}`}
+        style={{ backgroundImage: `url(/wrapped-scenes/${kindOf(chapter.id)}.png)` }}
+        aria-hidden="true"
+      />
 
       <WrappedArt chapter={chapter} count={count} year={year} still={still} hold={hold} />
 
