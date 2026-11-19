@@ -460,7 +460,13 @@ const moving = !motionBefore.equals(motionAfter);
  * is the one on top and the one the next frame will show.
  */
 function filmFrame() {
-  return page.evaluate(() => {
+  return page.evaluate(async () => {
+    /*
+     * **Ask for a painted frame before reading the buffer.** Twice, a card read nought because both reads
+     * returned the same painted frame, not because the picture had stopped. Waiting for two animation frames
+     * means the read is of a frame the film actually drew.
+     */
+    await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
     const source = Array.from(document.querySelectorAll('.film2')).at(-1)?.querySelector('.w-canvas');
     if (!source) return null;
     const small = document.createElement('canvas');

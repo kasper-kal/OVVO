@@ -1691,3 +1691,87 @@ video.w-backdrop {
     transparent 74%
   );
 }
+
+/* ==================================================================================================
+ * **The plate has no edge.**
+ *
+ * A band with a corner is a caption box, and at 82 and 84 seconds of the recording that is exactly what it
+ * looked like: a grey rounded rectangle sitting on the wall. The reference has no box anywhere. The plate is
+ * a radial fall-off centred on the sentence now, so it has no boundary to see, only a place where the field
+ * is quieter.
+ * ================================================================================================ */
+
+.film2[data-ink='light'] .w-plate {
+  background: radial-gradient(140% 96% at 50% 74%, rgb(4 0 8 / 0.92) 0 34%, rgb(4 0 8 / 0.7) 54%, transparent 78%);
+}
+
+.film2[data-ink='light'].film2--place-top .w-plate {
+  background: radial-gradient(140% 96% at 50% 26%, rgb(4 0 8 / 0.92) 0 34%, rgb(4 0 8 / 0.7) 54%, transparent 78%);
+}
+
+.film2[data-ink='light'].film2--place-center .w-plate {
+  background: radial-gradient(140% 96% at 50% 55%, rgb(4 0 8 / 0.9) 0 26%, rgb(4 0 8 / 0.68) 48%, transparent 74%);
+}
+
+.film2[data-ink='dark'] .w-plate {
+  mix-blend-mode: normal;
+  background: radial-gradient(140% 96% at 50% 74%, rgb(250 246 238 / 0.94) 0 34%, rgb(250 246 238 / 0.72) 54%, transparent 78%);
+}
+
+.film2[data-ink='dark'].film2--place-top .w-plate {
+  background: radial-gradient(140% 96% at 50% 26%, rgb(250 246 238 / 0.94) 0 34%, rgb(250 246 238 / 0.72) 54%, transparent 78%);
+}
+
+.film2[data-ink='dark'].film2--place-center .w-plate {
+  background: radial-gradient(140% 96% at 50% 55%, rgb(250 246 238 / 0.92) 0 26%, rgb(250 246 238 / 0.7) 48%, transparent 74%);
+}
+
+/* ==================================================================================================
+ * **The pale plate was half the card.**
+ *
+ * A 140 percent radial is nearly the whole frame, and on the nine cards with near-black type it laid a cream
+ * wash over the picture: the recording measured lightness at 100 against the reference's 48 and the
+ * composition changing on 6 percent of tenths instead of 16. The pale plate is now a band the height of the
+ * words. The dark plate stays broad, because cream type needs a quiet field under it and a dark field keeps
+ * the colour.
+ * ================================================================================================ */
+
+.film2[data-ink='dark'] .w-plate,
+.film2[data-ink='dark'].film2--place-bottom .w-plate {
+  background: radial-gradient(
+    100% 34% at 50% 76%,
+    color-mix(in srgb, var(--accent, #ffd6ef) 22%, #fff7ea) 0 44%,
+    rgb(255 247 234 / 0.72) 66%,
+    transparent 92%
+  );
+}
+
+.film2[data-ink='dark'].film2--place-top .w-plate {
+  background: radial-gradient(
+    100% 34% at 50% 24%,
+    color-mix(in srgb, var(--accent, #ffd6ef) 22%, #fff7ea) 0 44%,
+    rgb(255 247 234 / 0.72) 66%,
+    transparent 92%
+  );
+}
+
+.film2[data-ink='dark'].film2--place-center .w-plate {
+  background: radial-gradient(
+    100% 30% at 50% 55%,
+    color-mix(in srgb, var(--accent, #ffd6ef) 22%, #fff7ea) 0 44%,
+    rgb(255 247 234 / 0.72) 66%,
+    transparent 92%
+  );
+}
+
+.film2[data-ink='light'] .w-plate {
+  background: radial-gradient(125% 78% at 50% 74%, rgb(4 0 8 / 0.9) 0 34%, rgb(4 0 8 / 0.66) 56%, transparent 80%);
+}
+
+.film2[data-ink='light'].film2--place-top .w-plate {
+  background: radial-gradient(125% 78% at 50% 26%, rgb(4 0 8 / 0.9) 0 34%, rgb(4 0 8 / 0.66) 56%, transparent 80%);
+}
+
+.film2[data-ink='light'].film2--place-center .w-plate {
+  background: radial-gradient(125% 78% at 50% 55%, rgb(4 0 8 / 0.88) 0 28%, rgb(4 0 8 / 0.64) 50%, transparent 76%);
+}
