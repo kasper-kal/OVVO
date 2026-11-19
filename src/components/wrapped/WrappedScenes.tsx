@@ -1,6 +1,7 @@
 import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
 import { WrappedArt } from './WrappedArt';
+import { WrappedField } from './WrappedField';
 import { WrappedPoster } from './WrappedPoster';
 
 /*
@@ -311,6 +312,8 @@ export function WrappedScenes({
       data-chapter={chapter.id}
       data-place={place}
       data-size={size}
+      /* The film is paused: a held frame must hold the wall too, or the pause only half works. */
+      data-hold={hold ? '1' : undefined}
       /* The day card's own two facts, so the deck check can read what the sentence was built from. */
       data-day={chapter.day?.date ?? ''}
       data-day-count={chapter.day ? String(chapter.day.count) : ''}
@@ -336,6 +339,15 @@ export function WrappedScenes({
         playsInline
         aria-hidden="true"
       />
+
+      {/*
+        * **The wall the card is made of.**
+        *
+        * A motif repeated across the whole frame, marching every frame and exchanged for another motif
+        * every 2.4 seconds. Without this a card was one picture for ten seconds, which is the one thing
+        * the reference never does.
+        */}
+      <WrappedField chapter={chapter.id} place={place} />
 
       {/* Darkened above the loop, not under it: the loop was painting over the shade. */}
       <div className={`w-scene w-scene--${place} w-shade`} aria-hidden="true" />

@@ -457,8 +457,25 @@ async function holdFrame(hold) {
       document.querySelector('.wrapped-pause')?.dataset.paused === '1',
   );
   if (hold === paused) return;
-  await button.click({ timeout: 4000 }).catch(() => {});
-  await page.waitForTimeout(140);
+  /*
+   * **A click that never landed reads as a still object.**
+   *
+   * The sampler asks for a held frame, then asks for it back. Twice it measured a card as moving nought,
+   * on different cards each run, while the same card sampled on its own moved at 2.8 to 5.9. The pause had
+   * simply not taken: the button was clicked while the outgoing chapter's cut was still over it. Asking the
+   * button what it did, and pressing again if the answer is no, is the difference between a measurement and
+   * a coin toss. No floor is moved: an object that really is frozen still measures nought.
+   */
+  const pressed = async () =>
+    page.evaluate(
+      () => document.querySelector('.wrapped-pause')?.getAttribute('aria-pressed') === 'true' ||
+        document.querySelector('.wrapped-pause')?.dataset.paused === '1',
+    );
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await button.click({ timeout: 4000 }).catch(() => {});
+    await page.waitForTimeout(180);
+    if ((await pressed()) === hold) return;
+  }
 }
 
 async function sampleMotion(name) {

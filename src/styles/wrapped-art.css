@@ -1040,3 +1040,510 @@ video.w-backdrop {
   animation-duration: 1.9s;
   filter: brightness(0.28) saturate(1.24) contrast(1.2);
 }
+
+/* ==================================================================================================
+ * **The wall of marks.**
+ *
+ * This is the grammar the deck was missing. Read off every tenth of a second of the reference, a Wrapped
+ * card is not a colour with an object on it: it is a *field of dozens of the same mark*, repeated to all
+ * four edges, drifting every single frame, and the mark is *swapped for a different one* every two to
+ * four seconds. Ours held one rendered loop for ten seconds, so nothing inside a card ever changed
+ * composition. Brightness could not fix that because the problem was never brightness.
+ *
+ * The field is drawn flat and in vector on purpose: the reference is flat vector, not rendered light.
+ * Three pattern walls stand in the frame, each holding one motif, and they take turns on a 7.2 second
+ * stylesheet clock, which is a hard cut every 2.4 seconds. Then each wall marches one whole tile, in its
+ * own direction and at its own speed, so the field moves on every frame as well as changing shape.
+ * ================================================================================================ */
+
+.w-field {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  color: #ffffff;
+}
+
+.w-field__beat {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  /* A hard exchange, not a crossfade: the reference cuts its motif. */
+  animation-duration: 7.2s;
+  animation-timing-function: step-end;
+  animation-iteration-count: infinite;
+  will-change: opacity;
+}
+
+.w-field__beat--1 { animation-name: w-field-beat-1; }
+.w-field__beat--2 { animation-name: w-field-beat-2; }
+.w-field__beat--3 { animation-name: w-field-beat-3; }
+
+@keyframes w-field-beat-1 {
+  0% { opacity: 1; }
+  33.34% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes w-field-beat-2 {
+  0% { opacity: 0; }
+  33.34% { opacity: 1; }
+  66.67% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes w-field-beat-3 {
+  0% { opacity: 0; }
+  66.67% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.w-field__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  /* Each motif swells from a different corner, so the exchange also changes where the light sits. */
+  animation: w-field-swell 5.4s ease-in-out infinite alternate;
+}
+
+.w-field__beat--1 .w-field__svg { transform-origin: 22% 18%; }
+.w-field__beat--2 .w-field__svg { transform-origin: 78% 62%; animation-duration: 6.3s; }
+.w-field__beat--3 .w-field__svg { transform-origin: 50% 92%; animation-duration: 4.6s; }
+
+/*
+ * **The exchange flips the polarity, not just the shape.**
+ *
+ * In the reference a cut does not only change the motif: it goes from bright marks on a dark block to dark
+ * marks on a bright one, and that reversal is what makes the cut land. Pale marks, then near-black marks,
+ * then marks in the chapter's own accent. Three looks, every 2.4 seconds, from one wall.
+ */
+.w-field__beat--1 { color: #ffffff; }
+.w-field__beat--2 { color: #07000d; }
+.w-field__beat--3 { color: var(--accent, #ffd6ef); }
+
+@keyframes w-field-swell {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.16); }
+}
+
+/* The mark itself: one colour, no gradient, exactly as the reference draws it. */
+.w-field__mark {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+
+/*
+ * **The march.** Exactly one tile in each direction, so the loop point is invisible: the pattern repeats
+ * on the tile, so a move of one tile looks identical to no move at all. Every frame the mark is somewhere
+ * new, which is what the reference does at a tenth of a second even on its quietest card.
+ */
+.w-field__tile {
+  animation: w-field-march-a 1.4s linear infinite;
+}
+
+.w-field__tile[data-beat='2'] { animation-name: w-field-march-b; animation-duration: 1.9s; }
+.w-field__tile[data-beat='3'] { animation-name: w-field-march-c; animation-duration: 1.1s; }
+
+@keyframes w-field-march-a {
+  from { transform: translate(0, 0); }
+  to { transform: translate(67px, 84px); }
+}
+
+@keyframes w-field-march-b {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-67px, 0); }
+}
+
+@keyframes w-field-march-c {
+  from { transform: translate(0, 0); }
+  to { transform: translate(0, -84px); }
+}
+
+/*
+ * **The mass stops being a sculpture.**
+ *
+ * With a field of marks around it the 3D object reads as a set of blocks sitting on a pattern, which is
+ * the thing the steerer kept calling blocks. It is kept because it is the chapter's own fact, but it is
+ * pushed back into the light so the wall is the picture and the shape is only the brightest part of it.
+ */
+.wrapped-stage .film2-art .w-mass {
+  opacity: 0.34;
+  mix-blend-mode: screen;
+}
+
+/* A still and a reduced-motion card keep one motif, stopped, and every mark stays where it is. */
+.wrapped-stage.is-still .w-field__beat,
+.wrapped-stage.is-still .w-field__svg,
+.wrapped-stage.is-still .w-field__tile {
+  animation: none !important;
+}
+
+.wrapped-stage.is-still .w-field__beat--1 { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .w-field__beat,
+  .w-field__svg,
+  .w-field__tile {
+    animation: none !important;
+  }
+
+  .w-field__beat--1 { opacity: 1; }
+}
+
+/* ==================================================================================================
+ * **The field is a colour, not a mood.**
+ *
+ * The last few passes pulled the loop down to a brightness of 0.28 and laid 40 percent black over it to
+ * chase the reference's average lightness, and the result was a dark navy card with barely anything in
+ * it. Wrapped is not dark for its own sake: it is flat saturated colour, and the dark is what the marks
+ * and the black cards are made of. The loop now carries the colour at a brightness a person can name,
+ * and the marks, white, near-black and accent, have something to be drawn on.
+ * ================================================================================================ */
+
+video.w-backdrop {
+  filter: brightness(0.52) saturate(1.5) contrast(1.06);
+}
+
+.w-shade {
+  background: rgba(4, 0, 8, 0.26);
+}
+
+/*
+ * **The stack, said once.**
+ *
+ * The field has to be above the darkening layer or every white mark comes out grey (it measured 74 percent
+ * of white), and the sentence and the object have to be above the field. So: colour, shade, wall, object,
+ * words. Nothing else in the file decides this any more.
+ */
+video.w-backdrop { z-index: 0; }
+.w-shade { z-index: 3; }
+.w-field { z-index: 3; }
+.film2-art { z-index: 4; }
+.film2-copy { z-index: 4; }
+
+/*
+ * **The render becomes light, not a photograph of something.**
+ *
+ * At full sharpness the Blender loop read as a blurred picture behind a card, which is the one thing the
+ * reference never has: its colour is flat and its marks are crisp. Blurred right down, the same loop is
+ * what makes the colour move inside the card, and the crisp thing on top is the mark wall.
+ */
+video.w-backdrop {
+  filter: brightness(0.62) saturate(1.45) contrast(1.02) blur(16px);
+}
+
+/*
+ * **The wall goes over the darkening layer, not under it.**
+ *
+ * The two sit at the same depth, so the second shade, which comes later in the page, was painting on top of
+ * the marks and turning every white one to 74 percent grey. A mark is now above the shade and the sentence
+ * is above the mark.
+ */
+.w-field { z-index: 4; }
+.film2-art { z-index: 5; }
+.film2-copy { z-index: 5; }
+
+/*
+ * **The flat colour is the ground; the render is only its weather.**
+ *
+ * A sharp render read as a smeared photograph and a blurred one read as milk. Wrapped's field is a *colour*
+ * that a person can name, with crisp marks on it, so the render is pulled back to a slow coloured light over
+ * the chapter's own ground: still the thing that makes the colour move inside a card, no longer the subject.
+ */
+video.w-backdrop {
+  opacity: 0.34;
+  filter: brightness(0.5) saturate(1.7) blur(30px);
+  mix-blend-mode: overlay;
+}
+
+/*
+ * **The object is light, not a pile of boxes.**
+ *
+ * The 3D mass is cut off by the frame and lit, which is the idea, but at a readable opacity it is a stack of
+ * slabs sitting on the pattern: the blocks the steerer keeps naming. Half the brightness takes it back to a
+ * highlight inside the wall.
+ */
+.wrapped-stage .film2-art .w-mass {
+  opacity: 0.2;
+}
+
+/*
+ * **Measured, then slowed down.**
+ *
+ * The first wall was recorded at a tenth of a second and measured against the reference: composition changes
+ * landed on 41 percent of steps against its 16, motion was 9.6 against 4.8, and the frame sat at 106 brightness
+ * against 48. The wall was marching a whole tile in under two seconds and carrying too much of the frame in
+ * white, so it read as busy wallpaper rather than as a field a colour sits in. The march is roughly twice as
+ * slow, the marks are sparser, and the frame is darker again, which puts the three numbers back near the
+ * reference while keeping the exchange every 2.4 seconds.
+ */
+.w-field__tile { animation-duration: 3.4s; }
+.w-field__tile[data-beat='2'] { animation-duration: 4.6s; }
+.w-field__tile[data-beat='3'] { animation-duration: 2.8s; }
+
+.w-field__beat--1 .w-field__svg { opacity: 0.9; }
+.w-field__beat--2 .w-field__svg { opacity: 0.78; }
+.w-field__beat--3 .w-field__svg { opacity: 0.86; }
+
+.w-shade { background: rgba(4, 0, 8, 0.44); }
+
+video.w-backdrop {
+  filter: brightness(0.46) saturate(1.5) contrast(1.02) blur(30px);
+}
+
+/*
+ * **The wall runs behind the words.**
+ *
+ * The mask that protects the sentence was clearing the field away altogether, which left the top of every
+ * card as a flat gradient with the type on it and made the whole deck read as a slide with a texture at the
+ * bottom. The reference never does that: its marks carry on through the type and the type is readable because
+ * the marks there are quieter, not gone. The field now keeps a quarter of its strength across the sentence,
+ * which is a wall behind a line rather than a blank band above one.
+ */
+.w-field.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 0 44%, rgb(0 0 0 / 0.26) 54%, rgb(0 0 0 / 0.26) 100%);
+  mask-image: linear-gradient(to top, #000 0 44%, rgb(0 0 0 / 0.26) 54%, rgb(0 0 0 / 0.26) 100%);
+}
+
+.w-field.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 44%, rgb(0 0 0 / 0.26) 54%, rgb(0 0 0 / 0.26) 100%);
+  mask-image: linear-gradient(to bottom, #000 0 44%, rgb(0 0 0 / 0.26) 54%, rgb(0 0 0 / 0.26) 100%);
+}
+
+.w-field.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.26) 0 20%, #000 34% 62%, rgb(0 0 0 / 0.26) 76% 100%);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.26) 0 20%, #000 34% 62%, rgb(0 0 0 / 0.26) 76% 100%);
+}
+
+/* The dark beat: the card goes to near-black behind the wall, then comes back. */
+.w-field__wash {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: rgba(3, 0, 7, 0.55);
+  pointer-events: none;
+}
+
+/*
+ * **The wall is set on a tilt, and it turns.**
+ *
+ * The first wall sat dead square, a grid of identical marks, and a square grid of one shape is wallpaper. The
+ * reference's fields are always on a diagonal or rippling, so each beat's wall is now bigger than the frame and
+ * turns a few degrees as it swells. Nothing is straight, and nothing can show a corner while it turns.
+ */
+.w-field__beat {
+  inset: -14%;
+}
+
+@keyframes w-field-swell {
+  from { transform: scale(1.04) rotate(-4deg); }
+  to { transform: scale(1.2) rotate(4deg); }
+}
+
+/* A quarter of the wall behind the sentence was still too loud to read a line of type against. */
+.w-field.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 0 44%, rgb(0 0 0 / 0.2) 54%, rgb(0 0 0 / 0.2) 100%);
+  mask-image: linear-gradient(to top, #000 0 44%, rgb(0 0 0 / 0.2) 54%, rgb(0 0 0 / 0.2) 100%);
+}
+
+.w-field.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 44%, rgb(0 0 0 / 0.2) 54%, rgb(0 0 0 / 0.2) 100%);
+  mask-image: linear-gradient(to bottom, #000 0 44%, rgb(0 0 0 / 0.2) 54%, rgb(0 0 0 / 0.2) 100%);
+}
+
+.w-field.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0 20%, #000 34% 62%, rgb(0 0 0 / 0.2) 76% 100%);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0 20%, #000 34% 62%, rgb(0 0 0 / 0.2) 76% 100%);
+}
+
+/*
+ * **The wall behind the words, and the shadow that lets you read them.**
+ *
+ * A wall behind the sentence dropped four cards under the 7:1 floor (3.5:1 on two of them), because a bright
+ * mark under white type is the same as light grey type. Taking the wall away again was the other failure: the
+ * top of every card went back to a blank band. So the wall keeps a tenth of its strength across the sentence
+ * and a soft shadow of the card's own darkness sits behind the words, which is how the reference keeps type
+ * readable on a field: the field goes darker under the line, it does not go away.
+ */
+.w-field.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 0 44%, rgb(0 0 0 / 0.1) 54%, rgb(0 0 0 / 0.1) 100%);
+  mask-image: linear-gradient(to top, #000 0 44%, rgb(0 0 0 / 0.1) 54%, rgb(0 0 0 / 0.1) 100%);
+}
+
+.w-field.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 44%, rgb(0 0 0 / 0.1) 54%, rgb(0 0 0 / 0.1) 100%);
+  mask-image: linear-gradient(to bottom, #000 0 44%, rgb(0 0 0 / 0.1) 54%, rgb(0 0 0 / 0.1) 100%);
+}
+
+.w-field.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.1) 0 20%, #000 34% 62%, rgb(0 0 0 / 0.1) 76% 100%);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.1) 0 20%, #000 34% 62%, rgb(0 0 0 / 0.1) 76% 100%);
+}
+
+.film2-copy::before {
+  content: '';
+  position: absolute;
+  inset: -40% -18%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 50%, rgb(4 0 9 / 0.62), rgb(4 0 9 / 0.28) 62%, transparent 78%);
+  filter: blur(10px);
+}
+
+/* The object has to be visible enough to be seen moving; at a fifth of its strength the check measured it
+   standing still. */
+.wrapped-stage .film2-art .w-mass {
+  opacity: 0.4;
+}
+
+/*
+ * **The measured truth about the wall and the words.**
+ *
+ * Two runs of the deck check settled this, and neither answer was a matter of taste. A wall behind the sentence
+ * at a quarter strength put four cards under the 7:1 floor (3.5:1 at worst); at a tenth, with a soft shadow
+ * behind the words, it was still under (2.6:1 at worst) and the shadow cost the object its movement reading.
+ * White type on a wall of white marks cannot pass, whatever is laid between them. So the wall stops where the
+ * sentence starts, exactly as before, and the wall behind the words stays an idea the gate has refused. The
+ * exchange, the tilt and the marching wall all stay, and they are what changed the film.
+ */
+.w-field.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 0 44%, transparent 54%);
+  mask-image: linear-gradient(to top, #000 0 44%, transparent 54%);
+}
+
+.w-field.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 44%, transparent 54%);
+  mask-image: linear-gradient(to bottom, #000 0 44%, transparent 54%);
+}
+
+.w-field.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, #000 20%, transparent 30%, transparent 62%, #000 72%);
+  mask-image: linear-gradient(to bottom, #000 20%, transparent 30%, transparent 62%, #000 72%);
+}
+
+.film2-copy::before { content: none; }
+
+.wrapped-stage .film2-art .w-mass {
+  opacity: 0.62;
+  mix-blend-mode: normal;
+}
+
+/* The object is put back exactly as it was when the deck last passed, because both changes to it cost the
+   check something: at 0.34 and at 0.4 with `screen` it stopped registering as moving, and at 0.62 solid it
+   brightened the field under the sentence on one card. Its own light is what it was. */
+.wrapped-stage .film2-art .w-mass {
+  opacity: 0.52;
+  mix-blend-mode: screen;
+}
+
+/*
+ * **A paused film is a held picture, wall included.**
+ *
+ * Every other layer stops when the film is paused and the wall did not: the marks kept marching and the beat
+ * kept cutting while the object stood still, so the deck check's held frame was not held at all and its
+ * readings wandered between runs. The wall now stops with the picture.
+ */
+.film2[data-hold='1'] .w-field__beat,
+.film2[data-hold='1'] .w-field__tile,
+.film2[data-hold='1'] .w-field__svg {
+  animation-play-state: paused;
+}
+
+/*
+ * **The object belongs under the darkening layer, not over it.**
+ *
+ * Lifting it above the shade so the wall could run behind the words also stopped the shade from dimming it,
+ * and one card's sentence fell to 5.1:1 on the brighter field the object was now pouring under it. Depth is
+ * colour, object, shade, wall, words: the wall is the bright thing, and everything the picture is made of
+ * sits under its own darkening.
+ */
+.film2-art { z-index: 2; }
+
+/*
+ * **The blur was costing more than it gave.**
+ *
+ * A 30 pixel blur over a moving video is one of the most expensive things a phone can be asked to paint, and
+ * it was starving the object's own frame loop: the deck check twice read a card as not moving at all. A third
+ * of the blur looks the same at this size and leaves the frame loop alone.
+ */
+video.w-backdrop {
+  filter: brightness(0.46) saturate(1.5) contrast(1.02) blur(12px);
+}
+
+.w-field__beat { will-change: auto; }
+
+/*
+ * **Nothing heavy runs behind the wall.**
+ *
+ * A blurred, colour-blended video is three full-screen passes a frame on top of the wall's own painting, and
+ * the deck check kept finding cards whose object had not drawn in a tenth of a second: the picture loop was
+ * being starved. The loop is already pulled down to a third of its strength over a flat ground, where a blur
+ * adds nothing you can see, so the blur and the blend are gone and the video is only colour.
+ */
+video.w-backdrop {
+  filter: brightness(0.52) saturate(1.6) contrast(1.02);
+  mix-blend-mode: normal;
+}
+
+/* The wall clears a wider gap before the sentence, so no card's line can land on a mark. */
+.w-field.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 0 34%, transparent 44%);
+  mask-image: linear-gradient(to top, #000 0 34%, transparent 44%);
+}
+
+.w-field.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 34%, transparent 44%);
+  mask-image: linear-gradient(to bottom, #000 0 34%, transparent 44%);
+}
+
+/*
+ * **The darkening layer was fading out where the words are.**
+ *
+ * `.w-shade` carries the scene classes, so it inherited the scene's own mask and went transparent from 44
+ * percent down: exactly the band the sentence sits in. The frame was dark where nothing needed it and bare
+ * where the type was, which is why one card sat at 4.9:1 on an orange field. A shade that protects the words
+ * has to be the one thing on the card that does not fade. It covers the frame, and the wall, the object and
+ * the sentence all sit above it.
+ */
+.w-shade {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/*
+ * **The shade keeps its fade, and the glow gives way instead.**
+ *
+ * Covering the whole frame with the shade took nine cards to 1.5:1, because those cards are dark ink on a
+ * light ground and a frame-wide dimming turns their sentence into dark on dark. The fade was right: the band
+ * the sentence sits in keeps the ground the ink was chosen for. What was actually washing out the one card
+ * that failed, an orange field read at 4.9:1, was the object's own light on the `screen` blend sitting under
+ * the line. The object is a highlight, and a highlight does not need to be half a card's worth of glow.
+ */
+.w-shade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 44%, transparent 66%);
+  mask-image: linear-gradient(to bottom, #000 44%, transparent 66%);
+}
+
+.w-shade.w-scene--bottom {
+  -webkit-mask-image: linear-gradient(to bottom, #000 44%, transparent 66%);
+  mask-image: linear-gradient(to bottom, #000 44%, transparent 66%);
+}
+
+.w-shade.w-scene--top {
+  -webkit-mask-image: linear-gradient(to top, #000 44%, transparent 66%);
+  mask-image: linear-gradient(to top, #000 44%, transparent 66%);
+}
+
+.w-shade.w-scene--center {
+  -webkit-mask-image: linear-gradient(to bottom, #000 22%, transparent 38%, transparent 54%, #000 72%);
+  mask-image: linear-gradient(to bottom, #000 22%, transparent 38%, transparent 54%, #000 72%);
+}
+
+.wrapped-stage .film2-art .w-mass {
+  opacity: 0.3;
+}

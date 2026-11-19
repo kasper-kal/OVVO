@@ -145,7 +145,15 @@ const LOOK: Record<string, Look> = {
      * dark red and the slabs are darker still; dark ink there was 2.5:1 against its own ground.
      */
     family: 'hot',
-    ground: 'linear-gradient(160deg, #ffd7b0 0%, #ff5a1f 54%, #860c00 100%)',
+    /*
+     * **Straight down, and deep by the time the words arrive.**
+     *
+     * A diagonal field left the lower right still bright orange under the sentence, and cream on it
+     * measured 4.4:1. The field now runs down the frame and reaches its deep red by 72 percent, so wherever
+     * the words land they are on dark: cream reads at 9:1 there, and the pale top stays the warm dawn the
+     * wall of marks sits in.
+     */
+    ground: 'linear-gradient(180deg, #ffd7b0 0%, #ff5a1f 40%, #860c00 72%, #5e0700 100%)',
     ink: '#fff7ea',
     mass: ['#5a0500', '#ffb37a'],
   },

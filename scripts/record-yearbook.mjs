@@ -6,6 +6,15 @@ import { chromium } from 'playwright';
 import { mkdirSync, rmSync } from 'node:fs';
 
 const dir = process.argv[2] || '/tmp/rec';
+/*
+ * **How long a card is held before the next swipe.**
+ *
+ * 2.2 seconds was shorter than the film's own heartbeat: a card exchanges its composition every 2.4 seconds,
+ * so a recording that swiped sooner than that could not contain a single exchange, and the measurement said
+ * the film never changed composition when the instrument was what never saw it change. Five seconds shows
+ * two exchanges a card, which is what a person watching the film actually sees.
+ */
+const hold = Number(process.env.HOLD_MS || 2200);
 rmSync(dir, { recursive: true, force: true });
 mkdirSync(dir, { recursive: true });
 
@@ -25,7 +34,7 @@ for (let i = 0; i < 4; i += 1) {
 }
 await page.locator('.film2-begin').click();
 for (let i = 0; i < 20; i += 1) {
-  await page.waitForTimeout(2200);
+  await page.waitForTimeout(hold);
   await page.keyboard.press('ArrowRight');
 }
 await page.waitForTimeout(500);
