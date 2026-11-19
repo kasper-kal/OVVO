@@ -16,37 +16,37 @@ import { WrappedPoster } from './WrappedPoster';
  */
 
 
-type SceneKind = 'blades' | 'wedges' | 'collage' | 'horizon' | 'arches' | 'rays' | 'bars';
+type SceneKind = 'ribbons' | 'blobs' | 'dunes' | 'arches' | 'columns' | 'rays' | 'stars';
 
 /*
  * Which kind of backdrop each chapter gets: the shape the reference would use for that card. The
  * plates themselves are rendered in `scripts/render-backdrops.py`.
  */
 const SCENE_KIND: Record<string, SceneKind> = {
-  cover: 'wedges',
-  total: 'blades',
-  name: 'wedges',
-  map: 'horizon',
-  distance: 'blades',
-  pair: 'rays',
-  origin: 'wedges',
+  cover: 'blobs',
+  total: 'ribbons',
+  name: 'arches',
+  map: 'stars',
+  distance: 'ribbons',
+  pair: 'blobs',
+  origin: 'columns',
   hour: 'arches',
-  direct: 'arches',
-  longest: 'bars',
-  look: 'collage',
-  ranked: 'wedges',
-  day: 'blades',
-  eras: 'horizon',
-  lines: 'wedges',
-  awards: 'collage',
-  bookends: 'collage',
-  comparison: 'blades',
-  crew: 'bars',
-  close: 'rays',
+  direct: 'stars',
+  longest: 'columns',
+  look: 'dunes',
+  ranked: 'columns',
+  day: 'ribbons',
+  eras: 'dunes',
+  lines: 'arches',
+  awards: 'blobs',
+  bookends: 'arches',
+  comparison: 'ribbons',
+  crew: 'blobs',
+  close: 'stars',
 };
 
 function kindOf(id: string): SceneKind {
-  return SCENE_KIND[id] ?? 'horizon';
+  return SCENE_KIND[id] ?? 'ribbons';
 }
 
 type Place = 'top' | 'center' | 'bottom';

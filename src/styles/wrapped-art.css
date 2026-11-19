@@ -897,3 +897,15 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 22%, transparent 38%, transparent 54%, #000 72%);
   mask-image: linear-gradient(to bottom, #000 22%, transparent 38%, transparent 54%, #000 72%);
 }
+
+/*
+ * **Overlay, because these plates have light in them now.**
+ *
+ * Multiply only kept the shadows, which is why the first renders looked like dark blocks. The plates
+ * now carry highlights as well, so they are overlaid: bright folds lift, shaded folds sink, and the
+ * chapter's own colour shows through both.
+ */
+.w-backdrop {
+  mix-blend-mode: overlay;
+  opacity: 0.78;
+}
