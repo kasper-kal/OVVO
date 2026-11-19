@@ -337,6 +337,9 @@ export function WrappedScenes({
         aria-hidden="true"
       />
 
+      {/* Darkened above the loop, not under it: the loop was painting over the shade. */}
+      <div className={`w-scene w-scene--${place} w-shade`} aria-hidden="true" />
+
       <WrappedArt chapter={chapter} count={count} year={year} still={still} hold={hold} />
 
       <div className="film2-copy">
