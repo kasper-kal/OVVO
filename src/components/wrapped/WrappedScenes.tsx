@@ -319,6 +319,14 @@ export function WrappedScenes({
   const place = PLACE[chapter.id] ?? 'center';
   const size = SIZE[chapter.id] ?? 'large';
   const lightInk = inkIsLight(lookFor(chapter.id).ink);
+  /*
+   * **The one-chapter lab.**
+   *
+   * The counting card is being rebuilt first, on its own, until it is right: the screen is one lit body
+   * cut by the frame instead of a wall of repeated marks over it. The wall stays on the other nineteen
+   * cards until this one has been judged and approved, so nothing else changes underneath the steerer.
+   */
+  const noWall = chapter.id === 'total';
   const line = lineFor({ chapter, year, demo, yearOver, count });
   const sub = subFor(chapter);
   /* Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. */
@@ -366,7 +374,7 @@ export function WrappedScenes({
         * every 2.4 seconds. Without this a card was one picture for ten seconds, which is the one thing
         * the reference never does.
         */}
-      <WrappedField chapter={chapter.id} place={place} />
+      {noWall ? null : <WrappedField chapter={chapter.id} place={place} />}
 
       {/* Darkened above the loop, not under it: the loop was painting over the shade. */}
       <div className={`w-scene w-scene--${place} w-shade`} aria-hidden="true" />

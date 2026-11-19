@@ -51,9 +51,16 @@ const LOOK: Record<string, Look> = {
   },
   total: {
     family: 'acid',
-    ground: 'linear-gradient(180deg, #f2ff8a 0%, #c6ff00 46%, #7ecf00 100%)',
-    ink: '#04140b',
-    mass: ['#006633', '#b6ff00'],
+    /*
+     * **Dark stage, lit object.**
+     *
+     * This card is the one-chapter lab: the reference puts a single lit body in a dark room and cuts it
+     * with the frame, so the ground is near-black with the lime only where the light falls. A bright
+     * lime field behind a lime object is the one thing that cannot read as lit.
+     */
+    ground: 'radial-gradient(120% 90% at 50% 34%, #3f7d05 0%, #1b3405 44%, #070a04 100%)',
+    ink: '#f6ffe0',
+    mass: ['#1c3b00', '#c8ff1f'],
   },
   name: {
     family: 'hot',

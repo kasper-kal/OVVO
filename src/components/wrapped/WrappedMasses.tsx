@@ -175,8 +175,29 @@ function build(chapter: Chapter): Built {
     }
 
     case 'total': {
-      /* Tickets, as one column that starts above the frame so the ceiling cuts it. */
-      slabs(built, { count: 7, w: 5.4, h: 1.5, d: 2.6, x: 0.6, y: 6.6, dy: -1.45, shrink: 0.02, colour: base, accent, tilt: 0.03 });
+      /*
+       * **The one-chapter lab: one object, filmed close up.**
+       *
+       * The reference does not build a card out of a pattern. It puts a single big body in front of the
+       * camera and lets the frame cut it, so the shape is a thing in a room rather than a wallpaper.
+       * This is that body for the counting card: one stepped ring (a flower of slabs), wide enough that
+       * the frame has to crop it on every side, with a solid core so there is no hole to look through.
+       */
+      /*
+       * A fan of petals standing up out of the bottom of the frame. Each one is turned a little
+       * further than the one before, so the key light catches a different face on each and the
+       * fan steps from lit to dark across the card instead of reading as one flat sheet.
+       */
+      const petals = 9;
+      for (let i = 0; i < petals; i += 1) {
+        const t = i / (petals - 1);
+        const angle = Math.PI * (0.14 + 0.68 * t);
+        const mesh = box(2.2 + 1.6 * Math.sin(t * Math.PI), 7.4, 1.1, i % 2 === 0 ? accent : base);
+        mesh.position.set(-2.6 + 5.2 * t, -2.4 + Math.sin(angle) * 1.6, -1.6 + t * 1.2);
+        mesh.rotation.set(0, -0.5 + t * 1.0, angle - Math.PI / 2);
+        add(built, mesh, { amp: 0.05, spin: 0.012, phase: i * 0.4 });
+        built.steps += 1;
+      }
       break;
     }
 
@@ -645,7 +666,7 @@ export function WrappedMasses({
        */
       /* The ranking's bar chart is the widest body in the deck and the least forgiving of a shove. */
       /* Every body overhangs a little more: the sway and the beat spend part of the overhang now. */
-      const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.36 : 1.26;
+      const overshoot = chapter.id === 'ranked' ? 1.55 : chapter.id === 'total' ? 1.04 : wideBody ? 1.36 : 1.26;
       const target = overshoot * Math.max(frame.width, frame.height);
 
       /*

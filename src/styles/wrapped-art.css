@@ -1775,3 +1775,26 @@ video.w-backdrop {
 .film2[data-ink='light'].film2--place-center .w-plate {
   background: radial-gradient(125% 78% at 50% 55%, rgb(4 0 8 / 0.88) 0 28%, rgb(4 0 8 / 0.64) 50%, transparent 76%);
 }
+
+/* ---------------------------------------------------------------------------
+ * The one-chapter lab: the counting card.
+ *
+ * The body in this card is a lit object on a dark stage, so nothing is allowed
+ * to sit between it and the words. The dim plate that keeps cream type legible
+ * on a bright field was drawn above the geometry, which turned a lime flower
+ * into a black rectangle. On this card the ground is already dark, so the plate
+ * comes off entirely.
+ * ------------------------------------------------------------------------- */
+.film2--total .w-plate {
+  display: none;
+}
+
+/*
+ * The lab card's only scrim: a shade that rises from the bottom edge, so the words have
+ * something to sit on and the object above them is untouched. A centred plate was a box over
+ * the middle of the picture, which is exactly what this card is meant to stop looking like.
+ */
+.film2--total .w-plate {
+  display: block;
+  background: linear-gradient(to bottom, transparent 52%, rgb(4 12 1 / 0.72) 82%, rgb(4 12 1 / 0.88) 100%);
+}
