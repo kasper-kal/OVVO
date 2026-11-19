@@ -16,35 +16,6 @@ import { WrappedPoster } from './WrappedPoster';
  */
 
 
-type SceneKind = 'ribbons' | 'blobs' | 'dunes' | 'arches' | 'columns' | 'rays' | 'stars';
-
-/*
- * Which kind of backdrop each chapter gets: the shape the reference would use for that card. The
- * plates themselves are rendered in `scripts/render-backdrops.py`.
- */
-const SCENE_KIND: Record<string, SceneKind> = {
-  cover: 'blobs',
-  total: 'ribbons',
-  name: 'arches',
-  map: 'stars',
-  distance: 'ribbons',
-  pair: 'blobs',
-  origin: 'columns',
-  hour: 'arches',
-  direct: 'stars',
-  longest: 'columns',
-  look: 'dunes',
-  ranked: 'columns',
-  day: 'ribbons',
-  eras: 'dunes',
-  lines: 'arches',
-  awards: 'blobs',
-  bookends: 'arches',
-  comparison: 'ribbons',
-  crew: 'blobs',
-  close: 'stars',
-};
-
 /* Which rendered loop each chapter plays: its colour family decides. */
 const LOOP: Record<string, string> = {
   cover: 'magenta', total: 'magenta', name: 'magenta', map: 'blue', distance: 'magenta',
@@ -55,10 +26,6 @@ const LOOP: Record<string, string> = {
 
 function loopFor(id: string): string {
   return LOOP[id] ?? 'magenta';
-}
-
-function kindOf(id: string): SceneKind {
-  return SCENE_KIND[id] ?? 'ribbons';
 }
 
 type Place = 'top' | 'center' | 'bottom';
