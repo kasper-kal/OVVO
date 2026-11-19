@@ -1777,24 +1777,80 @@ video.w-backdrop {
 }
 
 /* ---------------------------------------------------------------------------
- * The one-chapter lab: the counting card.
+ * The one-chapter lab: the counting card, second pass.
  *
- * The body in this card is a lit object on a dark stage, so nothing is allowed
- * to sit between it and the words. The dim plate that keeps cream type legible
- * on a bright field was drawn above the geometry, which turned a lime flower
- * into a black rectangle. On this card the ground is already dark, so the plate
- * comes off entirely.
+ * The body is the picture on this card now, so nothing may sit between it and the eye. The
+ * darkening layer that dims every other card's object comes off, and the object is drawn at
+ * full strength above the layers instead of at a third. The plate that keeps cream type legible
+ * on a bright field is gone as well: the sentence is written on a fold that is in shadow, so it
+ * needs no box behind it, which is the difference between type on a picture and type on a card.
  * ------------------------------------------------------------------------- */
-.film2--total .w-plate {
-  display: none;
-}
+.film2--total .w-shade { display: none; }
+.film2--total video.w-backdrop { opacity: 0.22; }
+.wrapped-stage .film2--total .film2-art { z-index: 6; }
+.wrapped-stage .film2--total .film2-art .w-mass { opacity: 1; mix-blend-mode: normal; }
+/* The drawn ticket stub was a prop beside the object; on this card the object is the prop. */
+.film2--total .w-focal { display: none; }
+.film2--total .film2-copy { z-index: 7; }
+.film2--total .film2-grain { z-index: 8; }
+.film2--total .w-plate { display: none; }
 
 /*
- * The lab card's only scrim: a shade that rises from the bottom edge, so the words have
- * something to sit on and the object above them is untouched. A centred plate was a box over
- * the middle of the picture, which is exactly what this card is meant to stop looking like.
+ * The words in the middle of the body, smaller than the deck's own headline, so the picture is
+ * the thing you see first. A small line under them still swaps once, and the headline now does
+ * the same: the fact arrives, then the feeling replaces it.
  */
-.film2--total .w-plate {
-  display: block;
-  background: linear-gradient(to bottom, transparent 52%, rgb(4 12 1 / 0.72) 82%, rgb(4 12 1 / 0.88) 100%);
+.film2--total .film2-copy {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+
+.film2--total .film2-head {
+  display: grid;
+  justify-items: center;
+}
+
+.film2--total .film2-head > * { grid-area: 1 / 1; }
+
+.film2--total .film2-line {
+  max-width: 15ch;
+  font-size: clamp(30px, 7vw, 74px);
+  line-height: 0.98;
+  animation: film-head-a 10s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.film2--total .film2-after {
+  max-width: 15ch;
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(30px, 7vw, 74px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  color: var(--ink, #f6ffe0);
+  text-wrap: balance;
+  opacity: 0;
+  animation: film-head-b 10s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes film-head-a {
+  0%, 42% { opacity: 1; }
+  52%, 100% { opacity: 0; }
+}
+
+@keyframes film-head-b {
+  0%, 48% { opacity: 0; }
+  58%, 100% { opacity: 1; }
+}
+
+/* A held card holds its word too; a still or reduced-motion card keeps the first one. */
+.film2--total[data-hold='1'] .film2-line,
+.film2--total[data-hold='1'] .film2-after { animation-play-state: paused; }
+
+.wrapped-stage.is-still .film2--total .film2-line { animation: none; opacity: 1; }
+.wrapped-stage.is-still .film2--total .film2-after { animation: none; opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .film2--total .film2-line { animation: none; opacity: 1; }
+  .film2--total .film2-after { display: none; }
 }

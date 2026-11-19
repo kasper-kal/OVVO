@@ -50,7 +50,7 @@ function inkIsLight(hex: string): boolean {
 
 const SIZE: Record<string, 'small' | 'medium' | 'large'> = {
   cover: 'large',
-  total: 'large',
+  total: 'medium',
   name: 'large',
   map: 'small',
   distance: 'medium',
@@ -78,7 +78,7 @@ const SIZE: Record<string, 'small' | 'medium' | 'large'> = {
  */
 const PLACE: Record<string, Place> = {
   cover: 'center',
-  total: 'bottom',
+  total: 'center',
   name: 'bottom',
   map: 'top',
   distance: 'bottom',
@@ -331,6 +331,18 @@ export function WrappedScenes({
   const sub = subFor(chapter);
   /* Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. */
   const words = line.split(/ +/);
+  const headline = (
+    <h1 className="film2-line">
+      {words.map((word, at) => (
+        <Fragment key={at}>
+          <span className="film2-word" style={{ '--i': at } as CSSProperties}>
+            {word}
+          </span>
+          {at < words.length - 1 ? ' ' : null}
+        </Fragment>
+      ))}
+    </h1>
+  );
 
   return (
     <div
@@ -391,16 +403,22 @@ export function WrappedScenes({
       <div className="w-plate" aria-hidden="true" />
 
       <div className="film2-copy">
-        <h1 className="film2-line">
-          {words.map((word, at) => (
-            <Fragment key={at}>
-              <span className="film2-word" style={{ '--i': at } as CSSProperties}>
-                {word}
-              </span>
-              {at < words.length - 1 ? ' ' : null}
-            </Fragment>
-          ))}
-        </h1>
+        {/*
+          * **The headline changes once, the way the reference's does.**
+          *
+          * Wrapped does not leave one sentence up for a whole card: it sets the fact, then swaps it for
+          * the feeling halfway through ("Hi there" becomes "Life moves fast"). The counting card is the
+          * first to do it. The swap sits inside the copy block as a plain element, not a second `h1`,
+          * because the deck's rule is one headline and the check counts them.
+          */}
+        {chapter.id === 'total' ? (
+          <div className="film2-head">
+            {headline}
+            <div className="film2-after">You don&apos;t stay in much.</div>
+          </div>
+        ) : (
+          headline
+        )}
         {sub ? (
           <div className="film2-sub">
             <span className="film2-sub__a">{sub.a}</span>

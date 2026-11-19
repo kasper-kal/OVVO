@@ -161,6 +161,165 @@ function blob(
   built.steps += o.count;
 }
 
+/*
+ * **The one-chapter lab: one satin body, filmed close up.**
+ *
+ * The reference does not build a card out of a pattern. It puts a single body in front of the camera and
+ * lets the frame cut it, so the shape is a thing in a room rather than a wallpaper. This is that body for
+ * the counting card: a pleated sheet, authored four times wider and taller than the frame, so every edge
+ * of the picture cuts it and there is no silhouette to see.
+ *
+ * Its folds are **contiguous**. Each band shares its crease with the band beside it, to the vertex, so the
+ * body has no air anywhere inside the frame - which is the one thing the old nine-blade fan could never
+ * stop doing: nine slabs with black between them read as nine small objects, not one big one.
+ *
+ * The sheen is baked into the vertices, because the body is the picture: each fold runs dark at its crease
+ * and bright on its belly, so the light rolls across the fabric instead of stepping down a facet. The roll
+ * also fades towards the middle of the frame, which is where the sentence stands - so the words are legible
+ * because the fabric is in shadow there, and not because a plate was laid over it.
+ */
+function satin(
+  built: Built,
+  o: { folds: number; colour: string; accent: string; dark: string },
+): void {
+  /*
+   * **One pleated sheet, filmed close up.**
+   *
+   * Two earlier bodies failed in opposite directions. Nine separate blades with air between them made the
+   * eye count nine small objects. A frame of soft blobs made it count nothing at all. This is the middle:
+   * a single sheet, authored four times wider and taller than the frame, so every edge of the picture cuts
+   * it and there is no outline anywhere to see. Its folds are **contiguous**: each band shares its ridge
+   * with the band beside it, to the vertex, so there is no air inside the frame at all.
+   *
+   * The sheen is baked into the vertices, because the body is the picture: each fold runs dark at its
+   * crease and bright across its belly, so light rolls over cloth instead of stepping down a facet. The
+   * roll also lets go towards the middle of the frame, which is where the sentence stands, so the words
+   * are legible because the fabric is in shadow there and not because something was laid over it.
+   */
+  const FOLDS = o.folds;
+  const UP = 26;
+  /* The sheet is the whole frame, so a coarse grid shows: at twelve columns the light crossed a fold in
+     visible steps and the picture read as faceted plastic. */
+  const ROWS = 40;
+  const COLS = 26;
+
+  /* The folds gather towards one side, the way cloth does: no two are the same width. */
+  const edges: number[] = [];
+  let cursor = -27;
+  for (let k = 0; k <= FOLDS; k += 1) {
+    edges.push(cursor);
+    cursor += (54 / FOLDS) * (1 - 0.34 * (k / FOLDS));
+  }
+
+  const lit = new THREE.Color(o.accent);
+  const mid = new THREE.Color(o.colour);
+  const deep = new THREE.Color(o.dark);
+  const hot = new THREE.Color('#f4ffe0');
+
+  /* The fabric is not flat: it bows towards the camera, and the creases swing as they climb. */
+  const bowZ = (x: number) => Math.cos(x * 0.055) * 5.2;
+  const backZ = (k: number) => -2.6 - 0.9 * Math.cos(k * 0.9);
+  const creaseY = (x: number, v: number) => Math.sin(x * 0.11 + 0.4) * 4.2 + Math.sin(v * 2.4 + x * 0.05) * 1.7;
+  /* The sheet is hung on a slant, so the folds run across the frame instead of fencing it. */
+  const skew = 0.2;
+
+  /*
+   * **Matte, because satin is soft.** At a quarter roughness the scene's own key light laid thin white
+   * streaks down every fold, and a wet white line on a coloured fold is a plastic rod, not cloth. The
+   * sheen is baked into the vertices instead, where it can be as broad as the reference's is.
+   */
+  const material = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.68,
+    metalness: 0,
+    side: THREE.DoubleSide,
+  });
+
+  for (let k = 0; k < FOLDS; k += 1) {
+    const xa = edges[k];
+    const xb = edges[k + 1];
+    const za = bowZ(xa) + backZ(k);
+    const zb = bowZ(xb) + backZ(k + 1);
+    const depth = 2.6 + 0.7 * Math.sin(k * 1.7 + 0.6);
+
+    /*
+     * **Two faces per fold, not one skin.**
+     *
+     * A tent drawn as one mesh has its ridge averaged by the normals, and an averaged ridge is a rounded
+     * pipe. Each half of the fold is its own panel here, touching its twin along the ridge to the vertex:
+     * the surface never opens, and the normals stop dead at the ridge, so the crease is a real edge with
+     * light on one side of it and shadow on the other.
+     */
+    for (let face = 0; face < 2; face += 1) {
+      const from = face === 0 ? 0 : 0.5;
+      const positions: number[] = [];
+      const colours: number[] = [];
+      const index: number[] = [];
+      const tint = new THREE.Color();
+
+      for (let r = 0; r <= ROWS; r += 1) {
+        const v = r / ROWS;
+        for (let c = 0; c <= COLS; c += 1) {
+          const u = from + (0.5 * c) / COLS;
+          const flat = xa + (xb - xa) * u;
+          /* A curved face, so the light rolls over it; the hard part is the ridge, not the face. */
+          const puff = Math.sin(Math.PI * u) ** 0.72;
+          const y = -UP + 2 * UP * v + creaseY(flat, v);
+          /*
+           * **The big fold.** The sheet is pushed back along its middle, so two wide planes lean away
+           * from the camera and meet in a crease that runs across the frame. That crease is the only line
+           * the picture needs: an edge inside one body, not the outline of a small one, and it is the
+           * shadow the sentence is written in.
+           */
+          const lean = Math.max(0, Math.abs(y) - 5) * 0.62;
+          const z = za + (zb - za) * u + puff * depth + lean;
+          positions.push(flat + y * skew, y, z);
+
+          /*
+           * **Light is a place on the cloth, not a line on every rib.**
+           *
+           * A hot ridge on each fold made the card a bundle of green pipes: a bright rim repeated at one
+           * width is a cylinder, whichever way it is drawn. The light is read across the whole sheet, in
+           * one slow sweep that brightens towards the top right, so the picture has a lit side and a dark
+           * side instead of an even ribbing.
+           */
+          const across = 0.34 + 0.66 * (0.5 + 0.5 * Math.sin(flat * 0.028 + y * 0.03 + 2.4));
+          const nearCrease = 0.22 + 0.78 * Math.min(1, Math.abs(y) / 8.5);
+          const light = across ** 1.6 * nearCrease * (0.45 + 0.55 * puff);
+          tint.copy(deep).lerp(mid, Math.min(1, light * 2.1));
+          tint.lerp(lit, Math.min(0.75, Math.max(0, light - 0.42) * 1.7));
+          /* Capped: a fold that reaches pure white stops being coloured cloth and becomes a lamp. */
+          tint.lerp(hot, Math.min(0.34, Math.max(0, light - 0.84) * 3.2));
+          colours.push(tint.r, tint.g, tint.b);
+        }
+      }
+
+      for (let r = 0; r < ROWS; r += 1) {
+        for (let c = 0; c < COLS; c += 1) {
+          const a = r * (COLS + 1) + c;
+          const b = a + 1;
+          const below = a + (COLS + 1);
+          const beside = below + 1;
+          index.push(a, below, b, b, below, beside);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+      geometry.setIndex(index);
+      geometry.computeVertexNormals();
+
+      const mesh = new THREE.Mesh(geometry, material);
+      /*
+       * Every band rides the same wave at the same phase. Giving each its own phase would pull the shared
+       * ridge apart and open the air back up, which is the whole thing this body exists to avoid.
+       */
+      add(built, mesh, { amp: 0.05, spin: 0, phase: 0 });
+      built.steps += 1;
+    }
+  }
+}
 function build(chapter: Chapter): Built {
   const built: Built = { group: new THREE.Group(), pieces: [], steps: 0 };
   const [base, accent] = lookFor(chapter.id).mass;
@@ -175,29 +334,8 @@ function build(chapter: Chapter): Built {
     }
 
     case 'total': {
-      /*
-       * **The one-chapter lab: one object, filmed close up.**
-       *
-       * The reference does not build a card out of a pattern. It puts a single big body in front of the
-       * camera and lets the frame cut it, so the shape is a thing in a room rather than a wallpaper.
-       * This is that body for the counting card: one stepped ring (a flower of slabs), wide enough that
-       * the frame has to crop it on every side, with a solid core so there is no hole to look through.
-       */
-      /*
-       * A fan of petals standing up out of the bottom of the frame. Each one is turned a little
-       * further than the one before, so the key light catches a different face on each and the
-       * fan steps from lit to dark across the card instead of reading as one flat sheet.
-       */
-      const petals = 9;
-      for (let i = 0; i < petals; i += 1) {
-        const t = i / (petals - 1);
-        const angle = Math.PI * (0.14 + 0.68 * t);
-        const mesh = box(2.2 + 1.6 * Math.sin(t * Math.PI), 7.4, 1.1, i % 2 === 0 ? accent : base);
-        mesh.position.set(-2.6 + 5.2 * t, -2.4 + Math.sin(angle) * 1.6, -1.6 + t * 1.2);
-        mesh.rotation.set(0, -0.5 + t * 1.0, angle - Math.PI / 2);
-        add(built, mesh, { amp: 0.05, spin: 0.012, phase: i * 0.4 });
-        built.steps += 1;
-      }
+      /* One satin sheet, pleated by the crease and never by the gap. */
+      satin(built, { folds: 5, colour: base, accent, dark: shade(base, 0.78) });
       break;
     }
 
@@ -666,7 +804,7 @@ export function WrappedMasses({
        */
       /* The ranking's bar chart is the widest body in the deck and the least forgiving of a shove. */
       /* Every body overhangs a little more: the sway and the beat spend part of the overhang now. */
-      const overshoot = chapter.id === 'ranked' ? 1.55 : chapter.id === 'total' ? 1.04 : wideBody ? 1.36 : 1.26;
+      const overshoot = chapter.id === 'ranked' ? 1.55 : chapter.id === 'total' ? 1.36 : wideBody ? 1.36 : 1.26;
       const target = overshoot * Math.max(frame.width, frame.height);
 
       /*
@@ -742,9 +880,15 @@ export function WrappedMasses({
        * taller than the frame rather than wider, so the sideways test never fired and the drag from
        * the ring sat behind the largest sentence in the deck, 6.4:1 where the rule asks for 7.
        */
-      if (chapter.id === 'close' || chapter.id === 'total') {
-        /* Both grew a small line above their headline and need their body further off it. */
-        built.group.position.y += ((chapter.id === 'close' ? 0.3 : 0.2) * frame.height) / pxPerUnit;
+      if (chapter.id === 'total') {
+        /*
+         * The lab card's body is the frame. It is not dodged away from the words any more, because the
+         * words have moved onto the middle of the body: the fold is in shadow there and the sentence is
+         * written on the fabric itself.
+         */
+      } else if (chapter.id === 'close') {
+        /* The closing ring grew a small line above its headline and needs its body further off it. */
+        built.group.position.y += (0.3 * frame.height) / pxPerUnit;
       } else if (copyPlace === 'top' && crossesX) {
         built.group.position.y -= (0.13 * frame.height) / pxPerUnit;
       } else if (copyPlace === 'bottom' && crossesX) {
@@ -797,6 +941,12 @@ export function WrappedMasses({
      */
     const CARD_SECONDS = 10;
     const BEAT_SECONDS = 2.4;
+    /*
+     * The lab card's body is the whole picture, so its motion is the picture's motion: it travels across
+     * the frame and rolls, instead of turning on the spot the way a smaller body has to. A turn of the
+     * whole sheet would swing it edge-on and empty the frame within a second.
+     */
+    const lab = chapter.id === 'total';
 
     const draw = (now: number, animate: boolean) => {
       /*
@@ -815,16 +965,16 @@ export function WrappedMasses({
       const beat = Math.max(0, 1 - (clock % BEAT_SECONDS) / 0.5) ** 2;
 
       built.group.rotation.y =
-        Math.sin(clock * (0.85 + drift) + seed * 2) * 0.3 * swayScale + (animate ? (1 - ease) * -0.16 : 0);
+        Math.sin(clock * (0.85 + drift) + seed * 2) * (lab ? 0.1 : 0.3) * swayScale + (animate ? (1 - ease) * -0.16 : 0);
       /* The whole body travels as well as turns: a distant one turns by millimetres on screen. */
-      built.group.position.x = fitted.x + Math.sin(clock * 0.7 + seed * 1.7) * 0.28;
-      built.group.position.y = fitted.y;
-      built.group.rotation.z = Math.sin(clock * 0.27 + seed) * 0.05;
+      built.group.position.x = fitted.x + Math.sin(clock * 0.7 + seed * 1.7) * (lab ? 1.0 : 0.28);
+      built.group.position.y = fitted.y + (lab ? Math.sin(clock * 0.37 + seed) * 0.55 : 0);
+      built.group.rotation.z = Math.sin(clock * 0.27 + seed) * (lab ? 0.07 : 0.05);
       built.group.rotation.x = Math.sin(clock * 0.19 + seed * 2) * 0.04;
       built.group.scale.setScalar(nominal * (1 + 0.09 * through + (1 - ease) * 0.16));
       /* The lurch. A tenth of a second on the beat is a step of several pixels, which is what makes
          a film read as alive at a glance rather than as a picture that breathes. */
-      built.group.position.z = fitted.z + beat * 0.75;
+      built.group.position.z = fitted.z + beat * (lab ? 0.3 : 0.75);
 
       camera.position.x = Math.sin(clock * 0.85 + seed * 3) * 1.1;
       camera.position.y = 0.45 - through * 0.9 + Math.cos(clock * 0.6) * 0.5;
