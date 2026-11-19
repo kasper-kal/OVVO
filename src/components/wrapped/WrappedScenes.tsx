@@ -235,7 +235,7 @@ function lineFor({
  *
  * The reference never leaves a card with one sentence for its whole life: it sets a small line
  * beneath the big one and swaps it mid-card, which is most of why its frames read as written rather
- * than printed. This is that line, in two halves — the first runs as the card arrives, the second
+ * than printed. This is that line, in two halves, the first runs as the card arrives, the second
  * takes over at the halfway point, and the stylesheet crossfades them on the card's own clock.
  *
  * It is a `div`, not a `p`, on purpose: `scripts/check-wrapped-scenes.mjs` counts `h1`, `h2` and `p`
@@ -340,7 +340,7 @@ export function WrappedScenes({
       {/*
         * **The backdrop is a render, not a drawing.**
         *
-        * Each kind of card — ribbons, wedges, collage, columns, arches, rays, ridges — is a small scene
+        * Each kind of card, ribbons, wedges, collage, columns, arches, rays, ridges, is a small scene
         * built and lit in Blender (`scripts/render-backdrops.py`) and rendered portrait. It comes in
         * grey on white and is multiplied into the chapter's own field here, so one render serves every
         * card and a backdrop can never disagree with the colour it sits on.

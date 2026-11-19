@@ -2,13 +2,13 @@
  * A consistency audit: what the *same* action looks like and where it sits, read out of a real
  * browser on every screen, so drift is a number rather than an opinion.
  *
- * Why this file exists. Three rounds in a row the same class of defect was reported by eye —
+ * Why this file exists. Three rounds in a row the same class of defect was reported by eye ,
  * "the back button is in a different place with every menu", then "the pin is at the top right
  * sometimes and the top left others". Each time it was fixed on the screens named and each time
  * it came back somewhere else, because nothing measured the *rule*. A screenshot cannot see a
  * rule; an inventory can:
  *
- *   1. every control on every screen is recorded — its accessible name, the glyphs it draws, its
+ *   1. every control on every screen is recorded, its accessible name, the glyphs it draws, its
  *      shape (box, radius, border, fill) and its place (which landmark it sits in, which row of
  *      that landmark, which side of it);
  *   2. controls are grouped by the **action** they perform, so *Pin Haarlem* and *Unpin Zaandam*
@@ -17,26 +17,26 @@
  *      instances that disagree.
  *
  * The standards the findings are judged against are the ones that actually apply:
- *   - W3C COGA, "Use icons that help the user" — one glyph, one meaning
+ *   - W3C COGA, "Use icons that help the user", one glyph, one meaning
  *     https://www.w3.org/WAI/WCAG2/supplemental/patterns/o1p07-icons-used/
- *   - WCAG 2.2 SC 3.2.3 Consistent Navigation — repeated controls in the same relative order
+ *   - WCAG 2.2 SC 3.2.3 Consistent Navigation, repeated controls in the same relative order
  *     https://www.w3.org/WAI/WCAG22/Understanding/consistent-navigation.html
- *   - WCAG 2.1 SC 3.2.4 Consistent Identification — the same function, identified the same way;
+ *   - WCAG 2.1 SC 3.2.4 Consistent Identification, the same function, identified the same way;
  *     its own example is a save control that uses a disk icon on one page and a checkmark on
  *     another https://www.w3.org/WAI/WCAG21/Understanding/consistent-identification.html
- *   - NN/g heuristic #4, Consistency and standards — "Ensure consistency in the placement of form
+ *   - NN/g heuristic #4, Consistency and standards, "Ensure consistency in the placement of form
  *     fields and buttons" https://www.nngroup.com/articles/consistency-and-standards/
  *
  * Run:   node scripts/consistency-audit.mjs [origin] [--gate]
  *
- * Without `--gate` it reports and exits 0 — the findings are the output, and this is a research
+ * Without `--gate` it reports and exits 0, the findings are the output, and this is a research
  * instrument for a live product.
  *
  * With `--gate` it exits 1 when the app has *drifted*, and it decides that on two rules:
  *
  *   1. **one action, one glyph per state** (W3C COGA). Mechanical and never exempt: if two
  *      instances of the same action, in the same pressed state, draw different glyphs, that is
- *      the defect this audit was written for — `pin` and `×` for one toggle, `route` and
+ *      the defect this audit was written for, `pin` and `×` for one toggle, `route` and
  *      `arrowLeft` for one way back. Nothing to judge.
  *   2. **every remaining finding is a decision on the record.** An action whose instances still
  *      disagree in shape or place must be named in `DELIBERATE` below with the reason, or the
@@ -46,8 +46,8 @@
  *      Now a new disagreement fails it, and the ones it tolerates are the ones written down.
  *
  * Place is reported but not gated, on purpose: a control in a page head, one in a card's foot and
- * one in a dialog's footer cannot occupy the same place, and WCAG 3.2.3 — the clause about
- * repeated controls — is about their *relative order*, which this instrument does not measure.
+ * one in a dialog's footer cannot occupy the same place, and WCAG 3.2.3, the clause about
+ * repeated controls, is about their *relative order*, which this instrument does not measure.
  */
 import { ensureAppFont } from './font-guard.mjs';
 
@@ -79,7 +79,7 @@ try {
  * `dismiss`; `Favourite` (keep this journey) and `Keep this search` (keep this search) were both
  * `save something`; `Transport preferences` and `Settings` were both `options`; `Customise home`
  * (edit this screen) and `Options` (filter this list) were both `options` too, which is how it came
- * to report two glyphs — `sliders` and `settings` — for one action. WCAG 3.2.4 is about the *same*
+ * to report two glyphs, `sliders` and `settings`, for one action. WCAG 3.2.4 is about the *same*
  * function, so grouping by verb manufactured findings out of unrelated controls. They are separate
  * actions now, and `Customise home` draws its own glyph (see `Icons.tsx`).
  */
@@ -145,24 +145,24 @@ const ACTION_RULES = [
 ];
 
 /**
- * Findings that are decisions, not drift — the gate lets these through and fails on anything else.
+ * Findings that are decisions, not drift, the gate lets these through and fails on anything else.
  *
  * One line per action, naming the standard's clause and *why* the instances disagree, so that
  * `--gate` is a check with a stated boundary rather than a number that is red on purpose. An entry
  * here is a claim the traveller can contradict; nothing is here to make a count go down.
  */
 const DELIBERATE = new Map([
-  ['pin a stop', 'one glyph, and trailing in every landmark it appears in: a page head, a card head, a list row and a picker row are four containers. The picker’s rows past the fold read `offscreen` rather than `foot` — they are past the dialog’s own edge, which is a scroll position, not a second place'],
+  ['pin a stop', 'one glyph, and trailing in every landmark it appears in: a page head, a card head, a list row and a picker row are four containers. The picker’s rows past the fold read `offscreen` rather than `foot`, they are past the dialog’s own edge, which is a scroll position, not a second place'],
   ['plan a journey', 'a control that names its own object: an icon-only row button in a board, a bordered pill in a page head or a panel foot, a text-only `Plan` on a stop card (asked for by name), and the picker’s obsidian submit'],
   ['open the board', 'a card whose heading row is the narrowest in the app says `Board`, a list says `Open the full board` (asked for by name), and the board’s own page is `Departure boards`'],
   ['save a journey', 'a journey card’s pill and the journey page’s pill are the same control in two containers; the journey page’s was obsidian and is not any more'],
-  /* A finding at 390 and not at 320 — the two widths this audit runs at disagree about it, which
+  /* A finding at 390 and not at 320, the two widths this audit runs at disagree about it, which
      is the caveat the register's own note below is about. Kept, not deleted. */
   ['show the network map', 'the map screen as a destination, named for itself rather than for a journey; it sits in the head of the alert page’s card at 390 and in the head of its panel at 320'],
-  ['show on the map', 'a journey’s own map link in the card or the journey page — one function, two containers'],
+  ['show on the map', 'a journey’s own map link in the card or the journey page, one function, two containers'],
   ['go back', 'a bare arrow in a bar (page level, 44px disc) versus a labelled return link in content (a bordered pill); the shape follows the container the audit already agreed on'],
   ['show more results', 'the same bordered pill, at the foot of a page on the two long lists and at the foot of a card on the stop page and the board'],
-  ['dismiss', 'five × controls, all 44×44, round, trailing in their own row — one signature per row it clears'],
+  ['dismiss', 'five × controls, all 44×44, round, trailing in their own row, one signature per row it clears'],
   ['options', 'the options/filters glyph, always labelled, in the filter bar of the three lists that have one'],
   ['travel preferences', 'one destination named for its context: four `Travel preferences` links in a card’s own action row, and the alert page’s single full-width `Manage avoidance preferences` at the foot of its card, with nothing to sit beside'],
 ]);
@@ -170,9 +170,9 @@ const DELIBERATE = new Map([
 /**
  * The action a control performs.
  *
- * Only the **label** decides — an `aria-label` when there is one, else the control's first few
- * words — and only when that label is short enough to be a label. A first pass matched the whole
- * text of the control, which turned an alert's title (`Cancelled services — …`) into a "dismiss"
+ * Only the **label** decides, an `aria-label` when there is one, else the control's first few
+ * words, and only when that label is short enough to be a label. A first pass matched the whole
+ * text of the control, which turned an alert's title (`Cancelled services, …`) into a "dismiss"
  * and the map picker's own description ("…until the pin sits on the stop you want") into "pin a
  * stop": both were defects in the instrument, not in the app, and a finding nobody can act on is
  * worse than no finding.
@@ -187,7 +187,7 @@ function actionOf(label) {
 /* ------------------------------------------------------------------ reading a screen */
 
 /**
- * Every control on the screen, with the two things an inconsistency is made of — what it draws and
+ * Every control on the screen, with the two things an inconsistency is made of, what it draws and
  * where it sits.
  *
  * `landmark` is the nearest thing that can hold a control and has a name in the interface: a page
@@ -211,7 +211,7 @@ const READ_CONTROLS = () => {
      * The app's own field rows, under the two names it gives them: `input-group` wraps a text
      * field with its glyph, `planner-row` is one From/To row of the planner card and of the
      * picker. They are `field` under a different class name, and a control that clears a field
-     * belongs to the *field it clears* — that is its place, not the card or the dialog the field
+     * belongs to the *field it clears*, that is its place, not the card or the dialog the field
      * happens to sit in. It was the last thing `clear a field` needed: five `×` controls, one
      * glyph, one shape, all trailing, and the report was reading the container they were in.
      */
@@ -242,20 +242,20 @@ const READ_CONTROLS = () => {
     const middle = rootBox.left + rootBox.width / 2;
     const text = (el.getAttribute('aria-label') ?? el.textContent ?? '').replace(/\s+/g, ' ').trim();
     /* The label an action is recognised by: the accessible name if the control has one (all the
-       icon-only ones do), else the first six words — never a whole sentence. */
+       icon-only ones do), else the first six words, never a whole sentence. */
     const label = (el.getAttribute('aria-label') ?? text.split(' ').slice(0, 6).join(' ')).trim();
     const icons = [...el.querySelectorAll('[data-icon]')].map((icon) => icon.getAttribute('data-icon'));
     /*
      * Which row of the landmark a control sits in: its **first row of content** (`head`), its
-     * **last** (`foot`), or the middle of it (`body`) — read off the landmark's own children.
+     * **last** (`foot`), or the middle of it (`body`), read off the landmark's own children.
      *
      * This used to be a fraction of the landmark's *box*: the top 28% was the head, the bottom 28%
      * the foot. That proxy broke in exactly the two ways the register's limits named. A control
      * past the landmark's own edge read `foot`, so a list growing by a row moved a control's
      * signature while nothing moved or changed shape (round 16 patched that to `offscreen`). And a
      * row that is the only row of a short panel read `head` on one screen and `foot` in a longer
-     * panel of the same kind on another, which is how the same `Network map` pill — 133×44, one
-     * glyph, trailing, in the last row of both panels — came out as two places.
+     * panel of the same kind on another, which is how the same `Network map` pill, 133×44, one
+     * glyph, trailing, in the last row of both panels, came out as two places.
      *
      * `offscreen` is gone with the fraction rule: being outside a box is a scroll position, not a
      * place, and the box is still recorded on every instance. A landmark whose content is longer
@@ -285,13 +285,13 @@ const READ_CONTROLS = () => {
       landmark,
       row: short(el.parentElement?.className ?? ''),
       /*
-       * The side a control is on, in the landmark it sits in: left, right — or no side at all.
+       * The side a control is on, in the landmark it sits in: left, right, or no side at all.
        *
        * `centre` and `stretch` are not decoration. A control centred in its landmark used to fall
        * through to `right` because its midpoint landed a fraction of a pixel past the middle: the
        * two lists' "Show 5 more" (centred in the page) were reported as being on the right, and
        * that alone was a finding against the two card-foot ones. A control that *spans* its
-       * landmark had no side to report either — a card's odd action takes the whole width by
+       * landmark had no side to report either, a card's odd action takes the whole width by
        * design (`journey-card__actions`), so its midpoint is the landmark's middle, which the same
        * rule read as `right`. Both are the artifact the width-as-shape bug was: reading a
        * coincidence of the box as a decision.
@@ -307,7 +307,7 @@ const READ_CONTROLS = () => {
       band,
       /*
        * The visible box, not the declared one: a ring can be a border, an outline or a shadow, and
-       * the first version of this read only the border — which reported a bare glyph where the
+       * the first version of this read only the border, which reported a bare glyph where the
        * screenshots show a circle, because the circle is a shadow on the raised surface.
        */
       /*
@@ -335,7 +335,7 @@ const READ_CONTROLS = () => {
 
 /**
  * The glyphs that are *not* controls: a pin drawn inside a widget row, a marker in a suggestion,
- * the alert triangle in a banner. They are half of the "one glyph, one meaning" question — a
+ * the alert triangle in a banner. They are half of the "one glyph, one meaning" question, a
  * glyph can drift by being a control on one screen and a decoration on the next.
  */
 const READ_GLYPHS = () => {
@@ -393,7 +393,7 @@ await context.addInitScript(
     window.localStorage.setItem('ov-planner:v1:location-consent', '"denied"');
     /* Two pinned stops, and the widgets that *list* pins put on the home screen. Both halves
        matter to this audit: the widget rows draw a pin that is not a control, and they unpin with
-       a labelled button rather than the toggle — which is exactly the kind of drift it looks for. */
+       a labelled button rather than the toggle, which is exactly the kind of drift it looks for. */
     window.localStorage.setItem('ov-planner:v1:favourites', JSON.stringify(pins));
     window.localStorage.setItem('ov-planner:v1:home-widgets', JSON.stringify(widgets));
   },
@@ -476,7 +476,7 @@ for (const instance of instances) {
 /**
  * One control's signature: the glyphs it draws, its shape, and its place.
  *
- * The place is the **landmark, the row of it and the side** — and not the class name of the row's
+ * The place is the **landmark, the row of it and the side**, and not the class name of the row's
  * parent, which is what it used to be. A class name is not a place: `.input-group`,
  * `.planner-row--to` and `.modal__head` are where a control is built, not where a traveller sees
  * it, and five `×` controls that are identical in every painted respect were reported as five
@@ -491,11 +491,11 @@ const signature = (control) =>
 const SCREENS = new Set(instances.map((i) => i.screen)).size;
 const lines = [];
 const findings = [];
-lines.push(`# Consistency audit — every repeated control and every glyph, ${WIDTH}px`);
+lines.push(`# Consistency audit, every repeated control and every glyph, ${WIDTH}px`);
 lines.push('');
 lines.push(`${instances.length} controls and ${standalone.length} non-control glyphs over ${SCREENS} screens.`);
 lines.push('');
-lines.push('A finding is an action whose instances do not share one signature — the glyphs, the shape');
+lines.push('A finding is an action whose instances do not share one signature, the glyphs, the shape');
 lines.push('and the place. The standards are W3C COGA (one glyph, one meaning), WCAG 3.2.3 and 3.2.4,');
 lines.push('and NN/g heuristic 4; each finding names the clause it breaks.');
 lines.push('');
@@ -506,7 +506,7 @@ for (const [action, list] of [...byAction].sort((a, b) => b[1].length - a[1].len
     if (!groups.has(signature(instance))) groups.set(signature(instance), []);
     groups.get(signature(instance)).push(instance);
   }
-  lines.push(`## ${action} — ${list.length} instance(s), ${groups.size} signature(s)`);
+  lines.push(`## ${action}, ${list.length} instance(s), ${groups.size} signature(s)`);
   lines.push('');
   lines.push('| # | how it looks and where it sits | screen | control |');
   lines.push('|---|--------------------------------|--------|---------|');
@@ -523,8 +523,8 @@ for (const [action, list] of [...byAction].sort((a, b) => b[1].length - a[1].len
     const sameGlyph = new Set(list.map((instance) => instance.icons.join('+'))).size === 1;
     findings.push({ action, signatures: groups.size, instances: list.length, sameGlyph, explained: DELIBERATE.has(action) });
     lines.push(sameGlyph
-      ? `**Finding.** One action, one glyph, **${groups.size} different shapes/places** — WCAG 3.2.4 (the same function identified the same way) and NN/g 4 (\`Ensure consistency in the placement of form fields and buttons\`).`
-      : `**Finding.** One action, **${new Set(list.map((i) => i.icons.join('+'))).size} different glyphs** and ${groups.size} shapes/places — W3C COGA (one glyph, one meaning), WCAG 3.2.4.`);
+      ? `**Finding.** One action, one glyph, **${groups.size} different shapes/places**, WCAG 3.2.4 (the same function identified the same way) and NN/g 4 (\`Ensure consistency in the placement of form fields and buttons\`).`
+      : `**Finding.** One action, **${new Set(list.map((i) => i.icons.join('+'))).size} different glyphs** and ${groups.size} shapes/places, W3C COGA (one glyph, one meaning), WCAG 3.2.4.`);
     lines.push('');
   }
 }
@@ -545,7 +545,7 @@ for (const glyph of standalone) {
 
 lines.push('## One glyph, one meaning');
 lines.push('');
-lines.push('W3C COGA: "Use icons that help the user" — a glyph should carry a single meaning.');
+lines.push('W3C COGA: "Use icons that help the user", a glyph should carry a single meaning.');
 lines.push('Every glyph below is listed with the actions it is a control for and the places it is drawn');
 lines.push('as a plain marker. A glyph with more than one action, or one that is both a control and a');
 lines.push('marker, is a finding.');
@@ -555,7 +555,7 @@ lines.push('|-------|--------------------|----------------------|');
 const glyphFindings = [];
 for (const [glyph, { actions, places }] of [...glyphMeanings].sort((a, b) => b[1].actions.size - a[1].actions.size)) {
   if (actions.size + (places.size ? 1 : 0) < 2) continue;
-  lines.push(`| \`${glyph}\` | ${[...actions].sort().join('<br>') || '—'} | ${[...places].sort().join('<br>') || '—'} |`);
+  lines.push(`| \`${glyph}\` | ${[...actions].sort().join('<br>') || ','} | ${[...places].sort().join('<br>') || ','} |`);
   if (actions.size > 1 || (actions.size === 1 && places.size)) {
     glyphFindings.push({ glyph, actions: [...actions].sort(), markers: [...places].sort() });
   }
@@ -568,7 +568,7 @@ lines.push('');
  * One action, one glyph **per state**. The mechanical half of the rule, and the half `--gate`
  * never exempts: `pin` and `×` for one toggle, `route` and `arrowLeft` for one way back, `sliders`
  * and `settings` for one destination. Grouped by `aria-pressed` so that a shown state is allowed
- * its own drawing — `bookmark` and `check`, `pin` and a filled `pin` — and only same-state
+ * its own drawing, `bookmark` and `check`, `pin` and a filled `pin`, and only same-state
  * disagreement counts.
  */
 const glyphDrift = [];
@@ -588,7 +588,7 @@ for (const [action, list] of byAction) {
 const unexplained = findings.filter((finding) => !finding.explained);
 /*
  * An entry that no longer matches a finding is a standing permission nobody re-read: it would
- * quietly allow the action to drift again. Those are printed rather than left in — with one
+ * quietly allow the action to drift again. Those are printed rather than left in, with one
  * caveat, which the register itself hit: this audit runs at **two widths**, and whether an action
  * has a finding can flip between them (`keep a search` and `show the network map` each have one at
  * one width and not the other). So an entry not matching *this* width's findings is a hint to
@@ -608,7 +608,7 @@ for (const finding of findings.filter((item) => item.explained).sort((a, b) => b
 }
 lines.push('');
 if (unexplained.length) {
-  lines.push('### Unexplained — these fail `--gate`');
+  lines.push('### Unexplained, these fail `--gate`');
   lines.push('');
   for (const finding of unexplained) {
     lines.push(`* **${finding.action}**: ${finding.instances} instance(s), ${finding.signatures} signatures`);
@@ -616,13 +616,13 @@ if (unexplained.length) {
   lines.push('');
 }
 if (dead.length) {
-  lines.push('### In the register but not a finding at this width — check the other width before deleting');
+  lines.push('### In the register but not a finding at this width, check the other width before deleting');
   lines.push('');
   for (const action of dead) lines.push(`* ${action}`);
   lines.push('');
 }
 if (glyphDrift.length) {
-  lines.push('### One action drawn with more than one glyph in one state — these fail `--gate`');
+  lines.push('### One action drawn with more than one glyph in one state, these fail `--gate`');
   lines.push('');
   for (const drift of glyphDrift) {
     lines.push(`* **${drift.action}** (${drift.state === 'rest' ? 'at rest' : drift.state}): ${drift.glyphs.join(' / ')}`);
@@ -636,15 +636,15 @@ fs.writeFileSync('.logs/consistency-audit.json', JSON.stringify({ width: WIDTH, 
 
 console.log(`${instances.length} controls and ${standalone.length} glyphs over ${SCREENS} screens → .logs/consistency-audit.md`);
 for (const finding of findings.sort((a, b) => b.signatures - a.signatures)) {
-  console.log(`  place: ${finding.action}: ${finding.instances} instance(s), ${finding.signatures} signatures${finding.explained ? ' (a decision on the record)' : ' — UNEXPLAINED'}`);
+  console.log(`  place: ${finding.action}: ${finding.instances} instance(s), ${finding.signatures} signatures${finding.explained ? ' (a decision on the record)' : ', UNEXPLAINED'}`);
 }
 for (const finding of glyphFindings) {
-  console.log(`  glyph: ${finding.glyph} — ${finding.actions.join(' / ') || 'no action'}${finding.markers.length ? ` + ${finding.markers.length} marker place(s)` : ''}`);
+  console.log(`  glyph: ${finding.glyph}, ${finding.actions.join(' / ') || 'no action'}${finding.markers.length ? ` + ${finding.markers.length} marker place(s)` : ''}`);
 }
 for (const drift of glyphDrift) {
   console.log(`  DRIFT: ${drift.action} (${drift.state}): ${drift.glyphs.join(' / ')}`);
 }
-for (const action of dead) console.log(`  register: \`${action}\` is not a finding at this width — check the other width before deleting it`);
+for (const action of dead) console.log(`  register: \`${action}\` is not a finding at this width, check the other width before deleting it`);
 if (errors.length) console.log(`page errors: ${errors.length}`);
 await browser.close();
 
@@ -652,7 +652,7 @@ await browser.close();
 const failures = unexplained.length + glyphDrift.length;
 if (GATE) {
   console.log(failures
-    ? `${failures} unexplained finding(s) — the app has drifted from the rules in CONSISTENCY-AUDIT.md`
+    ? `${failures} unexplained finding(s), the app has drifted from the rules in CONSISTENCY-AUDIT.md`
     : `0 unexplained findings: ${findings.length} difference(s), every one of them on the record`);
 }
 process.exit(GATE && failures ? 1 : 0);

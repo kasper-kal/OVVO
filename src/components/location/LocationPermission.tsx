@@ -6,7 +6,7 @@ import { useT } from '../../lib/useT';
 /**
  * Asked once, on the very first open.
  *
- * The answer is stored, so the prompt never returns by itself — but "Current
+ * The answer is stored, so the prompt never returns by itself, but "Current
  * location" in the From/To menus always re-requests a fresh fix on demand, and
  * Settings can turn location back on at any time.
  */

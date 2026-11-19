@@ -160,7 +160,7 @@ const NL: Record<string, string> = {
 
   /* ------------------------------------------------------------ planner card */
   /*
-   * The two rows say "From" and "To", and nothing else — the card asks one question per row and
+   * The two rows say "From" and "To", and nothing else, the card asks one question per row and
    * the words after the colon were the field explaining what a stop is ("From: station, stop or
    * landmark"). Two entries, and the 320px measurement that had already trimmed them once, went
    * with the longer labels.
@@ -225,7 +225,7 @@ const NL: Record<string, string> = {
    */
   'Pick one station for this card. It keeps showing it, so a glance never has to search.':
     'Kies één halte voor deze kaart. Die blijft staan, zodat een snelle blik nooit hoeft te zoeken.',
-  /* The untied card's field. Hidden on screen — the sentence above it says what it is for — but it
+  /* The untied card's field. Hidden on screen, the sentence above it says what it is for, but it
      is the field's accessible name, and the × beside it says "Clear …" with the same words. */
   'Station for this card': 'Halte voor deze kaart',
   '{stop} · from {time}': '{stop} · vanaf {time}',
@@ -284,7 +284,7 @@ const NL: Record<string, string> = {
   System: 'Systeem',
   Light: 'Licht',
   Dark: 'Donker',
-  /* The Colours card's palette picker — a different question from `Appearance` above, and the
+  /* The Colours card's palette picker, a different question from `Appearance` above, and the
      hint is the sentence that keeps the two from being confused for one another. */
   'Colours for': 'Kleuren voor',
   'This only picks which palette you are editing. It does not change the app’s appearance. Use Appearance for that.':
@@ -387,7 +387,7 @@ const NL: Record<string, string> = {
    * The two colour screens (`components/ui/ColourScreen.tsx`) and the personal background
    * (`lib/background.ts`). Three ways to say the same thing on one sheet, so the words are the
    * short names a phone uses rather than descriptions. The text selection's own colour is asked
-   * for by the device, so it needs none of these — only the `Custom colour` label above.
+   * for by the device, so it needs none of these, only the `Custom colour` label above.
    */
   'Background colour': 'Achtergrondkleur',
   'Primary colour': 'Primaire kleur',
@@ -452,7 +452,7 @@ const NL: Record<string, string> = {
   /*
    * ***Default*, and the hint names the colour it paints.** The row said *Cream* while the dark
    * appearance drew `#121211`, so the label lied in one appearance; a per-appearance label
-   * (Cream/Black) only trades that for a control that renames itself when the theme flips —
+   * (Cream/Black) only trades that for a control that renames itself when the theme flips ,
    * including by itself at sunset under **System**. The app's own canvas is **Default** in both,
    * the swatch shows it, and the hint below names it: cream in light, black in dark.
    */
@@ -469,7 +469,7 @@ const NL: Record<string, string> = {
   'Opens the colour picker of this device.': 'Opent de kleurenkiezer van dit apparaat.',
   'Button colour': 'Knopkleur',
   'Every button · {colour}': 'Elke knop · {colour}',
-  /* Matching is the palette's three colours now — page, primary, selected text — and it is
+  /* Matching is the palette's three colours now, page, primary, selected text, and it is
      confirmed rather than applied on sight. Buttons are not among them. */
   'One colour for the page, the primary colour and the selected text: the same HEX in all three.':
     'Eén kleur voor de pagina, de primaire kleur en de geselecteerde tekst: dezelfde HEX in alle drie.',
@@ -579,7 +579,7 @@ const NL: Record<string, string> = {
   /*
    * 'Positive status' and 'Delay' were only ever read by the settings preview, where the two
    * pills sat side by side and read as the same thing (reported). The preview keeps the two
-   * shapes it is actually about — Highlighted and Neutral — and the entries went with them.
+   * shapes it is actually about, Highlighted and Neutral, and the entries went with them.
    * A disruption of type `delay` is named by `DISRUPTION_TYPE_LABELS` in the data, not here.
    */
   Neutral: 'Neutraal',
@@ -898,7 +898,7 @@ const NL: Record<string, string> = {
   'Plan with {stop}': 'Plannen met {stop}',
   /* `Plan` and `Show {count} more` already exist as entries higher up; `More` is new. */
   More: 'Meer',
-  /* The board's row of favourited locations — the stops the traveller has pinned. */
+  /* The board's row of favourited locations, the stops the traveller has pinned. */
   Favourites: 'Favorieten',
   Departures: 'Vertrektijden',
   'Plan a journey first, then use these shortcuts':

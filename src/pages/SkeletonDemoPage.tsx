@@ -15,16 +15,16 @@ import { todayIso } from '../lib/format';
 import type { Journey } from '../data/types';
 
 /**
- * **The skeleton gallery — a dev-only screen for judging held places, all of them, side by side.**
+ * **The skeleton gallery, a dev-only screen for judging held places, all of them, side by side.**
  *
  * The journey card was designed on this screen and nowhere else, which is how it took four
  * versions to stop looking wrong: a held shape judged alone has nothing to be right about. So the
  * lab is a gallery now. Every surface that has a hold is drawn next to the thing that replaces it,
- * at a phone's width, with the three settings that change how a hold looks — appearance, motion and
- * the battery switches — available at the top instead of being guessed at.
+ * at a phone's width, with the three settings that change how a hold looks, appearance, motion and
+ * the battery switches, available at the top instead of being guessed at.
  *
  * **Every section runs a cycle, not a still.** A pause, then the same screen with the answer in it,
- * and a Replay that starts it over — because a hold is only ever the first half of an event, and a
+ * and a Replay that starts it over, because a hold is only ever the first half of an event, and a
  * grey card parked under a heading shows the shape without showing what it is for. The three
  * sections run their own cycles so one can be replayed without restarting the others.
  *
@@ -65,7 +65,7 @@ function randomTime(): number {
  * The cycle is the unit of this screen, so it is a hook rather than a state held at the top: each
  * section gets its own, and a Replay under the stop cards leaves the picker rows above it alone.
  * `round` is returned as well, because the journey sample draws a new pair of stops every time it
- * starts over — the card that lands should be a different card, not the same one after a pause.
+ * starts over, the card that lands should be a different card, not the same one after a pause.
  */
 function useHoldCycle(): { round: number; loading: boolean; replay: () => void } {
   const [round, setRound] = useState(0);
@@ -219,8 +219,8 @@ export function SkeletonDemoPage() {
   }, [journeyRound]);
 
   /*
-   * The three rows that land in the picker: real stations, drawn with the row's own parts — the
-   * marker's disc, the name, the meta line — so the arrived rows are the rows the hold promised.
+   * The three rows that land in the picker: real stations, drawn with the row's own parts, the
+   * marker's disc, the name, the meta line, so the arrived rows are the rows the hold promised.
    */
   const pickerSamples = useMemo(() => STOPS.filter((stop) => stop.type === 'station').slice(0, 3), []);
 
@@ -231,7 +231,7 @@ export function SkeletonDemoPage() {
    * The first of them is chosen for a **matched pair**: the held card draws three pills where the
    * badge row goes, so the first card to land is one with three things in that row (two services
    * and an OV-fiets, say). Amsterdam Centraal would put six badges on two lines and make the held
-   * card 40px shorter than the card beside it — which is the comparison failing, not the hold.
+   * card 40px shorter than the card beside it, which is the comparison failing, not the hold.
    */
   const stopSamples = useMemo(() => {
     const withBoard = STOPS.filter(hasBoard);

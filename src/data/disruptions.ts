@@ -1,7 +1,7 @@
 import type { Disruption } from './types';
 
 /**
- * DEMONSTRATION DATA — every alert below is a SIMULATED EXAMPLE.
+ * DEMONSTRATION DATA, every alert below is a SIMULATED EXAMPLE.
  * None of these describe a real, current situation on the Dutch network.
  */
 export const DISRUPTIONS: Disruption[] = [
@@ -241,7 +241,7 @@ export const DISRUPTIONS: Disruption[] = [
  * A network with nothing wrong with it, and a network with one alert on it, are two states this
  * app has always had data for and no way to stand in: the list is a fixed set, so every board, every
  * journey and every screen carries the same fourteen alerts every day. `setDevDisruptions` is how
- * the panel hands over a different answer — none at all for a calm day, or one alert on its own —
+ * the panel hands over a different answer, none at all for a calm day, or one alert on its own ,
  * and every reader here goes through `disruptions()` rather than the raw list, so the screens and
  * the data cannot disagree about what is happening.
  *

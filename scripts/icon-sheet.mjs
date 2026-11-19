@@ -3,7 +3,7 @@
  * every size the app draws it at.
  *
  * Reading the set out of `src/components/ui/Icons.tsx` rather than from a list typed here
- * matters — the mappings drift, and a sheet that lists yesterday's glyphs is how a wrong
+ * matters, the mappings drift, and a sheet that lists yesterday's glyphs is how a wrong
  * mapping stays wrong. The SVGs come from rendering the same Lucide components the app
  * renders, so the sheet cannot disagree with the interface.
  *
@@ -69,7 +69,7 @@ const html = `<!doctype html>
   footer { margin-top: 20px; color: #66666d; }
 </style></head>
 <body>
-<h1>OVVO icon set — ${pairs.length} names, Lucide (ISC)</h1>
+<h1>OVVO icon set, ${pairs.length} names, Lucide (ISC)</h1>
 <p>Every glyph the app can draw, at every size it draws it. Columns: ${SIZES.map((s) => `${s}px`).join(', ')}. The small grey name under each row is the library's own glyph name.</p>
 <table>${rows}</table>
 <footer>Size in the app: 13px mode glyphs on the departure board, 14–16px inline with text, 18–20px in list rows, 24–32px in empty states and dialogs.</footer>
@@ -77,4 +77,4 @@ const html = `<!doctype html>
 
 mkdirSync('.shots/r57', { recursive: true });
 writeFileSync('.shots/r57/icon-set.html', html);
-console.log(`wrote .shots/r57/icon-set.html — ${pairs.length} icons x ${SIZES.length} sizes`);
+console.log(`wrote .shots/r57/icon-set.html, ${pairs.length} icons x ${SIZES.length} sizes`);

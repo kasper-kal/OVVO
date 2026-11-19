@@ -43,7 +43,7 @@ const REQUIRED = {
 };
 /* Service dates are carried by `calendar.txt`, by `calendar_dates.txt`, or by both; GTFS requires
  * one of them, not a particular one. This feed ships only `calendar_dates.txt`, which is why the
- * first run of this script refused it — the fault was the assumption, not the archive. */
+ * first run of this script refused it, the fault was the assumption, not the archive. */
 const CALENDARS = ['calendar.txt', 'calendar_dates.txt'];
 const OPTIONAL = ['calendar.txt', 'calendar_dates.txt', 'feed_info.txt', 'shapes.txt', 'shape.txt', 'frequencies.txt', 'transfers.txt', 'translations.txt', 'licenses.txt', 'ticketing_deep_links.txt', 'ticketing_identifiers.txt'];
 
@@ -64,7 +64,7 @@ const readCurrent = () => (fs.existsSync(currentFile) ? JSON.parse(fs.readFileSy
 
 if (mode === 'status') {
   const current = readCurrent();
-  if (!current) fail('nothing is active yet — run: node scripts/gtfs/fetch.mjs');
+  if (!current) fail('nothing is active yet, run: node scripts/gtfs/fetch.mjs');
   console.log(JSON.stringify(current, null, 2));
   process.exit(0);
 }
@@ -84,7 +84,7 @@ async function newestDataset() {
 let target;
 if (mode === 'check') {
   const current = readCurrent();
-  if (!current) fail('nothing to check — run without --check first');
+  if (!current) fail('nothing to check, run without --check first');
   target = { name: current.dataset, url: current.source.url };
   log(`checking the active dataset: ${target.name}`);
 } else {
@@ -110,12 +110,12 @@ if (mode === 'update' && !fs.existsSync(archive)) {
   const got = fs.statSync(partial).size;
   if (expected > 0 && got !== expected) {
     fs.rmSync(partial, { force: true });
-    fail(`download is ${got} bytes but the server announced ${expected} — refusing a partial archive`);
+    fail(`download is ${got} bytes but the server announced ${expected}, refusing a partial archive`);
   }
   fs.renameSync(partial, archive);
   log(`downloaded ${(got / 1048576).toFixed(1)} MB`);
 } else if (!fs.existsSync(archive)) {
-  fail(`no archive at ${archive} — run without --check`);
+  fail(`no archive at ${archive}, run without --check`);
 } else {
   log(`using the archive already in the cache (${(fs.statSync(archive).size / 1048576).toFixed(1)} MB)`);
 }
@@ -123,7 +123,7 @@ if (mode === 'update' && !fs.existsSync(archive)) {
 /* ------------------------------------------------------------------ integrity */
 
 const bytes = fs.statSync(archive).size;
-if (bytes < MIN_BYTES) fail(`archive is only ${(bytes / 1048576).toFixed(1)} MB — a Dutch timetable is never that small`);
+if (bytes < MIN_BYTES) fail(`archive is only ${(bytes / 1048576).toFixed(1)} MB, a Dutch timetable is never that small`);
 
 try {
   run('unzip', ['-t', '-qq', archive], 'utf8');
@@ -161,8 +161,8 @@ for (const name of wanted) {
 /* ------------------------------------------------------------------ validate */
 
 const missing = Object.keys(REQUIRED).filter((name) => !located[name]);
-if (missing.length) fail(`the archive is missing ${missing.join(', ')} — it cannot drive a router`);
-if (!CALENDARS.some((name) => located[name])) fail(`neither ${CALENDARS.join(' nor ')} is present — there are no service dates`);
+if (missing.length) fail(`the archive is missing ${missing.join(', ')}, it cannot drive a router`);
+if (!CALENDARS.some((name) => located[name])) fail(`neither ${CALENDARS.join(' nor ')} is present, there are no service dates`);
 
 const header = (file) => run('head', ['-1', file], 'utf8').replace(/^\uFEFF/, '').trim().split(',').map((c) => c.trim().toLowerCase());
 const rows = (file) => Number(run('wc', ['-l', file], 'utf8').trim().split(/\s+/)[0]) - 1;
@@ -184,9 +184,9 @@ const counts = {
   shapes: located['shapes.txt'] ? rows(located['shapes.txt']) : 0,
 };
 
-if (counts.stops < 1000) fail(`only ${counts.stops} stops — that is not the Dutch network`);
-if (counts.trips < 10000) fail(`only ${counts.trips} trips — the archive is incomplete`);
-if (counts.stop_times < 100000) fail(`only ${counts.stop_times} stop times — the archive is incomplete`);
+if (counts.stops < 1000) fail(`only ${counts.stops} stops, that is not the Dutch network`);
+if (counts.trips < 10000) fail(`only ${counts.trips} trips, the archive is incomplete`);
+if (counts.stop_times < 100000) fail(`only ${counts.stop_times} stop times, the archive is incomplete`);
 
 /* ------------------------------------------------------------------ validity window */
 
@@ -201,7 +201,7 @@ const datesFrom = (file) => {
     });
 };
 const calendarDates = [...new Set(CALENDARS.filter((name) => located[name]).flatMap((name) => datesFrom(located[name])))].sort();
-if (calendarDates.length === 0) fail('the calendar files carry no dates — the service window cannot be established');
+if (calendarDates.length === 0) fail('the calendar files carry no dates, the service window cannot be established');
 let validFrom = calendarDates[0];
 let validUntil = calendarDates.at(-1);
 
@@ -218,7 +218,7 @@ if (located['feed_info.txt']) {
 
 const iso = (d) => (d ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}` : null);
 const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-if (validUntil && validUntil < today) fail(`the timetable expired on ${iso(validUntil)} — this archive must not be activated`);
+if (validUntil && validUntil < today) fail(`the timetable expired on ${iso(validUntil)}, this archive must not be activated`);
 
 /* operators, for the coverage claim */
 const agencyText = run('cat', [located['agency.txt']], 'utf8').replace(/^\uFEFF/, '');
@@ -275,4 +275,4 @@ fs.writeFileSync(currentFile, JSON.stringify({ ...manifest, directory: path.base
 log(`agencies ${counts.agencies} · stops ${counts.stops.toLocaleString('en')} · routes ${counts.routes.toLocaleString('en')} · trips ${counts.trips.toLocaleString('en')} · stop times ${counts.stop_times.toLocaleString('en')}`);
 log(`valid ${iso(validFrom)} → ${iso(validUntil)} · ${operators.length} operators`);
 log(`active: ${path.relative(process.cwd(), datasetDir)} (current.json written last)`);
-console.log('\nok — real timetable data is present and passed every check.');
+console.log('\nok, real timetable data is present and passed every check.');

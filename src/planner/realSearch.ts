@@ -9,8 +9,8 @@ import type { SearchQuery } from '../data/journeyEngine';
  *
  * `/plan` used to be the only place that could turn a question into timetable journeys, because it
  * held the two places it had picked and the day it had loaded. A pasted `/results/...` link has
- * neither: it has the two ends' ids and labels and a date. This module rebuilds the missing half —
- * the timetable's own places for those names, the day's graph, and the same planner — so the same
+ * neither: it has the two ends' ids and labels and a date. This module rebuilds the missing half ,
+ * the timetable's own places for those names, the day's graph, and the same planner, so the same
  * link answers on any browser instead of falling back to the demonstration engine.
  *
  * The conversion below is the same one the planner page used; it moved here so there is one copy.
@@ -128,7 +128,7 @@ function placeFor(places: PlanPlace[], name: string): PlanPlace | null {
  * Plan the real journeys a stored search names.
  *
  * Throws when the day is not built or a name cannot be found; the results screen says so in words.
- * An empty list is a real answer — there is no connection at that time — and is not an error.
+ * An empty list is a real answer, there is no connection at that time, and is not an error.
  */
 export async function journeysForQuery(query: SearchQuery): Promise<Journey[]> {
   const day = isoToDayKey(query.date);

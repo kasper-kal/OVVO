@@ -56,7 +56,7 @@ export function StopsPage() {
   /*
    * **The one real wait on this screen: where you are.**
    *
-   * Nearest-first is the default order, and it cannot be computed before a position exists — the
+   * Nearest-first is the default order, and it cannot be computed before a position exists, the
    * device's own fix may have been refused, and the approximate estimate is a request. While that
    * request is in flight the list used to fall back to city order and then re-order itself under
    * the traveller's thumb, which reads as the list moving by itself. So the cards are held instead,
@@ -66,7 +66,7 @@ export function StopsPage() {
   const positionPending = sort === 'nearest' && nearestOrigin === null && approximateLocationPending;
   /*
    * The estimate was asked for and did not arrive. It is a third-party request (the IP lookup), and
-   * when it is refused or rate-limited the list quietly falls back to city order — so the line under
+   * when it is refused or rate-limited the list quietly falls back to city order, so the line under
    * the filters said "Turn on location", which is the wrong advice to somebody whose location is
    * already on and whose network simply could not say where they are.
    */
@@ -74,8 +74,8 @@ export function StopsPage() {
   /*
    * Nearest-first needs an origin, but *asking for one* is not the same as not having one: while
    * the answer is on its way the select stays on Nearest rather than showing City for the length
-   * of the request and changing itself afterwards. With no estimate coming at all — refused,
-   * unavailable, or not asked for — it falls back to the city order it used to have, rather than
+   * of the request and changing itself afterwards. With no estimate coming at all, refused,
+   * unavailable, or not asked for, it falls back to the city order it used to have, rather than
    * showing a selected option that cannot be honoured.
    */
   const nearestSort = sort === 'nearest' && (nearestOrigin !== null || positionPending);
@@ -141,7 +141,7 @@ export function StopsPage() {
       return list.sort((a, b) => {
         const favourite = Number(favouriteStopIds.includes(b.id)) - Number(favouriteStopIds.includes(a.id));
         if (favourite) return favourite;
-        /* Favourites still lead — the rule every stop list in the app follows — and inside
+        /* Favourites still lead, the rule every stop list in the app follows, and inside
            each group the closest is first. */
         return distanceFromPosition(a, lat, lon) - distanceFromPosition(b, lat, lon);
       });
@@ -181,13 +181,13 @@ export function StopsPage() {
   /* --------------------------------------------------------------- the board slice */
   /*
    * Three departures per card, taken from the same generator the board uses. A card is a glimpse,
-   * not a live board — the board page is one tap away for the real thing — but the glimpse has to
+   * not a live board, the board page is one tap away for the real thing, but the glimpse has to
    * be of *now*: this read the clock once, when the page opened, so a list left open for ten
    * minutes went on offering departures that had already left (the same minute-behind defect the
    * boards had). It re-reads on the minute with everything else.
    */
   /*
-   * **No hold over the search or the filters — only over the position.**
+   * **No hold over the search or the filters, only over the position.**
    *
    * There used to be a 360ms "settling" state here, restarted by every filter change *and by every
    * keystroke in the search field*, so typing a stop name blanked the results and held four
@@ -206,7 +206,7 @@ export function StopsPage() {
   );
 
   /*
-   * One end, then the other — never a search that is already in the session.
+   * One end, then the other, never a search that is already in the session.
    *
    * With a search on screen this used to carry its other end into the new query and jump to the
    * results, which is the "it auto-fills the from" in the report (F28). The named end is filled,
@@ -227,7 +227,7 @@ export function StopsPage() {
         /* Every list screen draws its own name (MATCHING_PLAN rule 5): a phone has no menu on
            screen, and a stop reached from a link has to be told where it is. */
         showTitle
-        /* No action beside the name. There was one — a `Departure boards` button in the head —
+        /* No action beside the name. There was one, a `Departure boards` button in the head ,
            and it was a second way to a screen the navigation and the home screen already offer,
            sitting where the eye is looking for the page's own name (reported with it crossed out).
            A list's head names the list; the boards are reached from the navigation, the dock's
@@ -297,7 +297,7 @@ export function StopsPage() {
 
         {/*
           Which location the order came from, said plainly. An IP estimate can be a hundred
-          kilometres out, so it is never presented as a device fix — and when there is no
+          kilometres out, so it is never presented as a device fix, and when there is no
           location at all, the line says what the list is doing instead.
         */}
         <p className="t-sm t-faint stops-origin">
@@ -319,7 +319,7 @@ export function StopsPage() {
         {optionsOpen ? (
           <div id="stops-options" className="stack">
             {/*
-              No "Filter options" heading row — the circled one. An icon and two words above the
+              No "Filter options" heading row, the circled one. An icon and two words above the
               filters read as a control of their own and said nothing the Options chip above did
               not already say. The only thing that row carried that is not a label for what is
               visible below it is the count, and the count is what is left.
@@ -421,7 +421,7 @@ export function StopsPage() {
         />
       ) : positionPending ? (
         /*
-          The hold, in the grid the cards will land in, as many as one batch puts there — and
+          The hold, in the grid the cards will land in, as many as one batch puts there, and
           each one drawn to the shape of the stop it stands in for, so the cards do not change
           height when the position arrives.
         */

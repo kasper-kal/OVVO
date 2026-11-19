@@ -3,7 +3,7 @@
  *
  * This is `AbortSignal.timeout(ms)` written out, and it is here for one reason: the one-liner is
  * from Safari 16, and an iPhone that stopped updating at iOS 14 does not have it. The call does not
- * half-work there — it throws a `TypeError` before the request is made, and both callers catch and
+ * half-work there, it throws a `TypeError` before the request is made, and both callers catch and
  * return nothing, so the request was never sent at all. The encyclopaedia card and the "near me"
  * estimate quietly never appeared, on exactly the phones with the slowest connections and the most
  * reason to want them.

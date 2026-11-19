@@ -48,7 +48,7 @@ export function PreferencesPage() {
               {t('See the results')}
             </Link>
           ) : (
-            /* `route`, the same glyph as every other control that opens the planner — the
+            /* `route`, the same glyph as every other control that opens the planner, the
                consistency register (`scripts/consistency-audit.mjs`) fails when one action draws
                two, and this one drew `search` while the rest of the app drew `route`. */
             <Link to="/" className="btn btn--primary">
@@ -89,8 +89,8 @@ export function PreferencesPage() {
               )}
             </div>
           </div>
-          {/* The two pills above are the summary; the three tiles that used to sit under them —
-              transfers, walking, modes — said the same three facts a second time. */}
+          {/* The two pills above are the summary; the three tiles that used to sit under them ,
+              transfers, walking, modes, said the same three facts a second time. */}
         </Card>
       ) : (
         <p className="t-sm t-muted">{t('Plan a journey to preview these settings.')}</p>

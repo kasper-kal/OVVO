@@ -61,7 +61,7 @@ const inspect = (page) =>
          * Closed disclosure content is laid out but not drawn: "All 54 stops on this map" is a
          * `<details>` with fifty-four links inside it, and Chrome keeps their boxes so it can
          * open the panel instantly. They have a position on the screen, they are invisible, and
-         * nothing can be pressed there — so they were reported as unreachable controls on the map
+         * nothing can be pressed there, so they were reported as unreachable controls on the map
          * screen at every width. `checkVisibility` is the browser's own answer to "is this drawn".
          */
         if (node.closest('details:not([open])')) return false;
@@ -80,7 +80,7 @@ const inspect = (page) =>
        * The middle of the control, and only if that middle is actually on the screen.
        *
        * This used to be clamped into the viewport, which turned every control the scroll had
-       * carried off the top into one with a centre at y=1 — under the sticky header, every time.
+       * carried off the top into one with a centre at y=1, under the sticky header, every time.
        * The first run of this audit reported 493 failures and almost all of them were that: the
        * header "covering" a button that was simply not on the screen any more. A control whose
        * centre is outside the window cannot be pressed at that point because there is no such
@@ -98,7 +98,7 @@ const inspect = (page) =>
       /*
        * **Floating chrome is not a defect; unreachable content is.**
        *
-       * A sticky header and the floating dock always have the page passing underneath them — that
+       * A sticky header and the floating dock always have the page passing underneath them, that
        * is what sticky means, and reporting it turned this audit into 493 lines nobody could act
        * on. What matters is whether the traveller can get to the control anyway: scroll a little
        * and anything under the header comes out. The one arrangement that cannot be escaped is a
@@ -184,7 +184,7 @@ for (const width of WIDTHS) {
         `${label}: "${item.control}" cannot be reached`,
         item.floating === 'page content'
           ? `spot: ${item.top} sits over it at y ${item.y}`
-          : `the page is scrolled to its end and ${item.floating} still covers it at y ${item.y} — missing bottom space`,
+          : `the page is scrolled to its end and ${item.floating} still covers it at y ${item.y}, missing bottom space`,
       );
     }
 

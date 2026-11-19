@@ -38,22 +38,22 @@ interface Props {
    * Offer only the stops this passes.
    *
    * The departure board's picker passes `hasBoard`: a board lists services, so an address with
-   * no services is not a stop this field can open — it would commit to a board that cannot
+   * no services is not a stop this field can open, it would commit to a board that cannot
    * exist. The planner's own pickers pass nothing, because you can perfectly well travel to a
    * museum; the two uses of the same control differ only in this.
    */
   filter?: (stop: Stop) => boolean;
-  /** The line under “No stops match” — say why nothing matched when a filter is in play. */
+  /** The line under “No stops match”, say why nothing matched when a filter is in play. */
   emptyHint?: string;
   /**
    * **Empty the field once a stop is picked**, instead of writing the choice into it.
    *
    * A field that *chooses an end* (the planner's, Settings' default origin) keeps the name so the
-   * control can be read back. A field that **adds** something — the departure board's *Add a stop to
-   * the board* — must not: the stop it just added is already on the page as a board of its own, so
+   * control can be read back. A field that **adds** something, the departure board's *Add a stop to
+   * the board*, must not: the stop it just added is already on the page as a board of its own, so
    * leaving the name in the box says the same thing twice and leaves a filled field under an
    * instruction to add another one. Reported on the board: *"why does the old station stay in the
-   * search box when its already pinned"* — and it stayed because `commit` wrote it there.
+   * search box when its already pinned"*, and it stayed because `commit` wrote it there.
    */
   clearAfterPick?: boolean;
 }
@@ -61,7 +61,7 @@ interface Props {
 /**
  * A labelled stop field with its own suggestion list.
  *
- * The planner does not use this any more — its two rows open the full-screen picker — but
+ * The planner does not use this any more, its two rows open the full-screen picker, but
  * the departure board, the settings picker and the "find a stop" widget do, so the same
  * control still has to work inline. The ranking itself is shared with that picker
  * (`rankStops`), so the two can never disagree about what a query matches.
@@ -88,11 +88,11 @@ export function StopCombobox({
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   /**
-   * How tall the suggestion list may be, measured from where the field actually sits — **on phones
+   * How tall the suggestion list may be, measured from where the field actually sits, **on phones
    * only**, which is the scope of the round this answers.
    *
    * A fixed `min(58vh, 460px)` was decided without knowing where the field is on the page, so a
-   * picker near the foot of a phone screen drew a 425px list with only the top of it on screen —
+   * picker near the foot of a phone screen drew a 425px list with only the top of it on screen ,
    * the list could be scrolled, but its own scrollbar was below the viewport, which is what the
    * round reported as "its not possible to scroll through the options so you have to scroll using
    * the page" (2026-10-17t20-06-25). On a phone the cap is the room that is actually there, and
@@ -138,12 +138,12 @@ export function StopCombobox({
        * Mobile mode only, on the stylesheet's one breakpoint (`base.css`, "the one breakpoint"):
        * below 720 the list is capped to the room under the field, above it there is height to
        * spare. This used to say 640, a fourth width of its own, so a 700px window got the phone
-       * list inside the desktop page — the kind of half-treated width the breakpoint rule exists
+       * list inside the desktop page, the kind of half-treated width the breakpoint rule exists
        * to stop.
        */
       const box = field.getBoundingClientRect();
       /*
-       * **The room below is measured to the bottom of what the traveller can see** — which, with
+       * **The room below is measured to the bottom of what the traveller can see**, which, with
        * the phone's keyboard up, is the top of the keyboard. `visualViewport` is that box; the
        * window's own height is not, because the keyboard does not change it.
        */
@@ -153,7 +153,7 @@ export function StopCombobox({
        * **The dock is not room either.**
        *
        * The floating navigation dock is fixed over the foot of the screen on a phone, so a list
-       * given all the space to the bottom edge ends with its last row drawn behind the dock — the
+       * given all the space to the bottom edge ends with its last row drawn behind the dock, the
        * rows can be scrolled, but the part you are aiming at is covered. The room stops at the
        * dock's top edge when the dock is actually drawn.
        */
@@ -163,8 +163,8 @@ export function StopCombobox({
       /*
        * **Four pixels under the field, wherever the field is.**
        *
-       * At the foot of a card this used to start the panel below the card's own bottom padding —
-       * 16px — so the card kept its air and its border. The list then hung a card's padding away
+       * At the foot of a card this used to start the panel below the card's own bottom padding ,
+       * 16px, so the card kept its air and its border. The list then hung a card's padding away
        * from the field it belongs to, which is what the interface check reported as "hangs below
        * the input": a panel that looks attached to the card rather than to the box you are typing
        * in. At the foot it now starts 4px under the field like everywhere else, and the panel's own
@@ -174,7 +174,7 @@ export function StopCombobox({
       setGap(panelGap);
       /*
        * **The cap is a phone rule.** Wider screens keep the stylesheet's `min(58vh, 460px)` and let
-       * the page scroll to the rest, exactly as the comment on `cap` says — but the measurement ran
+       * the page scroll to the rest, exactly as the comment on `cap` says, but the measurement ran
        * at every width, so a 1440px window was also cut down to four whole rows. Above the one
        * breakpoint the opening height is simply the whole panel.
        */
@@ -198,7 +198,7 @@ export function StopCombobox({
        * **The first measurement was being thrown away, so the list never shrank.**
        *
        * The flag that says "this is the first measurement, take it as given" was read *inside* the
-       * state updater, and React runs an updater at render time — after the effect had already set
+       * state updater, and React runs an updater at render time, after the effect had already set
        * the flag to false. So the first measurement went down the `Math.max` branch against the
        * 460px the opening started from, and the answer was always 460: the panel opened 460px tall
        * on a 320px phone with 194px of room under its field, and 256px of it hung off the bottom of
@@ -217,7 +217,7 @@ export function StopCombobox({
        * **A list is whole rows.**
        *
        * The cap used to be the exact number of pixels of room, so the last row in the panel was
-       * cut across its second line and the first one was cut at the top — a panel that reads as
+       * cut across its second line and the first one was cut at the top, a panel that reads as
        * broken even though it scrolls (reported with that screenshot). The height is now a whole
        * number of the rows this list actually draws (measured, since a long name can make a row
        * taller than 56px) plus the panel's own padding and borders.
@@ -230,7 +230,7 @@ export function StopCombobox({
        * **The list always hangs downwards.**
        *
        * It used to turn upwards whenever the room below was smaller than a full list, and briefly
-       * only when there was not one row left — but any upward list is drawn over the card above the
+       * only when there was not one row left, but any upward list is drawn over the card above the
        * field, which is where the traveller is reading (reported from the next-departures card with
        * a screenshot of the results sitting over the card above it, and the rows cut off at the top
        * of the screen, 2026-10-28). The keyboard is what made the room below look empty: opening it
@@ -246,7 +246,7 @@ export function StopCombobox({
         return;
       }
       /*
-       * Rows are not all one height — a long station name wraps to a second line — so each is
+       * Rows are not all one height, a long station name wraps to a second line, so each is
        * measured and added while it still fits, instead of dividing the room by the first one. That
        * division is what left the bottom row cut across its middle edge at the panel's edge.
        */
@@ -262,7 +262,7 @@ export function StopCombobox({
        * More rows than fit. There is no bottom padding in this state (`suggestions--more` in the
        * stylesheet): a scrollport clips at its padding box, so 8px of padding under the last row is
        * a window onto the top of the row after it, which reads as a list ending in a cut-off line.
-       * Whole rows only, and never fewer than one — the list scrolls, and an empty panel is not a
+       * Whole rows only, and never fewer than one, the list scrolls, and an empty panel is not a
        * list.
        */
       let whole = 0;
@@ -319,7 +319,7 @@ export function StopCombobox({
    * its own, and never a scroll.
    *
    * The old rule was a 140ms timeout after the input's `blur`, and a page scroll blurs a focused
-   * input on a phone — so reaching for the list by scrolling the page dismissed it, which is the
+   * input on a phone, so reaching for the list by scrolling the page dismissed it, which is the
    * other half of the same report. A press outside is what the traveller means by leaving, and the
    * list's own scroll never touches the input's focus at all.
    */
@@ -353,7 +353,7 @@ export function StopCombobox({
    *
    * `suggestions--more` takes the 8px under the last row away, because a scrollport clips at its
    * padding box and that padding becomes a window onto the top of the next row. The flag used to be
-   * set once, when the list opened — and the list opens on an empty field, where every stop in the
+   * set once, when the list opened, and the list opens on an empty field, where every stop in the
    * country is a row and the panel is certainly too small for them. Typing then narrowed it to a
    * single result and nothing re-decided, so one row sat flush against the panel's own edge with no
    * padding under it, which is the shape reported as "the bottom padding issue is back". Rows are
@@ -373,7 +373,7 @@ export function StopCombobox({
    * The stop whose code and modes are shown in the hint line under the field.
    *
    * It is **not** just `value`: typing the first letter of a new stop makes the field clear its
-   * value ("this end is no longer chosen"), and the hint used to vanish with it — so the line
+   * value ("this end is no longer chosen"), and the hint used to vanish with it, so the line
    * appeared and disappeared under the caret while the traveller was still typing. What the field
    * still holds until another stop is committed is the previous one, and its code and modes are
    * still the useful description of it. Choosing another stop replaces it; clearing the field with
@@ -393,7 +393,7 @@ export function StopCombobox({
     setOpen(false);
     /*
      * A stop has been chosen, so the field has finished its job and the phone's keyboard goes
-     * with it — otherwise it stays up over the board the stop just opened. Clearing the field
+     * with it, otherwise it stays up over the board the stop just opened. Clearing the field
      * (`commit(null)`, the ×) is not that moment: there the caller puts focus back to type again.
      */
     if (stop) dismissKeyboard();
@@ -443,7 +443,7 @@ export function StopCombobox({
             id={id}
             ref={inputRef}
             className="input-group__field"
-            /* With the visible label hidden, the name still has to exist — a placeholder is not
+            /* With the visible label hidden, the name still has to exist, a placeholder is not
                an accessible name, and it disappears the moment the field is typed in. */
             aria-label={hideLabel ? label : undefined}
             role="combobox"
@@ -505,7 +505,7 @@ export function StopCombobox({
                   data-active={index === activeIndex}
                   /*
                    * `-1`, not a tab stop. Eight suggestion buttons used to sit between the field and
-                   * the next control on the page — eight presses through a list whose rows are
+                   * the next control on the page, eight presses through a list whose rows are
                    * chosen with the arrows, and Escape stopped working the moment the keyboard was
                    * inside one (11.8, 32.3). The arrows and Enter are the list's keyboard route;
                    * a press still works for a pointer.

@@ -8,7 +8,7 @@ import { Card } from './primitives';
  * The stop card, the alert card and the journey card were three copies of one idea (MATCHING_PLAN
  * rule 4): a `Card` that opens a detail route on a press, one real link inside it for the keyboard
  * and the screen reader, controls that do not navigate twice, and the app's own hover/press lift.
- * They agreed by discipline; now they agree by construction — a fourth list cannot invent a fourth
+ * They agreed by discipline; now they agree by construction, a fourth list cannot invent a fourth
  * behaviour.
  *
  * The rule the three copies were each writing by hand is done once, here, and it is a little
@@ -43,7 +43,7 @@ export function ResultCard({
 }
 
 /**
- * The card's one real link — the accessible path into the same route the press on the card takes.
+ * The card's one real link, the accessible path into the same route the press on the card takes.
  *
  * It stops its own click so the card does not navigate a second time, and it is a `Link`, so
  * middle-click, "open in new tab" and every screen reader's link list work on it.

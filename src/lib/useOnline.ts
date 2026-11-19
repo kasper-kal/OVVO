@@ -6,12 +6,12 @@ import { useDev } from './dev';
  *
  * OVVO is a local app: the planner, the boards, the timetable, every saved stop and setting live
  * in this browser, so losing the connection takes nothing away from it. What it does take away is
- * *live* data — the departure boards say so, and this hook is what lets the shell say so too, in
+ * *live* data, the departure boards say so, and this hook is what lets the shell say so too, in
  * the one place a traveller looks first.
  *
  * `navigator.onLine` is a coarse answer: it reports true on a network that is up but cannot reach
  * the internet, and a captive portal or a dead Wi-Fi uplink is invisible to it. That is the right
- * trade here — the app has one real request (an approximate location) and no server it depends on,
+ * trade here, the app has one real request (an approximate location) and no server it depends on,
  * so "the browser thinks it is online" is a strong enough signal to *stop* warning, while a
  * false negative (a wrong "you're offline") would be the only real cost, and it clears itself the
  * moment the browser fires `online`.

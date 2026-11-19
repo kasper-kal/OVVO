@@ -15,7 +15,7 @@ type Side = 'from' | 'to';
 /**
  * The planner card: two rows and a rail, and nothing else.
  *
- * The card asks one question — where from, where to — so it holds one answer per row and
+ * The card asks one question, where from, where to, so it holds one answer per row and
  * no other control at all. There is no search button and no date or time here: the second
  * stop *is* the search, and the journey's when, how and which carriers are answered on the
  * results screen, where they apply to something you can already see.
@@ -32,10 +32,10 @@ export function SearchForm({
    * Whether this card **is** the search on screen, or the next question.
    *
    * On the results screen the card is the question the list answers, so it shows the two ends that
-   * were asked — that is `inheritSearch`. The home screen is the *next* question: it opened holding
+   * were asked, that is `inheritSearch`. The home screen is the *next* question: it opened holding
    * the last search's ends (and its date and time), so a journey planned once was still sitting in
    * the planner afterwards, and a pair a refused pick had left there came back with the traveller.
-   * The home card starts empty instead: no ends, no address, and "now" — nothing the traveller
+   * The home card starts empty instead: no ends, no address, and "now", nothing the traveller
    * searched for before is on the screen they start from.
    */
   inheritSearch?: boolean;
@@ -49,7 +49,7 @@ export function SearchForm({
   /*
    * `?pick=` marks a hand-over from a "Plan … here" control: the URL answers one end and the
    * traveller answers the other. In that case the card must not borrow the remaining end from the
-   * search still in the session, nor from the default origin — an empty row with its picker open
+   * search still in the session, nor from the default origin, an empty row with its picker open
    * is the whole point of the hand-over (F28).
    */
   const pickParam = params.get('pick');
@@ -70,7 +70,7 @@ export function SearchForm({
   /**
    * A new pair keeps the when of the search on screen (changing only the destination should not
    * silently move the departure time), unless that search is in the past, which the planner cannot
-   * serve — and on a card that is not the search's own, "the search on screen" is none of them: a
+   * serve, and on a card that is not the search's own, "the search on screen" is none of them: a
    * fresh question is asked with now.
    */
   const when = useMemo(() => {
@@ -90,8 +90,8 @@ export function SearchForm({
    * A `?from=`/`?to=` that arrives while this card is already on screen has to be applied.
    *
    * The card lives on the home route and every link that fills one of its rows is *on* the home
-   * route, so React Router keeps the component mounted and `useState(defaults.from)` — which only
-   * ever runs once — never sees the new parameter. The row stayed empty while the URL said
+   * route, so React Router keeps the component mounted and `useState(defaults.from)`, which only
+   * ever runs once, never sees the new parameter. The row stayed empty while the URL said
    * `?from=utrecht-centraal`; the same trap as a `?stop=` that changes on a mounted board.
    * Params are the only trigger: a stop chosen on this card does not change them, and is not
    * clobbered by them.
@@ -152,8 +152,8 @@ export function SearchForm({
    * traveller: it fills **only** the end that was named, lands here, and opens the picker for the
    * *other* end ("when you press a button like 'PLAN TO HERE' that it only auto-inputs the 'TO'
    * and brings you to the search menu with the 'FROM' selected instead of the results"). Before
-   * this, a search already in the session was quietly reused — its other end was carried into the
-   * new query and the screen jumped to results — which is the "it auto-fills the from" in the
+   * this, a search already in the session was quietly reused, its other end was carried into the
+   * new query and the screen jumped to results, which is the "it auto-fills the from" in the
    * report.
    */
   useEffect(() => {
@@ -181,8 +181,8 @@ export function SearchForm({
     /*
      * Route first, close the sheet on the way out (F4).
      *
-     * The sheet covers the screen, so closing it before the route moved left the planner — the
-     * home screen — visible for the frames in between: the reported "flicker of the home screen"
+     * The sheet covers the screen, so closing it before the route moved left the planner, the
+     * home screen, visible for the frames in between: the reported "flicker of the home screen"
      * that made the traveller think the press had failed. Now the destination is chosen first and
      * the next screen paints under the closing overlay, where it has always been.
      *
@@ -191,11 +191,11 @@ export function SearchForm({
      * **A search asked from the results screen replaces that entry; it does not add one.**
      *
      * The card on the results screen is editable, so a second search can be run without leaving
-     * it — correct the departure row, or answer it again. That used to push a *second* `/results`
+     * it, correct the departure row, or answer it again. That used to push a *second* `/results`
      * entry, and the screen's own back arrow asks the history where it came from (see
      * `useHeaderBack`): one press popped to the other results entry, which is the same screen, so
      * Back did nothing at all (reported as: *"I put in my adress → Haarlem Station, saw the
-     * results, pressed back, now it goes... Here."* — "here" being the results again). Replacing
+     * results, pressed back, now it goes... Here."*, "here" being the results again). Replacing
      * the entry the traveller is already on is the honest shape of what happened: the search on
      * this screen changed, the screen did not. Back goes on returning to the screen the results
      * were opened from, which is the one thing the arrow promises.
@@ -203,7 +203,7 @@ export function SearchForm({
     startSearch(query);
     /* `startsWith`, not equality: the results screen has its own address per search
        (`/results/<id>`, see `lib/searchLink`), and a second search from that screen is the same
-       screen changing — one history entry, so Back still leaves the results. */
+       screen changing, one history entry, so Back still leaves the results. */
     navigate('/results', { replace: pathname.startsWith('/results') });
     setSheet(null);
     onSearch?.();
@@ -218,9 +218,9 @@ export function SearchForm({
    *
    * This used to depend on where the answer came from: the list ran the search, the map did
    * not, and the traveller was returned to the picker with a "Plan journey" button instead.
-   * That is the report this rule is written against — "sometimes the results dont always show
+   * That is the report this rule is written against, "sometimes the results dont always show
    * when you put in 2 locations both from and to, sometimes pressing the plan journey button is
-   * necessary" — because a pair filled from the map left them on the picker with two stops and
+   * necessary", because a pair filled from the map left them on the picker with two stops and
    * no journey. Two ends and no search is now impossible: the pick that supplies the second one
    * plans, and the picker only stays open while one end is still missing, which is when there is
    * genuinely nothing to plan yet.
@@ -273,8 +273,8 @@ export function SearchForm({
    *
    * Nothing else about the search is invented: the reverse keeps its own date, time mode and
    * preferences (the card's `when` is the search's own), both labels travel with their end, and the
-   * distances the picker measured swap with the stops. What a re-planned search always does — start
-   * a fresh sort, filters and time window — happens here too, exactly as it does when a stop is
+   * distances the picker measured swap with the stops. What a re-planned search always does, start
+   * a fresh sort, filters and time window, happens here too, exactly as it does when a stop is
    * picked on this same card.
    *
    * `searchNow` is false for the picker's own card, where the pair is still a draft being edited
@@ -305,7 +305,7 @@ export function SearchForm({
         >
           {/*
             The row is named by its own text when it is empty and by the stop in it when it is
-            not, so the screen-reader name is only needed in the second case — as two spans it
+            not, so the screen-reader name is only needed in the second case, as two spans it
             read "From From". "From: station, stop or landmark" was the field telling the
             traveller what a stop is, in a card whose two rows are the only two things on it.
           */}
@@ -336,8 +336,8 @@ export function SearchForm({
         {/*
           **The same reverse control the picker's card carries, in the same place.**
           A completed search could only be swapped by opening a picker and pressing it there, so
-          on the results screen — the one screen where both ends are known and one of them is
-          usually wrong — the control was two taps away inside an overlay (reported: "Add the
+          on the results screen, the one screen where both ends are known and one of them is
+          usually wrong, the control was two taps away inside an overlay (reported: "Add the
           'Reverse' button to the Journey results too, on the exact same place as in the Plan
           journey"). It is the third column of this card, centred on the line between the rows,
           exactly where `StopPicker` draws it.
@@ -392,12 +392,12 @@ export function SearchForm({
              *
              * It used to come back on the end the map had just answered: the From row was filled
              * with the stop, the caret was in it, and the screen still said "Where are you leaving
-             * from?" — an answer being asked for again. A stop picked from the list below never did
+             * from?", an answer being asked for again. A stop picked from the list below never did
              * that (`StopPicker.choose` hands the keyboard to the other row), so the map was the one
              * way in that left the traveller re-reading the field they had just filled.
              *
              * When this was the second end, `pick` has already planned the pair and closed the
-             * sheet — `current` is null and the results are what comes next.
+             * sheet, `current` is null and the results are what comes next.
              */
             setSheet((current) =>
               current ? { kind: 'pick', side: side === 'from' ? 'to' : 'from' } : current,

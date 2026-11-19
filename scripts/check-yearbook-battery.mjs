@@ -3,7 +3,7 @@
  *
  * At 20% OVVO stills its animations and at 10% it also drops shadows and switches to dark. The
  * deck depends on its own motion and colour, so it asks the app for an exception while it is open.
- * This check uses the developer battery override — the same rule the device feeds — and proves:
+ * This check uses the developer battery override, the same rule the device feeds, and proves:
  *
  *   • at 15% the deck runs as `data-power="off"` with its designed animation duration;
  *   • at 5% it keeps its normal appearance instead of being forced dark;

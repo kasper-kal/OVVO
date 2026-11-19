@@ -39,7 +39,7 @@ export interface Settings {
    * lettering: the page, the cards, the ink ramp, the accent, the selection and the two fonts.
    *
    * It replaced the three colour settings below, which are kept in storage for one version so a
-   * rollback loses nothing — nothing reads them now (`THEMES_PLAN.md` §3.4). A style is a finished
+   * rollback loses nothing, nothing reads them now (`THEMES_PLAN.md` §3.4). A style is a finished
    * answer rather than a colour, which is what ended the contrast problem: every ink is authored
    * against the surface it is drawn on instead of being derived from somebody's hex.
    */
@@ -48,14 +48,14 @@ export interface Settings {
    * The photo styles whose **photograph** is switched off, worn as their own colour instead.
    *
    * A list rather than a boolean because the answer belongs to each style: Marble set to Colour
-   * stays colour when the traveller visits Arches and comes back. The saving modes ignore it — at
-   * 10% of a battery no picture is drawn whatever this says — and the Themes card says so.
+   * stays colour when the traveller visits Arches and comes back. The saving modes ignore it, at
+   * 10% of a battery no picture is drawn whatever this says, and the Themes card says so.
    */
   photoColourOnly: string[];
   /**
    * The colour selected text is painted with: one of the palette's five, or `custom`.
    *
-   * Stored here rather than in its own slot because it is a setting like any other — one object,
+   * Stored here rather than in its own slot because it is a setting like any other, one object,
    * one write, one reset. The ink is *not* stored: it is derived from this colour
    * (`lib/selection.ts`), so a colour cannot be saved with a stale ink beside it.
    */
@@ -63,7 +63,7 @@ export interface Settings {
   /** The traveller's own colour, `#rrggbb`, when `selectionColor` is `custom`; `''` otherwise. */
   selectionCustom: string;
   /*
-   * The same two answers **for the dark appearance** — see `lib/palette.ts` for why there are two
+   * The same two answers **for the dark appearance**, see `lib/palette.ts` for why there are two
    * sets at all. The light pair above is the one that existed first, so a stored object from before
    * this split already carries the light choice; `migrateSettings` copies it into the dark pair, so
    * the page nobody has customised since keeps the colour it had.
@@ -99,14 +99,14 @@ export interface Settings {
    *
    * Kept so a crop can be redone without the quality loss of cropping a crop (asked for directly:
    * "Original kept"). It is never drawn on the page; only the crop screen reads it. Empty for a
-   * browser that chose a photo before version 6 — there the baked image is the only copy, and the
+   * browser that chose a photo before version 6, there the baked image is the only copy, and the
    * crop screen opens on it as if it were the source.
    */
   backgroundImageSource: string;
   /**
    * Which part of the source is in the baked image, as fractions of the source (`lib/photoCrop.ts`).
    *
-   * `null` means the whole picture — what choosing a photo does, since cropping is offered rather
+   * `null` means the whole picture, what choosing a photo does, since cropping is offered rather
    * than automatic. The crop screen restores its frame from these four numbers, so reopening it
    * shows exactly the frame that was left.
    */
@@ -114,13 +114,13 @@ export interface Settings {
   /** Over a photo: cards that show it through glass, or cards in the tint. */
   cardTreatment: CardTreatment;
   /**
-   * The colour the widgets are painted with — the cards, the panels, the sidebar and the accent —
+   * The colour the widgets are painted with, the cards, the panels, the sidebar and the accent ,
    * so it can be a different colour from the page, which is the whole point of it being a setting
    * of its own (`Settings → Colours → Primary colour`).
    *
    * `''` means **follow the background**: the widgets take the page's colour when the page has one
    * and the app's own surfaces and coral when it does not. That is exactly the behaviour before
-   * this setting existed, which is why it is the default — a browser that never opens the control
+   * this setting existed, which is why it is the default, a browser that never opens the control
    * keeps the interface it already had. Over a photo, which has no page colour, `''` resolves to
    * the stored page colour, so the solid card treatment still remembers what was chosen.
    */
@@ -132,8 +132,8 @@ export interface Settings {
    *
    * Off by default and off for everyone who has not asked for it, which is the whole of what makes
    * it safe to ship: the switch is one word in Settings, and everything it opens reads from one
-   * store that is cleared the moment the switch goes off. It is not a hidden door — the panel's
-   * address is redirected home while this is false — and it is not a second interface either: the
+   * store that is cleared the moment the switch goes off. It is not a hidden door, the panel's
+   * address is redirected home while this is false, and it is not a second interface either: the
    * panel changes what the app *believes*, and the app draws itself from those beliefs exactly as
    * it does on a real phone.
    */
@@ -158,7 +158,7 @@ export const DEFAULT_SETTINGS: Settings = {
   density: 'comfortable',
   highContrast: false,
   reduceMotion: false,
-  /* The coral the app has always selected with — the same colour the dock's active entry is
+  /* The coral the app has always selected with, the same colour the dock's active entry is
      painted with, and the one that measured 7.1:1 in R98. */
   selectionColor: 'coral',
   selectionCustom: '',
@@ -167,7 +167,7 @@ export const DEFAULT_SETTINGS: Settings = {
   selectionColorDark: 'coral',
   selectionCustomDark: '',
   /*
-   * The canvas the app has always drawn — `--canvas-base`, the warm cream — is the default, not a
+   * The canvas the app has always drawn, `--canvas-base`, the warm cream, is the default, not a
    * fallback: a fresh browser and a browser that has been here since the beginning get the same
    * page until somebody chooses otherwise.
    */
@@ -178,7 +178,7 @@ export const DEFAULT_SETTINGS: Settings = {
   backgroundImageSource: '',
   backgroundCrop: null,
   cardTreatment: DEFAULT_CARD_TREATMENT,
-  /* Follow the background — see the field's note: this is the interface the app already had. */
+  /* Follow the background, see the field's note: this is the interface the app already had. */
   primaryColour: '',
   primaryColourDark: '',
   defaultTimeMode: 'depart',
@@ -193,7 +193,7 @@ export const DEFAULT_SETTINGS: Settings = {
  * stored the old one.
  *
  * Version 5 gave the widgets a colour of their own. Through version 4 `backgroundColour` was the
- * app's **tint** — one choice that painted the page, the widgets and the accent together, which
+ * app's **tint**, one choice that painted the page, the widgets and the accent together, which
  * made "Background" the home of the colour used everywhere. The page keeps that job and
  * `primaryColour` takes the rest; it is absent from older objects and the merge with
  * `DEFAULT_SETTINGS` supplies `''`, i.e. *follow the background*, so a browser that stored version
@@ -205,14 +205,14 @@ export const DEFAULT_SETTINGS: Settings = {
  * next loads. `cardTreatment` is also absent from older objects, and is supplied the same way.
  * Earlier,
  * `boardAutoRefresh` was moved from its old default of `0` (off) up to `5` and has since been
- * **removed** — the board is a live screen at a fixed 5 seconds (see `BOARD_REFRESH_SECONDS` in
- * `DeparturesPage`) — so a stale value is simply ignored.
+ * **removed**, the board is a live screen at a fixed 5 seconds (see `BOARD_REFRESH_SECONDS` in
+ * `DeparturesPage`), so a stale value is simply ignored.
  */
 export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
   /*
    * **Version 8 mirrors the three colours into the dark appearance.** They were one value each
    * drawn in both appearances, so the honest translation is "the colour you chose is now the
-   * colour in *both*" — the page keeps exactly what it had, and the two palettes start equal and
+   * colour in *both*", the page keeps exactly what it had, and the two palettes start equal and
    * drift only when the traveller says so. Anything else (a dark default, an empty slot) would
    * repaint the page of somebody who never opened Settings.
    */
@@ -220,7 +220,7 @@ export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
     ...stored,
     /*
      * **Version 9 replaces the three colours with a style.** A browser that never chose a colour
-     * keeps the app's own look, which is the style `tram` — the exact page, cards and coral it has
+     * keeps the app's own look, which is the style `tram`, the exact page, cards and coral it has
      * been drawing. A browser that *did* customise gets the style nearest to what it chose, worked
      * out once by colour distance (`nearestStyleId`), so nobody's page changes shape on the way in.
      * The old fields stay untouched for one version; nothing reads them.
@@ -253,14 +253,14 @@ export function migrateSettings(stored: Partial<Settings>): Partial<Settings> {
  * Version 6 keeps the whole photograph beside the crop (`backgroundImageSource`), and remembers the
  * frame (`backgroundCrop`) so the crop screen can be reopened on the same part of the picture.
  * Neither needs rewriting here: a browser that stored version 5 has no source, and the merge with
- * `DEFAULT_SETTINGS` supplies `''` and `null` — which the crop screen reads as "the baked image is
+ * `DEFAULT_SETTINGS` supplies `''` and `null`, which the crop screen reads as "the baked image is
  * the whole picture", exactly the centre crop that browser already has. Nothing about the page it
  * draws changes on the way in.
  *
  * Version 7 added `buttonColour` (*Match colours* painting every button), and it has been
  * **removed** again: the control was reported as repainting buttons that had no fill of their own
  * ("it gives button that never HAD backdrop, BACKDROP"), and what *Match colours* is for is the
- * three colours of the palette — the page, the primary colour and the selected text. A stored
+ * three colours of the palette, the page, the primary colour and the selected text. A stored
  * `buttonColour` is simply ignored, and every button returns to its own variant.
  */
 
@@ -306,7 +306,7 @@ export interface PlannerSearchState {
  * A widget's width, in columns of the home screen's 12-column grid: 4 is a third, 6 a half, 8
  * two-thirds, 12 the full width.
  *
- * It is the whole of a widget's size — there is nothing else to choose. A card is the width its
+ * It is the whole of a widget's size, there is nothing else to choose. A card is the width its
  * widget declares and as tall as its own content, and the home screen draws it that way at every
  * device width.
  */

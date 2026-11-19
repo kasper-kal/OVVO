@@ -30,7 +30,7 @@ import { readStored, STORAGE_KEYS, writeStored } from './storage';
  * has already said no (`STORAGE_KEYS.install`), which is what makes the banner a first-visit thing.
  * That answer is kept **in the store beside the event**, not in the banner's own state: the reset
  * (`resetInstallOffer`) has to reach it, and a `useState` inside a mounted component cannot be
- * reached from anywhere — which is exactly why a reset used to leave the banner hidden.
+ * reached from anywhere, which is exactly why a reset used to leave the banner hidden.
  */
 
 /** The event Chromium fires. It is real, standard behaviour, and in none of the DOM types. */

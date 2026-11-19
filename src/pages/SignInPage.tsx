@@ -32,8 +32,8 @@ const SHELL = { maxWidth: 520, margin: '0 auto', padding: '28px 16px 72px' } as 
  * One field and one button: the default is a link by email, because it asks for nothing to be
  * invented and works whether the account is new or old. A password is one quiet line away.
  *
- * The wording is deliberately ordinary — "Sign in", "Check your email", "Resend email",
- * "Use a different email" — because a sign-in screen is the last place to be original. Every
+ * The wording is deliberately ordinary, "Sign in", "Check your email", "Resend email",
+ * "Use a different email", because a sign-in screen is the last place to be original. Every
  * sentence here is the sentence a traveller has already read a hundred times elsewhere.
  */
 export function SignInPage() {

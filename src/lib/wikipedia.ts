@@ -8,7 +8,7 @@ import { timeoutSignal } from './timeoutSignal';
  * This is the app's one piece of *live* reading material, and it is treated the way
  * `lib/approximateLocation` treats its one live convenience: a request that may not answer, an
  * answer that is checked before it is used, and a failure that says nothing at all. The page
- * simply has no encyclopaedia card, which is also what it has for a stop with no article — the
+ * simply has no encyclopaedia card, which is also what it has for a stop with no article, the
  * rule the summary was asked for by is "if it doesn't exist, don't add an empty widget", and from
  * the page's side a 404, a dead connection and an article that was never written are the same
  * answer.
@@ -19,7 +19,7 @@ import { timeoutSignal } from './timeoutSignal';
  * response carries `access-control-allow-origin: *`).
  *
  * The summary is cached for the session, per language, because it is the same paragraph every time
- * the traveller goes back to that station — and the promise is held while a request is in flight,
+ * the traveller goes back to that station, and the promise is held while a request is in flight,
  * so React's development double-mount asks once rather than twice.
  */
 export interface WikipediaSummary {

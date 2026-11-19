@@ -1,7 +1,7 @@
 /**
  * **What the little count on the Options chip is drawn in, in every style.**
  *
- * The count is `--struct-main` behind `--on-dark` — the same pair a primary button wears. This asks
+ * The count is `--struct-main` behind `--on-dark`, the same pair a primary button wears. This asks
  * every style, in both appearances, what that pair actually resolves to, and does the same for the
  * accent pair, so a fill can be chosen that is legible in all of them rather than in the one that
  * was on screen.

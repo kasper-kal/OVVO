@@ -1,5 +1,5 @@
 /**
- * precision-audit — the things that have to be *exactly* true, not nearly true.
+ * precision-audit, the things that have to be *exactly* true, not nearly true.
  *
  * The other audits here ask whether something is legible, tappable, square or on a known
  * breakpoint. This one asks whether things that are supposed to be **the same** are identical to
@@ -9,19 +9,19 @@
  *
  * What it measures, on every route, at four widths, in both appearances:
  *
- *   1. **edges**       — every card on a screen shares the page's own left and right content
+ *   1. **edges**      , every card on a screen shares the page's own left and right content
  *                        edge, exactly.
- *   2. **gaps**        — the space between siblings in a stacked list is one number, not an
+ *   2. **gaps**       , the space between siblings in a stacked list is one number, not an
  *                        average: any container whose children are not all the same gap apart is
  *                        a finding, with the two numbers that disagree.
- *   3. **one control, one box** — controls that share a class share their height, and those that
+ *   3. **one control, one box**, controls that share a class share their height, and those that
  *                        draw only a glyph share their width too. A 43px button beside a 44px one
  *                        is a row that is 1px out, whatever it looks like.
- *   4. **whole pixels** — boxes that are pure geometry (no text inside: glyph buttons, discs,
+ *   4. **whole pixels**, boxes that are pure geometry (no text inside: glyph buttons, discs,
  *                        dots, avatars) are a whole number of pixels on both axes. Text line
- *                        boxes are allowed to be fractional — that is the font's own metric —
+ *                        boxes are allowed to be fractional, that is the font's own metric ,
  *                        but a box we draw ourselves never is.
- *   5. **no sideways scroll** — the page is exactly as wide as the window, never wider.
+ *   5. **no sideways scroll**, the page is exactly as wide as the window, never wider.
  *
  * Run:   node scripts/precision-audit.mjs [origin]
  *        PRECISION_THEME=dark  runs the sweep in the other appearance
@@ -55,11 +55,11 @@ const browser = await chromium.launch();
 for (const width of WIDTHS) {
   for (const route of ROUTES) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
-    /* Every route is a real address, so each one is its own load — there is no document to keep
+    /* Every route is a real address, so each one is its own load, there is no document to keep
        and no hash to set after it (the app used `HashRouter` once; `main.tsx` still translates an
        old `#/...` address on the way in, which is why that shape is not measured here). */
     await page.goto(ORIGIN + route, { waitUntil: 'domcontentloaded' });
-    /* Geometry does not need the font, but the type inside the boxes does — and a fallback font is
+    /* Geometry does not need the font, but the type inside the boxes does, and a fallback font is
        wider, which is how a line that fits starts to wrap and a box that is right starts to clip. */
     await ensureAppFont(page);
     await page.waitForTimeout(700);
@@ -97,7 +97,7 @@ for (const width of WIDTHS) {
         ),
       };
       /*
-        1 — the column is filled exactly. The outermost blocks (the children of `main`, and the
+        1, the column is filled exactly. The outermost blocks (the children of `main`, and the
         rows inside its single wrapper) begin on the content's left edge and end on its right one:
         no 11px where there should be 12, no 291px where there should be 308.
       */
@@ -123,7 +123,7 @@ for (const width of WIDTHS) {
       }
 
       /*
-        2 — a stack's spacing is the number the stylesheet asked for, everywhere in it. The check
+        2, a stack's spacing is the number the stylesheet asked for, everywhere in it. The check
         compares the space between children with the container's own computed `row-gap`; a child
         that carries a margin of its own, or a row pushed by `space-between`, is a gap that is not
         the token and is reported with both numbers.
@@ -163,7 +163,7 @@ for (const width of WIDTHS) {
       }
 
       /*
-        3 — a glyph-only control is one box everywhere. Text buttons legitimately differ in width
+        3, a glyph-only control is one box everywhere. Text buttons legitimately differ in width
         (their words differ) and slightly in height (their line boxes can), so the exact check is
         kept to the controls whose content is a glyph: those are one size or they are a defect.
       */
@@ -185,13 +185,13 @@ for (const width of WIDTHS) {
         }
       }
 
-      /* 4 — pure boxes are whole pixels. */
+      /* 4, pure boxes are whole pixels. */
       const pure = [...main.querySelectorAll('.icon-btn, .status-dot, .pill__dot, .skeleton--circle, .skeleton--pill, .map-pin, .map-marker')];
       const fractional = pure
         .map((el) => ({ cls: String(el.className).slice(0, 40), ...box(el) }))
         .filter((b) => Math.abs(b.h - Math.round(b.h)) > 0.01 || Math.abs(b.w - Math.round(b.w)) > 0.01);
 
-      /* 5 — the page is not wider than the window. */
+      /* 5, the page is not wider than the window. */
       const overflow = {
         scroll: document.documentElement.scrollWidth,
         client: document.documentElement.clientWidth,
@@ -231,8 +231,8 @@ await browser.close();
 
 const kinds = [...new Set(findings.map((f) => f.kind))];
 if (findings.length === 0) {
-  console.log(`precision audit — ${ROUTES.length} routes × ${WIDTHS.length} widths, ${THEME}`);
-  console.log('OK — edges, gaps, controls, whole pixels and page width all agree exactly.');
+  console.log(`precision audit, ${ROUTES.length} routes × ${WIDTHS.length} widths, ${THEME}`);
+  console.log('OK, edges, gaps, controls, whole pixels and page width all agree exactly.');
   process.exit(0);
 }
 
@@ -251,5 +251,5 @@ for (const kind of kinds) {
   }
 }
 
-console.log(`\nFAILED — ${findings.length} precision finding(s)`);
+console.log(`\nFAILED, ${findings.length} precision finding(s)`);
 process.exit(1);

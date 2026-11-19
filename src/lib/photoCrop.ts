@@ -3,7 +3,7 @@
  *
  * The app keeps two copies of a background photo (`COLOURS_PLAN.md` §5): the **source**, downscaled
  * to a bounded edge and never thrown away, and the **baked** crop the page actually draws. The crop
- * is stored as four fractions of the source — `x`, `y`, `w`, `h` — so the crop screen can be reopened
+ * is stored as four fractions of the source, `x`, `y`, `w`, `h`, so the crop screen can be reopened
  * on the stored source and show exactly the frame the traveller left.
  *
  * Everything here is pure except `loadImage` and `bakeCrop`, which touch the DOM because a canvas is
@@ -31,7 +31,7 @@ const MIN_W = 0.04;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 /**
- * The widest centred frame of a given screen aspect that fits inside the whole picture — the "cover"
+ * The widest centred frame of a given screen aspect that fits inside the whole picture, the "cover"
  * crop, made visible.
  *
  * `aspect` is the frame's width ÷ height in **screen** pixels; `sourceAspect` is the picture's own
@@ -48,7 +48,7 @@ export function centeredCrop(aspect: number, sourceAspect: number): CropRect {
   return { x: (1 - w) / 2, y: 0, w, h: 1 };
 }
 
-/** The frame's aspect in the picture's own fractions (w ÷ h) — what `zoom` keeps constant. */
+/** The frame's aspect in the picture's own fractions (w ÷ h), what `zoom` keeps constant. */
 export function cropFractionAspect(rect: CropRect): number {
   return rect.w / rect.h;
 }
@@ -118,7 +118,7 @@ export function cropFocus(rect: CropRect): { x: number; y: number } {
 
 /**
  * The CSS `background-size` / `background-position` that shows exactly this frame filling a box whose
- * aspect is the frame's — the crop screen's "as it will look" preview, derived rather than baked so
+ * aspect is the frame's, the crop screen's "as it will look" preview, derived rather than baked so
  * it updates on every drag.
  */
 export function cropBackground(rect: CropRect): { size: string; position: string } {
@@ -157,7 +157,7 @@ export function cropPixels(
 }
 
 /**
- * Crop at full resolution, **then** downscale — the order matters. The old path downscaled the upload
+ * Crop at full resolution, **then** downscale, the order matters. The old path downscaled the upload
  * to 1600px and let the page crop afterwards, so a tight crop kept 1600px of a region that was only a
  * fraction of the frame. This keeps the detail inside the frame and throws away the rest.
  */

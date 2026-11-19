@@ -1,7 +1,7 @@
 """
 **Backdrop plates, modelled and rendered in Blender.**
 
-The first version of this script stacked cubes and called it a render — which is why the cards still
+The first version of this script stacked cubes and called it a render, which is why the cards still
 looked like blocks. This one builds shapes that only a modeller can make: ribbons swept along a
 Bezier curve, blobs welded from metaballs, a dune field displaced by a noise texture, arches cut from
 a torus ring, tapered columns, a fan of cones, and a scatter of spheres for stars.
@@ -92,7 +92,7 @@ def material(name, grey, roughness=0.45, metallic=0.0):
 
 
 def ribbons(rng):
-    """Three ribbons swept along twisting curves — the biggest-day card's shape."""
+    """Three ribbons swept along twisting curves, the biggest-day card's shape."""
     for i in range(3):
         curve = bpy.data.curves.new(f"ribbon{i}", "CURVE")
         curve.dimensions = "3D"
@@ -123,7 +123,7 @@ def ribbons(rng):
 
 
 def blobs(rng):
-    """Soft organic forms welded from metaballs — rounded, not boxy."""
+    """Soft organic forms welded from metaballs, rounded, not boxy."""
     meta = bpy.data.metaballs.new("blobs")
     meta.resolution = 0.06
     meta.render_resolution = 0.03
@@ -198,7 +198,7 @@ def columns(rng):
 
 
 def rays(rng):
-    """A fan of cones — a sunburst that has been modelled rather than drawn."""
+    """A fan of cones, a sunburst that has been modelled rather than drawn."""
     for i in range(7):
         ang = -55 + i * 18
         bpy.ops.mesh.primitive_cone_add(

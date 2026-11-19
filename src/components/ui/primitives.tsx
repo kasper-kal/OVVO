@@ -34,7 +34,7 @@ export function Card({
   style?: CSSProperties;
   as?: 'section' | 'div' | 'article' | 'li' | 'form';
   /*
-   * A card is often a live region or a busy block — "Planning your journey" is `aria-busy`, the
+   * A card is often a live region or a busy block, "Planning your journey" is `aria-busy`, the
    * no-match card is `role="status"`. Both were declared at the call sites and both were dropped
    * here, because this wrapper forwarded `class`, `style` and `onClick` only: the attribute never
    * reached the DOM (2.5, 4.4, 7.2). Everything else a section can carry now passes through.
@@ -43,7 +43,7 @@ export function Card({
   role?: string;
   tabIndex?: number;
   /*
-   * A card that is also a way in — the stops list, where the whole card opens the stop page.
+   * A card that is also a way in, the stops list, where the whole card opens the stop page.
    * It is deliberately *not* a link element: a card can contain a pin, a link and a button, and
    * an anchor cannot contain them without becoming invalid markup. The accessible route is the
    * real link inside the card (the stop's name); this click is the pointer's convenience, and
@@ -136,7 +136,7 @@ export function Button({
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
-  /* `xs` is the quiet end of the row: a short label, tighter padding, a smaller glyph — the
+  /* `xs` is the quiet end of the row: a short label, tighter padding, a smaller glyph, the
      44px target itself is not negotiable, and never was. */
   size?: 'md' | 'sm' | 'xs';
   block?: boolean;
@@ -212,7 +212,7 @@ export function Pill({
   dot?: boolean;
   dotTone?: 'green' | 'coral' | 'butter';
   className?: string;
-  /* A pill can be the place a verdict changes — "3 of 11 journeys allowed" — and a change
+  /* A pill can be the place a verdict changes, "3 of 11 journeys allowed", and a change
      announced to nobody is a change for sighted travellers only (10.5). */
   role?: string;
 }) {
@@ -286,11 +286,11 @@ export function ModeBadge({
  *
  * There used to be an optional `icon` on each option, and Settings used it on four of its five
  * controls. A glyph beside a word that already says the same thing is a second thing to read, not
- * a saving (and two of those controls drew the *same* glyph on both halves — two clocks for
+ * a saving (and two of those controls drew the *same* glyph on both halves, two clocks for
  * 24-hour and 12-hour, two grids for comfortable and compact, so the picture carried no
  * information at all). The shape is now enforced by the type: a segment is a label, which is also
- * what the language control always was. A control that genuinely needs a picture — a toolbar, a
- * map, the board's own actions — is not a segmented control and does not use this.
+ * what the language control always was. A control that genuinely needs a picture, a toolbar, a
+ * map, the board's own actions, is not a segmented control and does not use this.
  */
 export function Segmented<T extends string | number>({
   options,
@@ -369,7 +369,7 @@ export function Switch({
   description?: string;
   /*
    * An optional glyph in front of the label, for a row whose subject the app already draws
-   * somewhere else — a trade-off about transfers wears the swap arrows a journey's chips wear,
+   * somewhere else, a trade-off about transfers wears the swap arrows a journey's chips wear,
    * and one about walking wears the footprints. The label is unchanged, so nothing depends on the
    * picture to be understood; it is a landmark, not a replacement (W3C COGA).
    */
@@ -486,7 +486,7 @@ export function EmptyState({
       {/*
        * The dashed ring, drawn rather than declared: `border-style: dashed` hands the renderer
        * the dash length (about 3px on / 3px off, the faintest hairline in the palette) and a
-       * per-side gradient cannot turn a corner at all — measured on the board page, the four
+       * per-side gradient cannot turn a corner at all, measured on the board page, the four
        * straight strips stopped short of every curve, so the box's four corners were the four
        * places the ring was missing. One rounded-rect stroke takes the corners in its stride: the
        * dash pattern runs *around* the arc, its length is a token (`--empty-dash`), and the radius
@@ -535,11 +535,11 @@ export function Banner({
 /*
  * Waiting, drawn rather than described (F4).
  *
- * The ring is for places with no list to hold — a button's own work, a panel still being read.
+ * The ring is for places with no list to hold, a button's own work, a panel still being read.
  * The results screen used to hold its list's place with one and no longer does: a ring says *wait*
  * and nothing about what is coming, so the list arrived as a change of subject. Every held list is
  * drawn by `ui/Skeletons.tsx` now, in the shape of the cards that are coming. `role="status"`
- * gives a screen reader the same sentence the ring gives the eye, and the ring is `aria-hidden` —
+ * gives a screen reader the same sentence the ring gives the eye, and the ring is `aria-hidden` ,
  * it is a picture of waiting, not content.
  */
 export function Spinner({ label = 'Loading' }: { label?: string }) {
@@ -598,7 +598,7 @@ export function Dialog({
    */
   /*
    * The ×, the scrim and Escape close through the overlay's own close so a field that still has
-   * the caret is blurred before the sheet leaves — otherwise a phone keyboard outlives the screen
+   * the caret is blurred before the sheet leaves, otherwise a phone keyboard outlives the screen
    * it belonged to (see `lib/useOverlay`).
    */
   const requestClose = useOverlay(open, panel, onClose);
@@ -608,7 +608,7 @@ export function Dialog({
    * **A dialog is rendered on the document, not inside the card that opened one.** The overlay has
    * its own surface and its own ink ramp; inside a card it inherited the card's (`--tint-*-ink`
    * included), so a dialog opened from a dark card painted dark-card ink on the theme's cream
-   * panel — the stop picker's action rows measured **1.88:1** that way. It is also the honest
+   * panel, the stop picker's action rows measured **1.88:1** that way. It is also the honest
    * stacking position for the topmost layer of the app.
    */
   const body = (
@@ -639,7 +639,7 @@ export function Dialog({
           </div>
           {/* `modal__close` gives the way out a disc and the strongest ink: as a bare ghost
               glyph, a 1.5px × 18px cross on a panel was reported as "a weird contrast which makes
-              it close to invisible" — a mark that thin needs a surface to sit on. */}
+              it close to invisible", a mark that thin needs a surface to sit on. */}
           <IconButton className="modal__close" icon="close" label={t('Close')} onClick={requestClose} />
         </div>
         {children}
@@ -659,8 +659,8 @@ export function Toaster() {
     <div className="toast-region" role="status" aria-live="polite">
       {/*
        * A toast is a message, drawn as one (F27, "incredibly ugly"): the app's own glyph at the
-       * start — `alert` for a warning, `info` for anything else, instead of the 8px status dot
-       * that said nothing the colour did not — the message on the body type scale, and the same
+       * start, `alert` for a warning, `info` for anything else, instead of the 8px status dot
+       * that said nothing the colour did not, the message on the body type scale, and the same
        * 44px dismiss disc every other control uses. The box hugs its own text (see `.toast` in
        * `styles/components.css`); it is not a full-width bar.
        */}

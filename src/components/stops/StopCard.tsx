@@ -20,7 +20,7 @@ import type { Departure, Stop } from '../../data/types';
  * lines in the lab would be a copy that could drift from the real one, and the whole point of the
  * comparison is that it cannot.
  *
- * The card is the way into the stop page — no STOP PAGE button in it — because `ResultCard` draws
+ * The card is the way into the stop page, no STOP PAGE button in it, because `ResultCard` draws
  * the press, the one real link and the lift for the stop card, the alert card and the journey card
  * (MATCHING_PLAN rule 4). Its controls stop the press reaching the card.
  */
@@ -45,7 +45,7 @@ export function StopCard({
   const live = useLiveDepartures(departures);
   const format = useFormat();
   const name = customStopName(stop.id) ?? stop.name;
-  /* The services the card draws as chips — walking and cycling are not chips anywhere. */
+  /* The services the card draws as chips, walking and cycling are not chips anywhere. */
   const modes = stop.modes.filter((mode) => mode !== 'walk' && mode !== 'bike');
 
   return (
@@ -61,7 +61,7 @@ export function StopCard({
             {/*
               **The type is a glyph, and its word is only spoken.**
 
-              This line used to read `Amsterdam · ASC · Station · 40 m` — four words where two of
+              This line used to read `Amsterdam · ASC · Station · 40 m`, four words where two of
               them are categories the app draws everywhere else, repeated on 61 cards. The type
               takes its mode's glyph and keeps the word in an `sr-only` span beside it, so a screen
               reader still hears "Station" (and now hears it in Dutch, which the old literal never
@@ -85,7 +85,7 @@ export function StopCard({
             ) : null}
           </span>
         </div>
-        {/* `card-actions` so this control is held at the trailing edge at 320 too — the same group
+        {/* `card-actions` so this control is held at the trailing edge at 320 too, the same group
             the departure board's card head uses. */}
         <div className="card-actions">
           <IconButton
@@ -102,8 +102,8 @@ export function StopCard({
       </div>
 
       {/*
-        The badge row exists only when there is a badge in it. Rendered empty — which it was for a
-        landmark, whose only modes are walking and cycling — it was still a flex item, and a flex
+        The badge row exists only when there is a badge in it. Rendered empty, which it was for a
+        landmark, whose only modes are walking and cycling, it was still a flex item, and a flex
         item costs a gap on each side: the card's rows sat 16px apart instead of 8, on exactly the
         stops that have least to say. `Skeletons.tsx` holds the row with the same condition, so the
         held card and this one still agree.
@@ -130,7 +130,7 @@ export function StopCard({
                 {format.time(departure.cancelled ? departure.planned : departure.expected)}
               </span>
               {/*
-                Where this service goes, as the way to that stop's page — the same word-link the
+                Where this service goes, as the way to that stop's page, the same word-link the
                 full board draws in the same column (`BoardList`). It opened nothing here, so a
                 card that lists four destinations told the traveller where the trains go and gave
                 them no way to look at any of those places.
@@ -161,7 +161,7 @@ export function StopCard({
         {/*
           Two actions, both smaller than the buttons this row used to carry: Board is the way to
           that stop's own board, and Plan asks which end of the journey this stop is instead of
-          offering two buttons that assume the answer. Both are text-only — no pill, no border —
+          offering two buttons that assume the answer. Both are text-only, no pill, no border ,
           because the card already draws a surface and two white capsules inside it read as the
           card's furniture rather than as the two things you can do with the stop.
         */}
@@ -172,7 +172,7 @@ export function StopCard({
             /*
               Every card on the stops list carried a link named just "Board", so a screen reader's
               link list offered five of them, all going to different stops. The name keeps the
-              visible word first — a speech-input user says what they see — and says whose board.
+              visible word first, a speech-input user says what they see, and says whose board.
             */
             aria-label={t('Board: {stop}', { stop: stopLabel(stop.id) })}
             onClick={(event) => event.stopPropagation()}

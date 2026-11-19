@@ -5,8 +5,8 @@
  * the same small kicker over a giant left heading, so different words arrived as the same page. This
  * check reads the rendered deck at desktop width and insists on two things:
  *
- *   1. the shared decoration has not come back — no stage gradient and no glass surface;
- *   2. the compositions are actually different — at least fourteen distinct body/section structures
+ *   1. the shared decoration has not come back, no stage gradient and no glass surface;
+ *   2. the compositions are actually different, at least fourteen distinct body/section structures
  *      and at least eight different heading measures across the seventeen chapters.
  *
  * It is a structural gate, not a taste test. The contact sheets remain the place to judge whether a
@@ -137,11 +137,11 @@ try {
   }
 
   if (failures.length) {
-    console.error(`YEARBOOK COMPOSITIONS: FAIL — ${failures.join('; ')}`);
+    console.error(`YEARBOOK COMPOSITIONS: FAIL, ${failures.join('; ')}`);
     process.exitCode = 1;
   } else {
     console.log(
-      `YEARBOOK COMPOSITIONS: PASS — ${chapters.length} chapters, ${structures.size} distinct structures, ${headingMeasures.size} heading measures, ${namedAreas} named grid compositions, no shared stage gradients or glass.`,
+      `YEARBOOK COMPOSITIONS: PASS, ${chapters.length} chapters, ${structures.size} distinct structures, ${headingMeasures.size} heading measures, ${namedAreas} named grid compositions, no shared stage gradients or glass.`,
     );
   }
 } finally {

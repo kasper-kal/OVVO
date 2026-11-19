@@ -4,7 +4,7 @@ import { msToNextMinute, nowMinutes } from './format';
 /**
  * The current time, in minutes since midnight, kept true to the minute.
  *
- * Two defects live in the naive version this replaces — `Math.max(0, nowMinutes() - 1)` computed
+ * Two defects live in the naive version this replaces, `Math.max(0, nowMinutes() - 1)` computed
  * once per render, or recomputed on an interval that started when the page did:
  *
  *   1. The clock was read **one minute behind** the browser's own time on the departure board and
@@ -66,13 +66,13 @@ export function useMinuteNow(): number {
      * **A clock nobody can see does not need to be kept.**
      *
      * The timer re-armed itself every minute for as long as the app was open, whether or not the
-     * screen was showing it — a phone with OVVO in the background woke once a minute to re-read a
+     * screen was showing it, a phone with OVVO in the background woke once a minute to re-read a
      * number on a page it could not display, and at a tenth of a battery that is exactly the kind of
      * spending the saving modes exist to stop. Hidden: the timer goes. Visible again: the minute is
      * read once, immediately, so the first paint after the nap is already right, and the clock is
      * re-armed from there.
      *
-     * The alternative — checking the clock on every wake — would still be a wake per minute. This is
+     * The alternative, checking the clock on every wake, would still be a wake per minute. This is
      * none.
      */
     const onVisible = () => {

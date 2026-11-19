@@ -5,7 +5,7 @@
  *
  * **Which colour.** The traveller picks one of the palette's own five or their own: five because
  * every one of them is a colour the interface already uses (the palette's coral, butter, sage,
- * obsidian, running green), so a selection can never advertise a hue this app does not have — the
+ * obsidian, running green), so a selection can never advertise a hue this app does not have, the
  * same rule the settings page's palette row follows. A named colour is the colour **its name
  * says**: coral resolves through `--palette-coral`, not through `--accent-primary`, because that
  * one is the traveller's tint once a background colour is in force and a chip labelled Coral that
@@ -16,12 +16,12 @@
  * obsidian on obsidian. `inkFor` measures the chosen colour against the app's two inks and picks
  * the one that wins, which is why a black custom colour gets light text without anyone being
  * asked a second question. It reports a **token** (`var(--on-dark)`) rather than a colour, so
- * the hex values stay in `tokens.css` where the design system keeps them — including under the
+ * the hex values stay in `tokens.css` where the design system keeps them, including under the
  * raised-contrast switch, which is free to strengthen an ink without this file knowing.
  *
  * The chosen colour is written to `<html>` as the two custom properties `tokens.css` declares
- * (`--selection-bg`, `--selection-ink`), so `::selection` — which is written once, in `base.css`
- * — needs no knowledge of this at all.
+ * (`--selection-bg`, `--selection-ink`), so `::selection`, which is written once, in `base.css`
+ *, needs no knowledge of this at all.
  */
 
 export type SelectionChoice = 'coral' | 'butter' | 'sage' | 'obsidian' | 'green' | 'custom';
@@ -38,7 +38,7 @@ export interface SelectionSwatch {
  * The five offered colours, in the order the palette itself uses them.
  *
  * The chip that offers one and the selection it produces both resolve *this* token, so the swatch
- * on screen and the colour behind the text cannot disagree — and none of the five is
+ * on screen and the colour behind the text cannot disagree, and none of the five is
  * `--accent-primary`, because the traveller's tint overwrites that one and a named colour must not
  * move with it.
  */
@@ -87,7 +87,7 @@ export function parseColor(value: string): Rgb | null {
   return null;
 }
 
-/** WCAG relative luminance — the number contrast is actually computed from. */
+/** WCAG relative luminance, the number contrast is actually computed from. */
 export function luminance([r, g, b]: Rgb): number {
   const channel = (value: number) => {
     const c = value / 255;
@@ -113,7 +113,7 @@ function tokenValue(token: string): string {
  * The ink for a given selection colour: whichever of the app's two is more readable on it.
  *
  * Reading the ink values out of the document rather than hard-coding them means the raised-contrast
- * switch and the dark appearance are both honoured — an ink that changes there changes here too.
+ * switch and the dark appearance are both honoured, an ink that changes there changes here too.
  */
 export function inkFor(background: string): string {
   const bg = parseColor(background);
@@ -128,14 +128,14 @@ export function inkFor(background: string): string {
  *
  * A named choice resolves *through its token*, so it follows the appearance (a colour that is
  * re-declared in dark resolves there), and `custom` is the traveller's own value if it parses.
- * Returns `''` when nothing resolves — an impossible state on a loaded page, and one that must
+ * Returns `''` when nothing resolves, an impossible state on a loaded page, and one that must
  * not become a colour literal in this file: the caller simply leaves the property alone.
  */
 export function selectionColor(choice: SelectionChoice, custom: string): string {
   if (choice === 'custom') {
     /*
-     * A custom slot with no colour in it — the traveller pressed Custom and closed the device's
-     * picker without choosing — falls back to the palette's first colour rather than to nothing.
+     * A custom slot with no colour in it, the traveller pressed Custom and closed the device's
+     * picker without choosing, falls back to the palette's first colour rather than to nothing.
      * "Custom, but not yet" must not turn the page's selection into the browser's default blue,
      * which is the one colour this app does not own.
      */

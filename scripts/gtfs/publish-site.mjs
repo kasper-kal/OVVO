@@ -21,7 +21,7 @@ const dest = path.resolve(process.argv[3] ?? 'dist-timetable');
 const LIMIT = 1024 * 1024 * 1024;
 
 if (!fs.existsSync(path.join(source, 'index.json'))) {
-  console.error(`FAILED: ${source}/index.json is missing — build the days first`);
+  console.error(`FAILED: ${source}/index.json is missing, build the days first`);
   process.exit(1);
 }
 

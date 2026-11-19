@@ -6,7 +6,7 @@
  *
  * Every day the graph builder has produced lives in `public/graph/<yyyymmdd>/`. This reads their
  * manifests and writes `public/graph/index.json`, which is how the app knows which days it can plan
- * for — instead of guessing or silently planning a day that was never built.
+ * for, instead of guessing or silently planning a day that was never built.
  */
 import fs from 'node:fs';
 import path from 'node:path';

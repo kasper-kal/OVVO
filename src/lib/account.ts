@@ -368,8 +368,8 @@ let syncing = false;
 
 /**
  * One pass: read the server's copy, take from it whatever this browser is missing, then send
- * everything back. Running it after every local change is cheap — the document is a few
- * kilobytes — and it removes the question of whether something was saved.
+ * everything back. Running it after every local change is cheap, the document is a few
+ * kilobytes, and it removes the question of whether something was saved.
  */
 export async function syncNow(): Promise<'signed-out' | 'ok' | 'failed'> {
   const user = auth()?.currentUser;
@@ -456,7 +456,7 @@ let started = false;
  * **Follow the account, and follow every write.**
  *
  * `onStoredChange` is the funnel every stored value already passes through, so one subscription
- * here covers favourites, saved journeys, searches, the board and the year — including things
+ * here covers favourites, saved journeys, searches, the board and the year, including things
  * added later, which is the point of hooking the funnel rather than the list.
  *
  * The wait of a second and a half is a bus, not a timer: a traveller tapping a heart should not

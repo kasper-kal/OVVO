@@ -14,7 +14,7 @@
  * the interface unreadable, because there is nothing on this screen but finished looks.
  *
  * **The photograph is part of the style, and it is a file in the repo.** `public/style-photos/`
- * holds at most one file per photo style, named after its id — `marble.jpg`, `arches.jpg` and so
+ * holds at most one file per photo style, named after its id, `marble.jpg`, `arches.jpg` and so
  * on. Nothing is uploaded, cropped or sampled; a missing file is not an error, it is the style
  * wearing its own colour, which every photo style can do on purpose anyway (the **Background** row
  * on the Themes card). See `public/style-photos/README.md` for the naming rule.
@@ -31,8 +31,8 @@ export type Appearance = 'light' | 'dark';
  *
  * Each style names a **display** face (headings) and a **UI** face (everything else), so forty-eight
  * styles do not mean forty-eight downloads: `scripts/fetch-fonts.mjs` pulls one `woff2` per family,
- * self-hosted, and the stack behind each one is a local face of the same shape — a serif behind a
- * serif, a mono behind a mono — so a browser that refuses the download still draws the right page.
+ * self-hosted, and the stack behind each one is a local face of the same shape, a serif behind a
+ * serif, a mono behind a mono, so a browser that refuses the download still draws the right page.
  */
 export const FONT_STACKS = {
   cormorant: "'Cormorant Garamond', 'Iowan Old Style', Georgia, 'Times New Roman', serif",
@@ -146,7 +146,7 @@ export const STYLE_GROUPS: StyleGroup[] = [
   },
 ];
 
-/** Page, card, ink, accent — the four a style authors. Everything else is measured from these. */
+/** Page, card, ink, accent, the four a style authors. Everything else is measured from these. */
 type Quad = [string, string, string, string];
 
 export interface StylePhoto {
@@ -154,8 +154,8 @@ export interface StylePhoto {
    * How hard the canvas colour is laid over the picture, as a fraction. A dark photograph with
    * cream ink needs less than a bright one with dark ink, which is why it belongs to the style.
    *
-   * **The wash is a tint now, not a lid.** It was doing two jobs at once — seating the picture in
-   * the palette *and* keeping the page's own headings readable over it — and the second job was
+   * **The wash is a tint now, not a lid.** It was doing two jobs at once, seating the picture in
+   * the palette *and* keeping the page's own headings readable over it, and the second job was
    * costing the picture more than half of itself: Ultraviolet laid 57% pale lavender over a night
    * sky and turned it into milk (reported as *"the lightening ... is so unnecessarily heavy"*), and
    * it still measured under 2:1 for the quiet ink over the dark half of that photograph, so the
@@ -185,7 +185,7 @@ export interface StylePhoto {
  *
  * The plan started with ten photo styles and the order was blunt about it: not a small shelf of
  * special looks, but the same picture-or-colour choice on almost every style. So the photograph is
- * not a property of a handful — `public/style-photos/<id>.jpg` is looked for on every style, and the
+ * not a property of a handful, `public/style-photos/<id>.jpg` is looked for on every style, and the
  * **Background** row appears on every style that has somewhere to put a picture.
  *
  * One is deliberately left out. **All Black** exists as the answer to "make it as plain as it can
@@ -256,8 +256,8 @@ export function photoScrim(picture: StylePhoto, appearance: Appearance): number 
  * **The face a style's name is written in, for any screen that shows several styles at once.**
  *
  * The picker set every tile's name in the interface's own font, so only the colours changed from
- * tile to tile. The steerer asked for each name to wear its style's own display face instead — the
- * same size, the same weight, only the lettering changes — which is the one part of a style a small
+ * tile to tile. The steerer asked for each name to wear its style's own display face instead, the
+ * same size, the same weight, only the lettering changes, which is the one part of a style a small
  * colour swatch cannot show.
  */
 export function styleDisplayFamily(style: StyleDef): string {
@@ -286,14 +286,14 @@ interface Shape {
    * **How far a card sits above the page.** A card is flat paper in a printed style and a lifted
    * pane in a soft one, and until now every style drew it at exactly the same height: nothing. The
    * sweep found fifty styles that read as one layout recoloured, and a shadow is the cheapest honest
-   * axis — it changes the material of a card without moving a single pixel of it.
+   * axis, it changes the material of a card without moving a single pixel of it.
    */
   shadow: string;
   /**
    * **How far the card's own edge sits off the card.**
    *
    * A card used to be outlined with the same line as a chip, a field and a button, which is a line
-   * chosen to be *seen* on the card — so every card in the catalogue wore a rule that read as a
+   * chosen to be *seen* on the card, so every card in the catalogue wore a rule that read as a
    * frame drawn around it rather than as the place where the paper ends. The frame is the card's
    * own surface moved a little toward its ink: visibly a different colour when you look, close
    * enough to the card that it stops being a border. The controls inside keep the stronger
@@ -307,8 +307,8 @@ interface Shape {
 /*
  * **Every shape draws a one-pixel line, and none of them draws a thicker one.**
  *
- * The first cut gave the printed shapes a heavier rule — 2px for `square` and `line`, 3px for
- * `plate` — as if weight were what made them read as printed. It is not: the corners, the flat
+ * The first cut gave the printed shapes a heavier rule, 2px for `square` and `line`, 3px for
+ * `plate`, as if weight were what made them read as printed. It is not: the corners, the flat
  * surfaces and the darker hairline already say that, and the extra pixels simply looked like a
  * frame drawn around every card (reported: "all borders so thick on almost every style … I dont
  * want mega thin borders, but not thick ones either like now"). The black shelf falls back to
@@ -318,7 +318,7 @@ interface Shape {
  * line, which is `hair`, and the geometry around it. A border is a border, not an outline.
  */
 const SHAPES: Record<ShapeId, Shape> = {
-  /* The app's own look: the values this file used before shapes existed, and no shadow — Default
+  /* The app's own look: the values this file used before shapes existed, and no shadow, Default
      must not move by a pixel. */
   soft: { scale: 1, line: '1px', tint: 0.055, hair: 1.7, edge: 0.1, glass: 1, shadow: 'none' },
   /* Print: square corners, a rule you can see, flat on the page. */
@@ -472,7 +472,7 @@ const DISPLAY_TYPE: Partial<Record<FontId, { size: string; weight: string; leadi
  * **The three supporting tints, derived from the accent.**
  *
  * Coral, sage and butter were constants in `tokens.css`, so every style's badges, alerts and
- * highlights were the same three pale colours whatever page they sat on — the largest part of "the
+ * highlights were the same three pale colours whatever page they sat on, the largest part of "the
  * styles are all the same". They are now hues carried around the accent's own hue (same hue, plus
  * 120 degrees, plus 55), each mixed into the card and inked to a measured 4.9:1, so a Klein Blue
  * style gets blue-family tags and a Mustard one gets warm ones, and every label still reads.
@@ -536,8 +536,8 @@ const DEEP = '#0B0B0C';
  * Every style, authored in one place.
  *
  * The shipping ones are filtered and given their new shelf in `STYLES` below; the retired ones stay
- * here as archived definitions but never reach a picker. `tram` is the app's own look — the cream
- * page, white cards, obsidian ink and the coral accent — so it is the default and nobody's page
+ * here as archived definitions but never reach a picker. `tram` is the app's own look, the cream
+ * page, white cards, obsidian ink and the coral accent, so it is the default and nobody's page
  * changes on the day this ships.
  */
 const ALL_STYLES: StyleDef[] = [
@@ -648,7 +648,7 @@ const ALL_STYLES: StyleDef[] = [
    * The commuter train, and the lightest livery on the railway: a body of warm white, a band of
    * deep blue around the windows, and doors painted the one yellow that is allowed to mean "here".
    * So the page is the body, the cards are the panels, the ink is the band, and the accent is the
-   * door — the same yellow as a timetable cover, used for the thing you actually press.
+   * door, the same yellow as a timetable cover, used for the thing you actually press.
    */
   {
     id: 'sprinter',
@@ -659,7 +659,7 @@ const ALL_STYLES: StyleDef[] = [
     /*
      * **Its own night, not a turned-over day.** The derived night cut this style's cream page into a
      * grey-brown, which is not a Sprinter: the train is cream, deep blue and yellow whatever the hour
-     * is (reported as "*does not give Sprinter*"). So the night is authored from the livery instead —
+     * is (reported as "*does not give Sprinter*"). So the night is authored from the livery instead ,
      * a deep blue page, the cards the same blue one step up, the cream of the body for the words, and
      * the yellow of the doors for the accent.
      *
@@ -709,7 +709,7 @@ const ALL_STYLES: StyleDef[] = [
     night: ['#100E0C', '#1C1712', '#F3ECDA', '#E0A664'],
     /*
      * **Quieter lines than the shape asks for.** `soft` derives its hairlines at 1.7:1, which on a
-     * page this dark draws a bright outline round every card — a box, where the idea is old paper
+     * page this dark draws a bright outline round every card, a box, where the idea is old paper
      * laid on a table (reported as "*too heavy to give nostalgia*"). These sit just above the 1.2:1
      * floor: the edge is there when you look for it, and gone when you are reading.
      */
@@ -945,7 +945,7 @@ const ALL_STYLES: StyleDef[] = [
      * A blueprint is a drawing reproduced on light-sensitive paper: the sheet is washed in Prussian
      * blue and the lines come out **white**. It is a dark, blue, technical surface, and that is the
      * whole look. The palette here was a pale blue page with dark navy ink, which is a pencil sketch
-     * on tinted paper — the reverse of the thing it is named after ("what the hell is Blueprint even
+     * on tinted paper, the reverse of the thing it is named after ("what the hell is Blueprint even
      * supposed to be").
      *
      * So the page is the sheet, the cards are the sheet a shade lighter, the ink is the chalk line,
@@ -968,7 +968,7 @@ const ALL_STYLES: StyleDef[] = [
    *
    * The owner's photograph with a style of its own: a glass tower at dusk, the sky gone violet and
    * every window lit amber. A building rather than a station, which is why it does not wear a
-   * transport name — it is the colour of the hour the last trams run in. The page is the sky, the
+   * transport name, it is the colour of the hour the last trams run in. The page is the sky, the
    * cards are the glass, the ink is the warm white of a lit room, and the accent is the amber itself.
    *
    * It stands where Nachtnet stood, because that picture was never a night bus.
@@ -993,7 +993,7 @@ const ALL_STYLES: StyleDef[] = [
    * The owner named this one, and the name is about the material rather than a mood: black pipes
    * running the length of the frame with one clean sheen down each edge, the way professional
    * equipment looks photographed in a studio. So the page is that black, the cards are the black one
-   * step up, the words are the sheen, and the accent is a plain grey — **no blue in any of them**:
+   * step up, the words are the sheen, and the accent is a plain grey, **no blue in any of them**:
    * the first cut had a blue cast in the cards and the accent (reported as "it should be more
    * gray-ish"), which on a black page reads as navy rather than as a neutral metal.
    *
@@ -1270,8 +1270,8 @@ const ALL_STYLES: StyleDef[] = [
   /*
    * --------------------------------------------------------------- the year
    *
-   * **Four days the app dresses for.** They are styles like every other one — a page, a card, an ink
-   * and an accent, four faces and a geometry — and they stand on their own all year, so nothing about
+   * **Four days the app dresses for.** They are styles like every other one, a page, a card, an ink
+   * and an accent, four faces and a geometry, and they stand on their own all year, so nothing about
    * them waits for a date. Each is a colour-only look for now: there is no photograph for them yet,
    * and a made-up one would be a wallpaper pretending to be a season.
    */
@@ -1459,7 +1459,7 @@ export const STYLES: StyleDef[] = ALL_STYLES
   .filter((style) => !RETIRED_STYLE_IDS.has(style.id))
   .map((style) => ({ ...style, group: GROUP_BY_STYLE[style.id] ?? style.group }));
 
-/** The app's own look — the cream page, white cards, obsidian ink and coral. */
+/** The app's own look, the cream page, white cards, obsidian ink and coral. */
 export const DEFAULT_STYLE_ID = 'tram';
 
 export function styleById(id: string | undefined): StyleDef {
@@ -1478,7 +1478,7 @@ export function mixHex(a: string, b: string, t: number): string {
   const y = rgbOf(b);
   /*
    * **Rounded, and that is not a detail.** `toHex` writes whole channels and a mix hands it
-   * fractions, so the channel came out as `"f2.4b85…"` — a string that is not a colour. The
+   * fractions, so the channel came out as `"f2.4b85…"`, a string that is not a colour. The
    * browser drops every declaration that uses it, so `--ink`, `--l1-bg`, `--l3-bg` and
    * `--accent-primary` became *no value at all* and the page fell back to Times on cream. One
    * missing `Math.round` cost the whole palette, on every style.
@@ -1494,7 +1494,7 @@ export function mixHex(a: string, b: string, t: number): string {
  * Move `ink` **away** from `surface` until it clears `target`.
  *
  * The direction is decided by which end of the ramp the surface has room in, so the same function
- * darkens an ink on a pale card and lightens it on a dark one — which is the whole of the two
+ * darkens an ink on a pale card and lightens it on a dark one, which is the whole of the two
  * appearances, and the reason one authored palette can serve both without a second set of numbers.
  */
 function toward(ink: string, surface: string, target: number): string {
@@ -1526,7 +1526,7 @@ function soften(ink: string, surface: string, target: number): string {
 }
 
 /**
- * The ink a filled control carries: the style's own, white, or near-black — whichever reads best.
+ * The ink a filled control carries: the style's own, white, or near-black, whichever reads best.
  *
  * It used to compare only the style's ink against white, so a *pale* fill could be handed the
  * style's cream ink at 1.02:1 (cream on cream) because cream beat white by a hair, while the one
@@ -1542,7 +1542,7 @@ function inkOn(surface: string, preferred: string): string {
  * The accent **as a fill behind text**, and the label on it.
  *
  * A ring only answers to 3:1, but a label answers to 4.5:1, and one hue can clear the first and
- * miss the second — the app's own coral is 2.49:1 under white and 7.1:1 under obsidian, and a
+ * miss the second, the app's own coral is 2.49:1 under white and 7.1:1 under obsidian, and a
  * mid-tone like iOS blue is 4.34:1 under black. So the fill is the authored accent unless its best
  * label cannot read on it, in which case it moves in lightness (hue and saturation untouched)
  * until it can. Returns the accent itself for anything that already works, which is most of them.
@@ -1608,7 +1608,7 @@ function edge(surface: string, ink: string, target: number): string {
   return out;
 }
 
-/** A `#rrggbb` at an alpha, as `rgba(...)` — no `color-mix`, which an old WebKit drops entirely. */
+/** A `#rrggbb` at an alpha, as `rgba(...)`, no `color-mix`, which an old WebKit drops entirely. */
 function wash(hex: string, alpha: number): string {
   const [r, g, b] = rgbOf(hex);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
@@ -1622,7 +1622,7 @@ function wash(hex: string, alpha: number): string {
  * The page takes the same hue down to near black, the card lifts a step off it, the ink turns over
  * to a light tint of the authored one, and the accent is the same accent lifted only as far as it
  * needs to be seen on the new card. A style that wants a different night than this can say so with
- * its own `night` — the ten dark-first styles author theirs, because their page is *already* dark
+ * its own `night`, the ten dark-first styles author theirs, because their page is *already* dark
  * and a derived night would flatten them into the same near-black.
  */
 function nightOf([canvas, card, ink, accent]: Quad): Quad {
@@ -1680,8 +1680,8 @@ export interface StyleTokenOptions {
 /**
  * Every custom property a style writes, for one appearance.
  *
- * The names are the app's existing ones — `--canvas-base`, `--l2-bg`, `--ink`, `--accent-fill` and
- * the rest — so a component that already reads a token follows the style without knowing styles
+ * The names are the app's existing ones, `--canvas-base`, `--l2-bg`, `--ink`, `--accent-fill` and
+ * the rest, so a component that already reads a token follows the style without knowing styles
  * exist. Two of them are new: `--font-display` (headings) and `--app-bg-wash` computed without
  * `color-mix`, because an iOS 14 WebKit drops a declaration that uses it and would then paint no
  * photograph at all.
@@ -1765,7 +1765,7 @@ export function styleTokens(
    * This was the same value as `--border-hairline`, so a card was framed in the colour a chip is
    * drawn in: visible from across the room, and identical on a card that already separates itself
    * from the page by its surface. It is now the card's own colour moved toward its ink by the
-   * shape's `edge` — around a tenth of the way, so the paper has an edge without being outlined.
+   * shape's `edge`, around a tenth of the way, so the paper has an edge without being outlined.
    * Raised contrast keeps the old promise at 3:1, which is the one setting that asks for it.
    */
   /*
@@ -1785,7 +1785,7 @@ export function styleTokens(
          * **The token, not a colour computed here.**
          *
          * Writing a computed neutral (#c3c3c4 measured) put the cards in a second, greyer line than
-         * the warm hairline the install banner and every field wear (#cdc7b8) — the same fault the
+         * the warm hairline the install banner and every field wear (#cdc7b8), the same fault the
          * reporter had just named, one layer down. Pointing at the token keeps one hairline in
          * Default, because it *is* the same value, and a style that rewrites that token moves both.
          */
@@ -1795,7 +1795,7 @@ export function styleTokens(
   /*
    * **The dock is always the dark bar**, whichever page it sits under.
    *
-   * It used to be "the ink, pushed almost all the way to black" — right on a pale page, wrong on a
+   * It used to be "the ink, pushed almost all the way to black", right on a pale page, wrong on a
    * dark one: on Navy's card the ink is ivory, so mixing 95% toward it turned the bar *white*, and
    * the pill on it came out gold on cream, 4.45:1. A dark page gets a bar one step below the card.
    */
@@ -1831,7 +1831,7 @@ export function styleTokens(
     '--l3-border': `${shape.line} solid ${dockBorder}`,
     /*
      * **The structural obsidian does not follow the ink.** It is the fill of a primary action,
-     * whose label is always light — so on a dark page it was set to the style's ivory ink and the
+     * whose label is always light, so on a dark page it was set to the style's ivory ink and the
      * INSTALL button became ivory text on an ivory pill. It is a *dark plate* in every style: the
      * ink itself on a pale page (exactly today's obsidian), and near-black in the page's own hue
      * on a dark one, which is what the dark theme already does.
@@ -1865,7 +1865,7 @@ export function styleTokens(
      * theme. On a pale style that is 7:1; on a dark style it is dark red on near-black, and the
      * sweep measured **1.03:1** on Station Sign and forty screens below 3:1. A colour that carries
      * meaning cannot be one constant across fifty palettes, so it is derived the same way every
-     * other ink here is: from the red, towards the card, until it clears 4.6:1 — and again against
+     * other ink here is: from the red, towards the card, until it clears 4.6:1, and again against
      * the second surface, which is what a translucent card exposes. Default is skipped, because its
      * own red already clears the line and nothing about Default may move.
      */
@@ -1954,7 +1954,7 @@ export function styleTokens(
      *
      * Nothing is painted behind it (see `.page-head` in `styles/base.css`), so the ink itself has to
      * survive the picture. Most photographs are dark where the name sits, and a pale style's own ink
-     * is a dark one, which measured 1.55:1 on Ultraviolet — the name was invisible. Those styles take
+     * is a dark one, which measured 1.55:1 on Ultraviolet, the name was invisible. Those styles take
      * their own **night** ink here: the same family, cut light, which is what the photo's band can
      * carry. A pale picture keeps the authored ink (`PHOTO_DARK_HEAD` lists only the ones that flip).
      */

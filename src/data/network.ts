@@ -195,7 +195,7 @@ export function isInService(line: NetworkLine, minutes: number): boolean {
  * The reach of the walk-link network, in walking minutes. Walking itself is capped by
  * the traveller's own limit; this is the outer bound the link set is built at, and it
  * is also what a bicycle link is allowed to span (at bicycle speed, so roughly six
- * minutes of riding) — a bicycle that could only reach as far as a walk was not a
+ * minutes of riding), a bicycle that could only reach as far as a walk was not a
  * bicycle, which is why the walk/bicycle choice changed nothing on a normal search.
  */
 export const WALK_EDGE_MAX_MINUTES = 20;
@@ -203,7 +203,7 @@ export const WALK_EDGE_MAX_MINUTES = 20;
 /** Riding is this many times faster than walking on the same link. */
 export const BIKE_SPEED_FACTOR = 3.2;
 
-/** Walking edges between nearby stops — used for transfer and access legs. */
+/** Walking edges between nearby stops, used for transfer and access legs. */
 export interface WalkEdge {
   fromStopId: string;
   toStopId: string;

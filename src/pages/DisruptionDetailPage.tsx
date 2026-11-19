@@ -29,7 +29,7 @@ export function DisruptionDetailPage() {
   /*
    * **One Plan control per stop, and the choice behind it.**
    *
-   * Every affected stop here carried its own *Plan to here* link — an end already decided on the
+   * Every affected stop here carried its own *Plan to here* link, an end already decided on the
    * traveller's behalf, spelled the one way the rest of the app no longer spells it. A stop gets
    * the app's one answer instead: a single *Plan* button that opens `PlanStopDialog` and asks
    * whether this is where you leave from or where you are going.
@@ -112,8 +112,8 @@ export function DisruptionDetailPage() {
                   <ModeIcon mode={mode} size={13} />
                   {/*
                     The mode's *name*, not its key. Every other surface that draws this badge
-                    — the alerts list, the stop page, the stops list and the shared
-                    `ModeBadge` — already went through `modeLabel`, so this one chip was the
+                   , the alerts list, the stop page, the stops list and the shared
+                    `ModeBadge`, already went through `modeLabel`, so this one chip was the
                     only place in the app where a mode read `train` instead of `Train`, in
                     both languages (reported by the capitalisation audit).
                   */}
@@ -198,8 +198,8 @@ export function DisruptionDetailPage() {
                       </span>
                     </span>
                     {/*
-                      A control, not a line of capitalised text. It was `btn--ghost` — no border,
-                      no fill — sitting on a row that already has its own tint, so the label read
+                      A control, not a line of capitalised text. It was `btn--ghost`, no border,
+                      no fill, sitting on a row that already has its own tint, so the label read
                       as part of the row rather than as something you can press, which is the
                       reported screenshot. It is now the same pill every other row-level action in
                       the app is (a white surface with the hairline border), with the app's own
@@ -222,7 +222,7 @@ export function DisruptionDetailPage() {
         </div>
 
         {/*
-          "Plan around this alert" is deleted whole — heading, sentence, "Avoid <modes> in my
+          "Plan around this alert" is deleted whole, heading, sentence, "Avoid <modes> in my
           search", "Plan between the affected stops", "Travel preferences" and "Back to all
           alerts" ("Remove this widget", 2026-10-17t20-57-06). Nothing is stranded by it: the
           section that used to be its column is gone with it, every affected stop above still

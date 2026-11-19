@@ -4,7 +4,7 @@
  */
 
 /**
- * What a fresh home screen holds — chosen by the widget audit (`WIDGET-AUDIT.md`), not by the
+ * What a fresh home screen holds, chosen by the widget audit (`WIDGET-AUDIT.md`), not by the
  * catalogue's age.
  *
  * The old default was *planner, map, favourited-journeys, recent-searches, preferences-summary*,
@@ -13,14 +13,14 @@
  * the whole country on which not one label was theirs. The three cards that replace them are the
  * three that hold something of the traveller's or do something for them:
  *
- *   • **planner** — the app's one job.
- *   • **next-departures** — the board at a station of your own, tied once and then read at a
+ *   • **planner**, the app's one job.
+ *   • **next-departures**, the board at a station of your own, tied once and then read at a
  *     glance. It was in the catalogue and switched off, which was the audit's whole finding.
  *
  * `recent-searches` is in the catalogue and, like `next-departures` was, stays off: the difference
- * is that this one has nothing to say on a fresh browser — it lists searches you have already
- * run — so switching it on would put an empty card on the first screen the audit was cleaning up.
- *   • **pinned-stops** — the stops you hearted, one tap each.
+ * is that this one has nothing to say on a fresh browser, it lists searches you have already
+ * run, so switching it on would put an empty card on the first screen the audit was cleaning up.
+ *   • **pinned-stops**, the stops you hearted, one tap each.
  *
  * `next-departures` arrives **untied**, asking for its station in the card itself (one sentence and
  * one field), because a home screen cannot invent which station the traveller leaves from. That is
@@ -28,7 +28,7 @@
  */
 export const DEFAULT_HOME_WIDGETS: string[] = ['planner', 'next-departures', 'pinned-stops'];
 
-/** Widgets that cannot be removed — the home screen would stop being useful. */
+/** Widgets that cannot be removed, the home screen would stop being useful. */
 export const REQUIRED_WIDGETS: string[] = ['planner'];
 
 /**

@@ -29,7 +29,7 @@ import { readHex } from '../../lib/colour';
  * hint text in its simplest state (fourteen controls in photo mode), with a paragraph under every
  * control. The pattern is Apple's: Settings is a hierarchy of lists, a row names the setting, shows
  * its current value, and a disclosure indicator opens the next level (HIG, *Lists and tables*;
- * *Layout* on progressive disclosure). The choices were never the problem — the full-screen
+ * *Layout* on progressive disclosure). The choices were never the problem, the full-screen
  * pickers stay exactly as they were. The problem was putting every choice on the parent.
  */
 
@@ -78,7 +78,7 @@ function Row({
  *
  * Two copies, deliberately (`state/types.ts`): the whole picture at 2048px so a crop can be redone
  * without cropping a crop, and the baked image the page draws. A failure leaves the current
- * background alone — a refused file must not clear a picture that was working.
+ * background alone, a refused file must not clear a picture that was working.
  */
 function usePhotoActions() {
   const { settings, updateSettings } = useApp();
@@ -132,7 +132,7 @@ function BackgroundScreen({
 }: {
   open: boolean;
   onClose: () => void;
-  /** The appearance being edited — its own page colour (`lib/palette.ts`). */
+  /** The appearance being edited, its own page colour (`lib/palette.ts`). */
   mode: PaletteMode;
 }) {
   const { settings, appearance, updateSettings } = useApp();
@@ -196,16 +196,16 @@ function BackgroundScreen({
               }}
               options={[
                 /*
-                 * **Default, in both appearances — and the hint names the colour it paints.**
+                 * **Default, in both appearances, and the hint names the colour it paints.**
                  *
                  * The segment, the row's value and the swatch all said *Cream* while the dark
                  * appearance drew `#121211` under them, so the one control that promises what the
                  * page will be stated something false (reported with a screenshot of a black swatch
-                 * beside the word "Cream"). The swatch was always right — it is `--canvas-base` —
+                 * beside the word "Cream"). The swatch was always right, it is `--canvas-base` ,
                  * and the answer is not a second name for the same value: *Cream* in light and
                  * *Black* in dark renames the setting whenever the theme flips, including on its own
                  * at sunset under **System**, which reads as a control that changed itself. The list
-                 * is really *whose* it is — the app's, yours, yours — and the app's own is
+                 * is really *whose* it is, the app's, yours, yours, and the app's own is
                  * **Default** in every appearance. What colour that is lives in the hint below
                  * (*the app's own cream canvas* / *black canvas*) and in the swatch, which show the
                  * truth without the label moving.
@@ -297,7 +297,7 @@ function BackgroundScreen({
           ) : null}
           {/*
             **Only the background.** Default page, its colour back to the app's own, the photo gone
-            — the three things this screen decides, and nothing the other two rows decide.
+           , the three things this screen decides, and nothing the other two rows decide.
           */}
           <Button
             variant="ghost"
@@ -351,7 +351,7 @@ function WidgetsScreen({
 }: {
   open: boolean;
   onClose: () => void;
-  /** The appearance being edited — its own widgets' colour (`lib/palette.ts`). */
+  /** The appearance being edited, its own widgets' colour (`lib/palette.ts`). */
   mode: PaletteMode;
 }) {
   const { settings, updateSettings } = useApp();
@@ -491,7 +491,7 @@ function SelectionScreen({
 }: {
   open: boolean;
   onClose: () => void;
-  /** The appearance being edited — its own selection colour (`lib/palette.ts`). */
+  /** The appearance being edited, its own selection colour (`lib/palette.ts`). */
   mode: PaletteMode;
 }) {
   const { settings, updateSettings } = useApp();
@@ -505,7 +505,7 @@ function SelectionScreen({
    * a strange thing to be the *only* one: the five named colours were a list you could only leave
    * by going to a different operating system's idea of a colour picker, with no spectrum, no hex
    * field and no sight of what the app would do with the value. The screen the other two colour
-   * rows open — grid, spectrum, typed value — opens here instead, and its own **Pick your own**
+   * rows open, grid, spectrum, typed value, opens here instead, and its own **Pick your own**
    * button is the way on to the device's picker for anyone who prefers it.
    */
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -560,7 +560,7 @@ function SelectionScreen({
         <p className="field__hint">
           {t('The colour behind selected text. The ink on it is chosen for contrast, so a dark colour gets light text.')}
         </p>
-        {/* Only this colour — see the note on the primary colour's own reset. */}
+        {/* Only this colour, see the note on the primary colour's own reset. */}
         <Button
           variant="ghost"
           icon="refresh"
@@ -573,7 +573,7 @@ function SelectionScreen({
       </div>
     </FullScreen>
     {/*
-      The app's own picker, over this screen rather than instead of it — the same way the photo
+      The app's own picker, over this screen rather than instead of it, the same way the photo
       sampler opens over the widgets dialog. Closing it brings the five colours back.
     */}
     <ColourScreen
@@ -598,17 +598,17 @@ function SelectionScreen({
  * The pop-up is the dialog rather than the full-screen picker the other colour rows open: this is a
  * decision about one family of controls, and the page it is about is still visible behind it. The
  * swatches are the picker's own row, the device's colour picker is one button away for anything not
- * on it, and the sentence under the preview is *measured* by `buttonPaintFor` — the same function
- * the buttons are painted from — so the pop-up cannot promise a readable label that the buttons then
+ * on it, and the sentence under the preview is *measured* by `buttonPaintFor`, the same function
+ * the buttons are painted from, so the pop-up cannot promise a readable label that the buttons then
  * draw differently.
  */
 /**
- * **Match colours — one colour for the page, the widgets and every button.**
+ * **Match colours, one colour for the page, the widgets and every button.**
  *
  * The order was in two parts: *"Match colours is supposed to match all 3 of these colour to the
  * exact same HEX"*, and *"there's no clear way to confirm a colour matching, the only button is
  * stop matching"*. This control did one of the three (the buttons), and it applied the moment a
- * swatch was touched — so every button in the app changed before the traveller could see what they
+ * swatch was touched, so every button in the app changed before the traveller could see what they
  * had chosen, and the only action offered was an undo.
  *
  * Now the draft colour is held here and painted in the preview, the three surfaces it will paint
@@ -632,7 +632,7 @@ function MatchColoursDialog({
   const primaryNow = (palette.primaryColour || pageNow).trim().toLowerCase();
   const selectionNow =
     palette.selectionColor === 'custom' ? palette.selectionCustom.trim().toLowerCase() : '';
-  /* All three holding one hex — the only state in which "Matched" is true. */
+  /* All three holding one hex, the only state in which "Matched" is true. */
   const everythingMatched =
     Boolean(pageNow) && pageNow === primaryNow && selectionNow === pageNow;
   const initial = (pageNow || primaryNow || '#ff7e67').toUpperCase();
@@ -654,7 +654,7 @@ function MatchColoursDialog({
     updateSettings({
       /*
        * **One write, three slots: the page, the primary colour and the selected text.** Buttons
-       * are not among them — painting every `.btn` filled the ones that had no fill of their own
+       * are not among them, painting every `.btn` filled the ones that had no fill of their own
        * ("it gives button that never HAD backdrop, BACKDROP"), which is a different control and
        * not what this button is for.
        */
@@ -690,11 +690,11 @@ function MatchColoursDialog({
         {/*
           **One sample, not three.**
           *
-          * The dialog drew three boxes — a page, a card and a pill — to show that one colour would
+          * The dialog drew three boxes, a page, a card and a pill, to show that one colour would
           * paint three surfaces. They were three sizes, three corner radii and three heights of
           * label in one row, which read as three different things rather than one colour repeated
           * (reported with a screenshot: *"why are these all different heights and stuff, its ugly,
-          * its unnecessary to even have examples because you already have an example here"* — the
+          * its unnecessary to even have examples because you already have an example here"*, the
           * swatch, which the picker already shows the chosen colour in). The colour is shown the
           * way a colour is shown in this app: one square swatch, ringed when it is the one held.
           */}
@@ -789,7 +789,7 @@ export function ColourSettings() {
     null,
   );
   /*
-   * **Which palette this card is editing — not which appearance is on.**
+   * **Which palette this card is editing, not which appearance is on.**
    *
    * These are two different questions and the control below answers only the first. It never
    * writes `settings.theme`: the app keeps the appearance it was in, and choosing *dark* while the
@@ -798,7 +798,7 @@ export function ColourSettings() {
    * appearance names on it looks exactly like the appearance switch and is not one (reported).
    *
    * `null` means nothing has been picked here yet, and the card follows the appearance being drawn
-   * — which is the palette the traveller is looking at, and stays right when **System** flips the
+   *, which is the palette the traveller is looking at, and stays right when **System** flips the
    * app at sunset. Once they choose, the card stays where they put it, so a device changing its
    * mind cannot move the thing under their finger.
    */
@@ -815,7 +815,7 @@ export function ColourSettings() {
     palette.primaryColour ||
     (settings.background === 'colour' ? palette.backgroundColour : '') ||
     '#ff7e67';
-  /* All three slots holding one hex — the only state that may say "Everything". */
+  /* All three slots holding one hex, the only state that may say "Everything". */
   const pageHex = (settings.background === 'colour' ? palette.backgroundColour : '').trim().toLowerCase();
   const primaryHex = (palette.primaryColour || pageHex).trim().toLowerCase();
   const selectionHex =
@@ -845,8 +845,8 @@ export function ColourSettings() {
           **Which palette, and an explicit statement that it is not the appearance switch.**
 
           The app has an appearance control of its own, a few cards up. This one wears the same
-          two words and does something else entirely — it chooses whose colours the three rows
-          below are — so the hint says what it is, what it is not, and (when the two disagree)
+          two words and does something else entirely, it chooses whose colours the three rows
+          below are, so the hint says what it is, what it is not, and (when the two disagree)
           where the change will be seen. Without that last part, choosing dark colours while the
           app is light looks like a control that did nothing at all.
         */}
@@ -919,7 +919,7 @@ export function ColourSettings() {
         </div>
         {/*
          * **Two actions, both about the three rows above.** *Match colours* takes one HEX into all
-         * three; *Reset colours* puts all three back the way the app ships — the answer a traveller
+         * three; *Reset colours* puts all three back the way the app ships, the answer a traveller
          * needs after trying something, and the one the pop-up used to imply with an undo that only
          * ever covered buttons.
          */}

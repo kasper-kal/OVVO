@@ -16,7 +16,7 @@ const MIN_VIEW = 12;
 const MAX_VIEW = 130;
 
 interface View {
-  /** Canvas point under the centre of the screen — where the pin is. */
+  /** Canvas point under the centre of the screen, where the pin is. */
   cx: number;
   cy: number;
   /** Side of the square of canvas that fills the screen. */
@@ -27,10 +27,10 @@ interface View {
  * The map screen: pick a stop by sliding the map until the pin is where you want it.
  *
  * The pin never moves. The map does, and whatever stop is nearest the pin is the one
- * named in the sheet — which is how the 9292 map picker works and why there is no
+ * named in the sheet, which is how the 9292 map picker works and why there is no
  * "tap the exact dot" interaction here.
  *
- * The surface is the schematic network this build ships with (no streets, no basemap —
+ * The surface is the schematic network this build ships with (no streets, no basemap ,
  * the drawing comes from `data/map`). Everything around it is already the shape a real
  * basemap needs: a view (centre + scale) in the drawing's own units, a fixed pin, a
  * nearest-feature lookup and a confirm step, so dropping a tile layer under the SVG is a
@@ -113,8 +113,8 @@ export function MapPicker({
     setQuery('');
     setSearching(false);
     /*
-     * The search answered: the field is emptied and a stop is picked. The keyboard closes — the map
-     * and the sheet below it are what the traveller is looking at — but the focus the phone would
+     * The search answered: the field is emptied and a stop is picked. The keyboard closes, the map
+     * and the sheet below it are what the traveller is looking at, but the focus the phone would
      * have dropped goes to the control that confirms the pick, so a keyboard user continues from
      * inside the screen instead of tabbing back in from the top of the app (28.5).
      */
@@ -151,7 +151,7 @@ export function MapPicker({
           onPointerDown={(event) => {
             /*
              * The zoom pair sits inside the draggable surface, and the surface captured the pointer
-             * on `pointerdown` — so the `pointerup` went to the surface, the button never received
+             * on `pointerdown`, so the `pointerup` went to the surface, the button never received
              * a `click`, and the only way to zoom out of a too-close map was the keyboard (28.2).
              * A press that starts on a control is that control's, not the map's.
              */
@@ -328,8 +328,8 @@ export function MapPicker({
                 /*
                  * The same act as `centreOnStop` above, for the button that answers the screen:
                  * this map is closing and the pair is complete, so the keyboard goes before the
-                 * hand-off. A finger on this button does not blur the search field by itself —
-                 * a phone does not focus buttons — so without this the caret stayed in the field
+                 * hand-off. A finger on this button does not blur the search field by itself ,
+                 * a phone does not focus buttons, so without this the caret stayed in the field
                  * that was about to be unmounted, and the keyboard came out over the results.
                  */
                 dismissKeyboard();

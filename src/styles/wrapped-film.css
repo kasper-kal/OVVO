@@ -727,7 +727,7 @@
  * **The line under the line, and the grain over the picture.**
  *
  * Two things the reference has on every card that ours did not. The small line beneath the big one
- * was the single biggest editorial difference — one sentence set once, for fifteen seconds, is a
+ * was the single biggest editorial difference, one sentence set once, for fifteen seconds, is a
  * poster; a big line with a small line that swaps at the halfway point is a film. It crossfades on
  * the card's own clock, so it changes even while the object is mid-turn.
  *
@@ -815,7 +815,7 @@
  * reference's motion: the body was small in frame and the other eighty per cent of the picture was a
  * still colour. Real film is never still anywhere. The noise over the card now travels about a
  * hundred and forty pixels every second and a half, which a tenth of a second turns into nine pixels
- * of change across the whole frame — the reference's own texture, at the reference's own rate.
+ * of change across the whole frame, the reference's own texture, at the reference's own rate.
  */
 .film2-grain {
   animation: film-grain 1.6s steps(12, end) infinite;
@@ -840,7 +840,7 @@
  * **The small line sits above a bottom headline, not under it.**
  *
  * The copy block on a bottom-placed card grows upwards, so putting the small line beneath the big
- * one lifted the headline thirty pixels — on the total chapter that was thirty pixels of ticket
+ * one lifted the headline thirty pixels, on the total chapter that was thirty pixels of ticket
  * column, and its contrast fell from 7.2:1 to 6.1:1. Above the headline the block keeps the height it
  * always had, the big line stays exactly where it was approved, and the small line reads as the
  * label Wrapped puts over its own headline anyway.
@@ -849,7 +849,7 @@
  * **In the flow, under the headline.**
  *
  * Absolute positioning was the wrong tool: the copy block's top edge is inside the headline's own
- * line box, so the small line landed on the first line and ghosted through it at the crossfade —
+ * line box, so the small line landed on the first line and ghosted through it at the crossfade ,
  * visible in the second frame review, invisible in the contact sheets. It sits under the headline in
  * the flow now, which cannot overlap it whatever the type size, and a bottom-placed card grows
  * upwards as it always did.

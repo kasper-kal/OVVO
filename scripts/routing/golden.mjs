@@ -9,7 +9,7 @@
  * previous one arrived, an after-midnight search answering with the first morning train. These cases
  * are fixed facts about the timetable, so they can be checked on every save.
  *
- * The page is driven in a real browser because the search runs in the browser — checking a copy of
+ * The page is driven in a real browser because the search runs in the browser, checking a copy of
  * it in Node would test the copy, not the thing the traveller uses.
  */
 import { chromium } from 'playwright';

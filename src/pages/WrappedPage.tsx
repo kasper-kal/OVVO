@@ -85,7 +85,7 @@ const ROUTE_TRAVELLER = {
  *
  * Ten chapters, not ten pages. The progress bar went, because a bar across the top is a document; the
  * count stayed, because a traveller wants to know how far in they are. Each chapter carries its own
- * number in its own type, and each one enters its own way — a wipe, a rise from the floor, a deal, a
+ * number in its own type, and each one enters its own way, a wipe, a rise from the floor, a deal, a
  * zoom, a cut.
  *
  * Movement is the story too, and it runs on the song rather than beside it: the cover's dot goes
@@ -103,7 +103,7 @@ const ROUTE_TRAVELLER = {
  *
  * The story is a review of a finished year, so it opens on 1 January at 00:01 and closes when
  * January ends. Opening `/wrapped` in November used to show last year's story as if it were still
- * the season — the page was never gated, only its invitation was. The gate is here rather than in
+ * the season, the page was never gated, only its invitation was. The gate is here rather than in
  * the router so the closed screen still wears the app's own chrome and has a way back.
  */
 export function WrappedGate() {
@@ -127,7 +127,7 @@ export function WrappedGate() {
   /*
    * **00:00:01, not midnight.**
    *
-   * The gate used to be "is it January", which opened at 00:00:00 — a second before the moment the
+   * The gate used to be "is it January", which opened at 00:00:00, a second before the moment the
    * steerer named. The comparison is against the first second of 1 January, so 23:59:59 and
    * 00:00:00 are both still closed and 00:00:01 opens.
    */
@@ -212,7 +212,7 @@ export function WrappedPage() {
    *
    * The steerer's own 2026 holds nothing yet, so the honest two-card deck was the only thing he ever
    * saw, and he asked for the deck he liked instead of it. So: no journeys in the real year, and the
-   * plain address shows the demo year — with the cover's "Demo year: none of this is real" line on it,
+   * plain address shows the demo year, with the cover's "Demo year: none of this is real" line on it,
    * so nothing pretends to be his. A year with journeys in it still shows his own, untouched.
    */
   const realTally = useMemo(() => tallyFor(year), [year]);
@@ -364,7 +364,7 @@ export function WrappedPage() {
    *
    * The score is on by default, but a phone may refuse to play before a tap, so "on by default" and "making
    * a sound" are two different things. The cover used to read "Sound on" while the story's music was already
-   * armed — the first page asking for a press the second page never asks for. The switch now follows the
+   * armed, the first page asking for a press the second page never asks for. The switch now follows the
    * speaker: while music is sounding it says "Sound off", and while it is silent it says "Sound on" and starts
    * the score in the tap that presses it.
    */

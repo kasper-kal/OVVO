@@ -6,13 +6,13 @@ import { useOnline } from '../../lib/useOnline';
 /**
  * The connection, said once, at the top of every screen.
  *
- * The promise the app makes offline is a good one — the planner, the boards, the timetable and
- * everything saved are local, so nothing stops working — but it is not the whole truth, because a
+ * The promise the app makes offline is a good one, the planner, the boards, the timetable and
+ * everything saved are local, so nothing stops working, but it is not the whole truth, because a
  * departure board that cannot hear about a delay is showing the timetable rather than the platform.
  * The report was blunt: offline must be *very* clear, or a traveller reads a five-minute-old board
  * as live. So this is a full-width strip that stays at the top of the page while it is in force
  * (`position: sticky`, above the header), names the loss in the same breath as the promise, and
- * goes away by itself when the connection returns — with one short confirmation so the change is
+ * goes away by itself when the connection returns, with one short confirmation so the change is
  * not silent.
  *
  * **Both ends are a movement, not a swap.** It arrives by dropping in from above, and it leaves by

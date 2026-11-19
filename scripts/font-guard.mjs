@@ -3,12 +3,12 @@
  * app's own font.**
  *
  * `index.html` asks Google Fonts for Plus Jakarta Sans. A browser that cannot reach it does not
- * complain — it draws the page in whatever sans it has — and every number and every picture taken
+ * complain, it draws the page in whatever sans it has, and every number and every picture taken
  * from that page is then about a font the traveller never sees. That is not hypothetical: the
  * Playwright WebKit build on this VM has no TLS ("TLS support is not available"), so it silently
  * fell back to Liberation Sans, whose ascent and descent are lopsided. Every word's ink sat about
  * **4.5px above** the middle of its line box, and a screenshot of a perfectly aligned row of chips
- * looked broken — reported as "the save icon and Save text isn't on the same level". Chromium here
+ * looked broken, reported as "the save icon and Save text isn't on the same level". Chromium here
  * has TLS and was unaffected, which is why the same row looked right in one engine and wrong in the
  * other.
  *
@@ -27,7 +27,7 @@
  *   await page.goto(url, { waitUntil: 'networkidle' });
  *   await ensureAppFont(page);
  *
- * Geometry — boxes, gaps, target sizes, colours — does not depend on the font. Type and anything
+ * Geometry, boxes, gaps, target sizes, colours, does not depend on the font. Type and anything
  * judged by eye does.
  */
 import fs from 'node:fs';
@@ -92,7 +92,7 @@ function fallbackError(detail, seen) {
       'FONT_CSS_FILE at it (ensureAppFont reads that first), or pre-warm the cache with:',
       '  node -e "import(\'./scripts/font-guard.mjs\').then(m => m.localFontCss())"',
       'Diagnosis in this project: the WebKit build here has no TLS, so it can never fetch Google',
-      'Fonts by itself — it needs the injected copy.',
+      'Fonts by itself, it needs the injected copy.',
     ].join('\n'),
   );
 }
@@ -101,7 +101,7 @@ function fallbackError(detail, seen) {
  * Draws the page in the app's font, or says why it cannot.
  *
  * @returns {{ injected: boolean, faces: string[] }} what had to be done, and what the browser ended
- *   up holding — useful in a transcript, so a reader can see the picture was honest.
+ *   up holding, useful in a transcript, so a reader can see the picture was honest.
  */
 export async function ensureAppFont(page, options = {}) {
   const before = await faces(page);
@@ -109,7 +109,7 @@ export async function ensureAppFont(page, options = {}) {
 
   if (before.length === 0) {
     /* No face at all: this browser never received the stylesheet's fonts. Inject the same ones. */
-    /* An explicit `css: ''` means "inject nothing" — that is how the refusal itself is tested. */
+    /* An explicit `css: ''` means "inject nothing", that is how the refusal itself is tested. */
     let css = 'css' in options ? options.css : '';
     if (!('css' in options)) {
       try {

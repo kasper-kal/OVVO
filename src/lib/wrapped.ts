@@ -1,5 +1,5 @@
 /**
- * **The year's tally — a diary, not a drawer.**
+ * **The year's tally, a diary, not a drawer.**
  *
  * `recent-searches` is a dozen pairs and `search-history` forgets the ninth repeat of the same
  * trip, which is what a list is for. Wrapped needs the opposite: a small record of *every* run,
@@ -22,7 +22,7 @@ import { STORAGE_KEYS, readStored, writeStored } from './storage';
 
 /** How many runs are kept. A year of hard use is a few hundred; this is a lid, not a plan. */
 const MAX_RUNS = 2000;
-/** How many "this look was worn today" lines are kept — one a day is all it can add. */
+/** How many "this look was worn today" lines are kept, one a day is all it can add. */
 const MAX_WEARS = 400;
 
 /** One search the traveller ran, as the tally needs it and nothing more. */
@@ -32,7 +32,7 @@ export interface YearRun {
   /** The two ends, as the traveller named them: an address stays an address. */
   from: string;
   to: string;
-  /** The hour the journey was asked to start, 0–23 — the hour a card can talk about. */
+  /** The hour the journey was asked to start, 0–23, the hour a card can talk about. */
   hour: number;
   /** Filled in when the results land: how many times changed, how long, on which lines. */
   changes?: number;
@@ -41,7 +41,7 @@ export interface YearRun {
 }
 
 /** One day a look was worn. Kept as days rather than as a click count, because wearing a look is
-    not something anybody clicks — it is what they left the app in. */
+    not something anybody clicks, it is what they left the app in. */
 export interface YearWear {
   at: number;
   id: string;
@@ -89,7 +89,7 @@ export function recordRun(run: YearRun): void {
  * The results for the newest run, once they exist.
  *
  * A run is written the moment it is started, when nothing is known but the two ends and the hour.
- * This fills in what the journey list then answers — changes, minutes, lines — on the newest run
+ * This fills in what the journey list then answers, changes, minutes, lines, on the newest run
  * that has no minutes yet and was started in the last five minutes. That window is what keeps a
  * late answer from landing on a run from yesterday, and the "no minutes yet" test is what keeps the
  * same list from being counted twice when the screen re-renders.
@@ -155,7 +155,7 @@ export function tallyFor(year: number): YearTally {
   };
 }
 
-/** The years this browser has anything for, newest first — the years a card can be offered. */
+/** The years this browser has anything for, newest first, the years a card can be offered. */
 export function tallyYears(): number[] {
   const tally = readTally();
   const years = new Set<number>();
@@ -169,7 +169,7 @@ export function tallyYears(): number[] {
  * **Three questions the cards ask that a total cannot answer.**
  *
  * Every card before this one counted the year as a whole: how many, how far, which hour. Wrapped
- * also picks things out — five names in order, one date, a run of days — because a total is a fact
+ * also picks things out, five names in order, one date, a run of days, because a total is a fact
  * and a ranking is a story. These three readers are the only place those answers come from, they
  * are pure, and they take a tally rather than reading storage, so the demo year and a real one give
  * the answers by exactly the same route.

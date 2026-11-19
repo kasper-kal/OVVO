@@ -8,7 +8,7 @@ import { customStopName } from '../../data/stops';
 /**
  * The two-choice Plan dialog: "is this where you leave from, or where you are going?".
  *
- * It belongs to a stop, not to a screen — the stop cards on Stations & stops opened it, and
+ * It belongs to a stop, not to a screen, the stop cards on Stations & stops opened it, and
  * the stop page itself now does too, instead of carrying a pair of PLAN FROM HERE / PLAN TO
  * HERE buttons at the head of the page. One control, one question, one answer, wherever a
  * stop is offered as an end of a journey.
@@ -49,7 +49,7 @@ export function PlanStopDialog({
           <Button icon="route" onClick={() => onPlan('from')}>
             {t('Plan from here')}
           </Button>
-          {/* `to here` wore `ghost` — no border, no fill — beside a solid `from here` in the same
+          {/* `to here` wore `ghost`, no border, no fill, beside a solid `from here` in the same
               footer, so the same question was asked twice in two shapes (WCAG 3.2.4). The
               departure board's own pair are both solid, so both ends are solid here too: the
               words carry the direction, not a second material. */}

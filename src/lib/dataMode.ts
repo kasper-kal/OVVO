@@ -6,8 +6,8 @@
  * first. So one switch decides it, and every generator reads that switch rather than the setting
  * of the day:
  *
- *   - **`npm run dev`** — sample data is on. It is how the app is designed and reviewed.
- *   - **a production build** — sample data is **off** unless the build was made with
+ *   - **`npm run dev`**, sample data is on. It is how the app is designed and reviewed.
+ *   - **a production build**, sample data is **off** unless the build was made with
  *     `VITE_ALLOW_DEMO=1`, which is a deliberate act for a public demo, not the default.
  *
  * With it off, a screen that has no real source shows an honest empty or unavailable state

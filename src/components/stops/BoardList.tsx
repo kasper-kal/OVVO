@@ -34,13 +34,13 @@ export function BoardList({
    * **A board shows the departures in its window, and asks nothing.**
    *
    * It used to hold rows back: five at a time, behind a "Show 5 more" button, with a scroll
-   * sentinel behind that. The button was the defect the steerer named — a board is a short list
+   * sentinel behind that. The button was the defect the steerer named, a board is a short list
    * of what leaves next, in a window of twenty, and a tap to see the last ten of them is a tax on
    * reading the screen the traveller already opened. The whole window is drawn; there is no
    * batching, no sentinel and no press.
    *
    * The rows per load rule (`lib/loadBatch.ts`) is for lists that are long because the network is
-   * big — stops, alerts. A board is long because a day is long, and the window is already the
+   * big, stops, alerts. A board is long because a day is long, and the window is already the
    * answer to that.
    *
    * A widget still passes `limit`, because a card is not a list screen: there it shows the rows it
@@ -71,12 +71,12 @@ export function BoardList({
    * **A row's plan action asks the same question every other Plan in the app asks.**
    *
    * It used to jump straight into the planner with that departure's destination filled in and the
-   * picker already open on the other end — no question, and no way to say "actually I am going
+   * picker already open on the other end, no question, and no way to say "actually I am going
    * *from* there". A route glyph that plans now opens the two-choice dialog the station page and
    * the stop cards open (`PlanStopDialog`), about the station this departure goes to, and the two
    * answers do what they do everywhere else: fill that end and open the picker for the other one.
    *
-   * The row itself still knows nothing about journeys — the dialog is the app's one owner of that
+   * The row itself still knows nothing about journeys, the dialog is the app's one owner of that
    * question, so a board cannot grow a second, quieter way to plan.
    */
   const [planStop, setPlanStop] = useState<Stop | null>(null);
@@ -106,7 +106,7 @@ export function BoardList({
                 <span className="t-mono-num">{format.time(departure.cancelled ? departure.planned : departure.expected)}</span>
                 {/*
                   **A delay, said in words.** Drawn, the second line is the booked time struck
-                  through and "+10" beside it; spoken, that was "18:10 18:00 plus 10" — two times
+                  through and "+10" beside it; spoken, that was "18:10 18:00 plus 10", two times
                   and a number with nothing saying what any of them meant, on the screen people
                   read at a stop. The picture is now hidden from assistive tech and the sentence
                   beside it is spoken: "scheduled 18:00 · 10 min late".
@@ -132,15 +132,15 @@ export function BoardList({
               {/*
                 **The alert for a cancelled service lives at the end of the line it explains.**
 
-                It used to be a third control in the row's action cluster, beside the plan button —
+                It used to be a third control in the row's action cluster, beside the plan button ,
                 and a row is a grid whose last column is sized by its contents, so that one row was
                 48px wider at the end than every other row, and the platform number in front of it
                 moved 48px left. Reserving the space for every row fixed the line-up and left a
                 thumb's width of nothing on every row that had no alert, which is worse to look at
                 than the jump was.
 
-                This cell is the row's one flexible column — everything right of it is anchored to
-                the right edge — so an icon in here costs the destination a little text width and
+                This cell is the row's one flexible column, everything right of it is anchored to
+                the right edge, so an icon in here costs the destination a little text width and
                 moves nothing. The rows above and below keep their platform numbers and plan buttons
                 in exactly the same place, and a board with no cancellations carries no empty slot.
               */}
@@ -148,8 +148,8 @@ export function BoardList({
                 <span className="board-list__line">
                   {/*
                     Where this service goes, as a way to that station's page. It is the one word on
-                    the row that names a place — the time, the platform and the line are facts about
-                    *this* stop — so it is the row's link, and the row keeps its own plan button.
+                    the row that names a place, the time, the platform and the line are facts about
+                    *this* stop, so it is the row's link, and the row keeps its own plan button.
                   */}
                   <span className="board-list__destination">
                     {/* The feed names the destination even when this build cannot match it to a
@@ -162,13 +162,13 @@ export function BoardList({
                   </span>
                 {/*
                   The same word the journey card and the leg list use, from the same entry: it was
-                  a literal here, so a cancelled departure read `cancelled` — lowercase and English
+                  a literal here, so a cancelled departure read `cancelled`, lowercase and English
                   on the Dutch board (reported by the capitalisation audit).
 
                   It is a **sibling** of the destination, not a child of it, and that is the fix
                   for a second defect the audit found in it: the destination is clamped to two
                   lines and hides its overflow, so a long name plus this word needed three lines
-                  and the word was cut off — measured at 320 in a 92px column and at 768 in a 64px
+                  and the word was cut off, measured at 320 in a 92px column and at 768 in a 64px
                   one (both "Rotterdam CentraalCancelled"). Outside the clamp there is nothing to
                   cut: the word wraps as its own line in the row's main column, which the row is
                   already free to grow into.
@@ -193,12 +193,12 @@ export function BoardList({
                 **The word "PLATFORM", ten times a board, replaced by the platform's own glyph.**
 
                 It was spelled out on every row and, below a 420px container, replaced by a bare
-                `P` — which is the stylesheet admitting the word is disposable. The app already
+                `P`, which is the stylesheet admitting the word is disposable. The app already
                 draws a platform (`platform`, Lucide's TrainTrack) on a journey's stop rows; this is
                 the same fact on the surface it is read most, so it wears the same picture.
 
                 The word is still *spoken*: the `sr-only` span keeps the accessible name the `title`
-                gave, and a ferry's "Pier 1" now needs no prefix rule at all — the glyph says where
+                gave, and a ferry's "Pier 1" now needs no prefix rule at all, the glyph says where
                 the number belongs.
               */}
               <span

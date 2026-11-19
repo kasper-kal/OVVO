@@ -12,7 +12,7 @@
  *
  * The search itself is a **connection scan**: connections sorted by departure, one pass, earliest
  * arrival wins. It is exhaustive, so it cannot quietly return a worse journey than the timetable
- * allows — the property the fast route search still lacks.
+ * allows, the property the fast route search still lacks.
  */
 
 export interface PlanLeg {
@@ -127,7 +127,7 @@ async function decoded(response: Response, path: string): Promise<Response> {
  * **The timetable is downloaded once, not on every search.**
  *
  * A day is about 17 MB of stops, trip descriptions and two-hour slices, and a search only needs a
- * few slices — but without a cache every visit paid for them again. Cache Storage keeps them on the
+ * few slices, but without a cache every visit paid for them again. Cache Storage keeps them on the
  * device, so the first search of the day costs the download and every later one costs nothing. When
  * the cache is unavailable the fetch simply goes to the network, which is also correct.
  */
@@ -523,7 +523,7 @@ const dayBefore = (day: string): string => {
  * The journeys to show: the earliest, then the next after it, a few times over.
  *
  * **After midnight the timetable is still yesterday's.** A bus leaving at 03:08 on a Saturday night
- * is stored as 27:08 in Saturday's service day, and a Sunday search at 02:08 never reaches it — which
+ * is stored as 27:08 in Saturday's service day, and a Sunday search at 02:08 never reaches it, which
  * is why a quiet night produced a first journey four hours later, with no live delay to show. So a
  * search in the small hours also runs against the previous service day, at the time plus a day, and
  * the two answers are merged in departure order.

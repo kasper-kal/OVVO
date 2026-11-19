@@ -1,15 +1,15 @@
 /**
- * **Two Plan buttons where one — and the choice — would do.**
+ * **Two Plan buttons where one, and the choice, would do.**
  *
  * A stop offered as the end of a journey used to be answered by two controls side by side: *Plan
  * from here* and *Plan to here*. The app settled that question once, in one place: a stop gets
- * **one** Plan control, and it opens `PlanStopDialog` — "is this where you leave from, or where are
+ * **one** Plan control, and it opens `PlanStopDialog`, "is this where you leave from, or where are
  * you going?". The stop page and the stop cards were changed; the departure board was not, and the
  * pair sat at the foot of every board through four rounds of audits, because nothing was looking for
  * it.
  *
- * This walks every screen and fails on any visible pair of sibling Plan controls — one that names a
- * "from" end and one that names a "to" end — outside a dialog. The two buttons **inside** the
+ * This walks every screen and fails on any visible pair of sibling Plan controls, one that names a
+ * "from" end and one that names a "to" end, outside a dialog. The two buttons **inside** the
  * dialog are the answer to the question and are exactly what this looks for the absence of, so a
  * dialog's own controls do not count.
  *
@@ -119,17 +119,17 @@ for (const width of [390, 1440]) {
 await browser.close();
 
 if (findings.length) {
-  console.log(`\n=== two Plan buttons instead of one and a choice — ${findings.length} place(s)`);
+  console.log(`\n=== two Plan buttons instead of one and a choice, ${findings.length} place(s)`);
   const seen = new Set();
   for (const finding of findings) {
     const key = `${finding.route} ${finding.controls.map((c) => c.text).join(' + ')}`;
     if (seen.has(key)) continue;
     seen.add(key);
     const where = finding.controls[0].where;
-    console.log(`  ${finding.route} @${finding.width} — ${finding.controls.map((c) => `“${c.text}”`).join(' + ')}\n      in ${where}`);
+    console.log(`  ${finding.route} @${finding.width}, ${finding.controls.map((c) => `“${c.text}”`).join(' + ')}\n      in ${where}`);
   }
-  console.log('\nFAIL — one stop, one Plan control, and the dialog asks which end.');
+  console.log('\nFAIL, one stop, one Plan control, and the dialog asks which end.');
   process.exit(1);
 }
 
-console.log('\nOK — no screen offers a stop with a pair of Plan buttons; one control asks the question.');
+console.log('\nOK, no screen offers a stop with a pair of Plan buttons; one control asks the question.');

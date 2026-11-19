@@ -2,12 +2,12 @@
  * **What a screen reader would hear, screen by screen.**
  *
  * Every screen has been designed with assistive tech in mind and audited to death for the things a
- * script can see — contrast, target sizes, layout. None of that says what the page *sounds* like.
+ * script can see, contrast, target sizes, layout. None of that says what the page *sounds* like.
  * This walks the app the way a screen reader does: it takes the browser's own accessibility tree
  * (the same tree VoiceOver, TalkBack and NVDA read) for each screen and writes it out, then lists
  * the things that are wrong as a spoken interface rather than as a picture:
  *
- *   • a control with no name at all — "button", and nothing else;
+ *   • a control with no name at all, "button", and nothing else;
  *   • a control whose name is a glyph's name rather than what it does;
  *   • two controls with the same spoken name doing different things;
  *   • a heading that skips a level, or a screen with no heading at all;
@@ -80,7 +80,7 @@ async function snapshot(name, url) {
     /*
      * The name a screen reader would actually speak, in the order the browser resolves it:
      * `aria-labelledby`, then `aria-label`, then a real `<label>`, then the element's own text, and
-     * only then the placeholder — which is a hint, not a name, and is reported as one below.
+     * only then the placeholder, which is a hint, not a name, and is reported as one below.
      */
     const spokenName = (el) => {
       const labelledby = el.getAttribute('aria-labelledby');
@@ -123,12 +123,12 @@ async function snapshot(name, url) {
         continue;
       }
       if (from === 'placeholder') {
-        out.push({ kind: 'named only by its placeholder', detail: `${info.tag}.${info.cls.split(' ')[0]} — "${clean}" (a placeholder is a hint, not a name)` });
+        out.push({ kind: 'named only by its placeholder', detail: `${info.tag}.${info.cls.split(' ')[0]}, "${clean}" (a placeholder is a hint, not a name)` });
       }
       /* A name nobody could act on: a single glyph, a lone number, the same word as the icon. */
       if (clean.length <= 1) out.push({ kind: 'one-character name', detail: `${clean} on ${info.tag}.${info.cls.split(' ')[0]}` });
       /*
-       * Two controls with the same spoken name are only a defect when they go to different places —
+       * Two controls with the same spoken name are only a defect when they go to different places ,
        * a screen reader's link list shows names with no row around them, so "Journey details for
        * 09:30" twice, to two different journeys, is two links nobody can choose between. The same
        * name twice on the same address (a board's repeated destination, say) is the timetable
@@ -225,13 +225,13 @@ for (const screen of screens) {
 console.log('\n=== findings');
 if (problems.length === 0) console.log('  none');
 for (const problem of problems) {
-  console.log(`  ${problem.screen}: ${problem.kind} — ${problem.detail}`);
+  console.log(`  ${problem.screen}: ${problem.kind}, ${problem.detail}`);
 }
 
 console.log('\n=== live regions, in full');
 for (const screen of screens) {
   for (const region of screen.live) {
-    console.log(`  ${screen.name}: ${region.role}${region.politeness ? ` (${region.politeness})` : ''} — "${region.text}"`);
+    console.log(`  ${screen.name}: ${region.role}${region.politeness ? ` (${region.politeness})` : ''}, "${region.text}"`);
   }
 }
 

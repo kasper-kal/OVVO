@@ -10,7 +10,7 @@
  *
  * `scripts/browser-env.sh` solves both by unpacking the .debs into `$HOME/syslibs`. What it cannot
  * do is export them into a process that has already started, so every check here went wrong until
- * somebody remembered to source it first — which is exactly the kind of step that gets skipped and
+ * somebody remembered to source it first, which is exactly the kind of step that gets skipped and
  * then blamed on the site. This module does it from inside Node instead, before Playwright spawns
  * anything, so `node scripts/…` works on its own.
  *
@@ -26,7 +26,7 @@ import { createRequire } from 'node:module';
 
 /*
  * **First, before `playwright` is imported below.** Playwright fixes which folder it looks in when
- * its module loads, so the variable has to be set by a module that runs before that import — doing
+ * its module loads, so the variable has to be set by a module that runs before that import, doing
  * it inside `prepareBrowserEnv()` was too late, which is why the browser was still reported missing
  * with the fix in place. See `browser-path.mjs`.
  */

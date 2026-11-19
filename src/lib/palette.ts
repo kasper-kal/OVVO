@@ -4,7 +4,7 @@ import type { SelectionChoice } from './selection';
 /**
  * **The colours, per appearance.**
  *
- * Three settings — the page's colour, the widgets' colour and the selection's colour — used to be
+ * Three settings, the page's colour, the widgets' colour and the selection's colour, used to be
  * one value each, drawn in both appearances. That is the wrong shape and it always was: the ink,
  * the cards and the map's cut are derived *against the appearance* (`applyBackground` measures the
  * same tint twice for exactly this reason), so a navy chosen to sit under cream ink in light mode
@@ -12,7 +12,7 @@ import type { SelectionChoice } from './selection';
  * turned to a smear over the cream one. One colour cannot be tuned for two ink systems.
  *
  * So each appearance keeps its own three. `light` uses the fields that existed before this split, so
- * a browser that has never seen the new ones keeps the interface it has — `migrateSettings` copies
+ * a browser that has never seen the new ones keeps the interface it has, `migrateSettings` copies
  * the old value into `dark` on the way in, which is what stops anyone's page changing on this
  * version.
  *
@@ -26,7 +26,7 @@ export type PaletteMode = 'light' | 'dark';
 /**
  * **The canvas each palette is made of.**
  *
- * `Default` means the app's own canvas, and that canvas is a different colour in each appearance —
+ * `Default` means the app's own canvas, and that canvas is a different colour in each appearance ,
  * cream (`#FCFBFA`, `--canvas-base`) in light, near-black (`#121211`) in dark. The row used to
  * paint its swatch from `--canvas-base`, which is the canvas of the appearance **in force**: with
  * the app in dark, the LIGHT tab showed a black `Default` beside the word, so the one row that
@@ -71,7 +71,7 @@ export function paletteFor(settings: Settings, mode: PaletteMode): Palette {
  * A palette change, as a settings patch for `mode`.
  *
  * Written out key by key rather than by renaming strings: these two sets of field names are the one
- * place a typo would be silent — the row would show a colour it had not just stored — so the
+ * place a typo would be silent, the row would show a colour it had not just stored, so the
  * mapping is explicit and the compiler checks both halves.
  */
 export function palettePatch(mode: PaletteMode, patch: Partial<Palette>): Partial<Settings> {

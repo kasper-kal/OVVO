@@ -560,7 +560,7 @@ export function WrappedMasses({
      * **A wide body turns less.**
      *
      * The first pass at real motion turned every body by the same angle. On the ranked bar chart and
-     * the hour's beams — seven times wider than they are tall — turning by a quarter of a radian
+     * the hour's beams, seven times wider than they are tall, turning by a quarter of a radian
      * narrows the silhouette by about a tenth, which pulled both cut edges back inside the frame and
      * failed the crop. Wide bodies keep their edges and spend the motion on the push instead.
      */
@@ -569,7 +569,7 @@ export function WrappedMasses({
      * Where `fit()` finally put the body. The motion adds to this; it must never write over it.
      *
      * The first pass set `group.position.x` and `.z` outright from the clock, which threw away the
-     * centred position and the off-centre shove `fit()` had just solved — the body jumped off its
+     * centred position and the off-centre shove `fit()` had just solved, the body jumped off its
      * measured crop, the hour and ranked chapters came back inside the frame, and three cards' words
      * ended up under it. The fitted position is kept and the motion is an offset from it.
      */
@@ -719,7 +719,7 @@ export function WrappedMasses({
       /*
        * The closing card is dodged whether or not its body crosses the frame sideways. Its ring is
        * taller than the frame rather than wider, so the sideways test never fired and the drag from
-       * the ring sat behind the largest sentence in the deck — 6.4:1 where the rule asks for 7.
+       * the ring sat behind the largest sentence in the deck, 6.4:1 where the rule asks for 7.
        */
       if (chapter.id === 'close' || chapter.id === 'total') {
         /* Both grew a small line above their headline and need their body further off it. */

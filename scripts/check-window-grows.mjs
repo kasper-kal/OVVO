@@ -23,7 +23,7 @@ try {
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   /*
    * A first visit to the real site opens the location question over the planner, and a press the
-   * dialog covers never lands — measured on the deployed build, where the planner rows exist and
+   * dialog covers never lands, measured on the deployed build, where the planner rows exist and
    * the click still waited forever. The wait is for that dialog to arrive; the loop then puts it
    * away, so the check runs the same on a fresh browser as on a warm one.
    */
@@ -59,7 +59,7 @@ try {
 
   /*
    * Four presses of each end. A window is an hour, so one press can land entirely inside the hour
-   * already on screen and add nothing — the rule being checked is that a press never *takes* a
+   * already on screen and add nothing, the rule being checked is that a press never *takes* a
    * journey away, and that walking far enough always finds more.
    */
   const walk = async (label) => {

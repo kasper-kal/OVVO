@@ -3,7 +3,7 @@
  * **Does what ships still run on an iPhone that stopped at iOS 14?**
  *
  * This app is drawn entirely by JavaScript, so a browser that cannot parse the bundle shows a
- * white page and says nothing — no error, no message, nothing to retry. That is what an iPhone
+ * white page and says nothing, no error, no message, nothing to retry. That is what an iPhone
  * that can no longer update saw before the build was aimed at Safari 14, and the reason this
  * check exists: the targeting is one line in `vite.config.ts`, and a line is easy to lose.
  *
@@ -35,7 +35,7 @@ const config = readFileSync(join(ROOT, 'vite.config.ts'), 'utf8');
 for (const key of ['target', 'cssTarget']) {
   const line = new RegExp(`${key}:\\s*\\[([^\\]]*)\\]`).exec(config);
   if (!line) {
-    fail(`vite.config.ts: \`build.${key}\` is not set — Vite's default stops at Safari 16.4.`);
+    fail(`vite.config.ts: \`build.${key}\` is not set, Vite's default stops at Safari 16.4.`);
   } else if (!line[1].includes("'ios14'")) {
     fail(`vite.config.ts: \`build.${key}\` does not name 'ios14' (it is ${line[1].trim()}).`);
   }
@@ -52,28 +52,28 @@ if (!existsSync(assets)) {
    * only things this app could plausibly reach for, and only where the absence is silent.
    */
   const forbidden = [
-    ['AbortSignal.timeout', 'AbortSignal.timeout() — Safari 16', 'lib/timeoutSignal.ts'],
-    ['structuredClone(', 'structuredClone() — Safari 15.4', 'a JSON round-trip or a hand-written copy'],
-    ['Object.hasOwn(', 'Object.hasOwn() — Safari 15.4', 'Object.prototype.hasOwnProperty.call()'],
-    ['requestIdleCallback(', 'requestIdleCallback() — not in Safari at all', 'setTimeout()'],
-    ['Array.fromAsync(', 'Array.fromAsync() — Safari 17.4', 'a loop'],
-    ['.findLast(', 'Array.prototype.findLast() — Safari 15.4', 'a reverse loop'],
-    ['.toSorted(', 'Array.prototype.toSorted() — Safari 16', 'slice().sort()'],
-    ['.toReversed(', 'Array.prototype.toReversed() — Safari 16', 'slice().reverse()'],
-    ['.toSpliced(', 'Array.prototype.toSpliced() — Safari 16', 'slice() then splice()'],
-    ['URL.canParse(', 'URL.canParse() — Safari 17', 'new URL() in a try/catch'],
-    ['URL.parse(', 'URL.parse() — Safari 18', 'new URL() in a try/catch'],
-    ['crypto.randomUUID(', 'crypto.randomUUID() — Safari 15.4', 'lib/random.ts'],
-    ['Object.groupBy(', 'Object.groupBy() — Safari 17.4', 'a reduce into an object'],
-    ['Map.groupBy(', 'Map.groupBy() — Safari 17.4', 'a loop into a Map'],
-    ['checkVisibility(', 'Element.checkVisibility() — Safari 17.4', 'offsetParent !== null'],
+    ['AbortSignal.timeout', 'AbortSignal.timeout(), Safari 16', 'lib/timeoutSignal.ts'],
+    ['structuredClone(', 'structuredClone(), Safari 15.4', 'a JSON round-trip or a hand-written copy'],
+    ['Object.hasOwn(', 'Object.hasOwn(), Safari 15.4', 'Object.prototype.hasOwnProperty.call()'],
+    ['requestIdleCallback(', 'requestIdleCallback(), not in Safari at all', 'setTimeout()'],
+    ['Array.fromAsync(', 'Array.fromAsync(), Safari 17.4', 'a loop'],
+    ['.findLast(', 'Array.prototype.findLast(), Safari 15.4', 'a reverse loop'],
+    ['.toSorted(', 'Array.prototype.toSorted(), Safari 16', 'slice().sort()'],
+    ['.toReversed(', 'Array.prototype.toReversed(), Safari 16', 'slice().reverse()'],
+    ['.toSpliced(', 'Array.prototype.toSpliced(), Safari 16', 'slice() then splice()'],
+    ['URL.canParse(', 'URL.canParse(), Safari 17', 'new URL() in a try/catch'],
+    ['URL.parse(', 'URL.parse(), Safari 18', 'new URL() in a try/catch'],
+    ['crypto.randomUUID(', 'crypto.randomUUID(), Safari 15.4', 'lib/random.ts'],
+    ['Object.groupBy(', 'Object.groupBy(), Safari 17.4', 'a reduce into an object'],
+    ['Map.groupBy(', 'Map.groupBy(), Safari 17.4', 'a loop into a Map'],
+    ['checkVisibility(', 'Element.checkVisibility(), Safari 17.4', 'offsetParent !== null'],
   ];
   /* A class static block is Safari 16.4 and esbuild leaves it in place; a private field `#x` is
-     Safari 14.1, which is inside the range this app claims — it is reported so nobody is surprised
+     Safari 14.1, which is inside the range this app claims, it is reported so nobody is surprised
      by an iPhone 14.0 answering with nothing. */
   const syntax = [
-    [/\bstatic\s*\{/, 'a class static block — Safari 16.4'],
-    [/#[a-zA-Z_$][\w$]*\s*(=|;)/, 'a private class field — Safari 14.1'],
+    [/\bstatic\s*\{/, 'a class static block, Safari 16.4'],
+    [/#[a-zA-Z_$][\w$]*\s*(=|;)/, 'a private class field, Safari 14.1'],
   ];
 
   const bundles = readdirSync(assets).filter((name) => name.endsWith('.js'));
@@ -90,7 +90,7 @@ if (!existsSync(assets)) {
 
   /*
    * **The stylesheet has to keep both versions.** The fallback was written once as a second
-   * declaration in the same rule and the minifier deleted it — the build looked fine and the glass
+   * declaration in the same rule and the minifier deleted it, the build looked fine and the glass
    * was still transparent on an old phone. It survives inside `@supports`, so the built file must
    * still contain those blocks *and* the mixes they stand behind.
    */
@@ -140,8 +140,8 @@ for (const file of readdirSync(styles).filter((name) => name.endsWith('.css'))) 
   const sized = fallbackProperties(text, '@supports not (height: 88dvh)');
   const lines = text.split('\n');
   /* Decoration, not reading: a dropped hairline highlight or a dropped tint on an underline's
-     colour changes how something looks and nothing about what can be read. Everything else — every
-     surface, every border, every size — needs its plain value. */
+     colour changes how something looks and nothing about what can be read. Everything else, every
+     surface, every border, every size, needs its plain value. */
   const decoration = new Set(['box-shadow', 'text-decoration-color']);
   lines.forEach((line, index) => {
     const declaration = /^\s*(--[a-zA-Z0-9-]+|[a-zA-Z-]+)\s*:\s*(.+)$/.exec(line);

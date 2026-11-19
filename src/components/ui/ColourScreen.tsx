@@ -14,8 +14,8 @@ import { clamp, hexToHsv, hsvToHex, inkFor, readHex, type Hsv } from '../../lib/
  * is a form that has to be scrolled to be finished, on the one surface a traveller opens for a
  * two-second decision.
  *
- * So the three answers a phone's picker gives stay — **a grid**, **a spectrum**, **a value you type**
- * — and they move into a screen with a back arrow and **Done in the header**. Done is then on screen
+ * So the three answers a phone's picker gives stay, **a grid**, **a spectrum**, **a value you type**
+ *, and they move into a screen with a back arrow and **Done in the header**. Done is then on screen
  * at every width and every scroll position, and the body is free to be as long as the colour needs.
  *
  * Two things are new here rather than moved:
@@ -25,7 +25,7 @@ import { clamp, hexToHsv, hsvToHex, inkFor, readHex, type Hsv } from '../../lib/
  *     promise a readable widget the app then draws differently;
  *   • **From your photo**, a row rather than a picture. The photograph left settings in this redesign
  *     (it could only ever be a 200px band there), and the sampler now has a screen of its own. This
- *     row is the way to it, and it is absent when there is no photo — the one conditional in the
+ *     row is the way to it, and it is absent when there is no photo, the one conditional in the
  *     screen, and it moves nothing else.
  *
  * A sheet is not what was wrong with the old control: its **size** was. Nothing about the grid, the
@@ -41,7 +41,7 @@ export interface ColourScreenProps {
   value: string;
   /** The colours offered first, in the caller's order. Each must be `#rrggbb`. */
   swatches: readonly string[];
-  /** Fires on every change — live while a finger is on the pad. */
+  /** Fires on every change, live while a finger is on the pad. */
   onChange: (hex: string) => void;
   onClose: () => void;
   /** The traveller's photo, when there is one. Adds the way to the sampler. */
@@ -74,8 +74,8 @@ export function ColourScreen({
   const dragging = useRef(false);
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value));
   /*
-   * **Hex is written upper case everywhere.** The screen showed the value twice — `#63E6E2` in the
-   * identity line and `#63e6e2` in the field — and the field is what a traveller copies. It now holds
+   * **Hex is written upper case everywhere.** The screen showed the value twice, `#63E6E2` in the
+   * identity line and `#63e6e2` in the field, and the field is what a traveller copies. It now holds
    * the upper-case form (typing lower case is lifted as it is entered, and the parser lower-cases
    * internally), so one spelling exists on screen.
    */
@@ -83,8 +83,8 @@ export function ColourScreen({
   const hexId = useId();
 
   /*
-   * The value can change from outside the screen — a swatch in the row behind it, a reset, the photo
-   * sampler — and the screen's own parts have to follow it. Re-derived only when the incoming value
+   * The value can change from outside the screen, a swatch in the row behind it, a reset, the photo
+   * sampler, and the screen's own parts have to follow it. Re-derived only when the incoming value
    * really differs from what this screen is showing, so a drag is not interrupted by its own live
    * change coming back in as a prop.
    */
@@ -141,7 +141,7 @@ export function ColourScreen({
       }
     >
       <div className="colour-screen">
-        {/* What is being chosen, once, at the size of a thing rather than a swatch — and what the
+        {/* What is being chosen, once, at the size of a thing rather than a swatch, and what the
             app will do with it, which is the part a swatch alone can never say. */}
         <div className="colour-screen__ident">
           <span className="colour-screen__preview" style={{ background: current }} aria-hidden="true" />
@@ -185,7 +185,7 @@ export function ColourScreen({
         {/*
           **And the way out of this screen's own colours.**
           
-          This picker is the app's — a grid, a spectrum, a typed value — and every one of those is
+          This picker is the app's, a grid, a spectrum, a typed value, and every one of those is
           a good way to choose a colour only when the colour you want is one you can name. The
           device's picker is the other way: its own palettes, its own remembered colours, the one a
           traveller already knows how to use. It used to be reachable only from the *rows* behind
@@ -288,7 +288,7 @@ export function ColourScreen({
         </div>
 
         {/* The value, typed. Applied only when it is a whole colour, so a half-typed hex cannot
-            repaint anything — the field keeps the draft and the colour waits. */}
+            repaint anything, the field keeps the draft and the colour waits. */}
         <label className="field" htmlFor={hexId}>
           <span className="field__label">{t('Hex value')}</span>
           <input

@@ -10,7 +10,7 @@
  * Five moves, each a thing a traveller does:
  *
  *   0. **the reset, on a phone short enough for the home screen to be taller than it, with the
- *      first-visit location question answered rather than skipped** — the case that matters, and the
+ *      first-visit location question answered rather than skipped**, the case that matters, and the
  *      case this file was blind to until it happened again. Two things hid it: the audit ran on a
  *      412x915 phone, where the home screen is shorter than the screen and therefore cannot be
  *      scrolled at all; and it preset the location consent, so the question a reset deliberately

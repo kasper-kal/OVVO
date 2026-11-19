@@ -40,7 +40,7 @@ export function JourneyDetailPage() {
    * Journeys are made per search and kept in memory, so reloading the page emptied the list and the
    * traveller was shown "This journey could not be restored" for a journey they were reading a
    * second earlier. Their searches survive a reload (they are written to this browser), and a
-   * journey can be rebuilt from the search that made it — `findJourneyById` is the engine's own
+   * journey can be rebuilt from the search that made it, `findJourneyById` is the engine's own
    * way of doing that, written for saved journeys. So the page asks the history for the same
    * journey before it says it is gone.
    */
@@ -115,8 +115,8 @@ export function JourneyDetailPage() {
             </Button>
           ) : lastSearch ? (
             /*
-             * A journey link opened twice has no session search behind it — the search lives in
-             * memory and only the results list is generated from it — so the recovery the page
+             * A journey link opened twice has no session search behind it, the search lives in
+             * memory and only the results list is generated from it, so the recovery the page
              * offered never appeared (9.7). The recent-search history is the one record of that
              * search this browser keeps, and re-running it is exactly what the traveller wants.
              */
@@ -142,7 +142,7 @@ export function JourneyDetailPage() {
    * **The heading as a sentence, for the name a screen reader reads.**
    *
    * Drawn, the title is the two ends with a glyph between them; spoken, that glyph says nothing, and
-   * the page was announced as "Utrecht CentraalAmsterdam Centraal" — two place names run together,
+   * the page was announced as "Utrecht CentraalAmsterdam Centraal", two place names run together,
    * the first thing a screen-reader traveller hears on arriving (`AppShell` reads the heading out).
    * The word lives in the heading's own `aria-label` rather than in a hidden span inside it, so the
    * visible title is unchanged and no lowercase fragment of a sentence lands in the markup.
@@ -164,7 +164,7 @@ export function JourneyDetailPage() {
          */
         title={
           <>
-            {/* The two ends of the trip, each a way to its station's page — the most prominent
+            {/* The two ends of the trip, each a way to its station's page, the most prominent
                 station names on the screen, and the first thing anyone reads. An address end keeps
                 its words and gets no link. */}
             {journey.legs[0].fromLabel ?? <StopLink stopId={journey.legs[0].fromStopId} />}
@@ -174,7 +174,7 @@ export function JourneyDetailPage() {
             )}
           </>
         }
-        /* The same two ends, in a sentence — see `fromWords` above. */
+        /* The same two ends, in a sentence, see `fromWords` above. */
         titleLabel={t('{from} to {to}', { from: fromWords, to: toWords })}
         description={`${format.date(search?.query.date ?? '')} · ${t('departs {time}', { time: format.time(journey.departure) })} · ${t('arrives {time}', { time: format.time(journey.arrival) })} · ${
           journey.transfers === 0
@@ -188,7 +188,7 @@ export function JourneyDetailPage() {
 
       {/*
         **The chain of modes, then the number of changes.** 9292 opens a journey with the vehicles
-        you will actually take — walk, bus, train, train, walk — so the shape of the trip is read
+        you will actually take, walk, bus, train, train, walk, so the shape of the trip is read
         before any time is: two trains and two walks, without opening a single leg. The glyphs are
         the same ones the rail prints per leg, and the count of changes is in words because a
         screen reader should not have to guess what a multiplication sign means.
@@ -244,7 +244,7 @@ export function JourneyDetailPage() {
       </p>
 
       {/*
-        The journey's own actions, in their own row under the head — not three pills squeezed into
+        The journey's own actions, in their own row under the head, not three pills squeezed into
         the foot of the summary card ("looks awkwardly squeezed in", 2026-10-17t20-30-01). At a
         phone width each one takes the full width of the row, so no label wraps inside its button;
         on a wide screen the row is a wrapping line of pills again, exactly where it was in the
@@ -252,7 +252,7 @@ export function JourneyDetailPage() {
       */}
       {/*
         **One row, three short words.** This was three full-width pills stacked down the phone,
-        ~170px of the first screen given to actions before the journey itself — part of why the
+        ~170px of the first screen given to actions before the journey itself, part of why the
         page read as overwhelming next to 9292, whose journey screen is a header of icons. The
         full sentence is still each control's accessible name; what is printed is the verb.
       */}
@@ -260,7 +260,7 @@ export function JourneyDetailPage() {
         {/* **No Return button.** The reverse of a pair is the results screen's own swap, next to the
             two ends it swaps; a RETURN pill here was the third copy of that act (he crossed it out:
             "theres already a Reverse button on the Journey results page"). Reversing is still one
-            press away — on the results screen this journey was chosen from. */}
+            press away, on the results screen this journey was chosen from. */}
         {/* **No Map button.** The thumbnail in the title line is already the way to the map, and it
             says so with its own arrow; a pill called MAP under it was a second door to the same room
             (he crossed it out). The map is still reachable from here, from every leg's own map glyph,
@@ -268,7 +268,7 @@ export function JourneyDetailPage() {
         {/*
           The same control as the one on this journey's card: a heart, filled while the journey is
           kept, with the two labels the card uses (`Favourite this journey` / `Favourited`). It
-          used to be a bookmark that swapped to a tick here and read "Favourite" — the same
+          used to be a bookmark that swapped to a tick here and read "Favourite", the same
           function wearing a third face on the one screen that is about the journey itself.
         */}
         <button
@@ -288,7 +288,7 @@ export function JourneyDetailPage() {
       </div>
 
       {/*
-        The four tiles that opened this page — departure, arrival, duration, transfers — were
+        The four tiles that opened this page, departure, arrival, duration, transfers, were
         the journey card you just tapped, restated before you could read the journey. Departure
         and arrival are in the title line and again on every leg; duration, transfers and the
         walk are rows of the summary card.
@@ -324,7 +324,7 @@ export function JourneyDetailPage() {
         **The journey's numbers are one grey line under the rail.** They were a second card,
         with its own heading and six pills, sitting beside the journey card: two cards of the
         same journey on one screen, which is the thing 9292 never does. Every fact is still
-        here — price, length, changes, walking, how full, and the bicycle — as the sentence
+        here, price, length, changes, walking, how full, and the bicycle, as the sentence
         under a timetable.
       */}
       {/* What the head does not say: the walking, how full, and the bicycle. */}
@@ -356,9 +356,9 @@ export function JourneyDetailPage() {
 
       {/*
         This page used to close with a "Continue" panel: a "Back to results" link and the two
-        ends of the journey as a line of links. All three are already here — the shell puts a
+        ends of the journey as a line of links. All three are already here, the shell puts a
         back arrow in every screen's top row, and both stops are named in the page title and
-        linked again in the leg list — so the panel was a nav row wearing a card.
+        linked again in the leg list, so the panel was a nav row wearing a card.
       */}
     </div>
   );

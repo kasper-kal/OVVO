@@ -77,7 +77,7 @@ const AUDIT = String.raw`(() => {
         const value = ratio(over(fg, bg), bg);
         const large = size >= 24 || (size >= 18.66 && Number(st.fontWeight) >= 700);
         const min = large ? 3 : 4.5;
-        if (value < min) add('text-contrast', value < 3 ? 'critical' : 'high', value.toFixed(2) + ':1 below ' + min + ' — "' + text.slice(0, 32) + '" ' + Math.round(size) + 'px .' + cls(el));
+        if (value < min) add('text-contrast', value < 3 ? 'critical' : 'high', value.toFixed(2) + ':1 below ' + min + ', "' + text.slice(0, 32) + '" ' + Math.round(size) + 'px .' + cls(el));
       }
     }
 

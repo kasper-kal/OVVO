@@ -5,10 +5,10 @@
  * own licensed music, so the deck carries a real score.
  *
  * **These are plain `<audio>` elements, and nothing else.** The score used to be routed through a Web
- * Audio graph — two players, a gain node each, a master under them — so chapters could cross-fade and
+ * Audio graph, two players, a gain node each, a master under them, so chapters could cross-fade and
  * the level could be set below the phone's own volume. On a desktop browser it worked. On the steerer's
- * phone it reported every sign of health — a context running, a player moving at eleven seconds, no
- * refusal — and made no sound at all, which is the known way a media element routed through that graph
+ * phone it reported every sign of health, a context running, a player moving at eleven seconds, no
+ * refusal, and made no sound at all, which is the known way a media element routed through that graph
  * goes quiet. The graph is gone. Each element carries its own `volume`, faded in small steps, which is a
  * plainer thing that no layer between the file and the speaker can silently drop.
  *
@@ -153,7 +153,7 @@ function makeSlot(): Slot {
   /*
    * **The player is in the page, and invisible.**
    *
-   * An audio element that exists only in memory is refused by some phone browsers — the classic reason a
+   * An audio element that exists only in memory is refused by some phone browsers, the classic reason a
    * score plays on a desktop and is silent on a phone. It is a one-pixel, transparent element at the end
    * of the body: present for the browser, invisible to the traveller, and never in the way of a tap.
    */
@@ -256,7 +256,7 @@ function prefetch(next: Track | undefined): void {
  * Begin starts the chapter's song, and the chapter's own effect asks the score for that same song a
  * moment later. Both calls used to go through `play()`, and a phone aborts the first play when a second
  * arrives on the same element while it is still loading: the element ends up stopped while the score's
- * state says "on". That is why the music only arrived after the switch had been tapped off and on — the
+ * state says "on". That is why the music only arrived after the switch had been tapped off and on, the
  * second tap was the first play that nothing interrupted.
  */
 function begin(slot: Slot): void {
@@ -432,7 +432,7 @@ export function resumeSound(track: Track, next?: Track): void {
  * **What the score is actually doing, in words, for a phone I cannot hear.**
  *
  * Shown behind `?sound=debug`. It names the file, whether the player is moving, what its volume is, and
- * what a refusal called itself — the four things that separate one cause from another.
+ * what a refusal called itself, the four things that separate one cause from another.
  */
 export function soundDiagnostics(): string[] {
   const lines: string[] = [];

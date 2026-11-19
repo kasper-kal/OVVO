@@ -2,7 +2,7 @@ import { MODE_LABELS } from '../lib/format';
 import type { PublicMode, TravelMode } from './types';
 
 /**
- * Travel preferences — used both by the planner form and the results engine.
+ * Travel preferences, used both by the planner form and the results engine.
  *
  * One list of modes: a mode is either allowed or not used at all. The separate
  * "avoid" list was dropped because allowing and avoiding had the identical
@@ -19,7 +19,7 @@ export interface Preferences {
   /**
    * How the traveller reaches the first stop and leaves the last one. Walking and cycling
    * are the app's two access modes (see `ACCESS_MODE_HINTS`), and they are answered at the
-   * two ends of the journey rather than as another allowed/not-allowed mode — the two
+   * two ends of the journey rather than as another allowed/not-allowed mode, the two
    * chips on the results screen. A journey whose access leg is a bicycle one is only
    * offered when the departure end asks for it, and the same at the arrival end.
    */

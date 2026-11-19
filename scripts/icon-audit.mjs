@@ -8,11 +8,11 @@
  * eye, not by us.
  *
  * What it asserts, for every `svg[data-icon]` (the set is Lucide, plus Tabler's walk):
- *   1. it is square                — a flex row that runs short must not shrink one axis only
- *   2. it is drawn at a whole pixel — a fractional size rasterises blurred
+ *   1. it is square               , a flex row that runs short must not shrink one axis only
+ *   2. it is drawn at a whole pixel, a fractional size rasterises blurred
  *   3. it carries a known name and a stroke
  *   4. it sits on the optical centre of the text beside it (within TOLERANCE px)
- *      — the library places a glyph's ink a little above the box centre on purpose, to sit
+ *     , the library places a glyph's ink a little above the box centre on purpose, to sit
  *        with a text line, so the check is against the *text*, not against box symmetry.
  *
  * Run it against a dev server:   node scripts/icon-audit.mjs [origin]
@@ -79,7 +79,7 @@ for (const width of WIDTHS) {
        * How far below its line box's top edge a baseline sits, for one font and line-height.
        * Calibrated offscreen on a stand-in with the same font: a zero-height inline-block sets
        * its bottom edge on the baseline, so the distance from the box top to its top edge is the
-       * half-leading plus the ascent. This is read rather than calculated — canvas font metrics
+       * half-leading plus the ascent. This is read rather than calculated, canvas font metrics
        * disagreed with the layout by 5–8px and turned correct lines into failures.
        */
       const baselines = new Map();
@@ -197,8 +197,8 @@ for (const width of WIDTHS) {
     });
     for (const icon of found) {
       instances.push({ route, width, ...icon });
-      if (Math.abs(icon.width - icon.height) > 0.01) failures.push(`${route} @${width}: ${icon.name} is ${icon.width}x${icon.height} — not square`);
-      if (Math.abs(icon.width - Math.round(icon.width)) > 0.01) failures.push(`${route} @${width}: ${icon.name} drawn at ${icon.width}px — not a whole pixel`);
+      if (Math.abs(icon.width - icon.height) > 0.01) failures.push(`${route} @${width}: ${icon.name} is ${icon.width}x${icon.height}, not square`);
+      if (Math.abs(icon.width - Math.round(icon.width)) > 0.01) failures.push(`${route} @${width}: ${icon.name} drawn at ${icon.width}px, not a whole pixel`);
       if (!icon.name || icon.name === '?') failures.push(`${route} @${width}: an icon with no name`);
       if (!icon.stroke) failures.push(`${route} @${width}: ${icon.name} with no stroke width`);
       if (icon.textCentre !== null) {
@@ -230,12 +230,12 @@ console.log(`${orphans.length} icon instance(s) in icon-only controls: square, w
 console.log('name              size  stroke   n     ink centre vs its box (24 units)    vs the text beside it');
 for (const g of rows) {
   const off = (g.offsets.reduce((s, v) => s + v, 0) / g.offsets.length).toFixed(1);
-  const vs = g.vsText.length ? (g.vsText.reduce((s, v) => s + v, 0) / g.vsText.length).toFixed(2) + 'px' : '—';
+  const vs = g.vsText.length ? (g.vsText.reduce((s, v) => s + v, 0) / g.vsText.length).toFixed(2) + 'px' : ',';
   console.log(`${g.name.padEnd(16)} ${String(g.size).padStart(4)}  ${g.stroke.padEnd(7)} ${String(g.n).padStart(4)}  ${off.padStart(17)}  ${vs.padStart(22)}`);
 }
 if (failures.length) {
-  console.log(`\nFAILED — ${failures.length} problem(s):`);
+  console.log(`\nFAILED, ${failures.length} problem(s):`);
   for (const f of failures) console.log('  ' + f);
   process.exit(1);
 }
-console.log(`\nOK — every icon is square, at a whole pixel, named and weighted, and within ${TOLERANCE}px of its label's optical centre.`);
+console.log(`\nOK, every icon is square, at a whole pixel, named and weighted, and within ${TOLERANCE}px of its label's optical centre.`);

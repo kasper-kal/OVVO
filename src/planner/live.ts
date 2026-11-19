@@ -3,7 +3,7 @@
  *
  * The page plans a journey, then asks the app's own `/api/live` for those exact trips. The worker
  * reads the national realtime feed and answers with the delays it knows and nothing else. If the
- * feed cannot be read, the page says live times are unavailable — it never falls back to "on time",
+ * feed cannot be read, the page says live times are unavailable, it never falls back to "on time",
  * because a made-up delay is worse than no delay.
  */
 

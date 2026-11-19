@@ -8,7 +8,7 @@
  * chosen, with the board too, and this happens with other things too").
  *
  * Nothing in the DOM says a keyboard is up, so the honest test is the one the platform itself
- * uses: a **coarse pointer that cannot hover** — a finger. The act is a blur of whichever field
+ * uses: a **coarse pointer that cannot hover**, a finger. The act is a blur of whichever field
  * still has focus.
  *
  * Touch only, on purpose. On a desktop, focus is the keyboard navigation order, and taking it away

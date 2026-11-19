@@ -240,7 +240,7 @@ await browser.close();
 
 const groups = new Map();
 for (const row of findings) {
-  const key = `${row.kind} — ${row.where}`;
+  const key = `${row.kind}, ${row.where}`;
   if (!groups.has(key)) groups.set(key, new Map());
   const byRoute = groups.get(key);
   const routeKey = `${row.route} @${row.width}: ${row.detail}`;
@@ -253,7 +253,7 @@ for (const [key, routes] of [...groups].sort()) {
   for (const [route, count] of [...routes].sort()) console.log(`    ${route}${count > 1 ? ` ×${count}` : ''}`);
 }
 if (findings.length) {
-  console.log('\nFAIL — something is drawn against a frame.');
+  console.log('\nFAIL, something is drawn against a frame.');
   process.exit(1);
 }
-console.log('\nOK — every framed control has room for its furniture.');
+console.log('\nOK, every framed control has room for its furniture.');

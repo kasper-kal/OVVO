@@ -7,14 +7,14 @@ import { ErrorScreen } from './ErrorScreen';
  * A class, because that is still the only way React offers to catch a render error. It is used
  * twice and for two different jobs:
  *
- *   • around the whole app (`main.tsx`, `variant="page"`) — catches a crash in the state
+ *   • around the whole app (`main.tsx`, `variant="page"`), catches a crash in the state
  *     provider, the router or the shell itself, where there is no header left to keep;
- *   • around the shell's `<main>` (`components/layout/AppShell.tsx`, `variant="inline"`) — catches
+ *   • around the shell's `<main>` (`components/layout/AppShell.tsx`, `variant="inline"`), catches
  *     a crash in one screen and leaves the rest of the app standing, so the traveller can simply
  *     go somewhere else.
  *
  * `resetOnAddress` is for the outer one. Once the whole app has been replaced by the error card,
- * the way out is a plain link to `/` (`layout/ErrorScreen`), which the browser loads from scratch —
+ * the way out is a plain link to `/` (`layout/ErrorScreen`), which the browser loads from scratch ,
  * the app comes back because the page did. What the listener adds is the *other* way an address
  * changes: the back and forward buttons, which move history without reloading anything and would
  * otherwise leave a dead error card on a screen the traveller had already left. The inner one needs

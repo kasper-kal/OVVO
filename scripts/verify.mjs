@@ -10,13 +10,13 @@
  *
  * So this runs them together, from nothing:
  *
- *   1. `tsc --noEmit`           — the code type-checks.
- *   2. `em-dash-audit`          — no em dash in any text the traveller can read.
- *   3. `vite build`             — the app builds.
- *   4. `install-audit`          — Chrome itself says the built app can be installed.
- *   5. `layout-audit`           — no sideways scroll, nothing covered, every screen starts at its top.
- *   6. `ui-audit`               — contrast, touch targets and clipped text on every route.
- *   7. `colour-audit`           — the same, for every palette the Colours screen can produce.
+ *   1. `tsc --noEmit`          , the code type-checks.
+ *   2. `em-dash-audit`         , no em dash in any text the traveller can read.
+ *   3. `vite build`            , the app builds.
+ *   4. `install-audit`         , Chrome itself says the built app can be installed.
+ *   5. `layout-audit`          , no sideways scroll, nothing covered, every screen starts at its top.
+ *   6. `ui-audit`              , contrast, touch targets and clipped text on every route.
+ *   7. `colour-audit`          , the same, for every palette the Colours screen can produce.
  *
  * Items 4–6 run against the **built** app, served here on a private port, because that is what a
  * phone gets: the service worker, the hashed bundles, the whole thing. The dev server would hide

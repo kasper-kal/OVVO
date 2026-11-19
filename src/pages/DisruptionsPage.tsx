@@ -117,7 +117,7 @@ export function DisruptionsPage() {
   );
 
   /**
-   * How many of the filters behind Options are off their defaults — the count on the chip,
+   * How many of the filters behind Options are off their defaults, the count on the chip,
    * the same one the stops list and the results screen put there. The search and the sort are
    * not counted: they are the two controls that stay on screen.
    */
@@ -140,8 +140,8 @@ export function DisruptionsPage() {
   };
 
   /*
-   * The list grows the way the stops list does — five rows at a time, the next batch on a scroll
-   * — from the same rule in `lib/loadBatch.ts`, measured off this list's own layout rather than
+   * The list grows the way the stops list does, five rows at a time, the next batch on a scroll
+   *, from the same rule in `lib/loadBatch.ts`, measured off this list's own layout rather than
    * hard-coded. A new question starts at the top of the list, not three screens into the old
    * answer, which is what the reset on every filter change is for.
    */
@@ -164,7 +164,7 @@ export function DisruptionsPage() {
 
       <Card className="stack">
         {/*
-          The search, the pinned-only chip, the sort and one Options chip — the same things
+          The search, the pinned-only chip, the sort and one Options chip, the same things
           Stations & stops puts on screen, in the same order. Type, severity, mode and the affected
           stop live inside Options, and Reset filters lives in there with them, beside the filters
           it clears.
@@ -174,7 +174,7 @@ export function DisruptionsPage() {
         */}
         <div className="stops-filters" data-filter-row>
           {/*
-            `e.g.` is never capitalised, so the example placeholder read as a lowercase start —
+            `e.g.` is never capitalised, so the example placeholder read as a lowercase start ,
             the capitalisation audit's one honest exception at the time. Written as words, the
             capital is real and the rule has nothing left to except.
           */}
@@ -190,7 +190,7 @@ export function DisruptionsPage() {
           </label>
 
           {/*
-            Favourites-only stays out here on purpose — it is the filter people reach for first —
+            Favourites-only stays out here on purpose, it is the filter people reach for first ,
             while everything else sits inside Options.
           */}
           <Chip selected={favouritesOnly} icon="heart" onClick={() => setFavouritesOnly((value) => !value)}>
@@ -287,7 +287,7 @@ export function DisruptionsPage() {
         ) : null}
 
         {/*
-          Which answer the order came from, said plainly, and only while it is in use — the rule
+          Which answer the order came from, said plainly, and only while it is in use, the rule
           the stops list already follows: an IP estimate is never presented as a device fix.
         */}
         {activeSort === 'nearest' && nearestOrigin ? (
@@ -303,7 +303,7 @@ export function DisruptionsPage() {
             {/*
               No "Filter options" heading row. It was an icon and two words above the filters,
               which read as a control of their own and said nothing the Options chip above did not
-              already say — the row the traveller circled here, on the stops list and on the
+              already say, the row the traveller circled here, on the stops list and on the
               results screen. What stays is what was on the right of it: how many filters differ
               from the defaults, and the control that clears them.
             */}
@@ -412,7 +412,7 @@ export function DisruptionsPage() {
 
           {/*
             The foot of the list, watched by the loader, and the button for a browser without
-            an observer or a scroll to make — the button is a real button rather than a
+            an observer or a scroll to make, the button is a real button rather than a
             decoration, exactly as it is on Stations & stops.
           */}
           {hasMore ? (
@@ -436,8 +436,8 @@ export function DisruptionsPage() {
         traveller had planned in this session, two sentences explaining that rule, a link back
         to the results and a button that re-ran the search it had just run. Deleted on the
         traveller's instruction, and it was the right call twice over: the count is a fact about
-        a *different* screen's question — the alerts list is a network-wide list and knows
-        nothing about anybody's journey — and the search it read lives only in memory
+        a *different* screen's question, the alerts list is a network-wide list and knows
+        nothing about anybody's journey, and the search it read lives only in memory
         (`AppState`'s `search` starts null on every load), so the panel could not be trusted to
         mean the same thing twice.
       */}
@@ -454,7 +454,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
   const to = `/disruptions/${alert.id}`;
   return (
     /*
-     * The card is the way into the alert — the same component, the same lift and the same one
+     * The card is the way into the alert, the same component, the same lift and the same one
      * real link as a stop card and a journey card (`components/ui/ResultCard.tsx`,
      * MATCHING_PLAN rule 4). The title is the link; the action below it is a control, so the two
      * cannot navigate twice.
@@ -486,7 +486,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
       {/*
         What to do, not what is happening: the advice line, and the detail page carries the rest.
         The card used to add the description, a mode badge per mode, a pill per operator and a chip
-        per affected stop — nine or ten things to read on a row whose only question is "what do I
+        per affected stop, nine or ten things to read on a row whose only question is "what do I
         do about this?"
       */}
       <p className="t-sm t-clamp-2">{words.advice}</p>
@@ -509,7 +509,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
           {/*
             **A stop is a glyph; its word is only spoken.**
 
-            This read `Affected stops (3) :` — a label, then a stray space before a colon, on every
+            This read `Affected stops (3) :`, a label, then a stray space before a colon, on every
             alert card. The count and the names are the fact; the label is the category, so it takes
             the station's glyph and keeps its words in an `sr-only` span. The names themselves stay
             words: each one is a link to that stop.
@@ -541,7 +541,7 @@ function AlertCard({ alert }: { alert: Disruption }) {
           className="btn btn--primary btn--sm"
           /*
             "Alert details & advice" on every card is one name repeated down the whole list, each
-            going to a different alert — indistinguishable in a screen reader's link list. The
+            going to a different alert, indistinguishable in a screen reader's link list. The
             visible words lead the name; the alert's own title tells the five apart.
           */
           aria-label={t('Alert details & advice: {title}', { title: words.title })}

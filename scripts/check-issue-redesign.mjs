@@ -37,7 +37,7 @@ await page.waitForTimeout(700);
 
 const cover = page.locator('.issue-page--cover');
 if (!(await cover.isVisible().catch(() => false))) {
-  console.log('ISSUE REDESIGN: FAIL — the cover is not an issue page');
+  console.log('ISSUE REDESIGN: FAIL, the cover is not an issue page');
   process.exit(1);
 }
 
@@ -135,6 +135,6 @@ if (failures.length) {
 }
 
 console.log(
-  `ISSUE REDESIGN: PASS — ${present.length} issue pages, 0 old layers visible, ` +
+  `ISSUE REDESIGN: PASS, ${present.length} issue pages, 0 old layers visible, ` +
     `${classes.size} distinct layouts, ${headings.size} distinct headlines, ${backgrounds.size} page colours, no page overflow.`,
 );

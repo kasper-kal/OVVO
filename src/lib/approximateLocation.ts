@@ -1,14 +1,14 @@
 /**
  * Where the traveller probably is, when the device will not say.
  *
- * The stops list is sorted nearest-first, and the device's own answer is the good one — but it
+ * The stops list is sorted nearest-first, and the device's own answer is the good one, but it
  * may be refused, unavailable, or simply never asked for, and "sorted by city name" is not an
  * answer to "what is near me". So the browser's own network address is asked instead, once a
  * day, and the estimate it returns is kept.
  *
  * It is **approximate and allowed to be wrong**: an IP address locates a network, not a person,
  * and a mobile connection can land a hundred kilometres away. The rule that keeps that
- * acceptable is that the app never presents it as a device fix — the screen says which one it
+ * acceptable is that the app never presents it as a device fix, the screen says which one it
  * used, in the traveller's own language, and the device fix always wins when there is one.
  *
  * Two services are asked, in order, because one of them rate-limits by the caller's address and a
@@ -22,7 +22,7 @@
  * on 2026-10-25, `ipwho.is` was still **429** while `freeipapi.com` still answered **200**. Asking
  * the reliable one first is not a preference: with the old order every fresh visit made a request
  * that could not succeed, waited for its answer, and logged a console error before the fallback
- * supplied the same estimate — a failure the traveller never asked for, on the one path that is
+ * supplied the same estimate, a failure the traveller never asked for, on the one path that is
  * meant to be silent. `ipwho.is` stays as the fallback it can actually be, and `ipapi.co` was
  * tried and answered 429 too, so it is not in the list.
  *
@@ -42,7 +42,7 @@ interface Provider {
 /*
  * The first name here is the one measured to answer a browser, and it is first for that reason
  * alone: `askProviders` already keeps asking until one answers, so the order decides only how
- * many requests a fresh visit makes before it gets its estimate — and the old order made one that
+ * many requests a fresh visit makes before it gets its estimate, and the old order made one that
  * could never succeed.
  */
 const PROVIDERS: readonly Provider[] = [
@@ -120,8 +120,8 @@ export function writeApproximateLocation(fix: ApproximateLocation): void {
 }
 
 /**
- * Ask the network where it thinks we are. Resolves `null` on every kind of failure — a blocked
- * request, no network, a rate limit, a body that is not the shape we expect — because the caller
+ * Ask the network where it thinks we are. Resolves `null` on every kind of failure, a blocked
+ * request, no network, a rate limit, a body that is not the shape we expect, because the caller
  * has nothing different to do about any of them.
  */
 /**

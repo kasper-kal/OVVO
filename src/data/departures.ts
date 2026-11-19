@@ -116,7 +116,7 @@ export function boardForStop(stopId: string, options: BoardOptions): Departure[]
 }
 
 /**
- * One line's board at one stop — the screen a line row in "Lines calling here" opens (F20).
+ * One line's board at one stop, the screen a line row in "Lines calling here" opens (F20).
  *
  * `boardForStop` cannot answer this: it builds every line's departures and only then cuts the
  * list to `limit`, so a line that is not among a busy stop's first dozen services would come
@@ -163,8 +163,8 @@ function makeDeparture(
   /*
    * **A refresh must not change what the board says.**
    *
-   * The refresh counter (`BoardOptions.tick`) used to be part of this seed, so every five seconds —
-   * and every time the tab came back to the front, which ticks immediately — a service was re-rolled
+   * The refresh counter (`BoardOptions.tick`) used to be part of this seed, so every five seconds ,
+   * and every time the tab came back to the front, which ticks immediately, a service was re-rolled
    * and could turn from on time into late, or from cancelled into running. The board's own line then
    * went from "4 delays in this window" to "1 delay in this window" with nothing having happened on
    * the line: a refresh is a repaint, and a fact about a departure is not a repaint.
@@ -219,7 +219,7 @@ export function filterDepartures(departures: Departure[], options: BoardOptions)
   });
 }
 
-/** Stops with the most departures per hour — used for the departure-board shortcuts. */
+/** Stops with the most departures per hour, used for the departure-board shortcuts. */
 export function busiestStops(limit = 6): string[] {
   const counts = new Map<string, number>();
   for (const line of NETWORK) {

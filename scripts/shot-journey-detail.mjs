@@ -1,5 +1,5 @@
 /**
- * **A journey's own page, photographed, with its height** — so a change that removes noise can be
+ * **A journey's own page, photographed, with its height**, so a change that removes noise can be
  * checked by how much shorter the page got, not by how it feels.
  *
  * Usage: node scripts/shot-journey-detail.mjs before|after

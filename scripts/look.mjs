@@ -1,27 +1,27 @@
 /**
  * **One command that looks at everything, and remembers what it saw.**
  *
- * `ui-audit` runs, passes, and the app still looks wrong — so this does not call it, trust it or
+ * `ui-audit` runs, passes, and the app still looks wrong, so this does not call it, trust it or
  * repeat its rules. It is a second, independent pair of eyes that asks questions the other
  * instruments never ask:
  *
- *   1. **near-miss alignment** — siblings of the same class whose left edge differs by between half
+ *   1. **near-miss alignment**, siblings of the same class whose left edge differs by between half
  *      a pixel and eight. That is the defect a person sees as "this one is off" and a screenshot
  *      cannot quantify: the third card is at 18px while the two above it are at 16px.
- *   2. **icon on its text's line** — an icon beside a word, where the two optical centres differ by
+ *   2. **icon on its text's line**, an icon beside a word, where the two optical centres differ by
  *      more than 1.5px. This is the bug that made a walker read as sitting down.
- *   3. **nested corners** — a padded box with a radius, holding a child with its own radius, where
+ *   3. **nested corners**, a padded box with a radius, holding a child with its own radius, where
  *      `outer − padding ≠ inner`. The formula is the project's own; drift from it is visible as a
  *      corner that is tighter or looser than the surface it sits in.
- *   4. **effective tap area** — the real hit area, probed outward with `elementFromPoint`, so a
+ *   4. **effective tap area**, the real hit area, probed outward with `elementFromPoint`, so a
  *      target grown by a pseudo-element counts and a paint box does not. A link that is a word in a
  *      sentence (`.stop-link`) is exempt by `AGENTS.md` rule 8: it is sized by its line, and
  *      padding it would put a square over the words beside it.
- *   5. **clipped text** — words wider or taller than a box that hides overflow.
+ *   5. **clipped text**, words wider or taller than a box that hides overflow.
  *   6. **the page scrolling sideways**, and any **runtime error** thrown while it loads.
  *
- * Every finding is a measurement with numbers, fingerprinted into `audit/findings.jsonl` — a
- * tracked file — so a defect is reported once, and its fix is proven by re-running the same command.
+ * Every finding is a measurement with numbers, fingerprinted into `audit/findings.jsonl`, a
+ * tracked file, so a defect is reported once, and its fix is proven by re-running the same command.
  * If a run finds nothing new, it says so; if it finds something new, it exits 1.
  *
  *   node scripts/look.mjs --sample          # 3 themes × 2 languages × 2 widths × 3 screens
@@ -33,7 +33,7 @@
  * **A run is not a proof the app is right.** It is a proof that these six rules hold in these
  * states, and the register records which states were looked at. What it cannot see: taste, whether
  * a colour is pleasant, whether a layout feels calm, whether the words are right. Those still need
- * a person — but a person should be *steering*, not finding a 2px offset for the fortieth time.
+ * a person, but a person should be *steering*, not finding a 2px offset for the fortieth time.
  */
 import './browser-path.mjs';
 import { chromium } from 'playwright';
@@ -159,7 +159,7 @@ function measure() {
 
     const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 1);
 
-    /* 1. clipped text — but a line clamp is a **decision**, not a defect: `t-clamp-2` says "two
+    /* 1. clipped text, but a line clamp is a **decision**, not a defect: `t-clamp-2` says "two
      * lines, then an ellipsis". Reporting it would teach everyone to ignore this list. */
     const clamped = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
     if (hasText && !clamped && cs.overflow === 'hidden' && (el.scrollWidth - el.clientWidth > 2 || el.scrollHeight - el.clientHeight > 2)) {
@@ -174,7 +174,7 @@ function measure() {
       const childBox = child.getBoundingClientRect();
       const inner = parseFloat(getComputedStyle(child).borderTopLeftRadius) || 0;
       const spans = childBox.width >= box.width - pad * 2 - 2;
-      /* A circle — an avatar, a dot — is not a nested corner; `radius: 50%` never follows the
+      /* A circle, an avatar, a dot, is not a nested corner; `radius: 50%` never follows the
        * outer-minus-padding formula and never should. */
       const circular = inner >= Math.min(childBox.width, childBox.height) / 2 - 1;
       /* A click-anywhere stretch layer is laid over the row's padding on purpose, radius and all.
@@ -199,7 +199,7 @@ function measure() {
       if (!target) {
         const sibling = el.nextElementSibling ?? el.previousElementSibling;
         /* Inside a flex row a <span> computes as `block`, so "is it inline" is the wrong question.
-         * "Is it one short line of type" is the right one — that is what shares a baseline. */
+         * "Is it one short line of type" is the right one, that is what shares a baseline. */
         if (sibling) {
           const sb = sibling.getBoundingClientRect();
           const size = parseFloat(getComputedStyle(sibling).fontSize) || 16;
@@ -216,7 +216,7 @@ function measure() {
           tb = target.getBoundingClientRect();
         }
         if (tb.height > 0) {
-          /* Only a **pair**: the word has to be the one on the icon's own line — beside it
+          /* Only a **pair**: the word has to be the one on the icon's own line, beside it
            * horizontally, sharing most of its height. Without this, a marker at the top of a map
            * and a label at the bottom are "6px apart on one axis" and 127px apart on the other. */
           const gap = Math.max(tb.left, box.left) - Math.min(tb.right, box.right);
@@ -261,7 +261,7 @@ function measure() {
     }
   }
 
-  /* 5. effective tap area, probed outward — 44px, with a word inside a sentence exempt */
+  /* 5. effective tap area, probed outward, 44px, with a word inside a sentence exempt */
   const hit = (el, x, y) => {
     const t = document.elementFromPoint(x, y);
     return !!t && (t === el || el.contains(t));
@@ -328,7 +328,7 @@ function writeReport() {
     '',
   ];
   for (const [kind, findings] of [...byKind.entries()].sort((a, b) => b[1].length - a[1].length)) {
-    lines.push(`## ${kind} — ${findings.length}`, '');
+    lines.push(`## ${kind}, ${findings.length}`, '');
     const seen = new Set();
     for (const f of findings) {
       const shape = `${f.screen} · ${f.styleId} · ${f.language} · ${f.width}px · ${f.detail}`;
@@ -390,7 +390,7 @@ if (args.includes('--selftest')) {
   for (const [name, fired] of rules) console.log(`${fired ? 'sees' : 'BLIND TO'}  ${name}  (${beforeCount[name]} → ${afterCount[name]})`);
   await probe.close();
   const blind = rules.filter(([, fired]) => !fired);
-  console.log(blind.length === 0 ? '\nthe instrument sees all five rules fire' : `\n${blind.length} rule(s) never fired — the instrument is not trustworthy`);
+  console.log(blind.length === 0 ? '\nthe instrument sees all five rules fire' : `\n${blind.length} rule(s) never fired, the instrument is not trustworthy`);
   process.exit(blind.length === 0 ? 0 : 1);
 }
 

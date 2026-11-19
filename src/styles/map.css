@@ -1,5 +1,5 @@
 /* =============================================================================
-   OV PLANNER — ILLUSTRATIVE MAP MODULE
+   OV PLANNER, ILLUSTRATIVE MAP MODULE
    [OCR Visual Transcode - Illustrative Map]
    CANVAS: viewBox 0 0 100 100 | WATER=#E1EADF | LAND=#F3F1EA |
    ROUTE_STROKE=#18181B w=1.2 | ROUTE_ACTIVE=#FF7E67 w=1.6 | STOP_R=1.2 |
@@ -23,13 +23,13 @@
  * **Anything wider gets a plate, not a bigger square.** The plate is the canvas box: it takes the
  * full width it is handed and a *fixed* height, and the square drawing sits in the middle of it on
  * its own water (the `min-width: 720px` block below). It used to be sized `min(100%, 70vh)`, which
- * is a square that grows with the **viewport height** — the same card drew a 630px map on a 900px
+ * is a square that grows with the **viewport height**, the same card drew a 630px map on a 900px
  * window and a 756px one on a 1080px window, taller every time the window was, which is the exact
  * thing that was reported: *it should get bigger horizontally only, not vertically too*. A fixed
  * height has no viewport in it, so widening the window widens the map and stops there; the `vh`
  * term that remains is a cap for short windows (a laptop on its side), never a size.
  *
- * The drawing itself cannot be stretched — one 0–100 canvas with the network fitted to 86 units
+ * The drawing itself cannot be stretched, one 0–100 canvas with the network fitted to 86 units
  * and every name inside it, so `slice` would drop the outermost stops and a non-uniform scale
  * would move them off their places. What can be wide is the surface they are drawn on.
  */
@@ -46,7 +46,7 @@
   /*
    * **The plate is the drawing's own ground, not the card's.** It was `--l1-bg`, so on a tinted
    * page the frame around the drawing was the card's lighter step while the labels on it are the
-   * map's ink — measured on a navy page as 3.5:1 dark-on-#5a708f, for a drawing whose labels sit
+   * map's ink, measured on a navy page as 3.5:1 dark-on-#5a708f, for a drawing whose labels sit
    * on land at 16:1. The land and the water are what the map paints with, so they are what shows
    * wherever the plate does (the 720px rule below already continues the water across it).
    */
@@ -61,7 +61,7 @@
  * **The map keeps the theme's palette inside a tinted card.**
  *
  * The tint scopes a card's ink, and the map is a drawing whose ink, land and water were measured
- * against each other — not against a widget. Left alone, a dark tint's light ink landed on the
+ * against each other, not against a widget. Left alone, a dark tint's light ink landed on the
  * map's dark water (**1.11:1**, measured on the dark appearance) and a light tint's dark ink landed
  * on pale land (**1.19:1**). So the drawing resets the ink tokens it inherits to the ones its own
  * palette is built on: a map is a map on any surface, the same way a photograph would be.
@@ -71,7 +71,7 @@
 :root[data-surface='split'] .map-canvas {
   /*
    * **The drawings ink, in the one property everything inherits.** Resetting the ink tokens is
-   * enough for every shape — they are painted with `fill` — but the *inherited colour* on the
+   * enough for every shape, they are painted with `fill`, but the *inherited colour* on the
    * canvas stayed the card's, so on a dark page the drawing carried light ink in `color` while it
    * painted dark: any child that reads `currentColor`, and every measurement taken from the
    * rendered colour, then disagreed with what is actually on the glass (a navy page measured the
@@ -128,7 +128,7 @@
 }
 
 /* The local view's names: 3.2 units of a 0–100 canvas, which is 10–11px on a 330px phone map.
-   At 2.1 they measured 6px at 768 — smaller than the body text beside them (5.3). */
+   At 2.1 they measured 6px at 768, smaller than the body text beside them (5.3). */
 .map-stop text {
   font-size: 3.2px;
   fill: var(--ink);
@@ -211,7 +211,7 @@
 /*
  * **The map's mode chips: a glyph, a word, and the mode's colour on the glyph.**
  *
- * `.map-route--*` draws each mode in a colour, and these chips are the key to it — so the ink of
+ * `.map-route--*` draws each mode in a colour, and these chips are the key to it, so the ink of
  * the glyph is the route's colour and the shape is the mode's. (They used to carry a coloured dash
  * beside the word: a colour with no name, which six of these had in common for a traveller who
  * cannot separate sage from butter.)
@@ -226,7 +226,7 @@
  * `--map-ink` is the colour the train line is drawn in *on the map*, and it is a property of the
  * drawing, not of the chip the glyph sits in: cream in the dark appearance, near-black in the
  * light one. Painted straight onto a chip, that is the wrong surface's ink the moment a traveller
- * chooses a page colour that flips the chip's surface — measured **2.54:1** on a coral page in the
+ * chooses a page colour that flips the chip's surface, measured **2.54:1** on a coral page in the
  * dark appearance, where the chip came out light pink and the glyph stayed cream. Mixing it with
  * the surface's own ink, exactly as bus and metro already do, keeps the line's colour as the key
  * and lets the chip's surface decide the rest.
@@ -243,7 +243,7 @@
  * **2.49:1** and metro rgb(201,162,39) at **2.42:1** on the white chip, where an icon needs 3:1.
  * Mixing the colour two parts to one with the theme's ink keeps the hue and the key, and darkens
  * it enough to read; in the dark appearance the ink is light, so the same mix lightens instead of
- * darkening — which is why this is a mix with `--ink` and not a second hard-coded colour.
+ * darkening, which is why this is a mix with `--ink` and not a second hard-coded colour.
  */
 .map-mode-chip--bus .icon {
   color: color-mix(in srgb, var(--map-accent) 62%, var(--ink));
@@ -268,7 +268,7 @@
 }
 
 /* The home widget draws the whole country on the same canvas, at the size `.map-canvas` gives it
-   (it sets no size of its own — the plate is shared). The names are a shade larger than the local
+   (it sets no size of its own, the plate is shared). The names are a shade larger than the local
    view's: this canvas carries the whole network at once. */
 /*
  * The whole network's names, sized for the screen they are on.
@@ -306,7 +306,7 @@
 
 /*
  * From a tablet up, every map is a **plate**: as wide as the card hands it, and a height that is a
- * constant. That is the whole of the reported fix — the map widens with the room and does not
+ * constant. That is the whole of the reported fix, the map widens with the room and does not
  * grow taller with the window.
  *
  * The drawing inside cannot be stretched. It is one 0–100 canvas with the network fitted to 86
@@ -316,7 +316,7 @@
  * that reaches the edges of what it sits on, on water the drawing itself is painted with,
  * instead of a square stranded on 200px of card either side.
  *
- * Measured after the change, at 1440×900 and again at 1920×1080 — the same numbers both times:
+ * Measured after the change, at 1440×900 and again at 1920×1080, the same numbers both times:
  * home widget 662×497 (it was a 630 square, then a 662 square), map screen 1018×573 (1018×630,
  * then 1018×756), stop page 484×363 (a 484 square). Every one of those grew downwards with the
  * window before; now the height is a property of the width, so a wider window widens the map and
@@ -325,7 +325,7 @@
 @media (min-width: 720px) {
   .map-canvas {
     /* The width is the room it was handed; the height follows *that*, at four-thirds, so the plate
-       is always landscape — including the stop page's map, which sits in a narrow second column
+       is always landscape, including the stop page's map, which sits in a narrow second column
        and would have been a 484×500 column under a fixed height. This is where the drawing's
        intrinsic square is replaced on purpose. `max-height` is where the height stops following
        the width: past it the plate grows sideways only, which is the requested behaviour, and the
@@ -358,7 +358,7 @@
 /*
  * The home map, at one size.
  *
- * Three tier rules used to give it a ratio each — 16/9, 4/3 and 1/1 — up to 720px tall, which made
+ * Three tier rules used to give it a ratio each, 16/9, 4/3 and 1/1, up to 720px tall, which made
  * the map the tallest thing on the screen by a wide margin and the reason a row of cards beside it
  * could not be filled. It is one plate again: sixteen-by-nine of the card's width and never taller
  * than 480px, which is the plate this widget drew when the drawing itself was capped at 480px
@@ -409,7 +409,7 @@
  * The picker's canvas fills the surface it is given, at every width.
  *
  * From 720 the shared `.map-canvas` rule gives the plate a 4:3 aspect and caps its height at
- * min(500px, 58vh) — right for the card on the map screen, wrong here: the picker's surface was
+ * min(500px, 58vh), right for the card on the map screen, wrong here: the picker's surface was
  * 630 tall beside a 500-tall drawing, so 130px of empty ground sat under the map and above the
  * sheet, and the square viewBox was sliced into a landscape box (28.4). The drawing is the screen
  * on this one, so it takes the whole box and lets the viewBox do the cropping.
@@ -435,11 +435,11 @@
 }
 
 /*
- * The pin: ink ring, paper centre, a short stem — drawn over the map, never in it.
+ * The pin: ink ring, paper centre, a short stem, drawn over the map, never in it.
  *
  * **The tip is the point, not the middle of the pin.** Centred on the surface with
  * `translate(-50%, -50%)`, the 16px stem hung *below* the measured point, so the pin named one
- * place and pointed at another — 51px away at 390 and 162px at 1440 (28.3). Anchored by its
+ * place and pointed at another, 51px away at 390 and 162px at 1440 (28.3). Anchored by its
  * bottom, the tail ends exactly where the nearest stop is measured from.
  */
 .map-pin {
@@ -541,7 +541,7 @@
 /* ------------------------------------------------------- the map screen's list */
 /*
  * The drawing is one picture (3.3): a keyboard could not reach a single stop and a screen reader
- * was told a sentence. This is the same map as words — every stop on it, each one a link — closed
+ * was told a sentence. This is the same map as words, every stop on it, each one a link, closed
  * by default so the screen still opens on the drawing.
  */
 .map-stops {

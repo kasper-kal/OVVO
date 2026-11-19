@@ -243,7 +243,7 @@ export function getStop(id: string | undefined): Stop | undefined {
   return id ? stopMap.get(id) : undefined;
 }
 
-/** Throws for unknown ids — used where a journey is guaranteed to reference a real stop. */
+/** Throws for unknown ids, used where a journey is guaranteed to reference a real stop. */
 export function requireStop(id: string): Stop {
   const stop = stopMap.get(id);
   if (!stop) throw new Error(`Unknown stop: ${id}`);
@@ -273,7 +273,7 @@ export function stopName(id: string | undefined): string {
  * The map is replaced wholesale by the provider when it loads or changes (see `AppState`), so
  * there is one copy and no listener to forget to call.
  *
- * Only stops can carry a name — the settings screen offers the list of favourites — but nothing
+ * Only stops can carry a name, the settings screen offers the list of favourites, but nothing
  * here assumes the stop is a station: "Work" for an office address is exactly the case this was
  * asked for.
  */
@@ -335,7 +335,7 @@ export function distanceFromPosition(stop: Stop, lat: number, lon: number): numb
 /**
  * A distance a person can read: metres under a kilometre, one decimal above it.
  *
- * A straight line, not a journey — the label says "away", not "travel time", because the two
+ * A straight line, not a journey, the label says "away", not "travel time", because the two
  * are different and pretending otherwise is how a prototype starts lying.
  */
 export function formatDistance(metres: number): string {
@@ -352,7 +352,7 @@ export interface NearestStop {
 }
 
 /**
- * The stop closest to a WGS84 position — used to turn a device fix into a stop.
+ * The stop closest to a WGS84 position, used to turn a device fix into a stop.
  *
  * Walking-only landmarks are skipped: they are places you walk *to*, not stops a
  * journey can depart from, so a position next to one resolves to the nearest
@@ -392,7 +392,7 @@ export function regions(): string[] {
  * A board lists services, so a place only has one if a service calls there: the landmarks and
  * street addresses in this data (`Rijksmuseum`, `Utrecht, Domtoren`, `Rotterdam, Markthal`) carry
  * `['walk', 'bike']` and no operator, and there is nothing to list at them. One rule, in one
- * place, because two callers need the same answer — the board's own stop list here, and the
+ * place, because two callers need the same answer, the board's own stop list here, and the
  * board's row of favourited locations, which must not offer something it has no board for.
  */
 export function hasBoard(stop: Stop): boolean {
@@ -406,7 +406,7 @@ export function boardStops(): Stop[] {
 /**
  * The first of a list of stop ids whose place has a board.
  *
- * Three screens pick a board's stop from a list of candidates — the board itself (requested stop,
+ * Three screens pick a board's stop from a list of candidates, the board itself (requested stop,
  * then the default origin, then a busy one), the home screen's next-departures widget, and an
  * alert's own "board here" link (its first affected stop). Each of them must skip a place with no
  * services, because that is what `hasBoard` says and a board cannot be drawn for an address. The
@@ -452,7 +452,7 @@ export function walkMinutesBetween(a: Stop, b: Stop): number {
    * A walk cannot be faster than a person.
    *
    * The canvas factor is a drawing's scale, not a pace, and it drifted: a walking-only journey
-   * measured 8,000 m covered in 15 minutes — 32 km/h — while the leg and the summary agreed with
+   * measured 8,000 m covered in 15 minutes, 32 km/h, while the leg and the summary agreed with
    * each other, so only the arithmetic could catch it (9.6). 100 m/min (6 km/h) is the fastest a
    * pedestrian is modelled at here, so a distance that implies more than that raises the minutes.
    * Every walk that already passed stays exactly as it was.

@@ -54,26 +54,26 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 ];
 
 /**
- * Journey results — and the journey's options.
+ * Journey results, and the journey's options.
  *
  * The screen is the search itself: the same two-row card as the home planner (tap an end
- * and the full-screen picker opens over the results), then four chips — how you reach the
- * first stop, how you leave the last one, when you travel, and everything else — and then
+ * and the full-screen picker opens over the results), then four chips, how you reach the
+ * first stop, how you leave the last one, when you travel, and everything else, and then
  * the journeys. Nothing about the search hides behind a "modify" button, because the
  * question and the answer are the same screen in 9292 and separating them only cost the
  * traveller a tap.
  *
  * The when has its own chip because it is the one option people change most; the rest
  * (travel preferences, carriers, result filters) is one disclosure so the list stays the
- * first thing under the card. Sorting is not a search option — it is how you read the
- * list — so it keeps its place directly above the journeys.
+ * first thing under the card. Sorting is not a search option, it is how you read the
+ * list, so it keeps its place directly above the journeys.
  */
 /**
  * The hold that is running for a search, and when it ends.
  *
  * Module scope on purpose: the screen is remounted whenever the address changes (the shell opens
  * every screen at its top), and the address is rewritten as soon as the search lands. A hold kept
- * in state alone was restarted by that remount, and by every press of **Earlier** or **Later** — a
+ * in state alone was restarted by that remount, and by every press of **Earlier** or **Later**, a
  * shimmer over a list that had already been answered. This remembers the hold itself, so a
  * re-mount of the same search continues it and an expired one starts nothing.
  */
@@ -88,11 +88,11 @@ function holdIsRunning(key: string): boolean {
  * **The journeys Earlier and Later have walked to so far.**
  *
  * Module scope for the same reason the hold above is: `ResultsPage` is remounted whenever the
- * address changes, and the address is rewritten the moment the search lands — including its
+ * address changes, and the address is rewritten the moment the search lands, including its
  * *window*, so every press of Earlier or Later is a new address and a new mount. Kept in state,
  * the pages walked so far were dropped on each press and the list came back shorter than before
  * (measured: 8, then 7, then 6). Kept here, a remount re-reads the same pages and the list only
- * ever grows. It is cleared when the search itself changes — see `spreadKey` below.
+ * ever grows. It is cleared when the search itself changes, see `spreadKey` below.
  */
 let spreadStore: { key: string; journeys: Journey[] } | null = null;
 
@@ -100,7 +100,7 @@ let spreadStore: { key: string; journeys: Journey[] } | null = null;
  * **A re-plan is not a way out of the Date and time sheet.**
  *
  * Choosing a day, a time, or which side of it you mean rewrites the address (`/results/<id>` names
- * the search), and a new address is a new render of this screen — so the sheet's own `useState` was
+ * the search), and a new address is a new render of this screen, so the sheet's own `useState` was
  * thrown away by the very tap that answered it, and the sheet vanished for good. Measured: the
  * control was gone 15ms after the press and still gone five seconds later, with the chip reading
  * "Arrive: 2 Nov · 5:00", so the answer had been taken and the sheet had not. The flag lives outside
@@ -111,8 +111,8 @@ let whenSheetStaysOpen = false;
  * **A real timetable answer, including one that arrived as a link.**
  *
  * `/plan` hands its journeys over directly (`planResult`). A pasted `/results/...` address has only
- * the question, so this plans it again from the official timetable — the same planner, the same
- * conversion — instead of dropping through to the demonstration engine below. A search that says
+ * the question, so this plans it again from the official timetable, the same planner, the same
+ * conversion, instead of dropping through to the demonstration engine below. A search that says
  * `timetable` but cannot be rebuilt says why, rather than showing invented journeys that look real.
  */
 function TimetableResults({ query, initial }: { query: SearchQuery; initial?: Journey[] }) {
@@ -185,7 +185,7 @@ function TimetableResults({ query, initial }: { query: SearchQuery; initial?: Jo
 }
 
 export function ResultsPage() {
-  /* The search the address names, if it names one — `/results/<id>` (`lib/searchLink`). */
+  /* The search the address names, if it names one, `/results/<id>` (`lib/searchLink`). */
   const { searchId } = useParams();
   const navigate = useNavigate();
   const {
@@ -263,8 +263,8 @@ export function ResultsPage() {
    * **The year's line, filled in once the list is there.**
    *
    * `startSearch` writes the run knowing only the two ends and the hour. This hands the answer's
-   * own facts to `lib/wrapped` — the changes, how long the first one on the list takes, and the
-   * lines — for the run that was just started. `noteRunOutcome` fills only a run that has no
+   * own facts to `lib/wrapped`, the changes, how long the first one on the list takes, and the
+   * lines, for the run that was just started. `noteRunOutcome` fills only a run that has no
    * minutes yet, so a re-render, a filter or a sort cannot count the same list twice.
    */
   useEffect(() => {
@@ -325,15 +325,15 @@ export function ResultsPage() {
    * **Earlier and Later add to the list; they do not replace it.**
    *
    * The list is a window of departures, and the two controls at its ends walked that window thirty
-   * minutes at a time — so every press *threw away* the journeys on screen and showed a different
+   * minutes at a time, so every press *threw away* the journeys on screen and showed a different
    * set (reported: "Earlier and later on journey results should just show more (earlier/later)
    * results instead of hiding others"). A timetable is read forwards and backwards from where you
    * are standing, so the window now only moves one end of the list: what was there stays there, and
    * the press adds the journeys this window has and the last one did not.
    *
    * The pages live in `spreadStore` above, because this screen is remounted on every press. The key
-   * is the search the pages belong to — the two ends, the hour, and the preferences they were
-   * planned with — so a genuinely new question starts a new list, while paging, a sort and a filter
+   * is the search the pages belong to, the two ends, the hour, and the preferences they were
+   * planned with, so a genuinely new question starts a new list, while paging, a sort and a filter
    * all keep the accumulated journeys.
    */
   const spreadKey = searchKey
@@ -348,7 +348,7 @@ export function ResultsPage() {
     const current = spreadStore && spreadStore.key === spreadKey ? spreadStore.journeys : journeys;
     /*
      * By **signature**, because two windows overlap: the thirty minutes they share are the same
-     * departures. Not by id — a journey's id carries the window it was planned in, so the same
+     * departures. Not by id, a journey's id carries the window it was planned in, so the same
      * 12:30 train from the 12:00 window and from the 12:30 window is two ids and one journey
      * (measured: 30 cards, 20 distinct departures). `signature` is the fingerprint the heart uses,
      * which is exactly the question "is this the same journey?".
@@ -379,7 +379,7 @@ export function ResultsPage() {
    * Two effects, one rule: what is on the screen and what is in the address are the same thing, and
    * they are kept in step in both directions.
    *
-   * The first reads the address into the screen — a reload, a bookmark, a pasted link, or the
+   * The first reads the address into the screen, a reload, a bookmark, a pasted link, or the
    * browser's back button. It only acts when the address names a *different* search from the one
    * already open, so arriving on a link cannot throw away a search the traveller is reading, and a
    * re-render cannot adopt twice. `null` from the decoder is not acted on here: the screen says so
@@ -388,7 +388,7 @@ export function ResultsPage() {
    * The second writes the screen back into the address, replacing the entry rather than pushing
    * one. That single line is why sorting, filters, the paged window and a changed end all survive a
    * refresh without a setter being wired to anything: they all change `search`, and this watches
-   * `search`. `replace` keeps the history honest — pressing Back still goes to the screen the
+   * `search`. `replace` keeps the history honest, pressing Back still goes to the screen the
    * results were opened from, not through a list you sorted six times.
    */
   /*
@@ -396,10 +396,10 @@ export function ResultsPage() {
    *
    * Reading the address and writing the address are opposites, and the first version of this read
    * *every* change of `search` as a disagreement with the address: clicking **Fastest** set the
-   * sort, then the reader immediately decoded the old id and set it back to **Best** — the list
+   * sort, then the reader immediately decoded the old id and set it back to **Best**, the list
    * changed for one frame and reverted, and the address never mentioned the sort at all (measured:
    * 3 checks failing for that one reason). The address is now only read when it was *not* written
-   * here, which is exactly the case that matters — a reload, a bookmark, a pasted link, Back.
+   * here, which is exactly the case that matters, a reload, a bookmark, a pasted link, Back.
    */
   const writtenByUs = useRef<string | null>(null);
 
@@ -410,7 +410,7 @@ export function ResultsPage() {
     if (!decoded) return;
     writtenByUs.current = searchId;
     /* The address carries no preferences on purpose, so the ones in force here are the ones that
-       filter the list — a stranger's link cannot overrule anyone's walking limit. */
+       filter the list, a stranger's link cannot overrule anyone's walking limit. */
     adoptSearch({ ...decoded, query: { ...decoded.query, preferences } });
   }, [searchId, preferences, adoptSearch]);
 
@@ -437,7 +437,7 @@ export function ResultsPage() {
           icon="search"
           title={unreadable ? t('That search could not be opened') : t('Nothing to show yet')}
           /* The page title above it is an `h1` and there is no section between them, so this is
-             `h2` — an `h3` announced a section that does not exist (WCAG 1.3.1). */
+             `h2`, an `h3` announced a section that does not exist (WCAG 1.3.1). */
           headingLevel={2}
           description={
             unreadable
@@ -455,7 +455,7 @@ export function ResultsPage() {
   }
 
   const { query, filter, sortMode } = search;
-  /* Whether this exact search is already in this browser's own history — see `keepSearch`. */
+  /* Whether this exact search is already in this browser's own history, see `keepSearch`. */
   const kept = recentSearches.some((entry) => entry.id === searchEntryId(query));
   const stopAlerts = [...disruptionsForStop(query.fromStopId), ...disruptionsForStop(query.toStopId)].filter(
     (alert, index, list) => list.findIndex((item) => item.id === alert.id) === index,
@@ -471,11 +471,11 @@ export function ResultsPage() {
    *
    * The cost is real and is stated rather than hidden: a native control draws in the device's
    * locale and format, so it will not follow the app's **Clock format** or **Date format**
-   * settings — an American device shows 10/13/2026 and 2:05 PM. That is why the line under the
+   * settings, an American device shows 10/13/2026 and 2:05 PM. That is why the line under the
    * two fields reads the same answer back **in the app's own format** ("Today, 18 Oct · 2:05 pm"
    * with those settings on), so the two can never disagree without the app's version being on
-   * the screen beside it. The stored values are unchanged — an ISO date and minutes since
-   * midnight — so nothing downstream of this dialog knows which control produced them.
+   * the screen beside it. The stored values are unchanged, an ISO date and minutes since
+   * midnight, so nothing downstream of this dialog knows which control produced them.
    */
   const whenReadback = `${format.date(query.date, 'long')} · ${format.time(query.time)}`;
   const whenIsNow = query.date === todayIso() && query.time === nowRef && query.timeMode === 'depart';
@@ -514,7 +514,7 @@ export function ResultsPage() {
     filter.hideCancelled !== DEFAULT_RESULTS_FILTER.hideCancelled ||
     filter.operatorIds.length > 0;
 
-  /** How many options differ from a fresh planner — the count on the Options chip. */
+  /** How many options differ from a fresh planner, the count on the Options chip. */
   const optionCount = [
     preferences.allowedModes.length !== DEFAULT_PREFERENCES.allowedModes.length,
     preferences.maxTransfers !== DEFAULT_PREFERENCES.maxTransfers,
@@ -561,14 +561,14 @@ export function ResultsPage() {
 
       {/* The card, and the two ends in it, are the search. Tapping either row opens the
           full-screen picker over this page. `inheritSearch`: this is the one card that is the
-          search on screen — the home screen's card is the next question and starts empty. */}
+          search on screen, the home screen's card is the next question and starts empty. */}
       <SearchForm inheritSearch />
 
       <div className="results-bar" data-filter-row>
         {/*
           Every control that shapes this screen, on one line.
           `results-bar` was an auto-fit grid, so at 320 the chips and the sort stacked into **five**
-          rows 326.8px tall and no journey was on the first screen of a small phone — the first card
+          rows 326.8px tall and no journey was on the first screen of a small phone, the first card
           began 196.6px below the fold (2.4). Then the chips scrolled in a row of their own and the
           sort took the next row, which was two bands where one will do: there are two chips, so
           nothing has to scroll, and the sort is a chip like them.
@@ -577,7 +577,7 @@ export function ResultsPage() {
         {/*
           The two access chips moved to Options. They are settings *of the search* rather than the
           search itself (Start: walking, End: walking), and at 390 they pushed the row past its own
-          width — which is why the last chip was drawn cut in half at the screen's edge. What is
+          width, which is why the last chip was drawn cut in half at the screen's edge. What is
           left here is the search's identity, the act that saves it, and the way into everything
           else.
         */}
@@ -592,7 +592,7 @@ export function ResultsPage() {
           panel at the very bottom under every journey (the round's ask: "move the SAVE THIS
           SEARCH to somewhere else, somewhere more on the top of the page"). The words are the
           same act on a journey card *and* unmistakably not it: a **saved search** is this pair of
-          stops to run again, a **saved journey** is one result with its own times — see the
+          stops to run again, a **saved journey** is one result with its own times, see the
           Favourite control on each card and the Saved searches widget.
         */}
         <button
@@ -611,7 +611,7 @@ export function ResultsPage() {
           {/*
             **The bookmark fills when the search is saved.**
 
-            It was a tick when saved — a second, different drawing for the same control, and one
+            It was a tick when saved, a second, different drawing for the same control, and one
             that says "done" rather than "this is now mine". Every other keeping control in the
             app (a favourite stop's heart, a journey's heart, a pinned board) keeps its own glyph
             and fills it, so this one does too: outline while the search is not kept, solid book
@@ -626,20 +626,20 @@ export function ResultsPage() {
           * How to read the list, as one group: the sort and the disclosure.
           *
           * They are the two controls that are not the search, and on a phone they share the second
-          * band — which is why they are wrapped rather than left as two loose items in the row: a
+          * band, which is why they are wrapped rather than left as two loose items in the row: a
           * growing sort took the space on the chips' line and left Options alone on the next one.
           */}
         <div className="results-bar__read">
         {/*
-          The sort, in the row (MATCHING_PLAN rule 1) — not in a card of its own above the list.
+          The sort, in the row (MATCHING_PLAN rule 1), not in a card of its own above the list.
           A sort is how the list is read, so it sits with the other controls that shape this
-          screen, and it is the fourth chip — its visible label is the answer ("Best"), and the words
+          screen, and it is the fourth chip, its visible label is the answer ("Best"), and the words
           the row used to spend on "SORT BY" are the control's accessible name instead.
         */}
         <label className="results-chip results-chip--sort" htmlFor="results-sort">
           {/*
             The name is on the control, not on a `<span>` inside the label: a label's text is every
-            text node under it, and this one wraps the select itself — so the span alone would give
+            text node under it, and this one wraps the select itself, so the span alone would give
             the control the name "Sort by Best Fastest Fewest transfers Least walking…".
           */}
           <Select
@@ -677,7 +677,7 @@ export function ResultsPage() {
 
         {/*
           Only when it is not all of them. "7 of 7 shown" is a count of the result set by
-          itself — it says nothing until the two numbers differ, and when they do the reader
+          itself, it says nothing until the two numbers differ, and when they do the reader
           wants to know which are hidden, not how many.
         */}
         {visible.length !== totalJourneys ? (
@@ -695,7 +695,7 @@ export function ResultsPage() {
           {/*
             No heading row. This panel opened with an icon and the words "Search options", which
             read as a control of their own and said nothing the Options chip above and the
-            controls below did not already say — the same row the traveller circled on the alerts
+            controls below did not already say, the same row the traveller circled on the alerts
             and stations screens. The count is kept: it is the one thing in that row that is not a
             label for what is already visible.
           */}
@@ -774,8 +774,8 @@ export function ResultsPage() {
 
           A ring in an empty card said *wait* and nothing about what was coming, so the answers
           landed as a change of subject on a screen that had been blank. Three cards carrying a
-          journey's own measurements — the pair of times, the label, the chain of services, the fare
-          — put the answer where the eye already is and keep its height.
+          journey's own measurements, the pair of times, the label, the chain of services, the fare
+         , put the answer where the eye already is and keep its height.
 
           The sentence above them is the plain statement of what is happening; the bars underneath
           are `aria-hidden` and the region is `aria-busy`, so it is spoken once.
@@ -828,7 +828,7 @@ export function ResultsPage() {
       ) : (
         <>
           {/*
-           * The alerts first, then every journey — the traveller's order, and it reverses the
+           * The alerts first, then every journey, the traveller's order, and it reverses the
            * one recorded here before it. The banner used to sit between the first card and the
            * rest (item 8: the answer before its own caveat), which is where the circled block in
            * their screenshot was: "move the alerts affecting this search to on the top of the
@@ -840,7 +840,7 @@ export function ResultsPage() {
               One line, not a banner.
 
               It was a `hairline` banner: an icon, the heading "Alerts affect this search" on a line
-              of its own, and then the alert's title indented beneath it — 96px, three quarters of it
+              of its own, and then the alert's title indented beneath it, 96px, three quarters of it
               empty, to say one thing. The heading said what the warning icon and the words "Cancelled
               services" already said, so the alert's own title is the row, and a second alert is a
               quiet "+1" at its end rather than another indented line under a headline.
@@ -870,7 +870,7 @@ export function ResultsPage() {
             Earlier, between the warning and the first journey.
 
             The list is a window of departures from the time in the search; these two controls move
-            one end of that window without touching the search itself — "Leave: Now" stays exactly
+            one end of that window without touching the search itself, "Leave: Now" stays exactly
             as it was, thirty minutes per press, the way paging through a timetable reads. They sit
             at the list's ends because that is where the reader is looking for more: the top of the
             list is where "too late" is, and the bottom is where "nothing after this" is.
@@ -921,7 +921,7 @@ export function ResultsPage() {
       )}
 
       {/*
-        The "About these results" panel is deleted whole — disclaimer, save control and the four
+        The "About these results" panel is deleted whole, disclaimer, save control and the four
         buttons to the two stops, the planner and the map. Saving the search moved up to the
         search's own row of chips at the top of the page (it is an act on the search, not on the
         list below it), both stops are named and tappable in the search card, and the map is in
@@ -992,7 +992,7 @@ export function ResultsPage() {
               *
               * The two fields used to be bare inputs in the group's grid, with the browser's own
               * picker button against the group's inner edge. On a phone two of those stacked either
-              * side of the group's divider read as a stray dropdown column fenced into the field — a
+              * side of the group's divider read as a stray dropdown column fenced into the field, a
               * chevron that belonged to nothing (reported, circled). Chromium and WebKit let us keep
               * that button and draw the mark: the button stays exactly where it was and is made
               * invisible, and the app's own calendar / clock sits under it, so a tap still opens the
@@ -1081,7 +1081,7 @@ export function ResultsPage() {
               </button>
             </div>
           </div>
-          {/* The same answer, in the app's own date and clock format — the settings the native
+          {/* The same answer, in the app's own date and clock format, the settings the native
               control above cannot honour. */}
           <p className="field__hint" aria-live="polite">
             {whenReadback}
@@ -1097,7 +1097,7 @@ export function ResultsPage() {
           {/*
             The app's own switcher, in its compact variant.
 
-            It is the shared `Segmented` — same font, same pill, same 4px gutter — drawn at the
+            It is the shared `Segmented`, same font, same pill, same 4px gutter, drawn at the
             height of the chip beside it: at its default size the capsule was 54px against the Now
             chip's 44, so the two controls on one line were two different sizes (and the chosen
             half drew a second ring inside the capsule's). The compact variant is the one built for

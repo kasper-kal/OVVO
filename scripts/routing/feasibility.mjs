@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * **Step 0 — does a real search fit in a free function?**
+ * **Step 0, does a real search fit in a free function?**
  *
  *   node scripts/routing/feasibility.mjs --region     # Utrecht area only
  *   node scripts/routing/feasibility.mjs --national   # the whole country

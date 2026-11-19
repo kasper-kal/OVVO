@@ -1,21 +1,21 @@
 /*
- * caps-audit — every piece of interface text that does not start with a capital letter.
+ * caps-audit, every piece of interface text that does not start with a capital letter.
  *
  *   node scripts/caps-audit.mjs          (needs the dev server; CAPS_URL to point elsewhere)
  *
  * Asked for as a full audit rather than a spot check, so it is deliberately two-sided:
  *
  *   1. **What the traveller actually sees.** Every rendered string on every screen that has
- *      content to show — not the empty states: a search is run before the results screen is
+ *      content to show, not the empty states: a search is run before the results screen is
  *      read, a journey is opened before its detail page is read, a stop is chosen before the
  *      board is read, and the home screen carries all eighteen widgets with pins, history and
  *      a board stop seeded. Both languages, because Dutch copy is not English with words
  *      swapped. Placeholders and aria-labels are attributes, not text nodes, so they are
- *      collected separately — they are interface text too.
+ *      collected separately, they are interface text too.
  *
- *   2. **What the sources can still put on screen.** Strings the walk did not reach — the
+ *   2. **What the sources can still put on screen.** Strings the walk did not reach, the
  *      rest of the Dutch dictionary (including its multi-line entries) and JSX literals in
- *      the components — are checked in the files, so "not seen" can never be read as
+ *      the components, are checked in the files, so "not seen" can never be read as
  *      "not there".
  *
  * Every hit is classified, because the rule has correct exceptions:
@@ -29,7 +29,7 @@
  *   notword  a code, unit, time, number or symbol (`+6 min`, `?stop=`, `OV-fiets`). Not a
  *            capitalisation question; counted so the coverage number means something.
  *
- * Exits 1 on a lowercase label or sentence — the two that are defects — so it can gate like
+ * Exits 1 on a lowercase label or sentence, the two that are defects, so it can gate like
  * the other audits here. Fragments never fail it.
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
@@ -47,7 +47,7 @@ const JSON_OUT = join(ROOT, '.logs', 'caps-audit.json');
  * The three labels an open() step has to find are translated, and the audit walks both
  * languages, so the selector has to be too: an English-only pattern times out on the Dutch
  * run and quietly reads the page it never opened. The step receives the language *object*
- * ({code, label}), so the comparison is on its code — comparing the object itself matched
+ * ({code, label}), so the comparison is on its code, comparing the object itself matched
  * nothing and made every run fall back to English.
  */
 const LABEL = (lang, en, nl) => new RegExp((lang?.code ?? lang) === 'nl' ? nl : en, 'i');
@@ -82,7 +82,7 @@ const SCREENS = [
   /*
    * The results screen twice, because it is two different screens: the one a search produces,
    * and the one a visitor meets first. Auditing only the populated one left the empty state's
-   * own copy — its heading, its sentence and its buttons — unread, which is how a planted
+   * own copy, its heading, its sentence and its buttons, unread, which is how a planted
    * lowercase empty-state sentence survived the first run of this audit.
    */
   { name: 'journey results (nothing searched yet)', path: '/results' },
@@ -152,7 +152,7 @@ const COLLECTOR = `() => {
      * The parent's whole text is too blunt: a heading and its description share a parent, so
      * the description looked like the tail of the heading's sentence and a deliberately
      * lowercased empty state passed as a fragment. What makes a string a continuation is the
-     * text its own parent writes *before* it, on the same line, not finishing a sentence —
+     * text its own parent writes *before* it, on the same line, not finishing a sentence ,
      * "{n} delays in this window · auto-refresh every 5s" and "{pins}, {journeys} and
      * {searches} will be deleted" are both built that way.
      */
@@ -266,7 +266,7 @@ for (const lang of LANGUAGES) {
        * The destination is named, not taken from the top of the list.
        *
        * "Rotterdam" ranks Rotterdam Alexander first, and this pair has no service in the small
-       * hours — so the walk asked for a journey screen at 23:13 and there was none, which failed
+       * hours, so the walk asked for a journey screen at 23:13 and there was none, which failed
        * this audit for a reason that has nothing to do with capital letters (measured: the same
        * minute, Utrecht Centraal to Rotterdam Centraal planned 2 journeys and the first-suggestion
        * pair planned 0). Naming the stop is a fixture fix, not a relaxed assertion: the assertions
@@ -280,7 +280,7 @@ for (const lang of LANGUAGES) {
       await read('journey results');
       if (screen.search === 'journey') {
         /* A night with no service is a screen this walk could not read, and saying so is not the
-           same as finding nothing wrong with it — the rule this file already follows elsewhere. */
+           same as finding nothing wrong with it, the rule this file already follows elsewhere. */
         if ((await page.locator('main a[href*="/journey/"]').count()) === 0) {
           console.log(`  ! ${screen.name} not read in ${lang.code}: no journey is planned for this pair right now`);
         } else {
@@ -296,7 +296,7 @@ for (const lang of LANGUAGES) {
       await read(screen.name);
       /*
        * Dialogs, sheets and toasts are not on the page until something opens them, which is
-       * why a walk over routes alone reads the app without its most carefully worded copy —
+       * why a walk over routes alone reads the app without its most carefully worded copy ,
        * confirmations, empty states behind an action, and the message for a blocked action.
        */
       if (screen.open) {
@@ -350,8 +350,8 @@ for (const dir of ['src/components', 'src/pages', 'src/widgets', 'src/lib']) {
       if (entry.isDirectory()) walk(full);
       /*
        * JSX text only exists in .tsx files. Scanning plain .ts for `>text<` finds code that
-       * happens to sit between an arrow and a comparison — `const atTop = () => window.scrollY
-       * <= top;` reads as "JSX text: window.scrollY" — and a report that names code as copy
+       * happens to sit between an arrow and a comparison, `const atTop = () => window.scrollY
+       * <= top;` reads as "JSX text: window.scrollY", and a report that names code as copy
        * is worse than one that misses it. The attribute scan is .tsx-only for the same reason.
        */
       else if (/\.tsx$/.test(entry.name)) { ALL_SCANNED.push(full); walkFile(full); }
@@ -407,7 +407,7 @@ const distinct = new Set(hits.map((h) => h.text)).size;
 const md = [];
 md.push('# Capitalisation audit');
 md.push('');
-md.push(`Generated by \`scripts/caps-audit.mjs\` — ${SCREENS.length} screens × ${LANGUAGES.length} languages, `);
+md.push(`Generated by \`scripts/caps-audit.mjs\`, ${SCREENS.length} screens × ${LANGUAGES.length} languages, `);
 md.push(`${distinct} distinct strings read (text nodes, placeholders and aria-labels).`);
 md.push('');
 md.push('| kind | count | verdict |');
@@ -430,22 +430,22 @@ const section = (title, note, items, render) => {
 section('Labels, headings, buttons, chips and placeholders starting lowercase',
   'A standalone label that does not start with a capital reads as a fragment rather than a name.',
   group(verdicts.label, (h) => `${h.text}|${h.kind}`),
-  (item, where, n) => `- \`${esc(item.text)}\` — ${item.language} · ${item.screen} · ${item.kind} in \`<${item.tag.toLowerCase()}${item.cls ? ` class="${item.cls.split(' ')[0]}"` : ''}>\`${n > 1 ? ` ×${n}` : ''}${item.srOnly ? ' · screen-reader only' : ''}`);
+  (item, where, n) => `- \`${esc(item.text)}\`, ${item.language} · ${item.screen} · ${item.kind} in \`<${item.tag.toLowerCase()}${item.cls ? ` class="${item.cls.split(' ')[0]}"` : ''}>\`${n > 1 ? ` ×${n}` : ''}${item.srOnly ? ' · screen-reader only' : ''}`);
 
 section('Sentences, captions and empty states starting lowercase',
   'Lines that read on their own. Every sentence starts with a capital in both languages.',
   group(verdicts.sentence, (h) => `${h.text}|${h.kind}`),
-  (item, where, n) => `- \`${esc(item.text)}\` — ${item.language} · ${item.screen} · ${item.kind}${n > 1 ? ` ×${n}` : ''}`);
+  (item, where, n) => `- \`${esc(item.text)}\`, ${item.language} · ${item.screen} · ${item.kind}${n > 1 ? ` ×${n}` : ''}`);
 
 section('Tails of a longer sentence (correct as they are)',
   'Reported so the rule can be checked, not to change them: each is the continuation of a sentence whose first word does carry the capital.',
   group(verdicts.fragment, (h) => `${h.text}|${h.language}`),
-  (item) => `- \`${esc(item.text)}\` — ${item.language} · ${item.screen}`);
+  (item) => `- \`${esc(item.text)}\`, ${item.language} · ${item.screen}`);
 
 section('Codes, units, times and symbols',
   'Counted so the coverage number means something; none is a capitalisation question.',
   group(verdicts.notword, (h) => h.text),
-  (item, where) => `- \`${esc(item.text)}\` — ${where}`);
+  (item, where) => `- \`${esc(item.text)}\`, ${where}`);
 
 section('Dutch dictionary entries the walk did not reach',
   'Keys are the English sentences, values the Dutch ones. Listed so "not seen" cannot be read as "not there".',
@@ -454,8 +454,8 @@ section('Dutch dictionary entries the walk did not reach',
     const escaped = item.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const callSites = [];
     /*
-     * Any quoted use of the key, not only `t('…')`: a key can be chosen inside a ternary —
-     * `t(mode === 'all' ? 'all routes' : '{mode} routes only')` — and a search that only
+     * Any quoted use of the key, not only `t('…')`: a key can be chosen inside a ternary ,
+     * `t(mode === 'all' ? 'all routes' : '{mode} routes only')`, and a search that only
      * looks right after `t(` reports used copy as having no call site at all.
      */
     const re = new RegExp(`'${escaped}'`);
@@ -464,24 +464,24 @@ section('Dutch dictionary entries the walk did not reach',
       src.forEach((line, i) => { if (re.test(line)) callSites.push({ at: `${rel}:${i + 1}`, code: line.trim().slice(0, 120) }); });
     }
     /*
-     * A key that carries placeholders is by construction part of a longer string — the screen
-     * shows the filled sentence, not the key — so lowercase in it is a choice the sentence
+     * A key that carries placeholders is by construction part of a longer string, the screen
+     * shows the filled sentence, not the key, so lowercase in it is a choice the sentence
      * makes, not a label that forgot its capital.
      */
     const interpolated = /\{[^}]*\}/.test(item.key) || /\{[^}]*\}/.test(item.value);
     const verdict = interpolated
-      ? ' — interpolated into a longer string, so it is never the start of one'
+      ? ', interpolated into a longer string, so it is never the start of one'
       : callSites.length
-        ? ' — see its call site'
-        : ' — no call site found: dead copy';
+        ? ', see its call site'
+        : ', no call site found: dead copy';
     const sites = callSites.map((c) => `\`${c.at}\`\n  \u2502 ${c.code}`).join('\n  \u2502 ');
-    return `- ${item.which} \`src/lib/i18n.ts:${item.line}\` — \`${esc(item.key)}\` / \`${esc(item.value)}\`${verdict}${sites ? `\n  \u2502 used at ${sites}` : ''}`;
+    return `- ${item.which} \`src/lib/i18n.ts:${item.line}\`, \`${esc(item.key)}\` / \`${esc(item.value)}\`${verdict}${sites ? `\n  \u2502 used at ${sites}` : ''}`;
   });
 
 section('JSX literals and attributes the walk did not reach',
   'Interface text written straight into markup or into an attribute.',
   jsxLower.map((s) => ({ item: s, where: new Set(), n: 1 })),
-  (item) => `- \`${esc(item.text)}\` — \`${item.file}:${item.line}\` (${item.kind})`);
+  (item) => `- \`${esc(item.text)}\`, \`${item.file}:${item.line}\` (${item.kind})`);
 
 md.push('## Screens and states covered');
 md.push('');
@@ -492,7 +492,7 @@ md.push('- home with all 18 widgets, 6 pinned stops, a recent search and a chose
 md.push('');
 md.push('Not covered: toasts (they appear only for a failed or blocked action), the browser\'s own');
 md.push('permission prompt, and data strings that never render on these screens (operator names,');
-md.push('alert text) — those are sample data rather than interface text, by the project\'s own rule.');
+md.push('alert text), those are sample data rather than interface text, by the project\'s own rule.');
 
 mkdirSync(dirname(REPORT), { recursive: true });
 writeFileSync(REPORT, md.join('\n'));
@@ -502,11 +502,11 @@ writeFileSync(JSON_OUT, JSON.stringify({
 }, null, 2));
 
 const nDefects = verdicts.label.length + verdicts.sentence.length;
-console.log(`caps-audit — ${SCREENS.length} screens × ${LANGUAGES.length} languages, ${distinct} distinct strings`);
+console.log(`caps-audit, ${SCREENS.length} screens × ${LANGUAGES.length} languages, ${distinct} distinct strings`);
 console.log(`  ${verdicts.label.length} label(s)/heading(s)/button(s)/placeholder(s)/aria-label(s) start lowercase`);
 console.log(`  ${verdicts.sentence.length} sentence(s)/caption(s)/hint(s) start lowercase`);
-console.log(`  ${verdicts.fragment.length} tail-of-a-sentence string(s) — correct where they sit`);
-console.log(`  ${verdicts.notword.length} code/unit/time string(s) — not a capitalisation question`);
+console.log(`  ${verdicts.fragment.length} tail-of-a-sentence string(s), correct where they sit`);
+console.log(`  ${verdicts.notword.length} code/unit/time string(s), not a capitalisation question`);
 console.log(`  ${dictLower.length + jsxLower.length} dictionary/JSX string(s) the walk could not reach`);
 console.log(`report: .logs/caps-audit-report.md`);
 if (nDefects) {
@@ -514,4 +514,4 @@ if (nDefects) {
   for (const h of [...verdicts.label, ...verdicts.sentence]) console.log(`  [${h.language} · ${h.screen}] ${h.kind}: ${h.text}`);
   process.exit(1);
 }
-console.log('\nOK — every standalone label, heading, button, placeholder and sentence starts with a capital.');
+console.log('\nOK, every standalone label, heading, button, placeholder and sentence starts with a capital.');

@@ -25,7 +25,7 @@ export function mulberry32(seed: number): () => number {
  *
  * Delays, cancellations and platforms are rolled from the things that identify a departure (the
  * line, the direction, the stop, the planned minute), which makes them stable between reloads and
- * refreshes — but also makes the one board that showed a cancelled Sprinter a board you cannot ask
+ * refreshes, but also makes the one board that showed a cancelled Sprinter a board you cannot ask
  * for again, and a reported row a row that has to be hunted for.
  *
  * The developer panel's number is folded into every seed, so one number names one version of the

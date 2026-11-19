@@ -5,7 +5,7 @@
  * This exists because of the one failure that cannot be seen from inside the site: Chrome reads the
  * manifest and its icons on its own, decides for itself whether the app can be installed, and says
  * nothing on the page when the answer is no. The traveller finds out in Chrome's own menu, where
- * Installeren is greyed out and says "Deze app kan niet worden geïnstalleerd" — and every fix that
+ * Installeren is greyed out and says "Deze app kan niet worden geïnstalleerd", and every fix that
  * follows is a guess about a decision the browser never explained.
  *
  * So ask the browser. Chromium exposes that decision over DevTools: `Page.getAppManifest` returns
@@ -15,13 +15,13 @@
  *
  * What is checked:
  *
- *   1. the manifest address answers with JSON (not the site's page — a catch-all host does that),
+ *   1. the manifest address answers with JSON (not the site's page, a catch-all host does that),
  *   2. what it contains is complete: name, a short name, start_url, scope, a standalone display,
  *      and a 192 and a 512 icon,
  *   3. those icon files really are PNGs of the size they claim,
  *   4. the service worker registers, activates, and ends up in control of the page,
  *   5. Chrome reports no manifest errors and no installability errors,
- *   6. on a healthy host the page keeps the site's own manifest — the rebuilt `blob:` copy in
+ *   6. on a healthy host the page keeps the site's own manifest, the rebuilt `blob:` copy in
  *      `lib/manifest` is the rescue, and a rescue that fires every time would install as a Chrome
  *      shortcut rather than an app,
  *   7. and when the manifest address *is* answered with the site's page, the rescue still produces
@@ -76,7 +76,7 @@ try {
     } catch {
       fail(
         'the manifest address does not answer with JSON',
-        `it answered ${JSON.stringify(body.toString('utf8').slice(0, 80))}… — a host that answers every path with the site's page does this`,
+        `it answered ${JSON.stringify(body.toString('utf8').slice(0, 80))}…, a host that answers every path with the site's page does this`,
       );
     }
   }
@@ -90,7 +90,7 @@ if (manifest) {
   else pass('the manifest has every field Chrome needs', REQUIRED.join(', '));
 
   if (!['standalone', 'fullscreen', 'minimal-ui'].includes(manifest.display)) {
-    fail('the display mode does not install as an app', `display: ${String(manifest.display)} — "browser" is a bookmark, not an app`);
+    fail('the display mode does not install as an app', `display: ${String(manifest.display)}, "browser" is a bookmark, not an app`);
   }
 
   const icons = Array.isArray(manifest.icons) ? manifest.icons : [];

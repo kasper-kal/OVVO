@@ -8,7 +8,7 @@ const NONE: Disruption[] = [];
 /**
  * **The alerts on screen right now.**
  *
- * The same two questions the panel answers about the list — a calm day, or one alert at a time —
+ * The same two questions the panel answers about the list, a calm day, or one alert at a time ,
  * asked of the screens. It reads the same store the panel writes, so a switch there redraws every
  * screen that lists an alert, and `disruptions()` in `data/disruptions` answers the same way for the
  * code that is not a component (boards, journeys, the shell's own count).

@@ -217,7 +217,7 @@
   width: 68%;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 430px) {
   .w-focal {
     width: 64px;
     right: 9%;
@@ -510,7 +510,7 @@
  * Every card now carries a real photograph from the app's own style set, graded to the chapter's
  * colour: greyscale luminance blended into a tint of the chapter's own form colour, which is a
  * duotone, the way a printed Wrapped card is printed. It bleeds off the frame, it sits under the
- * object and under the words, and its mask fades out before it reaches the sentence — so the picture
+ * object and under the words, and its mask fades out before it reaches the sentence, so the picture
  * fills the card without ever being behind the type.
  *
  * `mix-blend-mode: luminosity` is what makes it a duotone rather than a washed-out photo: the image
@@ -668,7 +668,7 @@
  * **The photograph stops before the words, by geometry.**
  *
  * Soft masks were not enough: on a centred card the fade was still over the sentence's own line box,
- * and the pair card measured 1.7:1 — a photograph behind white type. The plate now occupies a fixed
+ * and the pair card measured 1.7:1, a photograph behind white type. The plate now occupies a fixed
  * band (the opposite half of the frame from the copy) and its fade finishes well inside that band, so
  * no photograph can be behind a sentence whatever the type size or the screen.
  */
@@ -718,7 +718,7 @@
 /*
  * **The backdrop is a scene, and it moves.**
  *
- * Three rungs — a glow sunk into the sky, far hills, near hills — plus the floor the rest of the deck
+ * Three rungs, a glow sunk into the sky, far hills, near hills, plus the floor the rest of the deck
  * already had. Each rung travels at its own speed, which is the whole trick of depth in a flat
  * picture; the glow breathes. The scene is masked out where the words are, so the sentence still sits
  * on a field rather than on a hill.
@@ -865,7 +865,7 @@
  * **A grey render, multiplied into the field.**
  *
  * The plates from Blender are grey shapes on white, lit so every edge falls off. Multiplied over the
- * chapter's colour they become that colour's own light and shade — the way the reference's blocks are
+ * chapter's colour they become that colour's own light and shade, the way the reference's blocks are
  * darker and lighter folds of one red, not a second colour sitting on top of it.
  */
 .w-backdrop {

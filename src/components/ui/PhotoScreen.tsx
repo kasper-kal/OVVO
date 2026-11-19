@@ -10,16 +10,16 @@ import { inkFor, toHex } from '../../lib/colour';
  * The complaint this answers, in the traveller's words: *"you have no way of seeing what your
  * currently Eyedropping, a big part of the image gets cropped off."* Both were true of the sampler
  * that lived in the Background block: a 200px `object-fit: cover` band (38% of the picture's height
- * cropped away at 1440 — measured) with no loupe, no crosshair and no swatch, where the only feedback
+ * cropped away at 1440, measured) with no loupe, no crosshair and no swatch, where the only feedback
  * was a card *behind* the picture changing colour.
  *
  * Three things make it a sampler rather than a picture here:
  *
  *   • **The whole photograph, uncropped.** The `<img>` is sized by its own content inside a centred
- *     stage, so its box *is* the drawn picture — no `cover`, no crop, and the pointer maps to a pixel
+ *     stage, so its box *is* the drawn picture, no `cover`, no crop, and the pointer maps to a pixel
  *     by a fraction of that box. Nothing is lost to make the screen tidy.
- *   • **A visible eyedropper.** A 112px loupe rides above the pointer — above the finger, so the
- *     finger never covers the pixel — showing the surrounding pixels at 6× with a crosshair, and a
+ *   • **A visible eyedropper.** A 112px loupe rides above the pointer, above the finger, so the
+ *     finger never covers the pixel, showing the surrounding pixels at 6× with a crosshair, and a
  *     hex chip on it. Dragging sweeps the picture.
  *   • **The colour, twice.** On the loupe at the point, and in the foot bar with the ink the cards
  *     will be given and its ratio. Both are the *candidate*: this screen writes on commit, not on
@@ -45,7 +45,7 @@ export function PhotoScreen({
   open: boolean;
   /** The photograph, as a data URL. */
   image: string;
-  /** The colour currently in force, `#rrggbb` — what a cancel returns to. */
+  /** The colour currently in force, `#rrggbb`, what a cancel returns to. */
   value: string;
   /** Fires once, when the traveller leaves with the colour. */
   onCommit: (hex: string) => void;
@@ -58,7 +58,7 @@ export function PhotoScreen({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const sourceRef = useRef<HTMLCanvasElement | null>(null);
   const loupeRef = useRef<HTMLCanvasElement | null>(null);
-  /** The pixel last sampled, in source pixels — what the arrow keys step from. */
+  /** The pixel last sampled, in source pixels, what the arrow keys step from. */
   const lastRef = useRef<{ x: number; y: number } | null>(null);
   const dragging = useRef(false);
   const [ready, setReady] = useState(false);
@@ -106,7 +106,7 @@ export function PhotoScreen({
     };
   }, [open, image]);
 
-  /* A fresh screen starts from the colour in force — the one a cancel goes back to. */
+  /* A fresh screen starts from the colour in force, the one a cancel goes back to. */
   useEffect(() => {
     if (open) {
       setHex(value);
@@ -179,7 +179,7 @@ export function PhotoScreen({
   };
 
   /**
-   * Move the sample by **screen** pixels — the keyboard's way round this screen.
+   * Move the sample by **screen** pixels, the keyboard's way round this screen.
    *
    * One arrow press used to move one *source* pixel. The working canvas is the photograph at up to
    * 2048px wide drawn into a stage a few hundred pixels wide, so the arrow moved the sample less
@@ -272,7 +272,7 @@ export function PhotoScreen({
             The photo's own place, held in the app's one skeleton style (`ui/Skeletons.tsx`) while
             the picture decodes: a block where the picture will be, rather than a sentence over
             the empty space. The words stay, for a screen reader, because the picture is drawn
-            `alt=""` — it is a surface to sample, not a thing to describe.
+            `alt=""`, it is a surface to sample, not a thing to describe.
           */}
           {!ready && !error ? (
             <>

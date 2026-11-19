@@ -1,6 +1,6 @@
 /**
  * **A service's stops, opened on the rail.** Tapping a bus or a train lists the stops it calls at
- * between boarding and alighting, in line with the timetable — not in a dialog.
+ * between boarding and alighting, in line with the timetable, not in a dialog.
  */
 import { chromium } from 'playwright';
 

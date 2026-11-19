@@ -94,7 +94,7 @@ const clock = (value) => `${String(Math.floor(value / 3600)).padStart(2, '0')}:$
 /*
  * A name resolves to the **hub**: the station with the most platforms whose place name matches. Not
  * the shortest match, which was a single bus stop called "Eindhoven, BIC" while the real station
- * carries a longer name — and a journey ending at a bus stop in the same town looked like a planner
+ * carries a longer name, and a journey ending at a bus stop in the same town looked like a planner
  * that had lost an hour and a half.
  */
 const findPlace = (needle) => {

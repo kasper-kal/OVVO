@@ -12,7 +12,7 @@
  *
  * A route is cached by its two ends: a journey page asks for the same walk every time it is drawn,
  * and a second tap on the same walk does not ask the router again. When the router is slow or down,
- * the line falls back to the straight one and says so — a drawing that lies about being a route is
+ * the line falls back to the straight one and says so, a drawing that lies about being a route is
  * worse than a drawing that admits it is a sketch.
  */
 import { getStop } from '../data/stops';
@@ -121,7 +121,7 @@ export async function walkingRoute(fromStopId: string, toStopId: string): Promis
 /**
  * A ride, drawn through the stops it calls at.
  *
- * A train does not follow the street router, so its line joins the stations it stops at — which is
+ * A train does not follow the street router, so its line joins the stations it stops at, which is
  * exactly what the traveller needs from a leg on a map: where it starts, where it calls, where it
  * ends. The stops in between are already on the leg.
  */

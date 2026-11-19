@@ -1,16 +1,16 @@
 /**
- * Icons are Lucide (`lucide-react`, ISC) — the library's own geometry, not ours.
+ * Icons are Lucide (`lucide-react`, ISC), the library's own geometry, not ours.
  *
  * This is the third set in this file's history and the last, for a reason worth writing down:
  * the first was hand-drawn path data here, which is where the gear with the off-centre hub and
  * the sprawled walker came from; the second was Phosphor, whose filled outlines are drawn for
  * larger sizes and read heavy at the 13–15px this app uses them at. Lucide is the idiom the
- * rest of the interface was already built in — 24-unit grid, a 2-unit stroke, round caps — it
+ * rest of the interface was already built in, 24-unit grid, a 2-unit stroke, round caps, it
  * is what the original chevrons, the magnifier, the heart and the star were copied from, and
  * its line weight scales down without going fat or muddy.
  *
  * Every glyph is Lucide's now, with one exception that is deliberate: the three navigation
- * glyphs — `home`, `board` and `menu` — are the app's own drawings, kept in `NAV_GLYPHS`
+ * glyphs, `home`, `board` and `menu`, are the app's own drawings, kept in `NAV_GLYPHS`
  * below. They were the three hand-drawn icons from the first set that the traveller asked to
  * keep, and the sweep to Lucide took them out with the rest. A sweep is not a reason to lose
  * something that was working: those three are drawn on the same 24-unit grid with the same
@@ -106,7 +106,7 @@ import {
 import type { StopType, TravelMode } from '../../data/types';
 
 /**
- * **A place on the map** — Lucide's `MapPin` teardrop, drawn as one compound path so that its
+ * **A place on the map**, Lucide's `MapPin` teardrop, drawn as one compound path so that its
  * hole survives the fill.
  *
  * Lucide's own `MapPin` is a teardrop plus a separate `<circle>`, and `fill: currentColor`
@@ -115,8 +115,8 @@ import type { StopType, TravelMode } from '../../data/types';
  * path carries `fill-rule: evenodd`, which punches it out of the teardrop. Stroked and unfilled
  * it is Lucide's drawing to the unit.
  *
- * This is the **marker** half of the pair. It belongs to the map — the picker's sheet, a pin on
- * the canvas — and it is never a control (see `pin` below for why the two were split).
+ * This is the **marker** half of the pair. It belongs to the map, the picker's sheet, a pin on
+ * the canvas, and it is never a control (see `pin` below for why the two were split).
  */
 const MAP_PIN_PATH =
   'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z' +
@@ -146,7 +146,7 @@ const GLYPHS = {
   accessibility: Accessibility,
   alert: TriangleAlert,
   /*
-   * **A bench to sit on** — Lucide's `Armchair`. Only a walking landmark lists one, and it is
+   * **A bench to sit on**, Lucide's `Armchair`. Only a walking landmark lists one, and it is
    * the one facility whose whole meaning is "there is somewhere to sit down here".
    */
   bench: Armchair,
@@ -157,7 +157,7 @@ const GLYPHS = {
   bookmark: Bookmark,
   /*
    * **A saved search, switched on.** Lucide's bookmark is one closed path, so the solid form is
-   * the same drawing filled — the outline with its inside painted, the way a kept heart and a
+   * the same drawing filled, the outline with its inside painted, the way a kept heart and a
    * kept pin are. One glyph, two states, and the state is the fill.
    */
   bookmarkFilled: Bookmark,
@@ -170,7 +170,7 @@ const GLYPHS = {
   chevronUp: ChevronUp,
   clock: Clock,
   /*
-   * **Frame a picture** — Lucide's `Crop`, the two corner brackets a cropper is drawn with. The
+   * **Frame a picture**, Lucide's `Crop`, the two corner brackets a cropper is drawn with. The
    * crop screen is the only place it appears, and that is what it means there.
    */
   crop: Crop,
@@ -178,24 +178,24 @@ const GLYPHS = {
   download: Download,
   share: Share2,
   /*
-   * **Read it somewhere else** — Lucide's `ExternalLink`: a box with its arrow leaving the
+   * **Read it somewhere else**, Lucide's `ExternalLink`: a box with its arrow leaving the
    * corner, the glyph the web has used for "this opens a different page" for as long as it has
    * had links at all.
    *
    * It replaced `share` on the Wikipedia card's "Read the whole article": a share glyph means
-   * "send this to someone", which that control never does — it opens the article in a new tab.
+   * "send this to someone", which that control never does, it opens the article in a new tab.
    * One glyph, one meaning (W3C COGA), and the meaning here is direction, not distribution.
    */
   external: ExternalLink,
   ferry: Ship,
   filter: Funnel,
   /*
-   * **A locker for a case** — Lucide's `Luggage`, the suitcase. It stands for *left luggage* on
+   * **A locker for a case**, Lucide's `Luggage`, the suitcase. It stands for *left luggage* on
    * a stop page: the place you leave a bag for the day.
    */
   lockers: Luggage,
   /*
-   * "Fit the whole network in view" — the map picker's recentre control.
+   * "Fit the whole network in view", the map picker's recentre control.
    *
    * It used to be drawn with `location`, the same crosshair the two *use my location* controls
    * use, and the audit caught it: one glyph, two meanings (W3C COGA). A crosshair says "where
@@ -203,7 +203,7 @@ const GLYPHS = {
    */
   focus: Focus,
   /*
-   * **Drag a widget** — Lucide's `GripVertical`, the two columns of dots every reorderable list
+   * **Drag a widget**, Lucide's `GripVertical`, the two columns of dots every reorderable list
    * has used for forty years. Decorative only: on the home screen's customising mode the whole
    * card is the handle, so this says where to take hold rather than being a target of its own.
    */
@@ -212,12 +212,12 @@ const GLYPHS = {
   heartFilled: Heart,
   history: History,
   /*
-   * **Put this app on the phone's own home screen** — Lucide's `HousePlus`: a house with a plus
+   * **Put this app on the phone's own home screen**, Lucide's `HousePlus`: a house with a plus
    * cut into it.
    *
    * It takes `plus`'s place in the one card that asks the traveller to install OVVO. The plus
-   * already means two other things in the app — *Edit the home screen*, in the header's pill, and
-   * *Add widget*, in the home menu — so a third plus on the install card read as "add something
+   * already means two other things in the app, *Edit the home screen*, in the header's pill, and
+   * *Add widget*, in the home menu, so a third plus on the install card read as "add something
    * to this page" rather than "put this app on your device" (reported: the icon "doesnt make any
    * sense"). The words beside it are *Add OVVO to your home screen*, so the picture is now those
    * words drawn: a home, with an add on it. One glyph, one meaning, and a meaning a traveller can
@@ -227,16 +227,16 @@ const GLYPHS = {
   home: House,
   info: Info,
   /*
-   * **Up and down between floors** — Lucide's `MoveVertical`, two arrowheads on one vertical
+   * **Up and down between floors**, Lucide's `MoveVertical`, two arrowheads on one vertical
    * line. Named `lift` here so a facility can ask for it by its own word, and deliberately not
    * `ArrowUpDown`/`swap`, which already means "turn the search around" on the planner.
    */
   lift: MoveVertical,
   location: Crosshair,
   /*
-   * **Arrange the home screen** — Lucide's `LayoutGrid`, the tiles themselves.
+   * **Arrange the home screen**, Lucide's `LayoutGrid`, the tiles themselves.
    *
-   * "Customise home" wore `sliders` — the options/filters glyph — and the audit grouped it with
+   * "Customise home" wore `sliders`, the options/filters glyph, and the audit grouped it with
    * *Options*, *Travel preferences* and *Manage avoidance preferences* because of the verb. Two
    * different functions were drawing one glyph (W3C COGA, one glyph, one meaning): `sliders`
    * filters what is in front of you, this opens the grid you are standing in and lets you add
@@ -248,7 +248,7 @@ const GLYPHS = {
   menu: List,
   metro: TrainFrontTunnel,
   /*
-   * **The device the app is running on** — Lucide's `Monitor`. It is the *System* half of the
+   * **The device the app is running on**, Lucide's `Monitor`. It is the *System* half of the
    * appearance picker, where the other two halves are a sun and a moon; it is not `board`, which is
    * the hand-drawn departures screen and means "live times" every time it is used.
    */
@@ -257,7 +257,7 @@ const GLYPHS = {
   minus: Minus,
   moon: Moon,
   /*
-   * **Keep a stop** — Lucide's `Pin`, the drawing pin, not the teardrop above it.
+   * **Keep a stop**, Lucide's `Pin`, the drawing pin, not the teardrop above it.
    *
    * The teardrop spent two rounds meaning two things at once: *where something is* (a marker
    * on a map) and *this one is mine* (a button the traveller presses). A glyph that is both a
@@ -275,14 +275,14 @@ const GLYPHS = {
    */
   pin: Pin,
   /*
-   * **An airport** — Lucide's `Plane`. A stop's type is drawn with a glyph rather than written out
+   * **An airport**, Lucide's `Plane`. A stop's type is drawn with a glyph rather than written out
    * (`stopTypeIcon` below), and an airport is the one type the mode glyphs do not cover.
    */
   plane: Plane,
   /* The same drawing, kept: a pin whose board is on the departure screen. */
   pinFilled: Pin,
   /*
-   * **Take a colour out of the screen** — Lucide's `Pipette`. It was drawn with `location` (the
+   * **Take a colour out of the screen**, Lucide's `Pipette`. It was drawn with `location` (the
    * crosshair) in the first version of the sampler, which meant "where am I" was standing in for
    * "sample this pixel". The eyedropper draws the thing, not the intent.
    */
@@ -307,7 +307,7 @@ const GLYPHS = {
   swap: ArrowUpDown,
   taxi: Car,
   /*
-   * **A developer panel** — Lucide's `Terminal`: the window with a prompt and a cursor in it.
+   * **A developer panel**, Lucide's `Terminal`: the window with a prompt and a cursor in it.
    *
    * The panel wore `settings`, which is the gear the Settings screen already owns, so the
    * navigation offered two identical gears for two different screens. This one is drawn nowhere
@@ -330,7 +330,7 @@ export type IconName = keyof typeof GLYPHS;
 /**
  * The three navigation glyphs, drawn here rather than taken from a library.
  *
- * These are the app's own drawings from the first icon set — the ones the traveller asked
+ * These are the app's own drawings from the first icon set, the ones the traveller asked
  * to keep when the rest were replaced. Same 24-unit grid, same round caps as the Lucide
  * glyphs beside them, at the 1.75 unit stroke the set was drawn in, so they sit in a nav
  * row without a seam.
@@ -369,8 +369,8 @@ const FILLED = new Set<IconName>(['heartFilled', 'bookmarkFilled', 'pinFilled'])
 /**
  * **A toggle that is on, drawn solid.**
  *
- * Every control in the app that keeps something — a favourite stop, a journey, a pinned board, a
- * saved search — says so by **filling its glyph**, not by swapping it for a tick or by changing
+ * Every control in the app that keeps something, a favourite stop, a journey, a pinned board, a
+ * saved search, says so by **filling its glyph**, not by swapping it for a tick or by changing
  * its colour alone. That rule is written once, here, so a control cannot be added with the
  * outline showing in both states: an `IconButton` or a save chip that has a filled twin gets it
  * for free.
@@ -465,14 +465,14 @@ export function ModeIcon({
 /**
  * **What is at the stop, drawn.**
  *
- * The stop page used to print its facilities as one line of words with dots between them —
- * `Toilets · Kiosk · Bicycle parking · Lift · Ticket machine · Taxi rank` — which is a list you
+ * The stop page used to print its facilities as one line of words with dots between them ,
+ * `Toilets · Kiosk · Bicycle parking · Lift · Ticket machine · Taxi rank`, which is a list you
  * have to read word by word to find the one thing you came for. Each facility is now a badge
  * with its own glyph, so "is there a lift" is a shape to spot rather than a sentence to scan.
  *
  * The keys are the words in `data/stops.ts`, which are the words the app already printed, so
- * the data did not have to change to be drawn. A facility with no glyph here still renders —
- * the badge simply has no picture — which is what keeps a new word in the data from vanishing
+ * the data did not have to change to be drawn. A facility with no glyph here still renders ,
+ * the badge simply has no picture, which is what keeps a new word in the data from vanishing
  * off the page because nobody added an icon for it.
  *
  * Where a facility has no honest drawing of its own, the glyph is the object rather than the
@@ -502,12 +502,12 @@ export function facilityIcon(facility: string): IconName | null {
 /**
  * **What kind of stop this is, drawn.**
  *
- * A stop's row used to spell its type out — `Amsterdam · ASC · Station · 40 m` — on every card, in
+ * A stop's row used to spell its type out, `Amsterdam · ASC · Station · 40 m`, on every card, in
  * every list, 61 times over. The type is a category, and the app already has a picture for six of
  * the seven: the mode glyphs. An airport is the exception the modes do not cover, so it takes a
  * plane; a landmark is reached on foot, so it takes the footprints a walk wears everywhere else.
  *
- * The word is still spoken — the call sites put it in an `sr-only` span beside the glyph — because
+ * The word is still spoken, the call sites put it in an `sr-only` span beside the glyph, because
  * a picture is not a word and a screen reader must not be shown one.
  */
 const STOP_TYPE_ICON_NAME: Record<StopType, IconName> = {
@@ -526,7 +526,7 @@ export function stopTypeIcon(type: StopType): IconName {
 
 /**
  * The OVVO mark, straight from the artwork's own outline: three filled paths in a 1024
- * unit box — the two black tiles with the V's cut out of them, and the two rings — drawn
+ * unit box, the two black tiles with the V's cut out of them, and the two rings, drawn
  * in the source file's own orientation (`translate(0 1024) scale(0.1 -0.1)`). Only the ink
  * is stored as paths: the white diagonals are the mark's own background, painted beneath
  * them from the palette (`--brand-tile` and `--brand-ink`) instead of from a raster.
@@ -538,8 +538,8 @@ const BRAND_INK = [
 ];
 
 /**
- * The mark's shape is the artwork's own: a 1024-unit square rounded by 256 units — a quarter of
- * its side, which is the 14px the mark's 56px tile used to round itself by — and it is rounded
+ * The mark's shape is the artwork's own: a 1024-unit square rounded by 256 units, a quarter of
+ * its side, which is the 14px the mark's 56px tile used to round itself by, and it is rounded
  * *inside* the drawing, by a mask over the whole of it, rather than by the element.
  *
  * That is the whole of why the corners used to carry a pale line on the top-right and bottom-left.
@@ -548,7 +548,7 @@ const BRAND_INK = [
  * `border-radius`, or a `clip-path`) and each of the two is cut on its own: white painted to the
  * corner's antialiasing, then ink painted onto that, so a quarter of every half-covered corner
  * pixel stays white. Measured on the corner's arc: 80 of 255 where the ink and the page are 18 and
- * 24 — a hairline along the two corners the ink reaches, and nothing at the two the white reaches.
+ * 24, a hairline along the two corners the ink reaches, and nothing at the two the white reaches.
  *
  * A mask over a group, unlike a clip, is applied to the group's finished paint, so the white and
  * the ink composite first and the arc is cut once: the corner is then ink to page.

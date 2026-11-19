@@ -21,13 +21,13 @@ import { useOnline } from '../lib/useOnline';
 import type { Stop } from '../data/types';
 
 /**
- * Departure boards — every stop you pin, one list each.
+ * Departure boards, every stop you pin, one list each.
  *
  * The previous version was a single board with a stop picker, and the only "keep" control on it
  * was the pin that meant *favourite*. That pin now has its own glyph (the heart) and its own list
  * (the stop lists and the search), and this screen uses the pin for what it always described: a
- * stop whose board is on this page. The board holds as many of those as the traveller pins — the
- * dialog pins several at once — because somebody who commutes through two stations wants both
+ * stop whose board is on this page. The board holds as many of those as the traveller pins, the
+ * dialog pins several at once, because somebody who commutes through two stations wants both
  * boards in the morning, not one and a link.
  *
  * The word "favourite" still appears here, in the picker, where it is useful: favourites are
@@ -38,7 +38,7 @@ import type { Stop } from '../data/types';
  * How often the board re-reads the clock.
  *
  * A constant, not a setting: the board is a live screen, and the interval it was offered with
- * — off, 5, 15, 30 or 60 seconds — was a five-option control that wrapped into two rows
+ *, off, 5, 15, 30 or 60 seconds, was a five-option control that wrapped into two rows
  * inside its own capsule on a phone (the fifth shape of the same defect this app keeps
  * growing). Nobody wants a departure board that updates slower than the departures do.
  */
@@ -85,7 +85,7 @@ export function DeparturesPage() {
   /*
    * **One Plan control per board, and the choice behind it.**
    *
-   * The foot of every board held two pills side by side — *Plan from here* and *Plan to here* —
+   * The foot of every board held two pills side by side, *Plan from here* and *Plan to here* ,
    * which is the same question the stop page and the stop cards answer with **one** button and
    * `PlanStopDialog` ("is this where you leave from, or where you are going?"). The board kept the
    * pair through four rounds of audits because nothing was looking for it; now this page asks the
@@ -112,7 +112,7 @@ export function DeparturesPage() {
     /*
      * **Five seconds is a cadence for a screen somebody is watching.** A board left open in the
      * background refreshed twelve times a minute for nobody, and a refresh is a re-render and a
-     * repaint — the most expensive kind of work this app does. Hidden, the timer stops; on the way
+     * repaint, the most expensive kind of work this app does. Hidden, the timer stops; on the way
      * back it ticks once at once, so the times on the board are current before the first frame the
      * traveller sees, and then resumes its five seconds.
      */
@@ -137,13 +137,13 @@ export function DeparturesPage() {
    * **One refresh, in the corner a detail screen puts its way back.**
    *
    * It was one glyph per board, parked at the end of the sentence that says the board refreshes
-   * itself — so a screen with three boards carried three copies of one page-level action, and the
+   * itself, so a screen with three boards carried three copies of one page-level action, and the
    * corner where every other screen keeps its own control was empty. Asked for by name: "move the
    * Refresh button to the place of the back button on other pages".
    *
    * The page registers it with the shell (see `useHeaderControl`) and takes it away when it
    * unmounts, so the corner belongs to the bar and the button keeps the bar's own 44px disc and its
-   * 20px step. It refreshes every board on the screen, which is what it always did — the line
+   * 20px step. It refreshes every board on the screen, which is what it always did, the line
    * board's own copy went with it.
    */
   const setHeaderControl = useHeaderControl();
@@ -159,8 +159,8 @@ export function DeparturesPage() {
   }, [setHeaderControl, t]);
 
   /*
-   * A `?stop=` is the traveller asking for a stop — from an alert, a stop page, a widget's
-   * "open the full board" — so following one pins that stop to the board (it does not replace
+   * A `?stop=` is the traveller asking for a stop, from an alert, a stop page, a widget's
+   * "open the full board", so following one pins that stop to the board (it does not replace
    * the others) and is remembered as the stop they last chose.
    */
   const requestedStop = params.get('stop');
@@ -188,7 +188,7 @@ export function DeparturesPage() {
 
   /*
    * With nothing pinned, the board still opens on the default origin the traveller set in
-   * Settings — that stop's board, shown once, **not** quietly added to the pins. It is the one
+   * Settings, that stop's board, shown once, **not** quietly added to the pins. It is the one
    * candidate that is the traveller's own statement of where they travel from, and the card's
    * pin control starts empty so pinning it stays one tap away. A favourite is not consulted
    * here: hearting a place does not put a board on this page.
@@ -218,15 +218,15 @@ export function DeparturesPage() {
   /*
    * **The field holds nothing, ever.**
    *
-   * It used to be filled with the stop that had just been added — or the one a `?stop=` link named,
-   * or the default origin — so that "the control confirms what it just did" and its hint line could
+   * It used to be filled with the stop that had just been added, or the one a `?stop=` link named,
+   * or the default origin, so that "the control confirms what it just did" and its hint line could
    * carry that stop's code and modes. That confirmation is the wrong shape for an *add* control: the
    * stop is already on the page as the board underneath, so the screen said the same station twice
    * and the filled box sat under the words *Add a stop to the board*, reading as a search that had
    * been left behind (reported: "why does the old station stay in the search box when its already
    * pinned"). The board a `?stop=` link names is pinned and drawn; the field has nothing left to
    * say. Choosing a stop still pins it beside the others, and the × that a typed word brings still
-   * only clears the field — it never unpins anything.
+   * only clears the field, it never unpins anything.
    */
 
   const changeStop = (stop: Stop) => {
@@ -247,8 +247,8 @@ export function DeparturesPage() {
   };
 
   /*
-   * A line is a destination too (F20): `?line=f3&stop=amsterdam-buiksloterweg` — the link a
-   * "Lines calling here" row opens — is that service's own board at that stop, not the stop's
+   * A line is a destination too (F20): `?line=f3&stop=amsterdam-buiksloterweg`, the link a
+   * "Lines calling here" row opens, is that service's own board at that stop, not the stop's
    * board with a filter on it. It answers the same question the stop board does (when does the
    * next one leave, from which platform, is it late) for one line, in both directions, and it
    * names the whole route so the traveller can see where that line goes.
@@ -282,7 +282,7 @@ export function DeparturesPage() {
                 This head used to end in a **Stop page** button of its own, and so did every
                 board's head below: four boards, four buttons, all saying the one word the stop's
                 own name can say. A station's name is the way to its page everywhere else in this
-                app (`StopLink`), so it is here too, underlined — and the head keeps only the one
+                app (`StopLink`), so it is here too, underlined, and the head keeps only the one
                 control that has no word for what it does.
               */}
               <h2 className="t-section">
@@ -311,7 +311,7 @@ export function DeparturesPage() {
                   {t('Towards')} <StopLink stopId={terminus} label={stopLabel(terminus)} />
                 </span>
                 {/* Every stop on the route is a station's own name in a line, so every one of them
-                    is the way to that station's page — the same word-link a board row uses. */}
+                    is the way to that station's page, the same word-link a board row uses. */}
                 <div className="row-wrap">
                   {dir.stops.map((stopId, index) => (
                     <span key={stopId} className="row row--inline">
@@ -340,7 +340,7 @@ export function DeparturesPage() {
         There was one, and it was always there: a lone glyph on a row of its own between the app's
         header and the page's name, refreshing *a page of boards* while every card under it already
         said "auto-refresh every 5 seconds". It had started as a 0px row revealed by an upward
-        wheel at the top, and the fix for that being undiscoverable was to show it permanently — the
+        wheel at the top, and the fix for that being undiscoverable was to show it permanently, the
         ask was for it to be found, not for a control that never has nothing to do. A refresh
         belongs to the board it refreshes, so it sits in each board's own head, beside that
         sentence (see the stop card's header, and the line board's, which already had it).
@@ -355,15 +355,15 @@ export function DeparturesPage() {
       />
 
       {/*
-        **One** way to put a stop on this page: the search box. It is where the action belongs —
-        you name the stop, and it becomes a board — and it does it for as many stops as you like,
+        **One** way to put a stop on this page: the search box. It is where the action belongs ,
+        you name the stop, and it becomes a board, and it does it for as many stops as you like,
         one after another, without a second control that pins a different way. “Choose stops” in the
         empty state below is a signpost to this field, not a second picker.
       */}
       <Card hero className="stack">
         {/*
           The first slot of the filter row (MATCHING_PLAN rule 1): on this screen the control
-          that *is* the search is the stop field — the board's list is chosen by naming a stop.
+          that *is* the search is the stop field, the board's list is chosen by naming a stop.
           It wears the same row class as the stops list and the alerts list, so the row starts in
           the same place on every screen. There is no sort (a board is in time order by its own
           nature) and no Options chip, because nothing here hides behind one.
@@ -375,7 +375,7 @@ export function DeparturesPage() {
          * apart over a control whose placeholder asks its own question. The heading said nothing
          * the page title does not, so it is gone; the small label the field wears stays, because
          * "add a stop to the board" is what this control *does* and the placeholder only says
-         * how to use it. The count in between now speaks only when it has something to count —
+         * how to use it. The count in between now speaks only when it has something to count ,
          * with nothing pinned and no default origin the card is the label and the field, and the
          * empty state below explains what pinning is for.
          */}
@@ -407,7 +407,7 @@ export function DeparturesPage() {
       {boards.length === 0 ? (
         <Card className="stack">
           {/*
-            An address or a landmark has no board, and `?stop=` pins it all the same — so the page
+            An address or a landmark has no board, and `?stop=` pins it all the same, so the page
             said "No stops pinned to the board" over a field holding "Utrecht, Domtoren" (6.4).
             The two are different facts: nothing is pinned, or the thing you asked for cannot have
             a board. This is the second one, and it names it.
@@ -482,7 +482,7 @@ export function DeparturesPage() {
               <span className="field__label">
                 {t('Next departures · from {time}', { time: format.time(minutes) })}
               </span>
-              {/* Offline, the board is the timetable — it says so where the times are, not only in
+              {/* Offline, the board is the timetable, it says so where the times are, not only in
                   the strip at the top of the page. */}
               {online ? null : (
                 <Pill tone="coral" dot dotTone="coral">
@@ -520,7 +520,7 @@ export function DeparturesPage() {
 
           {/*
             The planning shortcut belongs to the board it names: with several boards on this
-            page, "this stop" has to mean a particular stop — so the button carries the stop's name
+            page, "this stop" has to mean a particular stop, so the button carries the stop's name
             for a screen reader, and the dialog it opens names the stop too.
 
             This row used to carry a 4px step of its own, because the alerts link above it was a
@@ -561,7 +561,7 @@ export function DeparturesPage() {
         The "About this board" panel that used to close this page is gone: four lines of the
         software describing itself (which clock the times use, that the board ticks, what a pin
         means) on a screen whose only job is to show departures. Nothing in it was a fact about
-        a departure, and the page above it already says everything it said — the refresh cadence
+        a departure, and the page above it already says everything it said, the refresh cadence
         is printed in the board's own header line, and pin-versus-favourite is asked and answered
         in the picker that sets them.
       */}

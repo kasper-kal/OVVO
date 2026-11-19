@@ -6,18 +6,18 @@
  * one of them says nothing about the other. Two real faults lived in it.
  *
  *   • the alert count's outline was `color-mix(ink 32%)`, which is fine when the pill is painted in
- *     the accent — and is the *only* edge there is when the pill happens to be painted the page's
+ *     the accent, and is the *only* edge there is when the pill happens to be painted the page's
  *     own colour. There it measured **1.35:1**, a count you could not see (reported from a
  *     screenshot with a periwinkle page: "what a contrast issue").
  *   • in a split palette the pill's fill came from the widgets' colour while its label was chosen
- *     for the accent's cut, so an ivory widget colour drew an ivory pill holding ivory digits —
+ *     for the accent's cut, so an ivory widget colour drew an ivory pill holding ivory digits ,
  *     **1.00:1**, a badge with no number in it.
  *
  * Both are fixed (`lib/background.ts`, `styles/base.css`), and this is the instrument that keeps
  * them fixed. It asserts, in each palette, on the paint rather than on the declaration:
  *
  *   1. the count's digits are at least **4.5:1** against the pill (11px bold is small text);
- *   2. the pill's **boundary** is at least **3:1** against the page — either its fill or its ring,
+ *   2. the pill's **boundary** is at least **3:1** against the page, either its fill or its ring,
  *      because a fill that equals the page is allowed exactly as long as the ring still reads;
  *   3. the warning triangle is at least **3:1** against the page (WCAG's non-text minimum).
  *
@@ -219,7 +219,7 @@ const lines = [
   '| --- | --- | --- | --- | --- | --- |',
   ...rows.map((row) => `| ${row.label} | ${row.digits}:1 | ${row.fillEdge}:1 | ${row.ringEdge}:1 | ${row.iconEdge}:1 | ${row.ok ? 'pass' : '**fail**'} |`),
   '',
-  ...rows.map((row) => `- ${row.label} — ${row.colours}`),
+  ...rows.map((row) => `- ${row.label}, ${row.colours}`),
 ];
 mkdirSync('.logs', { recursive: true });
 writeFileSync('.logs/palette-audit.md', lines.join('\n') + '\n');
@@ -235,4 +235,4 @@ if (failures.length) {
   for (const failure of failures) console.log(`  ${failure}`);
   process.exit(1);
 }
-console.log('OK — the count is readable and the warning mark is visible in every palette.');
+console.log('OK, the count is readable and the warning mark is visible in every palette.');

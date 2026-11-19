@@ -8,7 +8,7 @@
  *
  * **Cloudflare comes first on purpose.** The workers.dev address is needed by Firebase before
  * Firebase can allow it, and an earlier version asked for that address in part 5 and only explained
- * where it comes from in part 6 — a box he could not fill without scrolling past the answer. Now the
+ * where it comes from in part 6, a box he could not fill without scrolling past the answer. Now the
  * account and the address are part 1, and everything Firebase does with it comes after.
  *
  * Nothing in here is generated from the app: it documents dashboards, not code.
@@ -233,7 +233,7 @@ ${part(
   step(
     '3.1',
     'Sign in to the Firebase console',
-    `${where('https://console.firebase.google.com — sign in with the Google account you want to own OVVO. Not a work or school account: those can be closed by an administrator and take the project with them.')}`,
+    `${where('https://console.firebase.google.com, sign in with the Google account you want to own OVVO. Not a work or school account: those can be closed by an administrator and take the project with them.')}`,
   ) +
     step(
       '3.2',
@@ -319,7 +319,7 @@ ${part(
     step(
     '6.2',
     'Set up the consent screen once',
-    `${where('https://console.cloud.google.com — the same project is there under the name you gave it. Open the menu and choose <b>Google Auth platform</b>. If it says it is not configured yet, click <b>Get Started</b>.')}`,
+    `${where('https://console.cloud.google.com, the same project is there under the name you gave it. Open the menu and choose <b>Google Auth platform</b>. If it says it is not configured yet, click <b>Get Started</b>.')}`,
   ) +
     step(
     '6.3',

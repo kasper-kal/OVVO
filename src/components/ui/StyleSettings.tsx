@@ -25,12 +25,12 @@ import { upcomingHoliday } from '../../lib/holidays';
  * What the first version got wrong, and this one fixes: it was fifty large tiles, each showing a
  * pretend card and its name *set in that style's own display face*, with a sentence under every
  * group heading. Fifty posters with fifty different typefaces, one after another, is not a
- * catalogue — it is noise, and it made a long page look longer. The swatches are small now and the
+ * catalogue, it is noise, and it made a long page look longer. The swatches are small now and the
  * names are all in the interface's own font, so the only thing that changes from tile to tile is
  * the colour, which is what the tile is for.
  *
  * Photo styles carry one extra control, **Background**: the photograph, or that style's own colour.
- * The answer is remembered per style, and the saving modes win — at 10% of a battery, or on a device
+ * The answer is remembered per style, and the saving modes win, at 10% of a battery, or on a device
  * that measured as slow, the picture is not drawn whatever the switch says, and the sentence under
  * it says why instead of quietly disagreeing with itself.
  */
@@ -115,7 +115,7 @@ export function StyleSettings() {
 
   /*
    * **One tile, drawn once.** The Upcoming shelf used to be its own card with its own heading, its
-   * own row and its own proportions — a second kind of thing beside the catalogue, which is exactly
+   * own row and its own proportions, a second kind of thing beside the catalogue, which is exactly
    * what it was reported as ("Upcoming should look like any other category"). The shelf below is
    * now a heading and a grid like every other group, and both places draw the same tile from here,
    * so the seasonal one cannot drift away from the catalogue's own shape again.
@@ -225,7 +225,7 @@ export function StyleSettings() {
          * **Upcoming is a shelf, not a card.** It sits first, under the same heading and in the
          * same grid as every other category, and it is simply absent on an ordinary day. The
          * countdown rides on the heading line so the tile itself stays the tile the catalogue
-         * draws — one shape, one size, one way to choose.
+         * draws, one shape, one size, one way to choose.
          */}
         {upcoming && (
           <div className="style-group style-group--upcoming">

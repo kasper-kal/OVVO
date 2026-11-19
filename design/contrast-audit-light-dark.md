@@ -1,4 +1,4 @@
-# Contrast sweep — every screen, every appearance, every width
+# Contrast sweep, every screen, every appearance, every width
 
 Measured 2026-11-03 03:11 on http://127.0.0.1:3000.
 32 page renders, 1618 text and icon nodes measured.
@@ -6,7 +6,7 @@ Thresholds: 4.5:1 body, 3:1 large text and icons.
 
 Nothing below AA anywhere in the matrix.
 
-## Closest to the floor — the tightest twenty, whatever their verdict
+## Closest to the floor, the tightest twenty, whatever their verdict
 
 | theme | route | width | ratio | needs | what | ink | ground |
 | --- | --- | --- | --- | --- | --- | --- | --- |

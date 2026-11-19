@@ -11,8 +11,8 @@ import type { Journey } from '../../data/types';
  * **The clock that tells you when to go.**
  *
  * 9292's clock opens a departure alarm: a slider, a minus and a plus, five minutes to begin with,
- * Cancel and Save under it. What it really sets is a minute — the walk to the stop and the warning
- * taken off the departure — and that minute is the whole feature: "warn me five minutes before I
+ * Cancel and Save under it. What it really sets is a minute, the walk to the stop and the warning
+ * taken off the departure, and that minute is the whole feature: "warn me five minutes before I
  * have to leave" is a sentence you cannot act on, "leave at 06:44" is one you can.
  *
  * Two honest limits, stated on the sheet rather than discovered later. The alarm fires while this
@@ -63,7 +63,7 @@ export function DepartureAlarm({ journey }: { journey: Journey }) {
     /*
      * **The reminder is a message, not a box in the button row.**
      *
-     * It used to be a paragraph rendered beside Save, Alarm and Share, inside the same row — so it
+     * It used to be a paragraph rendered beside Save, Alarm and Share, inside the same row, so it
      * became a flex item 97px tall, and the two buttons next to it stretched to 105px and turned
      * into circles. He photographed exactly that. A due alarm is news, and the app already has
      * one place for news: the toast region, outside the layout, read aloud as a status.

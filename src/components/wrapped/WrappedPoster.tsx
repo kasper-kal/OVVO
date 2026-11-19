@@ -70,11 +70,11 @@ export function WrappedPoster({ poster, onReplay }: PosterProps) {
   };
 
   const facts: Array<{ label: string; value: string }> = [
-    { label: 'Busiest day', value: poster.day ? poster.day.date : '—' },
-    { label: 'Journeys that day', value: poster.day ? String(poster.day.count) : '—' },
+    { label: 'Busiest day', value: poster.day ? poster.day.date : ',' },
+    { label: 'Journeys that day', value: poster.day ? String(poster.day.count) : ',' },
     {
       label: 'Longest streak',
-      value: poster.streakDays ? `${poster.streakDays} ${poster.streakDays === 1 ? 'day' : 'days'}` : '—',
+      value: poster.streakDays ? `${poster.streakDays} ${poster.streakDays === 1 ? 'day' : 'days'}` : ',',
     },
   ];
 

@@ -1,11 +1,11 @@
 /**
- * The review layer — a dev-only annotation tool, and nothing that belongs to the product.
+ * The review layer, a dev-only annotation tool, and nothing that belongs to the product.
  *
  * Why it exists: pointing at the interface is a hundred times more useful than describing it, and
  * describing it in a message loses the thing being pointed at. So this floats a dot over the app;
  * open it, paste a screenshot, click the picture to drop pins, write beside each one, and save.
- * The image and the notes land in one round's folder under `review/` — `review/desktop/` for this
- * round, `review/mobile/` for the archived phone batch (see `review/README.md`) — and the fix plan
+ * The image and the notes land in one round's folder under `review/`, `review/desktop/` for this
+ * round, `review/mobile/` for the archived phone batch (see `review/README.md`), and the fix plan
  * is written against them afterwards.
  *
  * Three rules it keeps so it can be deleted without a trace:
@@ -21,7 +21,7 @@
  * Two things it learned the hard way, because a phone is not a small desktop:
  *
  * - The panel is a fixed-position box that used to be placed next to the dot with a 560px cap, so
- *   on a phone its bottom — and the Save button with it — sat past the edge of the screen, with no
+ *   on a phone its bottom, and the Save button with it, sat past the edge of the screen, with no
  *   way to scroll to it. On a narrow viewport it is now a sheet that fills the screen, with the
  *   body scrolling between a fixed header and a fixed footer, so Save is always on screen.
  * - A 3x phone screenshot is several megabytes of base64, and a large POST can sit in a proxy
@@ -67,7 +67,7 @@ interface Shot {
   saved?: string;
 }
 
-/* 44px, like every other target in this app — being a dev tool is not a reason to break the rule
+/* 44px, like every other target in this app, being a dev tool is not a reason to break the rule
    the rest of the interface keeps. */
 const DOT_SIZE = 44;
 const PANEL_WIDTH = 360;
@@ -92,12 +92,12 @@ const REVIEW_BATCH =
 interface SaveResult {
   ok?: boolean;
   image?: string;
-  /** The folder it was written to — the server's answer, not this module's guess. */
+  /** The folder it was written to, the server's answer, not this module's guess. */
   batch?: string;
   error?: unknown;
 }
 
-/** Everything the app knows about the person looking at it — the context a note needs to mean anything. */
+/** Everything the app knows about the person looking at it, the context a note needs to mean anything. */
 function readContext(route: string, settings: { language: string; density: string }, preferences: unknown) {
   const screenInfo = window.screen;
   const coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -135,7 +135,7 @@ function readContext(route: string, settings: { language: string; density: strin
   };
 }
 
-/** `2026-10-17t18-42-05-departures-390-dark` — sortable, readable, safe as a filename. */
+/** `2026-10-17t18-42-05-departures-390-dark`, sortable, readable, safe as a filename. */
 function fileStem(meta: Record<string, unknown>) {
   const at = String(meta.at ?? new Date().toISOString());
   const stamp = at.replace(/[:.]/g, '-').replace('Z', '').toLowerCase();
@@ -425,7 +425,7 @@ export function ReviewLayer() {
 
   const active = shots.find((shot) => shot.id === activeId) ?? shots[0];
 
-  /** Where a pointer is on the picture, as fractions — the space pins and regions are stored in. */
+  /** Where a pointer is on the picture, as fractions, the space pins and regions are stored in. */
   const imagePoint = (event: React.PointerEvent<HTMLDivElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     const clamp = (value: number) => Math.min(1, Math.max(0, value));

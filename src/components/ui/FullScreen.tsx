@@ -5,15 +5,15 @@ import { useOverlay } from '../../lib/useOverlay';
 import { useT } from '../../lib/useT';
 
 /**
- * A screen that takes over everything — the OVVO mark, the dock, the lot — with a back
+ * A screen that takes over everything, the OVVO mark, the dock, the lot, with a back
  * arrow on the left and a centred title, the shape the 9292 picker uses.
  *
  * The map screen is the reason this is not the ordinary `Dialog`: a picker needs the
  * whole viewport and its own header, and the sheet is a screen you can be in rather than
  * a panel over one. Escape goes back, like the arrow.
  *
- * The five overlay facts — initial focus, a real trap, Escape, focus return and a locked
- * document — come from `lib/useOverlay`, the same hook `Dialog` uses. They used to be missing
+ * The five overlay facts, initial focus, a real trap, Escape, focus return and a locked
+ * document, come from `lib/useOverlay`, the same hook `Dialog` uses. They used to be missing
  * here (27.1, 28.1, 29.1, 30.8): the keyboard left through the page behind, the page scrolled
  * under a fixed screen, and every exit dropped focus on `<body>` instead of the row that opened
  * it. A screen that wants its field focused on open still wins: the hook leaves an already
@@ -37,7 +37,7 @@ export function FullScreen({
   /**
    * The body does not scroll and carries no padding: the screen's child owns every pixel.
    *
-   * The picture screens need this — a photograph that can be dragged and a loupe that follows a
+   * The picture screens need this, a photograph that can be dragged and a loupe that follows a
    * pointer cannot live inside a scroller, where a finger moving over them would pan the page
    * instead of a picture. A plain document-shaped screen (the colour picker) keeps the default.
    */
@@ -57,7 +57,7 @@ export function FullScreen({
    * **A full-screen screen is rendered at the top of the document, not inside the card that opened
    * it.**
    *
-   * It used to be a child of whatever opened it — the stop picker lived inside the planner's card —
+   * It used to be a child of whatever opened it, the stop picker lived inside the planner's card ,
    * so it inherited that card's derived ink ramp: with a black primary colour the card's ink is
    * light, and the picker's own cream surface then carried `#a9c0a8` text at **1.88:1** (measured;
    * the screenshot of "Use my current location" greyed out). A screen with its own surface has to

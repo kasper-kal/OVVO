@@ -2,16 +2,16 @@
  * Three things a build, a type check and a screenshot all miss, read out of a real browser on
  * every route and at four widths:
  *
- *   1. contrast        — every text and icon, against the surface it actually sits on, to WCAG
+ *   1. contrast       , every text and icon, against the surface it actually sits on, to WCAG
  *                        AA (4.5:1 body, 3:1 large text and icons). Two secondary ink tones used
  *                        to fail everywhere: the faint tone measured 2.45–3.02 across the card
  *                        surfaces and the tints.
- *   2. touch targets   — the *effective* hit area, found by probing points outward from a
+ *   2. touch targets  , the *effective* hit area, found by probing points outward from a
  *                        control's centre, so a pseudo-element that grows the target counts and
  *                        a paint box does not. Three circular icon buttons measured 21/26/39px
  *                        wide against a 44px height: a tight flex row had squeezed the width
  *                        only, so they were ovals with a target under the mark.
- *   3. clipped text    — text wider or taller than its own box while the box hides overflow,
+ *   3. clipped text   , text wider or taller than its own box while the box hides overflow,
  *                        which is how a settings line and a pill label went unread.
  *
  * Run:   node scripts/ui-audit.mjs [origin]      (needs playwright, see README)
@@ -21,9 +21,9 @@ import { ensureAppFont } from './font-guard.mjs';
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
 /*
  * `/disruptions/d1` is not an alert, and the page said so: the "Alert not found" empty state is
- * what this audit measured on the two routes below, so the alert page's own content — including
+ * what this audit measured on the two routes below, so the alert page's own content, including
  * the butter "Advice" banner, whose title drew **1.03:1** in the dark appearance and had to be
- * reported from a phone screenshot instead — was never put in front of the contrast check. The
+ * reported from a phone screenshot instead, was never put in front of the contrast check. The
  * id is a real alert from `src/data/disruptions.ts` now.
  *
  * The journey route is the same story in reverse and is left as it is deliberately: a journey is
@@ -35,7 +35,7 @@ const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
  * `/map` is in the list because it was the one screen that was not: it was reachable only as a home
  * widget until it became a page of its own, and the map's sizing was fixed twice on the strength of
  * a screenshot rather than measured. Its stops are drawn in SVG, so it adds no controls to the
- * target probe, and its names are the only text on the panel — measured against whatever ground the
+ * target probe, and its names are the only text on the panel, measured against whatever ground the
  * panel paints (`.map-card .map-canvas`), which is the thing this audit is for.
  */
 const ROUTES = process.env.UI_AUDIT_ROUTES
@@ -45,14 +45,14 @@ const ROUTES = process.env.UI_AUDIT_ROUTES
 /*
  * The widths every route is measured at. `719` and `720` are both here on purpose: they are the
  * two sides of the one breakpoint (`src/styles/base.css`, "the one breakpoint"), and the defects
- * that rule was written against were all found *between* two local widths — a home grid that kept
+ * that rule was written against were all found *between* two local widths, a home grid that kept
  * two half cards at 390, a stop list that capped itself as a phone up to 640, a page head that
  * changed shape at 641. A round that samples 390 and 768 skips the band those numbers live in, so
  * the boundary is now in the sweep and `scripts/breakpoint-audit.mjs` fails if it ever moves.
  */
 /*
  * `UI_AUDIT_WIDTHS=390` and `UI_AUDIT_ROUTES=/stops,/map` narrow the sweep. The default is the
- * whole matrix and stays that way — a gate that only ever looks at three screens is how a fault
+ * whole matrix and stays that way, a gate that only ever looks at three screens is how a fault
  * survives on the other nine. The narrowing exists for `scripts/colour-audit.mjs`, which has to run
  * this measurement once per palette: twelve routes at six widths per palette is a quarter of an
  * hour, and the palettes are the thing being compared there.
@@ -79,7 +79,7 @@ const BACKGROUND_COLOUR = process.env.UI_AUDIT_COLOUR ?? '#dfe8f2';
  * `UI_AUDIT_CLOCK=2026-10-15T23:50:00Z` freezes the page's clock at an hour of the caller's
  * choosing.
  *
- * This exists because two of the checks below — the 44px target and the clipped text — could be
+ * This exists because two of the checks below, the 44px target and the clipped text, could be
  * reported as clean for a whole evening and then fail at 23:59, and neither answer was about the
  * code: a departure board holds a **cancelled** row only when the timetable has a cancellation in
  * the window, and the last services of the day are the ones that get them (measured: the same two
@@ -98,7 +98,7 @@ const SETTINGS_STORAGE = {
   density: 'comfortable',
   /*
    * The palette, from the environment so a caller can walk the Colours screen's own space without
-   * a browser to click with — see `scripts/colour-audit.mjs`. `primaryColour` is the widget colour
+   * a browser to click with, see `scripts/colour-audit.mjs`. `primaryColour` is the widget colour
    * (the second of the three colours on that screen) and `""` means "follow the page colour".
    */
   primaryColour: process.env.UI_AUDIT_PRIMARY ?? '',
@@ -114,7 +114,7 @@ const SETTINGS_STORAGE = {
   /*
    * A configured state on purpose: the picker check below measures the hint line under a field
    * *when the field holds a stop*, and the board no longer invents one. With nothing configured
-   * there is no hint anywhere and the coverage rule would be asserted against nothing — the
+   * there is no hint anywhere and the coverage rule would be asserted against nothing, the
    * vacuity guard at the end of this file exists because that happened once.
    */
   defaultOriginStopId: 'utrecht-centraal',
@@ -151,7 +151,7 @@ for (const width of WIDTHS) {
       window.localStorage.setItem('ov-planner:v1:settings', JSON.stringify(settings));
       window.localStorage.setItem('ov-planner:v1:location-consent', '"denied"');
       /* The freeze is on `Date` itself, so every generator that asks what time it is gets the
-         frozen hour — including the refresh ticker's arithmetic, which keeps working because
+         frozen hour, including the refresh ticker's arithmetic, which keeps working because
          only "now" is fixed and elapsed time still adds up. */
       if (!clock) return;
       const fixed = new Date(clock).getTime();
@@ -177,7 +177,7 @@ for (const width of WIDTHS) {
     await page.waitForTimeout(140);
     /*
      * Close anything modal first. The location dialog opens on first use and its overlay covers
-     * the page, so every control behind it fails a point probe — 189 false failures before this.
+     * the page, so every control behind it fails a point probe, 189 false failures before this.
      */
     for (const label of ['Not now', 'No thanks', 'Deny', 'Dismiss', 'Got it']) {
       const button = page.locator('[role=dialog] button, [role=dialog] a').filter({ hasText: new RegExp(label, 'i') });
@@ -191,9 +191,9 @@ for (const width of WIDTHS) {
      * Two things about a popover are promises, and neither is visible in a closed one: it hangs
      * from the field it belongs to, and it covers what that field puts underneath it (the stop's
      * code and modes, `.field__hint`). Anchored to the whole labelled control instead of its
-     * input, the list opened *below* the hint line — planted and measured again at **36px**
+     * input, the list opened *below* the hint line, planted and measured again at **36px**
      * between the input's bottom edge and the list's top (44px where the hint wraps onto two
-     * lines at 320px), against **4px** now — leaving "ASC · Train, Tram, Metro, Bus, Ferry,
+     * lines at 320px), against **4px** now, leaving "ASC · Train, Tram, Metro, Bus, Ferry,
      * Walking, Biking" sitting above a panel that was supposed to be covering it.
      *
      * It is closed before the rest of the audit runs: an open list legitimately hides the
@@ -205,7 +205,7 @@ for (const width of WIDTHS) {
     if (await fieldInput.count()) {
       /*
        * Bring the field on screen first. This measured wherever the page happened to be, and
-       * `elementFromPoint` answers **null** for a point outside the viewport — so a hint line
+       * `elementFromPoint` answers **null** for a point outside the viewport, so a hint line
        * below the fold was reported as "not covered by its popover" when nothing was wrong with
        * it, only with the question (the settings page's default-origin field sits that far down
        * a 900px window). The rule is unchanged and still asserts the same thing: the list hangs
@@ -218,13 +218,13 @@ for (const width of WIDTHS) {
       /*
        * Replace the value, do not append to it: on a field that already holds a stop (the board's
        * own picker), typing at the caret produced "Utrecht CentraalA" and the audit measured a
-       * no-match panel — 0 rows — while reporting the geometry as fine.
+       * no-match panel, 0 rows, while reporting the geometry as fine.
        */
       await fieldInput.fill('A').catch(() => {});
       /*
        * Let the list settle before it is measured. `StopCombobox` sizes itself on a 140ms trailing
        * timer and again at 420ms, so measuring at 90ms read the opening 460px panel before it had
-       * been cut down to the room under the field — on Settings that reported a 74px list beside
+       * been cut down to the room under the field, on Settings that reported a 74px list beside
        * "335px of room below it", which is a measurement of the wrong moment, not of the panel.
        */
       await page.waitForTimeout(560);
@@ -241,8 +241,8 @@ for (const width of WIDTHS) {
            * The other way a list can hang: **above** its field.
            *
            * `lib`'s combobox opens downward until the room below runs out and then hangs upward
-           * instead, so the same popover can be attached by its bottom edge to the field's top —
-           * measured here as `upGap` — and a rule that only knew about the downward case read
+           * instead, so the same popover can be attached by its bottom edge to the field's top ,
+           * measured here as `upGap`, and a rule that only knew about the downward case read
            * that as a defect. The width the two anchorings revisit is the one breakpoint: the cap
            * on up/down placement is on the mobile side, so at 719px (mobile) a field low on a
            * long page hangs up, and at 720px (desktop) the same field has 460px of list below it.
@@ -275,10 +275,10 @@ for (const width of WIDTHS) {
          *
          * Hanging **down** keeps the original rule: 4px (never more than 12) under the input, and
          * the hint line underneath is covered by the panel. Hanging **up** is allowed, but only
-         * as a consequence — the list has to have run out of room below (`roomBelow < height`),
+         * as a consequence, the list has to have run out of room below (`roomBelow < height`),
          * and the hint is then *not* expected to be covered, because it is not under the list at
          * all. A list that reaches past the bottom of the page is still fine: it is in the page,
-         * which scrolls to it — the mobile cap is what keeps it from becoming unreachable there.
+         * which scrolls to it, the mobile cap is what keeps it from becoming unreachable there.
          * Either way the list may not float: the attach gap has a lower bound as well as an
          * upper one, so a panel that hovers a list's height away from its own field is a finding.
          */
@@ -294,7 +294,7 @@ for (const width of WIDTHS) {
          * "Six or more rows may not be squeezed under 300px" is a promise about a screen with room
          * to give, not about a 320px phone holding a keyboard-high field: there the cap is the space
          * that actually exists, and a list that keeps 300px would hang off the bottom of the display
-         * — the defect this rule was read next to. So the floor applies only where the room is there.
+         *, the defect this rule was read next to. So the floor applies only where the room is there.
          */
         const roomForSixRows = width >= 720 && geo.roomBelow >= 300;
         if (slipped || !coversHint || (roomForSixRows && geo.rows >= 6 && geo.height < 300)) popovers.push({ route, width, ...geo, side: hangingUp ? 'above' : 'below' });
@@ -314,14 +314,14 @@ for (const width of WIDTHS) {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
       const blend = (fg, bg) => fg.rgb.map((v, i) => v * fg.a + bg[i] * (1 - fg.a));
       /*
-       * An svg can paint its own ground, and then that ground is what its ink is read against —
+       * An svg can paint its own ground, and then that ground is what its ink is read against ,
        * not the page showing through the element. The OVVO mark does exactly that: its white
        * quadrants are two rects inside the artwork, because a white *behind* the ink shows up in
        * the corner antialiasing (see `BrandMark` in `src/components/ui/Icons.tsx`).
        *
        * The ground is the svg's own first painted shape, and only when that shape is a rect the
        * size of the whole viewBox: the mark's ground is exactly that, and every other svg in the
-       * app begins with a path — an icon is its ink, with no ground of its own — which keeps those
+       * app begins with a path, an icon is its ink, with no ground of its own, which keeps those
        * on the old path of reading the element's background.
        */
       const ownGround = (svg) => {
@@ -348,11 +348,11 @@ for (const width of WIDTHS) {
        * fault. Rules are read out of the stylesheets, so it needs no list of class names.
        */
       /*
-       * "Declared square" means an **absolute** pair — `44px` twice, or `aspect-ratio: 1` — and not
+       * "Declared square" means an **absolute** pair, `44px` twice, or `aspect-ratio: 1`, and not
        * just two equal strings. `width: 100%; height: 100%` is not a square declaration: it is "fill
        * the parent", which is what the dashed ring's full-bleed SVG says, and reading it as a square
        * flagged nine instances of a thing that was never square (the defect this check exists for is
-       * a 32x32 disc drawn 22x32, and a percentage pair cannot produce it — the parent decides both
+       * a 32x32 disc drawn 22x32, and a percentage pair cannot produce it, the parent decides both
        * axes). The absolute units are matched explicitly so nothing else slips in.
        */
       const absolute = /^\d*\.?\d+(px|rem|em)$/;
@@ -362,9 +362,9 @@ for (const width of WIDTHS) {
        * check exists to catch.
        *
        * The map used to be the case: `.map-canvas` declared `aspect-ratio: 1 / 1` and the wide rule
-       * cancelled it with `auto`. It no longer declares one at all — the drawing is an
+       * cancelled it with `auto`. It no longer declares one at all, the drawing is an
        * `<svg viewBox="0 0 100 100">`, so its own viewBox is the square and the wide rules state
-       * 4 / 3 and 16 / 9 for the plate — but the cancellation stays: a rule that writes
+       * 4 / 3 and 16 / 9 for the plate, but the cancellation stays: a rule that writes
        * `aspect-ratio: auto` explicitly is a decision, and an accidental squeeze, which is what
        * this check found three times, never writes one.
        */
@@ -439,7 +439,7 @@ for (const width of WIDTHS) {
          *
          * Two kinds of link skip the 44×44 probe, and they skip it for the same reason:
          *
-         *   • **`.stop-link`** — a station's name printed inside a journey leg, a departure row or
+         *   • **`.stop-link`**, a station's name printed inside a journey leg, a departure row or
          *     an alert. The name is one word among other words, and it is *deliberately* given no
          *     padding (`AGENTS.md` rule 8, and `.stop-link` in `styles/base.css`). A thumb-sized
          *     box around a word in a sentence pushes that sentence apart and lays an invisible
@@ -450,7 +450,7 @@ for (const width of WIDTHS) {
          *
          * So this is not a loosened check, it is the correct rule for this kind of link: the probe
          * would fail every time, forever, and the finding would have to be ignored by hand on each
-         * run — which is why it is written here instead, once. Anything that *can* be padded still
+         * run, which is why it is written here instead, once. Anything that *can* be padded still
          * is measured: a link that grows a `tap-target` class is back in the probe below.
          */
         const stopLink = el.tagName === 'A' && el.classList.contains('stop-link');
@@ -476,20 +476,20 @@ for (const width of WIDTHS) {
         /*
          * Two things excuse a corner the control itself does not answer to.
          *
-         * 1. **The app's own fixed or sticky chrome over it** — a chip scrolled under the dock or
+         * 1. **The app's own fixed or sticky chrome over it**, a chip scrolled under the dock or
          *    the header is a scroll position, not a small target.
          * 2. **Another control over it that is itself at least 44×44.** The stop rows are the case
          *    this was written for: the invisible `a.list-row__stretch` spans the whole row and the
          *    row's own Board/Plan buttons are painted across its right edge, so that corner taps a
-         *    real button — measured, the corner answers `a.btn` inside `li.list-row`. The rule the
+         *    real button, measured, the corner answers `a.btn` inside `li.list-row`. The rule the
          *    audit exists to keep is that a tap of at least 44px lands on something interactive;
          *    "another target of that size is on top" keeps it rather than loosening it. A corner
-         *    under **decoration** — a gradient, a badge, a label that does not do anything — is
+         *    under **decoration**, a gradient, a badge, a label that does not do anything, is
          *    still a finding, and so is a corner under a control *smaller* than the target size,
          *    which is the case that would actually lose the tap.
          *
          * The finding this excused, and where: `a.list-row__stretch` on /stops/utrecht-centraal at
-         * 719 and 720 in Dutch (dark) — the three widths that the sweep had never sampled before
+         * 719 and 720 in Dutch (dark), the three widths that the sweep had never sampled before
          * the one breakpoint was written down, and never in the language that wraps the row tall
          * enough for a button to reach the link's corner.
          */
@@ -513,9 +513,9 @@ for (const width of WIDTHS) {
       /*
        * The header is two promises at once, and both are behavioural, so both are measured:
        *
-       *   1. it **sticks** — scrolled 300px down the page, its box is still at the top of the
+       *   1. it **sticks**, scrolled 300px down the page, its box is still at the top of the
        *      viewport. `position: static` fails this by exactly the scroll distance.
-       *   2. it **paints nothing** — the row's own computed background, background-image and
+       *   2. it **paints nothing**, the row's own computed background, background-image and
        *      box-shadow are all empty while it is stuck. `background: var(--l0-bg)` on the
        *      canvas measures identical to the page and looked like nothing at the top of a
        *      screen, but a white card scrolling under it showed the band immediately.
@@ -523,7 +523,7 @@ for (const width of WIDTHS) {
        * Reading what the row paints, and where it sits once the page has moved, is what makes
        * this survive the next refactor rather than only the last one. The band used to be caught
        * by scanning *everything* that painted across the row's box; that check is gone on
-       * purpose — content passing under a sticky header is the header working, not the defect.
+       * purpose, content passing under a sticky header is the header working, not the defect.
        */
       const header = document.querySelector('.app-header');
       if (header) {
@@ -535,19 +535,19 @@ for (const width of WIDTHS) {
         /*
          * **And the fade, which is the other half of the same promise.**
          *
-         * The row itself stays clear, so a card travelling under it is drawn *through* the mark —
+         * The row itself stays clear, so a card travelling under it is drawn *through* the mark ,
          * measured on the stop page as "Stop information" cut by the 56px tile. The fix is a fade
          * of the canvas in `::before` that is only there once the page has moved; because it is a
          * pseudo-element, the reads above cannot see it, and a check that only reads the row would
          * pass while the row painted a solid bar through `::before`. So it is measured twice: it
          * must paint **nothing** at rest, and once stuck it must be a **gradient that ends in
-         * transparency** — a fill of any kind, or a fade that stops short of zero, is the band.
+         * transparency**, a fill of any kind, or a fade that stops short of zero, is the band.
          */
         const restFade = getComputedStyle(header, '::before');
         /* Only where the page really is at its top: this walk scrolls around a screen, and a page
            left scrolled is *supposed* to have the fade on. */
         /* 1% rather than 0: the fade leaves over 240ms, and a measurement taken in the same frame as
-           a scroll back to the top catches it at 0.0008 opacity — invisible, and not a paint. */
+           a scroll back to the top catches it at 0.0008 opacity, invisible, and not a paint. */
         if (window.scrollY <= 4 && Number(restFade.opacity) > 0.01 && restFade.backgroundImage !== 'none')
           out.band.push({ el: name(header), why: `paints a fade at the top of the page (opacity ${restFade.opacity})` });
         const restTop = header.getBoundingClientRect().top;
@@ -560,7 +560,7 @@ for (const width of WIDTHS) {
         const stuckFade = getComputedStyle(header, '::before');
         /*
          * A row with **no** `::before` rule at all reports `opacity: 1` and `backgroundImage: none`
-         * — a pseudo-element that does not exist is not a fade, and reading its default opacity as
+         *, a pseudo-element that does not exist is not a fade, and reading its default opacity as
          * one made every page fail this check (72 hits, all of them `the fade ends in none`). Only a
          * fade that actually paints is judged, and then only by where it ends.
          */
@@ -568,7 +568,7 @@ for (const width of WIDTHS) {
         if (paintsFade && Number(stuckFade.opacity) > 0) {
           const image = stuckFade.backgroundImage;
           if (!/rgba\(0, 0, 0, 0\) 100%\)$/.test(image.trim()))
-            out.band.push({ el: name(header), why: `the fade ends in ${image.slice(-70)}, not transparency — that is a bar` });
+            out.band.push({ el: name(header), why: `the fade ends in ${image.slice(-70)}, not transparency, that is a bar` });
         }
         window.scrollTo(0, before);
         // Only where the page is long enough to scroll past the row: on a short page it cannot
@@ -591,7 +591,7 @@ for (const width of WIDTHS) {
        * left, and the alerts entry's right edge on its content right. That is the fix behind this
        * check. Nothing here could see it before: every control had a legal target, legal contrast
        * and nothing was clipped, while the row was 4px inside the cards at 390 and 1280 and 12px
-       * outside the columns at 1440 — measured, not guessed. Two boxes with a 12px gutter have to
+       * outside the columns at 1440, measured, not guessed. Two boxes with a 12px gutter have to
        * be the *same* box, or the numbers drift the moment a max-width engages.
        *
        * A page with no way back is not a pass by absence: the ones that exist still have to agree.
@@ -602,7 +602,7 @@ for (const width of WIDTHS) {
         for (const slot of document.querySelectorAll(selector)) {
           const drawn = slot.querySelector('button, a, .btn') ?? slot;
           const r = drawn.getBoundingClientRect();
-          /* The way back is an empty wrapper on a page that has none — a 0px box is not a row item,
+          /* The way back is an empty wrapper on a page that has none, a 0px box is not a row item,
              and counting it reported every such page as a row of tops none of them shared. */
           if (r.height < 1) continue;
           boxes.push({ label, top: Math.round(r.top), height: Math.round(r.height) });
@@ -611,7 +611,7 @@ for (const width of WIDTHS) {
       if (boxes.length > 1 && new Set(boxes.map((b) => b.top)).size > 1)
         out.line.push({
           el: 'app-header__inner',
-          why: `tops differ — ${boxes.map((b) => `${b.label} top ${b.top} (${b.height}px tall)`).join(' · ')}`,
+          why: `tops differ, ${boxes.map((b) => `${b.label} top ${b.top} (${b.height}px tall)`).join(' · ')}`,
         });
       const bodyEl = document.querySelector('.app-body');
       const contentEdge = (el, side) => {
@@ -640,7 +640,7 @@ for (const width of WIDTHS) {
        * `flex-wrap: wrap` so that a row of options can never drag the page sideways. Those two
        * facts do not survive each other: five options wrapped onto a second row *inside* a 9999px
        * radius, which draws a stadium around both rows (the traveller's screenshot, and "how does
-       * this keep happening"). Nothing else here could see it. Overflow is **zero** — it wrapped
+       * this keep happening"). Nothing else here could see it. Overflow is **zero**, it wrapped
        * instead of overflowing; no text is clipped, because every label still fits its own button;
        * no target is small; the contrast is fine. Measured directly, then: more than one row of
        * options inside one capsule is the defect, whatever produced it.
@@ -672,13 +672,13 @@ const report = (list, keyOf, show) => {
 };
 
 console.log(
-  `ui-audit — ${ROUTES.length} routes x ${WIDTHS.length} widths — theme ${THEME || 'system'}, language ${LANGUAGE || 'en'}, background ${BACKGROUND}${BACKGROUND === 'colour' ? ` ${BACKGROUND_COLOUR}` : ''}`,
+  `ui-audit, ${ROUTES.length} routes x ${WIDTHS.length} widths, theme ${THEME || 'system'}, language ${LANGUAGE || 'en'}, background ${BACKGROUND}${BACKGROUND === 'colour' ? ` ${BACKGROUND_COLOUR}` : ''}`,
 );
 console.log(`${counted.text} text/icon nodes measured for contrast, ${counted.controls} controls probed for target size (${counted.covered} covered by app chrome and skipped)`);
 console.log('\n=== contrast below WCAG AA');
 const nContrast = report(contrast, (r) => `${r.el}|${r.text}|${r.cr}|${r.bg}`, (r) => `${r.el} ${r.cr}:1 need ${r.need} ${r.size}px ${r.color} on ${r.bg} "${r.text}"`);
 console.log('\n=== effective target under ' + MIN_TARGET + 'x' + MIN_TARGET);
-const nTargets = report(targets, (r) => `${r.el}|${r.text}|${r.w}x${r.h}`, (r) => `${r.el} ${r.w}x${r.h} "${r.text}" — corners ${r.corners}`);
+const nTargets = report(targets, (r) => `${r.el}|${r.text}|${r.w}x${r.h}`, (r) => `${r.el} ${r.w}x${r.h} "${r.text}", corners ${r.corners}`);
 console.log('\n=== elements declared square that do not render square');
 const nSquares = report(squares, (r) => `${r.el}|${r.want}|${r.got}`, (r) => `${r.el} declared ${r.want}, drew ${r.got}`);
 console.log('\n=== text clipped by its own box');
@@ -701,8 +701,8 @@ if (!popoverSamples.some((r) => r.hintCovered !== null))
   });
 console.log(`opened and measured ${popoverSamples.length} time(s)` +
   popoverSamples.map((r) => `\n  ${r.route}@${r.width}: ${r.gap > 0 ? r.gap + 'px under its input' : Math.abs(r.upGap) + 'px above it'}, ${r.rows} rows of ${r.rowHeight}px in ${r.height}px, hint covered ${r.hintCovered}`).slice(0, 12).join(''));
-const nPopovers = report(popovers, (r) => `${r.el ?? ''}|${r.side ?? ''}|${r.gap}|${r.upGap ?? ''}|${r.hintCovered}|${r.height}`, (r) => r.vacuous ? 'nothing with a hint line was ever open: the coverage rule was never measured' : `hangs ${r.side ?? 'below'} the input — ${r.gap}px under / ${r.upGap}px above it, ${r.roomBelow}px of room below for a ${r.height}px list, hint covered ${r.hintCovered}`);
+const nPopovers = report(popovers, (r) => `${r.el ?? ''}|${r.side ?? ''}|${r.gap}|${r.upGap ?? ''}|${r.hintCovered}|${r.height}`, (r) => r.vacuous ? 'nothing with a hint line was ever open: the coverage rule was never measured' : `hangs ${r.side ?? 'below'} the input, ${r.gap}px under / ${r.upGap}px above it, ${r.roomBelow}px of room below for a ${r.height}px list, hint covered ${r.hintCovered}`);
 console.log('\n=== segmented controls wrapped onto more than one row');
-const nWrapped = report(wrapped, (r) => `${r.el}|${r.options}|${r.rows}`, (r) => `${r.el} — ${r.options} options over ${r.rows} rows inside a ${r.radius} capsule`);
+const nWrapped = report(wrapped, (r) => `${r.el}|${r.options}|${r.rows}`, (r) => `${r.el}, ${r.options} options over ${r.rows} rows inside a ${r.radius} capsule`);
 
-if (nContrast + nTargets + nClipped + nSquares + nBand + nLine + nWrapped + nPopovers) { console.log(`\nFAILED — ${nContrast} contrast, ${nTargets} target, ${nSquares} squashed-circle, ${nClipped} clipping, ${nBand} header-band, ${nLine} header-line, ${nWrapped} wrapped-capsule, ${nPopovers} picker-popover problem(s).`); process.exit(1); }  console.log('\nOK — every text and icon clears WCAG AA on the surface it sits on, every control\'s effective target is at least ' + MIN_TARGET + 'x' + MIN_TARGET + ' (or is overlapped where it is not, by another target of that size), everything declared square renders square, no text is clipped by its own box, nothing paints a band across the header, the top row shares one top edge and sits on the page\'s content rail, no segmented control has wrapped onto a second row, and every picker popover is attached to its own input — under it, or above it when the room below cannot hold it — covering the hint line whenever it hangs over it.');
+if (nContrast + nTargets + nClipped + nSquares + nBand + nLine + nWrapped + nPopovers) { console.log(`\nFAILED, ${nContrast} contrast, ${nTargets} target, ${nSquares} squashed-circle, ${nClipped} clipping, ${nBand} header-band, ${nLine} header-line, ${nWrapped} wrapped-capsule, ${nPopovers} picker-popover problem(s).`); process.exit(1); }  console.log('\nOK, every text and icon clears WCAG AA on the surface it sits on, every control\'s effective target is at least ' + MIN_TARGET + 'x' + MIN_TARGET + ' (or is overlapped where it is not, by another target of that size), everything declared square renders square, no text is clipped by its own box, nothing paints a band across the header, the top row shares one top edge and sits on the page\'s content rail, no segmented control has wrapped onto a second row, and every picker popover is attached to its own input, under it, or above it when the room below cannot hold it, covering the hint line whenever it hangs over it.');

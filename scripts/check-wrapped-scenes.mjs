@@ -51,7 +51,7 @@ const chapterCount = await page.locator('.wrapped-progress__seg').count();
 
 const cover = page.locator('.film2--cover');
 if (!(await cover.isVisible().catch(() => false))) {
-  console.log('WRAPPED FILM: FAIL — the cover is not a film page');
+  console.log('WRAPPED FILM: FAIL, the cover is not a film page');
   process.exit(1);
 }
 
@@ -395,8 +395,8 @@ const motionScores = [];
 /*
  * **The floor is a proof of life, not a speed limit.**
  *
- * A frozen canvas measures exactly nought (`STILL_MOTION=1` proves it), and the quietest real card —
- * the ranking, whose bars are wide and shallow — measures between a third and one. The floor sits
+ * A frozen canvas measures exactly nought (`STILL_MOTION=1` proves it), and the quietest real card ,
+ * the ranking, whose bars are wide and shallow, measures between a third and one. The floor sits
  * above nought and below every card that turns. How fast the film moves is the recording's job to
  * answer, not this file's: `design/wrapped-comparison/REVIEW-2026-11-18.md` measures it at 0.1s.
  */
@@ -431,7 +431,7 @@ const moving = !motionBefore.equals(motionAfter);
  * The old test asked whether two frames 700ms apart were different at all, so a card that swayed one
  * pixel passed. Read against the recording, our cards moved at about half the reference's rate and a
  * third of them barely moved at all. This measures the mean change per channel across a tenth of a
- * second of the canvas — the picture, without the grain over it — and holds every card to a floor.
+ * second of the canvas, the picture, without the grain over it, and holds every card to a floor.
  */
 /* A declaration, not a const: the walk calls it before this line is reached. */
 function filmFrame() {
@@ -505,7 +505,7 @@ for (let i = 0; i < chapterCount - 1; i += 1) {
    * **Composition is measured on a held frame.**
    *
    * A card that turns for its whole life has no single pose, and sampling the crop and the contrast
-   * at whatever instant the walk arrives gave two different answers on two runs — the object could
+   * at whatever instant the walk arrives gave two different answers on two runs, the object could
    * be mid-sway over the sentence on one and clear of it on the next. Pause holds the picture where
    * it stands, so these two rules measure the composition the card settles into. Motion is measured
    * after the hold is released, one tenth of a second at a time.
@@ -1101,7 +1101,7 @@ const weakestMotion = motionScores.length ? Math.min(...motionScores.map((entry)
 const strongestMotion = motionScores.length ? Math.max(...motionScores.map((entry) => entry.mean)) : 0;
 
 console.log(
-  `WRAPPED FILM: PASS — ${present.length} colour fields, ${grounds.size} grounds, ${shapes.size} masses, ` +
+  `WRAPPED FILM: PASS, ${present.length} colour fields, ${grounds.size} grounds, ${shapes.size} masses, ` +
     `${lines.size} still sentences (weakest ${weakest.toFixed(1)}:1 on its own field), ${shares} shares, ` +
     `every object cut on two edges and built of steps (fewest ${fewestSteps}), ` +
     `every card moving in a tenth of a second (weakest ${weakestMotion}, strongest ${strongestMotion}, floor ${MOTION_FLOOR}), ` +

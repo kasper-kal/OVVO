@@ -18,7 +18,7 @@ function score(stop: Stop, query: string): number {
  *
  * Reported with `Rijkss` in the From field and "No stops match" under it: six characters, one of
  * them typed twice, and a field that knows about `Rijksmuseum` answered nothing at all. The search
- * compared substrings, so one extra letter at the end of a word ended the search — which is the
+ * compared substrings, so one extra letter at the end of a word ended the search, which is the
  * state every field is in while it is being typed into.
  *
  * So when nothing matches as written, the same search runs again allowing **one typo** (two once
@@ -66,7 +66,7 @@ function editDistance(a: string, b: string, max: number): number {
  * Answering with *the form that matched* rather than a yes/no, because the two used forms are
  * different facts: `Rijksmusem` is the whole word with a letter missing (so the word is the
  * answer), while `Rijkss` is one letter too many on top of a five-letter beginning (`rijks`) and
- * there is no word in the file it spells — the beginning is the honest answer, and it is what the
+ * there is no word in the file it spells, the beginning is the honest answer, and it is what the
  * row is matched on.
  */
 function fuzzyWord(query: string, word: string, max: number): string | null {
@@ -83,7 +83,7 @@ function fuzzyWord(query: string, word: string, max: number): string | null {
 }
 
 /**
- * How many letters separate a whole query from a stop, one word at a time — or `null`.
+ * How many letters separate a whole query from a stop, one word at a time, or `null`.
  *
  * A query is a phrase, and a phrase is near a stop when **every** word in it is near a word in
  * the stop's name or city: "Utrech Centraal" is two typos away from a station, "Utrech" alone
@@ -120,9 +120,9 @@ function fuzzyScore(stop: Stop, words: string[], max: number): number | null {
  * From/To field (see the heart/pin note in `state/AppState.tsx`).
  *
  * The empty-field shortlist used to be a hard-coded list of six big stations
- * (`POPULAR_STOP_IDS`) — a sample-data fact wearing the same coat round 11 cleaned off the board
+ * (`POPULAR_STOP_IDS`), a sample-data fact wearing the same coat round 11 cleaned off the board
  * page. It is now the same rule the rest of the app follows (`MATCHING_PLAN` rule 2): the
- * favourites, then the nearest stops that have a board, measured from `origin` — the app's single
+ * favourites, then the nearest stops that have a board, measured from `origin`, the app's single
  * location answer (a device fix, else the IP estimate, else nothing). With no origin there is no
  * second list to show: an empty field is the traveller's own favourites and a prompt to type.
  *
@@ -159,7 +159,7 @@ export function rankStops(
     ].slice(0, limit);
   }
   if (normalised.length < FUZZY_MIN_LENGTH) return [];
-  /* One typo, or two in a long word — "Amsterdm" is one keystroke from a station and
+  /* One typo, or two in a long word, "Amsterdm" is one keystroke from a station and
      "Amsetrdam" is two, and both are the same mistake seen from different thumbs. */
   const max = normalised.length >= 8 ? 2 : 1;
   const words = normalised.split(/\s+/).filter(Boolean);

@@ -41,7 +41,7 @@ let perServiceVariety = null;
 for (let index = 0; index < 12; index += 1) {
   /* Count the cards **on the results page**, after arriving: asking before the navigation counted
      them on the journey page the last click had left open, found none, and stopped the walk at the
-     first journey — which is how an unsettled platform went unseen in a search that has three. */
+     first journey, which is how an unsettled platform went unseen in a search that has three. */
   await page.goto(`${base}${journey}`, { waitUntil: 'networkidle' });
   for (let i = 0; i < 8; i += 1) {
     const close = page.locator('.overlay button, .sheet button');
@@ -79,7 +79,7 @@ for (let index = 0; index < 12; index += 1) {
     };
   });
 
-  console.log(`   journey ${index + 1}: ${shape.platforms.length} platform(s) — ${shape.platforms.join(', ')}`);
+  console.log(`   journey ${index + 1}: ${shape.platforms.length} platform(s), ${shape.platforms.join(', ')}`);
   if (!choiceSeen && shape.choice.length) choiceSeen = { index, ...shape };
   const levels = new Set(shape.crowding.filter(Boolean).map((item) => item.level));
   if (!perServiceVariety && levels.size > 1) perServiceVariety = { index, levels: [...levels] };
@@ -211,7 +211,7 @@ check(
 
 /*
  * **Something else writes the store too.** The account sync adopts the server's copy and a second
- * tab writes what it has, so a removed value can be handed straight back — which is the report: the
+ * tab writes what it has, so a removed value can be handed straight back, which is the report: the
  * alarm came back after leaving the page and returning. The deletion is now remembered, so a copy
  * of the store that still holds the alarm does not become the truth.
  */
@@ -327,7 +327,7 @@ check(
 /*
  * **The way back is a button of this app, not the browser's.** It was a bare `<button>` styled as an
  * underlined word, so the engine drew a square edge inside a sheet where every other control is a
- * pill — he circled it: "Why is this button square". Shape, height and underline are read here, so
+ * pill, he circled it: "Why is this button square". Shape, height and underline are read here, so
  * the next square is caught by a number.
  */
 const backLook = await page.evaluate(() => {
@@ -534,7 +534,7 @@ if (sheetSegmented && settingsSegmented) {
 
 
 /*
- * **Colour, not only geometry — and the field, not only the switch.**
+ * **Colour, not only geometry, and the field, not only the switch.**
  *
  * The size check above passed while he was still looking at a white tab in a dark sheet, because it
  * compared one appearance and four numbers. The switch is now read in **both** appearances, on the

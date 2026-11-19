@@ -2,8 +2,8 @@
  * **The card at the end, drawn three ways.**
  *
  * Wrapped does not end on a sentence: it ends on the thing you send, and you can page it through a
- * few colourways before you send it. This is that card — the year's journeys, the five places it
- * kept returning to, the busiest day and the longest run of them — painted at story size, 1080 by
+ * few colourways before you send it. This is that card, the year's journeys, the five places it
+ * kept returning to, the busiest day and the longest run of them, painted at story size, 1080 by
  * 1920.
  *
  * The page draws the same card in HTML, so what is on screen when Share is pressed is what leaves.
@@ -84,7 +84,7 @@ function clip(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): st
  * **The card, at the size a story takes.**
  *
  * Deliberately the same order as the page version: masthead, the year's one number, then the two
- * columns — the places on the left, the days on the right — and the footer the share cards already
+ * columns, the places on the left, the days on the right, and the footer the share cards already
  * wear. Nothing here is invented: every figure is handed in.
  */
 export function drawPoster(data: PosterData, colourway: PosterColourway): string {
@@ -154,9 +154,9 @@ export function drawPoster(data: PosterData, colourway: PosterColourway): string
   }
 
   const facts: Array<{ label: string; value: string }> = [
-    { label: 'Busiest day', value: data.day ? data.day.date : '—' },
-    { label: 'Journeys that day', value: data.day ? String(data.day.count) : '—' },
-    { label: 'Longest streak', value: data.streakDays ? `${data.streakDays} ${data.streakDays === 1 ? 'day' : 'days'}` : '—' },
+    { label: 'Busiest day', value: data.day ? data.day.date : '-' },
+    { label: 'Journeys that day', value: data.day ? String(data.day.count) : '-' },
+    { label: 'Longest streak', value: data.streakDays ? `${data.streakDays} ${data.streakDays === 1 ? 'day' : 'days'}` : '-' },
     { label: 'Places in the year', value: String(data.places.length) },
   ];
   let factY = top + 76;

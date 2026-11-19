@@ -5,7 +5,7 @@
  * they are useless without the sign-in service on the other end. They arrive at build time from
  * `.env` and are copied into the bundle.
  *
- * If they are missing — a build with no `.env`, which is the state of a fresh clone — the app
+ * If they are missing, a build with no `.env`, which is the state of a fresh clone, the app
  * still works. Sign-in is switched off in the account card instead of throwing on every screen,
  * and that is a deliberate choice: a site that cannot sign you in is a site with a broken button,
  * not a site with a broken everything.

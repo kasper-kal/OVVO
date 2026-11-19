@@ -13,7 +13,7 @@ export function pad(value: number): string {
  *
  * The field's *value* is a machine value; how it is *drawn* is the operating system's business
  * (that is what choosing the device's own picker means). The app-format reading of the same
- * answer is kept beside the field, so "14:05" and "2:05 pm" never contradict each other — see
+ * answer is kept beside the field, so "14:05" and "2:05 pm" never contradict each other, see
  * the When dialog.
  */
 export function timeInputValue(minutes: number): string {
@@ -170,7 +170,7 @@ export function relativeMinutes(planned: number, expected: number): string {
   return `+${diff} min`;
 }
 
-/** "1 leg" / "2 legs" — counts should never read as "1 legs" or "2 leg(s)". */
+/** "1 leg" / "2 legs", counts should never read as "1 legs" or "2 leg(s)". */
 export function plural(count: number, singular: string, pluralForm?: string): string {
   return `${count} ${count === 1 ? singular : (pluralForm ?? `${singular}s`)}`;
 }
@@ -207,7 +207,7 @@ export function stopTypeLabel(type: StopType): string {
 
 /*
  * `MODE_ICONS` used to sit here: a map from each mode to an emoji (a walking figure, a bus, a
- * train). Nothing drew it — every mode in the app is a drawn glyph (`components/ui/Icons.tsx`) —
+ * train). Nothing drew it, every mode in the app is a drawn glyph (`components/ui/Icons.tsx`) ,
  * but it was the one place in the shipped code holding an emoji, and an unused export is exactly
  * the sort of thing someone reaches for later. It is deleted rather than left unused, so the
  * answer to "is there an emoji anywhere on this site" stays a plain no.

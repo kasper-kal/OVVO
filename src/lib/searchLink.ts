@@ -12,7 +12,7 @@ import type { SortMode, TimeMode } from '../data/types';
  * result filters are on. Everything a reload, a bookmark or a pasted link needs to put the same
  * list back on the screen.
  *
- * The app used to hold a search in memory only, so a refresh emptied the screen — while that very
+ * The app used to hold a search in memory only, so a refresh emptied the screen, while that very
  * screen promised the results "will survive a refresh". There is nothing to *store* here and so
  * nothing to go stale: `planJourneys` is deterministic, and the same query always returns the same
  * journeys (that is already why each journey's id is built from the date and its departure). The
@@ -20,17 +20,17 @@ import type { SortMode, TimeMode } from '../data/types';
  *
  * **Why an opaque id rather than a readable slug.** A generated id cannot collide with a stop's
  * own name, needs no escaping, and survives an address that is a real street name with spaces,
- * commas and accents in it — which is exactly what `fromLabel`/`toLabel` carry when the traveller
+ * commas and accents in it, which is exactly what `fromLabel`/`toLabel` carry when the traveller
  * searched from their own address. Base64url is the encoding a path segment can hold untouched.
  *
  * **Preferences are not in it, on purpose.** A search captures the traveller's travel preferences
  * when it is made, so it can be replayed; a *link* should honour the preferences of whoever opens
  * it, so the traveller's own walking limit is never overruled by a stranger's. The list a friend
- * sees is therefore the same search under their rules — one or two journeys may differ, and that
+ * sees is therefore the same search under their rules, one or two journeys may differ, and that
  * is the honest answer rather than a bug.
  */
 
-/** What the address holds. Preferences are supplied by whoever opens it — see the note above. */
+/** What the address holds. Preferences are supplied by whoever opens it, see the note above. */
 export interface DecodedSearch {
   query: Omit<SearchQuery, 'preferences'>;
   windowOffsetMinutes: number;
@@ -76,7 +76,7 @@ interface Payload {
   tt?: 1;
   w?: number;
   s?: SortMode;
-  /** modes, directOnly, delayedOnly, hideCancelled, operators — omitted when it is the default. */
+  /** modes, directOnly, delayedOnly, hideCancelled, operators, omitted when it is the default. */
   fi?: [string, 0 | 1, 0 | 1, 0 | 1, string];
 }
 

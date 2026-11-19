@@ -1,14 +1,14 @@
 /**
  * Naming the position a device reports.
  *
- * The picker used to answer "use my current location" with the nearest stop — a station
+ * The picker used to answer "use my current location" with the nearest stop, a station
  * name, which is not where the traveller is standing. The coordinates the browser gives
  * us are exact; turning them into a street address needs a lookup against a map database,
  * because nothing in this build's own data knows street names.
  *
  * OpenStreetMap's Nominatim is that lookup: no key, one request, and the same data the
  * map world is built on. It is the only thing in this app that leaves the browser, so it
- * is asked for exactly one thing — the address of one point — and only after the traveller
+ * is asked for exactly one thing, the address of one point, and only after the traveller
  * taps "Use my current location" and grants a fix.
  *
  * Everything about it is allowed to fail: a blocked network, a slow host, a point in the
@@ -50,8 +50,8 @@ export interface AddressParts {
 /**
  * The shortest thing that still names a place: "Prinsengracht 263, Amsterdam".
  *
- * Nominatim's own `display_name` is a full descending path — "Dam, Centrum, Amsterdam,
- * Noord-Holland, Nederland, 1012 NP, Nederland" — which is a paragraph in a picker row and
+ * Nominatim's own `display_name` is a full descending path, "Dam, Centrum, Amsterdam,
+ * Noord-Holland, Nederland, 1012 NP, Nederland", which is a paragraph in a picker row and
  * repeats the city. Street, number and city is what a person writes down, so that is what
  * is composed here; a point that resolves to a neighbourhood or a park (no street in its
  * address) keeps the first two parts of the display name instead.
@@ -74,11 +74,11 @@ export function composeAddress(parts: AddressParts): string | null {
 /**
  * The street address of a point, or `null` if it cannot be named right now.
  *
- * Resolves — never rejects — so callers can treat "no address" and "no network" the same.
+ * Resolves, never rejects, so callers can treat "no address" and "no network" the same.
  *
  * **One failed request gets a second one.** When this returns null the picker falls back to the
  * nearest stop's own name, and the nearest stop to a city centre is usually the station named
- * after that city — which is how a lookup that simply timed out (or was rate-limited) turns into
+ * after that city, which is how a lookup that simply timed out (or was rate-limited) turns into
  * "it said the city instead of my adress". A transient failure is worth 250ms and one more try
  * before the row settles for a place name that answers a different question.
  */

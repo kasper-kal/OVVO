@@ -6,7 +6,7 @@ import { useT } from '../../lib/useT';
 export type NoMatchFix = {
   id: string;
   label: string;
-  /** What the list comes back to if this fix is pressed — the results screen's own promise. */
+  /** What the list comes back to if this fix is pressed, the results screen's own promise. */
   count?: number;
   onSelect: () => void;
 };
@@ -17,7 +17,7 @@ export type NoMatchFix = {
  * The four list screens used to answer this question four ways (MATCHING_PLAN rule 6): an
  * `EmptyState` with no way out on `/stops`, an `EmptyState` with one button on `/disruptions`, a
  * hand-built card with relaxation chips on `/results`, and nothing at all on the board. `EmptyState`
- * is the shape for **nothing yet** — a list with no question asked of it — and this is the shape for
+ * is the shape for **nothing yet**, a list with no question asked of it, and this is the shape for
  * **nothing matches**: it names what is on, and every fix is a chip that puts the list back.
  *
  * It sits where the list would be, under the filter row, so "why is it empty" is answered in the
@@ -40,7 +40,7 @@ export function NoMatches({
   children?: ReactNode;
   /**
    * What kind of answer the fixes are. The default names a switched-off *filter*, which is wrong
-   * on a screen where the only thing on is a search — the stops list told a traveller to switch
+   * on a screen where the only thing on is a search, the stops list told a traveller to switch
    * back on filters that were never on (4.4, 7.2).
    */
   fixLabel?: string;

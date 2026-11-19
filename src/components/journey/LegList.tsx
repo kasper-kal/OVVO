@@ -18,7 +18,7 @@ import type { Journey, Leg } from '../../data/types';
  * direction and a chip for the bicycle made a three-change journey twenty-one boxes tall.
  *
  * **The service name is the control.** Tapping "Bus 347" opens the stops it calls at, right here on
- * the rail, each with its own time and a small ring on the line — the question "which stops are
+ * the rail, each with its own time and a small ring on the line, the question "which stops are
  * between here and there" is a question about this line, so the answer belongs under this line. The
  * separate "1 stop in between" link said the same thing twice, in a second place, and is gone.
  */
@@ -29,7 +29,7 @@ import type { Journey, Leg } from '../../data/types';
  *
  * The rail draws a walk as a repeating pattern, and a pattern cannot know how tall the row it is
  * drawing in happens to be. Left alone it ended on a half-length dash and with a cramped gap before
- * it — a row is not a whole number of dashes tall, and there is no reason it would be.
+ * it, a row is not a whole number of dashes tall, and there is no reason it would be.
  *
  * So the row measures itself and adds the one to eleven pixels that make its stretch a whole number
  * of dash-and-gap cycles. Those spare pixels run past the next circle's edge, and the circle's own
@@ -45,7 +45,7 @@ const CYCLE = 12;
  *
  * 9292 draws the crowding of each service under its name: two people when it is quiet, three when
  * it is full, and a question mark when nobody has counted. The app said it once, at the foot of the
- * page, about the whole journey — so a packed second train and an empty first one read the same.
+ * page, about the whole journey, so a packed second train and an empty first one read the same.
  * The picture is drawn from the service's own reading (`Leg.occupancy`) and the words are kept for
  * a screen reader, which cannot count silhouettes.
  */
@@ -85,7 +85,7 @@ function CrowdingMark({ level }: { level: Leg['occupancy'] }) {
  * **One platform, or two in the warning colour.**
  *
  * A station that has not settled which berth a service leaves from says so: 9292 prints
- * "Platform 5 or 6" in red, which is a different instruction from "Platform 5" — watch the board
+ * "Platform 5 or 6" in red, which is a different instruction from "Platform 5", watch the board
  * rather than walk to one. The words are built here, not in the engine, so the sentence follows the
  * page's language.
  */
@@ -166,7 +166,7 @@ function WalkLegRow({
           * The first row of a journey from an address is a walk, and it had nothing beside its ring:
           * the traveller's own street was named in the title and then never appeared on the line, so
           * the rail began with a bare circle at 04:23 and an amount. Every other mark on the line
-          * names a place; this one now does too, and only this one — a walk between two stations is
+          * names a place; this one now does too, and only this one, a walk between two stations is
           * still one quiet line, because the stations above and below it are already named.
         */}
         {origin ? (
@@ -273,7 +273,7 @@ function RideLegRow({
       <div className="stack-1">
         {/*
           **The platform sits beside the station, in the accent, as one word.** It was a grey sentence
-          of its own — "Platform 1 · Arrival platform 2" — which is two facts and a line of height
+          of its own, "Platform 1 · Arrival platform 2", which is two facts and a line of height
           per service; 9292 prints the platform the traveller actually stands on at the right of the
           station name and nothing else.
         */}
@@ -317,7 +317,7 @@ function RideLegRow({
           )}
           {/*
             The delay is printed on the service that is late, in the colour the app uses for late
-            things — not in a pill, and not again on the card's heading.
+            things, not in a pill, and not again on the card's heading.
           */}
           {leg.delayMinutes ? <span className="delay t-sm">+{leg.delayMinutes} min</span> : null}
           {leg.cancelled ? <span className="delay t-sm">{t('Cancelled')}</span> : null}
@@ -341,8 +341,8 @@ function RideLegRow({
         {/*
           **The bicycle is a fact about this service, not about the journey.**
           
-          It was one quiet line at the foot of the whole page — "Bicycle allowed" under a journey
-          made of two trains — so it read as a claim about the trip, and a trip whose first train
+          It was one quiet line at the foot of the whole page, "Bicycle allowed" under a journey
+          made of two trains, so it read as a claim about the trip, and a trip whose first train
           takes bicycles and second does not said only one of the two things. 9292 puts it on the
           service, because that is where it is decided: the guard at the door of *this* train.
         */}
@@ -492,7 +492,7 @@ export function LegList({ journey }: { journey: Journey }) {
      * He photographed an opened Sprinter with "9 min transfer time" sitting between the service and
      * the train's own stops, which reads as though the transfer happened before the train had gone
      * anywhere. The stops belong to the service above them, so they are printed first and the change
-     * — the thing that happens once you step off — follows them.
+     *, the thing that happens once you step off, follows them.
      */
     const after = changeAfter(legIndex);
     if (after) rows.push(changeRow(`change-out-${leg.id}`, after.departure - leg.arrival));
@@ -501,8 +501,8 @@ export function LegList({ journey }: { journey: Journey }) {
 
   /*
    * The line had no end: it stopped dead under the last leg, so a journey read as a list of
-   * events rather than as somewhere to somewhere. The terminus is the traveller's own rule — a
-   * circle for a departure, a **square** for an arrival — with the arrival stop named beside it and
+   * events rather than as somewhere to somewhere. The terminus is the traveller's own rule, a
+   * circle for a departure, a **square** for an arrival, with the arrival stop named beside it and
    * its time in the gutter, so the rail finishes at a place and not at a hyphen.
    */
   const lastLeg = journey.legs[journey.legs.length - 1];
@@ -526,7 +526,7 @@ export function LegList({ journey }: { journey: Journey }) {
             </span>
             {/*
               The platform a traveller steps onto is the arrival end's own fact, so it sits beside
-              the arrival name — as a phrase in the same grey line, not a chip.
+              the arrival name, as a phrase in the same grey line, not a chip.
             */}
             {lastRide === lastLeg ? (
               <Platform value={lastLeg.arrivalPlatform} alt={lastLeg.arrivalPlatformAlt} />

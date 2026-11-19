@@ -254,7 +254,7 @@ export function ShareSheet({ journey, date }: { journey: Journey; date: string }
         {/*
           **The way back is a button of this app, not the browser's.** It shipped as a bare
           `<button>` whose only rule was a muted underlined word: the engine drew its own square
-          edge inside a sheet where every control is a pill — he circled it, "Why is this button
+          edge inside a sheet where every control is a pill, he circled it, "Why is this button
           square." `.btn` is the app's one button shape, so the way back wears it too.
         */}
         {view === 'calendar' ? (

@@ -19,7 +19,7 @@ import type { Language, ThemeChoice } from '../state/types';
 /**
  * The three appearances, in the order the control offers them.
  *
- * **A segmented control is words, or it is pictures — never both.** These segments used to carry a
+ * **A segmented control is words, or it is pictures, never both.** These segments used to carry a
  * monitor, a sun and a moon beside the words (an earlier audit counted glyphs on the Settings page
  * and asked for them). Side by side with the word, a glyph that says the same thing is not a
  * shortcut, it is a second thing to read: "System" and a monitor both mean the device setting, and
@@ -36,13 +36,13 @@ const THEME_OPTIONS: { value: ThemeChoice; label: string }[] = [
 /**
  * Every accent the interface is painted with, and what each one *means*.
  *
- * The preview used to sample one accent — butter, on a pill — which read as if that were the
+ * The preview used to sample one accent, butter, on a pill, which read as if that were the
  * accent and the rest of the palette did not exist (reported). These six are the whole set the
  * stylesheets draw with, in the order the palette uses them: the focal coral, the highlight, the
  * two tints, the structure everything sits in, and the one signal colour that never turns over
  * with the appearance.
  *
- * `key` is only the class suffix — the swatch is painted from the token itself in
+ * `key` is only the class suffix, the swatch is painted from the token itself in
  * `components.css`, so a row cannot advertise a colour the app does not use. The `role` line is
  * where the colour is actually explained, which is the part a swatch alone cannot say.
  */
@@ -69,7 +69,7 @@ const ACCENTS: { key: string; name: string; role: string }[] = [
  * The input holds a draft until it is left or Enter is pressed, so a name is not written on every
  * keystroke; Escape puts the stored name back. Clearing the field restores the official name
  * (`renameStop` deletes an empty one), which is why there is no separate "remove" control for the
- * case where the traveller simply empties the box — and a button for the case where they would
+ * case where the traveller simply empties the box, and a button for the case where they would
  * rather not have to select the text to do it.
  */
 function StopNameRow({ stop }: { stop: Stop }) {
@@ -78,7 +78,7 @@ function StopNameRow({ stop }: { stop: Stop }) {
   const stored = customStopNames[stop.id] ?? '';
   const [draft, setDraft] = useState(stored);
   /*
-   * Escape discards the draft — and blur must not then write it.
+   * Escape discards the draft, and blur must not then write it.
    *
    * The handler set the draft back and blurred, and blur is what commits; but the commit still read
    * the old draft, so the abandoned name went to storage and won on the next load (11.3). The flag
@@ -104,7 +104,7 @@ function StopNameRow({ stop }: { stop: Stop }) {
           maxLength={40}
           /*
             The visible label above this field is the stop's own name, so a screen reader read the
-            box as "Haarlem Station · Haarlem, edit text" — the place, never the job. The name says
+            box as "Haarlem Station · Haarlem, edit text", the place, never the job. The name says
             what to type and still contains the visible words, so a speech-input user can say them.
           */
           aria-label={t('Your name for {stop}', { stop: `${stop.name} · ${stop.city}` })}
@@ -167,7 +167,7 @@ export function SettingsPage() {
   const format = useFormat();
   const t = useT();
   const navigate = useNavigate();
-  /* The colours **in force** here — each appearance keeps its own (`lib/palette.ts`), so the
+  /* The colours **in force** here, each appearance keeps its own (`lib/palette.ts`), so the
      "currently in effect" labels below must read the half that is being drawn. */
   const palette = paletteFor(settings, appearance);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -178,7 +178,7 @@ export function SettingsPage() {
    * The switch has to show the request it is making: flipped on, it turns on immediately and
    * asks, then settles to whatever the browser actually said. Without this the switch is
    * controlled by `locationConsent`, which is still "denied" while the request is out, so it
-   * snapped straight back to off and looked like nothing had happened — the reported
+   * snapped straight back to off and looked like nothing had happened, the reported
    * "flip it, it should try again, then go back to off if it fails again".
    */
   const [askingLocation, setAskingLocation] = useState(false);
@@ -200,7 +200,7 @@ export function SettingsPage() {
       : appearance === 'dark'
         ? t('Dark')
         : t('Light');
-  /* The language's own name, as the control above offers it — never translated into the language
+  /* The language's own name, as the control above offers it, never translated into the language
      the traveller is leaving. */
   const languageLabel = LANGUAGES.find((option) => option.value === settings.language)?.label ?? 'English';
 
@@ -254,7 +254,7 @@ export function SettingsPage() {
           <Card className="stack">
             {/*
               Appearance first, because it is the setting that changes what the traveller is
-              looking at while they are looking at it — the value of every other control on this
+              looking at while they are looking at it, the value of every other control on this
               page depends on the light in the room.
             */}
             <h2 className="t-section">{t('Appearance')}</h2>
@@ -332,13 +332,13 @@ export function SettingsPage() {
             {/*
               Battery saving is a reading, not a control, so it is drawn the way the page draws
               every other reading: a label, a sentence, and the value on the right. There is
-              deliberately no switch — a mode that can be turned off is a mode that leaves a phone
-              on 3% drawing a map — and pressing it would only be able to lie.
+              deliberately no switch, a mode that can be turned off is a mode that leaves a phone
+              on 3% drawing a map, and pressing it would only be able to lie.
             */}
             <div className="field">
               {/* The label line carries the reading, the same way a control's own row does: name
                   on the left, what it is doing on the right, and one sentence under it. No pill
-                  — a pill is a thing you can press or a tag on a list, and this is neither. */}
+                 , a pill is a thing you can press or a tag on a list, and this is neither. */}
               <div className="between">
                 <span className="field__label">{t('Battery saving')}</span>
                 <span className="t-strong t-sm">{batteryLabel}</span>
@@ -452,8 +452,8 @@ export function SettingsPage() {
             gives, so there is one list to look after rather than a rename control on every row
             that happens to show a stop.
 
-            Favourites, not board pins: a name belongs to the place you use — your work address,
-            your home address, the bus stop on the corner — and a pin is a stop whose board you
+            Favourites, not board pins: a name belongs to the place you use, your work address,
+            your home address, the bus stop on the corner, and a pin is a stop whose board you
             watch. Addresses are allowed here for exactly the reason they are allowed as
             favourites.
           */}
@@ -508,7 +508,7 @@ export function SettingsPage() {
               The board's refresh interval used to be a setting here, offering off / 5 / 15 / 30 /
               60 seconds as a five-option segmented control. It is gone: a departure board that
               updates slower than the departures do is not a choice anybody wants, and five
-              options in a capsule is the shape this app keeps getting wrong — at 320px the
+              options in a capsule is the shape this app keeps getting wrong, at 320px the
               control measured 328.9px wide, so it wrapped onto two rows and drew a pill around
               both of them (the reported screenshot). The board now ticks at a fixed five
               seconds (`BOARD_REFRESH_SECONDS`), with nothing to set.
@@ -531,7 +531,7 @@ export function SettingsPage() {
             <h2 className="t-section">{t('Preview with current settings')}</h2>
             {/*
               A specimen, not a description (F25): the card is the one place on a screen of text
-              that is meant to be looked at — "the rest of the page is text so here is where we
+              that is meant to be looked at, "the rest of the page is text so here is where we
               show it IRL, not in text". Everything below is the app's own furniture drawn with
               the settings in force: a journey's times and its delay, the board's rows, two
               buttons, a chip row, a notice, and the accent swatches with the name of what each
@@ -626,14 +626,14 @@ export function SettingsPage() {
                   />
                   {/*
                     The first swatch is painted from `--accent-primary`, so when a tint is in force
-                    it *is* the tint's accent — and calling it "Signature coral" while it draws
+                    it *is* the tint's accent, and calling it "Signature coral" while it draws
                     green would be the row lying about itself.
                   */}
                   <span className="t-sm">
                     {/*
                       **Only the first swatch is the accent.** It is painted from `--accent-primary`,
                       which follows the widgets' colour or the page's, so it is named for whichever
-                      is in force — and the other five are their own colours either way, which is
+                      is in force, and the other five are their own colours either way, which is
                       why the `accent.key === 'coral'` guard has to stay on both branches. (It was
                       dropped when this label learned about the primary colour, and every swatch in
                       the row read "Primary colour".)
@@ -788,7 +788,7 @@ export function SettingsPage() {
               favourites: t('{count} favourite stops', { count: favouriteStopIds.length }),
               board: t('{count} stops pinned to the board', { count: boardStopIds.length }),
               journeys: t('{count} favourited journeys', { count: savedJourneys.length }),
-              /* The kept list, named as the results screen names it — the history is a different
+              /* The kept list, named as the results screen names it, the history is a different
                  list and is not part of what this sheet is counting. */
               searches: t('{count} saved searches', { count: recentSearches.length }),
             },

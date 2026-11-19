@@ -17,21 +17,21 @@ import {
  * The order, in the traveller's words: *"It should show the **exact** way it will be shown in the
  * websites background"*, and cropping is *"offered but doesn't do it automatically"*. So this screen
  * opens only when **Crop** is pressed, and what it promises is not a pretty square preview but the
- * page's own rendering: the preview at the foot uses the same two-layer background the `body` uses —
+ * page's own rendering: the preview at the foot uses the same two-layer background the `body` uses ,
  * the canvas wash over the picture, scaled so the frame covers the page, positioned on the frame's
- * centre — computed from the frame and the picture's real dimensions. For the default *This screen*
+ * centre, computed from the frame and the picture's real dimensions. For the default *This screen*
  * frame, preview and page are the same drawing.
  *
  * The interaction is the one every cropper has, because it needs no explaining: the picture moves
- * under a frame, a wheel or a pinch zooms, and the frame is drawn as a frame — four corners, a dimmed
- * surround — rather than as a white rectangle. Three frames are offered — the screen you are on, a
- * phone's 9:16, and a square — and **Save** bakes the crop at full resolution before downscaling it
+ * under a frame, a wheel or a pinch zooms, and the frame is drawn as a frame, four corners, a dimmed
+ * surround, rather than as a white rectangle. Three frames are offered, the screen you are on, a
+ * phone's 9:16, and a square, and **Save** bakes the crop at full resolution before downscaling it
  * (`lib/photoCrop.ts`), so a tight frame keeps more detail than the old "downscale the upload, crop
  * later" path could.
  *
  * There is **one** picture on this screen. It used to carry a second, full-width "As it will look"
  * panel below the frame: a duplicate of the same drawing at the page's own (portrait) shape, which on
- * a phone filled the rest of the screen and pushed the controls out of sight — reported as "the
+ * a phone filled the rest of the screen and pushed the controls out of sight, reported as "the
  * cropping UX is just horrible". The frame *is* the crop; a second view of it says nothing new.
  */
 
@@ -51,7 +51,7 @@ export function PhotoCropScreen({
   onClose,
 }: {
   open: boolean;
-  /** The **whole** picture — `backgroundImageSource`, or the baked image for an older browser. */
+  /** The **whole** picture, `backgroundImageSource`, or the baked image for an older browser. */
   source: string;
   /** The frame last saved, if any; `null` means the whole picture. */
   crop: CropRect | null;
@@ -97,8 +97,8 @@ export function PhotoCropScreen({
 
   /*
    * **The frame this screen opens with is the page's shape**, once the picture's size is known.
-   * The saved frame wins when there is one — that is what makes re-cropping a continuation rather
-   * than a restart — and a picture with no frame yet opens as the centred "cover" frame the page
+   * The saved frame wins when there is one, that is what makes re-cropping a continuation rather
+   * than a restart, and a picture with no frame yet opens as the centred "cover" frame the page
    * would draw for itself, not as the whole picture, which would promise a shape the page cannot
    * keep. Runs only while there is no stored crop, so a zoom or a drag is never undone by it.
    */
@@ -209,7 +209,7 @@ export function PhotoCropScreen({
               draggable={false}
               style={{ aspectRatio: String(sourceAspect) }}
             />
-            {/* The frame, drawn in percentages of the picture's own box — no geometry to keep in
+            {/* The frame, drawn in percentages of the picture's own box, no geometry to keep in
                 step with the pointer maths, because both are the same fractions. */}
             <span
               className="crop-screen__frame"

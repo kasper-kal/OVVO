@@ -37,7 +37,7 @@ export interface SearchQuery {
   fromStopId: string;
   toStopId: string;
   /**
-   * What the traveller actually named for each end, when that is not the stop's own name —
+   * What the traveller actually named for each end, when that is not the stop's own name ,
    * today only "use my current location", which resolves to a street address while the
    * journey is still planned from the nearest stop. Absent for every other way of choosing,
    * so the stop's own name is the label by default.
@@ -50,7 +50,7 @@ export interface SearchQuery {
    * "Use my current location" answers two questions at once: the address the traveller is at,
    * and the nearest stop a journey can be planned from. Usually those are two different places
    * and the stop is simply where the plan starts. But when the address is nearest to the very
-   * stop the *other* end names, both ends collapse to one stop id — and the trip is not
+   * stop the *other* end names, both ends collapse to one stop id, and the trip is not
    * nothing, it is the distance between the address and that stop. Present only for an end
    * that is a place rather than a stop, so its absence is what says "this end is a stop".
    */
@@ -98,7 +98,7 @@ export const DEFAULT_RESULTS_FILTER: ResultsFilter = {
   /*
    * **A cancelled journey is not an option, so it is not in the list.**
    *
-   * It was shown by default, with a filter to hide it — so the first thing a traveller read was an
+   * It was shown by default, with a filter to hide it, so the first thing a traveller read was an
    * itinerary that cannot be made ("if this stops the journey from being possible IT SHOULDNT even
    * be on the list"). The switch stays, because a traveller may want to see what is cancelled; the
    * default is the answer, not the question.
@@ -210,8 +210,8 @@ function relaxWalkLinks(
       if (from === undefined || to === undefined) continue;
       /*
        * The single link from the origin straight to the destination is left out of the
-       * search. That link is the whole journey, and the whole-way option — the foot trip,
-       * or the bicycle trip when both ends asked for one — is added once by the caller,
+       * search. That link is the whole journey, and the whole-way option, the foot trip,
+       * or the bicycle trip when both ends asked for one, is added once by the caller,
        * with its own departure time. Letting the search walk it filled the list with the
        * same journey repeated at five-minute intervals, and where the link was much faster
        * than any service it produced that journey *instead of* the services.
@@ -228,7 +228,7 @@ function relaxWalkLinks(
        * put on the link out of the origin and on the link into the destination, and only
        * when that end asked for one. Labelling *every* walk link with a bicycle used to
        * make both ends of every plan a bicycle leg, so asking for a bicycle at the start
-       * then deleted the plans whose *end* was a bicycle — fourteen options collapsed to
+       * then deleted the plans whose *end* was a bicycle, fourteen options collapsed to
        * one, and the second, bicycle-free pass existed only to hide that.
        */
       const bikeAccess = ends.bikeFromOrigin && from === ends.originIdx;
@@ -363,7 +363,7 @@ function platformAt(stopId: string, mode: TravelMode, seedKey: string, offset = 
  * The journey's average is the mean of twelve samples of the whole trip, so a journey of two trains
  * printed one number and each train printed none: the only crowding on the page was a sentence at
  * the foot. A reading per service is what 9292 prints under each one, and it is what a traveller
- * acts on — this train is packed, the next one is not. The seed is the service, the boarding stop
+ * acts on, this train is packed, the next one is not. The seed is the service, the boarding stop
  * and the quarter hour, so the same service at the same time reads the same on every screen, and a
  * later departure of the same line reads differently.
  *
@@ -550,7 +550,7 @@ function assembleJourney(steps: RawStep[], query: SearchQuery, index: number): J
    * spread narrow enough that "really busy" (above 0.7) almost never happened: a review of eight
    * searches and every option on each page found only "Expected quiet" and "Expected fairly
    * busy", so the third level existed in the type and never on the screen. A journey in the
-   * morning or evening peak now starts from a busier base, so all three levels occur — still
+   * morning or evening peak now starts from a busier base, so all three levels occur, still
    * sampled, still the same seeded generator, and still a reading of the journey the engine
    * built (its own departure time), not of the real world.
    */
@@ -598,14 +598,14 @@ const WALK_METRES_PER_MINUTE = 80;
  *
  * An address and a station are two places even when one stop answers for both. "Rijksstraatweg 9,
  * Haarlem" resolves to Haarlem station because that is the stop nearest to it, so a search to
- * Haarlem is not an empty search — it is the distance from the address to the station, walked or
+ * Haarlem is not an empty search, it is the distance from the address to the station, walked or
  * cycled. Refusing it ("origin and destination must be different stops") told the traveller their
  * own address *was* the station; handing it to the stop-to-stop search produced a one-minute walk
  * from Haarlem to Haarlem, because two identical stops are no distance apart.
  *
  * The address is carried on the leg as its own name, so the itinerary reads
  * "Rijksstraatweg 9, Haarlem → Haarlem" rather than the stop twice, and the distance is the one
- * the picker already measured — a straight line from the device fix to the stop, which is what
+ * the picker already measured, a straight line from the device fix to the stop, which is what
  * "1.5 km away" in that panel means.
  *
  * A place at *each* end (two addresses that happen to share a nearest stop) is measured out and
@@ -620,7 +620,7 @@ function planAccessJourney(query: SearchQuery, windowOffset: number, preferences
   /*
    * The mode is the one the place end asked for: "by bicycle" at the departure end is the
    * bicycle leg *out of the address*, which here is the whole journey. Walking is the default,
-   * and a mode the traveller switched off is never used — the results screen's own relaxations
+   * and a mode the traveller switched off is never used, the results screen's own relaxations
    * are what offer to switch it back on.
    */
   const askedBike =
@@ -688,7 +688,7 @@ function planAccessJourney(query: SearchQuery, windowOffset: number, preferences
  * An address is not its nearest station, and until this existed the planner treated it as one: a
  * search from "Rijksstraatweg 7, Haarlem" (1.5 km from Haarlem Station) to Hoofddorp produced a
  * bus that left Haarlem Station at the requested minute, with the address printed above it and no
- * walk anywhere — reported with a screenshot: *"it also treats adresses like the closest station"*.
+ * walk anywhere, reported with a screenshot: *"it also treats adresses like the closest station"*.
  *
  * So the access leg is real now. It is the first leg of the journey (and the last, for an address
  * at the arrival end), with the address as its own name and its own distance, and the search runs
@@ -696,7 +696,7 @@ function planAccessJourney(query: SearchQuery, windowOffset: number, preferences
  * station at 21:49, catch the 21:54. Arriving by 22:00 at an address means the service has to be
  * at the stop by 21:41, so that search runs earlier by the same amount.
  *
- * Its mode is the one that end asked for — walking unless the traveller chose a bicycle — and a
+ * Its mode is the one that end asked for, walking unless the traveller chose a bicycle, and a
  * mode that is switched off in preferences is never invented.
  */
 interface AccessLeg {
@@ -715,7 +715,7 @@ function accessLegFor(metres: number | undefined, mode: 'walk' | 'bike'): Access
  * The journey with its two access legs attached, and its span widened by them.
  *
  * The first leg ends exactly when the service at the stop leaves, and the last begins when the
- * last service arrives — the walk is not padding, it is the part of the trip the traveller does
+ * last service arrives, the walk is not padding, it is the part of the trip the traveller does
  * themselves. Walking minutes and the mode list are recomputed because everything downstream reads
  * them: the card's chain, the walking budget in the filters, and the sort.
  */
@@ -792,8 +792,8 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
   const maxJourneys = options.maxJourneys ?? 14;
   /*
    * One stop at both ends has nothing for the stop-to-stop search to plan: it would find the
-   * same place twice. When one of the ends is a **place** — an address the picker resolved to
-   * that stop — the trip does exist and is answered here. With two genuine stops sharing an id
+   * same place twice. When one of the ends is a **place**, an address the picker resolved to
+   * that stop, the trip does exist and is answered here. With two genuine stops sharing an id
    * it is a search with no answer, which is not a journey.
    */
   if (query.fromStopId === query.toStopId) {
@@ -802,8 +802,8 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
   const allowBikeAccess = preferences.allowedModes.includes('bike');
   /**
    * Cycling is decided per end: the departure end asks for a bicycle leg or it does not,
-   * and so does the arrival end. Nothing else in the search changes with this choice —
-   * the planner walks exactly the same links — so there is one plan per departure offset
+   * and so does the arrival end. Nothing else in the search changes with this choice ,
+   * the planner walks exactly the same links, so there is one plan per departure offset
    * and not a bicycle and a bicycle-free one.
    */
   const bikeFromOrigin = allowBikeAccess && preferences.accessFrom === 'bike';
@@ -813,7 +813,7 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
    * labelled as a bicycle one, and once without it. The search keeps a single best path to
    * each stop, so where a bicycle beats every service over the whole trip the bicycle pass
    * arrives at the destination on a bicycle and the services it could be combined with are
-   * not in that path at all — the second pass is what keeps them in the list.
+   * not in that path at all, the second pass is what keeps them in the list.
    */
   const bikePasses = bikeFromOrigin || bikeIntoDestination ? [true, false] : [false];
   const allowWalkAccess = preferences.allowedModes.includes('walk');
@@ -941,7 +941,7 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
 
   /*
    * The whole-way option: the trip with no service in it, offered once. It is a foot trip
-   * when either end is a walking one — and when both ends asked to cycle it is the same
+   * when either end is a walking one, and when both ends asked to cycle it is the same
    * trip on a bicycle instead, which is the option that mode implies and the faster of the
    * two over the same link. It is not offered twice, at five-minute intervals, because a
    * traveller on foot or on a bicycle leaves when they like.
@@ -1044,8 +1044,8 @@ export function planJourneys(query: SearchQuery, options: PlanOptions = {}): Jou
    * single option out of a possible fourteen.
    */
   /*
-   * Both ends now carry their own walk, so everything below — the bicycle-per-end rule, the sort,
-   * the walking budget, the card's chain — reads a journey that starts at the address it was
+   * Both ends now carry their own walk, so everything below, the bicycle-per-end rule, the sort,
+   * the walking budget, the card's chain, reads a journey that starts at the address it was
    * asked from.
    */
   if (accessFrom || accessTo) {

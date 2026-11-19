@@ -1,5 +1,5 @@
 /* =============================================================================
-   OV PLANNER — WARM TACTILE MINIMALISM DESIGN TOKENS (SPEC v2.4)
+   OV PLANNER, WARM TACTILE MINIMALISM DESIGN TOKENS (SPEC v2.4)
    Every token below is derived from DESIGN.pdf and is the single source of
    truth for the interface. Components must not hard-code hex values.
 
@@ -40,7 +40,7 @@
   --struct-secondary: #2d3b2d; /* forest olive structure */
   --tint-sage: #e1eadf; /* sage green tint base */
   /*
-   * Coral as a **name**, and coral as **the accent** — two tokens, because they are two promises.
+   * Coral as a **name**, and coral as **the accent**, two tokens, because they are two promises.
    *
    * `--accent-primary` is the traveller's tint once a background colour is in force
    * (`lib/background.ts` rewrites it), which is right for the dock, the focus ring and the accent
@@ -51,7 +51,7 @@
    * the tint never writes it; the accent is *defined as* it, so there is still one literal.
    */
   --palette-coral: #ff7e67; /* the palette's coral, which the tint cannot rewrite */
-  --accent-primary: var(--palette-coral); /* sunset coral (10% focal) — the tint may replace this */
+  --accent-primary: var(--palette-coral); /* sunset coral (10% focal), the tint may replace this */
   /* The focal coral is a *background* colour: as ink it is 2.49:1 on white, under the 3:1
      non-text minimum for the empty-state glyph. This is the same hue taken dark enough to be
      read as an icon on white (4.0:1 on white, 3.4:1 on the coral tint). */
@@ -73,7 +73,7 @@
   --tint-coral-ink: #8f3423;
   --tint-coral-ink-strong: #7d2c1d;
   /*
-   * Coral ink for a surface that is *not* a coral tint — the page, a card, a board row. The two
+   * Coral ink for a surface that is *not* a coral tint, the page, a card, a board row. The two
    * tinted inks above are for sitting on `--tint-coral`, which stays a pale pink in both
    * appearances; this one follows the surface it is drawn on, dark in the light theme and light
    * in the dark one. Same value as `--tint-coral-ink` here, so nothing in the light appearance
@@ -112,13 +112,13 @@
    * Both are declared defaults rather than values rules repeat. `--on-accent` is obsidian on the
    * coral (7.1:1); when the traveller chooses a tint, `lib/background.ts` replaces it with the ink
    * that wins on the *derived* accent, so a dark accent gets light text. `--map-accent` is the
-   * accent measured against the map's own land rather than a card — a colour that reads on a dark
+   * accent measured against the map's own land rather than a card, a colour that reads on a dark
    * widget may vanish on pale land, and the map is drawn on the latter.
    */
   --on-accent: var(--struct-main);
   /*
    * **The accent as a fill behind text.** A ring or a mark answers to 3:1; a label on the accent
-   * answers to 4.5:1, and one hue can clear the first and miss the second — the app's own
+   * answers to 4.5:1, and one hue can clear the first and miss the second, the app's own
    * `#dfe8f2` page derived `#4e80b7`, whose best ink measured **4.3:1** on the alert badge, the
    * navigation count and the accent button. `lib/background.ts` moves that fill in lightness until
    * its label reads; on the untinted coral the two are the same colour, so nothing changes.
@@ -127,14 +127,14 @@
   --map-accent: var(--accent-primary);
   /*
    * The dock's active entry needs its own cut. The dock is obsidian whatever the tint is, and a
-   * dark tint's accent — a maroon on a red page, say — measures **1.28:1** against obsidian: the
+   * dark tint's accent, a maroon on a red page, say, measures **1.28:1** against obsidian: the
    * white glyph is legible but the pill around it is invisible, so the current section stops being
    * marked. `lib/background.ts` measures this cut against the dock instead of the page.
    */
   --accent-on-dock: var(--accent-primary);
   --on-dock-accent: var(--on-accent);
   /*
-   * Selected text takes **the signature coral** — `--accent-primary` itself, in both appearances.
+   * Selected text takes **the signature coral**, `--accent-primary` itself, in both appearances.
    *
    * For one round it was a lighter cut of it (85% coral + 15% white, `#ff917e`) after the orange
    * was called heavy; the order now is the old coral back, everywhere (order 99), so there is one
@@ -149,11 +149,11 @@
    * The wash over a personal photo (`lib/background.ts`).
    *
    * A photograph is the one background this app cannot reason about: any colour, any darkness, in
-   * any place on the page. So it is never drawn on its own — the canvas colour is laid over it at
+   * any place on the page. So it is never drawn on its own, the canvas colour is laid over it at
    * just under two thirds, and what the traveller sees is the *tone* of their picture behind the
    * cards rather than the picture fighting the type. Cards keep their own surfaces, so no text on
    * a card is affected; this protects the page's own headings and the empty strips around them.
-   * A colour the traveller chose does not need it — that one is measured and mixed by
+   * A colour the traveller chose does not need it, that one is measured and mixed by
    * `lib/background.ts` before it is painted.
    */
   --app-bg-wash: color-mix(in srgb, var(--canvas-base) 62%, transparent);
@@ -166,7 +166,7 @@
   /*
    * **The two quiet greys are darker than they were, because they were the thinnest thing on the
    * page.** Muted measured 5.60:1 and faint 5.04:1 on the card surface, and faint fell to 4.59:1 on a
-   * pale tinted page — legal on cream and washed out the moment the page had any colour of its own.
+   * pale tinted page, legal on cream and washed out the moment the page had any colour of its own.
    * Neither is a failure now: 6.5:1 and 6.0:1 on a card, 5.4:1 on the palest tint, and still one
    * clear step apart so a caption stays quieter than the line above it.
    */
@@ -189,7 +189,7 @@
   /*
    * Waiting, drawn (F17).
    *
-   * One flat grey, the screen's own layout in the shape of what is coming — a circle where a glyph
+   * One flat grey, the screen's own layout in the shape of what is coming, a circle where a glyph
    * goes, a line where a line goes (see `.skeleton` in `styles/components.css`). It is the ink
    * itself at 10% over the card's raised surface, which is a neutral grey the traveller reads as
    * "not here yet" rather than a tint of the cream they might mistake for a painted block.
@@ -221,7 +221,7 @@
    * A card is a box on a page, and its corner grows with the style. A sheet is not a box on a
    * page: it is as wide as the phone, so the same multiplier turned it into a dome whose curve
    * swallowed the first row (reported on Bordeaux: "still looks horrible"). The corner is
-   * therefore **capped at 44px** — wide enough to read as the style, narrow enough that a 390px
+   * therefore **capped at 44px**, wide enough to read as the style, narrow enough that a 390px
    * screen still has a flat edge at the top of the sheet.
    *
    * What stands inside it nests against *this* curve and this inset, not against the card's. The
@@ -244,8 +244,8 @@
   --rail-line: 2px;
   /*
    * **The colour a ride is drawn in.** A walk's rail stays a thin dashed hairline in the app's own
-   * border ink; a ride's is a solid, heavier line in a transport blue, so the journey's shape —
-   * walk, ride, walk, ride — reads before a word of it does. It is blue on cream and blue on black,
+   * border ink; a ride's is a solid, heavier line in a transport blue, so the journey's shape ,
+   * walk, ride, walk, ride, reads before a word of it does. It is blue on cream and blue on black,
    * the same one value, because the line is a graphic and not text.
    */
   --rail-ride: #5a8fd6;
@@ -313,8 +313,8 @@
   --press-scale: 0.97;
   --hover-scale: 1.02;
   /*
-   * 4px, not 2. A review of two stills at 2px found them almost identical — "jump up" reads as
-   * more than a nudge — and every hover in the app lifts by this one value, so the row, the card
+   * 4px, not 2. A review of two stills at 2px found them almost identical, "jump up" reads as
+   * more than a nudge, and every hover in the app lifts by this one value, so the row, the card
    * and the chip move together.
    */
   --hover-lift: -4px;
@@ -323,7 +323,7 @@
   /*
    * The curve for anything that is *not* a movement: colour, background, border.
    *
-   * `--ease-hover` overshoots on purpose — that is the little jump the cards and buttons make —
+   * `--ease-hover` overshoots on purpose, that is the little jump the cards and buttons make ,
    * but an overshoot on a colour does not jump, it flashes: the Customise-home trigger settled
    * from its `#F3F1EA` ground through **white** and back, because the curve ran the channel past
    * the target before returning to it (measured on the live app). Anything that interpolates a
@@ -331,7 +331,7 @@
    */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   /*
-   * The curve for a control that **settles back into a rest it started from** — the dock's tab
+   * The curve for a control that **settles back into a rest it started from**, the dock's tab
    * after its press.
    *
    * `--ease-out` is the wrong shape for it, and measurably so: over the dock's 320ms settle the
@@ -349,7 +349,7 @@
   /* --- The brand mark is a tile: a plain white ground with the artwork's obsidian ink on it,
      and neither half turns over with the theme. The artwork is a single design (two black tiles
      with the V's cut out, a ring in each white diagonal), so it needs its own ground to read on
-     — on the dark canvas the black tiles would otherwise disappear and take the white V's with
+    , on the dark canvas the black tiles would otherwise disappear and take the white V's with
      them, and a flipped ink would put a near-white glyph on a white tile. White ground,
      obsidian ink, in both appearances; the mark's own square is the only thing painted, never
      the row it sits in (see `.app-header__mark`). --- */
@@ -392,7 +392,7 @@
  * than because the traveller asked. Zeroing the tokens is what removes the **spring** itself: a
  * cut duration only makes the shrink-to-97% happen in no time, so the control still visibly jumps
  * under the thumb; with the scale and the lift at rest values there is no movement to cut at all.
- * `base.css` then takes the rest — no transition, no animation, no shadow, no blur.
+ * `base.css` then takes the rest, no transition, no animation, no shadow, no blur.
  *
  * Save mode is deliberately left out: at 20% the interface is stilled, but it is still an
  * interface, and the 1ms step it gets in `base.css` is enough.
@@ -412,13 +412,13 @@
  * **This block has to be a step you can see, not a nudge.** It was written when the base ramp was
  * lighter (`--ink` `#52525a`, hairline `#e8e6df`); the hairline then had to be darkened to
  * `#cdc7b8` so edges survived on a phone, and the old raised hairline (`#b9b6ab`) ended up a
- * shade off the new normal one — so switching raised contrast on moved four tokens by a few
+ * shade off the new normal one, so switching raised contrast on moved four tokens by a few
  * numbers each and looked like nothing had happened. The ramp below is rebuilt against the
  * current base: every ink is at least four contrast steps away from its normal value, and the
  * edge goes from **1.69:1** to **3.02:1** on a white card, which is a line you can see.
  */
 /*
- * **Scoped away from the tinted palette — the second half of the same bug.**
+ * **Scoped away from the tinted palette, the second half of the same bug.**
  *
  * `:root[data-contrast='high']` sets the inks *on the root*, and once a page colour is chosen the
  * tint's own ramp is also declared on the root (`--ink: var(--card-ink)` in
@@ -444,13 +444,13 @@
 /*
  * --- Settings adapter: appearance (light / dark) -------------------------------------
  *
- * Dark is the same architecture with the surface ramp reversed — L0 darkest, L1 and L2 lifted
- * off it, hairlines one step above their surface — and the ink turned over. The *structural*
+ * Dark is the same architecture with the surface ramp reversed, L0 darkest, L1 and L2 lifted
+ * off it, hairlines one step above their surface, and the ink turned over. The *structural*
  * colours (obsidian, forest olive) do **not** flip: they are the dock and the primary button in
  * both appearances, which is why the dock reads in dark mode without a second rule.
  *
  * Two families are deliberately left alone. The accents (coral, butter, the tints) are the 10%
- * that carries meaning, and a light chip on a dark canvas is how that reads — flipping them
+ * that carries meaning, and a light chip on a dark canvas is how that reads, flipping them
  * would make a delay chip and a success chip the same darkness and lose the signal. The tints
  * that *are* flipped are the ones painted across large areas (sage water on the map), because
  * a light wash across a whole canvas is not a signal, it is glare.
@@ -491,7 +491,7 @@
   --accent-primary-ink: #ff9c87;
   /*
    * And coral as ink on the theme's *own* surface needs the same lighter cut. Found by
-   * `ui-audit` in the dark appearance on the departure cards' delay figures — which are the same
+   * `ui-audit` in the dark appearance on the departure cards' delay figures, which are the same
    * `.delay` the board has always drawn, so the board was failing too and the audit had simply
    * never measured a delayed row in dark. The first version of this fix changed
    * `--tint-coral-ink` instead, which was wrong for the half of the palette that had been
@@ -518,10 +518,10 @@
  * These values cannot live in the `[data-contrast='high']` block above, and that is the whole
  * bug this block fixes: `:root[data-contrast='high']` and `:root[data-theme='dark']` have the
  * **same specificity**, so for every property the two both declare the one that comes later in
- * the file wins — and dark comes later. Measured with the switch on in the dark appearance,
+ * the file wins, and dark comes later. Measured with the switch on in the dark appearance,
  * before this block existed: `--ink` `--ink-muted` `--ink-faint` and `--border-hairline` were
  * byte-identical to the normal dark values (#dedcd6 / #b8b5ae / #a5a29b / #333028) and a
- * settings hint line still drew in rgb(165, 162, 155) — the switch did nothing at all, exactly
+ * settings hint line still drew in rgb(165, 162, 155), the switch did nothing at all, exactly
  * as reported. The selector below carries both attributes, so it wins on specificity rather
  * than on order, and the two themes can each strengthen their own ramp: on the dark surfaces
  * raised contrast means *lighter* ink and *lighter* hairlines, the reverse of the light theme.
@@ -560,7 +560,7 @@
  * **When the mix cannot be made.**
  *
  * `color-mix()` arrived in Safari 16.2. An iPhone that stopped updating at iOS 14 drops any
- * declaration that uses it, and a custom property that is dropped is a property with no value —
+ * declaration that uses it, and a custom property that is dropped is a property with no value ,
  * so a skeleton painted `var(--skeleton-fill)` painted nothing at all, and the phone that waits
  * longest for an answer was the one showing a blank space where "loading" should be.
  *

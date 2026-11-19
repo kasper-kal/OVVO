@@ -3,8 +3,8 @@
  *
  * A station name is the one piece of text in the app that always *means* a place with a page of its
  * own, so wherever it is printed as a word rather than as a control it is a link (`StopLink`,
- * `components/stops/StopLink.tsx`). The rule travelled surface by surface — the board's destination,
- * a journey leg, an alert's line of stops — and that is exactly how a surface gets missed: nothing
+ * `components/stops/StopLink.tsx`). The rule travelled surface by surface, the board's destination,
+ * a journey leg, an alert's line of stops, and that is exactly how a surface gets missed: nothing
  * was checking.
  *
  * This walks every route at two widths and reports each station name printed as ordinary text:
@@ -16,7 +16,7 @@
  *   • a name inside a row that a stretched link covers (`li.list-row--link` with a
  *     `a.list-row__stretch`) → not a finding: the whole row is the way in, which is a bigger
  *     target than the word would be;
- *   • a name inside a longer sentence (`Cancelled services — Schiphol Airport to Haarlem`) →
+ *   • a name inside a longer sentence (`Cancelled services, Schiphol Airport to Haarlem`) →
  *     reported as **embedded**, separately, because turning it into a link means splitting the
  *     sentence, which is a decision per screen rather than a rule;
  *   • a name in a stop page's own `h1`, painted into a map drawing, or quoted from Wikipedia → not
@@ -50,7 +50,7 @@ const ROUTES = [
 /**
  * Names that are printed as plain text on purpose.
  *
- * One entry per place, with the reason — the same shape `consistency-audit.mjs` uses for the
+ * One entry per place, with the reason, the same shape `consistency-audit.mjs` uses for the
  * differences it tolerates, because "it is allowed because I said so" is how a rule rots.
  */
 const DELIBERATE = {
@@ -142,9 +142,9 @@ const COLLECT = async () => {
     const stretch = row ? row.querySelector('a.list-row__stretch') : null;
     /*
      * Three places where the plain words are the answer, not a miss:
-     *   • a stop page's own `h1` — a link to the page you are on is a control that does nothing;
-     *   • text inside an `svg` — a name painted into a drawing, not type a thumb can select;
-     *   • a quoted passage (`[data-quoted]`) — handled through `DELIBERATE['*']`.
+     *   • a stop page's own `h1`, a link to the page you are on is a control that does nothing;
+     *   • text inside an `svg`, a name painted into a drawing, not type a thumb can select;
+     *   • a quoted passage (`[data-quoted]`), handled through `DELIBERATE['*']`.
      */
     const skip = parent.closest('svg')
       ? 'painted into a drawing'
@@ -237,7 +237,7 @@ await browser.close();
 const byPlace = (list) => {
   const groups = new Map();
   for (const row of list) {
-    const key = `${row.route} @${row.width} — ${row.ancestors.split(' < ').slice(0, 3).join(' < ')}`;
+    const key = `${row.route} @${row.width}, ${row.ancestors.split(' < ').slice(0, 3).join(' < ')}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(row);
   }
@@ -250,19 +250,19 @@ if (skipped.length) {
   const reasons = new Map();
   for (const row of skipped) reasons.set(row.where, (reasons.get(row.where) ?? 0) + 1);
   console.log('\n=== plain on purpose');
-  for (const [reason, count] of reasons) console.log(`  ${count} — ${reason}`);
+  for (const [reason, count] of reasons) console.log(`  ${count}, ${reason}`);
 }
 
 if (embedded.length) {
-  console.log(`\n=== a station name inside a sentence (a decision per screen, not a rule) — ${embedded.length}`);
+  console.log(`\n=== a station name inside a sentence (a decision per screen, not a rule), ${embedded.length}`);
   for (const [place, rows] of byPlace(embedded)) console.log(`  ${place}\n      “${rows[0].text}”`);
 }
 
 if (findings.length) {
-  console.log(`\n=== printed as plain text, with no link — ${findings.length}`);
+  console.log(`\n=== printed as plain text, with no link, ${findings.length}`);
   for (const [place, rows] of byPlace(findings)) console.log(`  ${place}\n      “${rows[0].text}”`);
-  console.log('\nFAIL — a station name that has a page is not a way to it.');
+  console.log('\nFAIL, a station name that has a page is not a way to it.');
   process.exit(1);
 }
 
-console.log('\nOK — every station name printed as text is a link to its page, or the words of a control.');
+console.log('\nOK, every station name printed as text is a link to its page, or the words of a control.');

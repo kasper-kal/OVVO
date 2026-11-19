@@ -8,7 +8,7 @@ import { dismissKeyboard } from './dismissKeyboard';
  * layout menu: nothing was focused on open, Tab walked the page *behind* a dialog declared
  * `aria-modal="true"`, Escape closed the panel and dropped focus on `<body>`, the trigger that
  * opened it was never focused again, and a wheel over the scrim scrolled the page underneath.
- * None of that is a per-screen mistake — it is the shared container's job, and it was missing
+ * None of that is a per-screen mistake, it is the shared container's job, and it was missing
  * from both shared containers (`ui/primitives` `Dialog` and `ui/FullScreen`). This hook is that
  * job, so a screen cannot be written without it: both containers call it, and they are the only
  * two containers the app has.
@@ -83,7 +83,7 @@ function unlockDocument(): void {
   }
   savedBody = null;
   /*
-   * Restoring `overflow` can reset the scroll offset in some engines; put it back — but **only on
+   * Restoring `overflow` can reset the scroll offset in some engines; put it back, but **only on
    * the screen it was taken from**.
    *
    * A sheet that navigates (the reset, a board that plans a journey, a picker that hands a stop to
@@ -113,7 +113,7 @@ export function useOverlay(
   const close = useRef(onClose);
   close.current = onClose;
   /*
-   * The control that will get the focus back when this overlay closes — read by `requestClose`
+   * The control that will get the focus back when this overlay closes, read by `requestClose`
    * below, which is called from a button press rather than from inside the effect.
    */
   const restoreRef = useRef<HTMLElement | null>(null);
@@ -122,7 +122,7 @@ export function useOverlay(
    * **A sheet closing is not a typing moment.**
    *
    * Closing a screen while its field still has the caret used to leave the field focused and the
-   * screen was simply taken out of the page — no blur, ever. A phone's keyboard belongs to that
+   * screen was simply taken out of the page, no blur, ever. A phone's keyboard belongs to that
    * field, so it stayed up over whatever the screen had been covering: the full-screen stop picker
    * is opened *over* the results, so cancelling it left the keyboard sitting on "Journey results"
    * (reported as "sometimes the keyboard stays when you're already in journey results"). Measured
@@ -130,7 +130,7 @@ export function useOverlay(
    * arrow **no blur was raised by the app at all**, and the field went away still focused. The
    * browser moves focus afterwards, which is clean-up and not an answer.
    *
-   * The one case that keeps the keyboard on purpose is the caret going **back into a field** — a
+   * The one case that keeps the keyboard on purpose is the caret going **back into a field**, a
    * sheet opened over a search box returns to that box, and blurring it would close the keyboard
    * only to reopen it a frame later. `restoreRef` is how that is known before the focus moves.
    */
@@ -156,14 +156,14 @@ export function useOverlay(
      * It used to be the first focusable control, which for every sheet in the app is the ×. That
      * is a ring drawn round a control nobody touched: the sheet is often opened for the traveller
      * (the location question appears by itself on a first visit), so no pointer or key press has
-     * happened yet — and with no interaction to judge by, the engine treats the focus the app
+     * happened yet, and with no interaction to judge by, the engine treats the focus the app
      * placed as keyboard focus and paints the coral `:focus-visible` ring on the × the instant the
      * sheet appears. It reads as "already selected", and it is the app showing a keyboard state
      * that is not true.
      *
      * The panel is the honest target. It is `tabindex="-1"` on both containers, so it takes
      * focus, the trap still works, and a screen reader announces the sheet's own name and
-     * description — better than announcing "Close" as the first thing. The first Tab goes to the
+     * description, better than announcing "Close" as the first thing. The first Tab goes to the
      * × as it always did, and the ring is then earned, so it is drawn (see the panel rule in
      * `styles/base.css`).
      */
@@ -183,7 +183,7 @@ export function useOverlay(
     placeFocus();
 
     const onKeyDown = (event: KeyboardEvent) => {
-      /* Only the topmost overlay reacts — the one underneath keeps its state untouched. */
+      /* Only the topmost overlay reacts, the one underneath keeps its state untouched. */
       if (openStack[openStack.length - 1] !== (panel ?? document.body)) return;
 
       if (event.key === 'Escape') {
@@ -256,7 +256,7 @@ export function useOverlay(
       if (index >= 0) openStack.splice(index, 1);
       unlockDocument();
       /*
-       * Whatever closed it — Escape, the ×, the scrim, a row that navigates — the keyboard goes
+       * Whatever closed it, Escape, the ×, the scrim, a row that navigates, the keyboard goes
        * back to the control that opened the overlay, when that control still exists. A deleted
        * trigger has nothing to return to, and focus then stays where the browser puts it rather
        * than being sent to the top of the document.

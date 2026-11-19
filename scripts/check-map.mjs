@@ -186,7 +186,7 @@ if (walkLinks > 0) {
  * **One door to the map.**
  *
  * The journey page carried a MAP pill under its controls and a thumbnail of the route in its title
- * line, and both opened the same map — he crossed the pill out: "Map button is useless, the circles
+ * line, and both opened the same map, he crossed the pill out: "Map button is useless, the circles
  * button does the same". Exactly one control may answer to "Show on map", and it has to be the
  * thumbnail, because that is the one that shows where the journey goes before you press it.
  */
@@ -237,7 +237,7 @@ if (walkLinks > 0) {
   check(starNote.noteHasStar, 'and the footnote carries the same marker', starNote.note || '(no note)');
   /*
    * **The bicycle rule belongs to the service, not to the journey.** It was one quiet line at the
-   * foot of the page — "Bicycle allowed" under a trip made of two trains — and he asked why it was
+   * foot of the page, "Bicycle allowed" under a trip made of two trains, and he asked why it was
    * there and not under the train. Each ride row now says it, and the page no longer summarises it.
    */
   const bike = await doorPage.evaluate(() => ({
@@ -273,14 +273,14 @@ if (walkLinks > 0) {
 
   /*
    * **Nothing from a service may appear after the change that ends it.** He photographed an opened
-   * Sprinter whose stops were printed below "9 min transfer time" — the train appeared to finish
+   * Sprinter whose stops were printed below "9 min transfer time", the train appeared to finish
    * before the transfer it was still travelling towards. Every opened list must be read before the
    * change row, and between a change and the next service there must be no stop at all.
    */
   /*
    * **Closed on arrival, opened by a tap.** The page used to open every service with the journey;
-   * he asked for the opposite. This reads the page the moment it is there — no stop rows, every
-   * chevron reporting `aria-expanded="false"` — and only then taps each service open for the order
+   * he asked for the opposite. This reads the page the moment it is there, no stop rows, every
+   * chevron reporting `aria-expanded="false"`, and only then taps each service open for the order
    * check below, which needs a list on screen to have an opinion about.
    */
   const closed = await doorPage.evaluate(() => ({
@@ -364,7 +364,7 @@ if (walkLinks > 0) {
   );
   /*
    * **And the reverse belongs on the results screen, where the pair is.** A RETURN pill here was a
-   * third copy of the same act — he crossed it out: "theres already a Reverse button on the Journey
+   * third copy of the same act, he crossed it out: "theres already a Reverse button on the Journey
    * results page". The journey page must offer none, and the results screen must still have one.
    */
   const returnDoors = await doorPage.evaluate(

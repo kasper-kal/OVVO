@@ -47,7 +47,7 @@ export function useNavigation(): NavGroup[] {
         { to: '/plan', label: t('Plan a journey'), icon: 'station', hint: t('Search the real timetable') },
         /*
           There was a "Journey results" entry here, and it was a way to a screen that answers a
-          question — the results of a search you have just made. The planner's second stop goes
+          question, the results of a search you have just made. The planner's second stop goes
           there by itself, so a menu entry only led to "No search has been run in this browser
           yet" for anyone who had not searched. Removed on the traveller's instruction; the route
           itself is untouched, because that is where a search lands.
@@ -62,7 +62,7 @@ export function useNavigation(): NavGroup[] {
         /*
           The alerts list was reachable from the header's alert icon alone, which is one tap
           from every screen but says nothing about where it goes. Named here again, it is a way
-          to the list from the menu as well — and the entry carries the count the header shows,
+          to the list from the menu as well, and the entry carries the count the header shows,
           so the two agree about how many alerts there are.
         */
         { to: '/disruptions', label: t('Disruptions'), icon: 'alert', hint: t('Delays, cancellations and planned works'), badge: alerts.length },
@@ -84,7 +84,7 @@ export function useNavigation(): NavGroup[] {
    * behind the canvas, live previews, four storage panels. It is left out of the navigation here,
    * and `/settings` itself redirects home while the mode is on (see `App.tsx`), so the screen is
    * genuinely unreachable rather than merely unlinked. A group is dropped when it has nothing
-   * left in it — otherwise "Yours" would be a heading over an empty list. A charger puts it back,
+   * left in it, otherwise "Yours" would be a heading over an empty list. A charger puts it back,
    * because nothing is stored: the mode is a subtraction, never a change.
    */
   /*
@@ -103,7 +103,7 @@ export function useNavigation(): NavGroup[] {
    * (Settings and the map) therefore stay while a battery override is set: the tenth is a display
    * mode, and the workshop is simply left inside it.
    *
-   * At 1% that would stop being a simulation at all — a last drop with Settings in the menu is not
+   * At 1% that would stop being a simulation at all, a last drop with Settings in the menu is not
    * a last drop (reported). So the last percent closes it like the real thing does, and its own
    * screen carries a small way into the panel (`pages/HomePage`). Nothing else is exempt either
    * way: the rest of the thinning is the interface being tested.
@@ -175,13 +175,13 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
    *
    * One tap is still "go home", which is what a navigation entry promises; the second tap inside
    * the double-tap window goes one step further and opens the planner's own picker on its first
-   * question — `/?pick=from`, the From picker the planner already opens from `?pick=` — because on
+   * question, `/?pick=from`, the From picker the planner already opens from `?pick=`, because on
    * a phone Home *is* the planner's screen, so "open the planner" has to mean the field you type in,
    * not the screen you are already standing on.
    *
    * 320ms is the window: short enough that two deliberate taps count, long enough that a thumb
    * rolling over the same 44px target while reading does not. The first tap is never delayed, so
-   * single-tap navigation keeps its own timing — the Link does the work, and only the second tap
+   * single-tap navigation keeps its own timing, the Link does the work, and only the second tap
    * is taken away from it.
    */
   /*
@@ -192,18 +192,18 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
    * the wrong trade: it moves under the thumb and it is missing exactly when the page is long
    * enough to want it. The page reserves its band at the end instead (`.app-body`'s bottom padding
    * is `--dock-h`), so nothing is ever buried under it, and the bar stays put at every scroll
-   * position — asked for by name: "I want the bottom nav there ALWAYS".
+   * position, asked for by name: "I want the bottom nav there ALWAYS".
    */
 
   /*
    * **The pressed tab lifts, and puts itself back down.**
    *
-   * A phone has no hover, but `:hover` is applied on a tap and kept until the next touch — the
+   * A phone has no hover, but `:hover` is applied on a tap and kept until the next touch, the
    * reason the pressed tab used to stay 4px up (and 2% larger) for as long as the screen was open,
    * which on the coral active tab looks like the disc straining out of the bar (see
    * `.app-dock__item.is-lifted` in `base.css`; the hover rule is now behind `hover: hover`). This
    * is the deliberate version: the tab answers the press with the same little jump, and is back in
-   * its seat **1s** later whether or not anything else is touched — and the way down is a
+   * its seat **1s** later whether or not anything else is touched, and the way down is a
    * `settle` phase of its own (`.is-settling`, 320ms) instead of the item's 120ms press curve, so
    * it glides back rather than snapping.
    */
@@ -212,7 +212,7 @@ function MobileDock({ onOpenMenu }: { onOpenMenu: () => void }) {
   const settleTimer = useRef(0);
   const lift = (id: string) => {
     /*
-     * **Not in super energy saving — not even here.**
+     * **Not in super energy saving, not even here.**
      *
      * The flattened tokens already stop the tab from moving, but the lift is driven by two timers
      * and a re-render one second after the tap, and a second re-render when it settles. At a tenth
@@ -319,8 +319,8 @@ function MenuDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
  *
  * That holds for the screens the navigation can name (Home, Stations & stops, Departure
  * boards, Disruptions, Settings) and only for those: on the five that are not in the
- * navigation — an alert's page, journey results, journey detail, travel preferences and
- * not-found — nothing on screen said where you were. Those pass `showTitle`, which draws the
+ * navigation, an alert's page, journey results, journey detail, travel preferences and
+ * not-found, nothing on screen said where you were. Those pass `showTitle`, which draws the
  * same heading as one line beside the page's actions instead of hiding it.
  *
  * The alerts list names itself too, and for a reason the navigation cannot supply: a menu entry
@@ -337,7 +337,7 @@ export function PageHeader({
   mobileTitle = false,
 }: {
   /* A heading can carry a glyph between its words (the journey page's `from → to`), so the title
-     is a node rather than a string — the icon is `aria-hidden`, and the words are still the name. */
+     is a node rather than a string, the icon is `aria-hidden`, and the words are still the name. */
   title: ReactNode;
   /**
    * The heading as words, when the drawn title is not a sentence on its own.
@@ -357,7 +357,7 @@ export function PageHeader({
   /*
    * Draw the name on a phone only: the stop page's head holds the name and its three controls as
    * one left-aligned block at 378px, and from 641px up the name is not drawn and the controls go
-   * back to the trailing edge — the head that page had before (F18).
+   * back to the trailing edge, the head that page had before (F18).
    */
   mobileTitle?: boolean;
 }) {
@@ -401,7 +401,7 @@ export function PageHeader({
 
                 They were moved to the trailing edge to match the rows *inside* cards, and that is
                 the wrong reading of the same rule: inside a card a control shares its line with a
-                heading, and above a card there is nothing on the left for it to answer — so a
+                heading, and above a card there is nothing on the left for it to answer, so a
                 lone control floated at the far right of an empty band (reported: "Why are SO MANY
                 buttons and other things located on the right side (above a widget)"). The card
                 rows keep theirs on the right; the page band starts on the left.
@@ -422,15 +422,15 @@ export function PageHeader({
  * **The bar's start corner, for the one page control that belongs there.**
  *
  * The slot at the start of the bar belongs to the shell (`useHeaderBack`), so a screen cannot put
- * anything in it — which was the point of moving the way back there. The boards screen is the one
+ * anything in it, which was the point of moving the way back there. The boards screen is the one
  * exception: its refresh sat inside every board card, beside the sentence that says the board
- * refreshes itself, and it belongs where a phone user already looks for a screen's own control —
+ * refreshes itself, and it belongs where a phone user already looks for a screen's own control ,
  * the corner the way back occupies on every other screen (asked for by name: "move the Refresh
  * button to the place of the back button on other pages").
  *
  * So a page *registers* a control instead of drawing it: the shell draws it in that corner, and
- * the page takes it away on unmount. A page that has a way back keeps the arrow — a control of its
- * own never displaces the navigation — so this is only used where the slot is otherwise empty.
+ * the page takes it away on unmount. A page that has a way back keeps the arrow, a control of its
+ * own never displaces the navigation, so this is only used where the slot is otherwise empty.
  */
 const HeaderControlContext = createContext<(control: ReactNode) => void>(() => {});
 
@@ -446,7 +446,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   /*
    * The live region is written to directly, never through state.
    *
-   * It was `useState` — and because the shell's state change re-renders its children, every
+   * It was `useState`, and because the shell's state change re-renders its children, every
    * navigation rendered the destination page a second time (and a third, when the title effect
    * followed) just to put one sentence in a hidden paragraph. Measured on a phone-speed CPU that
    * was the difference between a screen that appears in one frame and one that holds the previous
@@ -474,8 +474,8 @@ export function AppShell({ children }: { children: ReactNode }) {
    * Super energy saving is a subtraction, and the shape of the screen is one of the things taken
    * out of it: the mode draws the three cards that answer the question, and a layout you can drag,
    * remove and re-add while the phone is at 9% is the most expensive screen in the app asking to
-   * be drawn and re-painted. So the way in is not drawn at all — the corner keeps the ordinary
-   * way-back slot, which is empty on Home — and the hold-to-customise gesture is refused in
+   * be drawn and re-painted. So the way in is not drawn at all, the corner keeps the ordinary
+   * way-back slot, which is empty on Home, and the hold-to-customise gesture is refused in
    * `HomePage`. Leaving the mode is the charger, not a button here; the layout is untouched and
    * comes back exactly as it was.
    */
@@ -484,7 +484,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   /*
    * **Customising is a mode of the home screen, so leaving it leaves the mode.**
    *
-   * The flag lives in the app's state, which is what makes the mode outlive a re-render — and what
+   * The flag lives in the app's state, which is what makes the mode outlive a re-render, and what
    * made it outlive the screen: arranging the cards, tapping *Departure boards* in the dock and
    * coming home again put you straight back into customising, cards showing their remove buttons
    * and the header reading **Done**, for a mode you had walked away from (reported: "Home tab
@@ -503,7 +503,7 @@ export function AppShell({ children }: { children: ReactNode }) {
    * Coming back is not arriving.
    *
    * Going back to a *screen* is only half of going back to where you were: the results list
-   * reopens at the top, so the journey that was tapped — the reason the trip out was made — is a
+   * reopens at the top, so the journey that was tapped, the reason the trip out was made, is a
    * screenful down and has to be found again. So each history entry remembers how far down its
    * page had been scrolled, and a back navigation restores it. A forward navigation still starts
    * at the top, because that is a new screen and nothing in it has been read yet.
@@ -516,8 +516,8 @@ export function AppShell({ children }: { children: ReactNode }) {
    *
    * A hash route changes no document and fires no navigation event, so the old behaviour left the
    * keyboard on `<body>` and said nothing at all: following a stale link replaced the whole screen
-   * in silence (12.2). Now the new screen is both announced (`role="status"`, below) and focused —
-   * `main` carries `tabIndex={-1}` so it can take the caret without becoming a tab stop — which is
+   * in silence (12.2). Now the new screen is both announced (`role="status"`, below) and focused ,
+   * `main` carries `tabIndex={-1}` so it can take the caret without becoming a tab stop, which is
    * what a screen-reader traveller hears and what a keyboard traveller tabs on from.
    */
   useEffect(() => {
@@ -532,7 +532,7 @@ export function AppShell({ children }: { children: ReactNode }) {
        *
        * One call is not enough when something is closing behind the navigation. A sheet that
        * navigates is unmounted by the same commit, and its clean-up puts the page's scroll offset
-       * back (`lib/useOverlay`) — after this line has already run, on some orderings of the two
+       * back (`lib/useOverlay`), after this line has already run, on some orderings of the two
        * effects. The traveller then lands on a fresh screen already nudged down, which is what a
        * reset was doing. Repeating the claim on the next frame wins that race whatever order the
        * commit happened in, and it is the destination that should win it.
@@ -567,8 +567,8 @@ export function AppShell({ children }: { children: ReactNode }) {
    * The name in the tab, the history and a bookmark.
    *
    * Every screen used to carry the app's own title, so ten open tabs could not be told apart and a
-   * 404 looked like Home (8.6, 9.8, 12.4). The screens with a name of their own — a stop, an alert,
-   * a journey — set theirs from their data (see `lib/usePageTitle`); this is the app's own list of
+   * 404 looked like Home (8.6, 9.8, 12.4). The screens with a name of their own, a stop, an alert,
+   * a journey, set theirs from their data (see `lib/usePageTitle`); this is the app's own list of
    * names for the screens that have a fixed one.
    */
   useEffect(() => {
@@ -610,7 +610,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   /*
    * **Nothing watches the scroll position for the header any more.**
    *
-   * It used to set `data-scrolled`, which faded the canvas in under the row once the page moved —
+   * It used to set `data-scrolled`, which faded the canvas in under the row once the page moved ,
    * a compromise for the card that travels under the mark. The row is clear again, with nothing
    * painted behind it at any scroll position (see `.app-header` in `styles/base.css`), so the flag,
    * the state and the frame-scheduled listener all went with the paint.
@@ -622,7 +622,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/*
           A hash link cannot skip anything in a hash-routed app: `href="#main"` *is* a route, so
           Enter on the first control sent the router to a page called `main` and drew the 404 over
-          the screen the traveller was reading (12.1). The skip is a focus move now — prevented from
+          the screen the traveller was reading (12.1). The skip is a focus move now, prevented from
           changing the hash, landing on the `main` landmark, which takes the caret because it is
           `tabIndex={-1}`.
         */}
@@ -638,21 +638,21 @@ export function AppShell({ children }: { children: ReactNode }) {
           {t('Skip to main content')}
         </a>
         {/* What a screen reader hears when the screen changes (12.2). Empty at rest, and filled
-            from the effect above rather than by a re-render — see `announcementRef`. */}
+            from the effect above rather than by a re-render, see `announcementRef`. */}
         <p className="sr-only" role="status" aria-live="polite" ref={announcementRef} />
         {/*
           The connection, before anything else on the screen. It is sticky and above the header, so
           "you are offline and these times are not live" is still the top line of the page after the
-          traveller has scrolled a board — see `layout/OfflineBar`.
+          traveller has scrolled a board, see `layout/OfflineBar`.
         */}
         <OfflineBar />
         {/*
           No app bar: the mark is the only thing across the top and it is centred, saying the
           name on its own. The alerts entry keeps the place it has always had (top right, one
           tap from anywhere) with nothing painted behind it but the page. Both live in a
-          three-column row — a name in the middle column is centred by the grid, not by
-          matching paddings, and all three of its children share one top edge — their sizes are
-          their own, and only the line they start on is common — and the row scrolls away with
+          three-column row, a name in the middle column is centred by the grid, not by
+          matching paddings, and all three of its children share one top edge, their sizes are
+          their own, and only the line they start on is common, and the row scrolls away with
           the page like everything else, because anything that stays put has to be painted over
           the content passing under it, and that paint is the bar (see `.app-header` and
           `.app-header__inner` in `styles/base.css`).
@@ -662,7 +662,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/*
               The bar's left column, which the centered mark leaves empty and the full-screen
               pickers fill with their own way back. A page that has one puts it here and nowhere
-              else — see `useHeaderBack`.
+              else, see `useHeaderBack`.
             */}
             <div className="app-header__back">
               {canArrangeHome ? (
@@ -678,7 +678,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                  * (`app-header__pill--faces`), because a pill is as wide as what is in it: the `+`
                  * alone took the pill's 36px minimum and drew a **circle**, so entering the mode
                  * changed the shape of the corner. Both faces share the cell, so the word sizes the
-                 * box in both states and the `+` sits centred inside Edit's own oval — same place,
+                 * box in both states and the `+` sits centred inside Edit's own oval, same place,
                  * same size, same paint, and the only difference is the character on it.
                  */
                 <button
@@ -699,15 +699,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                    * The glyph is the app's own **plus icon**, not a `+` character: at the pill's 12px
                    * type size a text plus draws about 8px wide and reads as a speck inside a 49px
                    * oval ("the + thing is much too small, replace it with an icon"). An icon is
-                   * drawn at its own size — 18px, the size the header's alerts and way-back glyphs
-                   * use — and the word still sizes the pill, so the box does not move.
+                   * drawn at its own size, 18px, the size the header's alerts and way-back glyphs
+                   * use, and the word still sizes the pill, so the box does not move.
                    */}
                   <span className="app-header__pill-face" aria-hidden={!editingHome || undefined}>
                     <Icon name="plus" size={18} />
                   </span>
                 </button>
               ) : (
-                /* The page's own control (today only the boards' refresh) if it registered one —
+                /* The page's own control (today only the boards' refresh) if it registered one ,
                    otherwise the way back. A page with a way back keeps the arrow: navigation is not
                    displaced by a page control. */
                 headerControl ?? headerBack
@@ -750,12 +750,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/*
               **A screen that cannot be drawn is the page's problem, not the app's.** The boundary
               sits inside the shell, so a crash in one screen leaves the header, the dock and the
-              navigation working, and the card takes that screen's place — the way out is the
+              navigation working, and the card takes that screen's place, the way out is the
               navigation rather than a blank page (`layout/ErrorBoundary`).
 
               Keyed by the address: a boundary that has caught an error keeps showing its card
               until it is reset, so arriving on a *different* screen remounts it and starts clean
-              — otherwise one broken screen would hold every screen after it.
+             , otherwise one broken screen would hold every screen after it.
             */}
             <ErrorBoundary key={location.pathname} variant="inline">
               {children}
@@ -785,12 +785,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 /**
  * The way back on a page, in `BACK_ARROW`'s one shape.
  *
- * It used to be a labelled ghost pill — `All alerts`, `Back` — sitting wherever it happened to
+ * It used to be a labelled ghost pill, `All alerts`, `Back`, sitting wherever it happened to
  * land in the header's wrapping row, which on a phone meant a line of its own under the title and
  * a different position on every screen. The shape and the place now come from the full-screen
  * pickers (`FullScreen`, the "Choose a stop on the map" bar), which were the one consistent pair:
  * a bare arrow at the start of the header row, and the name of the destination as the accessible
- * name rather than as a word on screen, exactly as the picker's arrow works. Its size is its own —
+ * name rather than as a word on screen, exactly as the picker's arrow works. Its size is its own ,
  * the 44px disc the pickers' bar draws, which is also the minimum target this app measures a
  * control against; the only thing it takes from the mark beside it is the step that puts the two
  * of them on one top edge (see `.app-header__back` in `styles/base.css`).
@@ -802,7 +802,7 @@ const BACK_ARROW = 'btn btn--icon-circle back-arrow';
  *
  * Today that is the departure boards' refresh, registered with `useHeaderControl`. It is drawn
  * here rather than by the page so the corner cannot grow a second look: the arrow and this share
- * `BACK_ARROW` — the same 44px disc, the same surface, the same size of glyph — and the only thing
+ * `BACK_ARROW`, the same 44px disc, the same surface, the same size of glyph, and the only thing
  * that differs is the icon and what pressing it does.
  */
 export function HeaderButton({ icon, label, onClick }: { icon: IconName; label: string; onClick: () => void }) {
@@ -817,24 +817,24 @@ export function HeaderButton({ icon, label, onClick }: { icon: IconName; label: 
  * The way back to where you were.
  *
  * There used to be a second one of these, `BackButton`: a link to a fixed place, for the screens
- * that were said to have one obvious parent — an alert and the alerts list. No screen has one. A
+ * that were said to have one obvious parent, an alert and the alerts list. No screen has one. A
  * map opened from a journey, from a stop, from the results screen or from the alert you are reading
  * is one screen with four doors; an alert opened from the journey results, from a stop's board or
  * from the alerts list is the same. A fixed link can only name one of those doors, so the traveller
- * who came through a different one is sent somewhere they have never been — reported as results →
+ * who came through a different one is sent somewhere they have never been, reported as results →
  * warning → back, and back landing on Disruptions. So every screen asks the history instead: React
  * Router writes an index into each entry it pushes, and an index above zero means there is a screen
  * behind this one.
  *
- * What it says when there is nothing behind — the first screen of a fresh tab, or a link pasted
- * into the address bar — is the `fallback`, rather than a button that does nothing.
+ * What it says when there is nothing behind, the first screen of a fresh tab, or a link pasted
+ * into the address bar, is the `fallback`, rather than a button that does nothing.
  */
 /**
  * **The rule of the way back, in one place, for controls the bar does not draw.**
  *
  * Everything the shell gives an arrow asks the history first (see `HistoryBackButton`). The story
- * deck draws its own corner — an X instead of an arrow, because a story is closed rather than
- * stepped back out of — and it was the one screen that did not ask: it went home from Settings, from
+ * deck draws its own corner, an X instead of an arrow, because a story is closed rather than
+ * stepped back out of, and it was the one screen that did not ask: it went home from Settings, from
  * a stop, from anywhere, which is a fixed parent for a screen that has as many doors as there are
  * buttons that open it. This is the same rule, exported so a screen outside the bar can obey it
  * without copying it.
@@ -863,31 +863,31 @@ export function HistoryBackButton({ fallback = '/', label = 'Back' }: { fallback
 }
 
 /**
- * Which screens have a way back, and where it goes — decided by the bar rather than by the screen.
+ * Which screens have a way back, and where it goes, decided by the bar rather than by the screen.
  *
  * The bar belongs to the shell, so the slot at its start does too, and that is the point: a screen
  * cannot put its way back anywhere else. The same control used to be one of a page's `actions`,
- * where it was just another pill in a wrapping row — on a phone it fell to a line of its own under
+ * where it was just another pill in a wrapping row, on a phone it fell to a line of its own under
  * the title, which put it in a different place on every screen, and in the pickers' bar it was not
  * there at all. Here the position is `styles/base.css`'s business alone and the destination is the
  * arrow's accessible name, exactly as the picker's arrow works (see `BACK_ARROW`).
  *
  * **The rule: the arrow belongs to a screen you opened *from* a tab, never to the tab itself.**
- * The five screens the navigation names — Home, Stations & stops, Departure boards, Disruptions
- * and Settings — are the app's tabs, its top level, and a way back on one of them is a lie: there
+ * The five screens the navigation names, Home, Stations & stops, Departure boards, Disruptions
+ * and Settings, are the app's tabs, its top level, and a way back on one of them is a lie: there
  * is nothing above them to go back to, and the navigation is already showing where you are. They
  * are exactly the entries `useNavigation` returns, so the rule is read off that list rather than
- * kept beside it: a screen the menu names is a tab, and *only* the screen itself — `/stops` and
+ * kept beside it: a screen the menu names is a tab, and *only* the screen itself, `/stops` and
  * not `/stops/haarlem`, which is a stop opened out of the list.
  *
  * Everything reached *from* one of those tabs carries the arrow: a stop's page, an alert's page,
  * a journey, the results a search opens, travel preferences, the network map, and the not-found
- * screen (a banner on the ends of the earth — a typo'd link, a stale bookmark — where a way back
+ * screen (a banner on the ends of the earth, a typo'd link, a stale bookmark, where a way back
  * is the only useful control on the screen).
  *
  * Where it goes is decided here and not by the screen: everything asks the history first, so the
- * arrow returns to the screen you actually came from, and falls back — to the alerts list from an
- * alert, to the stops list from a stop, to the results from a journey, to the tab otherwise — only
+ * arrow returns to the screen you actually came from, and falls back, to the alerts list from an
+ * alert, to the stops list from a stop, to the results from a journey, to the tab otherwise, only
  * when there is nothing behind it to ask, which is the case a pasted link opens in. No screen gets
  * a fixed parent: an alert reached from the journey results has four ways out of it, not one.
  */
@@ -906,14 +906,14 @@ function useHeaderBack(): ReactNode {
    *
    * It was a fixed link to `/disruptions`, on the reasoning that the list is where an alert lives.
    * That is true of the list and false of every other door into an alert: the banner on the journey
-   * results, the alert beside a stop's board, a saved journey's warning — and a traveller who opened
+   * results, the alert beside a stop's board, a saved journey's warning, and a traveller who opened
    * one from the results was sent to the alerts list, losing the search they had just run (reported
    * with exactly that path: results → warning → back, and back landed on Disruptions). So the arrow
-   * returns to the screen the alert was opened from, and names — and goes to — the alerts list only
+   * returns to the screen the alert was opened from, and names, and goes to, the alerts list only
    * when there is nothing behind it to ask, which is the pasted-link case.
    *
    * Its name is **Back**, not `All alerts`: a name that promises a destination the arrow no longer
-   * always goes to is worse than a plain one — opened from the results it said "All alerts" and
+   * always goes to is worse than a plain one, opened from the results it said "All alerts" and
    * went to the search. Where the other screens' arrows are named is `HistoryBackButton`'s own
    * default, and that is where this one stays.
    */
@@ -922,13 +922,13 @@ function useHeaderBack(): ReactNode {
   }
 
   /* A stop's page is under the list of stops, and it is reached from there, from the planner's
-     search, from an alert's affected stops and from a journey's legs — so the history first, and
+     search, from an alert's affected stops and from a journey's legs, so the history first, and
      the stops list when there is no history to ask. */
   if (/^\/stops\/[^/]+$/.test(pathname)) {
     return <HistoryBackButton fallback="/stops" />;
   }
 
-  /* A journey is under the results that found it — but it can also be opened from a stop, an alert
+  /* A journey is under the results that found it, but it can also be opened from a stop, an alert
      or a pasted link, so it asks the history first and falls back to the results. */
   if (/^\/journey\/[^/]+$/.test(pathname)) {
     return <HistoryBackButton fallback="/results" />;
@@ -937,7 +937,7 @@ function useHeaderBack(): ReactNode {
   /*
    * Everything reached from a tab goes back where it came from: journey results, travel
    * preferences, the network map, the not-found screen. Home is what each of them falls back to,
-   * because it is the one screen any of them can be entered from — except the map, whose other
+   * because it is the one screen any of them can be entered from, except the map, whose other
    * door is the results (see `MapPage`, which a search opens as well).
    */
   return <HistoryBackButton fallback={pathname === '/map' && search ? '/results' : '/'} />;

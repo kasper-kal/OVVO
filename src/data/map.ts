@@ -6,7 +6,7 @@ import type { PublicMode, TravelMode } from './types';
  * Where a stop sits on the map module's 0–100 canvas.
  *
  * The schematic position (`Stop.coordinates`) is refitted once so the network fills the
- * frame, and nothing else in the map's geometry is computed anywhere else — the home map
+ * frame, and nothing else in the map's geometry is computed anywhere else, the home map
  * widget and the full-screen map picker both draw from this.
  */
 export const MAP_POINT: (stopId: string) => MapPoint | null = (() => {
@@ -40,7 +40,7 @@ export interface MapPoint {
  * once per service (which came out near-black, and dragged the whole page sideways
  * when a name was placed for each one).
  *
- * This is the drawing, not the statistics — a caller that needs "how many services call
+ * This is the drawing, not the statistics, a caller that needs "how many services call
  * here" must count the services themselves.
  */
 export function mapCorridors(mode: 'all' | PublicMode = 'all'): { id: string; mode: TravelMode; stops: string[] }[] {

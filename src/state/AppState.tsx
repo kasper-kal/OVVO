@@ -45,7 +45,7 @@ import {
  *
  * `new Image()` plus `decode()` is the pair that matters: a loaded file is bytes, a decoded file is
  * pixels the browser can paint in the same frame it is asked for one. Either way it never holds the
- * page for longer than a moment, and a file that is not there is not an error here — `applyStyle`
+ * page for longer than a moment, and a file that is not there is not an error here, `applyStyle`
  * owns that answer.
  */
 function preloadPhoto(src: string): Promise<void> {
@@ -70,7 +70,7 @@ function preloadPhoto(src: string): Promise<void> {
  *
  * The dissolve was still reported as clunky, with the reason given plainly: *"no one blocks the
  * vision while fonts change"*. The crossfade was fine, but the four faces arrived a beat after the
- * new snapshot was taken, so the words re-flowed inside the fade — a title that grows or shifts
+ * new snapshot was taken, so the words re-flowed inside the fade, a title that grows or shifts
  * mid-dissolve reads as a glitch however smooth the fade is.
  *
  * So the style's display, section, body and UI faces are asked for, at the weights the interface
@@ -162,9 +162,9 @@ interface AppContextValue {
    * Battery saving as the device reports it (see `lib/power.ts`): `save` at 20%, `super` at 10%,
    * `off` above that or while charging.
    *
-   * In the store rather than in a hook of its own because three things read it — the document's
+   * In the store rather than in a hook of its own because three things read it, the document's
    * `data-power` (which the stylesheet obeys), the home grid (which thins itself out in super),
-   * and Settings (which names the mode) — and they must agree about which mode the traveller is
+   * and Settings (which names the mode), and they must agree about which mode the traveller is
    * in. It is not a preference: nothing here is stored.
    */
   power: PowerState;
@@ -174,7 +174,7 @@ interface AppContextValue {
   resetPreferences: () => void;
 
   /**
-   * Stops hearted as favourites — they lead every stop list and are offered first.
+   * Stops hearted as favourites, they lead every stop list and are offered first.
    *
    * A *favourite* is a place the traveller likes. It used to be called a pin, which collided
    * with the departure board's pin: that one answers "which stops should the board show?".
@@ -195,7 +195,7 @@ interface AppContextValue {
   /** Give a favourite a name of the traveller's own; an empty name restores the official one. */
   renameStop: (stopId: string, name: string) => void;
 
-  /** Stops pinned to the departure board. Complete on purpose — the board is its list. */
+  /** Stops pinned to the departure board. Complete on purpose, the board is its list. */
   boardStopIds: string[];
   isOnBoard: (stopId: string) => boolean;
   toggleBoardStop: (stopId: string) => boolean;
@@ -207,10 +207,10 @@ interface AppContextValue {
   saveJourney: (journey: Journey, query: SearchQuery, windowOffsetMinutes: number) => void;
   removeSavedJourney: (id: string) => void;
 
-  /** **Searches the traveller kept** — "Home → Work", saved from the results screen. */
+  /** **Searches the traveller kept**, "Home → Work", saved from the results screen. */
   recentSearches: RecentSearch[];
   /**
-   * Keep a search. It is not called by searching — see `startSearch` — only by the traveller
+   * Keep a search. It is not called by searching, see `startSearch`, only by the traveller
    * asking for it from the results screen's Save control.
    */
   keepSearch: (query: SearchQuery) => void;
@@ -284,7 +284,7 @@ interface AppContextValue {
   /**
    * What "nearest me" means, in one place: the device's own fix when we have one, otherwise the
    * approximate estimate. Any screen that sorts by distance reads this rather than deciding for
-   * itself which answer wins — and `source` is what lets it say which one it used.
+   * itself which answer wins, and `source` is what lets it say which one it used.
    */
   nearestOrigin: NearestOrigin | null;
 
@@ -299,26 +299,26 @@ interface AppContextValue {
    * declared. Cleared when the widget is removed: a card that comes back is a new card.
    */
   /**
-   * The station each widget is tied to, keyed by widget id — and the way it is set.
+   * The station each widget is tied to, keyed by widget id, and the way it is set.
    *
    * A card that watches one station (the next-departures card) makes that choice **once**, when it
    * is placed, and never asks again: a home screen is for glancing at, not for searching on. The
    * binding is written here rather than by the widget itself so that removing the widget can drop
-   * it — which is how a different station is chosen.
+   * it, which is how a different station is chosen.
    */
   widgetStations: Record<string, string>;
   setWidgetStation: (widgetId: string, stopId: string) => void;
-  /** Put one widget at a slot, shifting the rest — the drag on the home screen. */
+  /** Put one widget at a slot, shifting the rest, the drag on the home screen. */
   moveHomeWidget: (id: string, toIndex: number) => void;
-  /* Put back an arrangement that a reset threw away — the undo the layout menu offers. */
+  /* Put back an arrangement that a reset threw away, the undo the layout menu offers. */
   restoreHomeLayout: (ids: string[]) => void;
   resetHomeWidgets: () => void;
   /**
    * Whether the home screen is being customised, and the layout menu the header opens.
    *
    * Both used to live inside `HomePage`, which was fine while every control for them was on the
-   * page. The Done and + controls are in the **shell's header** now — the two places an iOS home
-   * screen puts its Edit and Done — so the mode has to be readable from both screens, and one
+   * page. The Done and + controls are in the **shell's header** now, the two places an iOS home
+   * screen puts its Edit and Done, so the mode has to be readable from both screens, and one
    * value in the store is what keeps "am I editing" from being answered twice.
    */
   homeEditing: boolean;
@@ -331,7 +331,7 @@ interface AppContextValue {
  * **The open search survives a refresh.**
  *
  * Journeys are made from the search and kept in memory, so reloading a journey page emptied the
- * list and the page answered "This journey could not be restored" — for a journey the traveller
+ * list and the page answered "This journey could not be restored", for a journey the traveller
  * had been reading a second earlier. The search itself is a handful of ids and a time, so it is
  * written for the length of the tab: a reload rebuilds the same journeys, and closing the tab
  * forgets it, which is what a session is.
@@ -366,7 +366,7 @@ function writeSessionSearch(state: PlannerSearchState | null) {
  *
  * It cannot be recomputed like a demonstration search: the GTFS search needs the graph files and a
  * few seconds, and a reload of the results screen must not turn real journeys into demo ones. It is
- * session storage for the same reason the search is — one tab, one answer, forgotten on close.
+ * session storage for the same reason the search is, one tab, one answer, forgotten on close.
  */
 const SESSION_PLAN_KEY = 'ovv:session-plan-result';
 
@@ -414,7 +414,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * The board's pins, with the one-way migration: a browser that has only ever stored the single
    * stop the board was last opened on (`board-stop`, which this app wrote long before the board
    * could hold more than one) starts with that stop pinned, rather than an empty board. The
-   * array slot is the truth once it exists — including when it exists and is empty, which is a
+   * array slot is the truth once it exists, including when it exists and is empty, which is a
    * traveller who unpinned everything and must not be handed their old stop back.
    */
   const [customStopNames, setCustomStopNamesState] = useState<Record<string, string>>(() => {
@@ -433,7 +433,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    *
    * `powerModeFor` is the whole rule and it runs in `watchBattery`; this holds the answer. The
    * first reading arrives a microtask after mount, so a phone that opens the app at 8% draws one
-   * frame of the full interface and then settles into super saving — worth it, because asking
+   * frame of the full interface and then settles into super saving, worth it, because asking
    * before the first paint would mean holding the app back on an API that may never answer.
    */
   const [power, setPower] = useState<PowerState>(NO_BATTERY);
@@ -457,7 +457,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   /*
    * A stored layout is brought forward on load: cards that were merged are folded into the card
-   * that replaced them, and a duplicate is dropped. Only the merge is done here — an id that no
+   * that replaced them, and a duplicate is dropped. Only the merge is done here, an id that no
    * longer exists is left in storage and simply not drawn (`widgetById` filters it), so a card that
    * comes back to the catalogue comes back to the layout it left.
    */
@@ -481,11 +481,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * chosen that visit ("The 2 locations shouldn't stay here from a previous visit"). A search
    * belongs to the visit that ran it: the planner, the results screen and every widget read
    * this state, so starting it at null makes all of them open empty, each with its own honest
-   * empty state — the results screen already says "No search has been run in this browser yet",
+   * empty state, the results screen already says "No search has been run in this browser yet",
    * and the recent-searches widget is where a previous search is offered back, deliberately,
    * one tap away. History you asked to keep; prefilling is history you did not.
    */
-  /* A reload keeps the search this tab was reading — see `readSessionSearch`. */
+  /* A reload keeps the search this tab was reading, see `readSessionSearch`. */
   const [search, setSearch] = useState<PlannerSearchState | null>(() => readSessionSearch());
   const [planResult, setPlanResult] = useState<{ query: SearchQuery; journeys: Journey[] } | null>(() =>
     readSessionPlanResult(),
@@ -498,7 +498,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   /*
    * The approximate estimate is read from its cache and then refreshed once, whether or not the
-   * device ever answers — the order was "the IP call gets made if you decline or accept location
+   * device ever answers, the order was "the IP call gets made if you decline or accept location
    * both", and having it ready is what makes it a fallback rather than a second question. The
    * cache is a day old at most, so this is one request per browser per day, not one per visit.
    */
@@ -514,7 +514,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [approximateLocationPending, setApproximateLocationPending] = useState(approximateLocation === null);
   useEffect(() => {
     /*
-     * Super saving does not spend a request — nor wake the radio for one — on a convenience.
+     * Super saving does not spend a request, nor wake the radio for one, on a convenience.
      * The estimate only ranks "closest stops" lists; a traveller watching a 6% battery wants the
      * departure board, not a nicer ordering of a picker. The mode is read here rather than in a
      * dependency on the whole state so that a level change (which arrives every percent) cannot
@@ -552,7 +552,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => writeStored(STORAGE_KEYS.boardStopIds, boardStopIds), [boardStopIds]);
   useEffect(() => {
     writeStored(STORAGE_KEYS.stopNames, customStopNames);
-    /* The label helpers read this map directly, so it is handed over on every change — a rename
+    /* The label helpers read this map directly, so it is handed over on every change, a rename
        is a render out, not a reload. */
     setCustomStopNames(customStopNames);
   }, [customStopNames]);
@@ -566,7 +566,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   /*
    * **The look being worn, counted once a day.** Opening the app is wearing it rather than choosing
-   * it, and a traveller who never opens the look picker still wore one all year — so the count
+   * it, and a traveller who never opens the look picker still wore one all year, so the count
    * starts here, not at the picker.
    */
   useEffect(() => {
@@ -582,7 +582,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   /*
-   * Battery saving is drawn by the stylesheet, so the mode is written where CSS can read it — one
+   * Battery saving is drawn by the stylesheet, so the mode is written where CSS can read it, one
    * attribute, exactly like the motion switch above, and the whole of the reduction lives in
    * `styles/base.css` and two rules in `components.css`. `data-motion` and this are independent on
    * purpose: asking for less motion is a preference, a low battery is a fact, and either can be
@@ -601,13 +601,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [effectivePowerMode]);
 
   /*
-   * Appearance. `system` follows the device and keeps following it — a traveller who leaves the
+   * Appearance. `system` follows the device and keeps following it, a traveller who leaves the
    * setting alone gets the machine's own answer, and the machine can change its mind at dusk
-   * without a reload — while an explicit light or dark is written and left alone.
+   * without a reload, while an explicit light or dark is written and left alone.
    *
    * The resolution is **state, not an effect-local variable**, so the appearance that is drawn and
    * the appearance any screen *says* is on come from one expression. The settings screen has to
-   * name it ("Dark — from your device"), and a second copy of this rule inside that card would be
+   * name it ("Dark, from your device"), and a second copy of this rule inside that card would be
    * a claim about the interface rather than the interface: correct today, and free to drift the
    * moment either line changed.
    */
@@ -643,7 +643,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    *
    * A dark screen is the one saving that needs no code on this side of the pixel: on an OLED phone
    * a black pixel is a pixel that is off, and this app at a tenth of a battery is mostly a page and
-   * a card — the two largest areas it ever paints. So the mode takes the appearance as it takes the
+   * a card, the two largest areas it ever paints. So the mode takes the appearance as it takes the
    * motion, the blur and the photograph, and hands it back untouched: `settings.theme` is not
    * written, not migrated and not shown as changed anywhere, because a battery reading is a fact
    * about the phone and not a preference of the person holding it. Charging returns their own
@@ -667,7 +667,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
    *
    * This replaces the two effects that used to derive a whole palette from three chosen colours:
    * the page, the widgets and the selection. A style's tokens are authored and measured in
-   * `lib/styles.ts` (and gated by `scripts/styles-audit.mjs`), so there is nothing to derive here —
+   * `lib/styles.ts` (and gated by `scripts/styles-audit.mjs`), so there is nothing to derive here ,
    * only a style, an appearance, and whether its photograph may be drawn. `applyStyle` writes the
    * tokens, the two fonts and the picture in one pass; the selected text, the accent's fills, the
    * map's palette and the dialogs all follow from those tokens.
@@ -712,8 +712,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
      * beige and back is not a transition, it is two jumps with a pause in the middle.
      *
      * So the swap goes through the browser's own view transition. The old page is photographed, the
-     * new one is painted, and the two are animated over each other as a real dissolve — photo,
-     * lettering, cards and all — with no intermediate colour and nothing hidden. The incoming
+     * new one is painted, and the two are animated over each other as a real dissolve, photo,
+     * lettering, cards and all, with no intermediate colour and nothing hidden. The incoming
      * picture is fetched and decoded *inside* the update, before the new snapshot is taken, which is
      * what stops it appearing a moment after everything else.
      *
@@ -817,7 +817,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
            * `maximumAge: 0` because every caller of this is an explicit tap: "Use my current
            * location", asked twice from two places, has to answer with where the device is now.
            * A minute-old cached position used to be handed back for up to a minute, which for a
-           * traveller on the move is a fix from a street they have already left — and a coarse
+           * traveller on the move is a fix from a street they have already left, and a coarse
            * cached reading is also what turns a street address into nothing more than a city
            * name, because the lookup is then naming a point hundreds of metres from where they
            * stand. High accuracy and no reuse is the honest pair for a button that says "now".
@@ -841,11 +841,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
    *
    * There are three things a traveller can have, and they were two:
    *
-   *   • a **recent search** — a pair they ran, listed newest first, forgotten after twelve. Written
+   *   • a **recent search**, a pair they ran, listed newest first, forgotten after twelve. Written
    *     here, by running one, and by nothing else;
-   *   • a **saved search** — a pair they kept ("Home → Work"), listed until they say otherwise.
+   *   • a **saved search**, a pair they kept ("Home → Work"), listed until they say otherwise.
    *     Written only by `keepSearch`, from the results screen's Save control;
-   *   • a **saved journey** — one result with its own times, hearted on the results screen.
+   *   • a **saved journey**, one result with its own times, hearted on the results screen.
    *
    * The history used to be the kept list, which is why "Recent searches" and "Saved searches"
    * read as the same card: the same array, the same rows, two names. Running a search records the
@@ -863,7 +863,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return [entry, ...current.filter((item) => item.id !== id)].slice(0, 12);
     });
     /*
-     * And the year's own line — the drawer forgets, this does not (`lib/wrapped`). The two ends are
+     * And the year's own line, the drawer forgets, this does not (`lib/wrapped`). The two ends are
      * written as the traveller named them and the hour is the hour the journey was asked to start,
      * which is the hour a December card can honestly talk about.
      */
@@ -899,7 +899,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value: AppContextValue = {
     settings,
     updateSettings: (patch) => {
-      /* A new look is a day wearing it — one line a day, so two changes in an afternoon are one. */
+      /* A new look is a day wearing it, one line a day, so two changes in an afternoon are one. */
       if (patch.styleId && patch.styleId !== settings.styleId) noteWear(patch.styleId);
       setSettings((current) => ({ ...current, ...patch }));
     },
@@ -916,7 +916,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     favouriteStopIds,
     isFavourite: (stopId) => favouriteStopIds.includes(stopId),
     /*
-     * No toast. The heart fills when it is a favourite and empties when it is not — the
+     * No toast. The heart fills when it is a favourite and empties when it is not, the
      * traveller's own example of a message announcing something the control they just touched
      * had already said. The stop also moves to the top of the stops list, which is the second half
      * of what the message was claiming.
@@ -1077,7 +1077,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     /*
      * A reset also drops the bindings of the widgets it takes away. The layout going back to the
      * default leaves no station-bound card on the screen, and a binding for a card that is not
-     * there is a choice the traveller can no longer see — worse, it would answer for the card
+     * there is a choice the traveller can no longer see, worse, it would answer for the card
      * they add later, which is exactly what this design says must be asked. (Bindings for widgets
      * that survive the reset stay: a reset is a layout, not a deletion.)
      */
@@ -1097,8 +1097,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
      *
      * It did, and the audit's point was that the deletion is what made the reset unrecoverable: a
      * station chosen for a card is the traveller's data, not a layout preference, and a card that
-     * comes back should come back as it was (31.2). Removing a card still drops its binding — that
-     * is the documented way to rebind it — but resetting the arrangement does not.
+     * comes back should come back as it was (31.2). Removing a card still drops its binding, that
+     * is the documented way to rebind it, but resetting the arrangement does not.
      */
     resetHomeWidgets: () => setHomeWidgets(DEFAULT_HOME_WIDGETS),
 
@@ -1184,7 +1184,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
  * How a search is identified in this browser's history: its two ends.
  *
  * In one place because two screens need it to agree: the history writes it, and the results screen
- * asks whether the search it is showing is already in there — a second spelling of this string
+ * asks whether the search it is showing is already in there, a second spelling of this string
  * would make "kept" mean nothing.
  *
  * A place is named by what the traveller named it, not by the stop it resolved to: an address and

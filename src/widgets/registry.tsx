@@ -42,7 +42,7 @@ import type { WidgetWidth } from '../state/types';
  *
  * The catalogue was cut from seventeen cards to nine by the widget audit
  * (`WIDGET-AUDIT.md`): a card earns its place by holding something of the
- * traveller's or doing something for them, and seven cards did neither — a count
+ * traveller's or doing something for them, and seven cards did neither, a count
  * of the sample network, a credits list, an About page, navigation on top of the
  * navigation, and one settings echo. The two "your journeys" lists were merged
  * (they were two default cards listing the same kind of thing), and the network
@@ -53,8 +53,8 @@ export type WidgetSpan = WidgetWidth;
 /**
  * A widget with nothing in it yet, drawn as a block rather than a line.
  *
- * These cards used to hold one faint sentence at the top of a 208px box — "my god all that
- * whitespace is ugly", with two photographs of exactly that — because a size tier used to set the
+ * These cards used to hold one faint sentence at the top of a 208px box, "my god all that
+ * whitespace is ugly", with two photographs of exactly that, because a size tier used to set the
  * card's height and an empty card had no rows to spend it on. With the sizes gone a card is as tall
  * as its contents, so the mark and the sentence are what it is: a card waiting for something rather
  * than a card that failed to load. No action button: the four widgets this is used in are filled from other
@@ -68,7 +68,7 @@ function WidgetEmpty({ icon, line, hint }: { icon: IconName; line: string; hint?
         <Icon name={icon} size={20} />
       </span>
       <p className="widget-empty__line t-sm t-muted">{line}</p>
-      {/* Where the thing comes from, as a second sentence — the answer to "so how do I get one"
+      {/* Where the thing comes from, as a second sentence, the answer to "so how do I get one"
           that an empty card owes the traveller, and the difference between a card that is empty
           and a card that looks unfinished. */}
       {hint ? <p className="widget-empty__hint t-sm t-faint">{hint}</p> : null}
@@ -98,7 +98,7 @@ export interface WidgetDefinition {
   /**
    * Kept on the home screen in super energy saving, when everything else is not drawn.
    *
-   * The test is not "is this card nice" but "can the question — *when does the bus go?* — be
+   * The test is not "is this card nice" but "can the question, *when does the bus go?*, be
    * answered without it": the planner to name the journey, the card tied to a station that lists
    * its departures, and the stops the traveller hearted to get to that card. Every other widget is
    * a way of browsing, not a way of finding out, so it is not drawn at 6% battery. A card that is
@@ -144,8 +144,8 @@ function PlannerWidget() {
 /**
  * **The two ends of a kept search, each one a way to its stop.**
  *
- * "Utrecht Centraal → Amsterdam Centraal" is the most-read line on the home screen — it is how a
- * saved search and a saved journey name themselves — and both of those words are places with a
+ * "Utrecht Centraal → Amsterdam Centraal" is the most-read line on the home screen, it is how a
+ * saved search and a saved journey name themselves, and both of those words are places with a
  * page. They were plain text, so the only way to look at one of them was to plan the journey again
  * and find it on the results screen.
  *
@@ -168,7 +168,7 @@ function QueryEnds({ query }: { query: Parameters<typeof endLabel>[0] }) {
 /** A handful of names: a label per stop is unreadable. */
 const MAP_LABEL_LIMIT = 5;
 /*
- * The label type, in canvas units — and the **worst case**, not the desktop case.
+ * The label type, in canvas units, and the **worst case**, not the desktop case.
  *
  * The stylesheet draws this type larger on a phone (3.4 units of a 0–100 canvas, which is the only
  * size that is legible at 320–430) and smaller on a wide plate, where 3.4 units would be 25px of
@@ -183,14 +183,14 @@ const MAP_LABEL_PAD = 1;
 /**
  * How far a name's box must stay from a stop's centre, in canvas units. A dot is r 1
  * plus its 0.4 stroke (r 1.9 when highlighted), so 1.5 units left the ink touching the
- * circle — on screen that measured 0.0px of air and read as text printed on a station.
+ * circle, on screen that measured 0.0px of air and read as text printed on a station.
  * 2.6 keeps roughly one unit of clear space around the largest dot.
  */
 const MAP_LABEL_DOT = 2.6;
 
 /**
  * A name's width in canvas units. The label type is sized in canvas units (2.6 of the
- * 0-100 canvas), so it scales with the drawing rather than with the viewport — which
+ * 0-100 canvas), so it scales with the drawing rather than with the viewport, which
  * means a width measured here holds at every screen size. Measured with the real font
  * at 100px and scaled down, because a canvas will not measure a 2.6px font usefully.
  */
@@ -356,8 +356,8 @@ export function NetworkMap({
   /*
    * A card's own stops are drawn as selected: on a home screen, "highlighted" means "yours".
    *
-   * The same list ranks the names, so the stops the drawing is *about* — your hearted stops, the
-   * stop this screen was opened for, the two ends of the journey — are named before the network's
+   * The same list ranks the names, so the stops the drawing is *about*, your hearted stops, the
+   * stop this screen was opened for, the two ends of the journey, are named before the network's
    * busiest junctions. They were highlighted and unnamed (3.2).
    */
   const wantedStops = useMemo(() => {
@@ -380,8 +380,8 @@ export function NetworkMap({
     /* Busiest junctions first, but never two names on top of each other. A fixed
        point-to-point distance does not do that: the names are wider than any distance
        that also keeps them apart vertically, so two points far enough apart still
-       painted overlapping text. Test the rectangles the names actually occupy —
-       including which side of their stop each one is anchored to — instead. */
+       painted overlapping text. Test the rectangles the names actually occupy ,
+       including which side of their stop each one is anchored to, instead. */
     const dots = [...calls.keys()]
       .map((stopId) => MAP_POINT(stopId))
       .filter((point): point is { x: number; y: number } => Boolean(point));
@@ -405,13 +405,13 @@ export function NetworkMap({
     const labelled: (LabelPlacement & { stopId: string })[] = [];
     /*
      * The labels, in the order the traveller would care about them: the stops handed in by the
-     * card (`priority` — hearted, then nearest), and only then the busiest junctions of the
+     * card (`priority`, hearted, then nearest), and only then the busiest junctions of the
      * network. The home widget passes its traveller's stops; the map screen passes nothing and
      * keeps the network's own order.
      */
     /*
      * Selected stops are ranked with the priority list: a journey's own two ends, and the stop the
-     * screen was opened for, were never named — Amsterdam and Utrecht Centraal were exactly the two
+     * screen was opened for, were never named, Amsterdam and Utrecht Centraal were exactly the two
      * names a map of *that* journey did not draw (3.2).
      */
     const rank = (stopId: string) => {
@@ -505,8 +505,8 @@ export function NetworkMap({
         {/*
           **A mode's chip wears its mode's glyph, in its mode's colour.**
 
-          These were six words beside a coloured dash. The dash was the route key — the map draws
-          each mode in that colour — but a colour is not a name, and a traveller who cannot tell
+          These were six words beside a coloured dash. The dash was the route key, the map draws
+          each mode in that colour, but a colour is not a name, and a traveller who cannot tell
           sage from butter had six identical marks to choose between. The glyph says *what* it is;
           the colour it is painted in still says *which line on the map*. The dash is gone because
           a chip with two marks before its word reads as two things.
@@ -579,7 +579,7 @@ export function NetworkMap({
         /*
          * The drawing is one `role="img"`: its 54 dots are presentational, so a keyboard could
          * never reach a stop and a screen reader was offered a sentence and nothing else (3.3).
-         * A list is what a map cannot be — every stop on it, in the same order the drawing names
+         * A list is what a map cannot be, every stop on it, in the same order the drawing names
          * them, each one a real link. Closed by default, so the screen still opens on the map.
          */
         <details className="map-stops">
@@ -606,12 +606,12 @@ export function NetworkMap({
 }
 
 /**
- * The map, in the home screen's own widget chrome — and **drawing the traveller's world**.
+ * The map, in the home screen's own widget chrome, and **drawing the traveller's world**.
  *
  * The audit measured this as the largest card in the catalogue (563px) whose five labels were the
  * five busiest junctions in the demonstration network: Alkmaar, Zwolle, Den Haag Centraal,
  * Rotterdam Centraal, Eindhoven Centraal. None of them was the traveller's stop, none was near
- * them, and nothing on the drawing belonged to them — a picture of the country where the card
+ * them, and nothing on the drawing belonged to them, a picture of the country where the card
  * should be a picture of their journey. So the card now hands the map **its** stops to label and
  * highlight, in this order: the stops they hearted, then the stops nearest them (the device fix,
  * else the network estimate), and only then whatever is left. A traveller who has chosen nothing
@@ -659,7 +659,7 @@ function MapWidget() {
         The names, in words, under the drawing.
         A label on the canvas is best-effort by geometry: a 29-unit-wide station name beside a
         junction ringed with dots has no legal spot at 390px, and the two busiest stations in this
-        network — Amsterdam Centraal and Utrecht Centraal — have never carried one. So the card
+        network, Amsterdam Centraal and Utrecht Centraal, have never carried one. So the card
         says whose world it is drawing in text that cannot collide: the stops you hearted, or,
         when there are none, the ones nearest you. The drawing marks them; this line names them.
       */}
@@ -677,7 +677,7 @@ function MapWidget() {
 }
 
 /**
- * **Recent searches** — the plain record of what this browser looked up, newest first.
+ * **Recent searches**, the plain record of what this browser looked up, newest first.
  *
  * The three lists are three different things, and this card is the only one that is not a
  * decision: running a search writes here (`startSearch`), while keeping one is a press on the
@@ -771,12 +771,12 @@ function RecentSearchesWidget() {
 }
 
 /**
- * **Your journeys** — saved journeys and saved searches, in one card.
+ * **Your journeys**, saved journeys and saved searches, in one card.
  *
  * They were two widgets, both on by default, both empty on a fresh browser: 83px each of
  * *"Nothing favourited yet."* and *"Nothing kept yet. Keep a search from its results…"*,
  * explaining two halves of the same idea on the first screen. The audit's verdict was **merge**,
- * and it is right for a reason beyond pixels — they list the same thing, journeys you have run,
+ * and it is right for a reason beyond pixels, they list the same thing, journeys you have run,
  * at two granularities:
  *
  *   • a **saved journey** is one result, with its own times and its heart on the results screen;
@@ -854,8 +854,8 @@ function YourJourneysWidget() {
                       ? `${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')} , waiting for confirmation`
                       : `Unfavourite ${endLabel(entry.query, 'from')} to ${endLabel(entry.query, 'to')}`
                   }
-                  /* No `active`: this control chooses its own glyph — solid while the journey is
-                     kept, outline while a removal is waiting for confirmation — and `active` would
+                  /* No `active`: this control chooses its own glyph, solid while the journey is
+                     kept, outline while a removal is waiting for confirmation, and `active` would
                      send the outline one back through `pressedIcon` as a filled heart. */
                   aria-pressed={pendingId !== entry.id}
                   onClick={() => setPendingId(entry.id)}
@@ -935,7 +935,7 @@ function YourJourneysWidget() {
         }
       >
         {/*
-          Which journey. Two saved journeys on the same pair of stops — today 08:30 and 18:00 — are
+          Which journey. Two saved journeys on the same pair of stops, today 08:30 and 18:00, are
           an ordinary pair, and both questions used to read exactly the same, so the sheet asked
           the traveller to confirm removing a journey it never named (25.2). The times it was saved
           with are the fact that tells the two rows apart.
@@ -1037,7 +1037,7 @@ function NextDeparturesWidget({ binding = 'next-departures' }: { binding?: strin
 
   return (
     <div className="stack-3">
-      {/* The station this card is tied to, as the way to its page — the card names one station
+      {/* The station this card is tied to, as the way to its page, the card names one station
           and never offered a way to look at it. */}
       <span className="t-sm t-muted">
         <StopLink stopId={stopId} /> · {t('from {time}', { time: format.time(minutes) })}
@@ -1054,18 +1054,18 @@ function NextDeparturesWidget({ binding = 'next-departures' }: { binding?: strin
 }
 
 /**
- * Alerts that touch **the journeys you kept** — not the network's news.
+ * Alerts that touch **the journeys you kept**, not the network's news.
  *
  * This card used to be the national picture: "2 major / 5 disruptions / 7 information" and the
  * first three alerts in the list, which is what the Disruptions page shows in full and what the
  * dock's own badge already counts. The audit's verdict was blunt: *keep it only as the personal
- * version*. So it now answers the question a commuter actually has — **is my journey affected?**
- * — by asking the engine's own rule for every leg of every saved journey
+ * version*. So it now answers the question a commuter actually has, **is my journey affected?**
+ *, by asking the engine's own rule for every leg of every saved journey
  * (`disruptionForLeg`: this line, through these stops), which is data the app already computes and
  * had never put on a home screen.
  *
  * A journey with no alert is not a journey with nothing to say, so the card also counts what is
- * *going well*: it says how many of your journeys are clear. Nothing is invented — an alert exists
+ * *going well*: it says how many of your journeys are clear. Nothing is invented, an alert exists
  * only if the disruption data names the line and one of the leg's stops.
  */
 function AlertsOnSavedWidget() {
@@ -1114,7 +1114,7 @@ function AlertsOnSavedWidget() {
               <Icon name="alert" size={14} />
               {hit.title}
             </Link>
-            {/* Which journey of yours it is about — the half the old card could never say. */}
+            {/* Which journey of yours it is about, the half the old card could never say. */}
             <span className="t-sm t-faint">{hit.journey}</span>
           </li>
         ))}
@@ -1130,8 +1130,8 @@ function AlertsOnSavedWidget() {
 /**
  * Re-run the search you have on screen, from now.
  *
- * It used to lead with a large clock — the operating system's own clock face, in a 188px card, at
- * the top of the home screen — and the audit's line was that a clock is already drawn above the
+ * It used to lead with a large clock, the operating system's own clock face, in a 188px card, at
+ * the top of the home screen, and the audit's line was that a clock is already drawn above the
  * traveller's thumb. The clock is gone; the one thing only this app can do with the current time
  * is kept: take the pair you are looking at and ask it again from this minute, which is what you
  * want when a timetable has moved on under a search you left open. Nothing else is on the card, so
@@ -1145,7 +1145,7 @@ function RightNowWidget() {
   return (
     <div className="stack-2">
       {/* Drawn only when there is a search to re-run. On an empty home it rendered and did nothing
-          at all when pressed — no navigation, no overlay, no text change (1.2). */}
+          at all when pressed, no navigation, no overlay, no text change (1.2). */}
       {search ? (
         <Button
           icon="clock"
@@ -1172,10 +1172,10 @@ function RightNowWidget() {
 /**
  * The stops you hearted, one link per row.
  *
- * Each row used to carry three controls — the name, **Plan from here** and a heart — inside a card
+ * Each row used to carry three controls, the name, **Plan from here** and a heart, inside a card
  * whose whole premise is that a list of your own stops *is* the shortcut: twelve controls in 327px
  * for a list of four names. The audit's trim: the name is the row, tapping it opens the stop, and
- * the two actions that were repeated per row live where they always have — the stop page has the
+ * the two actions that were repeated per row live where they always have, the stop page has the
  * heart, and the planner is one tap away in the dock. The list is shorter, quieter, and every row
  * is still one tap to a stop.
  */
@@ -1243,12 +1243,12 @@ function AlertsAtPinsWidget() {
 /* ---------------------------------------------------- the six the audit asked for */
 
 /**
- * **Your commute** — the saved journey you take most, counted down rather than listed.
+ * **Your commute**, the saved journey you take most, counted down rather than listed.
  *
  * Built only from what the app already computes: the journey you hearted (its query, its walk to
  * the station) and the departure board at its origin, read at the same minute every other card
  * reads (`useClockMinute`). The one thing this card can say that the next-departures card cannot is
- * **when to leave** — the train's time minus the walk the planner already measured. Nothing is
+ * **when to leave**, the train's time minus the walk the planner already measured. Nothing is
  * invented: with no saved journey the card asks for one, and with no service left in the window it
  * says so rather than showing a time from yesterday.
  */
@@ -1323,10 +1323,10 @@ function CommuteWidget() {
 }
 
 /**
- * **Stops near you** — a few stops and when the next thing leaves each of them.
+ * **Stops near you**, a few stops and when the next thing leaves each of them.
  *
  * The audit's honest replacement for a map of the whole country: the traveller walking to a stop
- * wants the stop, how far it is, and the next departure — three facts the app already has
+ * wants the stop, how far it is, and the next departure, three facts the app already has
  * (`nearestOrigin`, `distanceFromPosition`, `boardForStop`). Places without a board are left out,
  * the same `hasBoard` rule every other surface uses, because "180 m" to a museum answers a
  * question nobody asked at a bus stop.
@@ -1386,15 +1386,15 @@ function NearbyStopsWidget() {
 }
 
 /**
- * **Facilities at your stations** — the audit called it *Accessibility at your stations* and built
+ * **Facilities at your stations**, the audit called it *Accessibility at your stations* and built
  * it from `stop.accessibility`.
  *
  * It is built from `facilities` instead, and the name says facilities, because of a later order than
- * the audit: *"get rid of ALL accessibility descriptions EVERYWHERE"* — the step-free, lift, tactile
+ * the audit: *"get rid of ALL accessibility descriptions EVERYWHERE"*, the step-free, lift, tactile
  * paving and low-floor claims were removed from every surface that drew one, on the grounds that the
  * app does not know the traveller and should not promise them a step-free journey. A widget is not
- * exempt from an order about every surface. What is left is the fact the data really holds — the
- * facilities a stop lists — per stop the traveller hearted.
+ * exempt from an order about every surface. What is left is the fact the data really holds, the
+ * facilities a stop lists, per stop the traveller hearted.
  */
 function FacilitiesWidget() {
   const t = useT();
@@ -1444,7 +1444,7 @@ function SecondBoardWidget() {
 /* ------------------------------------------- your own timetable, in four more cards */
 
 /**
- * **Delays at your stops** — the lateness that is happening right now, at the places you chose.
+ * **Delays at your stops**, the lateness that is happening right now, at the places you chose.
  *
  * The audit's rule is that a card either holds something of yours or does something for you, and
  * the two alert cards cover *planned* trouble (a closed line, a warning). Neither covers the
@@ -1525,7 +1525,7 @@ function DelaysAtStopsWidget() {
 }
 
 /**
- * **First and last service** — the two times a day when "is there still one?" is the question.
+ * **First and last service**, the two times a day when "is there still one?" is the question.
  *
  * The board at one station answers "what is next"; the card that answers "when does it start, and
  * when is the last one" did not exist. It is tied to a station of the traveller's own exactly as
@@ -1613,7 +1613,7 @@ function FirstLastWidget() {
 }
 
 /**
- * **What your journeys cost** — the fare of each journey you kept, with the cheapest marked.
+ * **What your journeys cost**, the fare of each journey you kept, with the cheapest marked.
  *
  * The `cost` card reads the search on screen and names the fastest and the cheapest of *those*
  * journeys. This one is about the journeys you decided to keep: what the morning and the evening one
@@ -1702,7 +1702,7 @@ const DEFINITIONS: WidgetDefinition[] = [
      * It was four columns beside a six-column "Next departures", and 6 + 4 is ten of twelve: the
      * row ended with two columns of empty page down the right-hand side at every desktop width,
      * which reads as a card that failed to load rather than as a layout. A list of a few stops is
-     * happy at half the page — its rows are short — and 6 + 6 fills the row exactly.
+     * happy at half the page, its rows are short, and 6 + 6 fills the row exactly.
      */
     span: 6,
     essential: true,
@@ -1810,7 +1810,7 @@ const DEFINITIONS: WidgetDefinition[] = [
     description: 'Every route, with your own stops named and picked out.',
     category: 'Plan',
     /*
-     * Half the page — not eight columns.
+     * Half the page, not eight columns.
      *
      * Eight plus six is fourteen, so the **commonest cards in the catalogue could never sit beside
      * the map**: a half-width card dropped to the next row and left the four columns next to the

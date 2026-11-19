@@ -2,7 +2,7 @@
  * **How long something takes to come down a link of a given speed.**
  *
  * The app has one real request (the Wikipedia card) and a great deal of local data, so a "WiFi
- * speed" is not something it measures — it is something the developer panel can claim, and this is
+ * speed" is not something it measures, it is something the developer panel can claim, and this is
  * the arithmetic that turns the claim into a wait. It is deliberately exact: megabits are decimal
  * (1 Mbps is 1,000,000 bits per second, which is what a provider sells and what a speed test
  * prints), bytes are bytes, and the answer is the milliseconds the whole thing takes.

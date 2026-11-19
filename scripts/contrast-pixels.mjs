@@ -4,8 +4,8 @@
  * `contrast-sweep.mjs` reads the ink and the ground out of the style tree, which is right for flat
  * surfaces and blind to everything else: a gradient, a photograph, a `::before` wash, a map tile, an
  * element painted over another one. This pass takes a screenshot of the finished page and, for every
- * run of words, reads the two colours that are actually there — the commonest colour in the box is
- * the ground, and the colour nearest the text's own is the ink — then measures the gap between them.
+ * run of words, reads the two colours that are actually there, the commonest colour in the box is
+ * the ground, and the colour nearest the text's own is the ink, then measures the gap between them.
  * If the page is legible, the numbers agree with the sweep; where they disagree, the pixels win.
  *
  * Run:   node scripts/contrast-pixels.mjs
@@ -244,4 +244,4 @@ for (const row of [...closest].sort((a, b) => a.cr - b.cr).slice(0, 8)) {
   console.log(`  tightest ${row.cr}:1 ${row.theme} ${row.route}@${row.width} "${row.text}" ${row.ink} on ${row.ground}`);
 }
 if (findings.length) process.exit(1);
-console.log('OK — every run of words clears WCAG AA against the paint behind it.');
+console.log('OK, every run of words clears WCAG AA against the paint behind it.');

@@ -4,7 +4,7 @@
 
 A card is a run of samples with little movement; a cut or a colour jump starts the next one. For each
 card it prints its length, brightness, saturation, colour, motion, ink and how often the words changed,
-then the medians — which is how the review of 18 November 2026 put "one picture every 3.4 s" against
+then the medians, which is how the review of 18 November 2026 put "one picture every 3.4 s" against
 "one every 15.6 s". Needs nothing but python3.
 """
 import csv

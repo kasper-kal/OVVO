@@ -1,8 +1,8 @@
 /**
  * Thin, failure-tolerant localStorage wrapper.
  *
- * Values live in this browser first — that is what makes the app work with no account and no
- * network — and follow the account when one is signed in (`lib/account` sends the whole store as
+ * Values live in this browser first, that is what makes the app work with no account and no
+ * network, and follow the account when one is signed in (`lib/account` sends the whole store as
  * one document and adopts it when the account has moved on).
  */
 
@@ -37,8 +37,8 @@ export function onStoredChange(listener: () => void): () => void {
  *
  * Removing the departure alarm deleted its key, and the alarm came back anyway the moment the
  * screen was left and opened again: the store is written by more than the control that owns a
- * value — the account sync adopts a copy of the store from the server, and a second tab writes what
- * it has — so a key that is merely deleted is a key that can be handed back, and an "adopt the
+ * value, the account sync adopts a copy of the store from the server, and a second tab writes what
+ * it has, so a key that is merely deleted is a key that can be handed back, and an "adopt the
  * account's copy" with an older revision put the alarm straight back. Deleting the value is
  * therefore not enough: the deletion has to be remembered too, so a copy of the store that still
  * contains it does not become the truth.
@@ -95,7 +95,7 @@ export function writeStored<T>(key: string, value: T): void {
     if (removedNames().includes(key)) setRemovedNames(removedNames().filter((name) => name !== key));
     for (const listener of listeners) listener();
   } catch {
-    /* storage full or unavailable — the prototype keeps working in memory */
+    /* storage full or unavailable, the prototype keeps working in memory */
   }
 }
 
@@ -136,7 +136,7 @@ export const STORAGE_KEYS = {
   // Value unchanged on purpose: this slot held the old "favourite locations".
   favouriteStops: 'favourites',
   /*
-   * Stops pinned to the departure board — a different idea from a favourite, so a different
+   * Stops pinned to the departure board, a different idea from a favourite, so a different
    * slot. A heart marks a place you like (it leads your lists and your search); a pin marks a
    * place whose board you want on the departures screen. Kept apart so unpinning the board
    * cannot quietly empty the favourites list, or the reverse.
@@ -164,8 +164,8 @@ export const STORAGE_KEYS = {
    * traveller asked to keep and can re-run; a prefill is a history they did not ask for.
    */
   /*
-   * The stop the departure board was last asked for. Written only by the traveller's own choice —
-   * a `?stop=` they followed, or a stop they picked on the board — never by a default, so this
+   * The stop the departure board was last asked for. Written only by the traveller's own choice ,
+   * a `?stop=` they followed, or a stop they picked on the board, never by a default, so this
    * slot cannot become "the app always opens on Amsterdam Centraal".
    */
   boardStop: 'board-stop',
@@ -183,7 +183,7 @@ export const STORAGE_KEYS = {
   locationConsent: 'location-consent',
   locationFix: 'location-fix',
   /*
-   * Where the *network* thinks this browser is, from the address the request arrived from — an
+   * Where the *network* thinks this browser is, from the address the request arrived from, an
    * approximate fallback for the stops list's nearest-first sort, kept for a day. Separate from
    * `locationFix` on purpose: a device fix and an IP estimate are not the same claim, and the
    * screen that uses them says which one it used.

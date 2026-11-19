@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * **The graph builder — the timetable, turned into something a free function can search.**
+ * **The graph builder, the timetable, turned into something a free function can search.**
  *
  *   node scripts/gtfs/build-graph.mjs            # build
  *   node scripts/gtfs/build-graph.mjs --verify   # build is not trusted until it reads itself back
@@ -19,7 +19,7 @@
  * processor time.
  *
  * A connection is 20 bytes, little-endian: departure stop, arrival stop, departure time, arrival
- * time, trip — all unsigned 32-bit.
+ * time, trip, all unsigned 32-bit.
  */
 import { spawn } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -41,7 +41,7 @@ const current = JSON.parse(fs.readFileSync(path.join(CACHE, 'current.json'), 'ut
 const archive = path.join(CACHE, current.dataset);
 /*
  * Build for a day the feed actually covers, today by default. The first version always used the
- * feed's first service day, which was already in the past, and refused to build at all — the right
+ * feed's first service day, which was already in the past, and refused to build at all, the right
  * refusal, aimed at the wrong date.
  */
 const stamp = (date) => `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
@@ -107,7 +107,7 @@ const stationName = new Map();
 /*
  * Stop names in this feed carry their station in brackets: "[Utrecht Vaartsche Rijn] OV halte
  * Vondellaan richting Utrecht Centraal". The bracketed part is the place, and the rest is a
- * description — including, confusingly, the name of a *different* station the stop faces. Taking the
+ * description, including, confusingly, the name of a *different* station the stop faces. Taking the
  * whole string as the station name made "Utrecht Centraal" resolve to a bus stop elsewhere.
  */
 const placeIn = (name) => {
@@ -174,8 +174,8 @@ for (const [key, members] of stationMembers) {
 /*
  * **Places: one physical station can arrive as several groups.**
  *
- * Utrecht Centraal comes out of this feed as more than one parent record — the platforms for one
- * direction sit under a different record from the others — so a journey leaving "Utrecht Centraal"
+ * Utrecht Centraal comes out of this feed as more than one parent record, the platforms for one
+ * direction sit under a different record from the others, so a journey leaving "Utrecht Centraal"
  * could not board the train to Groningen at all: that platform belonged to another group, and no
  * route joined them. A place joins station groups whose centres are within 400 m, which is the same
  * station in every sense a traveller cares about.
@@ -470,7 +470,7 @@ const patternList = [...patterns.values()].sort((a, b) => b.trips.length - a.tri
 for (const pattern of patternList) pattern.trips.sort((a, b) => a.start - b.start);
 
 /* patterns.bin: a count, where each pattern starts, each pattern's largest running time, then the
- * patterns themselves — stop order, trip count, and per trip a start time and its offsets. */
+ * patterns themselves, stop order, trip count, and per trip a start time and its offsets. */
 const patternOffsets = new Uint32Array(patternList.length);
 const patternLargest = new Uint32Array(patternList.length);
 let patternCursor = 0;
@@ -675,7 +675,7 @@ if (verify) {
     const answer = searched.search(origin, destination, 8 * 3600, 3 * 3600);
     const clock = (value) => `${String(Math.floor(value / 3600)).padStart(2, '0')}:${String(Math.floor(value / 60) % 60).padStart(2, '0')}`;
     /*
-     * The exact arrival differs by service day — Saturday and Sunday do not run the same timetable —
+     * The exact arrival differs by service day, Saturday and Sunday do not run the same timetable ,
      * so the check is that a real journey exists and is plausible, not that it equals the number the
      * Saturday experiment saw. The experiment's own comparison lives in `scripts/routing/feasibility.mjs`.
      */

@@ -3,7 +3,7 @@ import { useApp } from '../state/AppState';
 import { formatDate, formatDuration, formatMinutes, formatSpan, relativeMinutes } from './format';
 
 /**
- * All presentation of times and dates goes through this hook so Settings apply everywhere —
+ * All presentation of times and dates goes through this hook so Settings apply everywhere ,
  * the clock format, the date format and the language all arrive here and nowhere else.
  */
 export function useFormat() {

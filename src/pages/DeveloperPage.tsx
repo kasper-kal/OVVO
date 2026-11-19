@@ -14,7 +14,7 @@ import { Icon } from '../components/ui/Icons';
 import { Select } from '../components/ui/Select';
 
 /**
- * The developer panel — what this browser believes about the device.
+ * The developer panel, what this browser believes about the device.
  *
  * Four questions the app actually asks, all of them answered by the phone in the field and by this
  * panel in the workshop:
@@ -26,7 +26,7 @@ import { Select } from '../components/ui/Select';
  *     can disagree. It moves the app's clock as an offset, so the app's minute timers keep running.
  *   • **The connection.** Pulling a cable is not a way to test the offline strip on a phone, and
  *     no link can be made slow on demand either, so the speed is claimed here. Setting it reloads
- *     the page, and the reload waits as long as the app's own files would take at that speed — a
+ *     the page, and the reload waits as long as the app's own files would take at that speed, a
  *     reload is the one navigation that downloads the app, so it is the one that has a real cost.
  *     The two things the app fetches while it runs, the article card and the address suggestions,
  *     wait too; the screens already in the bundle do not, and say so.
@@ -89,7 +89,7 @@ export function DeveloperPage() {
    *
    * Switching the speed on used to reload the page straight away, at whatever number was in the
    * box, so the field you were about to type into was gone before the first digit (reported). So
-   * turning it on only claims the speed it has — the field appears with it — and nothing is
+   * turning it on only claims the speed it has, the field appears with it, and nothing is
    * reloaded until the button inside the field is pressed. That button is the reload: press it and
    * the app comes back over the link you just chose, which is the whole point of being able to
    * choose one.
@@ -341,8 +341,8 @@ export function DeveloperPage() {
           <Card className="stack">
             <h2 className="t-section">{t('OVVO Yearbook')}</h2>
             {/*
-              The deck is built to be read from 20 December. This opens a made-up year — 146
-              journeys, a favourite line, a look worn for months — so the cards can be looked at and
+              The deck is built to be read from 20 December. This opens a made-up year, 146
+              journeys, a favourite line, a look worn for months, so the cards can be looked at and
               argued with in November. Nothing here is stored: `?demo=1` is read into memory by
               `lib/wrappedDemo` and thrown away when the page closes.
             */}
@@ -429,7 +429,7 @@ export function DeveloperPage() {
                     step={0.01}
                     value={speedDraft}
                     onChange={(event) => setSpeedDraft(event.target.value)}
-                    /* A draft while typing, applied by the button or Enter — never by a keystroke,
+                    /* A draft while typing, applied by the button or Enter, never by a keystroke,
                        which would reload on `0.0` on the way to `0.05`. */
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
@@ -494,7 +494,7 @@ export function DeveloperPage() {
               **The same board twice.**
 
               Whether a row is late, cancelled or standing at another platform is rolled from the
-              things that name the departure, so it is stable — but there is no way to ask for the
+              things that name the departure, so it is stable, but there is no way to ask for the
               drawing that showed a cancellation, and a reported row has to be hunted for. One
               number names one drawing of the whole network, and it is kept with the other
               overrides, so it survives the reload that reproduces the report.
@@ -505,7 +505,7 @@ export function DeveloperPage() {
               It used to be printed in the field's label, with two buttons underneath that could
               only go forward by one or back to zero: a number you can read but not type, and no way
               back down (reported: "what an odd way to change the number"). The number is now the
-              field itself — type it, or step it either way — and the two-word reset that used to
+              field itself, type it, or step it either way, and the two-word reset that used to
               be a button is a minus that stops at zero.
             */}
             <Field

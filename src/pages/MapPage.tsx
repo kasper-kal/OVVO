@@ -15,7 +15,7 @@ import { useT } from '../lib/useT';
  * alert and on the results screen all pointed at `/?widget=map&journey=…`, which dropped the
  * traveller on their own home screen with a widget somewhere in it and no way back to the journey
  * they had been reading (reported as such). The map is a screen: it has a name, it draws the same
- * `NetworkMap` the widget draws — one map, so highlighting cannot disagree with itself — and the
+ * `NetworkMap` the widget draws, one map, so highlighting cannot disagree with itself, and the
  * way out is the screen you came from rather than a fixed route, because there are four ways in
  * and only one of them is home.
  *
@@ -45,7 +45,7 @@ export function MapPage() {
             <span className="row t-strong">
               <Icon name={journey ? 'route' : 'station'} size={16} />
               {/*
-                The name itself is the way to the page — a stop's own name, underlined.
+                The name itself is the way to the page, a stop's own name, underlined.
 
                 There used to be a **Stop page** button here as well, which said the same thing
                 twice: the card named one station and then offered a button to reach it. A journey

@@ -42,7 +42,7 @@ for (const [from, to, time] of CASES) {
  * An address is a place, not the station it sits nearest.
  *
  * "Rijksstraatweg 9, Haarlem" resolves to Haarlem because that is the stop closest to it, so a
- * search to Haarlem is one stop id at both ends — and the trip is the 1.5 km between them, on
+ * search to Haarlem is one stop id at both ends, and the trip is the 1.5 km between them, on
  * foot. Two genuine stops sharing an id remain a search with no answer.
  */
 const addressQuery = {

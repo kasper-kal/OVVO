@@ -25,12 +25,12 @@ import './styles/wrapped-art.css';
  *
  * The app used `HashRouter` until now, so every link anybody saved, bookmarked or sent to a friend
  * looked like `/#/stops/utrecht-centraal`. The router reads real paths now, and a pathless page
- * with a hash on the end would land those old links on the home screen — the right app, the wrong
+ * with a hash on the end would land those old links on the home screen, the right app, the wrong
  * screen, and nothing on it to explain itself.
  *
  * So the address is translated once, before anything is drawn: `/` + the part after the `#`. It is
  * `replaceState`, not `assign`, so the browser keeps its history entry and the traveller's back
- * button still goes where it went before — one entry, the right address, no extra hop. The query
+ * button still goes where it went before, one entry, the right address, no extra hop. The query
  * string is carried across too, because it is the part that was *not* in the hash.
  */
 function translateLegacyHash() {
@@ -46,7 +46,7 @@ watchSplash();
  * **The app restores scroll itself, so the browser must not.**
  *
  * Two things were moving the page after a route change, and they disagree: the app puts every new
- * screen at its top (and a screen you go back to where you left it, by history entry — see
+ * screen at its top (and a screen you go back to where you left it, by history entry, see
  * `layout/AppShell`), while the browser performs its own restoration on the same events. Whichever
  * ran last won, so a reset could land on a home screen already nudged down by the offset of the
  * screen before it. With `manual`, there is one owner of this and it is the app.
@@ -57,7 +57,7 @@ if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'm
  * **The browser's install offer is caught before React draws.**
  *
  * Chromium fires `beforeinstallprompt` once, and it can arrive a few hundred milliseconds after
- * the page is parsed — before the first screen has mounted. A listener attached in an effect can
+ * the page is parsed, before the first screen has mounted. A listener attached in an effect can
  * therefore miss it on a slow phone and catch it on a fast one, which is the worst kind of bug to
  * have. So the listeners are attached here, at module load, and the event is kept in `lib/install`
  * until the traveller's own banner is ready to use it.
@@ -90,7 +90,7 @@ void beginAccountSync();
  * **The offline strip keeps its promise across a reload, and the install offer depends on this.**
  *
  * `public/sw.js` keeps the shell, so a page opened with no network draws the app instead of the
- * browser's error page — which is the one thing the strip could not honestly claim before. It is
+ * browser's error page, which is the one thing the strip could not honestly claim before. It is
  * registered in the build only (`import.meta.env.PROD`), because in development the modules change
  * on every keystroke and a cache in front of them would serve yesterday's code.
  *
@@ -155,7 +155,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
  * **The "browser is too old" note is taken down by the app itself.**
  *
  * `index.html` shows it when its own check says this browser cannot read the bundle. The check is
- * two exact questions (modules, and whether the code parses), so it should never be wrong — but a
+ * two exact questions (modules, and whether the code parses), so it should never be wrong, but a
  * guess about an old browser is not worth a working traveller's screen, and one line here makes
  * that impossible: if the app got this far, it can run, and the note has no business being there.
  */
@@ -205,7 +205,7 @@ if (!container) throw new Error('Root container missing from index.html');
  *
  * Moving between screens costs nothing: every screen is already in the bundle, so a tap is drawn in
  * the frame it happens in and no speed can slow it down. A *reload* is different. It asks the host
- * for the app again, and on a slow connection that request is the long one — so when the panel
+ * for the app again, and on a slow connection that request is the long one, so when the panel
  * claims a speed, the wait here is the time the bundle it just downloaded would have taken at that
  * speed (`APP_WIRE_BYTES`), counted from the start of the navigation and not from this line.
  *

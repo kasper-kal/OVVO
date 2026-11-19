@@ -1,5 +1,5 @@
 /**
- * **The Options chip with a count on it, photographed in two styles** — the reported card, and a
+ * **The Options chip with a count on it, photographed in two styles**, the reported card, and a
  * plain one, so the disc can be looked at rather than only measured.
  */
 import { chromium } from 'playwright';

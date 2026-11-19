@@ -15,7 +15,7 @@ import type { SearchQuery } from '../data/journeyEngine';
  * instead of filling the space.
  *
  * **The search now ends where every other search ends.** It used to draw its results inline, with
- * no way into a journey, no save and no map — a second results screen behind the first. The answer
+ * no way into a journey, no save and no map, a second results screen behind the first. The answer
  * is handed to `/results` (`adoptPlanResult`), which draws the same cards a saved search does and
  * opens the same journey page, so there is one planner and one result screen.
  */
@@ -175,7 +175,7 @@ export function PlanPage() {
         /*
          * **Today, not the oldest file on disk.**
          *
-         * The day picker used to open on `available[0]` — the first day in the rolling week — which
+         * The day picker used to open on `available[0]`, the first day in the rolling week, which
          * is yesterday or earlier. The traveller could press Search without touching it and ask
          * for a timetable that had already gone, and nothing said so. Today is the honest default;
          * if today is not built, the next built day is; only then the last one.

@@ -1,14 +1,14 @@
 /**
  * Finding an address by typing it.
  *
- * The picker could only *name* the position the device reported — `reverseGeocode` — so a street
+ * The picker could only *name* the position the device reported, `reverseGeocode`, so a street
  * address typed into a From/To field was searched against the stop file and answered "No stops
  * match". Reported exactly that way, with a screenshot of `rijksstraatweg 7` and Hoofddorp Station
  * above it: the app knew about addresses, but only ones it went and found itself.
  *
  * OpenStreetMap's Nominatim is the same lookup the reverse search uses, asked the other way round,
  * so there is still one map database and one naming rule (`composeAddress`). It is asked only while
- * the traveller is typing a query that could be an address — three characters or more — and one
+ * the traveller is typing a query that could be an address, three characters or more, and one
  * request per settled keystroke, not per keystroke.
  *
  * Everything about it is allowed to fail, exactly like the reverse lookup: a blocked network, a
@@ -33,7 +33,7 @@ const TIMEOUT_MS = 6000;
  *
  * It was three, and the delay before the first request made a field being typed into read as a
  * field that found nothing: reported as "should search for it earlier" with `Rijkss` in the box and
- * "No stops match" under it. `rijks` does answer — two streets, before the typo landed — so the
+ * "No stops match" under it. `rijks` does answer, two streets, before the typo landed, so the
  * shortlist now begins a keystroke sooner and the debounce is a quarter of a second.
  */
 export const ADDRESS_MIN_LENGTH = 2;
@@ -42,7 +42,7 @@ export const ADDRESS_MIN_LENGTH = 2;
  * What has already been asked.
  *
  * The lookup is rate-limited by the service and by politeness, and the same query comes back
- * constantly — a Backspace and a retyped letter, a field reopened on the street just chosen.
+ * constantly, a Backspace and a retyped letter, a field reopened on the street just chosen.
  * Answered queries are kept for the session (`Map` dies with the tab), so only new text costs a
  * request. Ten entries is more than a From/To field ever needs.
  */
@@ -76,7 +76,7 @@ interface SearchResult {
 }
 
 /**
- * Addresses matching what has been typed, best first — or an empty list.
+ * Addresses matching what has been typed, best first, or an empty list.
  *
  * Resolves, never rejects: the caller draws stops whether or not the map database answered.
  */

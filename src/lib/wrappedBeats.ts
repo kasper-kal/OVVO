@@ -2,7 +2,7 @@
  * **The measured heartbeat of each chapter.**
  *
  * Written by `.logs/tempofix.py`: it decodes each track, builds an onset envelope, and finds the
- * lag the envelope repeats at (autocorrelation) restricted to 86–172 beats a minute — the range a
+ * lag the envelope repeats at (autocorrelation) restricted to 86–172 beats a minute, the range a
  * person taps. Two earlier versions of this table were wrong in different ways. The first picked
  * the grid that collected the most hits, which any fast grid does. The second picked the grid with
  * the most energy strictly on it, which quietly prefers a slow pulse that only catches the loudest

@@ -104,7 +104,7 @@ function apply(): void {
         : null,
   );
   /*
-   * The focus switch is a stylesheet question, so it is written where the stylesheet reads it — one
+   * The focus switch is a stylesheet question, so it is written where the stylesheet reads it, one
    * attribute, the same way the appearance and the battery mode are handed over.
    */
   if (typeof document !== 'undefined') {

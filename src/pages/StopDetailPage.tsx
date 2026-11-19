@@ -41,14 +41,14 @@ export function StopDetailPage() {
    *
    * This page returned its fallback before `useMinuteNow`/`useMemo`/`useState` had run, so a hash
    * change from a real stop to an unknown one rendered fewer hooks than the previous render and
-   * unmounted the app ("Rendered fewer hooks than expected", 5.1) — and back again threw the
+   * unmounted the app ("Rendered fewer hooks than expected", 5.1), and back again threw the
    * mirror error. The guard is data, not control flow: the values below are computed for a stop
    * that may not exist, and the fallback is drawn after them.
    */
   const minutes = useMinuteNow();
   const nearby = useMemo(() => (stop ? nearbyStops(stop.id, 4) : []), [stop?.id]);
   /*
-   * The card shows **six** departures — the next six things that leave from here — and exactly
+   * The card shows **six** departures, the next six things that leave from here, and exactly
    * six: the board is generated at that length and the list is given the same number as its cap,
    * so there is nothing left over to promise and no "show more" row to press. The full timetable
    * is one press away through "Open the full board" above the rows.
@@ -68,7 +68,7 @@ export function StopDetailPage() {
     return (
       <div className="stack-6">
         <PageHeader title={t('Unknown stop')} description={t('This stop is not in the network.')} showTitle />
-        {/* The fallback is a page's answer, so it is a level below the H1 — it was an `h3` under
+        {/* The fallback is a page's answer, so it is a level below the H1, it was an `h3` under
             an `h1` with no `h2` between them (5.1, 12.3). */}
         <EmptyState
           icon="station"
@@ -89,7 +89,7 @@ export function StopDetailPage() {
 
   /*
    * One end, then the other. This used to reuse whatever search was in the session when there was
-   * one — carrying its other end into the new query and landing on the results — which is the
+   * one, carrying its other end into the new query and landing on the results, which is the
    * "it auto-fills the from" in the round's report. `pick` opens the picker on the end that is
    * still missing, and the results are never reached without both ends being answered here (F28).
    */
@@ -101,13 +101,13 @@ export function StopDetailPage() {
    * **The local map, worked out before it is drawn.**
    *
    * The drawing is the app's own 0–100 canvas, zoomed 5.5× around this stop so it reaches the
-   * stops next door rather than the whole country — the zoom this card always used for its dots.
+   * stops next door rather than the whole country, the zoom this card always used for its dots.
    *
    * What it draws now is **one arm per line that calls here**, from this stop to the next stop on
-   * that line, in the line's own mode colour. Drawing each line's *whole* run — which is what the
-   * first version of this card did — turned the canvas into a starburst of corridors crossing each
+   * that line, in the line's own mode colour. Drawing each line's *whole* run, which is what the
+   * first version of this card did, turned the canvas into a starburst of corridors crossing each
    * other with every name printed over its neighbour's; an arm is the one fact a map of a station
-   * has to answer — which way do I leave from here, and what is the next stop doing it.
+   * has to answer, which way do I leave from here, and what is the next stop doing it.
    *
    * An arm per *stop*, not per line: four services that all head for Amsterdam Amstel leave in the
    * same direction, and four lines drawn on top of each other is one line drawn four times.
@@ -156,7 +156,7 @@ export function StopDetailPage() {
   }
 
   /*
-   * A station with no service — two of them in this network — would otherwise draw an empty sea
+   * A station with no service, two of them in this network, would otherwise draw an empty sea
    * and a dot. For those the card falls back to what it used to show: the stops within walking
    * distance, joined by the walk dashes, so the card is never a blank map.
    */
@@ -173,7 +173,7 @@ export function StopDetailPage() {
 
   /*
    * Which arms get a name. The nearest first, in a box the size the name will actually paint, and
-   * a name that would land on one already placed is left off — an unlabelled dot is read as "a
+   * a name that would land on one already placed is left off, an unlabelled dot is read as "a
    * stop", and two names printed on top of each other are read as neither.
    */
   const nameWidth = (text: string) => text.length * 1.7;
@@ -200,7 +200,7 @@ export function StopDetailPage() {
    * **The card keeps two facts, and they are the two a traveller cannot see elsewhere.**
    *
    * It used to print six rows and a two-sentence legend about what the heart and the pin in the
-   * head do — Type, City, Region, Platforms, Facilities and Bicycle, most of them repeating the
+   * head do, Type, City, Region, Platforms, Facilities and Bicycle, most of them repeating the
    * badges above or the line under the page's name, and the legend teaching glyphs that are
    * already labelled for a screen reader. It read as a form.
    *
@@ -213,8 +213,8 @@ export function StopDetailPage() {
    * and the bicycle facts are folded into the facilities where they belong: "Bicycle parking" was
    * already in that list, so the row that repeated it only added a second place to read it.
    *
-   * The facilities themselves are badges with glyphs rather than a dotted sentence — see the list
-   * below — and each word is translated in `lib/i18n`, which the joined line never was.
+   * The facilities themselves are badges with glyphs rather than a dotted sentence, see the list
+   * below, and each word is translated in `lib/i18n`, which the joined line never was.
    */
   const platformNumbers = stop.platforms.map((value) => Number(value));
   const runsInOrder = platformNumbers.every(
@@ -234,7 +234,7 @@ export function StopDetailPage() {
       <PageHeader
         /*
          * The traveller's name for this stop when they gave it one, with the official name kept
-         * in the description beneath — a page that says only "Work" cannot be checked against a
+         * in the description beneath, a page that says only "Work" cannot be checked against a
          * timetable, and a page that says only "Herengracht 12" is not the name they chose.
          */
         title={customStopName(stop.id) ?? stop.name}
@@ -246,8 +246,8 @@ export function StopDetailPage() {
         actions={
           <>
             {/*
-              **The heart is the only keep-control on this page.** Marking a place is a favourite —
-              "I use this place", which leads the stop lists and the search results — and it is
+              **The heart is the only keep-control on this page.** Marking a place is a favourite ,
+              "I use this place", which leads the stop lists and the search results, and it is
               trailing, after Plan, in the row that names the stop.
 
               The **pin** that used to sit beside it is gone: putting a stop's board on the
@@ -286,7 +286,7 @@ export function StopDetailPage() {
       ) : null}
 
       {/* `stop-columns`: at two columns the page used to be two fixed stacks, and the shorter one
-          ended 792px above the longer at 1440 — a blank half-page under Alerts (5.4). A balanced
+          ended 792px above the longer at 1440, a blank half-page under Alerts (5.4). A balanced
           flow fills both columns by height, and each card stays whole. */}
       <div className="grid-2 stop-columns" style={{ alignItems: 'start' }}>
         <div className="stack-4">
@@ -314,8 +314,8 @@ export function StopDetailPage() {
             {/*
               **Every facility is a badge with its own glyph.**
 
-              It used to be one line of words joined by dots — "Toilets · Kiosk · Bicycle parking ·
-              Lift · Ticket machine · Taxi rank" — which is a list you read word by word to find
+              It used to be one line of words joined by dots, "Toilets · Kiosk · Bicycle parking ·
+              Lift · Ticket machine · Taxi rank", which is a list you read word by word to find
               the one thing you came for. As badges, "is there a lift" is a shape to spot. The
               glyph is drawn `aria-hidden` (see `Icon`), so a screen reader still hears the same
               words in the same order it heard before.
@@ -357,7 +357,7 @@ export function StopDetailPage() {
             </div>
             {/*
               The way **on** from this card, at the start of its own line under the line that names
-              the board — not in the trailing group `.card-actions` builds for the controls that
+              the board, not in the trailing group `.card-actions` builds for the controls that
               belong at the card's right edge (the keep-a-stop pin, a dismiss). A link that is the
               next step reads as an action of the card, and it was reported as being on the wrong
               side of one; it is the same words and the same glyph the home widget's copy of this
@@ -428,14 +428,14 @@ export function StopDetailPage() {
             {/*
               **The station's own corner of the network.**
 
-              This card used to draw the stops around the station and the walk between them — a
+              This card used to draw the stops around the station and the walk between them, a
               picture of the streets' absence. It now draws what a map of a station is for: every
               line that calls here, leaving towards the next stop it calls at, in that mode's own
               colour.
 
               The alternative was a live street-map frame (OpenStreetMap's embed). It was built and
-              looked at, and then taken out: the frame brought its own chrome — a two-line credit,
-              a donate link and zoom buttons — into the middle of a card, it left an empty plate
+              looked at, and then taken out: the frame brought its own chrome, a two-line credit,
+              a donate link and zoom buttons, into the middle of a card, it left an empty plate
               offline, and its tiles kept the page's network busy long after the page had drawn,
               which the repo's `ui-audit` waits for on every route. The app's own drawing answers
               the question, works with the connection off, and does not need a licence credit.
@@ -509,7 +509,7 @@ export function StopDetailPage() {
             <h2 className="t-section">{t('Lines calling here')}</h2>
             {/*
               The branch was on `lines.length === 0`, so the two served stations with no through
-              service — Enschede and Eindhoven Strijp-S — were both described as walking landmarks
+              service, Enschede and Eindhoven Strijp-S, were both described as walking landmarks
               (5.7). A station is a station: it says it has no lines right now, and only a landmark
               gets the landmark's sentence.
             */}
@@ -527,7 +527,7 @@ export function StopDetailPage() {
                   /*
                    * The whole row opens that line's own board, not just the chevron (F21): the
                    * stretch link covers the row, the `Alerts` pill sits above it, and the row
-                   * lifts like every other interactive surface (F22 — it is no longer
+                   * lifts like every other interactive surface (F22, it is no longer
                    * `list-row--static`).
                    */
                   <li key={line.id} className="list-row list-row--link">
@@ -602,7 +602,7 @@ export function StopDetailPage() {
                       {/*
                         **Minutes on foot are a footprint, and the modes are their glyphs.**
 
-                        The row read `126 min walk · Train, Metro, Bus` — the same two kinds of fact
+                        The row read `126 min walk · Train, Metro, Bus`, the same two kinds of fact
                         the journey card draws as a walk glyph and a chain of mode badges. Each mode
                         keeps its name in an `sr-only` span, so the line is still spoken as words.
                       */}
@@ -638,8 +638,8 @@ export function StopDetailPage() {
 
       {/*
         The head's one Plan button, asking the two-choice question the stop cards ask. What
-        used to sit here — a pair of PLAN FROM HERE / PLAN TO HERE buttons at the head, and a
-        Shortcuts panel repeating them lower down — was the same two actions, three times.
+        used to sit here, a pair of PLAN FROM HERE / PLAN TO HERE buttons at the head, and a
+        Shortcuts panel repeating them lower down, was the same two actions, three times.
       */}
       <PlanStopDialog
         stop={planOpen ? stop : null}

@@ -5,7 +5,7 @@ import { getStop, stopLabel } from '../../data/stops';
  * **A station's name, made the way to its page.**
  *
  * The station name is the one piece of text in the app that always *means* a place with a page of
- * its own — next departures, alerts at that stop, the lines that call there, what is nearby — so
+ * its own, next departures, alerts at that stop, the lines that call there, what is nearby, so
  * wherever it is printed as a word rather than as a control, it is a link to `/stops/:id`.
  *
  * Three rules, and they are the whole of the behaviour:
@@ -17,14 +17,14 @@ import { getStop, stopLabel } from '../../data/stops';
  *   2. **An end that is a place gets no link.** `Rijksstraatweg 9, Haarlem` is an address: it has
  *      no page and it is not a station, so the callers draw the label as plain text when one is
  *      present, and this component is never asked about it.
- *   3. **No padding, and no 44px target.** This is a word inside a line of other words — inside a
- *      sentence, a heading or a dense row — so it is sized by the line it sits in. Giving it a
+ *   3. **No padding, and no 44px target.** This is a word inside a line of other words, inside a
+ *      sentence, a heading or a dense row, so it is sized by the line it sits in. Giving it a
  *      thumb-sized box would push the line apart and put an invisible square over the text beside
  *      it. `AGENTS.md` rule 8 says so, and `scripts/ui-audit.mjs` exempts `.stop-link` from its
  *      target-size probe for that reason.
  *
- * A link that is not inside another link, on purpose: every surface it is used on — a leg row, the
- * board's destination, an alert's line of stops — is plain text, not a card that opens something.
+ * A link that is not inside another link, on purpose: every surface it is used on, a leg row, the
+ * board's destination, an alert's line of stops, is plain text, not a card that opens something.
  * The one card that carries it (an alert card) is a `ResultCard`, which already sends a press on a
  * link to the link and not to the card.
  */

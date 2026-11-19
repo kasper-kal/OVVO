@@ -23,14 +23,14 @@ const HOLD_HINT_MS = 350;
 /*
  * **There is no resizing.**
  *
- * A card is the width its widget declares (`span` — 4, 6, 8 or 12 columns) and as tall as its own
+ * A card is the width its widget declares (`span`, 4, 6, 8 or 12 columns) and as tall as its own
  * content, at every width and in both appearances. That is how the home screen looked before the
  * size tiers arrived, and it is the shape a home screen wants: a row is filled by the cards whose
  * spans add up to twelve, so nothing has to be negotiated to put three cards side by side.
  *
  * The corner handle, the four widths, the three heights, the stored `widget-sizes` and the menu's
- * *Match sizes* row are gone with it. On a phone the corner was the wrong thing to offer at all — a
- * finger on a card is for dragging it — and on a wide screen a card resized out of its span was the
+ * *Match sizes* row are gone with it. On a phone the corner was the wrong thing to offer at all, a
+ * finger on a card is for dragging it, and on a wide screen a card resized out of its span was the
  * reason a row would not fill: the map, the tallest card in the catalogue, is the one that most
  * often left a hole beside it, because a neighbouring card could not be made to fit it. Every card
  * now draws the middle of what it can hold, which is what it did before the sizes existed.
@@ -48,26 +48,26 @@ const DRAG_SLOP_PX = 8;
  * The head is an immediate grip because it carries `touch-action: none`. The body cannot: a card-wide
  * claim on the gesture would make a long home screen unscrollable in the one mode where the page
  * still has to be scrolled. So the body arms after this long with the finger still inside
- * `DRAG_SLOP_PX` — by then a press that was going to be a scroll has moved and scrolled, and one
+ * `DRAG_SLOP_PX`, by then a press that was going to be a scroll has moved and scrolled, and one
  * that was going to be a drag has not. It is short enough to feel like taking hold, not waiting.
  */
 const ARM_MS = 180;
 
-/** The gap between the screen's edge and the layout menu — the header's own 12px padding. */
+/** The gap between the screen's edge and the layout menu, the header's own 12px padding. */
 const MENU_STEP = 12;
 
 /**
  * **The press lock.**
  *
  * On a phone, holding still with a finger down for about half a second is how a page starts a *text
- * selection* — and on iOS that selection, its callout and its magnifier take the press away from
+ * selection*, and on iOS that selection, its callout and its magnifier take the press away from
  * anything the page was counting: the hold would reach a second with the pointer already cancelled
  * (reported: "holding the home screen doesn't work on mobile, it just selects text instead").
  *
  * So while a press on the home screen is running, the shell cannot be selected at all: the flag is
  * on `<html>`, the stylesheet locks `.app-shell` (see `components.css`), and a `selectstart` inside
- * that press is refused outright. It is removed the moment the press ends — a cancelled press, a
- * scroll, the release, or the second the mode opens — so selecting text on this page is only ever
+ * that press is refused outright. It is removed the moment the press ends, a cancelled press, a
+ * scroll, the release, or the second the mode opens, so selecting text on this page is only ever
  * refused while a hold is in flight, never afterwards.
  */
 function lockPress(locked: boolean) {
@@ -77,7 +77,7 @@ function lockPress(locked: boolean) {
 }
 /**
  * What a press must *not* land on to count as "the home screen itself": controls do their own
- * thing on press, and a widget is content rather than the surface — holding a widget must not
+ * thing on press, and a widget is content rather than the surface, holding a widget must not
  * put the screen into customising (asked for by name). Handles are exempt at the call site.
  */
 const NO_PRESS =
@@ -86,7 +86,7 @@ const NO_PRESS =
 /**
  * The home screen: a grid of widgets the traveller can customise.
  *
- * Layout is a 12-column grid — widgets declare a span of 4, 6, 8 or 12 and
+ * Layout is a 12-column grid, widgets declare a span of 4, 6, 8 or 12 and
  * collapse to a single column on narrow screens. Customising is deliberately
  * quiet: **Edit** in the header's first corner turns on a mode in which every
  * widget shows the same remove button in the same place, the catalogue ("Add
@@ -94,7 +94,7 @@ const NO_PRESS =
  * **dragged into a new slot**.
  *
  * There are two ways in, because a phone's home screen offers both: the Edit
- * pill, or **press and hold the home screen itself for one second** — the
+ * pill, or **press and hold the home screen itself for one second**, the
  * gesture a phone's home screen uses, and the one that was asked for. The hold
  * starts on the page *and on the cards* (see `isHoldSurface`), because this
  * screen is almost all cards; what it will not start on is a control, and a
@@ -133,15 +133,15 @@ export function HomePage() {
    *
    * The trigger lives in the shell's header (`+`, in the first corner the keep it in), so this
    * page cannot draw the menu next to it by layout: it reads the trigger's box once, when the
-   * menu opens, and pins the panel under it — the corner it drops from is the corner it belongs
+   * menu opens, and pins the panel under it, the corner it drops from is the corner it belongs
    * to, at any width. Nothing is measured while it is closed (`menuPos` is null), and the panel
    * is not in the page at all, so a closed menu cannot take a tap or a Tab stop.
    */
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
-  /* The layout while a widget is being dragged. It is local — nothing is written to storage
-     until the card is dropped — and it is what the grid renders, so the widgets step out of the
+  /* The layout while a widget is being dragged. It is local, nothing is written to storage
+     until the card is dropped, and it is what the grid renders, so the widgets step out of the
      way as the hand passes them rather than on release. */
   const [previewOrder, setPreviewOrder] = useState<string[] | null>(null);
   const order = previewOrder ?? homeWidgets;
@@ -156,7 +156,7 @@ export function HomePage() {
 
   /**
    * Read inside the effect below through a ref: a smooth scroll is movement, and battery saving
-   * is exactly when there should not be any — but a deep link should not be re-run, and the flash
+   * is exactly when there should not be any, but a deep link should not be re-run, and the flash
    * restarted, by the phone being plugged in.
    */
   const powerRef = useRef(power.mode);
@@ -178,8 +178,8 @@ export function HomePage() {
    * The home screen is the expensive screen: a map of the whole network, saved journeys, prose.
    * At a tenth of a battery none of that is what the traveller opened the app for, and drawing it
    * costs a repaint every minute and a slice of the GPU between. So the grid is filtered to the
-   * widgets the registry marks `essential` — the planner, the departures card and the hearted
-   * stops — and the screen says so rather than silently losing most of itself.
+   * widgets the registry marks `essential`, the planner, the departures card and the hearted
+   * stops, and the screen says so rather than silently losing most of itself.
    *
    * Customising is exempt: the mode is for *drawing* less, and a card that is not on screen cannot
    * be dragged, resized or removed. Nothing is deleted, so leaving the mode (a charger, or the
@@ -235,7 +235,7 @@ export function HomePage() {
   const hintTimer = useRef<number | null>(null);
   const holdPoint = useRef<{ x: number; y: number } | null>(null);
 
-  /* Timers only — this runs on unmount, where setting state would be a leak. */
+  /* Timers only, this runs on unmount, where setting state would be a leak. */
   const clearHoldTimers = useCallback(() => {
     if (holdTimer.current !== null) {
       window.clearTimeout(holdTimer.current);
@@ -256,12 +256,12 @@ export function HomePage() {
 
   /*
    * **The surface, in one place**, because two gestures use it: the one that enters customising and
-   * the one that leaves it. "Every pixel the hold works on" is the tap's surface too — same filter,
-   * same exemptions — so the two can never disagree about where the home screen itself is.
+   * the one that leaves it. "Every pixel the hold works on" is the tap's surface too, same filter,
+   * same exemptions, so the two can never disagree about where the home screen itself is.
    *
    * Controls do their own thing on press, and a widget is content rather than the surface (holding
    * or tapping a widget must not put the screen into customising); a dialogue, a menu, the sidebar
-   * and the dock are none of the surface either. What is left is the shell around the routed page —
+   * and the dock are none of the surface either. What is left is the shell around the routed page ,
    * the band above and beside the mark, the page column and the empty strip under the last widget.
    * That strip used to be excluded ("anything inside `.app-body`"), so holding the bottom of the
    * page started no clock at all: measured at 20px under the "Customise home" control, the element
@@ -283,13 +283,13 @@ export function HomePage() {
   /**
    * **Where a hold starts: the background, and nothing else.**
    *
-   * This is the surface above, exactly — one predicate for both gestures rather than two that can
+   * This is the surface above, exactly, one predicate for both gestures rather than two that can
    * drift apart.
    *
    * Cards were in it for a while. A phone's home screen starts edit mode from the icons as well as
    * the wallpaper, and this screen is almost all cards, so a hold that only worked on the thin
-   * strip around them seemed not to work at all. The cost was that a press on a widget — the thing
-   * a traveller presses to *use* it — opened the arranging mode, which the steerer named as wrong:
+   * strip around them seemed not to work at all. The cost was that a press on a widget, the thing
+   * a traveller presses to *use* it, opened the arranging mode, which the steerer named as wrong:
    * holding a widget should do nothing, and holding the background should be the only way in by
    * gesture (the header's Edit is the other). So the clock runs on the background only, and the
    * text-selection lock went with it: a long press on a card is now the browser's own press on
@@ -304,7 +304,7 @@ export function HomePage() {
    * The hold is measured **on the document**, not on the home screen's wrapper.
    *
    * The screen's own box starts below the app header, so a press on the empty space around the
-   * mark — the widest empty surface the home screen has — did nothing at all. A listener on the
+   * mark, the widest empty surface the home screen has, did nothing at all. A listener on the
    * document, filtered to the shell that holds the routed page and away from anything that acts on
    * a press, makes every part of the page count without making the sidebar, the dock or a dialogue
    * part of the gesture.
@@ -320,7 +320,7 @@ export function HomePage() {
      * than being allowed to start a clock that would open the same mode a second later. The clock
      * is the more expensive half of the two: it locks text selection, listens to the document and
      * re-renders a hint, all on a phone at a tenth of a battery, to open a screen the mode has just
-     * decided not to draw. Nothing is deleted — the layout is exactly where it was — so a charger
+     * decided not to draw. Nothing is deleted, the layout is exactly where it was, so a charger
      * puts the whole thing back.
      */
     if (editing || (power.mode === 'super' || power.mode === 'last')) return undefined;
@@ -420,8 +420,8 @@ export function HomePage() {
 
   /*
    * Leaving is a **tap**, not a hold: in customising, a press and release on that same surface
-   * finishes the mode, exactly as the Done button does. Arranging cards is a light activity — you
-   * move one and want out — and holding the screen still for a second to leave a mode you are
+   * finishes the mode, exactly as the Done button does. Arranging cards is a light activity, you
+   * move one and want out, and holding the screen still for a second to leave a mode you are
    * already in is work a tap should not require.
    *
    * Three things it deliberately does not do:
@@ -429,7 +429,7 @@ export function HomePage() {
    *     `editing` is true, one render after the held press completed, so the release of that press
    *     arrives with no `pointerdown` of its own on record and is ignored.
    *   - **a swipe is not a tap.** Movement past `HOLD_SLOP_PX` mid-press cancels it, so scrolling a
-   *     long home screen while customising cannot drop the mode — the same rule, and the same
+   *     long home screen while customising cannot drop the mode, the same rule, and the same
    *     number, that keeps a scroll from being read as a hold on the way in.
    *   - **a widget drag is not a tap on the surface.** A press that begins on a card never reaches
    *     this listener (`isHomeSurface` excludes `.widget`), and one that becomes a drag is refused
@@ -478,21 +478,21 @@ export function HomePage() {
    * Two things make that possible without the card jumping out from under the finger:
    *
    *   1. The order being shown is *local* state (`previewOrder`), so a move is a re-render and
-   *      not a write to storage — nothing is saved until the drop.
-   *   2. The card is positioned by hand — `transform`, written straight to the element, in a
-   *      layout effect that runs **after** the re-order and **before** the paint — from where the
+   *      not a write to storage, nothing is saved until the drop.
+   *   2. The card is positioned by hand, `transform`, written straight to the element, in a
+   *      layout effect that runs **after** the re-order and **before** the paint, from where the
    *      card now sits in the grid to where the finger is. Without that second half, the block
    *      would leave a hole and the card would jump to the hole's new position on every swap.
    */
   const gridRef = useRef<HTMLDivElement>(null);
   const dragFrom = useRef<{ id: string; pointerId: number; x: number; y: number } | null>(null);
   const dragNode = useRef<HTMLElement | null>(null);
-  /* The section the press started on — the card that is lifted, read before any re-order moves it. */
+  /* The section the press started on, the card that is lifted, read before any re-order moves it. */
   const dragPendingNode = useRef<HTMLElement | null>(null);
   /** Where inside the card it was taken hold of, so it does not snap its corner to the finger. */
   const dragGrab = useRef({ x: 0, y: 0 });
   const dragPointer = useRef({ x: 0, y: 0 });
-  /** The translate currently written to the card — subtracted back out to read its layout box. */
+  /** The translate currently written to the card, subtracted back out to read its layout box. */
   const dragShift = useRef({ dx: 0, dy: 0 });
   const [drag, setDrag] = useState<string | null>(null);
   /* Whether the card has actually been lifted. A ref, not the state above: the state is one render
@@ -519,7 +519,7 @@ export function HomePage() {
   const [note, setNote] = useState('');
   /*
    * **The way back (R85).** Every move that changed the layout is kept as the one thing needed to
-   * invert it — the widget, and the slot it came from — and `moveHomeWidget` is its own inverse
+   * invert it, the widget, and the slot it came from, and `moveHomeWidget` is its own inverse
    * (`remove and insert at i` undone by `remove and insert at j`), so stepping back through this
    * list restores the order exactly, in reverse, however many moves ago it was. Last ten, which
    * is more than a screen of arrangements has ever been worth and still a bounded list.
@@ -549,7 +549,7 @@ export function HomePage() {
    *
    * The grid re-sorts while the drag runs, so asking a card where it is now would ask a layout
    * that the drag itself just changed: drop on the map, the map moves up under the finger, and the
-   * next move reads "the finger is on the map" again — the order flipped back and forth between
+   * next move reads "the finger is on the map" again, the order flipped back and forth between
    * two slots. These are the zones as the hand found them, so the same place under the finger is
    * the same slot for the whole gesture, however much the grid re-flows around it.
    *
@@ -586,12 +586,12 @@ export function HomePage() {
   };
 
   /**
-   * The slot a page point belongs to — the one it is in, or the nearest one when it is in none.
+   * The slot a page point belongs to, the one it is in, or the nearest one when it is in none.
    *
    * The nearest fallback is what makes **the top slot as easy as any other**. The grid keeps the
    * cards' own boxes as its targets, and above the first card there is 96px of header and page
    * padding that belongs to no slot: dragging a widget to the top of the window used to need the
-   * finger inside the first card's rectangle — a narrow band at the very top of a scrolled page —
+   * finger inside the first card's rectangle, a narrow band at the very top of a scrolled page ,
    * while every other move only needed a card under the hand. With the gap closed by distance, the
    * top of the screen means the top slot. It is safe to be greedy here because these boxes do not
    * move during the drag: the same point is the same slot for the whole gesture, so the target
@@ -615,11 +615,11 @@ export function HomePage() {
    * This is the fix for the report that the drag worked and the way back did not: "once you drag
    * one widget, you cant drag it back to its original place". The zones are frozen where the hand
    * found them, in **page** coordinates, so a slot that is scrolled off the top of the window
-   * cannot be pointed at — the finger would have to be at a negative y. Dragging a card back to
+   * cannot be pointed at, the finger would have to be at a negative y. Dragging a card back to
    * the top of the screen therefore did *not* mean the top of the list: the finger's page point
    * landed in whichever slot happened to be under it, which was often the slot the card was
-   * already in, and the card was dropped back where it started. Measured at 390x844: the map —
-   * the second card, 586px of an 844px window — could only reach slot 1 by dragging the page
+   * already in, and the card was dropped back where it started. Measured at 390x844: the map ,
+   * the second card, 586px of an 844px window, could only reach slot 1 by dragging the page
    * itself up to within 250px of the top, which is not a thing a hand is doing while it drags.
    *
    * So the bands mean what they look like they mean: the top of the window is the **first** slot
@@ -651,14 +651,14 @@ export function HomePage() {
   };
 
   /**
-   * Put the dragged card into the slot the finger is over — **every time**, including back over the
+   * Put the dragged card into the slot the finger is over, **every time**, including back over the
    * slot it came from.
    *
    * The preview used to be skipped when the finger returned to the card's own slot
    * (`target === current` → return), which left the last preview standing: a card picked up, moved
    * down and brought back over its own slot stayed drawn one slot down and was *saved* one slot
    * down on release, because the drop committed whatever the last preview had been. A finger that
-   * comes back to where it started must look — and land — where it started, so the preview is
+   * comes back to where it started must look, and land, where it started, so the preview is
    * rebuilt from the committed order on every move, and cleared when that is the answer.
    */
   const updateTarget = () => {
@@ -681,7 +681,7 @@ export function HomePage() {
 
   /*
    * **Scrolling under the drag.** Holding a card against the top or bottom of the window scrolls
-   * the page that way — the gesture every list with a drag in it has, and the one that makes a
+   * the page that way, the gesture every list with a drag in it has, and the one that makes a
    * home screen longer than the screen usable: the card is picked up where it was, and the slots
    * it can be dropped into travel past it.
    *
@@ -753,12 +753,12 @@ export function HomePage() {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     const target = event.target as Element;
     /*
-     * **The whole card is the grip — the head is only the fast one.**
+     * **The whole card is the grip, the head is only the fast one.**
      *
      * The head is an immediate hold because it can claim the gesture outright (`touch-action: none`
      * in the stylesheet). The body cannot claim it, but it must still be draggable: reported as
      * *"why cant you move widgets on mobile when you touch it on the lower side"*, and that was
-     * exactly the rule — a finger below the title's row never started a drag at all, so a card could
+     * exactly the rule, a finger below the title's row never started a drag at all, so a card could
      * only be picked up by the strip it is named by. Now a press anywhere on a card arms after
      * `ARM_MS` of stillness (see `armTimer`), which is long enough for a scroll to have declared
      * itself and short enough to feel like taking hold. A mouse still takes hold anywhere at once,
@@ -779,7 +779,7 @@ export function HomePage() {
     /*
      * A finger on the body: the press becomes a candidate, and only stillness arms it.
      *
-     * The origin is kept in `armFrom` so the first move of a swipe can cancel it — a scroll that
+     * The origin is kept in `armFrom` so the first move of a swipe can cancel it, a scroll that
      * began 20ms ago must not be armed into a drag halfway down the page. The mode's `touchmove` is what
      * makes the armed press hold (see the mode effect below): `touch-action` is read when a gesture begins
      * and cannot be changed
@@ -803,7 +803,7 @@ export function HomePage() {
    * The card's **pointer capture does not survive the first re-order**: React moves the section in
    * the grid with `insertBefore`, which takes the node out and puts it back, and a browser drops
    * the capture of a node that leaves the document (spec: *implicit release of pointer capture*).
-   * The section would then stop hearing moves halfway through a drag — measured: the card froze at
+   * The section would then stop hearing moves halfway through a drag, measured: the card froze at
    * the fifth of six steps, and only a window listener kept the drag alive. So moves are handled
    * here and listened for on the section *and* on the window; every call is idempotent.
    */
@@ -838,7 +838,7 @@ export function HomePage() {
 
   const moveDrag = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.cancelable) event.preventDefault();
-    /* A finger that moves before the body has armed was scrolling, not picking a card up — the
+    /* A finger that moves before the body has armed was scrolling, not picking a card up, the
        clock is stopped here rather than left to fire mid-swipe and lift a card out of a scroll. */
     const arm = armFrom.current;
     if (arm && arm.pointerId === event.pointerId) {
@@ -855,7 +855,7 @@ export function HomePage() {
     if (!from) return;
     /*
      * **The drop is decided by the finger, not by the last frame that painted.** The preview is
-     * state, and a release can arrive in the same frame as the move that would have changed it —
+     * state, and a release can arrive in the same frame as the move that would have changed it ,
      * so the slot is read once more, from the pointer, at the moment of release. `zones` were
      * captured at the start of this gesture and the committed order has not changed since, so the
      * index read here is the same index `moveHomeWidget` is about to be given. Read *before* the
@@ -877,11 +877,11 @@ export function HomePage() {
     clearArm();
     armHeld.current = false;
     /*
-     * The layout is already the dropped one; this only saves it — and remembers how to unsave it.
+     * The layout is already the dropped one; this only saves it, and remembers how to unsave it.
      *
      * `fromIndex` is read from `homeWidgets`, which nothing writes during a drag (the preview is
      * local state and the drop is the only writer), so it is the slot the card was taken from.
-     * A drop that changed nothing — the card let go over its own slot — leaves no move behind,
+     * A drop that changed nothing, the card let go over its own slot, leaves no move behind,
      * which is what keeps "Put it back" from being offered for a drag that did not move anything.
      */
     const index =
@@ -899,7 +899,7 @@ export function HomePage() {
   };
 
   /**
-   * **Put it back.** One tap restores the order as it was before the last move — and the tap
+   * **Put it back.** One tap restores the order as it was before the last move, and the tap
    * before that the one before it, because the move being undone is removed from the list as it
    * is applied.
    *
@@ -923,7 +923,7 @@ export function HomePage() {
   /*
    * Pin the menu under its trigger, and take focus into it once it is up.
    *
-   * It is placed from the box the header reports, and placed again if the window changes size —
+   * It is placed from the box the header reports, and placed again if the window changes size ,
    * a menu left hanging where the old corner used to be is a menu pointing at nothing.
    */
   useLayoutEffect(() => {
@@ -949,8 +949,8 @@ export function HomePage() {
   /*
    * Focus enters once, and leaves to the control that opened the menu.
    *
-   * The effect was keyed on the placed position, so it re-ran on every re-place — a resize put the
-   * caret back on the first row (31.3) — and every exit (Escape, the scrim, a row) dropped focus on
+   * The effect was keyed on the placed position, so it re-ran on every re-place, a resize put the
+   * caret back on the first row (31.3), and every exit (Escape, the scrim, a row) dropped focus on
    * `<body>` (31.1). Now the first placement focuses the first row, a later one does not, and a
    * close hands the keyboard back to the header's + while it is still on screen.
    */
@@ -1012,7 +1012,7 @@ export function HomePage() {
    * Everything that has to run for as long as a card is in the air: the frame loop that scrolls
    * the page at the edges (a hand held still against an edge sends no pointer events at all, so
    * this cannot be driven by moves), and a window-level end to the drag. The `pointerup` on the
-   * section covers the usual case; this one covers the release that lands outside the page —
+   * section covers the usual case; this one covers the release that lands outside the page ,
    * a drag that scrolled the card under the pointer and let go over the browser chrome.
    */
   useEffect(() => {
@@ -1036,7 +1036,7 @@ export function HomePage() {
   /*
    * A press that ends anywhere clears the clock.
    *
-   * The release of a tap on a card's body lands on the card, and `endDrag` clears it — but a press
+   * The release of a tap on a card's body lands on the card, and `endDrag` clears it, but a press
    * that turns into a scroll is released over the page, where the card's own listeners never hear
    * the up. A timer left armed with no hand on it is a card that lifts by itself the next time the
    * screen is touched, and a `touchmove` refusal left in place is a page that will not scroll. Both
@@ -1052,11 +1052,11 @@ export function HomePage() {
      * **The listener is attached for the whole mode, not when a card arms.**
      *
      * Chromium decides whether a touch sequence may be cancelled when the sequence *starts*, from
-     * the listeners already on the document — so a `touchmove` added 180ms later arrives too late,
+     * the listeners already on the document, so a `touchmove` added 180ms later arrives too late,
      * the pan has been handed to the compositor, and the pointer is cancelled under the card
      * (measured: `pointercancel` on the third move, card never lifted, order unchanged). Attached
      * at the top of the mode it is there in time, and it refuses a move **only while a press is
-     * armed** — a swipe on a card, which never arms, scrolls the page exactly as before.
+     * armed**, a swipe on a card, which never arms, scrolls the page exactly as before.
      */
     const refuse = (event: TouchEvent) => {
       if (armHeld.current && event.cancelable) event.preventDefault();
@@ -1099,7 +1099,7 @@ export function HomePage() {
      * offered back the same way ("Put it back" in the panel). It used not to be: only the drag
      * path pushed onto `moves`, so a keyboard reorder was the one arrangement change with no
      * way back inside the mode ("when you move a widget on the home screen, its hard to move it
-     * back without pressing done", 2026-10-17t20-45-42 — the same difficulty, reached by the
+     * back without pressing done", 2026-10-17t20-45-42, the same difficulty, reached by the
      * keyboard). A press that would leave the card where it is records nothing, exactly as a
      * drag dropped over its own slot does.
      */
@@ -1135,7 +1135,7 @@ export function HomePage() {
         * A thinned home screen says so.
         *
         * Half the cards are not a bug to be discovered, so the screen explains itself in one line
-        * where the missing cards would have started — no card of its own, no icon, no control: a
+        * where the missing cards would have started, no card of its own, no icon, no control: a
         * sentence on the surface, which is all that is worth drawing at a tenth of a battery.
         * `role="status"` so a screen reader is told when the mode begins, rather than the page
         * quietly changing under it.
@@ -1145,7 +1145,7 @@ export function HomePage() {
           {lastDrop ? t('Last drop is on, with 1% left.') : t('Super energy saving is on.')}{' '}
           {/*
             * **The cards are named only when some were taken.** On the default home screen the
-            * three cards that stay are the three the mode keeps, so nothing was hidden — and the
+            * three cards that stay are the three the mode keeps, so nothing was hidden, and the
             * line still offered to bring back zero of them, which reads as a fault rather than as a
             * courtesy.
             */}
@@ -1162,7 +1162,7 @@ export function HomePage() {
           {/*
             * The rest is the mode's whole shape, in the order a traveller notices it: the app is
             * thinner, it is dark, and Settings went with the cards rather than out of the app. The
-            * appearance they chose is untouched and comes back with all of it — which is why the
+            * appearance they chose is untouched and comes back with all of it, which is why the
             * screen is described as *dark*, not as *set* to dark.
             */}
           {lastDrop
@@ -1219,11 +1219,11 @@ export function HomePage() {
               onPointerUp={editing ? endDrag : undefined}
               onPointerCancel={editing ? cancelDrag : undefined}
               /*
-               * **The card itself is the move control** — the grip that used to say so is gone.
+               * **The card itself is the move control**, the grip that used to say so is gone.
                *
                * A phone's home screen has no handle: you press and drag the icon. This card can
                * always be dragged by its body (the grip was a *label* for the gesture, not the
-               * thing that made it work), so removing it costs the hand nothing — but it took the
+               * thing that made it work), so removing it costs the hand nothing, but it took the
                * keyboard's only way to move a card with it. WCAG 2.5.7 wants a single-pointer
                * alternative to a drag, so the focusable card takes ↑/↓/←/→ and moves itself, one
                * slot a press, exactly as the grip did.
@@ -1250,7 +1250,7 @@ export function HomePage() {
             >
               <Card className="widget__card">
                 <div className="widget__head">
-                  {/* Title only. The one-line description is the catalogue's job — on the grid
+                  {/* Title only. The one-line description is the catalogue's job, on the grid
                       it was five lines of explanation above the five things they explain. */}
                   <h2 className="t-section">{t(widget.title)}</h2>
                 </div>
@@ -1270,7 +1270,7 @@ export function HomePage() {
                 control on the corner reads as "this card can go" without a row of glyphs above
                 every title, and the 44px target is behind a 30px disc: the mark is what you see
                 and the circle around it is what the thumb gets. A required widget has no badge at
-                all rather than a disabled one — a control that cannot do its job is not a control.
+                all rather than a disabled one, a control that cannot do its job is not a control.
               */}
               {editing && !widget.required ? (
                 <button
@@ -1288,7 +1288,7 @@ export function HomePage() {
         })}
       </div>
 
-      {/* The arrangement is never written on the card — the card's own place is the arrangement. A
+      {/* The arrangement is never written on the card, the card's own place is the arrangement. A
           screen reader still needs to hear what a drag or an undo did, so one live region says it
           and nothing else does. */}
       <span className="sr-only" aria-live="polite">
@@ -1308,11 +1308,11 @@ export function HomePage() {
         It hangs from the corner it was opened in and blurs the page behind it, the way a phone's
         home screen raises its menu over a blurred screen: the panel points at the control it
         belongs to, and there is no sheet across the middle of the screen to come back out of.
-        The scrim closes it — a home screen's menu is dismissed by touching anywhere else, so no
+        The scrim closes it, a home screen's menu is dismissed by touching anywhere else, so no
         *Cancel* row is needed. Nothing here is a footer button any more: "get rid of the buttons
         in the footer".
 
-        Two things, in this order — Add widget, Reset layout. *Match sizes* is gone with the sizes
+        Two things, in this order, Add widget, Reset layout. *Match sizes* is gone with the sizes
         themselves: every card is the width its widget declares and as tall as its content, so
         there is nothing left to match. *Put it back* follows, but only when there is a move to
         take back: it is the one row here that is not one of the two.

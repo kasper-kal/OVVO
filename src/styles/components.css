@@ -1,4 +1,4 @@
-/* ======================================================================   OV PLANNER — MICRO-UI COMPONENT ARCHITECTURE (INTERACTIVE SUITE)
+/* ======================================================================   OV PLANNER, MICRO-UI COMPONENT ARCHITECTURE (INTERACTIVE SUITE)
    Zero-blur elevation, squircle geometry, capsule pills, spring physics.
 
    [OCR Visual Transcode - Micro-UI Component Geometry]
@@ -18,7 +18,7 @@
   /*
    * **A card's edge is drawn from the card.**
    *
-   * It used to be `--l2-border`, which is `--border-hairline` — the line a chip, a field and a
+   * It used to be `--l2-border`, which is `--border-hairline`, the line a chip, a field and a
    * button wear, chosen to be *found* on the card. Every card was therefore outlined rather than
    * edge-lit: a frame around the paper, and the loudest thing in a quiet style. The edge is now the
    * card's own surface moved a little toward its ink (`--card-edge`, from the style's shape), so you
@@ -68,13 +68,13 @@
  * **One colour, every surface.** When the traveller chooses a tint (`lib/background.ts`), the whole
  * surface ramp is replaced at the root: the page *is* the colour, a card is that colour moved 12%
  * toward its own ink, a panel 24%. Setting the *tokens* rather than writing a background on every
- * class is what makes "everything" cheap and complete — a card, a field, a button, an empty tile,
+ * class is what makes "everything" cheap and complete, a card, a field, a button, an empty tile,
  * the sidebar, a dialog and a component added tomorrow all paint themselves from `--l1-bg`,
  * `--l2-bg` and the ink ramp, so none of them needs a rule of its own.
  *
  * The ink is replaced with the ramp, and that is what makes a dark choice possible: the colour is
  * kept exactly as chosen (the widget is your colour, not a softened version), so the page and its
- * surfaces get whichever ink clears 4.5:1 on them — and the *page's* text turns over too, which is
+ * surfaces get whichever ink clears 4.5:1 on them, and the *page's* text turns over too, which is
  * why this is at the root and not scoped to cards. The obsidian tier is untouched: it is a
  * statement of its own, not a surface the tint may repaint.
  */
@@ -83,9 +83,9 @@
   --l2-bg: var(--card-surface);
   /*
    * The edge is **derived**, like the ink (`--page-border`, `lib/background.ts`). It used to be the
-   * card ink at 18% alpha, which is a different contrast on every colour — measured 13.06:1 on a
-   * blue card and 2.77:1 on a green one — and it left every control that reads
-   * `--border-hairline` (chips, segmented controls, fields, buttons — about forty rules) on the
+   * card ink at 18% alpha, which is a different contrast on every colour, measured 13.06:1 on a
+   * blue card and 2.77:1 on a green one, and it left every control that reads
+   * `--border-hairline` (chips, segmented controls, fields, buttons, about forty rules) on the
    * cream theme's fixed `#e8e6df`, which measured 1.05:1 on a yellow page. A hairline that vanishes
    * on some colours is not a hairline.
    */
@@ -94,7 +94,7 @@
   /*
    * **The one token for a line that is not inside a card.** The layout menu hangs over the page
    * outside any card and reads `--border-hairline`; that used to keep the cream theme's `#cdc7b8`
-   * on every tint, so a near-black menu was drawn with a bright cream outline — *"some colours,
+   * on every tint, so a near-black menu was drawn with a bright cream outline, *"some colours,
    * some edges get super ugly and way too obvious"* (reported, with a screenshot of this menu).
    * It is measured on the surface those elements actually stand on: the card tier here.
    */
@@ -110,7 +110,7 @@
 /*
  * **The page's colour and the widgets' colour are two.** Nothing else in this file changes: the page
  * takes *its own* ramp (`--page-*`, derived from the background colour) and every card, panel and
- * the sidebar takes the widgets' — the rule below — so a white page with black widgets gets white
+ * the sidebar takes the widgets', the rule below, so a white page with black widgets gets white
  * page ink and light card ink in the same document, which one shared ramp could not do.
  */
 :root[data-surface='split'] {
@@ -128,7 +128,7 @@
 
 /*
  * **Over a photograph the page is the photograph**, so the ramp is scoped to the surfaces the tint
- * actually fills — the cards, the panels and the sidebar — and the page keeps the theme's own ink.
+ * actually fills, the cards, the panels and the sidebar, and the page keeps the theme's own ink.
  * At the root it would put the tint's ink on the picture's wash instead, which measured 1.06:1 on a
  * dark photograph in the dark appearance.
  */
@@ -136,7 +136,7 @@
  * **The one-colour palette's cards need the card's own edge, not the page's.** Their surfaces are
  * already the tint (the root rule says so); what differs is the hairline control outlines read, and
  * that has to be measured against the card they stand on. Kept apart from the block below because
- * a tint card has no separate accent cut — that is the split palette's problem.
+ * a tint card has no separate accent cut, that is the split palette's problem.
  */
 :root[data-surface='tint'] .card:not(.card--obsidian),
 :root[data-surface='tint'] .panel,
@@ -183,7 +183,7 @@
   /*
    * **And the accent is cut for the surface it is drawn on.** `--accent-primary` is measured against
    * the page (it draws the focus ring around anything standing on it); inside a widget the same
-   * accent — a switch track, a ring, a mark — is the widgets' cut, handed over as `--card-accent`.
+   * accent, a switch track, a ring, a mark, is the widgets' cut, handed over as `--card-accent`.
    * One cut for both was measured at 2.5:1 on a blue page under green widgets, under the 3:1 this
    * app holds a ring to; two cuts clear it on both (see `lib/background.ts`).
    */
@@ -200,7 +200,7 @@
 /*
  * **The navigation bar is not a card, and it no longer lightens like one.**
  *
- * The sidebar was painted with the cards' surface — 12% of the way to the ink, and further when the
+ * The sidebar was painted with the cards' surface, 12% of the way to the ink, and further when the
  * page had to be lifted so its steps could carry ink at all. Beside a page of the same colour that
  * read as a lightened slab rather than as the bar (reported: *"Make the Nav bar lightening less,
  * just less lightening"*). It takes the chrome tier now, a third of the card's step, derived in
@@ -246,8 +246,8 @@
 /*
  * **The meanings keep their hues, but not their lightness.** A delay's coral, a "cleared" sage and a
  * butter mark were chosen for the theme's own surface; the coral that reads on cream is 2.2:1 on a
- * blue widget. `lib/background.ts` re-measures each one against these cards — lightness only, so the
- * signal is still coral, sage and butter — and hands them over as `--card-*` values, which are
+ * blue widget. `lib/background.ts` re-measures each one against these cards, lightness only, so the
+ * signal is still coral, sage and butter, and hands them over as `--card-*` values, which are
  * applied here and nowhere else. The page, the map's land and the tinted chips keep the theme's own
  * inks.
  */
@@ -277,7 +277,7 @@
   /*
    * **How thick the glass is, and why it is not thinner.**
    *
-   * Text sits on this pane, so the pane has to hold the page's ink over *any* photograph — there is
+   * Text sits on this pane, so the pane has to hold the page's ink over *any* photograph, there is
    * no way to know what is behind it. Composited against pure black, 58% of the cream canvas draws
    * 146,145,145, which is 5.6:1 under the app's obsidian ink; a thinner pane fails (42% measures
    * 3.6:1, which is what the contrast sweep found on a dark wallpaper). The blur and the saturation
@@ -289,7 +289,7 @@
    * **Two edges, because a glass card has to survive any photograph behind it.** The light hairline
    * is what makes the pane read on a dark picture; on a white one it is white on white, so the
    * card's rounded corner disappeared entirely and the section looked like a flat list with square
-   * edges (reported: "corners must never be deleted, no matter what my settings are" — a photo with
+   * edges (reported: "corners must never be deleted, no matter what my settings are", a photo with
    * Glass cards was the setting). A second, dark ring outside it is invisible on a dark picture and
    * clearly present on a light one, so the card's shape and its corners are drawn on every
    * background. No blur: the app's zero-blur elevation rule holds, and a ring is not a shadow.
@@ -310,7 +310,7 @@
   background: color-mix(in srgb, var(--canvas-base) 70%, transparent);
 }
 
-/* Panels inside a glass card are the same pane, one step heavier — opaque enough to read a row of
+/* Panels inside a glass card are the same pane, one step heavier, opaque enough to read a row of
    times through, clear enough to still be glass. */
 :root[data-surface='glass'] .card .panel:not(.panel--accent):not(.panel--coral):not(.panel--sage) {
   background: color-mix(in srgb, var(--canvas-base) 74%, transparent);
@@ -324,7 +324,7 @@
  * A link to an alert, on a journey (9.2).
  *
  * The two ways into an alert were a bare line of 24px text in the banner and a 32px capsule on a
- * leg — the smallest controls on a page where every button is 44px. The target is the app's own
+ * leg, the smallest controls on a page where every button is 44px. The target is the app's own
  * minimum; the capsule keeps its pill and the text link keeps its line, so only the box grows.
  */
 .alert-link {
@@ -385,8 +385,8 @@
   /*
    * **The tint stays pale in dark, so its ink must stay dark.**
    *
-   * `--tint-coral` is the one tint that keeps its cream-pink fill in the dark appearance — a
-   * warning is a warning in either — but the 12px line inside inherited the dark theme's light ink,
+   * `--tint-coral` is the one tint that keeps its cream-pink fill in the dark appearance, a
+   * warning is a warning in either, but the 12px line inside inherited the dark theme's light ink,
    * and the "no transport mode selected" warning measured **1.17:1** (10.2). The dark-ink rule
    * only fired under `[data-surface='tint']`, so a page with no chosen background had nothing
    * pinning it. The panel says which ink belongs on its own fill, whichever page it is on.
@@ -419,11 +419,11 @@
   border-top: 1px solid var(--border-hairline);
 }
 
-/* A row that sits inside a line of text — the mode glyphs under a stop name on the
+/* A row that sits inside a line of text, the mode glyphs under a stop name on the
    departures board. An inline-flex box takes its baseline from its first item, and an
    svg's bottom edge is its baseline, so those glyphs rode ~3px high on the line (measured:
    train -2.59px, tram/bus/ferry -3.00px, metro -3.40px against the label's x-height centre).
-   `vertical-align: middle` puts the box on the line's optical centre — the same rule plain
+   `vertical-align: middle` puts the box on the line's optical centre, the same rule plain
    icons already get from `svg` in base.css. */
 .row--inline {
   display: inline-flex;
@@ -529,7 +529,7 @@
   width: var(--target-min);
   height: var(--target-min);
   /* A row that runs short must not squeeze this one axis only: measured on the stop page,
-     three of these drew 21/26/39px wide against a 44px height — ovals, not circles, and
+     three of these drew 21/26/39px wide against a 44px height, ovals, not circles, and
      targets under the mark. */
   flex: none;
   padding: 0;
@@ -537,20 +537,20 @@
 }
 
 /*
- * A glyph toggle — a bare stateful glyph on whatever it belongs to, in two shapes:
+ * A glyph toggle, a bare stateful glyph on whatever it belongs to, in two shapes:
  *
  *   - the **heart**, for a favourite stop (`Add {stop} to favourites`), which leads the stop
  *     lists and the search;
  *   - the **pin**, for a stop pinned to the departure board, whose board is on that page.
  *
- * One class because they behave identically: the glyph paints nothing behind itself — the
+ * One class because they behave identically: the glyph paints nothing behind itself, the
  * `--ghost` hover background made a chip appear under the pointer, which is not a thing this
- * control does — and **a kept state is the glyph itself, filled with ink**, not a yellow pill.
+ * control does, and **a kept state is the glyph itself, filled with ink**, not a yellow pill.
  * The fill is on the glyph, so the padded 44px target around it stays invisible.
  *
  * The pin is Lucide's **drawing pin**, not the teardrop (`mapPin`), so the fill reads as a pin
  * that has been pushed in. The teardrop meant both *where something is* and *this one is mine*
- * — asked for by name in the audit's complaint. See `pin` and `heart` in `Icons.tsx`.
+ *, asked for by name in the audit's complaint. See `pin` and `heart` in `Icons.tsx`.
  */
 .glyph-toggle,
 .glyph-toggle:hover,
@@ -572,7 +572,7 @@
  *
  * The audit caught the same control reading `right` at 390 and `left` at 320: a heading row is
  * `between wrap`, so when the two halves stop fitting the *actions* group drops to a second line
- * at the **left** — measured on the departure board at 320px, where the keep-a-stop pin's
+ * at the **left**, measured on the departure board at 320px, where the keep-a-stop pin's
  * midpoint had crossed the card's centre and the control was reported on the other side of the
  * card. `margin-inline-start: auto` holds the group at the trailing edge on the wrapped line too,
  * so a control that is trailing stays trailing at every width.
@@ -820,7 +820,7 @@
   /* It is also a flex item, so the `min-width: auto` default sized it to its widest
      row and dragged the whole page with it: the six-option sort control measured
      503px inside a 332px column, which was 142px of document overflow at 390px and
-     212px at 320px — the results page could be panned sideways. It shrinks to its
+     212px at 320px, the results page could be panned sideways. It shrinks to its
      column now, and it wraps there: scrolling it sideways instead left two of the six
      sort options off screen with nothing to say they existed. */
   flex-wrap: wrap;
@@ -859,16 +859,16 @@
 }
 
 /*
- * Compact inline variant — the one beside the date/time control, and the only place a segmented
+ * Compact inline variant, the one beside the date/time control, and the only place a segmented
  * control shares a line with a button.
  *
  * It was 54px tall: a 44px thumb, 4px of padding all round and the capsule's own 1px ring, so the
  * switcher stood 10px taller than the 44px "Now" chip beside it and read as a different size of
- * control. It is now exactly `--target-min`: 38px of thumb, 2px of padding, the 1px ring — and the
+ * control. It is now exactly `--target-min`: 38px of thumb, 2px of padding, the 1px ring, and the
  * ring is the *only* ring on the selected half (see below), because the thumb used to draw a second
  * hairline 4px inside the capsule's and that is what made the whole thing look heavier.
  *
- * The thumb is 38px, so the half's own box is below the 44px mark — its `::after` grows the
+ * The thumb is 38px, so the half's own box is below the 44px mark, its `::after` grows the
  * tappable area to 44 without growing the mark, which is the same trick `.tap-target` uses and
  * which the ui-audit's probe measures (it probes the *effective* target, not the drawn box).
  */
@@ -876,13 +876,13 @@
   /* One 4px step, not 2px: at 2px the two halves of "Depart at | Arrive by" shared an edge and
      read as one blob of text with a fill behind half of it, which is what "buttons stuck to other
      buttons" looks like. Still the tightest gap in the app, so the pair still reads as one
-     control — a whole 8px step would make it read as two. */
+     control, a whole 8px step would make it read as two. */
   gap: var(--s-1);
   /*
    * **The inset is the same on all four sides, so the chosen half is concentric.**
    *
    * It was `2px 4px`, which put the thumb 3px from the capsule's top and bottom edge and 5px from
-   * its ends — two different radii in one shape. Both are fully round, so the thumb's left curve sat
+   * its ends, two different radii in one shape. Both are fully round, so the thumb's left curve sat
    * inside the capsule's with a crescent of background between them, and at 2x it read as a second
    * outline drawn slightly wrong (reported, circled on "Depart at"). At 2px all round the two curves
    * are concentric and the gap is even: the shape reads as one capsule with one raised half.
@@ -900,7 +900,7 @@
   content: '';
   position: absolute;
   /* -4, not -3: the outermost pixel of a -3px extension lands on the capsule's own 1px ring, and a
-     probe there hits the capsule rather than the thumb — measured, `up` reached the button and
+     probe there hits the capsule rather than the thumb, measured, `up` reached the button and
      `down` did not. Four takes the effective target to 46, so a full 44 sits inside it. */
   inset: -4px 0;
 }
@@ -1001,8 +1001,8 @@
 /*
  * The one row whose label is a sentence rather than a label.
  *
- * "Other alerts" is a pager over the fourteen alerts, so its two controls carry **titles** —
- * "Engineering works — Rotterdam Blaak closed to trams" — and `.btn` is `nowrap` by rule. A
+ * "Other alerts" is a pager over the fourteen alerts, so its two controls carry **titles** ,
+ * "Engineering works, Rotterdam Blaak closed to trams", and `.btn` is `nowrap` by rule. A
  * nowrap pill is capped by `max-width: 100%` but its text is not clipped, so it ran out of its own
  * box and off the page: measured at 320px, the link measured **270px** wide with **323px** of text
  * inside it and the document scrolled **349** for a 320px viewport (at 360 it was 369); that is
@@ -1155,7 +1155,7 @@
 
 /* Focus on a field is the app's own ring, not a border colour: this rule used to set
    `outline: none` and outrank the global `:focus-visible` ring, so the search fields and every
-   select were the only controls without the shared 2px coral mark (2.6, 4.5, 6.7, 7.3, 10.1) —
+   select were the only controls without the shared 2px coral mark (2.6, 4.5, 6.7, 7.3, 10.1) ,
    and in dark the border it promised was darker than the card, so focus made the field less
    visible (11.7). The ring comes from base.css like every other control. */
 .input:focus,
@@ -1273,7 +1273,7 @@
   font-size: var(--fs-sm);
 }
 
-/* Autocomplete dropdown — L2 raised container with hairline elevation. */
+/* Autocomplete dropdown, L2 raised container with hairline elevation. */
 /* A combobox is a labelled control plus its hint line, so it carries the same 8px
    rhythm as .field: the name above the box, and the stop's code/modes below it
    rather than against it. */
@@ -1285,12 +1285,12 @@
 
 /* The dropdown hangs from the *input*, not from the labelled control.
  *
- * `.suggestions` is absolute, and it used to be anchored to `.combobox` — which is the input
+ * `.suggestions` is absolute, and it used to be anchored to `.combobox`, which is the input
  * plus the hint line under it (the stop's code and its modes, `.field__hint`). So `top: 100%`
  * meant "below both": the list opened *under* the hint, leaving "ASC · Train, Tram, Metro,
  * Bus, Ferry, Walking, Biking" sitting above a panel that is meant to be covering it, and
  * pushing the whole list one line further down the screen than the input it belongs to. This
- * wrapper exists only to give the list the right box to hang from — the hint stays outside it,
+ * wrapper exists only to give the list the right box to hang from, the hint stays outside it,
  * and is covered the moment the list opens. */
 .combobox__field {
   position: relative;
@@ -1302,7 +1302,7 @@
  * A scrollport is clipped at the padding box, so with the panel's 8px of padding under the last
  * row, the top 8px of the row after it stayed visible under the panel's edge: a list that ends in a
  * cut-off line. The cap counts that padding as part of the panel, so when there are more rows than
- * fit the padding is dropped — and the space is not lost, because it is the 8px the cap leaves
+ * fit the padding is dropped, and the space is not lost, because it is the 8px the cap leaves
  * under the last whole row.
  */
 .suggestions.suggestions--more {
@@ -1325,7 +1325,7 @@
    *
    * The cap is a fallback. `StopCombobox` measures the room between the field and the foot of the
    * window and writes the result as an inline `max-height`, because a fixed 58vh list on a phone
-   * drew a box whose own bottom — and therefore whose scrollbar — was off screen, which is the
+   * drew a box whose own bottom, and therefore whose scrollbar, was off screen, which is the
    * reported "its not possible to scroll through the options" (2026-10-17t20-06-25). Nothing below
    * it may scroll the page either: `overscroll-behavior: contain` ends the list's scroll at the
    * list's own end instead of chaining it to the page behind (which is what dismissed the popup).
@@ -1367,7 +1367,7 @@
 /* -------------------------------------------------------------- planner card */
 /* The planner is one small card holding two rows and a rail: a hollow ring at the
  * departure end, a line, a filled square at the arrival end, and a hairline between the
- * rows. Nothing else — the card asks one question and holds one answer per row.
+ * rows. Nothing else, the card asks one question and holds one answer per row.
  *
  * A row is a *button* on the home card (typing happens on the full-screen picker, the
  * screen built for it) and a field inside that picker, so both share these classes and
@@ -1382,7 +1382,7 @@
 /*
  * Every card draws one shape now.
  *
- * These rules drew the planner at three heights — 46px rows, 52px rows, and two stretched 72px
+ * These rules drew the planner at three heights, 46px rows, 52px rows, and two stretched 72px
  * rows filling a 312px card. With the sizes gone there is one form, which is the one the base rule
  * above has always declared: two 52px rows, and a card as tall as the form it holds.
  */
@@ -1396,7 +1396,7 @@
    * `var(--planner-row)` here and in the rail's geometry resolved to *nothing* on that screen:
    * the rows collapsed to their text height (measured 22px instead of 52px), both rail nodes
    * stacked in the card's top-left corner and the divider ran through the To row. An undefined
-   * custom property is invisible — it is not a warning, it is `auto`. Declaring it on the card
+   * custom property is invisible, it is not a warning, it is `auto`. Declaring it on the card
    * covers both screens, because both draw the same card.
    */
   --planner-row: 52px;
@@ -1412,7 +1412,7 @@
 }
 
 /* The picker's card carries the reverse control in a third column, and the control spans both
-   rows so `align-self: center` puts it exactly on the line between them — the middle of the
+   rows so `align-self: center` puts it exactly on the line between them, the middle of the
    card, belonging to neither row. It was `grid-column: 1`'s neighbour inside the From row
    before this, below one clear button and above the other. */
 .planner-card--swap {
@@ -1479,7 +1479,7 @@
   position: relative;
   display: grid;
   /* `auto` sizes the track to its content, and the rows hold text that refuses to wrap
-     (`white-space: nowrap` on the button), so the track could be wider than the card — two
+     (`white-space: nowrap` on the button), so the track could be wider than the card, two
      pixels wider in Dutch, which is two pixels of the whole page scrolling sideways. */
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1493,7 +1493,7 @@
 /*
  * **The hairline between the two rows is painted, not shadowed.**
  *
- * It was `inset 0 1px 0` — a shadow, which draws one pixel without adding a pixel to the row's box
+ * It was `inset 0 1px 0`, a shadow, which draws one pixel without adding a pixel to the row's box
  * (a border would push the To row's centre half a pixel down, and the rail's square with it). That
  * works until super energy saving arrives: the mode drops every box-shadow in the interface for
  * the compositor's sake, so the one line that makes this look like two rows went with it and the
@@ -1562,7 +1562,7 @@
 }
 
 /* The reverse control: in its own column on the card's right edge, centred vertically between
-   the two rows — the middle of the card, belonging to neither row. It carries no background of
+   the two rows, the middle of the card, belonging to neither row. It carries no background of
    its own: it is a glyph on the card, not a raised control. */
 .planner-swap {
   grid-column: 3;
@@ -1594,7 +1594,7 @@
 }
 
 /* ----------------------------------------------------------- full-screen screens */
-/* Take over everything — the mark, the dock, the lot — with a back arrow and a centred
+/* Take over everything, the mark, the dock, the lot, with a back arrow and a centred
    title, which is the shape the 9292 picker has. */
 .fullscreen {
   position: fixed;
@@ -1613,8 +1613,8 @@
   /*
    * The same top edge a page's own way back sits on, not 8px above it.
    *
-   * This bar used to start at `--s-3` (12) while the app header's back disc starts at 20 — the
-   * header's 4px padding plus the 16px step the mark sets — so the same arrow stood at two heights
+   * This bar used to start at `--s-3` (12) while the app header's back disc starts at 20, the
+   * header's 4px padding plus the 16px step the mark sets, so the same arrow stood at two heights
    * depending on whether the screen behind it was a page or one of the two full-screen pickers
    * (measured: 12,12 against 20,12, and `round15-check` fails the run on it). `--s-4 + --s-1` is
    * that 20, so all five back controls share one corner on screen.
@@ -1629,7 +1629,7 @@
  * The back control, in one shape, wherever it is drawn.
  *
  * This was `fullscreen__back`'s paint and nothing else's, so the two full-screen pickers agreed
- * with each other and every *page* with its own way back drew something else — a labelled ghost
+ * with each other and every *page* with its own way back drew something else, a labelled ghost
  * pill in whatever position its header row gave it. The shape is the picker's: a 44px round arrow
  * (`btn--icon-circle`) on the raised surface with a hairline. `FullScreen` keeps its own class for
  * the placement inside its bar; everything else gets the shape from here. The header row is the
@@ -1686,7 +1686,7 @@
   padding-top: var(--s-1);
 }
 
-/* Where a looked-up address is shown, its source is named — OpenStreetMap's licence asks
+/* Where a looked-up address is shown, its source is named, OpenStreetMap's licence asks
    for it at the point of use, and this line only exists while such an address is on screen. */
 .picker__attribution {
   text-align: center;
@@ -1790,7 +1790,7 @@
  *
  * It was painted with `--tint-sage-ink`, a fixed #5A7A58 chosen against the cream theme's surface.
  * On the picker's own tinted panel that measured **4.19:1** on a yellow page, **4.45:1** on a pale
- * blue one and **1.58:1** on navy — a step under the 4.5:1 this app holds its body text to, on the
+ * blue one and **1.58:1** on navy, a step under the 4.5:1 this app holds its body text to, on the
  * two rows a traveller presses first. A semantic ink is a signal; the words in it still have to be
  * read, so the *name* takes the surface's own strongest ink, which is derived for it, and the sage
  * stays on the marker beside it, where a mark needs 3:1 rather than 4.5:1.
@@ -1813,7 +1813,7 @@
 /*
  * The results bar is one row of chips and one sort, not a grid of five rows.
  *
- * `auto-fit minmax(150px, 1fr)` turned into a single column at 320 — five rows, 326.8px, and the
+ * `auto-fit minmax(150px, 1fr)` turned into a single column at 320, five rows, 326.8px, and the
  * first journey 196.6px below a 568px fold (2.4). The chips now scroll sideways in their own row
  * and the sort follows on the next line, which is the same information in about a third of the
  * height at the narrowest width.
@@ -1830,14 +1830,14 @@
  *
  * The chips answer the search and the sort says how to read the list, so on a phone they are two
  * rows: "Leave: Now" and the save chip, then the sort and Options beneath them. That is where the
- * width actually is — four controls on a 390px line is four controls squeezed.
+ * width actually is, four controls on a 390px line is four controls squeezed.
  *
  * **Two columns, not two stretched pairs.** The bands used to be flex rows that grew one chip into
  * whatever space was left, so a 390 phone drew a 314px pill holding "Leave: 10:00" with a 44px
  * bookmark circle beside it, then a 261px pill holding "Best" and a chevron: four huge capsules
  * around four short labels, and a circle that belonged to no column. The bar is a grid whose first
  * column is the value and whose second is the action, so both bands share their two widths and the
- * four controls sit in a 2 x 2 block — the when chip and the sort above each other, the save chip
+ * four controls sit in a 2 x 2 block, the when chip and the sort above each other, the save chip
  * and Options down the right edge. Filling a pill is not the same as using the room.
  */
 .results-bar__row {
@@ -1850,8 +1850,8 @@
 }
 
 /*
- * The when chip holds a name and a value, so they sit at the two ends of its pill — "Leave:" at the
- * left edge and the time at the right — which is what makes a wide cell read as a field instead of
+ * The when chip holds a name and a value, so they sit at the two ends of its pill, "Leave:" at the
+ * left edge and the time at the right, which is what makes a wide cell read as a field instead of
  * as mostly empty. The sort does the same by construction (its select fills the chip and its
  * chevron is drawn at the far right); the two actions in the right column are centred, because each
  * is one icon and one word.
@@ -1864,15 +1864,15 @@
  * The sort is a chip (MATCHING_PLAN rule 1).
  *
  * It was a labelled field: "SORT BY" in small caps, then a bordered select the width of the page,
- * on a line of its own beneath the chips — 88px of a phone for one word of information, and the
+ * on a line of its own beneath the chips, 88px of a phone for one word of information, and the
  * third band of controls above a journey that had not started yet. The label is still the select's
  * name, but it is the chip's own text now (a screen reader reads "Sort by, Best"), the select is
- * drawn without a box, and its chevron is two 5px gradients in `currentColor` — the one way to draw
+ * drawn without a box, and its chevron is two 5px gradients in `currentColor`, the one way to draw
  * a mark that turns over with the theme, which a data-URI image cannot do.
  */
 /*
  * The sort and Options travel together (`results-bar__read`), and below 720 that wrapper is
- * unpacked into the grid — the sort takes the cell under the when chip, Options the one under the
+ * unpacked into the grid, the sort takes the cell under the when chip, Options the one under the
  * save chip. From 720 it is a row of the two beside the chips again.
  */
 .results-bar__read {
@@ -1890,7 +1890,7 @@
  *
  * `Select` wraps a native `<select>` that this file dresses as a field: a 44px capsule with its own
  * `--l2-bg` fill, its own hairline and its own font weight. Put inside the sort chip that drew a
- * *second* capsule inside the first — a lighter box with an edge of its own, sitting inside the
+ * *second* capsule inside the first, a lighter box with an edge of its own, sitting inside the
  * pill's curve and cutting its ends at a different angle, beside three controls that were one shape
  * (reported: "looks super weird and inconsistent with the rest of the website", circled). It also
  * made the sort 46px tall while its neighbours were 44, because a 44px field inside a bordered pill
@@ -1983,8 +1983,8 @@
   /*
    * **The tint stays pale in dark, so its ink must stay dark.**
    *
-   * `--tint-coral` is the one tint that keeps its cream-pink fill in the dark appearance — a
-   * warning is a warning in either — but the 12px line inside inherited the dark theme's light ink,
+   * `--tint-coral` is the one tint that keeps its cream-pink fill in the dark appearance, a
+   * warning is a warning in either, but the 12px line inside inherited the dark theme's light ink,
    * and the "no transport mode selected" warning measured **1.17:1** (10.2). The dark-ink rule
    * only fired under `[data-surface='tint']`, so a page with no chosen background had nothing
    * pinning it. The panel says which ink belongs on its own fill, whichever page it is on.
@@ -2017,11 +2017,11 @@
   border-top: 1px solid var(--border-hairline);
 }
 
-/* A row that sits inside a line of text — the mode glyphs under a stop name on the
+/* A row that sits inside a line of text, the mode glyphs under a stop name on the
    departures board. An inline-flex box takes its baseline from its first item, and an
    svg's bottom edge is its baseline, so those glyphs rode ~3px high on the line (measured:
    train -2.59px, tram/bus/ferry -3.00px, metro -3.40px against the label's x-height centre).
-   `vertical-align: middle` puts the box on the line's optical centre — the same rule plain
+   `vertical-align: middle` puts the box on the line's optical centre, the same rule plain
    icons already get from `svg` in base.css. */
 .row--inline {
   display: inline-flex;
@@ -2127,7 +2127,7 @@
   width: var(--target-min);
   height: var(--target-min);
   /* A row that runs short must not squeeze this one axis only: measured on the stop page,
-     three of these drew 21/26/39px wide against a 44px height — ovals, not circles, and
+     three of these drew 21/26/39px wide against a 44px height, ovals, not circles, and
      targets under the mark. */
   flex: none;
   padding: 0;
@@ -2135,20 +2135,20 @@
 }
 
 /*
- * A glyph toggle — a bare stateful glyph on whatever it belongs to, in two shapes:
+ * A glyph toggle, a bare stateful glyph on whatever it belongs to, in two shapes:
  *
  *   - the **heart**, for a favourite stop (`Add {stop} to favourites`), which leads the stop
  *     lists and the search;
  *   - the **pin**, for a stop pinned to the departure board, whose board is on that page.
  *
- * One class because they behave identically: the glyph paints nothing behind itself — the
+ * One class because they behave identically: the glyph paints nothing behind itself, the
  * `--ghost` hover background made a chip appear under the pointer, which is not a thing this
- * control does — and **a kept state is the glyph itself, filled with ink**, not a yellow pill.
+ * control does, and **a kept state is the glyph itself, filled with ink**, not a yellow pill.
  * The fill is on the glyph, so the padded 44px target around it stays invisible.
  *
  * The pin is Lucide's **drawing pin**, not the teardrop (`mapPin`), so the fill reads as a pin
  * that has been pushed in. The teardrop meant both *where something is* and *this one is mine*
- * — asked for by name in the audit's complaint. See `pin` and `heart` in `Icons.tsx`.
+ *, asked for by name in the audit's complaint. See `pin` and `heart` in `Icons.tsx`.
  */
 .glyph-toggle,
 .glyph-toggle:hover,
@@ -2170,7 +2170,7 @@
  *
  * The audit caught the same control reading `right` at 390 and `left` at 320: a heading row is
  * `between wrap`, so when the two halves stop fitting the *actions* group drops to a second line
- * at the **left** — measured on the departure board at 320px, where the keep-a-stop pin's
+ * at the **left**, measured on the departure board at 320px, where the keep-a-stop pin's
  * midpoint had crossed the card's centre and the control was reported on the other side of the
  * card. `margin-inline-start: auto` holds the group at the trailing edge on the wrapped line too,
  * so a control that is trailing stays trailing at every width.
@@ -2417,7 +2417,7 @@
   /* It is also a flex item, so the `min-width: auto` default sized it to its widest
      row and dragged the whole page with it: the six-option sort control measured
      503px inside a 332px column, which was 142px of document overflow at 390px and
-     212px at 320px — the results page could be panned sideways. It shrinks to its
+     212px at 320px, the results page could be panned sideways. It shrinks to its
      column now, and it wraps there: scrolling it sideways instead left two of the six
      sort options off screen with nothing to say they existed. */
   flex-wrap: wrap;
@@ -2456,16 +2456,16 @@
 }
 
 /*
- * Compact inline variant — the one beside the date/time control, and the only place a segmented
+ * Compact inline variant, the one beside the date/time control, and the only place a segmented
  * control shares a line with a button.
  *
  * It was 54px tall: a 44px thumb, 4px of padding all round and the capsule's own 1px ring, so the
  * switcher stood 10px taller than the 44px "Now" chip beside it and read as a different size of
- * control. It is now exactly `--target-min`: 38px of thumb, 2px of padding, the 1px ring — and the
+ * control. It is now exactly `--target-min`: 38px of thumb, 2px of padding, the 1px ring, and the
  * ring is the *only* ring on the selected half (see below), because the thumb used to draw a second
  * hairline 4px inside the capsule's and that is what made the whole thing look heavier.
  *
- * The thumb is 38px, so the half's own box is below the 44px mark — its `::after` grows the
+ * The thumb is 38px, so the half's own box is below the 44px mark, its `::after` grows the
  * tappable area to 44 without growing the mark, which is the same trick `.tap-target` uses and
  * which the ui-audit's probe measures (it probes the *effective* target, not the drawn box).
  */
@@ -2473,13 +2473,13 @@
   /* One 4px step, not 2px: at 2px the two halves of "Depart at | Arrive by" shared an edge and
      read as one blob of text with a fill behind half of it, which is what "buttons stuck to other
      buttons" looks like. Still the tightest gap in the app, so the pair still reads as one
-     control — a whole 8px step would make it read as two. */
+     control, a whole 8px step would make it read as two. */
   gap: var(--s-1);
   /*
    * **The inset is the same on all four sides, so the chosen half is concentric.**
    *
    * It was `2px 4px`, which put the thumb 3px from the capsule's top and bottom edge and 5px from
-   * its ends — two different radii in one shape. Both are fully round, so the thumb's left curve sat
+   * its ends, two different radii in one shape. Both are fully round, so the thumb's left curve sat
    * inside the capsule's with a crescent of background between them, and at 2x it read as a second
    * outline drawn slightly wrong (reported, circled on "Depart at"). At 2px all round the two curves
    * are concentric and the gap is even: the shape reads as one capsule with one raised half.
@@ -2497,7 +2497,7 @@
   content: '';
   position: absolute;
   /* -4, not -3: the outermost pixel of a -3px extension lands on the capsule's own 1px ring, and a
-     probe there hits the capsule rather than the thumb — measured, `up` reached the button and
+     probe there hits the capsule rather than the thumb, measured, `up` reached the button and
      `down` did not. Four takes the effective target to 46, so a full 44 sits inside it. */
   inset: -4px 0;
 }
@@ -2598,8 +2598,8 @@
 /*
  * The one row whose label is a sentence rather than a label.
  *
- * "Other alerts" is a pager over the fourteen alerts, so its two controls carry **titles** —
- * "Engineering works — Rotterdam Blaak closed to trams" — and `.btn` is `nowrap` by rule. A
+ * "Other alerts" is a pager over the fourteen alerts, so its two controls carry **titles** ,
+ * "Engineering works, Rotterdam Blaak closed to trams", and `.btn` is `nowrap` by rule. A
  * nowrap pill is capped by `max-width: 100%` but its text is not clipped, so it ran out of its own
  * box and off the page: measured at 320px, the link measured **270px** wide with **323px** of text
  * inside it and the document scrolled **349** for a 320px viewport (at 360 it was 369); that is
@@ -2690,7 +2690,7 @@
 
 /* Focus on a field is the app's own ring, not a border colour: this rule used to set
    `outline: none` and outrank the global `:focus-visible` ring, so the search fields and every
-   select were the only controls without the shared 2px coral mark (2.6, 4.5, 6.7, 7.3, 10.1) —
+   select were the only controls without the shared 2px coral mark (2.6, 4.5, 6.7, 7.3, 10.1) ,
    and in dark the border it promised was darker than the card, so focus made the field less
    visible (11.7). The ring comes from base.css like every other control. */
 .input:focus,
@@ -2808,7 +2808,7 @@
   font-size: var(--fs-sm);
 }
 
-/* Autocomplete dropdown — L2 raised container with hairline elevation. */
+/* Autocomplete dropdown, L2 raised container with hairline elevation. */
 /* A combobox is a labelled control plus its hint line, so it carries the same 8px
    rhythm as .field: the name above the box, and the stop's code/modes below it
    rather than against it. */
@@ -2820,12 +2820,12 @@
 
 /* The dropdown hangs from the *input*, not from the labelled control.
  *
- * `.suggestions` is absolute, and it used to be anchored to `.combobox` — which is the input
+ * `.suggestions` is absolute, and it used to be anchored to `.combobox`, which is the input
  * plus the hint line under it (the stop's code and its modes, `.field__hint`). So `top: 100%`
  * meant "below both": the list opened *under* the hint, leaving "ASC · Train, Tram, Metro,
  * Bus, Ferry, Walking, Biking" sitting above a panel that is meant to be covering it, and
  * pushing the whole list one line further down the screen than the input it belongs to. This
- * wrapper exists only to give the list the right box to hang from — the hint stays outside it,
+ * wrapper exists only to give the list the right box to hang from, the hint stays outside it,
  * and is covered the moment the list opens. */
 .combobox__field {
   position: relative;
@@ -2847,7 +2847,7 @@
    *
    * The cap is a fallback. `StopCombobox` measures the room between the field and the foot of the
    * window and writes the result as an inline `max-height`, because a fixed 58vh list on a phone
-   * drew a box whose own bottom — and therefore whose scrollbar — was off screen, which is the
+   * drew a box whose own bottom, and therefore whose scrollbar, was off screen, which is the
    * reported "its not possible to scroll through the options" (2026-10-17t20-06-25). Nothing below
    * it may scroll the page either: `overscroll-behavior: contain` ends the list's scroll at the
    * list's own end instead of chaining it to the page behind (which is what dismissed the popup).
@@ -2889,7 +2889,7 @@
 /* -------------------------------------------------------------- planner card */
 /* The planner is one small card holding two rows and a rail: a hollow ring at the
  * departure end, a line, a filled square at the arrival end, and a hairline between the
- * rows. Nothing else — the card asks one question and holds one answer per row.
+ * rows. Nothing else, the card asks one question and holds one answer per row.
  *
  * A row is a *button* on the home card (typing happens on the full-screen picker, the
  * screen built for it) and a field inside that picker, so both share these classes and
@@ -2904,7 +2904,7 @@
 /*
  * Every card draws one shape now.
  *
- * These rules drew the planner at three heights — 46px rows, 52px rows, and two stretched 72px
+ * These rules drew the planner at three heights, 46px rows, 52px rows, and two stretched 72px
  * rows filling a 312px card. With the sizes gone there is one form, which is the one the base rule
  * above has always declared: two 52px rows, and a card as tall as the form it holds.
  */
@@ -2918,7 +2918,7 @@
    * `var(--planner-row)` here and in the rail's geometry resolved to *nothing* on that screen:
    * the rows collapsed to their text height (measured 22px instead of 52px), both rail nodes
    * stacked in the card's top-left corner and the divider ran through the To row. An undefined
-   * custom property is invisible — it is not a warning, it is `auto`. Declaring it on the card
+   * custom property is invisible, it is not a warning, it is `auto`. Declaring it on the card
    * covers both screens, because both draw the same card.
    */
   --planner-row: 52px;
@@ -2934,7 +2934,7 @@
 }
 
 /* The picker's card carries the reverse control in a third column, and the control spans both
-   rows so `align-self: center` puts it exactly on the line between them — the middle of the
+   rows so `align-self: center` puts it exactly on the line between them, the middle of the
    card, belonging to neither row. It was `grid-column: 1`'s neighbour inside the From row
    before this, below one clear button and above the other. */
 .planner-card--swap {
@@ -3001,7 +3001,7 @@
   position: relative;
   display: grid;
   /* `auto` sizes the track to its content, and the rows hold text that refuses to wrap
-     (`white-space: nowrap` on the button), so the track could be wider than the card — two
+     (`white-space: nowrap` on the button), so the track could be wider than the card, two
      pixels wider in Dutch, which is two pixels of the whole page scrolling sideways. */
   grid-template-columns: minmax(0, 1fr);
 }
@@ -3015,7 +3015,7 @@
 /*
  * **The hairline between the two rows is painted, not shadowed.**
  *
- * It was `inset 0 1px 0` — a shadow, which draws one pixel without adding a pixel to the row's box
+ * It was `inset 0 1px 0`, a shadow, which draws one pixel without adding a pixel to the row's box
  * (a border would push the To row's centre half a pixel down, and the rail's square with it). That
  * works until super energy saving arrives: the mode drops every box-shadow in the interface for
  * the compositor's sake, so the one line that makes this look like two rows went with it and the
@@ -3084,7 +3084,7 @@
 }
 
 /* The reverse control: in its own column on the card's right edge, centred vertically between
-   the two rows — the middle of the card, belonging to neither row. It carries no background of
+   the two rows, the middle of the card, belonging to neither row. It carries no background of
    its own: it is a glyph on the card, not a raised control. */
 .planner-swap {
   grid-column: 3;
@@ -3116,7 +3116,7 @@
 }
 
 /* ----------------------------------------------------------- full-screen screens */
-/* Take over everything — the mark, the dock, the lot — with a back arrow and a centred
+/* Take over everything, the mark, the dock, the lot, with a back arrow and a centred
    title, which is the shape the 9292 picker has. */
 .fullscreen {
   position: fixed;
@@ -3135,8 +3135,8 @@
   /*
    * The same top edge a page's own way back sits on, not 8px above it.
    *
-   * This bar used to start at `--s-3` (12) while the app header's back disc starts at 20 — the
-   * header's 4px padding plus the 16px step the mark sets — so the same arrow stood at two heights
+   * This bar used to start at `--s-3` (12) while the app header's back disc starts at 20, the
+   * header's 4px padding plus the 16px step the mark sets, so the same arrow stood at two heights
    * depending on whether the screen behind it was a page or one of the two full-screen pickers
    * (measured: 12,12 against 20,12, and `round15-check` fails the run on it). `--s-4 + --s-1` is
    * that 20, so all five back controls share one corner on screen.
@@ -3151,7 +3151,7 @@
  * The back control, in one shape, wherever it is drawn.
  *
  * This was `fullscreen__back`'s paint and nothing else's, so the two full-screen pickers agreed
- * with each other and every *page* with its own way back drew something else — a labelled ghost
+ * with each other and every *page* with its own way back drew something else, a labelled ghost
  * pill in whatever position its header row gave it. The shape is the picker's: a 44px round arrow
  * (`btn--icon-circle`) on the raised surface with a hairline. `FullScreen` keeps its own class for
  * the placement inside its bar; everything else gets the shape from here. The header row is the
@@ -3208,7 +3208,7 @@
   padding-top: var(--s-1);
 }
 
-/* Where a looked-up address is shown, its source is named — OpenStreetMap's licence asks
+/* Where a looked-up address is shown, its source is named, OpenStreetMap's licence asks
    for it at the point of use, and this line only exists while such an address is on screen. */
 .picker__attribution {
   text-align: center;
@@ -3312,7 +3312,7 @@
  *
  * It was painted with `--tint-sage-ink`, a fixed #5A7A58 chosen against the cream theme's surface.
  * On the picker's own tinted panel that measured **4.19:1** on a yellow page, **4.45:1** on a pale
- * blue one and **1.58:1** on navy — a step under the 4.5:1 this app holds its body text to, on the
+ * blue one and **1.58:1** on navy, a step under the 4.5:1 this app holds its body text to, on the
  * two rows a traveller presses first. A semantic ink is a signal; the words in it still have to be
  * read, so the *name* takes the surface's own strongest ink, which is derived for it, and the sage
  * stays on the marker beside it, where a mark needs 3:1 rather than 4.5:1.
@@ -3383,10 +3383,10 @@
 }
 
 /*
- * **A chip's hover is for a pointer that hovers — and it never takes the outline away.**
+ * **A chip's hover is for a pointer that hovers, and it never takes the outline away.**
  *
  * Two faults met on the results bar. The hover rule changed the border to `--struct-main`, which in
- * the dark appearance is `rgb(24, 24, 27)` — darker than the chip's own surface — so a hovered chip
+ * the dark appearance is `rgb(24, 24, 27)`, darker than the chip's own surface, so a hovered chip
  * was a chip with *no* outline, and the lift moved it 4px up as well. And a phone leaves `:hover` on
  * whatever was under the finger, so after finishing the search the chip that happened to be at that
  * spot arrived already "hovered": no outline, floating, until the next touch somewhere else put it
@@ -3438,15 +3438,15 @@
    * **The count wears the accent, not the structural plate.**
    *
    * It was `--struct-main` behind `--on-dark`, the pair a primary button wears. `--struct-main` is a
-   * *dark plate in every style* — that is the point of it, so a primary button's light label always
-   * reads — so on a glass chip over a photograph the disc and the chip behind it are both near-black
+   * *dark plate in every style*, that is the point of it, so a primary button's light label always
+   * reads, so on a glass chip over a photograph the disc and the chip behind it are both near-black
    * and the count had no edge at all (circled and reported). Its own pair was 16:1 in every style and
    * still invisible, because what a badge has to clear is the *chip*, not its own ink. The accent is
    * no better everywhere: it is under 3:1 against the chip's own surface in 17 of the 94 style and
    * appearance pairs.
    *
    * `--ink-strong` on `--l1-bg` is the one pair this app already trusts on every screen: text on a
-   * surface. Used inverted — the ink as the disc, the surface colour as the number — the badge clears
+   * surface. Used inverted, the ink as the disc, the surface colour as the number, the badge clears
    * its chip by exactly the margin a paragraph clears a card, in every style, on glass or on paper.
    */
   background: var(--ink-strong);
@@ -3521,7 +3521,7 @@
  * The title of an alert card is `tap-target`, and its borrowed target kept being clipped: measured
  * outward from the words, a two-line title reached 36px because the block above owned the space the
  * pseudo wanted. Borrowing only works when the row around a link has room to spare, and a list is
- * the one place it never does — so inside a card the link is the target (44px, expansion off),
+ * the one place it never does, so inside a card the link is the target (44px, expansion off),
  * exactly as the results banner's alert link already was.
  */
 /*
@@ -3549,7 +3549,7 @@
  * An expanded hit area has to fit inside the space its row is given, and this one did not.
  *
  * `.tap-target::after` reaches 14px above its own box, and the card above it left a 12px gap to
- * the board's "Show N more" button — so the bottom 2.5px of that button sat inside the *link's*
+ * the board's "Show N more" button, so the bottom 2.5px of that button sat inside the *link's*
  * hit area, and the button's own bottom edge was not tappable (measured: the link's hit area
  * began at y=836.5 against the button's bottom at y=839.0). One 4px step of separation is what
  * makes both targets real, which is why the fix is here and not in the audit that caught it.
@@ -3561,7 +3561,7 @@
    * The row takes its own 44px instead of borrowing them.
    *
    * `.tap-target::after` reaches 14px past the box, and here that borrowed height was being eaten
-   * — by the dock that floats over the foot of the page, and by whatever card sits above it — so
+   *, by the dock that floats over the foot of the page, and by whatever card sits above it, so
    * the target a finger actually got was the 16px of the words. The expansion is switched off and
    * the row is the target: 262-270px wide on a phone, and 44 tall everywhere.
    */
@@ -3573,9 +3573,9 @@
   inset: 0;
 }
 
-/* An alert's title and its "— view details" tail: the title takes the space the row has,
+/* An alert's title and its ", view details" tail: the title takes the space the row has,
    and the tail stays on one line at the end of the first line. As running text it broke
-   between the dash and the word ("— view" / "details"). */
+   between the dash and the word (", view" / "details"). */
 .alert-link {
   display: flex;
   align-items: baseline;
@@ -3583,7 +3583,7 @@
   /*
    * The 44px target from the `.alert-link` block above is stated again here, and it has to be:
    * `.pill`'s own `min-height: 24px` is written **after** that block, so on a leg's capsule the
-   * 24px line won and the pill measured 24-27px — the smallest control on a page of 44px buttons
+   * 24px line won and the pill measured 24-27px, the smallest control on a page of 44px buttons
    * (9.2). Two rules of equal weight, so the later one decides; the target belongs to the later one.
    */
   min-height: var(--target-min);
@@ -3599,9 +3599,9 @@
  * **A banner's alert link is two lines, not two columns.**
  *
  * The rule above makes the last element child non-wrapping, which is right for a leg's capsule
- * (a title, then "— view details" at its end) and wrong in a banner, where the link is a pair of
- * sentences in a narrow column: the title was held on one line while the tail — a bare text node,
- * so the `:last-child` rule did not even reach it — was squeezed to one word per line, measured
+ * (a title, then ", view details" at its end) and wrong in a banner, where the link is a pair of
+ * sentences in a narrow column: the title was held on one line while the tail, a bare text node,
+ * so the `:last-child` rule did not even reach it, was squeezed to one word per line, measured
  * 335px of content inside a 310px box, and spilled past the card's edge. Stacked, both read.
  */
 .alert-link.alert-link--banner {
@@ -3627,7 +3627,7 @@
  * `.tap-target::after` reaches 14px above and below its own box while the two links in the
  * results banner are one 8px step apart, so the second link's hit area began 6px inside the
  * first: a press on the bottom of alert one opened alert two (2.2). A pseudo-element can only
- * grow into space nobody else is using — so here the link takes the target as its own height
+ * grow into space nobody else is using, so here the link takes the target as its own height
  * (44px) instead of borrowing it, and the expansion is switched off.
  */
 .alert-link.tap-target {
@@ -3669,8 +3669,8 @@
 
 /*
  * The journey page's own action row (F12), under the page's head rather than inside the summary
- * card. On a phone every action takes the whole row — one per line, no label wrapping inside its
- * own button — and from 641px up it is the wrapping line of pills the card used to hold.
+ * card. On a phone every action takes the whole row, one per line, no label wrapping inside its
+ * own button, and from 641px up it is the wrapping line of pills the card used to hold.
  */
 .journey-actions {
   display: grid;
@@ -3813,7 +3813,7 @@
   transform: scale(var(--press-scale));
 }
 
-/* Range slider — coral focal track with hairline rail. */
+/* Range slider, coral focal track with hairline rail. */
 .range {
   display: flex;
   flex-direction: column;
@@ -3877,7 +3877,7 @@
 
 /*
  * **The account's face.** A circle, painted by the component (a photograph or one of ten colours),
- * so nothing here decides which — only the shape and the cropping. `object-fit` is what keeps a
+ * so nothing here decides which, only the shape and the cropping. `object-fit` is what keeps a
  * photograph square inside a round frame without stretching it.
  */
 .avatar {
@@ -4082,8 +4082,8 @@
 /*
  * What is at the stop, one badge per facility.
  *
- * The same pill a mode badge wears — a card showing two kinds of pill either shares one shape or
- * asks the traveller to learn a second for no reason — but set quieter: a facility is reference
+ * The same pill a mode badge wears, a card showing two kinds of pill either shares one shape or
+ * asks the traveller to learn a second for no reason, but set quieter: a facility is reference
  * ("is there a lift?"), not a category the way a mode is, so the ink is the muted one and the
  * weight is `medium` where a mode badge is bold. That is what keeps six of them in a row from
  * reading as six headings.
@@ -4156,7 +4156,7 @@
 .timeline__rail::before {
   content: '';
   position: absolute;
-  /* The line's centre sits on the node's centre — one number, so a node cannot drift off its rail. */
+  /* The line's centre sits on the node's centre, one number, so a node cannot drift off its rail. */
   left: calc(var(--rail-node) / 2 - var(--rail-line) / 2);
   /*
    * **From the row's own edge, not from 9px down it.**
@@ -4170,7 +4170,7 @@
   /*
    * Into the gap, not short of it.
    *
-   * The rail is drawn per row, and the rows are 12px apart — so every transfer drew a 12px break
+   * The rail is drawn per row, and the rows are 12px apart, so every transfer drew a 12px break
    * in one journey's line with nothing bridging it (9.5): the line under the first leg stopped 10px
    * above the row, the transfer pill sat in a row of its own, and the next leg's line began 10px
    * below its own top. The segment now runs the gap as well, and the node's own filled disc covers
@@ -4207,7 +4207,7 @@
  *
  * On a ride the station name takes the first line and the service the second, so the glyph under the
  * time has a line of its own to sit beside. A walk is one line of words, and it sat at the top of
- * the row while its glyph sat below it — a figure floating under nothing. The amount drops to the
+ * the row while its glyph sat below it, a figure floating under nothing. The amount drops to the
  * glyph's line and the two are centred on each other.
  */
 .timeline__rail--dashed {
@@ -4224,12 +4224,12 @@
   /*
    * **Dashes from the circle to the circle, with no solid run at either end.**
    *
-   * The stretch used to be painted in three layers — a twenty-pixel solid run at the top, the dashes
-   * in the middle, a twenty-four-pixel solid run at the foot — so that a mark was always met by a
+   * The stretch used to be painted in three layers, a twenty-pixel solid run at the top, the dashes
+   * in the middle, a twenty-four-pixel solid run at the foot, so that a mark was always met by a
    * solid pixel whatever the pattern phase happened to be. It worked, and it looked wrong: the first
    * stretch after the circle was one unbroken bar, and the last one ended in a long solid segment
    * that read as a different kind of line. The segment now begins exactly at the circle's edge, so the
-   * pattern starts with a dash there, and closes on one short dash at the next circle —
+   * pattern starts with a dash there, and closes on one short dash at the next circle ,
    * dashes all the way, which is what a walk is.
    */
   top: calc(3px + var(--rail-node));
@@ -4237,8 +4237,8 @@
    * **The stretch is fitted to a whole number of dashes, and the leftover hides under the circle
    * below.** A pattern drawn over a fixed length ends wherever it ends: here on a half-length dash,
    * there on a short final gap, so the last dash looked longer than its neighbours and the space
-   * before it looked smaller. `--dash-extra` is set by the row itself — the few pixels that make the
-   * dashes add up exactly — and it is hidden by the opaque circle it runs under. Both ends then meet
+   * before it looked smaller. `--dash-extra` is set by the row itself, the few pixels that make the
+   * dashes add up exactly, and it is hidden by the opaque circle it runs under. Both ends then meet
    * their circle on a full dash, and every dash is the same length with the same space between.
    */
   bottom: calc((var(--timeline-gap) + 3px + var(--dash-extra, 0px)) * -1);
@@ -4259,7 +4259,7 @@
    * The pattern began with a dash, and a dash that touches the ring above shares its grey: the ring's
    * two-pixel stroke and the five-pixel dash read as one seven-pixel mark, so the top dash looked
    * longer than every other. Sliding the pattern up by half a cycle puts the phase's own gap first,
-   * and then every visible dash is five pixels, with the same seven-pixel space between them — the
+   * and then every visible dash is five pixels, with the same seven-pixel space between them, the
    * one at the top simply starts where the others do.
    */
   background-position: 0 -5px;
@@ -4315,7 +4315,7 @@
  * Both ends of the rail name a station at the same size.
  *
  * The boarding name and the arrival name carried the same utility classes, and the arrival still
- * read larger on a phone — one journey's two ends at two weights is the kind of difference that
+ * read larger on a phone, one journey's two ends at two weights is the kind of difference that
  * looks like a mistake because it is one. One class, one size, both ends: 15px bold, the weight a
  * station name carries on a departure board.
  */
@@ -4332,7 +4332,7 @@
 }
 
 /*
- * The arrival end of a journey (F15): a square, not a circle — the traveller's own rule for
+ * The arrival end of a journey (F15): a square, not a circle, the traveller's own rule for
  * "here", the same shape the map canvases use for the place they are looking at. The connector
  * closes the gap between the last leg's rail and this node, because the rail is drawn per row
  * and the last row's segment stops short of its own foot.
@@ -4399,7 +4399,7 @@
  *
  * It was a ten-pixel square on a rail of fourteen-pixel rings: at that size the rounded corners blur
  * into a crumb, and standing alone at the foot of the line it read as a mark that had been squashed
- * rather than a place you arrive at. The square stays — "here" is a square in this design — but it is
+ * rather than a place you arrive at. The square stays, "here" is a square in this design, but it is
  * drawn at the ring's own size now, with a corner round enough to look cut rather than melted, sat on
  * the same three-pixel line and the same centre column, so the rail ends on a mark of its own family.
  */
@@ -4435,7 +4435,7 @@
 /* ------------------------------------------------------------------- Spinner */
 /*
  * The ring that holds the results list's place while a search is planned (F4). It spins; with
- * motion asked off — the system preference or the app's own switch — it is drawn as the same
+ * motion asked off, the system preference or the app's own switch, it is drawn as the same
  * ring, still, which is the shape of waiting without the movement.
  */
 .spinner {
@@ -4468,12 +4468,12 @@
  * **A skeleton is the page's own layout, drawn in one flat grey.**
  *
  * Not a shimmering costume over an empty card: a held screen is the *shape* of the screen that is
- * coming — the lines, the rows, the buttons — in a single quiet grey, so the eye has already found
+ * coming, the lines, the rows, the buttons, in a single quiet grey, so the eye has already found
  * where everything will land before any of it arrives.
  *
  * **The marks move, and the movement is the point.** A band of light crosses each mark once every
  * 1.7s while the block under it breathes, so a held screen is visibly working rather than a
- * photograph of a broken one — the earlier version was deliberately still, and still is what a
+ * photograph of a broken one, the earlier version was deliberately still, and still is what a
  * placeholder reads as when nothing is happening. The sweep is one gradient on a pseudo-element
  * moving by `transform` (no repaint, no layout), the breath is one property on the block itself,
  * and both stop dead under reduced motion and under the app's battery switches, where a frozen
@@ -4482,11 +4482,11 @@
  * **One mark per row, and every mark the same size.** The first version drew the boxes (26px
  * capsules, a 44px disc) and read as slabs; the second drew the text but kept every corner round,
  * so a row of lozenges read as a pattern; the third squared the corners and drew a block per
- * *element* — a dash for the arrow, a chip per vehicle, a disc for the heart, a dot for the fare —
+ * *element*, a dash for the arrow, a chip per vehicle, a disc for the heart, a dot for the fare ,
  * eleven marks a card in four heights, which read as debris however right each one was.
  *
  * So: a row is one mark, all marks are one size, and **the shape is the shape of the thing being
- * held** — `.skeleton--pill` where the card has a pill (a duration, a label, a chain of badges, a
+ * held**, `.skeleton--pill` where the card has a pill (a duration, a label, a chain of badges, a
  * button), `.skeleton--circle` for an avatar or a glyph, and the plain `.skeleton` (a 4px corner,
  * a line of writing) for text. OVVO is drawn in pills, so its held cards are pills too.
  *
@@ -4509,7 +4509,7 @@
 /*
  * The blocks are thinner than the words they replace, so the rows that hold them are given the
  * height the real rows have. Without this, a 14px block where a 19px time goes pulled the head
- * 7px shorter and the list jumped when the journeys landed — the one thing a held card exists to
+ * 7px shorter and the list jumped when the journeys landed, the one thing a held card exists to
  * prevent.
  */
 .skeleton-card .journey-card__times {
@@ -4525,21 +4525,21 @@
   flex: none;
   height: 10px;
   /* A line of writing: squared off just enough that it reads as a placeholder rather than as a
-     capsule. Four, not six — six is half the height of a 12px block and turns it back into a
+     capsule. Four, not six, six is half the height of a 12px block and turns it back into a
      lozenge. Furniture is a pill instead (`.skeleton--pill`). */
   border-radius: 4px;
   background: var(--skeleton-fill);
   /* The sweep is clipped to the mark, so a pill's light stops at the pill's own curves. */
   position: relative;
   overflow: hidden;
-  /* The block breathes at 2.6s while the light crosses it at 1.7s — two speeds on purpose, so the
+  /* The block breathes at 2.6s while the light crosses it at 1.7s, two speeds on purpose, so the
      two never lock into a single visible beat. */
   animation: skeleton-breathe 2.6s ease-in-out infinite;
 }
 
 /*
  * **The light.** One band, travelling left to right across the mark, once every 1.9s, continuously
- * — no pause at the end of the pass, because with four marks out of step (`--skeleton-phase`) the
+ *, no pause at the end of the pass, because with four marks out of step (`--skeleton-phase`) the
  * light is then always somewhere on the card, which is what makes it read as work happening rather
  * than as a blink.
  *
@@ -4604,7 +4604,7 @@
   border-radius: var(--r-circle);
 }
 
-/* The stop card stacks its rows at `--s-2` (`.stack-2`), so its skeleton does too — the journey
+/* The stop card stacks its rows at `--s-2` (`.stack-2`), so its skeleton does too, the journey
    card's `--s-3` is the `.card skeleton-card` default above. */
 .stop-skeleton {
   gap: var(--s-2);
@@ -4612,7 +4612,7 @@
 
 /* The rows a stop card draws keep their heights while they are held: a 44px heart target, the
    board rows at their real heights (they carry the real writing, see `.stop-skeleton__row`), and
-   the two controls at the foot — 44px, the height the buttons really have. */
+   the two controls at the foot, 44px, the height the buttons really have. */
 .stop-skeleton__head {
   min-height: 44px;
 }
@@ -4628,7 +4628,7 @@
  *
  * Both are shared with the held card, which draws this row from the same name and text, so the row
  * is the same height held as landed. Wrapping here was the one place the two could not agree: a
- * long name at 320 pushed the heart onto a line of its own — a 94px head where the hold had 44 —
+ * long name at 320 pushed the heart onto a line of its own, a 94px head where the hold had 44 ,
  * and the meta took a second line as soon as the distance joined it, which the hold cannot know
  * before the position answers. Now the heart never leaves the first line and the meta never takes
  * a second (it ends in an ellipsis instead; the whole line is still there for a screen reader).
@@ -4657,8 +4657,8 @@
 /*
  * **The writing, held: the real words with the ink taken out.**
  *
- * A grey mark the exact size of the line it stands in for — including a name that wraps onto two
- * lines — because the words are still there in the box, transparent, doing the layout.
+ * A grey mark the exact size of the line it stands in for, including a name that wraps onto two
+ * lines, because the words are still there in the box, transparent, doing the layout.
  */
 .stop-skeleton__ink {
   color: transparent;
@@ -4669,7 +4669,7 @@
 /*
  * **The badge, held: the chip with its ink taken out.**
  *
- * The icon and the label stay in the box — transparent, but still setting its width — so a held
+ * The icon and the label stay in the box, transparent, but still setting its width, so a held
  * badge is exactly as wide and as tall as the coloured chip that replaces it, and a card whose
  * badges wrap onto a second line wraps in the same place. Sizing a grey pill by hand never could:
  * the width of a chip comes from the words in it.
@@ -4684,7 +4684,7 @@
  * **A board row, held: the real row, with the ink taken out.**
  *
  * The departure's own time, destination, delay and platform are still in the row, transparent, so
- * the row is exactly the height and width of the departure that replaces it — including the ones
+ * the row is exactly the height and width of the departure that replaces it, including the ones
  * whose destination is long enough to take two lines. The mark is drawn *over* the row, absolutely
  * positioned, so the grey itself adds no height at all.
  */
@@ -4721,15 +4721,15 @@
 }
 
 /* A held row in the stop picker: the row's own height and gaps, and none of the button's
-   affordances — nothing there can be pressed, so nothing there looks pressable. */
+   affordances, nothing there can be pressed, so nothing there looks pressable. */
 .picker-row--held {
   cursor: default;
   pointer-events: none;
 }
 
 /*
- * A specimen inside the settings card (F25): the app's own furniture — a journey's times, board
- * rows, buttons, a notice — drawn on the nested surface, so the preview is a picture of the app
+ * A specimen inside the settings card (F25): the app's own furniture, a journey's times, board
+ * rows, buttons, a notice, drawn on the nested surface, so the preview is a picture of the app
  * rather than a table about it.
  */
 /* `--pad-card` rather than a fixed step: the specimen is made of the card's own furniture, so
@@ -4772,7 +4772,7 @@
 /*
  * A row that is one target (F21: "add support for clicks on the background, not just the >").
  *
- * The link is a real anchor stretched over the row — not a click handler on the `li` — so
+ * The link is a real anchor stretched over the row, not a click handler on the `li`, so
  * keyboard focus, middle-click and "open in new tab" keep working, and the row's own controls
  * are lifted above it instead of being swallowed. The text and the glyphs sit above the link
  * with `pointer-events: none`, so a press on any of them lands on the link underneath.
@@ -4830,7 +4830,7 @@
 /*
  * A labelled button inside a row is a control, not a text column: the row's *text* is what
  * gives way when the row runs short. Both were shrinking, and the button lost its padding to
- * it — measured on the recent-searches row's "Repeat", whose pill drew 73.3px wide against
+ * it, measured on the recent-searches row's "Repeat", whose pill drew 73.3px wide against
  * 89.7px of content (icon 16 + gap 8 + label 41.7 + 12px either side), leaving the icon
  * 3.83px from its left edge and the label 3.81px from its right one: the squeeze that was
  * reported. Here the pill keeps its size and the grow column shrinks instead, which it can,
@@ -4864,14 +4864,14 @@
 
 /* ---------------------------------------------------------------- Window step */
 /*
- * "Earlier" and "Later" — the two ends of the results window.
+ * "Earlier" and "Later", the two ends of the results window.
  *
  * They were full-width ghost buttons: a 44px bar across the page above the first journey and below
  * the last, each growing a fill and a hairline under the pointer, so a list of journeys was
  * book-ended by two controls heavier than the journeys themselves (reported: "make the earlier and
  * later button MUCH AND MUCH smaller, 0 backdrop and only on the left side").
  *
- * A window step is a small label at the start of the list's own column — the smallest type on the
+ * A window step is a small label at the start of the list's own column, the smallest type on the
  * app's scale, and a chevron to say which way the window moves. `align-self` is what keeps it on
  * the left: the page is a column, so the step takes its own width instead of the column's.
  *
@@ -4879,12 +4879,12 @@
  * tint and hairline so the grey word could be read over a photograph. That pane became its own
  * problem: a boxed control above and below the journeys, on every style, light or dark, one more
  * surface on a page that already has the search card, the alert and every journey. Asked to take
- * the backdrop off "Later" and "Earlier" on all styles, so it goes — no fill, no hairline, no
+ * the backdrop off "Later" and "Earlier" on all styles, so it goes, no fill, no hairline, no
  * padding: a word in the style's own ink over whatever ground that style has. Weight and the
  * uppercase pill type carry it instead of a box.
  *
- * The 44px target is real, but it is the pseudo-element's rather than the label's — the same trick
- * `.tap-target` uses — so the eye gets a word and the thumb still gets a target. The expansion
+ * The 44px target is real, but it is the pseudo-element's rather than the label's, the same trick
+ * `.tap-target` uses, so the eye gets a word and the thumb still gets a target. The expansion
  * stays inside the 24px page gap above and below, so it cannot reach the alert above it or the
  * first card below.
  */
@@ -4929,8 +4929,8 @@
 /*
  * The card's first line: the times, the "Fastest" label and the heart on one line.
  *
- * They were three rows — the times with a duration pill, then a row of pills (Fastest, Direct,
- * heart), then the services on a row of their own — so a 15-minute bus ride was a 250px card. The
+ * They were three rows, the times with a duration pill, then a row of pills (Fastest, Direct,
+ * heart), then the services on a row of their own, so a 15-minute bus ride was a 250px card. The
  * label and the heart travel with the times now, and the services open the line below.
  */
 .journey-card__head {
@@ -4954,7 +4954,7 @@
   align-items: center;
   gap: var(--s-2);
   font-variant-numeric: tabular-nums;
-  /* It is an `h2` now — the card's own name (2.7) — so it takes the card's type, not the
+  /* It is an `h2` now, the card's own name (2.7), so it takes the card's type, not the
      document's heading defaults. */
   margin: 0;
   font-size: inherit;
@@ -5056,7 +5056,7 @@
  *
  * The chain's arrow used to inherit the gap of the group it shared with its badge (8px) while the
  * chain added 4px between one group and the next, so it sat 12px from one badge and 8px from the
- * next, and that imbalance moved as the badges around it changed width — walking badges are wider
+ * next, and that imbalance moved as the badges around it changed width, walking badges are wider
  * than a bus badge, so the arrow looked differently placed beside them.
  */
 .journey-card__leg .journey-card__arrow {
@@ -5209,7 +5209,7 @@
  * between them: measured in the date-and-time dialog at 390px, the date/hour/minutes grid met the
  * depart-at row at **0px** and that row met Earlier/Later options at **0px**, so three groups of
  * controls read as one lump (reported with a screenshot). The spaces here are the same ones the
- * rest of the app uses between blocks of different kinds — `--s-4` — while the gap *within* a row
+ * rest of the app uses between blocks of different kinds, `--s-4`, while the gap *within* a row
  * stays the row's own `--s-2`, so a row of buttons is tight and two rows are not. The footer's own
  * `margin-top` is the same `--s-4`, so nothing doubles.
  */
@@ -5238,7 +5238,7 @@
 /*
  * **The way out of a pop-up is a control, not a hairline.**
  *
- * The close cross was a ghost button — no fill, no border, `--ink` — so on a translucent or tinted
+ * The close cross was a ghost button, no fill, no border, `--ink`, so on a translucent or tinted
  * panel it read as a faint mark, and at 1.5px stroke it was reported as "close to invisible". It
  * takes the app's circular-control shape and the surface's strongest ink, like every other disc.
  */
@@ -5261,12 +5261,12 @@
  * head on top of the head's 16px padding, a 12px gap between groups and 8px between a group's name
  * and its rows. Measured at 393px that put **89px** between the top of the sheet and the first word
  * of the menu, and then treated "HOME" and "Travel information" as equally close to the rows under
- * them — the whole thing read as a form with holes in it (reported: "looks weird, ugly, white
+ * them, the whole thing read as a form with holes in it (reported: "looks weird, ugly, white
  * space, weird").
  *
  * A menu is read by group, so the group is what gets the space: nothing between the head and the
  * list, 16px between groups, 4px between a name and its rows, 4px between the rows themselves.
- * The head is a header too — its title and its close sit on one line with 8px under them, not a
+ * The head is a header too, its title and its close sit on one line with 8px under them, not a
  * band of their own.
  */
 .menu-sheet {
@@ -5388,12 +5388,12 @@
   min-height: 56px;
   /* The region lets clicks through to the page, and the toast inherited that: every toast's
      dismiss button was measured with `pointer-events: none` and the click landed on whatever
-     sat behind it — the button looked live and did nothing. */
+     sat behind it, the button looked live and did nothing. */
   pointer-events: auto;
   padding: var(--s-2) var(--s-3) var(--s-2) var(--s-4);
   /*
-   * The app's own surface, not an obsidian slab. The toast was drawn on `--l3-bg` — the raised
-   * black level — and a review of the location warning found exactly that: a dark rectangle across
+   * The app's own surface, not an obsidian slab. The toast was drawn on `--l3-bg`, the raised
+   * black level, and a review of the location warning found exactly that: a dark rectangle across
    * whatever card it happened to sit over. A message is a card that arrives, so it takes the
    * card's surface and ink, keeps the warning glyph in coral, and no longer covers the thing it
    * is talking about with a hole in the page.
@@ -5487,18 +5487,18 @@
 /*
  * A tinted banner owns the ink for the surface it is actually painted on.
  *
- * The tints (butter, coral, sage) keep their pale fill in **both** appearances — that is the whole
+ * The tints (butter, coral, sage) keep their pale fill in **both** appearances, that is the whole
  * point of them: a signal chip stays a light chip on a dark canvas. The page's ink ramp does turn
  * over, though, so any text inside a banner that reaches for it lands light-on-light in the dark
  * appearance. That is not a near miss, it is invisible: the alert page's butter "Advice" and the
  * journey page's coral "Alerts on this journey" are both a `.t-strong` title, and in dark they
  * measured **1.03:1** (`rgb(247,246,243)` on `rgb(255,245,165)`) and **1.08:1**
- * (`rgb(247,246,243)` on `rgb(255,232,229)`) — against the 4.5:1 body text needs.
+ * (`rgb(247,246,243)` on `rgb(255,232,229)`), against the 4.5:1 body text needs.
  *
  * The line is a colour, not a weight: the title keeps `.t-strong` for its weight and size and
  * takes the banner's own ink for its colour, so it reads at the same 15.9:1 as the body beside it
  * (and 8.0:1 on the coral tint). The `hairline` banner is the exception and keeps the ramp,
- * because its surface *is* the page's — `--l1-bg` turns over with the theme, so eating its
+ * because its surface *is* the page's, `--l1-bg` turns over with the theme, so eating its
  * `--ink-strong` would flatten a heading that was right.
  */
 .banner .t-strong {
@@ -5512,8 +5512,8 @@
 /*
  * The alert that opens the results list, as one row.
  *
- * It was a `hairline` banner with a heading of its own — an 18px icon, "Alerts affect this search",
- * then the alert's title indented under it — 96px of the phone's first screen to say one sentence,
+ * It was a `hairline` banner with a heading of its own, an 18px icon, "Alerts affect this search",
+ * then the alert's title indented under it, 96px of the phone's first screen to say one sentence,
  * three quarters of it empty, above a journey list that had not started. The icon and the words
  * "Cancelled services" already say it is an alert, so the title is the row now, at the 44px every
  * row in the app is tappable at, with the number of alerts beside it when there is more than one.
@@ -5556,7 +5556,7 @@
 /*
  * The empty state, and the two things that read wrong in its screenshot.
  *
- * 1. **The radius did not nest.** It sat inside a card — itself `--r-card` (28px) — while also
+ * 1. **The radius did not nest.** It sat inside a card, itself `--r-card` (28px), while also
  *    asking for `--r-card`, so the inner curve was as round as the outer one instead of being
  *    that roundness *minus the card's inset*. `--r-nested` is exactly that number (12px), which
  *    is why it exists, and using it makes the two curves concentric.
@@ -5564,15 +5564,15 @@
  * 2. **The dashes were the browser's.** `border-style: dashed` gives no say in dash length (it
  *    is short, and the spec leaves it to the renderer) and the ink was `--border-hairline`, the
  *    faintest line in the palette. So the border is drawn instead of declared: each side is a
- *    repeating gradient in a 1px strip — a 9px dash with a 7px gap — in a coral tint, which is
+ *    repeating gradient in a 1px strip, a 9px dash with a 7px gap, in a coral tint, which is
  *    the accent this box's own icon already carries. Still one hue from the palette, just loud
  *    enough to read as a deliberate enclosure rather than a rendering artefact.
  */
 /*
  * The dashed enclosure, drawn as one dashed rounded-rect stroke.
  *
- * It was four 1px repeating gradients — one strip per side, positioned with `background-position`
- * — which cannot turn a corner: every curve was left bare, so the box looked unfinished at exactly
+ * It was four 1px repeating gradients, one strip per side, positioned with `background-position`
+ *, which cannot turn a corner: every curve was left bare, so the box looked unfinished at exactly
  * the four places the eye checks first, and its dashes had to be long (9px) to read as a border at
  * all. A stroke on a rounded rect has no corners to miss (the dash pattern runs around the arc),
  * its dash length is the `--empty-dash` / `--empty-gap` pair rather than the renderer's, and the
@@ -5643,7 +5643,7 @@
 /* ------------------------------------------------------------ the error screen */
 /*
  * `layout/ErrorScreen`, in its two sizes. The page one stands in the middle of the canvas on its
- * own — there is no header and no dock, because the shell was part of what failed. The inline one
+ * own, there is no header and no dock, because the shell was part of what failed. The inline one
  * is just a card in the page's place, so it adds no ground and no height of its own: the shell
  * around it already supplies both.
  */
@@ -5760,7 +5760,7 @@
  * `.dl` is a two-column grid so a stack of rows lines up under one gutter. A single pair does not
  * need that gutter, and it cannot have it safely: `minmax(96px, auto)` grows to whatever the widest
  * thing placed in the column wants, so one wide value elsewhere turns the gap into the width of
- * the card. A flex row has no such track — the number sits a fixed `--s-2` from its word, at every
+ * the card. A flex row has no such track, the number sits a fixed `--s-2` from its word, at every
  * width, and the pair wraps together on a phone rather than separating.
  */
 .dl--inline {
@@ -5775,7 +5775,7 @@
  * The accent list in the settings preview.
  *
  * The same two-column list as the format block above it, with a swatch in front of each name and
- * a *role* where that block has a value — so the value column drops the medium weight it carries
+ * a *role* where that block has a value, so the value column drops the medium weight it carries
  * there and reads as the sentence it is instead of as a reading.
  */
 .dl--swatch dt {
@@ -5791,7 +5791,7 @@
 
 /*
  * Each swatch is painted from the token the interface itself is drawn with, so the row cannot
- * advertise a colour the app does not use — and the 1px ring is what makes the three pale ones
+ * advertise a colour the app does not use, and the 1px ring is what makes the three pale ones
  * (butter, sage, the coral tint) measurable against a white card rather than a white gap.
  */
 .palette__swatch {
@@ -5834,13 +5834,13 @@
 /* ---------------------------------------------------------- Colour screens */
 /*
  * The three full-screen surfaces of the colour redesign (`COLOURS_PLAN.md`): the picker, the
- * photograph sampler, and the crop. They share `FullScreen`, so their header — back arrow, title,
- * the one thing that finishes — is the app's own; only what sits under it is new.
+ * photograph sampler, and the crop. They share `FullScreen`, so their header, back arrow, title,
+ * the one thing that finishes, is the app's own; only what sits under it is new.
  *
  * The picker keeps the *parts* of the old sheet (grid, pad, hue, hex) because those were never the
  * problem: the problem was a 918px form inside a 968px panel with its Done button below the fold.
  * The sampler and the crop own the viewport (`fullscreen--flush`) because a picture that can be
- * dragged cannot live inside a scroller — a finger would pan the page instead of the frame.
+ * dragged cannot live inside a scroller, a finger would pan the page instead of the frame.
  */
 .fullscreen--flush .fullscreen__body {
   overflow: hidden;
@@ -5861,7 +5861,7 @@
 
 /*
  * The small square beside a colour's name: what the setting is, at a glance. It is drawn only when
- * there is something to show — the empty pill on cream was one of the defects the redesign fixed
+ * there is something to show, the empty pill on cream was one of the defects the redesign fixed
  * (shot: `review/colours-before/colours-cream.png`).
  */
 .bg-preview {
@@ -5878,7 +5878,7 @@
 /*
  * **A settings row: the setting on the left, what it is now on the right, and one way in.**
  *
- * The shape the Colours card uses, and the shape Apple's own Settings uses — a hierarchy of lists,
+ * The shape the Colours card uses, and the shape Apple's own Settings uses, a hierarchy of lists,
  * where the row names the setting and the disclosure indicator opens the next level. It replaces
  * eleven inline controls and their paragraphs with three rows and no prose. A 44px target, a
  * hairline between rows and nothing else: the row is a control, so it must not need a filled pill
@@ -6069,7 +6069,7 @@
 .colour-screen__hue input {
   width: 100%;
   /* The strip is the only control that sets hue by touch; at 26px it was less than half the app's
-     44px mark (19.3). The thumb stays its own size — the target is the strip. */
+     44px mark (19.3). The thumb stays its own size, the target is the strip. */
   height: 44px;
   appearance: none;
   border-radius: var(--r-pill);
@@ -6108,7 +6108,7 @@
 /*
  * The stage *is* the picture's box: the image is sized by its own content inside a centred flex
  * box, so its bounding rect is the drawn photograph. That is what makes the sampler's pointer maths
- * a fraction of a box rather than an `object-fit: cover` geometry to undo — and what stops the
+ * a fraction of a box rather than an `object-fit: cover` geometry to undo, and what stops the
  * picture being cropped to make the screen tidy.
  */
 .photo-screen__stage {
@@ -6152,7 +6152,7 @@
  */
 /*
  * The loupe is two elements on purpose: the **disc** is what clips the magnified picture to a
- * circle, and the wrapper is what carries the hex chip *under* it — a chip inside the clipped disc
+ * circle, and the wrapper is what carries the hex chip *under* it, a chip inside the clipped disc
  * was cut in half by its own border-radius (shot: `review/colours-after/photo-screen.png`).
  */
 .photo-screen__loupe {
@@ -6252,7 +6252,7 @@
   /*
    * One column, centred, with the width of a picture rather than of a monitor. On a 1440px window
    * the frame chips sat at the far left and the zoom pair and Reset at the far right, 1,400px apart
-   * around a 624px photograph — four controls that answer one question, scattered across a desk.
+   * around a 624px photograph, four controls that answer one question, scattered across a desk.
    */
   width: 100%;
   max-width: 560px;
@@ -6275,7 +6275,7 @@
   user-select: none;
   /*
    * The dimming outside the frame is one `box-shadow` with a 9999px spread, so it has to be clipped
-   * — but to the **picture**, not to the stage. Clipped to the stage, a picture shorter than the
+   *, but to the **picture**, not to the stage. Clipped to the stage, a picture shorter than the
    * space it was given turned the whole stage into a grey slab (measured: 364px of grey above and
    * below a 275px photograph). The picture's own box is the only thing the shadow should darken.
    */
@@ -6348,7 +6348,7 @@
   gap: var(--s-3);
 }
 
-/* The tools: two zoom discs, the share of the picture the frame keeps, and Reset — one row,
+/* The tools: two zoom discs, the share of the picture the frame keeps, and Reset, one row,
    because they are one question ("is the frame right?") and a stacked column of them read as
    four unrelated settings. */
 .crop-screen__tools {
@@ -6456,7 +6456,7 @@
  * **On a cancelled row the destination's two lines step apart.**
  *
  * The strike through the words is the row's meaning and the underline under them is the link's, and
- * at the app's 3px underline offset the two drew as one smudged rule a pixel apart — seen on the
+ * at the app's 3px underline offset the two drew as one smudged rule a pixel apart, seen on the
  * board at 390 with a cancelled service. Two pixels lower and each line says its own thing: this
  * one is off, and this one can still be looked up.
  */
@@ -6481,7 +6481,7 @@
 }
 
 /*
- * The row's flexible cell: the words on the left, and — only on a cancelled row — the alert that
+ * The row's flexible cell: the words on the left, and, only on a cancelled row, the alert that
  * explains them on the right.
  *
  * It is laid out as a row so the alert can sit at the end of the line without widening the row.
@@ -6560,7 +6560,7 @@
  * 44px, because that is the target the app promises and this was the one control on a board row
  * that was not: it drew 32x32, so the audit found it the moment the timetable held a cancellation
  * (a cancelled row is the only row with this link). Sized rather than enlarged by a pseudo-element
- * — the established pattern for a corner control — because this one sits in a flex row beside
+ *, the established pattern for a corner control, because this one sits in a flex row beside
  * another 44px control, and a grown hit area there would overlap its neighbour's.
  */
 /*
@@ -6604,14 +6604,14 @@
  *
  * The rule above is viewport-based and that is not the same question: at a 768px window the stop
  * page hands this board a **330px** column, where the phone rule never fires. With four columns
- * competing for 330px — time 74, a two-piece platform label 76, two 44px controls and their gaps
- * — the destination column collapsed to **52px**, narrower than the word "Rotterdam", so the name
+ * competing for 330px, time 74, a two-piece platform label 76, two 44px controls and their gaps
+ *, the destination column collapsed to **52px**, narrower than the word "Rotterdam", so the name
  * was cut off mid-word in a cancelled row (found by `ui-audit` frozen at 23:50, the hour whose
  * timetable holds a cancellation). The lesson is the same one the dashboard cards taught: a
  * component that can be placed in a column cannot ask the window how much room it has.
  *
- * Same treatment as the phone rule, because it is the same answer — the platform number keeps its
- * meaning from the "P" prefix — and duplicated rather than shared, since a media query and a
+ * Same treatment as the phone rule, because it is the same answer, the platform number keeps its
+ * meaning from the "P" prefix, and duplicated rather than shared, since a media query and a
  * container query cannot be combined in one condition list. Behaviour below 560px is unchanged:
  * the media block still fires and these declarations agree with it.
  */
@@ -6637,8 +6637,8 @@
   /*
    * **A card goes where there is room, not only where the row happened to end.**
    *
-   * Spans are 4, 6, 8 and 12, so a 6 beside a 4 leaves two columns empty and the next card — often a
-   * full-width one — started a new row instead of filling them. On a phone every card is full width
+   * Spans are 4, 6, 8 and 12, so a 6 beside a 4 leaves two columns empty and the next card, often a
+   * full-width one, started a new row instead of filling them. On a phone every card is full width
    * and the question never came up; on a desktop it read as "most widgets can't be moved
    * everywhere" (reported). Dense flow backfills the gap with the next card that fits, so any card
    * can follow any other.
@@ -6676,13 +6676,13 @@
  *
  * Six columns is right on a desktop, where a half card is ~460px. At 390px the same six columns
  * are 175px, and that was measured as broken, not merely snug: the map's four mode chips stacked
- * into a 300px column around a 130px drawing, and the departures card's search field — which has
- * a 44px target and a placeholder — painted 120px past its own card's right edge, over the card
+ * into a 300px column around a 130px drawing, and the departures card's search field, which has
+ * a 44px target and a placeholder, painted 120px past its own card's right edge, over the card
  * beside it. Half a phone is too narrow to hold any card this home screen owns, not just the map,
  * so the map's own one-card exception became this rule.
  *
- * 360 used to be the line ("no half card under 150px"). A 390px phone — the common Android width
- * — sat one step above it, which is exactly how the overlap above survived a phone round that
+ * 360 used to be the line ("no half card under 150px"). A 390px phone, the common Android width
+ *, sat one step above it, which is exactly how the overlap above survived a phone round that
  * only ever checked 360. The line is the tablet breakpoint now, the same one the rest of this
  * stylesheet uses, so a width cannot fall between two rules again.
  */
@@ -6699,10 +6699,10 @@
  *
  * Without the first, a stretched card is a small thing at the top of a large box. Without the
  * second, a card whose content is shorter than its tier leaves **all** of the slack under the text
- * — one sentence on a 208px card, 90px of nothing below it, reported with two photographs and
+ *, one sentence on a 208px card, 90px of nothing below it, reported with two photographs and
  * "my god all that whitespace is ugly". Centred, the same sentence has 45px above and 45px below:
  * the card is as tall as it was asked to be and the content sits in it, which is what a widget of
- * that size looks like. A body that does fill its card (a list of six, a map) is unaffected —
+ * that size looks like. A body that does fill its card (a list of six, a map) is unaffected ,
  * centring has nothing to move.
  */
 .widget__body {
@@ -6747,7 +6747,7 @@
  *
  * Its type comes from `t-sm` on the element itself; the size overrides that used to live here were
  * per tier and are gone with the tiers. What is left is the cap that keeps a long sentence reading
- * as a paragraph rather than a banner — the same 34 characters per line the block has always had.
+ * as a paragraph rather than a banner, the same 34 characters per line the block has always had.
  */
 .widget-empty__line {
   max-width: 34ch;
@@ -6775,7 +6775,7 @@
  *
  * It replaces the row of glyphs that used to sit in the card's head (a grip and an ×). One round
  * control on the card's top-right corner says "this card can go" without putting controls above
- * every title, and the gesture it replaces — moving — is the card itself, which has always been
+ * every title, and the gesture it replaces, moving, is the card itself, which has always been
  * draggable by its body.
  *
  * **30px of paint, 44px of target**, the same split the header's alerts entry uses: the disc is
@@ -6823,7 +6823,7 @@
 }
 
 /* The focus ring is the app's own (2px coral on `:focus-visible`, from `styles/base.css`), drawn
-   round the 44px target rather than the 30px disc — the target is the control. */
+   round the 44px target rather than the 30px disc, the target is the control. */
 
 .widget__card {
   display: flex;
@@ -6837,7 +6837,7 @@
    * Centred on the title's line, not on the head's top edge.
    *
    * The controls are a 44px target and the title is a 20px line, so `flex-start` put the glyphs'
-   * middles 22px down the card while the name's middle sat at 10px — the row of icons visibly
+   * middles 22px down the card while the name's middle sat at 10px, the row of icons visibly
    * hung below the heading on every card (reported, with the row circled). Centring both on the
    * same line is what makes the cluster read as belonging to the name.
    */
@@ -6871,11 +6871,11 @@
  *
  * There is no grip and no handle: the card is what you take hold of, for a mouse anywhere on it
  * and for a keyboard from the card's own arrow keys. The row of glyphs that used to sit in every
- * card's head — a grip, an up and a down — is gone with the sizes it belonged to, and so is the
+ * card's head, a grip, an up and a down, is gone with the sizes it belonged to, and so is the
  * submenu that offered them.
  *
- * The grid re-sorts as the hand passes the other cards — the ones in the way step aside and the
- * slot the card has left closes up behind it, which is the slot it will drop into — and the held
+ * The grid re-sorts as the hand passes the other cards, the ones in the way step aside and the
+ * slot the card has left closes up behind it, which is the slot it will drop into, and the held
  * card is put back under the finger on every frame, so the re-flow is never seen jumping.
  */
 
@@ -6891,7 +6891,7 @@
 
 /*
  * The title row is a card's **fast** grip: `touch-action: none` there is what lets a finger take
- * hold of it the instant it lands. The body is a grip too, but a held one — it arms after
+ * hold of it the instant it lands. The body is a grip too, but a held one, it arms after
  * `ARM_MS` of stillness and the page's own pan is refused from then on (`beginDrag`,
  * `lockTouchScroll` in `HomePage`), because a whole-card claim on the gesture would make a long
  * home screen unscrollable while it is being arranged. That is why this rule names the head and
@@ -6902,7 +6902,7 @@
 }
 
 /* A held press on a card must not become the browser's own text selection or callout before the
-   card is armed — the mode already refuses selection, and this refuses iOS's menu on the same
+   card is armed, the mode already refuses selection, and this refuses iOS's menu on the same
    surface. */
 .widget-grid--editing {
   -webkit-touch-callout: none;
@@ -6912,7 +6912,7 @@
   position: relative;
   z-index: 6;
   will-change: transform;
-  /* Positioned by hand on every frame — a transition here would make the card trail the finger. */
+  /* Positioned by hand on every frame, a transition here would make the card trail the finger. */
   transition: none;
 }
 
@@ -6922,8 +6922,8 @@
   outline-offset: 2px;
 }
 
-/* The cards being passed step back, so the hole the held card has left — the slot it will drop
-   into — is the only thing at full strength. */
+/* The cards being passed step back, so the hole the held card has left, the slot it will drop
+   into, is the only thing at full strength. */
 .widget-grid--dragging .widget:not(.widget--dragging) {
   opacity: 0.5;
 }
@@ -6931,7 +6931,7 @@
 /* ------------------------------------- press and hold the screen to customise */
 /*
  * The hold is measured on the page around and between the widgets, so a text-selection callout
- * must not answer the press first (iOS does, at about half a second) — the one second is the
+ * must not answer the press first (iOS does, at about half a second), the one second is the
  * gesture, and the toast says it is running.
  */
 /* The header's empty space is part of the home screen's hold surface too (see the document
@@ -6948,7 +6948,7 @@
  * press with it: the hold that opens customising never reached its second, and what a person saw
  * was the word under their finger turning blue. The whole shell is locked rather than the page's
  * own box, because the press may land on the header's empty band or the strip under the last
- * widget — both of which are hold surface (`isHomeSurface`), neither of which is `.home-surface`.
+ * widget, both of which are hold surface (`isHomeSurface`), neither of which is `.home-surface`.
  *
  * Locked only for the length of a press, so the page still selects normally at every other moment,
  * and `touch-callout` is repeated here because iOS offers its menu from the selection, not from the
@@ -6964,10 +6964,10 @@
  * **The hint is one line.**
  *
  * It was centred with `left: 50%` and no `right`, and a fixed box with only a left offset is sized
- * against the room from that offset to the edge — half the screen. So the sentence broke after
+ * against the room from that offset to the edge, half the screen. So the sentence broke after
  * "Keep holding to", with the grid glyph stranded beside two lines of text and the pill as wide as
  * it could get inside 50vw (reported: "Looks weird…" with exactly that shape). `width: max-content`
- * asks for the sentence's own width instead, and `max-width` still keeps it on screen — on the
+ * asks for the sentence's own width instead, and `max-width` still keeps it on screen, on the
  * narrowest phone a long translation wraps inside a pill that is then as wide as the page.
  */
 .home-hold-hint {
@@ -7011,7 +7011,7 @@
  * The menu the + in the header opens, drawn the way a phone's home screen draws one: a panel that
  * hangs from the corner that opened it, over the screen blurred behind it.
  *
- * It was a centred dialog with its title in a bar, and that is a sheet — a thing you open, fill in
+ * It was a centred dialog with its title in a bar, and that is a sheet, a thing you open, fill in
  * and come back out of. This is a list of three actions, so it points at its trigger and is
  * dismissed by touching the screen anywhere else. The blur is what makes the panel read as *above*
  * the page rather than beside it: the widgets are still visible, out of focus, and nothing behind
@@ -7019,14 +7019,14 @@
  *
  * The panel is `fixed` and placed from the trigger's box in `HomePage` (`menuPos`): the header is
  * shared by every screen, so this page cannot put a menu next to the + by layout. The scrim sits
- * over the header and the dock (55 against the header's 40 and the dock's 50) — while a menu is up
+ * over the header and the dock (55 against the header's 40 and the dock's 50), while a menu is up
  * there is one thing on screen, and the + underneath it says `aria-expanded` rather than inviting a
  * second press.
  */
 /*
  * It reaches past the viewport on every side (+1px) and 96px below it. That is not decoration:
  * Chromium samples a backdrop filter in 64px tiles and the last partial row at the viewport's
- * edge comes back unblurred — measured on this screen, the bottom 12px of the widget list stayed
+ * edge comes back unblurred, measured on this screen, the bottom 12px of the widget list stayed
  * sharp under the glass. A scrim that ends where the screen ends cannot cover its own edge; one
  * that overshoots puts the seam outside the screen where nobody can see it. It also keeps the
  * blur covering the page under a browser bar that slides in at the bottom.
@@ -7081,7 +7081,7 @@
 }
 
 /*
- * The rows are `list-row`s on a ground of their own — the panel is the surface here, so a row is
+ * The rows are `list-row`s on a ground of their own, the panel is the surface here, so a row is
  * a row and not a card: no fill, no border, no lift on hover, and a wash of ink instead. The
  * shape and the 44px target stay, because those are the row, not the card around it.
  */
@@ -7118,13 +7118,13 @@
 /* ------------------------------------------------------ Stations & stops (R72) */
 
 /*
- * The rows on this page used to carry four shouty buttons — STOP PAGE, DEPARTURES, PLAN FROM
- * HERE, PLAN TO HERE — and the traveller was asked to decide between them before reading
+ * The rows on this page used to carry four shouty buttons, STOP PAGE, DEPARTURES, PLAN FROM
+ * HERE, PLAN TO HERE, and the traveller was asked to decide between them before reading
  * anything. Now the card itself opens the stop, "More" opens that stop's board, and "Plan" asks
  * the question instead of answering it twice.
  *
  * `--xs` is the quiet end of that row: a short label with tighter padding. The **height stays at
- * the 44px target**, because that is the repo's own rule and `ui-audit` measures it — "smaller"
+ * the 44px target**, because that is the repo's own rule and `ui-audit` measures it, "smaller"
  * here means a smaller footprint and a lighter label, not a smaller hit area. What makes the row
  * read calm is mainly the two buttons that are gone.
  */
@@ -7141,8 +7141,8 @@
  * The card is a big target, so it answers the pointer the way every other one in the app does:
  * the same lift and the same overshooting easing as `.btn`, `.chip` and `.list-row` (the base
  * `.card` transition is the spring, which is what carries the *return* to rest), and the same
- * press. It is one rule for both lists that draw one — the stop cards on Stations & stops and
- * the alert cards — because `Card` marks any card given an `onClick` with this class itself.
+ * press. It is one rule for both lists that draw one, the stop cards on Stations & stops and
+ * the alert cards, because `Card` marks any card given an `onClick` with this class itself.
  */
 .card--interactive {
   cursor: pointer;
@@ -7162,7 +7162,7 @@
  * The filter row: one question per line on a phone, one line when there is room.
  *
  * Wrapping a flex row placed the controls wherever they happened to land, and on the alerts page
- * that put the pinned toggle — a bare pill — beside a labelled field with the other controls
+ * that put the pinned toggle, a bare pill, beside a labelled field with the other controls
  * around them: the search on a line of its own, then the pill and "Sort" sharing one, then the
  * Options chip orphaned on a third. Three controls and a search do not fit 332px (the pinned
  * toggle alone is 198px of text, the sort 130, Options 98), so a phone is *going* to take three
@@ -7210,10 +7210,10 @@
 }
 
 /*
- * The line under a list's own controls takes its spacing from the stack it sits in — `.stack-2` in
+ * The line under a list's own controls takes its spacing from the stack it sits in, `.stack-2` in
  * the picker, the filters card's `.stack` on the stops list. It used to pull itself up by 4px
  * (`margin-top: calc(-1 * var(--s-1))`), which made that one gap 8px in a box whose every other gap
- * was 12 — a number chosen by eye, within the same card, and invisible until something measured it.
+ * was 12, a number chosen by eye, within the same card, and invisible until something measured it.
  */
 .stops-origin {
   margin: 0;
@@ -7230,7 +7230,7 @@
 
 /*
  * The three departures on a card, in the board's own language at a quieter volume: a tabular
- * time, where it goes, and the platform — with the delay in the same coral the board uses, and
+ * time, where it goes, and the platform, with the delay in the same coral the board uses, and
  * the word for a cancelled service in place of the platform it will not have.
  */
 .stop-card__board {
@@ -7256,7 +7256,7 @@
 }
 
 /*
- * The foot of the list, watched by the loader — on Stations & stops and on the alerts list, which
+ * The foot of the list, watched by the loader, on Stations & stops and on the alerts list, which
  * grow their lists by the same rule (`lib/loadBatch.ts`). It has no look of its own.
  */
 /* The scroll loader's marker: in the row it watches, out of the row's layout. */
@@ -7302,7 +7302,7 @@
 /*
  * The day and the time are the **device's own** controls now (`<input type="date">`,
  * `<input type="time">`), so they arrive with the platform's calendar and clock glyphs. Those
- * glyphs are the point of using them, so nothing here hides them — only the box around them is
+ * glyphs are the point of using them, so nothing here hides them, only the box around them is
  * ours: no border of its own, no radius of its own, and the frame and the divider come from the
  * group. `min-width: 0` is what keeps a native date from widening the column it was given: its
  * intrinsic width is the locale's longest date, which is wider than half a phone.
@@ -7334,7 +7334,7 @@
  *
  * It is drawn **under** that button and never instead of it: the button keeps its place and its
  * size, so the tap that used to open the device's calendar still lands on the device's calendar.
- * Only its glyph goes — `opacity: 0` on the indicator, which is the hook Chromium offers and this
+ * Only its glyph goes, `opacity: 0` on the indicator, which is the hook Chromium offers and this
  * app's engines can be asked about. Firefox has no such hook and WebKit's indicator is not
  * recognised by that query either (it shows its own mark only while the field is focused), so in
  * both of those the app draws nothing and the browser's own behaviour is left exactly as it was:
@@ -7348,12 +7348,12 @@
   position: absolute;
   top: 50%;
   /*
-   * **A press, not a picture — and one mark, not two.**
+   * **A press, not a picture, and one mark, not two.**
    *
    * This used to be a `span` with `pointer-events: none`, sitting *under* the platform's own picker
    * button so that a tap fell through to it. That is what drew two marks in his screenshot: the app's
    * calendar and then a chevron, one above the other at the field's rounded end. Fading that
-   * indicator (`opacity: 0`) does not remove it on Chrome for Android — the app had already learned
+   * indicator (`opacity: 0`) does not remove it on Chrome for Android, the app had already learned
    * that once, on the clock field, and fixed it there with `appearance: none`. Same cure here: the
    * platform's button is removed, and this mark becomes the button that opens the device's own
    * picker (`showPicker()`), so there is exactly one mark and it is the one that works.
@@ -7422,8 +7422,8 @@
      * with the same 9999px radius, which draws a stadium around two rows: the ends bulge past the
      * marks and the divider runs into the curve (he circled exactly that end: "why are those thing
      * rounded, it looks like shit"). The app already has this rule for the one other control taller
-     * than one line — the textarea "keeps the squircle, because a capsule eight lines tall is not a
-     * capsule" — so a two-row group takes the same corner, `--r-input`, and the marks sit against a
+     * than one line, the textarea "keeps the squircle, because a capsule eight lines tall is not a
+     * capsule", so a two-row group takes the same corner, `--r-input`, and the marks sit against a
      * straight edge instead of on a curve.
      */
     border-radius: var(--r-input);
@@ -7438,7 +7438,7 @@
 /*
  * ------------------------------------------------- the journey's own keep control
  *
- * A saved journey fills its heart, the way a favourite stop does — the shape stays and only the
+ * A saved journey fills its heart, the way a favourite stop does, the shape stays and only the
  * fill changes, instead of the glyph swapping for a tick (the round asked for exactly the stops'
  * behaviour: "change the favouriting a journey reaction to the icon filling"). It is scoped to this
  * one control rather than written as a general `[aria-pressed] .icon` rule, because chips and
@@ -7456,7 +7456,7 @@
  * sheet and both full-screen pickers were painted from the cream theme whatever the page was, so
  * opening anything over a blue or green page put a white-oat panel on top of it. They now take the
  * page's own card tier and the ink ramp measured for it (`lib/background.ts`), with the surfaces a
- * dialog is built from — its panels, fields, buttons and back disc — re-derived from those values
+ * dialog is built from, its panels, fields, buttons and back disc, re-derived from those values
  * rather than left on the theme's. Cream and photo are unaffected: they have no page colour to
  * carry.
  */
@@ -7483,7 +7483,7 @@
  * the list's own `z-index: 30` could not lift it over the card that follows: on Settings only the
  * first three of eight rows were the topmost thing at their own centre, the rest painted under the
  * next card's heading, the page's hint and the dock, and on Departures at 320 none of the four
- * visible rows were on top at all — typing "amst" drew nothing (32.1). A press on a covered row
+ * visible rows were on top at all, typing "amst" drew nothing (32.1). A press on a covered row
  * closed the list and chose nothing.
  *
  * The card holding the open list is lifted above its siblings instead. The list is the topmost
@@ -7499,8 +7499,8 @@
 /*
  * **A full-screen picker stands on the traveller's canvas, not on a fresh sheet of cream.**
  *
- * Every screen in the app is drawn over the page — the colour or the photograph they chose, with
- * the wash that keeps the type readable — except the pickers, which are portalled over everything
+ * Every screen in the app is drawn over the page, the colour or the photograph they chose, with
+ * the wash that keeps the type readable, except the pickers, which are portalled over everything
  * and painted `--l0-bg`. Choosing a photograph and then opening "Where are you leaving from?"
  * dropped the traveller back onto flat cream, with the picture they chose nowhere on the screen
  * (sent back with that screen circled: "Pull the background and the colour to MORE places").
@@ -7526,7 +7526,7 @@
 /*
  * **And the From/To card is the same glass the cards around it are.**
  *
- * It is a `.planner-card`, painted `--l1-bg` — the theme's own cream — and the glass rules only
+ * It is a `.planner-card`, painted `--l1-bg`, the theme's own cream, and the glass rules only
  * ever repainted `.card` and `.panel`, so on the home screen the pair sat as a cream lozenge in
  * the middle of a glass card (the part that was circled) and in the picker it would have been the
  * same lozenge floating on the photograph. The recipe is the glass card's own, over the same
@@ -7566,14 +7566,14 @@
 
 /* =================================================================================== * **The second value, for a browser that cannot mix colours.**
  *
- * Every rule above that paints a surface with `color-mix()` would vanish whole on iOS 14 — not
+ * Every rule above that paints a surface with `color-mix()` would vanish whole on iOS 14, not
  * fade, vanish: the parser drops the declaration and the element keeps whatever it had before,
  * which for a card over a photograph is nothing. Glass becomes an opaque pane of the canvas (the
  * picture stays behind the page, not behind the words), a hairline becomes the theme's own line,
  * the scrim becomes 62% black, and the waiting blocks keep a colour.
  *
  * It has to be a separate block rather than a second declaration in the same rule: the CSS
- * minifier deletes the overridden one, and the build silently went back to the modern value —
+ * minifier deletes the overridden one, and the build silently went back to the modern value ,
  * measured, not assumed (see `scripts/old-phone-check.mjs`).
  * ========================================================================================== */
 @supports not (color: color-mix(in srgb, #000 50%, transparent)) {
@@ -7740,7 +7740,7 @@
  * row leaves, and this number only decides whether everything still fits on one line. It has to be
  * small enough that the icon plus the words plus the way out **always** fit: that sum is what decides
  * the line break, so a basis the icon outgrew pushed the way out onto a row of its own at the card's
- * left edge — first at 320px with `170px`, then again on a 296px-wide window with `132px` (both
+ * left edge, first at 320px with `170px`, then again on a 296px-wide window with `132px` (both
  * reported). 96px leaves the row intact down to a card of about 216px of content.
  */
 .install-banner__words {
@@ -7918,7 +7918,7 @@
  *
  * Every other screen puts its way back in a 44px disc whose left edge is the page gutter, 12px from
  * the edge of a phone, with its top 20px down. The deck drew its own: padding of its own, so the X
- * landed at 23.4px across and 16px down — a thumb's width right of the arrow it replaces, and four
+ * landed at 23.4px across and 16px down, a thumb's width right of the arrow it replaces, and four
  * pixels high, on the one screen a traveller arrives at from a button they have used a hundred times.
  * The row is now pulled out to that gutter and stepped down to that line, so the X and the arrow
  * beside it are the same control in the same place.
@@ -8045,7 +8045,7 @@
  *
  * Every chapter used to stagger its lines the same way, which is why ten different layouts still
  * arrived feeling like the same page. The entrance now belongs to the chapter rather than to the
- * text — see "ten chapters, not ten pages" at the end of this file.
+ * text, see "ten chapters, not ten pages" at the end of this file.
  */
 .wrapped-body--cover > * {
   animation: wrapped-rise 620ms var(--ease-out) both;
@@ -8446,8 +8446,8 @@
  *
  * It used to be the same size as the end marker with a hard six-pixel ring of colour around it, so on
  * arrival that ring sat on top of the hollow station dot and read as a stripe bleeding out of it. The
- * travelling dot is now eight pixels — exactly the hole left by the twelve-pixel marker's two-pixel
- * border — and its glow is a soft blur rather than a hard ring, so the light falls inside the station
+ * travelling dot is now eight pixels, exactly the hole left by the twelve-pixel marker's two-pixel
+ * border, and its glow is a soft blur rather than a hard ring, so the light falls inside the station
  * instead of across it.
  */
 /*
@@ -9069,8 +9069,8 @@
  * **Every chapter brings its own surface, not just its own layout.**
  *
  * The deck used to be four tints of one page: same grain, same glow, same cream behind every screen.
- * A chapter is now allowed to change the ground it stands on — a field of dots, a transit grid, a
- * night skyline, an actual photograph — which is the difference between ten slides and ten rooms.
+ * A chapter is now allowed to change the ground it stands on, a field of dots, a transit grid, a
+ * night skyline, an actual photograph, which is the difference between ten slides and ten rooms.
  */
 
 /* The year drawn as itself: one dot for every journey planned, behind the number counting them. */
@@ -9079,7 +9079,7 @@
  *
  * The dots were laid out in a wrapping flex row under a mask that faded everything above and below the
  * middle, so a hundred and forty-six journeys drew one thin line of twenty-four dots across the
- * screen — the emptiest thing in the deck, with a ring around it and nothing inside. A fixed grid of
+ * screen, the emptiest thing in the deck, with a ring around it and nothing inside. A fixed grid of
  * twelve columns fills the page with them instead, so the whole screen is the year and the number
  * sits on top of it.
  */
@@ -9266,9 +9266,9 @@
  * **Ten chapters, not one typeface.**
  *
  * The deck spoke in the worn look's fonts from cover to close, which is why ten different screens
- * read as one screen. Every chapter now borrows a different voice from the app's own font set — a
+ * read as one screen. Every chapter now borrows a different voice from the app's own font set, a
  * mono count like a departure display, uppercase station names like a diagram, a serif percentage, a
- * fashion serif for the look, a typewriter board for the lines — and its own ground, so no two pages
+ * fashion serif for the look, a typewriter board for the lines, and its own ground, so no two pages
  * share both the face and the colour.
  *
  * These are the app's own downloaded faces, already in `public/fonts`. Each one is fetched only when
@@ -9718,7 +9718,7 @@
 /*
  * **Two movements, and nothing else: things glide on the bar, things pop on the beat.**
  *
- * The first version of this was a twitch — a class flipped on for a slice of every beat. The second
+ * The first version of this was a twitch, a class flipped on for a slice of every beat. The second
  * was a set of mechanical ticks: a quarter turn per beat, a step down the rail, a walk across the
  * bars. Each of those is technically in time and looks like a machine. What a body recognises as music
  * is two things only: something travelling evenly and arriving on the downbeat, and something giving a
@@ -9884,7 +9884,7 @@
  * Page 9 · the board counts, and each count lands on its own beat.
  *
  * A gradient wash across the rows was the cheap bit: it moved, but it measured nothing and it looked
- * like a shine on plastic. The rows count up from zero instead — one row per bar — and the number
+ * like a shine on plastic. The rows count up from zero instead, one row per bar, and the number
  * that has just landed gives a push on its beat.
  */
 .wrapped-stage.is-beat:not(.is-still)[data-chapter='lines'] .wrapped-chip strong {
@@ -9909,7 +9909,7 @@
  *
  * Three things made ten carefully different screens read as ten pages of one: a progress bar across
  * the top, a "4 / 10" along the bottom, and the same blurred slide-in on every arrival. The bar and
- * the count are gone — a chapter numbers itself, in its own type, in its own corner — and the
+ * the count are gone, a chapter numbers itself, in its own type, in its own corner, and the
  * entrance now belongs to the chapter instead of to the deck.
  *
  * So no two chapters arrive the same way: the cover lifts, the total rises off the floor, the line
@@ -9927,7 +9927,7 @@
  *
  * Removing the "4 / 10" was my call and it was wrong: the number of the chapter is not the same thing
  * as a page count, and taking it away left the story with no sense of how far in it was. It is back as
- * a chapter count in the chapter's own face — "04 / 10" — with the tracking pulled in so it reads as
+ * a chapter count in the chapter's own face, "04 / 10", with the tracking pulled in so it reads as
  * one figure rather than two letters spaced apart.
  */
 .wrapped-chapter {
@@ -10009,7 +10009,7 @@
  *
  * Pages four and nine were both lists of rounded cards with a number on the right, so one of them had
  * to stop being a card. This one is a departure board: hairline rules, no boxes, upper case, the
- * numbers set in mono — the thing you read while you wait — where page four is three paper tickets.
+ * numbers set in mono, the thing you read while you wait, where page four is three paper tickets.
  */
 .wrapped-body[data-chapter='lines'] .wrapped-chips {
   gap: 0;
@@ -10153,7 +10153,7 @@
 /* =================================================================== * **The bar at the top, and the page as two halves.**
  *
  * One segment per chapter: the ones behind you are solid, the one you are on fills as its own song
- * plays, and the ones ahead are quiet. The tap halves below it are not drawn at all — the whole page
+ * plays, and the ones ahead are quiet. The tap halves below it are not drawn at all, the whole page
  * is the target, and a faint edge on each side would only add two boxes to a screen that is meant to
  * be one picture.
  * ========================================================================== */
@@ -10413,7 +10413,7 @@
  * 11 · The dot bed covers the page, not the text block.
  *
  * It was drawn inside the body, and the body is a transformed flex child, so it began under the top row
- * and ended above the footer, while page four's paper shelf — a fixed band across the bottom third — was
+ * and ended above the footer, while page four's paper shelf, a fixed band across the bottom third, was
  * painted over the rest. It is a child of the stage now and sits above that shelf, under the words.
  */
 .wrapped-stage > .wrapped-grain {
@@ -10512,7 +10512,7 @@
 /*
  * 16 · The same soft light on every page, in that page's own colour.
  *
- * What makes page eight beautiful is not a glow behind the type — it is a wash over it: the photograph's
+ * What makes page eight beautiful is not a glow behind the type, it is a wash over it: the photograph's
  * own light falling across the words so they sit in the picture rather than on it. Each page now has that
  * same wash in its own material, and never the same twice: warm ink over the year, blue-black down the
  * rail, platform-green over the hour, violet in the dial, plum on the cover, a warm dark on the close.
@@ -11820,13 +11820,13 @@
  *
  * The alert card's one action is `btn--primary`, which is the structural obsidian on every
  * appearance. On a white card that is 15.9 to 1 and reads as a button; on the dark card it was
- * `#18181b` against `#232220`, which measures **1.11 to 1** — the pill was drawn and could not be
+ * `#18181b` against `#232220`, which measures **1.11 to 1**, the pill was drawn and could not be
  * seen, which is exactly what the steerer pointed at. No fill fixes that: to reach 3 to 1 against a
  * surface that dark, the pill would have to be grey.
  *
  * So in dark the border does the work instead of the surface. Light ink at 45% over the dark card
- * resolves to about `#848482`, **3.4 to 1** against the card — enough for a control's boundary
- * (WCAG 1.4.11) — and it is the same ink the label is painted in, so the pill reads as one object
+ * resolves to about `#848482`, **3.4 to 1** against the card, enough for a control's boundary
+ * (WCAG 1.4.11), and it is the same ink the label is painted in, so the pill reads as one object
  * rather than a grey outline bolted onto it. Light is untouched: there the surface is the boundary.
  *
  * It lives at the end of this file rather than beside `.btn--primary` because that block appears
@@ -11884,7 +11884,7 @@
 /* ------------------------------------------------------------------ Leg stops
  *
  * **A walking link is a hairline and a ride is a line you can follow.** Both were drawn at the same
- * weight in the same colour, so a journey's shape — walk, ride, walk, ride — did not read at a
+ * weight in the same colour, so a journey's shape, walk, ride, walk, ride, did not read at a
  * glance; 9292 makes the difference the first thing you see. The ride's rail takes the strongest
  * ink at half again the width, the walk keeps the thin dashed hairline.
  */
@@ -11919,7 +11919,7 @@
 /* ------------------------------------------------------------ Stops on the rail
  *
  * **A stop the service calls at is a small ring on the line, not a dialog.** The list opens under
- * the service that owns it, so the rail stays one continuous answer to "how far am I" — the sheet
+ * the service that owns it, so the rail stays one continuous answer to "how far am I", the sheet
  * that used to hold this took the answer off the line it describes. Twenty stops are set tight
  * (a negative margin each side) because a service that calls everywhere must not double the height
  * of the journey: 9292 draws the same list at roughly one line per stop.
@@ -11934,7 +11934,7 @@
  * Three faults came out of this mark in a row, so the reasons are written down here. It sat two
  * pixels below the centre line of its own name, so an opened service read as beads sliding off their
  * rows. It was eight pixels wide, a crumb beside fourteen-pixel station rings. And its centre was
- * open, to let the blue run through — but a four-pixel line inside a four-pixel opening leaves no
+ * open, to let the blue run through, but a four-pixel line inside a four-pixel opening leaves no
  * room at all: the line's edges touched the ring's stroke and bled through it, so the bead looked
  * chewed rather than drawn.
  *
@@ -11950,7 +11950,7 @@
   left: calc(var(--rail-node) / 2 - 5px);
   top: 3px;
   /* The line's own blue, so a stop reads as a widening of the line rather than a second thing
-     laid over it — 9292's beads are drawn in the colour of the service they belong to. */
+     laid over it, 9292's beads are drawn in the colour of the service they belong to. */
   border: 2px solid var(--rail-ride);
   border-radius: var(--r-circle);
   background: var(--l0-bg);
@@ -11960,7 +11960,7 @@
  * **A service is a name, not a chip.**
  *
  * "Bus 347" sat in a pale rounded badge, and a badge reads as a label you can look at rather than a
- * line you can open — so a second underlined "1 stop in between" link had to tell the traveller
+ * line you can open, so a second underlined "1 stop in between" link had to tell the traveller
  * where to press. 9292 prints the service as bold text and nothing else. The name is the control
  * here: bold, the same weight as a station, with a small chevron that turns over when its stops are
  * open. A service with no stops in between is not a button at all.
@@ -12020,8 +12020,8 @@
  *
  * The gutter answers "when" and "how", one under the other: the time at the top of the row and the
  * mode's glyph beneath it, level with the service that names it. Pushing a walk's glyph up to the
- * row's first line put it straight through its own time — 04:23 and a walking figure in the same
- * 40px — which is a collision, not a layout. Every row draws its glyph on the same line now, and a
+ * row's first line put it straight through its own time, 04:23 and a walking figure in the same
+ * 40px, which is a collision, not a layout. Every row draws its glyph on the same line now, and a
  * walk's row is made tall enough to hold both (see `.timeline__rail--dashed`).
  */
 .timeline__mode {
@@ -12096,7 +12096,7 @@
 
 /*
  * **The platform is one accent word at the right of the station.** "Platform 1 · Arrival platform 2"
- * was a grey sentence per service — two facts where a traveller needs one, on the line that is
+ * was a grey sentence per service, two facts where a traveller needs one, on the line that is
  * already the tallest thing in the card. 9292 prints the platform beside the station name in the
  * accent colour, and that is the whole of it.
  */
@@ -12175,20 +12175,20 @@
 
 /*
  * **A walk that names its start is a line taller, so its figure comes down with it.** The padding
- * above the block is the same either way — its centre lands on the middle of the dashes whatever its
- * height — but the glyph is pinned to the row, and a row with a place name in it is 21px taller. Same
+ * above the block is the same either way, its centre lands on the middle of the dashes whatever its
+ * height, but the glyph is pinned to the row, and a row with a place name in it is 21px taller. Same
  * rule as a ride's: the figure sits on the block's centre, not under the ring.
  */
 /*
  * **A walk that names its start is measured from that name, not from the ring.** The padding above a
  * bare walk was chosen so its one line lands on the middle of the dashes; with a place name above the
  * amount the block is two lines tall and that padding overshoots by half of it. Same arithmetic as a
- * ride's block — the padding less the station's own line — and the figure follows the block down.
+ * ride's block, the padding less the station's own line, and the figure follows the block down.
  */
 /*
  * **A named walk names its place on the ring's line, like every other mark on the rail.**
  *
- * The block-centring rule is right for a bare walk — one line, sitting on the middle of its dashes.
+ * The block-centring rule is right for a bare walk, one line, sitting on the middle of its dashes.
  * It is wrong the moment the row carries a place name: the name belongs to the circle beside it and
  * must share that circle's centre line, exactly as a station name does on a ride. So a named walk
  * takes the ride's own geometry instead: the name on the ring, the amount one line under it.
@@ -12221,7 +12221,7 @@
 
 /*
  * **The chain of modes under the title.** 9292 opens a journey with the vehicles it is made of, so
- * the shape of the trip — two trains, two walks — is read before any clock time is. The glyphs are
+ * the shape of the trip, two trains, two walks, is read before any clock time is. The glyphs are
  * the rail's own, at one size, and the changes sit at the far edge of the row.
  */
 .journey-modes {
@@ -12268,7 +12268,7 @@
  *
  * **The head of a journey is a title, one line of facts and three small buttons.** It was a display
  * title three lines tall (an address and two station names), a row of full-size pills and a pink
- * banner, so the first screen was chrome and the journey began below it — the biggest reason this
+ * banner, so the first screen was chrome and the journey began below it, the biggest reason this
  * page read as heavier than 9292's. The title drops to heading size, the price and the length sit
  * under it as one line, and the buttons keep their words at a smaller height.
  */
@@ -12509,7 +12509,7 @@
 /* ------------------------------------------- 9292 parity, third batch: the rail's own facts */
 /*
  * **Crowding, per service.** Two little people when it is quiet, three when it is full, and a
- * question mark where nobody has counted — drawn under the service's name, as 9292 draws it. The
+ * question mark where nobody has counted, drawn under the service's name, as 9292 draws it. The
  * glyph is the app's own `users` mark rather than a new picture, twice or three times over, with
  * the empty ones drawn at a lighter stroke so "two of three" can be read at a glance.
  */
@@ -12774,7 +12774,7 @@
   align-self: start;
 }
 /* The way back in the calendar sheet is the app's own button (`.btn`); this hook carries only the
-   space above it. This rule used to be the whole look — a muted, underlined word on a bare browser
+   space above it. This rule used to be the whole look, a muted, underlined word on a bare browser
    `<button>`, which drew its own square edge and its own underline inside a sheet made of pills
    (he circled it: "Why is this button square."). A shape declared in one place and a control drawn
    from another is how a square got into a sheet. */
@@ -12787,7 +12787,7 @@
  *
  * A change row carries the ride row's classes, so it inherited the ride's glyph offset: a rule that
  * hangs the figure 64px down, under a clock that a ride row has and a change row does not. The figure
- * therefore dropped past its own row and landed on top of the next stop's time — the overlapping
+ * therefore dropped past its own row and landed on top of the next stop's time, the overlapping
  * shoes beside "9:40". The change row's glyph sits level with its text, and there is nothing to hang
  * it under.
  */
@@ -12810,8 +12810,8 @@
  * with its own 1px ring inside the capsule). He circled it: "even the SWITCH is different then the
  * other switches in the website."
  *
- * The compact geometry is the right one — it is the app's own 44px target and it is the height of
- * the chip it shares a line with — so the compact shape is now the shape of the control, and the
+ * The compact geometry is the right one, it is the app's own 44px target and it is the height of
+ * the chip it shares a line with, so the compact shape is now the shape of the control, and the
  * difference between the two sizes is gone. What changes for Settings is 10px of height it did not
  * need and a ring it already had; what changes for the sheet is the ring, so the chosen half now
  * reads as raised there too.

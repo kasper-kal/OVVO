@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
  * The chunk rule, in one place: five rows.
  *
  * "When a screen shows 1 at a time, load 5; when a screen shows 2 at a time, load 10; when a
- * screen shows 3 at a time, load 15" — the number that loads follows the number the layout puts
+ * screen shows 3 at a time, load 15", the number that loads follows the number the layout puts
  * side by side, so every list in the app is **five rows deep**, whatever the screen is doing. A
  * phone with one card per row loads five; a wide screen laying three out loads fifteen; a chip
  * row that wraps two to a line loads ten.
@@ -26,7 +26,7 @@ export function loadCount(perRow: number, rows: number = ROWS_PER_LOAD): number 
  *
  * Two layouts, two readings: a grid answers with its own track list, and anything that wraps
  * answers with the number of items sitting on the first item's top edge. `null` means "not laid
- * out yet" (no tracks, no box) — the caller keeps the number it had rather than reading a
+ * out yet" (no tracks, no box), the caller keeps the number it had rather than reading a
  * half-drawn element as a one-column layout, which is a defect this rule has already produced
  * once: the first frame answered nothing and the page settled on one column's worth of cards
  * while the grid drew three.
@@ -54,7 +54,7 @@ export function measurePerRow(node: HTMLElement, itemSelector?: string): number 
  * The element is held as state through a callback ref rather than read from a `useRef` box, and
  * for a reason a check found: the carrier row on the results screen only exists once the Options
  * panel is opened, and a hook that reads `ref.current` in an effect with an empty dependency list
- * measures `null`, keeps its initial one, and never looks again — the row then loads five chips
+ * measures `null`, keeps its initial one, and never looks again, the row then loads five chips
  * while the layout shows twenty-five. A node that arrives later re-runs the effect.
  */
 export function usePerRow<T extends HTMLElement>(
@@ -88,7 +88,7 @@ export function usePerRow<T extends HTMLElement>(
 /**
  * A list that grows five rows at a time.
  *
- * `shown` is what is on screen, `next` is what one press adds (`min(batch, hidden)` — the button
+ * `shown` is what is on screen, `next` is what one press adds (`min(batch, hidden)`, the button
  * says the number it will bring), `loadMore` appends exactly one batch and never the whole rest,
  * which is what "load 5" means, and `collapse` goes back to the first batch. `grown` is `null`
  * until a press, so a resize re-sizes the first batch instead of freezing it.
@@ -141,12 +141,12 @@ export function useChunkedList<T>(
  * The chunked list, plus the two things that turn it into an endless-feeling one: the sentinel
  * the loader watches, and the scroll that arms it.
  *
- * "The rest load once you start scrolling down" — so the observer is armed by a scroll. A tall
+ * "The rest load once you start scrolling down", so the observer is armed by a scroll. A tall
  * desktop window can otherwise hold a batch and the sentinel at once and pull the whole list in
  * without anybody asking; before the first scroll the button is the way to more.
  *
- * It lives here, in one place, because two screens now grow their lists this way — Stations &
- * stops and the alerts list — and a rule with two copies is two rules. The button below the list
+ * It lives here, in one place, because two screens now grow their lists this way, Stations &
+ * stops and the alerts list, and a rule with two copies is two rules. The button below the list
  * stays a real button: the sentinel is a convenience on top of it, not the only way to more.
  */
 export function useLoadOnScroll<T>(
@@ -155,7 +155,7 @@ export function useLoadOnScroll<T>(
 ): ReturnType<typeof useChunkedList<T>> & {
   /** Give this to an empty element at the foot of the list. It has no look of its own. */
   sentinelRef: RefObject<HTMLDivElement | null>;
-  /** True once the page has been scrolled at all — what arms the loader. */
+  /** True once the page has been scrolled at all, what arms the loader. */
   hasScrolled: boolean;
 } {
   const list = useChunkedList(items, itemSelector);

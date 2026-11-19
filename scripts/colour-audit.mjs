@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /*
- * **Every colour a traveller can choose, measured — not just the one the app ships with.**
+ * **Every colour a traveller can choose, measured, not just the one the app ships with.**
  *
  * The Colours screen offers a page colour, a widget colour and a selection colour, each appearance
  * keeping its own, plus a raised-contrast switch. Those settings re-derive every ink and every
  * surface from one hex (`lib/background`), so the number of *combinations* the app can draw is far
- * larger than the number of stylesheets — and the contrast check, which ran in the default palette,
+ * larger than the number of stylesheets, and the contrast check, which ran in the default palette,
  * had only ever seen one of them. That is how a coral page in the dark appearance came to paint a
  * light pink chip and put cream glyphs on it at **2.54:1**: nothing in the repository measured a
  * palette nobody had chosen yet.
  *
- * This walks a set of palettes — the default, a vivid one, a pale one, a dark one, a widget-only
- * one, a split one, and raised contrast — in both appearances, through `scripts/ui-audit.mjs`,
+ * This walks a set of palettes, the default, a vivid one, a pale one, a dark one, a widget-only
+ * one, a split one, and raised contrast, in both appearances, through `scripts/ui-audit.mjs`,
  * which is the same measurement every screen already gets. Nothing here re-implements contrast; if
  * a palette fails, the failure is the audit's own, with its own numbers.
  *
@@ -28,7 +28,7 @@ const ORIGIN = (process.argv.find((arg) => arg.startsWith('http')) ?? process.en
 
 /*
  * The routes a palette is measured on. Not every screen: a palette is a set of surfaces, and these
- * are the ones that carry all of them — a card, a board row, a chip row, a sheet's chrome, the
+ * are the ones that carry all of them, a card, a board row, a chip row, a sheet's chrome, the
  * drawing, a result list. Six screens per palette keeps the sweep to a couple of minutes; the whole
  * app in one palette is what `npm run verify`'s own ui-audit does.
  */
@@ -97,7 +97,7 @@ async function worker() {
   }
 }
 
-console.log(`colour audit — ${PALETTES.length} palettes x 2 appearances, ${ORIGIN}\n`);
+console.log(`colour audit, ${PALETTES.length} palettes x 2 appearances, ${ORIGIN}\n`);
 await Promise.all([0, 1, 2, 3].map(worker));
 
 console.log(

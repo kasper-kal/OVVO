@@ -6,7 +6,7 @@
  * screen, so the maths moved out of the component: two screens and one library now read the same
  * functions rather than one importing the other.
  *
- * Nothing in here decides whether a colour is readable — the ink ramp in `lib/background.ts` does
+ * Nothing in here decides whether a colour is readable, the ink ramp in `lib/background.ts` does
  * that, and `inkFor` below asks it rather than re-deriving a second answer.
  */
 import { paintFor } from './background';

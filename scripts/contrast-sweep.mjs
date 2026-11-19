@@ -3,7 +3,7 @@
  *
  * `ui-audit.mjs` measures contrast on the routes it is given, in one appearance, and it is the gate
  * for the ordinary run. This is the deep one, written for the question "are there contrast issues
- * left and right?" — it does not trust a single surface:
+ * left and right?", it does not trust a single surface:
  *
  *   • **Six appearances.** Light, dark, light raised, dark raised, and two pages the traveller
  *     paints themselves (a tinted canvas with widgets following it, and a tinted canvas holding a
@@ -13,11 +13,11 @@
  *     list with journey cards on it, and a journey's detail page, opened the way a traveller opens
  *     it. A pasted `/journey/j1` on a cold browser only ever renders its empty state, which is why
  *     that screen's own type was never in front of a contrast check.
- *   • **Four widths**, including 320 and 720 — the two sides of the one breakpoint, where a size
+ *   • **Four widths**, including 320 and 720, the two sides of the one breakpoint, where a size
  *     class can change a threshold from 4.5:1 to 3:1.
  *
  * What it asks of each node: the painted colour of the words against the painted colour *behind*
- * them. The ground is composited through the ancestor chain — every translucent layer, in order —
+ * them. The ground is composited through the ancestor chain, every translucent layer, in order ,
  * and when the chain reaches a gradient or a photograph the answer is read out of the rendered
  * pixels instead of the declarations, because a `linear-gradient` has no colour to do arithmetic
  * on. The mode of a small screenshot of the node's own box is the ground: the glyphs are a minority
@@ -323,7 +323,7 @@ for (const finding of findings) {
 
 mkdirSync('.logs', { recursive: true });
 const lines = [
-  '# Contrast sweep — every screen, every appearance, every width',
+  '# Contrast sweep, every screen, every appearance, every width',
   '',
   `Measured ${new Date().toISOString().slice(0, 16).replace('T', ' ')} on ${ORIGIN}.`,
   `${checked.pages} page renders, ${checked.nodes} text and icon nodes measured.`,
@@ -331,7 +331,7 @@ const lines = [
   '',
 ];
 for (const [theme, group] of Object.entries(byTheme)) {
-  lines.push(`## ${theme} — ${group.count} below AA`, '');
+  lines.push(`## ${theme}, ${group.count} below AA`, '');
   lines.push('| route | width | ratio | needs | what | ink | ground |');
   lines.push('| --- | --- | --- | --- | --- | --- | --- |');
   for (const row of group.rows) {
@@ -340,7 +340,7 @@ for (const [theme, group] of Object.entries(byTheme)) {
   lines.push('');
 }
 if (!findings.length) lines.push('Nothing below AA anywhere in the matrix.', '');
-lines.push('## Closest to the floor — the tightest twenty, whatever their verdict', '');
+lines.push('## Closest to the floor, the tightest twenty, whatever their verdict', '');
 lines.push('| theme | route | width | ratio | needs | what | ink | ground |');
 lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
 for (const row of [...closest].sort((a, b) => a.cr - b.cr).slice(0, 20)) {
@@ -364,4 +364,4 @@ for (const row of [...closest].sort((a, b) => a.cr - b.cr).slice(0, 10)) {
 }
 console.log(`\n${checked.pages} renders, ${checked.nodes} nodes measured · report: ${REPORT}`);
 if (findings.length) process.exit(1);
-console.log('OK — every word and icon clears WCAG AA in every appearance, on every screen, at every width.');
+console.log('OK, every word and icon clears WCAG AA in every appearance, on every screen, at every width.');

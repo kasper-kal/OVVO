@@ -1,8 +1,8 @@
 /**
  * The breakpoint audit: which widths the stylesheet is allowed to branch on.
  *
- * The rule (`src/styles/base.css`, "the one breakpoint") is one line — **mobile under 720px,
- * desktop from 720px** — and the defects it exists to stop are the ones that came from every
+ * The rule (`src/styles/base.css`, "the one breakpoint") is one line, **mobile under 720px,
+ * desktop from 720px**, and the defects it exists to stop are the ones that came from every
  * component inventing its own width: the home grid kept two half cards at a 390px phone because
  * its floor was 360, the stop picker capped its list as if every screen were a phone up to 640,
  * and the page head changed shape at 641. Each of those was a reasonable local decision and
@@ -12,16 +12,16 @@
  * So the rule is not a comment people are asked to remember; it is this file. It reads every
  * `@media` width out of `src/styles/*.css` and fails when a query is not one of:
  *
- *   mode     `max-width: 719px` / `min-width: 720px` — the one breakpoint, both halves written so
+ *   mode     `max-width: 719px` / `min-width: 720px`, the one breakpoint, both halves written so
  *            no width can fall between them.
- *   tier     `min-width: 1040px` — the sidebar replaces the dock. The page is already desktop at
+ *   tier     `min-width: 1040px`, the sidebar replaces the dock. The page is already desktop at
  *            720; this only decides how the navigation is drawn.
- *   density  `max-width: 560/559`, `400/379px` — a control redrawn to fit inside mobile mode (the
+ *   density  `max-width: 560/559`, `400/379px`, a control redrawn to fit inside mobile mode (the
  *            departures row's four cells, the colour sheet's column count, the date field's
  *            split). Same screen, smaller measurements; never a different layout.
  *
  * A new width is therefore a deliberate act: it has to be added to `ALLOWED` below with a reason
- * next to it, which is exactly the argument the rule asks for. `719` and `720` must both exist —
+ * next to it, which is exactly the argument the rule asks for. `719` and `720` must both exist ,
  * a stylesheet that only had one side would leave the other side to a default, and the default is
  * what the old bugs were made of.
  *
@@ -117,7 +117,7 @@ const inventory = [...widths.entries()]
   .map(([width, count]) => `${width}px × ${count} (${ALLOWED.get(width)?.kind ?? 'UNLISTED'})`)
   .join(', ');
 
-console.log(`breakpoint audit — ${files.length} stylesheets`);
+console.log(`breakpoint audit, ${files.length} stylesheets`);
 console.log(`widths in use: ${inventory}`);
 
 if (findings.length === 0) {
@@ -129,6 +129,6 @@ console.error(`\n${findings.length} breakpoint${findings.length === 1 ? '' : 's'
 for (const finding of findings) {
   const where = finding.line ? `${finding.file}:${finding.line}` : finding.file;
   console.error(`  ${where}  ${finding.text}`);
-  console.error(`    ${finding.width}px — ${finding.why}`);
+  console.error(`    ${finding.width}px, ${finding.why}`);
 }
 process.exit(1);

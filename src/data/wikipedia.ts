@@ -10,13 +10,13 @@ import type { Language } from '../state/types';
  *
  * What is kept here is the one thing a request cannot guess: **which article**. Dutch and English
  * Wikipedia title the same station differently ("Station Utrecht Centraal" / "Utrecht Centraal
- * station"), and several stops are not stations at all — a tram stop is a square, a ferry stop is
+ * station"), and several stops are not stations at all, a tram stop is a square, a ferry stop is
  * a bridge's pier. Deriving a title from `stop.name` would be wrong for all of those, and wrong
  * quietly: the request would 404 and the page would simply lose its card.
  *
  * Every title below was checked against both Wikipedias while this was built (114 title/language
- * pairs, all answering), and a stop that is **not** in the table — the ferry piers, the bus
- * stations, the walking landmarks with no article of their own — has no card on its page. That is
+ * pairs, all answering), and a stop that is **not** in the table, the ferry piers, the bus
+ * stations, the walking landmarks with no article of their own, has no card on its page. That is
  * the rule: no article, no widget, rather than an empty one.
  */
 const ARTICLES: Record<string, Record<Language, string>> = {

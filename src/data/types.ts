@@ -51,7 +51,7 @@ export interface Stop {
    * The street or building at this stop, as OpenStreetMap names it.
    *
    * 9292 names the stop you stand at *with its street or building*, and the app held only the
-   * stop's name — so "Amsterdam, Leidseplein" was the whole answer to "where do I stand". The
+   * stop's name, so "Amsterdam, Leidseplein" was the whole answer to "where do I stand". The
    * street is read from the map at the stop's own position once, by `scripts/geocode-stops.mjs`,
    * and stored in `stop-streets.json`; nothing here is typed in by hand.
    */
@@ -100,8 +100,8 @@ export interface Leg {
   fromStopId: string;
   toStopId: string;
   /**
-   * The traveller's own name for an end that is not a stop — an address a device fix resolved
-   * to — printed instead of the stop's name. Absent on every leg of a journey between stops,
+   * The traveller's own name for an end that is not a stop, an address a device fix resolved
+   * to, printed instead of the stop's name. Absent on every leg of a journey between stops,
    * so the stop's own name is what a leg reads unless a place answered for it.
    */
   fromLabel?: string;
@@ -125,7 +125,7 @@ export interface Leg {
    * How full this one service is expected to be, and `unknown` where nobody knows.
    *
    * The journey carries an average (`Journey.occupancy`), which said the same thing about every
-   * service in it — one line at the foot of the page about a trip made of two trains. 9292 puts
+   * service in it, one line at the foot of the page about a trip made of two trains. 9292 puts
    * the reading on each service, so a quiet first train and a packed second one can be read before
    * boarding either. `unknown` is the "?" it prints rather than a guess.
    */
@@ -139,7 +139,7 @@ export interface Leg {
    * The stop that headsign names.
    *
    * The direction a service runs in is named after its terminus, and that terminus is a station
-   * with a page — so the leg keeps the id beside the words, and the pill that prints them can be
+   * with a page, so the leg keeps the id beside the words, and the pill that prints them can be
    * a way to look at where the vehicle is going. Optional: a journey saved by an older build has
    * the name and not this, and a leg without it prints the words as plain text.
    */

@@ -8,7 +8,7 @@ type Translate = (key: string, vars?: Record<string, string | number>) => string
  * The alerts live in `data/disruptions.ts`, which is demonstration timetable data, so they are
  * written once in English. What the traveller reads them in is the screen's business, and every
  * screen that prints an alert goes through here rather than reading `.title` straight off the
- * record — otherwise a Dutch page shows Dutch around English words.
+ * record, otherwise a Dutch page shows Dutch around English words.
  *
  * Nothing else about an alert is translated: the place names, line numbers, carrier names and
  * times inside these sentences are the timetable talking, and they are the same words in both

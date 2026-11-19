@@ -48,7 +48,7 @@ import { AuthFinishPage } from './pages/AuthFinishPage';
 /**
  * **Settings is closed at 10% or below.**
  *
- * Super energy saving leaves the app answering one question — when does the bus go — and
+ * Super energy saving leaves the app answering one question, when does the bus go, and
  * Settings is the screen that costs the most to draw and answers that question least. It is also
  * missing from the navigation (`AppShell`'s `useNavigation`), so this route is the second half of
  * the same rule rather than a separate one: a link that is not drawn and a URL that still works
@@ -91,7 +91,7 @@ function MapRoute() {
 }
 
 /**
- * OVVO — application entry point and route table.
+ * OVVO, application entry point and route table.
  * Every screen is reachable from the sidebar (desktop) and the floating dock
  * plus "All sections" sheet (mobile).
  *
@@ -100,7 +100,7 @@ function MapRoute() {
  * of `/#/stops/utrecht-centraal`, and the trade is the host's: a real path is a request the host
  * must answer, so every unknown address has to come back as `index.html` rather than a 404 (Vite's
  * SPA fallback, `appType: 'spa'` in `vite.config.ts`, which both the dev server and `vite preview`
- * honour — that pair is how this site is served). Addresses that still carry a `#/` are translated
+ * honour, that pair is how this site is served). Addresses that still carry a `#/` are translated
  * on the way in (`main.tsx`), so an old bookmark or a link already shared does not break.
  */
 export default function App() {
@@ -115,7 +115,7 @@ export default function App() {
             * without a header, a dock or a real search around it (`pages/SkeletonDemoPage.tsx`).
             * It sits *outside* the shell because that is the point: the placeholder is the whole
             * screen. `import.meta.env.DEV` is `false` in a build, so this route never ships, and
-            * it is reached by the hash alone — a bare visit opens the home screen, as it should.
+            * it is reached by the hash alone, a bare visit opens the home screen, as it should.
             * It used to be the other way round: `main.tsx` sent any hashless visit here, which
             * meant the preview opened on a lab rather than on the app.
             */}
@@ -142,7 +142,7 @@ export default function App() {
                   {/* The old address stays a door, not a 404: a bookmark or a shared link
                       taken before the rename still lands on the same story. */}
                   <Route path="/wrapped" element={<Navigate to={`/yearbook${window.location.search}`} replace />} />
-                  {/* One search, in full: everything a reload or a pasted link must put back —
+                  {/* One search, in full: everything a reload or a pasted link must put back ,
                       see `lib/searchLink`. `/results` alone still works and says there is nothing
                       to show yet. */}
                   <Route path="/results/:searchId" element={<ResultsPage />} />
@@ -172,7 +172,7 @@ export default function App() {
           />
         </Routes>
         {/*
-          The review layer — a dev-only annotation tool, deleted with `review/` and this line.
+          The review layer, a dev-only annotation tool, deleted with `review/` and this line.
 
           `import.meta.env.DEV` is replaced with `false` by Vite at build time, so the import is
           tree-shaken out of the bundle: no traveller ever downloads it, and no reviewer sees it in

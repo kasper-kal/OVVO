@@ -6,7 +6,7 @@
  *   node scripts/realtime/probe.mjs --report   # print the last inventory, fetch nothing
  *
  * A `200 OK` proves a URL exists, not that the feed says anything useful. This decodes the
- * protobuf by hand — no dependency, no schema tooling — and reports only what the bytes contain:
+ * protobuf by hand, no dependency, no schema tooling, and reports only what the bytes contain:
  * how many entities, of which kind, how old the newest and oldest message is, which trips and
  * routes are named, and whether the payload could be matched back to the timetable at all.
  *
@@ -90,7 +90,7 @@ function parseFeed(buffer) {
 
   const summary = {
     version: version?.buffer ? text(version.buffer) : null,
-    /* The header timestamp is the moment the producer built the message — the authoritative
+    /* The header timestamp is the moment the producer built the message, the authoritative
      * answer to "how old is this", and the only one every GTFS-RT feed is required to carry. */
     headerTimestamp: headerTime?.value ? new Date(headerTime.value * 1000).toISOString() : null,
     headerEpoch: headerTime?.value ?? null,
@@ -206,7 +206,7 @@ function parseFeed(buffer) {
 
 if (process.argv.includes('--report')) {
   if (!fs.existsSync(OUT)) {
-    console.error(`no inventory yet at ${OUT} — run without --report`);
+    console.error(`no inventory yet at ${OUT}, run without --report`);
     process.exit(1);
   }
   console.log(fs.readFileSync(OUT, 'utf8'));
