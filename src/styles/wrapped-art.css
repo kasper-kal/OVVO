@@ -1547,3 +1547,147 @@ video.w-backdrop {
 .wrapped-stage .film2-art .w-mass {
   opacity: 0.3;
 }
+
+/* ==================================================================================================
+ * **The field fills the frame, and the words buckle it.**
+ *
+ * The last pass stopped the wall above the sentence so the type could pass 7:1, and the recording showed
+ * what that actually cost: the top half of every card was a field of marks and the bottom half was a bare
+ * gradient, so a card read as wallpaper with a caption under it. The reference never has a bare half. Its
+ * field runs edge to edge and its type is legible because the field goes soft and dark under the line.
+ *
+ * So the wall is no longer masked off. A soft plate behind the sentence, keyed to the ink (dark plate under
+ * cream type, pale plate under dark type), carries the marks through the words at a low strength. The
+ * vignette is the light falling off at the corners, which is what gives the flat field depth.
+ * ================================================================================================ */
+
+.w-field.w-scene--top,
+.w-field.w-scene--bottom,
+.w-field.w-scene--center {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.w-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(125% 82% at 50% 40%, transparent 30%, rgb(3 0 8 / 0.34) 74%, rgb(3 0 8 / 0.6) 100%);
+}
+
+/*
+ * **The plate is a layer, not a child of the copy.**
+ *
+ * It began inside `.film2-copy`, which looked right on screen and was invisible to the check: the field is
+ * sampled with the words hidden, so the plate went away with them and every reading was of the bare wall.
+ * As its own layer it darkens the field where the sentence stands, and it is measured. The band runs the
+ * length of the half the words occupy, because a shorter one left the top line of a three-line sentence on
+ * bare field.
+ */
+.w-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.film2[data-ink='light'] .w-plate {
+  background: linear-gradient(to top, rgb(4 0 8 / 0.86) 0 46%, rgb(4 0 8 / 0.86) 58%, transparent 74%);
+}
+
+.film2[data-ink='light'].film2--place-top .w-plate {
+  background: linear-gradient(to bottom, rgb(4 0 8 / 0.86) 0 46%, rgb(4 0 8 / 0.86) 58%, transparent 74%);
+}
+
+.film2[data-ink='light'].film2--place-center .w-plate {
+  background: linear-gradient(to bottom, transparent 6%, rgb(4 0 8 / 0.85) 26% 66%, transparent 86%);
+}
+
+.film2[data-ink='dark'] .w-plate {
+  background: linear-gradient(to top, rgb(255 247 234 / 0.88) 0 46%, rgb(255 247 234 / 0.87) 58%, transparent 74%);
+}
+
+.film2[data-ink='dark'].film2--place-top .w-plate {
+  background: linear-gradient(to bottom, rgb(255 247 234 / 0.88) 0 46%, rgb(255 247 234 / 0.87) 58%, transparent 74%);
+}
+
+.film2[data-ink='dark'].film2--place-center .w-plate {
+  background: linear-gradient(to bottom, transparent 6%, rgb(255 247 234 / 0.87) 26% 66%, transparent 86%);
+}
+
+.film2-line,
+.film2-sub,
+.film2-begin {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 719px) {
+  .film2-line {
+    max-width: 16ch;
+    font-size: clamp(40px, 10.6vw, 64px);
+    line-height: 0.92;
+  }
+
+  .film2--cover .film2-line,
+  .film2--close .film2-line,
+  .film2--name .film2-line {
+    max-width: 15ch;
+    font-size: clamp(42px, 11.2vw, 68px);
+  }
+
+  .film2--size-small .film2-line {
+    max-width: 19ch;
+    font-size: clamp(34px, 8.8vw, 50px);
+  }
+
+  .film2--size-medium .film2-line {
+    max-width: 17ch;
+    font-size: clamp(37px, 9.6vw, 56px);
+  }
+}
+
+/* The route pair is the longest sentence in the deck; it keeps a size the smallest phone can hold. */
+@media (max-width: 379px) {
+  .film2--pair .film2-line {
+    max-width: 100%;
+    font-size: clamp(26px, 8vw, 34px);
+  }
+}
+
+/* ==================================================================================================
+ * **The plate is the chapter's colour, not a grey slab.**
+ *
+ * The first plate was mixed from the frame's own black, and the recording showed what that costs: the
+ * comparison's saturation fell to 120 against the reference's 147, because a neutral dark rectangle over a
+ * saturated field is grey, and grey is the one thing Wrapped never puts on screen. Cream type now sits on a
+ * multiplied dark (the field's own colour, deepened, its hue intact), and near-black type sits on a pale
+ * wash of the chapter's own accent instead of paper. The text stays on the plate; the plate stops being one.
+ * ================================================================================================ */
+
+.film2[data-ink='light'] .w-plate {
+  mix-blend-mode: multiply;
+}
+
+.film2[data-ink='dark'] .w-plate {
+  mix-blend-mode: multiply;
+}
+
+.film2[data-ink='dark'] .w-plate {
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--accent, #ffd6ef) 34%, #fff7ea) 0 46%,
+    color-mix(in srgb, var(--accent, #ffd6ef) 26%, #fff7ea) 58%,
+    transparent 74%
+  );
+}
+
+.film2[data-ink='dark'].film2--place-top .w-plate {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent, #ffd6ef) 34%, #fff7ea) 0 46%,
+    color-mix(in srgb, var(--accent, #ffd6ef) 26%, #fff7ea) 58%,
+    transparent 74%
+  );
+}

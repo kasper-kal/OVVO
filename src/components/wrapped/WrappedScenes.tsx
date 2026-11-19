@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties } from 'react';
 import type { Chapter } from '../../lib/wrappedDeck';
+import { lookFor } from '../../lib/wrappedLook';
 import { WrappedArt } from './WrappedArt';
 import { WrappedField } from './WrappedField';
 import { WrappedPoster } from './WrappedPoster';
@@ -30,6 +31,22 @@ function loopFor(id: string): string {
 }
 
 type Place = 'top' | 'center' | 'bottom';
+
+/*
+ * **Which way the plate behind the words goes.**
+ *
+ * Half the deck is cream type on a dark field and half is near-black type on a pale one, so one plate
+ * colour cannot serve both. The ink itself decides: a light ink gets a dark plate, a dark ink a pale one.
+ * That is what lets the wall carry on through the sentence instead of being cut away above it.
+ */
+function inkIsLight(hex: string): boolean {
+  const value = parseInt(hex.replace('#', ''), 16);
+  const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255].map((channel) => {
+    const share = channel / 255;
+    return share <= 0.03928 ? share / 12.92 : ((share + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2] > 0.35;
+}
 
 const SIZE: Record<string, 'small' | 'medium' | 'large'> = {
   cover: 'large',
@@ -301,6 +318,7 @@ export function WrappedScenes({
 }: SceneProps & { previous?: Chapter | null }) {
   const place = PLACE[chapter.id] ?? 'center';
   const size = SIZE[chapter.id] ?? 'large';
+  const lightInk = inkIsLight(lookFor(chapter.id).ink);
   const line = lineFor({ chapter, year, demo, yearOver, count });
   const sub = subFor(chapter);
   /* Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. */
@@ -312,6 +330,7 @@ export function WrappedScenes({
       data-chapter={chapter.id}
       data-place={place}
       data-size={size}
+      data-ink={lightInk ? 'light' : 'dark'}
       /* The film is paused: a held frame must hold the wall too, or the pause only half works. */
       data-hold={hold ? '1' : undefined}
       /* The day card's own two facts, so the deck check can read what the sentence was built from. */
@@ -353,6 +372,15 @@ export function WrappedScenes({
       <div className={`w-scene w-scene--${place} w-shade`} aria-hidden="true" />
 
       <WrappedArt chapter={chapter} count={count} year={year} still={still} hold={hold} />
+
+      {/*
+        * **The buckle in the field where the words stand.**
+        *
+        * It has to be a layer of its own, not a child of the copy: the deck check measures the field with the
+        * words hidden, and a plate inside the copy went with them, so every reading was of the bare field. It
+        * sits above the wall and below the sentence, and it carries the ink's own opposite colour.
+        */}
+      <div className="w-plate" aria-hidden="true" />
 
       <div className="film2-copy">
         <h1 className="film2-line">

@@ -88,6 +88,16 @@ if (process.env.DIM) {
 if (process.env.HUGE_TYPE) {
   await page.addStyleTag({ content: '.film2-line { font-size: 190px !important; line-height: 1 !important; }' });
 }
+/*
+ * **The half-card failure, on demand.** `MASKED_FIELD=1` puts back the mask that cut the wall off above the
+ * sentence, which is what made the top of every card a field of marks and the bottom a bare gradient.
+ */
+if (process.env.MASKED_FIELD) {
+  await page.addStyleTag({
+    content:
+      '.w-field { -webkit-mask-image: linear-gradient(to top, #000 0 44%, transparent 54%) !important; mask-image: linear-gradient(to top, #000 0 44%, transparent 54%) !important; }',
+  });
+}
 if (process.env.OLD_CHROME) {
   await page.evaluate(() => {
     const note = document.createElement('span');
@@ -234,6 +244,13 @@ const readScene = async () => {
       artArea: artRect ? (artRect.width * artRect.height) / (filmRect.width * filmRect.height) : 0,
       /* Kept for the contrast pass, which reads the field with the words taken away. */
       ink: getComputedStyle(line).color,
+      /* The wall has to be the whole frame. A masked wall leaves half the card bare. */
+      fieldMask: (() => {
+        const field = film.querySelector('.w-field');
+        if (!field) return 'missing';
+        const style = getComputedStyle(field);
+        return style.maskImage || style.webkitMaskImage || 'none';
+      })(),
     };
   });
 
@@ -325,7 +342,7 @@ const objectBox = async ([left, top, width, height]) => {
 const objectAlphaBox = async ([frameLeft, frameTop, frameWidth, frameHeight]) =>
   page.evaluate(
     async ([left, top, width, height]) => {
-      const canvas = document.querySelector('.film2 .w-canvas');
+      const canvas = Array.from(document.querySelectorAll('.film2')).at(-1)?.querySelector('.w-canvas');
       if (!canvas) return null;
       const rect = canvas.getBoundingClientRect();
       const image = new Image();
@@ -434,9 +451,17 @@ const moving = !motionBefore.equals(motionAfter);
  * second of the canvas, the picture, without the grain over it, and holds every card to a floor.
  */
 /* A declaration, not a const: the walk calls it before this line is reached. */
+/*
+ * **The canvas belongs to the film that is arriving, not the one leaving.**
+ *
+ * A chapter cut keeps the outgoing `.film2` in the page under the incoming one, so `querySelector` returned
+ * the old film. Its object has already stopped, which is why this check read `moved 0 of 0.1` on two or three
+ * cards a run and a different card each time: it was measuring the card that had just gone. The last `.film2`
+ * is the one on top and the one the next frame will show.
+ */
 function filmFrame() {
   return page.evaluate(() => {
-    const source = document.querySelector('.film2 .w-canvas');
+    const source = Array.from(document.querySelectorAll('.film2')).at(-1)?.querySelector('.w-canvas');
     if (!source) return null;
     const small = document.createElement('canvas');
     small.width = 24;
@@ -506,9 +531,34 @@ async function sampleMotion(name) {
     sum += Math.abs(first[i] - second[i]) + Math.abs(first[i + 1] - second[i + 1]) + Math.abs(first[i + 2] - second[i + 2]);
   }
   const mean = sum / (first.length * 0.75);
-  motionScores.push({ name, mean: Math.round(mean * 100) / 100 });
-  if (mean < MOTION_FLOOR) stillChapters.push(`${name} (moved ${Math.round(mean * 100) / 100} of ${MOTION_FLOOR})`);
+  /*
+   * **A second look before calling a card frozen.**
+   *
+   * One card a run still read nought, on a different card each time, while the same canvas sampled on its
+   * own moved at 2.8 to 5.9. A nought from this instrument is not yet a fact: the canvas can hand back the
+   * same buffer twice if the reader lands on the same painted frame. The sample is taken again, and only a
+   * nought that happens twice is reported. The floor is untouched, so a pinned clock still reads nought and
+   * still fails; this is a second reading of the same measurement, not a lower bar.
+   */
+  let reading = mean;
+  if (reading < MOTION_FLOOR) {
+    await page.waitForTimeout(420);
+    const againA = await filmFrame();
+    await page.waitForTimeout(100);
+    const againB = await filmFrame();
+    if (againA && againB) {
+      let repeat = 0;
+      for (let i = 0; i < againA.length; i += 4) {
+        repeat += Math.abs(againA[i] - againB[i]) + Math.abs(againA[i + 1] - againB[i + 1]) + Math.abs(againA[i + 2] - againB[i + 2]);
+      }
+      reading = Math.max(reading, repeat / (againA.length * 0.75));
+    }
+  }
+  if (reading < MOTION_FLOOR) stillChapters.push(`${name} (moved ${Math.round(reading * 100) / 100} of ${MOTION_FLOOR})`);
+  motionScores.push({ name, mean: Math.round(reading * 100) / 100 });
 }
+
+const fieldFailures = [];
 
 for (let i = 0; i < chapterCount - 1; i += 1) {
   if (process.env.SAME_SHAPE) {
@@ -531,6 +581,9 @@ for (let i = 0; i < chapterCount - 1; i += 1) {
   const scene = await readScene();
   if (scene) judgeObject(scene, await objectAlphaBox(scene.filmBox));
   scenes.push(scene);
+  if (scene && scene.fieldMask !== 'none') {
+    fieldFailures.push(`${scene.chapter}: the wall stops before the sentence, leaving half the card bare`);
+  }
   await holdFrame(false);
   if (scene) await sampleMotion(scene.chapter);
 
@@ -845,7 +898,10 @@ else {
 }
 
 /* The hold: ten seconds still, then moving again within two seconds of letting go. */
-const canvasFrame = () => page.evaluate(() => document.querySelector('.film2 .w-canvas')?.toDataURL() ?? '');
+const canvasFrame = () =>
+  page.evaluate(
+    () => Array.from(document.querySelectorAll('.film2')).at(-1)?.querySelector('.w-canvas')?.toDataURL() ?? '',
+  );
 const pauseControl = page.locator('.wrapped-pause');
 if (!(await pauseControl.count())) {
   pauseFailures.push('the header has no pause control beside the sound switch');
@@ -958,6 +1014,7 @@ const shareRankHanded =
 await browser.close();
 
 const failures = [
+  ...fieldFailures,
   ...bareFailures,
   ...contrastFailures,
   ...phoneFailures,
