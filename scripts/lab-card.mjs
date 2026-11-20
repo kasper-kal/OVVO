@@ -62,7 +62,7 @@ for (let i = 0; i < 6; i += 1) {
   const file = `${OUT}/${tag}-${String(i).padStart(2, '0')}.png`;
   await page.screenshot({ path: file });
   frames.push(file);
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(900);
 }
 
 const state = await page.evaluate(() => {

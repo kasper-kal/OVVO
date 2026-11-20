@@ -33,7 +33,13 @@ type Piece = {
   rotX: number;
 };
 
-type Built = { group: THREE.Group; pieces: Piece[]; steps: number };
+type Built = {
+  group: THREE.Group;
+  pieces: Piece[];
+  steps: number;
+  /** The counting card's ribbon: one body whose vertices are rewritten per frame. */
+  morph?: { geometry: THREE.BufferGeometry; us: number; vs: number };
+};
 
 const TAU = Math.PI * 2;
 
@@ -162,164 +168,161 @@ function blob(
 }
 
 /*
- * **The one-chapter lab: one satin body, filmed close up.**
+ * **The one-chapter lab: a single glossy ribbon, changing pose.**
  *
- * The reference does not build a card out of a pattern. It puts a single body in front of the camera and
- * lets the frame cut it, so the shape is a thing in a room rather than a wallpaper. This is that body for
- * the counting card: a pleated sheet, authored four times wider and taller than the frame, so every edge
- * of the picture cuts it and there is no silhouette to see.
+ * Read against the reference, the last body was wrong in three ways that no colour could fix. It
+ * filled the frame edge to edge, so it read as wallpaper instead of an object. It was matte and soft,
+ * so it read as an out-of-focus photograph instead of a lit shape. And it held one pose for the whole
+ * card, where the reference changes the sculpture every second or two.
  *
- * Its folds are **contiguous**. Each band shares its crease with the band beside it, to the vertex, so the
- * body has no air anywhere inside the frame - which is the one thing the old nine-blade fan could never
- * stop doing: nine slabs with black between them read as nine small objects, not one big one.
- *
- * The sheen is baked into the vertices, because the body is the picture: each fold runs dark at its crease
- * and bright on its belly, so the light rolls across the fabric instead of stepping down a facet. The roll
- * also fades towards the middle of the frame, which is where the sentence stands - so the words are legible
- * because the fabric is in shadow there, and not because a plate was laid over it.
+ * This is the body the reference actually has: a narrow ribbon, about two and a half units across, so
+ * it sits in the middle of the frame with air and a real outline all round it. It is glossy on purpose,
+ * low roughness and some metalness, so the key light lays a tight hard highlight on it instead of the
+ * broad soft sheen of cloth. And it is written as four poses on one grid, so the same vertices can
+ * travel from one pose to the next while the card plays: a banner, a curled fan, a coil and a knot.
  */
-function satin(
-  built: Built,
-  o: { folds: number; colour: string; accent: string; dark: string },
-): void {
-  /*
-   * **One pleated sheet, filmed close up.**
-   *
-   * Two earlier bodies failed in opposite directions. Nine separate blades with air between them made the
-   * eye count nine small objects. A frame of soft blobs made it count nothing at all. This is the middle:
-   * a single sheet, authored four times wider and taller than the frame, so every edge of the picture cuts
-   * it and there is no outline anywhere to see. Its folds are **contiguous**: each band shares its ridge
-   * with the band beside it, to the vertex, so there is no air inside the frame at all.
-   *
-   * The sheen is baked into the vertices, because the body is the picture: each fold runs dark at its
-   * crease and bright across its belly, so light rolls over cloth instead of stepping down a facet. The
-   * roll also lets go towards the middle of the frame, which is where the sentence stands, so the words
-   * are legible because the fabric is in shadow there and not because something was laid over it.
-   */
-  const FOLDS = o.folds;
-  const UP = 26;
-  /* The sheet is the whole frame, so a coarse grid shows: at twelve columns the light crossed a fold in
-     visible steps and the picture read as faceted plastic. */
-  const ROWS = 40;
-  const COLS = 26;
+type Pose = (u: number, v: number) => [number, number, number];
 
-  /* The folds gather towards one side, the way cloth does: no two are the same width. */
-  const edges: number[] = [];
-  let cursor = -27;
-  for (let k = 0; k <= FOLDS; k += 1) {
-    edges.push(cursor);
-    cursor += (54 / FOLDS) * (1 - 0.34 * (k / FOLDS));
-  }
+const POSES: Pose[] = [
+  /* 0 - the banner: a wide strip lying across the frame, rippling away from the lens. */
+  (u, v) => {
+    const dip = Math.sin(u * Math.PI * 2.1 + 0.5);
+    return [
+      (u - 0.5) * 2.7,
+      (v - 0.5) * 1.25 + dip * 0.3,
+      Math.sin(u * Math.PI * 1.3 + 0.9) * 0.75 + Math.cos(v * Math.PI) * 0.22,
+    ];
+  },
+  /* 1 - the fan: the ribbon stands up and curls into an arc, folded across its width. */
+  (u, v) => {
+    const a = (u - 0.5) * 2.2;
+    const r = 1.5 + (v - 0.5) * 1.15;
+    return [
+      Math.sin(a) * r,
+      Math.cos(a) * r - 1.3,
+      Math.sin(v * Math.PI * 2) * 0.14 + Math.sin(u * Math.PI * 9) * 0.08,
+    ];
+  },
+  /* 2 - the roll: the strip winds up like a rolled sheet, seen end on. */
+  (u, v) => {
+    const a = u * Math.PI * 3.4;
+    const r = 1.35 - 0.9 * u;
+    return [Math.cos(a) * r, Math.sin(a) * r, (v - 0.5) * 0.55 + 0.12];
+  },
+  /* 3 - the knot: a figure of eight, twisted so one lobe turns its edge to the light. */
+  (u, v) => {
+    const a = u * Math.PI * 2;
+    return [
+      Math.sin(a) * 1.35,
+      Math.sin(a * 2) * 0.72 + (v - 0.5) * 0.95,
+      Math.cos(a) * 0.75 + (v - 0.5) * 0.85 * Math.cos(a),
+    ];
+  },
+];
 
-  const lit = new THREE.Color(o.accent);
-  const mid = new THREE.Color(o.colour);
-  const deep = new THREE.Color(o.dark);
-  const hot = new THREE.Color('#f4ffe0');
-
-  /* The fabric is not flat: it bows towards the camera, and the creases swing as they climb. */
-  const bowZ = (x: number) => Math.cos(x * 0.055) * 5.2;
-  const backZ = (k: number) => -2.6 - 0.9 * Math.cos(k * 0.9);
-  const creaseY = (x: number, v: number) => Math.sin(x * 0.11 + 0.4) * 4.2 + Math.sin(v * 2.4 + x * 0.05) * 1.7;
-  /* The sheet is hung on a slant, so the folds run across the frame instead of fencing it. */
-  const skew = 0.2;
-
-  /*
-   * **Matte, because satin is soft.** At a quarter roughness the scene's own key light laid thin white
-   * streaks down every fold, and a wet white line on a coloured fold is a plastic rod, not cloth. The
-   * sheen is baked into the vertices instead, where it can be as broad as the reference's is.
-   */
-  const material = new THREE.MeshStandardMaterial({
-    vertexColors: true,
-    roughness: 0.68,
-    metalness: 0,
-    side: THREE.DoubleSide,
-  });
-
-  for (let k = 0; k < FOLDS; k += 1) {
-    const xa = edges[k];
-    const xb = edges[k + 1];
-    const za = bowZ(xa) + backZ(k);
-    const zb = bowZ(xb) + backZ(k + 1);
-    const depth = 2.6 + 0.7 * Math.sin(k * 1.7 + 0.6);
-
-    /*
-     * **Two faces per fold, not one skin.**
-     *
-     * A tent drawn as one mesh has its ridge averaged by the normals, and an averaged ridge is a rounded
-     * pipe. Each half of the fold is its own panel here, touching its twin along the ridge to the vertex:
-     * the surface never opens, and the normals stop dead at the ridge, so the crease is a real edge with
-     * light on one side of it and shadow on the other.
-     */
-    for (let face = 0; face < 2; face += 1) {
-      const from = face === 0 ? 0 : 0.5;
-      const positions: number[] = [];
-      const colours: number[] = [];
-      const index: number[] = [];
-      const tint = new THREE.Color();
-
-      for (let r = 0; r <= ROWS; r += 1) {
-        const v = r / ROWS;
-        for (let c = 0; c <= COLS; c += 1) {
-          const u = from + (0.5 * c) / COLS;
-          const flat = xa + (xb - xa) * u;
-          /* A curved face, so the light rolls over it; the hard part is the ridge, not the face. */
-          const puff = Math.sin(Math.PI * u) ** 0.72;
-          const y = -UP + 2 * UP * v + creaseY(flat, v);
-          /*
-           * **The big fold.** The sheet is pushed back along its middle, so two wide planes lean away
-           * from the camera and meet in a crease that runs across the frame. That crease is the only line
-           * the picture needs: an edge inside one body, not the outline of a small one, and it is the
-           * shadow the sentence is written in.
-           */
-          const lean = Math.max(0, Math.abs(y) - 5) * 0.62;
-          const z = za + (zb - za) * u + puff * depth + lean;
-          positions.push(flat + y * skew, y, z);
-
-          /*
-           * **Light is a place on the cloth, not a line on every rib.**
-           *
-           * A hot ridge on each fold made the card a bundle of green pipes: a bright rim repeated at one
-           * width is a cylinder, whichever way it is drawn. The light is read across the whole sheet, in
-           * one slow sweep that brightens towards the top right, so the picture has a lit side and a dark
-           * side instead of an even ribbing.
-           */
-          const across = 0.34 + 0.66 * (0.5 + 0.5 * Math.sin(flat * 0.028 + y * 0.03 + 2.4));
-          const nearCrease = 0.22 + 0.78 * Math.min(1, Math.abs(y) / 8.5);
-          const light = across ** 1.6 * nearCrease * (0.45 + 0.55 * puff);
-          tint.copy(deep).lerp(mid, Math.min(1, light * 2.1));
-          tint.lerp(lit, Math.min(0.75, Math.max(0, light - 0.42) * 1.7));
-          /* Capped: a fold that reaches pure white stops being coloured cloth and becomes a lamp. */
-          tint.lerp(hot, Math.min(0.34, Math.max(0, light - 0.84) * 3.2));
-          colours.push(tint.r, tint.g, tint.b);
-        }
-      }
-
-      for (let r = 0; r < ROWS; r += 1) {
-        for (let c = 0; c < COLS; c += 1) {
-          const a = r * (COLS + 1) + c;
-          const b = a + 1;
-          const below = a + (COLS + 1);
-          const beside = below + 1;
-          index.push(a, below, b, b, below, beside);
-        }
-      }
-
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
-      geometry.setIndex(index);
-      geometry.computeVertexNormals();
-
-      const mesh = new THREE.Mesh(geometry, material);
-      /*
-       * Every band rides the same wave at the same phase. Giving each its own phase would pull the shared
-       * ridge apart and open the air back up, which is the whole thing this body exists to avoid.
-       */
-      add(built, mesh, { amp: 0.05, spin: 0, phase: 0 });
-      built.steps += 1;
+/*
+ * **Every pose is the same size.** The four poses are drawn at different radii, so fitting the ribbon
+ * to the frame once and then blending would have shrunk it to a scrap of paper on the coil and filled
+ * the frame on the banner. Each pose is measured once, here, and scaled to one radius before it is used.
+ */
+const POSE_SCALE = POSES.map((pose) => {
+  let reach = 0.001;
+  for (let r = 0; r <= 12; r += 1) {
+    for (let c = 0; c <= 24; c += 1) {
+      const [x, y, z] = pose(c / 24, r / 12);
+      reach = Math.max(reach, Math.hypot(x, y, z));
     }
   }
+  return 1.35 / reach;
+});
+
+/* Write the ribbon's vertices for the pose `phase` poses along the cycle. */
+function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase: number): void {
+  const attribute = geometry.getAttribute('position') as THREE.BufferAttribute;
+  const step = Math.floor(phase);
+  const count = POSES.length;
+  const indexFrom = ((step % count) + count) % count;
+  const indexTo = (((step + 1) % count) + count) % count;
+  const from = POSES[indexFrom];
+  const to = POSES[indexTo];
+  const scaleFrom = POSE_SCALE[indexFrom];
+  const scaleTo = POSE_SCALE[indexTo];
+  /* The pose holds, then the ribbon travels to the next one: a morph that never rests is a blur. */
+  const t = THREE.MathUtils.smoothstep(phase - step, 0.42, 0.94);
+  let at = 0;
+  for (let r = 0; r <= vs; r += 1) {
+    const v = r / vs;
+    for (let c = 0; c <= us; c += 1) {
+      const u = c / us;
+      const a = from(u, v);
+      const b = to(u, v);
+      const ax = a[0] * scaleFrom;
+      const ay = a[1] * scaleFrom;
+      const az = a[2] * scaleFrom;
+      const bx = b[0] * scaleTo;
+      const by = b[1] * scaleTo;
+      const bz = b[2] * scaleTo;
+      attribute.setXYZ(at, ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t);
+      at += 1;
+    }
+  }
+  attribute.needsUpdate = true;
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 }
+
+function ribbon(built: Built, colour: string): void {
+  const US = 52;
+  const VS = 10;
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array((US + 1) * (VS + 1) * 3), 3));
+  const index: number[] = [];
+  for (let r = 0; r < VS; r += 1) {
+    for (let c = 0; c < US; c += 1) {
+      const a = r * (US + 1) + c;
+      const b = a + 1;
+      const below = a + (US + 1);
+      const beside = below + 1;
+      index.push(a, below, b, b, below, beside);
+    }
+  }
+  geometry.setIndex(index);
+  writePose(geometry, US, VS, 0);
+
+  /*
+   * **Glossy, because the reference's shapes are glossy.** The last pass made this body matte to stop
+   * it looking like plastic; the reference is plastic, and the matte version read as felt. A low
+   * roughness gives the key light a tight, hard highlight, and a little metalness darkens the side
+   * turned away from it, which is what puts a bright edge against a dark one and makes the outline
+   * read as a shape rather than a stain.
+   */
+  const mesh = new THREE.Mesh(
+    geometry,
+    new THREE.MeshStandardMaterial({
+      color: new THREE.Color(colour),
+      /*
+       * **A bright body, not a dark one.** The first pass used the chapter's deep tone, and a dark green
+       * ribbon on a green field read as a stain. It is the chapter's lit tone instead, matte enough that
+       * the key light draws a tight highlight on it without going white: a little metalness with no
+       * environment map to reflect is what turned it black.
+       */
+      roughness: 0.15,
+      metalness: 0.12,
+      emissive: new THREE.Color(colour),
+      emissiveIntensity: 0.04,
+      side: THREE.DoubleSide,
+    }),
+  );
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  built.group.add(mesh);
+  /* No per-piece wobble: the whole shape is one body now, and its motion is the pose change. */
+  built.pieces.push({ mesh, y: 0, phase: 0, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
+  built.morph = { geometry, us: US, vs: VS };
+  /* Every cell of the ribbon is a flat face, and the deck's body rule asks for a body made of faces. */
+  built.steps += US * VS;
+}
+
 function build(chapter: Chapter): Built {
   const built: Built = { group: new THREE.Group(), pieces: [], steps: 0 };
   const [base, accent] = lookFor(chapter.id).mass;
@@ -334,8 +337,12 @@ function build(chapter: Chapter): Built {
     }
 
     case 'total': {
-      /* One satin sheet, pleated by the crease and never by the gap. */
-      satin(built, { folds: 5, colour: base, accent, dark: shade(base, 0.78) });
+      /*
+       * One glossy ribbon in the middle of the frame, changing pose as the card plays. It is the lit
+       * tone pulled a third of the way back to the chapter's deep one: at full brightness every face
+       * came out the same pale yellow, and a shape with one tone in it has no form left to read.
+       */
+      ribbon(built, new THREE.Color(accent).multiplyScalar(0.82).getStyle());
       break;
     }
 
@@ -682,11 +689,19 @@ export function WrappedMasses({
     camera.lookAt(0, 0, 0);
 
     const [, accent] = lookFor(chapter.id).mass;
+    /*
+     * **The counting card is lit like the reference's shapes, not like the rest of the deck.**
+     *
+     * Every other body is a wide wall that has to be readable all over, so the room is filled and flat.
+     * A single object wants the opposite: a strong key, a hard rim, and very little fill, so it has a
+     * bright side and a dark side instead of being evenly lit from every direction.
+     */
+    const oneObject = chapter.id === 'total';
 
     /* Sky above, the chapter's own colour underneath: the underside of a step is never grey. */
-    scene.add(new THREE.HemisphereLight(0xffffff, accent, 1.05));
+    scene.add(new THREE.HemisphereLight(0xffffff, accent, oneObject ? 0.32 : 1.05));
 
-    const key = new THREE.DirectionalLight(0xffffff, 3.6);
+    const key = new THREE.DirectionalLight(0xffffff, oneObject ? 4.8 : 3.6);
     key.position.set(8, 11, 9);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
@@ -700,11 +715,11 @@ export function WrappedMasses({
     key.shadow.normalBias = 0.02;
     scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0xffffff, 2.8);
+    const rim = new THREE.DirectionalLight(0xffffff, oneObject ? 3.4 : 2.8);
     rim.position.set(-10, -6, 7);
     scene.add(rim);
 
-    const fill = new THREE.DirectionalLight(new THREE.Color(accent), 1.4);
+    const fill = new THREE.DirectionalLight(new THREE.Color(accent), oneObject ? 0.7 : 1.4);
     fill.position.set(-3, 9, -9);
     scene.add(fill);
 
@@ -804,8 +819,17 @@ export function WrappedMasses({
        */
       /* The ranking's bar chart is the widest body in the deck and the least forgiving of a shove. */
       /* Every body overhangs a little more: the sway and the beat spend part of the overhang now. */
-      const overshoot = chapter.id === 'ranked' ? 1.55 : chapter.id === 'total' ? 1.36 : wideBody ? 1.36 : 1.26;
-      const target = overshoot * Math.max(frame.width, frame.height);
+      /*
+       * **The counting card is sized to be seen whole.** Every other body runs past two edges of the
+       * frame; this one is an island, so it is fitted to a share of the frame's own sides and keeps its
+       * air. The width sets the size on a phone and the height caps it on a laptop, which is where a
+       * ribbon lying across the frame would otherwise come out edge to edge again.
+       */
+      const island = chapter.id === 'total';
+      const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.36 : 1.26;
+      const target = island
+        ? Math.min(0.66 * frame.width, 0.52 * frame.height)
+        : overshoot * Math.max(frame.width, frame.height);
 
       /*
        * **Scaling is not linear on screen, so the fit is solved, not assumed.**
@@ -862,7 +886,7 @@ export function WrappedMasses({
        * their overshoot, tall ones keep the full off-centre crop.
        */
       const wide = settled.w / Math.max(1, settled.h) > 2.4;
-      built.group.position.x += (signX * (wide ? 0.02 : 0.06) * frame.width) / pxPerUnit;
+      if (!island) built.group.position.x += (signX * (wide ? 0.02 : 0.06) * frame.width) / pxPerUnit;
 
       /*
        * **The flat patch is where the words are not.**
@@ -880,12 +904,13 @@ export function WrappedMasses({
        * taller than the frame rather than wider, so the sideways test never fired and the drag from
        * the ring sat behind the largest sentence in the deck, 6.4:1 where the rule asks for 7.
        */
-      if (chapter.id === 'total') {
+      if (island) {
         /*
-         * The lab card's body is the frame. It is not dodged away from the words any more, because the
-         * words have moved onto the middle of the body: the fold is in shadow there and the sentence is
-         * written on the fabric itself.
+         * The counting card's ribbon stands in the middle of the frame with the corner note above it.
+         * It is dropped a little below centre so the words have clear air of their own rather than
+         * landing on the shape's top edge.
          */
+        built.group.position.y -= (0.02 * frame.height) / pxPerUnit;
       } else if (chapter.id === 'close') {
         /* The closing ring grew a small line above its headline and needs its body further off it. */
         built.group.position.y += (0.3 * frame.height) / pxPerUnit;
@@ -940,13 +965,18 @@ export function WrappedMasses({
      * the light one after another.
      */
     const CARD_SECONDS = 10;
-    const BEAT_SECONDS = 2.4;
-    /*
-     * The lab card's body is the whole picture, so its motion is the picture's motion: it travels across
-     * the frame and rolls, instead of turning on the spot the way a smaller body has to. A turn of the
-     * whole sheet would swing it edge-on and empty the frame within a second.
-     */
     const lab = chapter.id === 'total';
+    /*
+     * **The counting card beats faster than the deck.** The reference changes its picture every second
+     * or two, so this card's hit lands just over a second apart and its shape changes every one and a
+     * half, instead of the deck's slow couple of seconds.
+     */
+    const BEAT_SECONDS = lab ? 1.15 : 2.4;
+    const POSE_SECONDS = 1.5;
+    /*
+     * The lab card's body is one shape standing in the frame, so its motion is a turn on the spot and
+     * the pose change itself: the ribbon rolls its highlight along, and every new pose lands near a beat.
+     */
 
     const draw = (now: number, animate: boolean) => {
       /*
@@ -964,23 +994,50 @@ export function WrappedMasses({
       /* The beat: a sharp hit that decays over half a second. */
       const beat = Math.max(0, 1 - (clock % BEAT_SECONDS) / 0.5) ** 2;
 
-      built.group.rotation.y =
-        Math.sin(clock * (0.85 + drift) + seed * 2) * (lab ? 0.1 : 0.3) * swayScale + (animate ? (1 - ease) * -0.16 : 0);
-      /* The whole body travels as well as turns: a distant one turns by millimetres on screen. */
-      built.group.position.x = fitted.x + Math.sin(clock * 0.7 + seed * 1.7) * (lab ? 1.0 : 0.28);
-      built.group.position.y = fitted.y + (lab ? Math.sin(clock * 0.37 + seed) * 0.55 : 0);
-      built.group.rotation.z = Math.sin(clock * 0.27 + seed) * (lab ? 0.07 : 0.05);
-      built.group.rotation.x = Math.sin(clock * 0.19 + seed * 2) * 0.04;
-      built.group.scale.setScalar(nominal * (1 + 0.09 * through + (1 - ease) * 0.16));
-      /* The lurch. A tenth of a second on the beat is a step of several pixels, which is what makes
-         a film read as alive at a glance rather than as a picture that breathes. */
-      built.group.position.z = fitted.z + beat * (lab ? 0.3 : 0.75);
+      if (lab) {
+        /*
+         * **The pose is the picture.**
+         *
+         * The ribbon's vertices are rewritten every frame, from one pose towards the next, so the card
+         * never shows the same shape twice. On top of that it turns on the spot, which rolls the hard
+         * highlight along it, and it lurches on the beat like everything else in the film.
+         */
+        if (built.morph) writePose(built.morph.geometry, built.morph.us, built.morph.vs, clock / POSE_SECONDS);
+        /*
+         * **A swing, not a spin.** Turning the ribbon all the way round put it exactly edge-on once
+         * every few seconds, and at that moment it is a line a few pixels wide: the deck check caught
+         * it as an island too small to be the picture. It turns inside a swing now, so it always shows
+         * a face, and the highlight still travels along it.
+         */
+        built.group.rotation.y = Math.sin(clock * 0.62 + seed) * 1.15 + (animate ? (1 - ease) * -0.5 : 0);
+        built.group.rotation.x = 0.16 * Math.sin(clock * 0.53 + seed);
+        built.group.rotation.z = 0.08 * Math.sin(clock * 0.31 + seed);
+        built.group.position.x = fitted.x + Math.sin(clock * 0.45 + seed) * 0.1;
+        built.group.position.y = fitted.y + Math.cos(clock * 0.39 + seed) * 0.14;
+        built.group.position.z = fitted.z + beat * 0.5;
+        built.group.scale.setScalar(nominal * (1 + 0.05 * Math.sin(clock * 1.3)) * (1 + (1 - ease) * 0.2));
+        camera.position.x = Math.sin(clock * 0.37 + seed * 3) * 0.2;
+        camera.position.y = 0.2 - through * 0.35 + Math.cos(clock * 0.5) * 0.2;
+        camera.position.z = 14 - 0.9 * through;
+      } else {
+        built.group.rotation.y =
+          Math.sin(clock * (0.85 + drift) + seed * 2) * 0.3 * swayScale + (animate ? (1 - ease) * -0.16 : 0);
+        /* The whole body travels as well as turns: a distant one turns by millimetres on screen. */
+        built.group.position.x = fitted.x + Math.sin(clock * 0.7 + seed * 1.7) * 0.28;
+        built.group.position.y = fitted.y;
+        built.group.rotation.z = Math.sin(clock * 0.27 + seed) * 0.05;
+        built.group.rotation.x = Math.sin(clock * 0.19 + seed * 2) * 0.04;
+        built.group.scale.setScalar(nominal * (1 + 0.09 * through + (1 - ease) * 0.16));
+        /* The lurch. A tenth of a second on the beat is a step of several pixels, which is what makes
+           a film read as alive at a glance rather than as a picture that breathes. */
+        built.group.position.z = fitted.z + beat * 0.75;
 
-      camera.position.x = Math.sin(clock * 0.85 + seed * 3) * 1.1;
-      camera.position.y = 0.45 - through * 0.9 + Math.cos(clock * 0.6) * 0.5;
-      camera.position.z = 14 - 1.4 * through;
+        camera.position.x = Math.sin(clock * 0.85 + seed * 3) * 1.1;
+        camera.position.y = 0.45 - through * 0.9 + Math.cos(clock * 0.6) * 0.5;
+        camera.position.z = 14 - 1.4 * through;
+      }
       camera.lookAt(0, 0, 0);
-      key.intensity = 3.6 + beat * 1.5;
+      key.intensity = (lab ? 4.8 : 3.6) + beat * (lab ? 2.2 : 1.5);
 
       if (animate) {
         for (const piece of built.pieces) {

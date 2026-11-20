@@ -1786,7 +1786,7 @@ video.w-backdrop {
  * needs no box behind it, which is the difference between type on a picture and type on a card.
  * ------------------------------------------------------------------------- */
 .film2--total .w-shade { display: none; }
-.film2--total video.w-backdrop { opacity: 0.22; }
+.film2--total video.w-backdrop { opacity: 0; }
 .wrapped-stage .film2--total .film2-art { z-index: 6; }
 .wrapped-stage .film2--total .film2-art .w-mass { opacity: 1; mix-blend-mode: normal; }
 /* The drawn ticket stub was a prop beside the object; on this card the object is the prop. */
@@ -1796,41 +1796,58 @@ video.w-backdrop {
 .film2--total .w-plate { display: none; }
 
 /*
- * The words in the middle of the body, smaller than the deck's own headline, so the picture is
- * the thing you see first. A small line under them still swaps once, and the headline now does
- * the same: the fact arrives, then the feeling replaces it.
+ * The words are a corner note, not a title.
+ *
+ * The reference never writes its sentence over the object. It sets one short line in the top left,
+ * small enough that the sculpture stays the thing you look at, and it swaps that line once. The
+ * counting card does the same now: the ribbon owns the middle of the frame, and the words sit in the
+ * corner above it, where nothing is in their way.
  */
 .film2--total .film2-copy {
-  top: 50%;
+  top: clamp(64px, 9.5vh, 104px);
+  left: clamp(20px, 5.2vw, 48px);
+  right: auto;
   bottom: auto;
-  transform: translate(-50%, -50%);
+  width: min(74%, 340px);
+  transform: none;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .film2--total .film2-head {
   display: grid;
-  justify-items: center;
+  justify-items: start;
 }
 
 .film2--total .film2-head > * { grid-area: 1 / 1; }
 
+.film2--total .film2-line,
+.film2--total .film2-after {
+  max-width: 13ch;
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(17px, 4.4vw, 24px);
+  font-weight: 800;
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  color: var(--ink, #f6ffe0);
+}
+
 .film2--total .film2-line {
-  max-width: 15ch;
-  font-size: clamp(30px, 7vw, 74px);
-  line-height: 0.98;
   animation: film-head-a 10s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .film2--total .film2-after {
-  max-width: 15ch;
-  font-family: 'Archivo', sans-serif;
-  font-size: clamp(30px, 7vw, 74px);
-  font-weight: 800;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-  color: var(--ink, #f6ffe0);
-  text-wrap: balance;
   opacity: 0;
   animation: film-head-b 10s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* The small line is a whisper under the corner words, not a caption across the picture. */
+.film2--total .film2-sub {
+  margin-top: 0.5rem;
+  max-width: 20ch;
+  font-size: clamp(11px, 2.9vw, 14px);
+  opacity: 0.75;
 }
 
 @keyframes film-head-a {

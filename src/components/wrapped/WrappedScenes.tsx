@@ -322,27 +322,36 @@ export function WrappedScenes({
   /*
    * **The one-chapter lab.**
    *
-   * The counting card is being rebuilt first, on its own, until it is right: the screen is one lit body
-   * cut by the frame instead of a wall of repeated marks over it. The wall stays on the other nineteen
-   * cards until this one has been judged and approved, so nothing else changes underneath the steerer.
+   * The counting card is being rebuilt first, on its own, until it is right: the screen is one glossy
+   * shape sitting in the middle of the frame instead of a wall of repeated marks over it. The wall stays
+   * on the other nineteen cards until this one has been judged and approved.
    */
   const noWall = chapter.id === 'total';
   const line = lineFor({ chapter, year, demo, yearOver, count });
   const sub = subFor(chapter);
-  /* Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. */
-  const words = line.split(/ +/);
-  const headline = (
-    <h1 className="film2-line">
-      {words.map((word, at) => (
-        <Fragment key={at}>
-          <span className="film2-word" style={{ '--i': at } as CSSProperties}>
-            {word}
-          </span>
-          {at < words.length - 1 ? ' ' : null}
-        </Fragment>
-      ))}
-    </h1>
-  );
+  /*
+   * Split on ordinary spaces only, so a route's non-breaking gap stays inside one word. The counting
+   * card's sentence is two sentences, laid out by the same builder and swapped halfway through.
+   */
+  const lineNode = (text: string) => {
+    const words = text.split(/ +/);
+    return (
+      <h1 className="film2-line">
+        {words.map((word, at) => (
+          <Fragment key={at}>
+            <span className="film2-word" style={{ '--i': at } as CSSProperties}>
+              {word}
+            </span>
+            {at < words.length - 1 ? ' ' : null}
+          </Fragment>
+        ))}
+      </h1>
+    );
+  };
+  const headline = lineNode(line);
+  /* "146 journeys. You don't stay in much." becomes the fact, then the feeling. */
+  const [fact, ...rest] = line.split('. ');
+  const feeling = rest.join('. ');
 
   return (
     <div
@@ -413,8 +422,8 @@ export function WrappedScenes({
           */}
         {chapter.id === 'total' ? (
           <div className="film2-head">
-            {headline}
-            <div className="film2-after">You don&apos;t stay in much.</div>
+            {lineNode(rest.length ? `${fact}.` : line)}
+            {rest.length ? <div className="film2-after">{feeling}</div> : null}
           </div>
         ) : (
           headline
