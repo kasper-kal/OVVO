@@ -2033,6 +2033,8 @@ video.w-backdrop {
   text-wrap: balance;
   text-shadow: none;
   transform: none;
+  /* Two lines of room whether the sentence needs one or two, so the caption never moves. */
+  min-height: 1.96em;
 }
 
 .film2--total .film2-line {
@@ -2052,7 +2054,7 @@ video.w-backdrop {
   right: 0;
   width: min(74%, 30ch);
   margin: 0 auto;
-  top: calc(31% + 9.4vh);
+  top: calc(31% + 14.6vh);
   bottom: auto;
   color: #ffffff;
   opacity: 0;
