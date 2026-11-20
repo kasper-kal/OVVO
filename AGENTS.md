@@ -67,6 +67,20 @@ Run `node scripts/corners.mjs --restore` when the page is lost or overwritten: i
 
 That checker covers the shape of the mockup gallery only. The safety of the work itself comes from `scripts/keep.mjs`, which saves the app and the gallery together.
 
+## Spotify Wrapped inspiration
+
+**The only Spotify Wrapped reference in this project is `artifacts/reference-tenths/`**, the frames cut
+from `VID_20261102_013903_1.mp4` at the root. That folder, and that video, are it.
+
+Look at nothing else for Wrapped: no marketing screenshots, no pictures found on the web, no other
+artifacts folder, no memory of what Wrapped "usually" looks like. Every frame compared against the film
+must come from that folder, and every claim about the reference must be traceable to a tile in it. If a
+comparison needs a frame that is not in there, say so instead of substituting something else.
+
+Everything else that used to be Wrapped reference material has been removed from the project, so the
+temptation is gone: the extracted frame packs, the marketing images and the zipped frame set are deleted,
+apart from this folder and the original video.
+
 ## Screenshots and faults
 
 The rule is short because it has to be followed while I am pleased with my own work.

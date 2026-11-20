@@ -1954,7 +1954,7 @@ video.w-backdrop {
  * and its ghost are one element and can never drift apart.
  * ------------------------------------------------------------------------- */
 .film2--total .film2-after {
-  font-size: clamp(34px, min(11.4vw, 7.1vh), 84px);
+  font-size: clamp(30px, min(9.6vw, 6.2vh), 68px);
   line-height: 0.96;
   letter-spacing: -0.04em;
   font-weight: 800;
@@ -1991,10 +1991,10 @@ video.w-backdrop {
 .film2--total .film2-line,
 .film2--total .film2-after {
   bottom: auto;
-  top: 34%;
+  top: 38%;
 }
 
 .film2--total .film2-sub {
   bottom: auto;
-  top: calc(34% + 12.4vh);
+  top: calc(38% + 10.2vh);
 }

@@ -173,55 +173,59 @@ function blob(
 }
 
 /*
- * **The band of arcs.**
+ * **The bar block, which is what the reference actually draws.**
  *
- * Read at full size, the reference's counting card is not a shape at all: it is a run of thick concentric
- * arcs, cream on charcoal with one arc in the accent colour, cropped by the bottom of the frame, with thin
- * white doodle lines scrawled across the field. Everything is flat and everything is bold. A grid of pixel
- * squares, a lit ribbon, a stepped ring: none of that is Wrapped, and this is.
+ * The count card in the reference is not a ring and not a shape: it is a run of vertical bars across the
+ * bottom of the frame, cream and charcoal, with one band of the accent colour, cut off by the bottom
+ * edge and by both sides. Thin scribble lines loop over the bars. The type sits in the middle in short
+ * bold lines. Everything is flat, high contrast, and nothing is three dimensional.
  */
-function arcBand(built: Built, cream: string, accent: string): void {
-  const COUNT = 9;
-  /* Full rings: a half ring leaves a straight chord across the picture where it is cut. */
-  const SPAN = Math.PI * 2;
-  const start = 0;
+function stripeBlock(built: Built, cream: string, accent: string): void {
+  const COUNT = 15;
+  const TOTAL = 16;
+  const bar = TOTAL / COUNT;
+  /* Every bar stands on the same line, below the frame, so the block is cut by the bottom edge. */
+  const foot = -6.4;
   for (let i = 0; i < COUNT; i += 1) {
-    const inner = 1.05 + i * 0.62;
-    /* The fourth arc, and only the fourth, carries the accent: one colour note in a cream band. */
-    const colour = i === 3 ? accent : cream;
-    const geometry = new THREE.RingGeometry(inner, inner + 0.4, 96, 1, start, SPAN);
+    const x = -TOTAL / 2 + bar * (i + 0.5);
+    /* Uneven heights, the way a hand would cut them: a long wave plus a small step of three. */
+    /* An even block with small variation, the way the reference cuts it: not a bar chart. */
+    const height = 4.7 + Math.sin(i * 0.85) * 0.22 + (i % 3) * 0.12;
+    /* One band of the accent, roughly two thirds along, exactly as the reference does it. */
+    const colour = i === 9 ? accent : cream;
+    const geometry = new THREE.PlaneGeometry(bar * 0.84, height);
+    /* The bar grows upwards from its foot, not outwards from its middle. */
+    geometry.translate(0, height / 2, 0);
     const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: new THREE.Color(colour) }));
+    mesh.position.set(x, foot, 0);
     built.group.add(mesh);
-    built.pieces.push({ mesh, x: 0, y: 0, phase: i * 0.55, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
-    /* Each arc is one step of the band, and the deck counts steps to see a body made of them. */
+    built.pieces.push({ mesh, x, y: foot, phase: i * 0.42, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
     built.steps += 1;
   }
 
   /*
-   * **The scrawl.** Three thin wobbly lines laid over the field, the way the reference draws them: a loop
-   * that overshoots itself, a long lazy curve, and a short hook. They are flat lines, not wires in space.
+   * **The scribble.** Three thin loops drawn over the bars, the way the reference scrawls across its
+   * stripes: quick, uneven, and slightly off the horizontal.
    */
-  const wobble = (t: number, seed: number) =>
-    Math.sin(t * 3.1 + seed) * 0.5 + Math.sin(t * 7.3 + seed * 2.1) * 0.16;
-  const lines: Array<[number, number, number, number, number]> = [
-    [-4.6, 7.4, 4.4, 5.2, 0.7],
-    [-5.0, 4.6, 4.0, 8.2, 1.9],
-    [-2.6, 9.0, 3.4, 6.0, 3.2],
-  ];
-  for (const [x0, y0, x1, y1, seed] of lines) {
+  const line = (seed: number, y: number) => {
     const points: THREE.Vector3[] = [];
-    for (let i = 0; i <= 60; i += 1) {
-      const t = i / 60;
-      points.push(new THREE.Vector3(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + wobble(t * 4, seed), 0));
+    for (let i = 0; i <= 90; i += 1) {
+      const t = i / 90;
+      const x = -8 + t * 16;
+      const wob = Math.sin(t * 9 + seed) * 1.1 + Math.sin(t * 21 + seed * 2) * 0.35 + Math.sin(t * 3 + seed) * 0.6;
+      points.push(new THREE.Vector3(x, foot + y + wob, 0));
     }
-    const line = new THREE.Line(
+    const mesh = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: new THREE.Color(cream), transparent: true, opacity: 0.5 }),
+      new THREE.LineBasicMaterial({ color: new THREE.Color(cream), transparent: true, opacity: 0.9 }),
     );
-    built.group.add(line);
-    built.pieces.push({ mesh: line, x: 0, y: 0, phase: seed, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
+    built.group.add(mesh);
+    built.pieces.push({ mesh, x: 0, y: foot, phase: seed, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
     built.steps += 1;
-  }
+  };
+  line(0.6, 5.4);
+  line(2.4, 6.3);
+  line(4.1, 4.6);
 }
 
 function build(chapter: Chapter): Built {
@@ -242,7 +246,7 @@ function build(chapter: Chapter): Built {
        * Flat bars in a stepped ring. No light, no depth, no gloss: the reference draws its shapes, and
        * a lit object was the whole reason this card read as a render instead of a Wrapped frame.
        */
-      arcBand(built, '#f4ede1', accent);
+      stripeBlock(built, '#f4ede1', accent);
       break;
     }
 
@@ -956,46 +960,20 @@ export function WrappedMasses({
          * Everything here runs on the card's own clock, so it always opens on the broad pose.
          */
         /*
-         * **Sized by the height of the frame, not its width.**
-         *
-         * The band is a bullseye that rises out of the bottom edge and is cut by it, with the sentence
-         * above it in clear air. Sizing it from the width made a laptop frame one enormous target with
-         * the words printed across it; sizing it from the height keeps the same picture on a phone and
-         * on a laptop, and keeps the top of the band below the copy on both.
+         * **Sized by the frame's width.** The bar block runs past both sides and stands below the bottom
+         * edge, so it is cut on three edges on any screen, and the type above it always has clear air.
          */
-        const tall = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z;
-        const halfH = tall / 2;
-        const OUTER = 6.41;
-        /*
-         * **On a wide frame the band is cut by the sides too.**
-         *
-         * Sized by height alone, a laptop frame showed the whole bullseye floating in the middle with two
-         * clean edges, which the deck reads as a badge rather than a picture. Taking whichever is larger,
-         * a share of the height or a share of the width, keeps the phone as it is and grows the band on a
-         * laptop until the frame cuts it on both sides and it rises like a low sun.
-         */
-        const radius = Math.max(0.62 * halfH, 0.53 * tall * camera.aspect);
-        const sized = radius / OUTER;
-        const ringTop = -0.12 * halfH;
-        const push = 1 + 0.3 * (0.5 - 0.5 * Math.cos((cardTime / CARD_SECONDS) * Math.PI * 2));
-        built.group.rotation.set(0, 0, 0.1 * Math.sin(cardTime * 0.5 + seed));
-        /* The band is a fifth larger than the lens can see, so it is cut by both sides as it grows. */
-        const grow = sized * push * (1 + 0.05 * beat);
+        const seen = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z * camera.aspect;
+        const sized = (1.06 * seen) / 16;
+        const push = 1 + 0.22 * (0.5 - 0.5 * Math.cos((cardTime / CARD_SECONDS) * Math.PI * 2));
+        const grow = sized * push * (1 + 0.03 * beat);
+        built.group.rotation.set(0, 0, 0);
         built.group.scale.setScalar(grow);
-        /*
-         * **The band rises out of the bottom edge.** The reference does not float its arcs in the middle
-         * of the card: they come up off the bottom of the frame, cut by it, with the sentence above them
-         * in clear air. Placing the band low also keeps the canvas full frame, so no invisible box can
-         * slice the arcs with a straight edge halfway down the picture.
-         */
-        built.group.position.x = Math.sin(cardTime * 0.4 + seed) * 0.04;
-        /*
-         * **The top of the band is pinned, not its centre.** Scaling happens about the origin, so holding
-         * the centre still let the band swell upwards as it grew, and on a laptop it climbed into the
-         * sentence. The position is solved from the grown radius instead, so the band's top edge stays
-         * where the layout put it whatever size the push has reached.
-         */
-        built.group.position.y = ringTop - OUTER * grow + Math.cos(cardTime * 0.47) * 0.03;
+        built.group.position.x = Math.sin(cardTime * 0.4 + seed) * 0.02;
+        built.group.position.y = Math.cos(cardTime * 0.47) * 0.03;
+        built.group.position.z = 0;
+        camera.position.x = 0;
+        camera.position.y = 0;
         built.group.position.z = 0;
         camera.position.x = 0;
         camera.position.y = 0;
@@ -1027,10 +1005,21 @@ export function WrappedMasses({
          * frame of this card is the frame before it.
          */
         for (const piece of built.pieces) {
-          /* The arcs breathe outwards one after another, and the scrawl floats over them. */
-          piece.mesh.scale.setScalar(0.9 + 0.12 * Math.sin(cardTime * 1.25 - piece.phase));
-          piece.mesh.position.y = Math.sin(cardTime * 0.4 + piece.phase) * 0.12;
-          piece.mesh.position.x = Math.cos(cardTime * 0.33 + piece.phase) * 0.1;
+          /*
+           * **The bars pump, the scribble drifts.** Each bar is cut from its foot, so scaling its height
+           * makes it rise and fall out of the bottom edge the way the reference's bars do. The scribble
+           * lines slide across the block instead of stretching.
+           */
+          const isLine = (piece.mesh as THREE.Line).isLine === true;
+          if (isLine) {
+            piece.mesh.position.y = piece.y + Math.sin(cardTime * 0.9 + piece.phase) * 0.18;
+            piece.mesh.position.x = Math.sin(cardTime * 0.5 + piece.phase) * 0.35;
+          } else {
+            const tall = 0.82 + 0.34 * (0.5 + 0.5 * Math.sin(cardTime * 1.6 - piece.phase));
+            piece.mesh.scale.set(1, tall, 1);
+            piece.mesh.position.y = piece.y;
+            piece.mesh.position.x = piece.x;
+          }
         }
       } else if (animate) {
         for (const piece of built.pieces) {
