@@ -1796,58 +1796,70 @@ video.w-backdrop {
 .film2--total .w-plate { display: none; }
 
 /*
- * The words are a corner note, not a title.
+ * **One slot at the bottom, two sentences in it.**
  *
- * The reference never writes its sentence over the object. It sets one short line in the top left,
- * small enough that the sculpture stays the thing you look at, and it swaps that line once. The
- * counting card does the same now: the ribbon owns the middle of the frame, and the words sit in the
- * corner above it, where nothing is in their way.
+ * The reference sets its words on the flat part of the field, never on the shape: the fact arrives
+ * small, and the big line replaces it in the same place. The counting card keeps the ribbon above a
+ * flat band 28 percent tall and puts both sentences in that band, one after the other, so neither ever
+ * lands on the pink.
  */
 .film2--total .film2-copy {
-  top: clamp(64px, 9.5vh, 104px);
-  left: clamp(20px, 5.2vw, 48px);
-  right: auto;
-  bottom: auto;
-  width: min(74%, 340px);
+  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
   transform: none;
-  align-items: flex-start;
-  text-align: left;
+  display: block;
+  text-align: center;
 }
 
 .film2--total .film2-head {
-  display: grid;
-  justify-items: start;
+  position: absolute;
+  inset: 0;
 }
-
-.film2--total .film2-head > * { grid-area: 1 / 1; }
 
 .film2--total .film2-line,
 .film2--total .film2-after {
-  max-width: 13ch;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(92px, 14vh, 140px);
+  width: min(88%, 24ch);
+  max-width: none;
+  margin: 0;
+  transform: translateX(-50%);
   font-family: 'Archivo', sans-serif;
-  font-size: clamp(17px, 4.4vw, 24px);
   font-weight: 800;
-  line-height: 1.14;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.02em;
+  text-align: center;
   text-wrap: balance;
-  color: var(--ink, #f6ffe0);
 }
 
 .film2--total .film2-line {
+  font-size: clamp(19px, 4.6vw, 27px);
+  line-height: 1.12;
   animation: film-head-a 10s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .film2--total .film2-after {
+  font-size: clamp(27px, 5.4vw, 46px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--ink, #181004);
   opacity: 0;
   animation: film-head-b 10s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-/* The small line is a whisper under the corner words, not a caption across the picture. */
 .film2--total .film2-sub {
-  margin-top: 0.5rem;
-  max-width: 20ch;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(58px, 9vh, 92px);
+  margin: 0;
+  max-width: 22ch;
+  transform: translateX(-50%);
   font-size: clamp(11px, 2.9vw, 14px);
-  opacity: 0.75;
+  text-align: center;
+  opacity: 0.8;
+  animation-name: none;
 }
 
 @keyframes film-head-a {
@@ -1870,4 +1882,16 @@ video.w-backdrop {
 @media (prefers-reduced-motion: reduce) {
   .film2--total .film2-line { animation: none; opacity: 1; }
   .film2--total .film2-after { display: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * The counting card's picture is a band across the top of the frame.
+ *
+ * The canvas runs out past both sides and stops three quarters of the way down, so the shape is cut by
+ * the left and right edges and the strip below it is always plain field: the words can never land on the
+ * body, on a phone or on a laptop, without a scrim or a plate. The other nineteen cards keep a canvas
+ * that covers the frame.
+ * ------------------------------------------------------------------------- */
+.film2--total .film2-art .w-mass {
+  inset: -8% -14% 24% -14%;
 }

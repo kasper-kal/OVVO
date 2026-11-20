@@ -59,8 +59,13 @@ function box(
     new THREE.BoxGeometry(w, h, d),
     new THREE.MeshStandardMaterial({ color: new THREE.Color(colour), metalness, roughness }),
   );
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
+  /*
+   * **No shadows on the ribbon.** With the key light raking a faceted, double-sided surface, the body
+   * was shadowing itself and the picture came out covered in fine diagonal lines that no roughness
+   * setting removed. Nothing is ever below it to receive a shadow, so it neither casts nor receives.
+   */
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
   return mesh;
 }
 
@@ -189,14 +194,14 @@ const POSES: Pose[] = [
     const dip = Math.sin(u * Math.PI * 2.1 + 0.5);
     return [
       (u - 0.5) * 2.7,
-      (v - 0.5) * 1.25 + dip * 0.3,
-      Math.sin(u * Math.PI * 1.3 + 0.9) * 0.75 + Math.cos(v * Math.PI) * 0.22,
+      (v - 0.5) * 1.9 + dip * 0.45,
+      Math.sin(u * Math.PI * 1.3 + 0.9) * 1.05 + Math.cos(v * Math.PI) * 0.35,
     ];
   },
   /* 1 - the fan: the ribbon stands up and curls into an arc, folded across its width. */
   (u, v) => {
     const a = (u - 0.5) * 2.2;
-    const r = 1.5 + (v - 0.5) * 1.15;
+    const r = 1.45 + (v - 0.5) * 1.55;
     return [
       Math.sin(a) * r,
       Math.cos(a) * r - 1.3,
@@ -207,15 +212,15 @@ const POSES: Pose[] = [
   (u, v) => {
     const a = u * Math.PI * 3.4;
     const r = 1.35 - 0.9 * u;
-    return [Math.cos(a) * r, Math.sin(a) * r, (v - 0.5) * 0.55 + 0.12];
+    return [Math.cos(a) * r, Math.sin(a) * r, (v - 0.5) * 0.85 + 0.12];
   },
   /* 3 - the knot: a figure of eight, twisted so one lobe turns its edge to the light. */
   (u, v) => {
     const a = u * Math.PI * 2;
     return [
       Math.sin(a) * 1.35,
-      Math.sin(a * 2) * 0.72 + (v - 0.5) * 0.95,
-      Math.cos(a) * 0.75 + (v - 0.5) * 0.85 * Math.cos(a),
+      Math.sin(a * 2) * 0.72 + (v - 0.5) * 1.25,
+      Math.cos(a) * 0.75 + (v - 0.5) * 1.1 * Math.cos(a),
     ];
   },
 ];
@@ -235,6 +240,14 @@ const POSE_SCALE = POSES.map((pose) => {
   }
   return 1.35 / reach;
 });
+
+/*
+ * **The lattice the shape is built on.** Every vertex is dropped onto a grid this size, so the surface
+ * and the silhouette come out in square terraces instead of a clean curve. That crunch is the
+ * reference's own edge: its shapes are visibly built of blocks, and a smooth curve beside them reads
+ * as a softer kind of object entirely.
+ */
+const SNAP = 0.075;
 
 /* Write the ribbon's vertices for the pose `phase` poses along the cycle. */
 function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase: number): void {
@@ -262,7 +275,12 @@ function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase
       const bx = b[0] * scaleTo;
       const by = b[1] * scaleTo;
       const bz = b[2] * scaleTo;
-      attribute.setXYZ(at, ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t);
+      attribute.setXYZ(
+        at,
+        Math.round((ax + (bx - ax) * t) / SNAP) * SNAP,
+        Math.round((ay + (by - ay) * t) / SNAP) * SNAP,
+        Math.round((az + (bz - az) * t) / SNAP) * SNAP,
+      );
       at += 1;
     }
   }
@@ -272,8 +290,9 @@ function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase
 }
 
 function ribbon(built: Built, colour: string): void {
-  const US = 52;
-  const VS = 10;
+  /* A coarse grid on purpose: few enough faces that each one reads as a facet, not as a curve. */
+  const US = 34;
+  const VS = 7;
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array((US + 1) * (VS + 1) * 3), 3));
   const index: number[] = [];
@@ -306,10 +325,12 @@ function ribbon(built: Built, colour: string): void {
        * the key light draws a tight highlight on it without going white: a little metalness with no
        * environment map to reflect is what turned it black.
        */
-      roughness: 0.15,
-      metalness: 0.12,
+      roughness: 0.14,
+      metalness: 0.14,
       emissive: new THREE.Color(colour),
-      emissiveIntensity: 0.04,
+      emissiveIntensity: 0.03,
+      /* Flat shading, so every lattice facet keeps its own plane and its own highlight. */
+      flatShading: true,
       side: THREE.DoubleSide,
     }),
   );
@@ -342,7 +363,7 @@ function build(chapter: Chapter): Built {
        * tone pulled a third of the way back to the chapter's deep one: at full brightness every face
        * came out the same pale yellow, and a shape with one tone in it has no form left to read.
        */
-      ribbon(built, new THREE.Color(accent).multiplyScalar(0.82).getStyle());
+      ribbon(built, new THREE.Color(accent).multiplyScalar(0.94).getStyle());
       break;
     }
 
@@ -701,7 +722,7 @@ export function WrappedMasses({
     /* Sky above, the chapter's own colour underneath: the underside of a step is never grey. */
     scene.add(new THREE.HemisphereLight(0xffffff, accent, oneObject ? 0.32 : 1.05));
 
-    const key = new THREE.DirectionalLight(0xffffff, oneObject ? 4.8 : 3.6);
+    const key = new THREE.DirectionalLight(0xffffff, oneObject ? 4.2 : 3.6);
     key.position.set(8, 11, 9);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
@@ -731,6 +752,15 @@ export function WrappedMasses({
     const film = host.closest('.film2') as HTMLElement | null;
     let nominal = 1;
     /*
+     * **On a laptop the shape is squashed, not shrunk.**
+     *
+     * A phone frame is tall, so the ribbon can be tall too. A laptop frame is wide and shallow, and a body
+     * tall enough to be cut by its left and right edges there is also tall enough to sit under the words
+     * and take the flat band away. Squashing its height keeps the side crop and keeps the band plain; the
+     * reference's shapes are wide bands on that kind of frame anyway.
+     */
+    let squash = 1;
+    /*
      * **A wide body turns less.**
      *
      * The first pass at real motion turned every body by the same angle. On the ranked bar chart and
@@ -739,6 +769,16 @@ export function WrappedMasses({
      * failed the crop. Wide bodies keep their edges and spend the motion on the push instead.
      */
     let swayScale = 1;
+    /*
+     * **A held card redraws after a resize.**
+     *
+     * The loop stops drawing while a card is paused, so the last frame stays on the canvas. That works
+     * until something resizes the renderer: `setSize` clears the drawing buffer, and a paused card then
+     * sits there blank for as long as it is held, which is how the deck check came to report a card with
+     * no object on it and no motion. This flag asks for one frame after any resize, held or not.
+     */
+    let repaint = true;
+    /* How far the counting card's shape travels to leave the frame; measured from the body in `fit`. */
     /*
      * Where `fit()` finally put the body. The motion adds to this; it must never write over it.
      *
@@ -793,9 +833,34 @@ export function WrappedMasses({
       return { left, top, right, bottom, w: right - left, h: bottom - top, frame };
     };
 
+    let fittedAt = { w: 0, h: 0 };
     const fit = () => {
       camera.updateProjectionMatrix();
       const frame = (film?.getBoundingClientRect() ?? canvas.getBoundingClientRect());
+      /*
+       * **A card that has no size yet is not fitted.**
+       *
+       * The incoming chapter is mounted inside a cut, before the film has been laid out, so its rect can
+       * read zero for a moment. Fitting to that frame sized the body to a fraction of a pixel, and the
+       * ResizeObserver never fired again because the canvas itself never changed size: the card then drew
+       * an empty canvas for its whole life. The counting card is the only one that fits to a share of the
+       * frame, so it is the only one this ate. A real frame is required before anything is solved.
+       */
+      if (frame.width < 60 || frame.height < 60) return;
+      fittedAt = { w: frame.width, h: frame.height };
+      /*
+       * **The counting card is measured at its authored size.** `fit` runs twice - once on mount and
+       * once from the ResizeObserver - and the second run measured a body that the first had already
+       * scaled by four, so its centre was four times too far from the origin and the ribbon was placed
+       * four times too far the other way. That is why this card kept coming out as a shape hanging off
+       * an edge, and sometimes as no shape at all. The transform is cleared before the box is taken.
+       * Only this card: the other nineteen were composed against the old behaviour.
+       */
+      if (chapter.id === 'total') {
+        built.group.scale.setScalar(1);
+        built.group.position.set(0, 0, 0);
+        built.group.updateMatrixWorld(true);
+      }
       const local = new THREE.Box3().setFromObject(built.group);
       /*
        * **A wide body is pushed further past the edges.**
@@ -820,16 +885,16 @@ export function WrappedMasses({
       /* The ranking's bar chart is the widest body in the deck and the least forgiving of a shove. */
       /* Every body overhangs a little more: the sway and the beat spend part of the overhang now. */
       /*
-       * **The counting card is sized to be seen whole.** Every other body runs past two edges of the
-       * frame; this one is an island, so it is fitted to a share of the frame's own sides and keeps its
-       * air. The width sets the size on a phone and the height caps it on a laptop, which is where a
-       * ribbon lying across the frame would otherwise come out edge to edge again.
+       * **The counting card is cropped again, and bigger than the frame.** The first two passes failed
+       * in opposite directions: a wall of material with no outline of its own, then a tidy island that
+       * floated with air all round it. The reference does neither - its shape is enormous and the frame
+       * cuts it on two or three sides. So the ribbon is fitted half again wider than the frame, and
+       * lifted until it hangs across the top of the picture.
        */
-      const island = chapter.id === 'total';
+      const croppedOne = chapter.id === 'total';
+      squash = frame.width > frame.height ? 0.52 : 1;
       const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.36 : 1.26;
-      const target = island
-        ? Math.min(0.66 * frame.width, 0.52 * frame.height)
-        : overshoot * Math.max(frame.width, frame.height);
+      const target = croppedOne ? 1.45 * frame.width : overshoot * Math.max(frame.width, frame.height);
 
       /*
        * **Scaling is not linear on screen, so the fit is solved, not assumed.**
@@ -886,7 +951,11 @@ export function WrappedMasses({
        * their overshoot, tall ones keep the full off-centre crop.
        */
       const wide = settled.w / Math.max(1, settled.h) > 2.4;
-      if (!island) built.group.position.x += (signX * (wide ? 0.02 : 0.06) * frame.width) / pxPerUnit;
+      /*
+       * The counting card is not shoved sideways: it is already half again wider than the frame, and a
+       * nudge pushed one side back inside the picture, which the deck check read as a single cut edge.
+       */
+      if (!croppedOne) built.group.position.x += (signX * (wide ? 0.02 : 0.06) * frame.width) / pxPerUnit;
 
       /*
        * **The flat patch is where the words are not.**
@@ -904,13 +973,15 @@ export function WrappedMasses({
        * taller than the frame rather than wider, so the sideways test never fired and the drag from
        * the ring sat behind the largest sentence in the deck, 6.4:1 where the rule asks for 7.
        */
-      if (island) {
+      if (croppedOne) {
         /*
-         * The counting card's ribbon stands in the middle of the frame with the corner note above it.
-         * It is dropped a little below centre so the words have clear air of their own rather than
-         * landing on the shape's top edge.
+         * **The counting card's shape is placed by the canvas, not by a nudge.**
+         *
+         * The canvas for this card is a box across the top of the frame that runs out past both sides
+         * (see `.film2--total .w-mass`), so the shape is already cropped there and the strip below it is
+         * always plain field for the words. Three attempts to move the body by a pixel offset ended with
+         * it out of shot on a laptop, which is why nothing is nudged here any more.
          */
-        built.group.position.y -= (0.02 * frame.height) / pxPerUnit;
       } else if (chapter.id === 'close') {
         /* The closing ring grew a small line above its headline and needs its body further off it. */
         built.group.position.y += (0.3 * frame.height) / pxPerUnit;
@@ -937,6 +1008,7 @@ export function WrappedMasses({
       camera.fov = camera.aspect < 0.85 ? 54 : 40;
       camera.updateProjectionMatrix();
       fit();
+      repaint = true;
     };
     resize();
     const observer = new ResizeObserver(resize);
@@ -979,6 +1051,9 @@ export function WrappedMasses({
      */
 
     const draw = (now: number, animate: boolean) => {
+      /* Re-fit as soon as the film has a real size, or a new one. */
+      const box = film?.getBoundingClientRect() ?? canvas.getBoundingClientRect();
+      if (Math.abs(box.width - fittedAt.w) > 1 || Math.abs(box.height - fittedAt.h) > 1) fit();
       /*
        * **A still frame is actually still.**
        *
@@ -991,6 +1066,15 @@ export function WrappedMasses({
       const ease = 1 - (1 - enter) ** 3;
       /* How far through this card we are, 0 to 1, so the push restarts with every chapter. */
       const through = (clock % CARD_SECONDS) / CARD_SECONDS;
+      /*
+       * **The counting card's pose starts at its own first frame.**
+       *
+       * The pose and the swing were run off the page clock, so a card opening halfway through the cycle
+       * could start with the ribbon edge on - a thin line, or nothing at all on a wide frame - and the
+       * deck check read exactly that as a card with no object. Its own time, counted from mount, always
+       * begins on the broad pose with the swing near its middle.
+       */
+      const cardTime = Math.max(0, clock - started / 1000);
       /* The beat: a sharp hit that decays over half a second. */
       const beat = Math.max(0, 1 - (clock % BEAT_SECONDS) / 0.5) ** 2;
 
@@ -999,25 +1083,21 @@ export function WrappedMasses({
          * **The pose is the picture.**
          *
          * The ribbon's vertices are rewritten every frame, from one pose towards the next, so the card
-         * never shows the same shape twice. On top of that it turns on the spot, which rolls the hard
-         * highlight along it, and it lurches on the beat like everything else in the film.
+         * never shows the same shape twice. It swings rather than spins - a full turn put it edge on, a
+         * line a few pixels wide, and the deck check read that as an island too small to be the picture.
+         * Everything here runs on the card's own clock, so it always opens on the broad pose.
          */
-        if (built.morph) writePose(built.morph.geometry, built.morph.us, built.morph.vs, clock / POSE_SECONDS);
-        /*
-         * **A swing, not a spin.** Turning the ribbon all the way round put it exactly edge-on once
-         * every few seconds, and at that moment it is a line a few pixels wide: the deck check caught
-         * it as an island too small to be the picture. It turns inside a swing now, so it always shows
-         * a face, and the highlight still travels along it.
-         */
-        built.group.rotation.y = Math.sin(clock * 0.62 + seed) * 1.15 + (animate ? (1 - ease) * -0.5 : 0);
-        built.group.rotation.x = 0.16 * Math.sin(clock * 0.53 + seed);
-        built.group.rotation.z = 0.08 * Math.sin(clock * 0.31 + seed);
-        built.group.position.x = fitted.x + Math.sin(clock * 0.45 + seed) * 0.1;
-        built.group.position.y = fitted.y + Math.cos(clock * 0.39 + seed) * 0.14;
-        built.group.position.z = fitted.z + beat * 0.5;
-        built.group.scale.setScalar(nominal * (1 + 0.05 * Math.sin(clock * 1.3)) * (1 + (1 - ease) * 0.2));
-        camera.position.x = Math.sin(clock * 0.37 + seed * 3) * 0.2;
-        camera.position.y = 0.2 - through * 0.35 + Math.cos(clock * 0.5) * 0.2;
+        if (built.morph) writePose(built.morph.geometry, built.morph.us, built.morph.vs, cardTime / POSE_SECONDS);
+        built.group.rotation.y = Math.sin(cardTime * 0.62 + seed) * 0.34 + (animate ? (1 - ease) * -0.4 : 0);
+        built.group.rotation.x = 0.16 * Math.sin(cardTime * 0.53 + seed);
+        built.group.rotation.z = 0.08 * Math.sin(cardTime * 0.31 + seed);
+        built.group.position.x = fitted.x + Math.sin(cardTime * 0.45 + seed) * 0.06;
+        built.group.position.y = fitted.y + Math.cos(cardTime * 0.39 + seed) * 0.05;
+        built.group.position.z = fitted.z + beat * 0.35;
+        const pulse = nominal * (1 + 0.03 * Math.sin(cardTime * 1.3)) * (1 + (1 - ease) * 0.2);
+        built.group.scale.set(pulse, pulse * squash, pulse);
+        camera.position.x = Math.sin(cardTime * 0.37 + seed * 3) * 0.2;
+        camera.position.y = 0.2 - through * 0.35 + Math.cos(cardTime * 0.5) * 0.2;
         camera.position.z = 14 - 0.9 * through;
       } else {
         built.group.rotation.y =
@@ -1037,7 +1117,7 @@ export function WrappedMasses({
         camera.position.z = 14 - 1.4 * through;
       }
       camera.lookAt(0, 0, 0);
-      key.intensity = (lab ? 4.8 : 3.6) + beat * (lab ? 2.2 : 1.5);
+      key.intensity = (lab ? 4.2 : 3.6) + beat * (lab ? 1.6 : 1.5);
 
       if (animate) {
         for (const piece of built.pieces) {
@@ -1067,12 +1147,19 @@ export function WrappedMasses({
     const tick = (now: number) => {
       if (holdRef.current) {
         if (!holdStart) holdStart = now;
+        if (repaint) {
+          draw(now - heldMs, !stillRef.current);
+          repaint = false;
+        }
       } else {
         if (holdStart) {
           heldMs += now - holdStart;
           holdStart = 0;
         }
-        if (!document.hidden) draw(now - heldMs, !stillRef.current);
+        if (!document.hidden) {
+          draw(now - heldMs, !stillRef.current);
+          repaint = false;
+        }
       }
       frame = window.requestAnimationFrame(tick);
     };

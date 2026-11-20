@@ -576,16 +576,6 @@ const fieldFailures = [];
  */
 const WALL_FREE = new Set(['total']);
 
-/*
- * **The counting card is an island now, not a crop.**
- *
- * Every other chapter proves itself by being cut by two edges of the frame. The counting card was
- * rebuilt the other way round, because that is what the reference does: one shape in the middle of
- * the frame with flat colour all round it. So this card is held to the opposite rule - it has to be
- * clear of all four edges, and it has to be big enough to be the picture. Loosening the rule just for
- * one named chapter keeps it strict on the other nineteen.
- */
-const ISLAND = new Set(['total']);
 
 for (let i = 0; i < chapterCount - 1; i += 1) {
   if (process.env.SAME_SHAPE) {
@@ -1073,17 +1063,7 @@ for (const scene of present) {
   }
   if (scene.noWebgl) failures.push(`${scene.chapter}: WebGL did not start, so the object is a fallback`);
   if (!scene.mass) failures.push(`${scene.chapter}: no object could be seen on the page`);
-  if (scene.mass && ISLAND.has(scene.chapter)) {
-    const [left, top, right, bottom] = scene.mass;
-    if (left < 0.04 || top < 0.04 || right > 0.96 || bottom > 0.96) {
-      failures.push(`${scene.chapter}: the island is not clear of the frame (${scene.massEdges} edge(s) cut)`);
-    }
-    if (right - left < 0.35 || bottom - top < 0.2) {
-      failures.push(
-        `${scene.chapter}: the island is too small to be the picture (${Math.round(right - left)}x${Math.round(bottom - top)})`,
-      );
-    }
-  } else if (scene.mass && scene.massEdges < 2) {
+  if (scene.mass && scene.massEdges < 2) {
     failures.push(`${scene.chapter}: the object is cut by ${scene.massEdges} edge(s), expected two`);
   }
   if (scene.steps < 5) failures.push(`${scene.chapter}: the body is not built of steps (${scene.steps})`);
@@ -1214,7 +1194,7 @@ const strongestMotion = motionScores.length ? Math.max(...motionScores.map((entr
 console.log(
   `WRAPPED FILM: PASS, ${present.length} colour fields, ${grounds.size} grounds, ${shapes.size} masses, ` +
     `${lines.size} still sentences (weakest ${weakest.toFixed(1)}:1 on its own field), ${shares} shares, ` +
-    `every object cut on two edges (the counting card standing clear in the middle of the frame) and built of steps (fewest ${fewestSteps}), ` +
+    `every object cut on two edges and built of steps (fewest ${fewestSteps}), ` +
     `every card moving in a tenth of a second (weakest ${weakestMotion}, strongest ${strongestMotion}, floor ${MOTION_FLOOR}), ` +
     `${new Set(families).size} colour families with no two neighbours sharing one and every ink over 7:1, ` +
     'something to look at on every card, ' +

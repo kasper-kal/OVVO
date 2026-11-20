@@ -52,15 +52,17 @@ const LOOK: Record<string, Look> = {
   total: {
     family: 'acid',
     /*
-     * **Dark stage, lit object.**
+     * **A flat acid field, and a shape from another colour family.**
      *
-     * This card is the one-chapter lab: the reference puts a single lit body in a dark room and cuts it
-     * with the frame, so the ground is near-black with the lime only where the light falls. A bright
-     * lime field behind a lime object is the one thing that cannot read as lit.
+     * Three passes put a lime shape on a green glow, and a shape the colour of its own field never
+     * separated from it. The reference never does that: it puts a hot shape on a flat field, or green
+     * blocks on a red one. This is the flat version of that pairing - one bright acid field, a rose
+     * ribbon lying across it, and near-black type. Flat matters as much as the hue: a radial glow turns
+     * the frame into a lit room with a spotlight in it, and the reference is a printed field.
      */
-    ground: 'radial-gradient(120% 90% at 50% 34%, #3f7d05 0%, #1b3405 44%, #070a04 100%)',
-    ink: '#f6ffe0',
-    mass: ['#1c3b00', '#c8ff1f'],
+    ground: 'linear-gradient(180deg, #e8ff45 0%, #c9f308 100%)',
+    ink: '#181004',
+    mass: ['#3a0018', '#ff3b82'],
   },
   name: {
     family: 'hot',
