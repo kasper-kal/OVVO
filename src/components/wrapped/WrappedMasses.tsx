@@ -36,6 +36,8 @@ type Piece = {
 
 type Built = {
   group: THREE.Group;
+  /** The frame's half height in authored units, so the corner stacks can sit on the edges. */
+  halfA?: number;
   pieces: Piece[];
   steps: number;
 };
@@ -180,52 +182,71 @@ function blob(
  * edge and by both sides. Thin scribble lines loop over the bars. The type sits in the middle in short
  * bold lines. Everything is flat, high contrast, and nothing is three dimensional.
  */
-function stripeBlock(built: Built, cream: string, accent: string): void {
-  const COUNT = 15;
-  const TOTAL = 16;
-  const bar = TOTAL / COUNT;
-  /* Every bar stands on the same line, below the frame, so the block is cut by the bottom edge. */
-  const foot = -6.4;
-  for (let i = 0; i < COUNT; i += 1) {
-    const x = -TOTAL / 2 + bar * (i + 0.5);
-    /* Uneven heights, the way a hand would cut them: a long wave plus a small step of three. */
-    /* An even block with small variation, the way the reference cuts it: not a bar chart. */
-    const height = 4.7 + Math.sin(i * 0.85) * 0.22 + (i % 3) * 0.12;
-    /* One band of the accent, roughly two thirds along, exactly as the reference does it. */
-    const colour = i === 9 ? accent : cream;
-    const geometry = new THREE.PlaneGeometry(bar * 0.84, height);
-    /* The bar grows upwards from its foot, not outwards from its middle. */
-    geometry.translate(0, height / 2, 0);
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: new THREE.Color(colour) }));
-    mesh.position.set(x, foot, 0);
-    built.group.add(mesh);
-    built.pieces.push({ mesh, x, y: foot, phase: i * 0.42, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
-    built.steps += 1;
-  }
+/*
+ * **Four corner staircases, which is the reference's count card.**
+ *
+ * Look at `040-050s c5 r4` and `050-060s c1 r5` in `artifacts/reference-tenths`: a pure black frame with a
+ * stepped stack of vertical bars in each corner. The bars are long at the frame edge and step shorter
+ * toward the middle, so the four stacks frame an open black centre for the words. Each bar is graded along
+ * its own length from near black at the edge to full neon at its inner end.
+ *
+ * Bars are anchored at the edge and grow inward, so the iris can open and close by scaling their length
+ * without any of them leaving the frame.
+ */
+function irisCorners(built: Built, neon: string, deep: string): void {
+  const PER_CORNER = 6;
+  const STEP = 1.15;
+  const WIDTH = 1.02;
+  const LONGEST = 6.9;
+  const SHORTEST = 2.2;
 
-  /*
-   * **The scribble.** Three thin loops drawn over the bars, the way the reference scrawls across its
-   * stripes: quick, uneven, and slightly off the horizontal.
-   */
-  const line = (seed: number, y: number) => {
-    const points: THREE.Vector3[] = [];
-    for (let i = 0; i <= 90; i += 1) {
-      const t = i / 90;
-      const x = -8 + t * 16;
-      const wob = Math.sin(t * 9 + seed) * 1.1 + Math.sin(t * 21 + seed * 2) * 0.35 + Math.sin(t * 3 + seed) * 0.6;
-      points.push(new THREE.Vector3(x, foot + y + wob, 0));
+  /* One graded geometry per corner, because the gradient has to run outward to inward. */
+  for (let corner = 0; corner < 4; corner += 1) {
+    const left = corner === 0 || corner === 2;
+    const top = corner < 2;
+    const geometry = new THREE.PlaneGeometry(WIDTH * 0.92, 1);
+    /* The foot sits at local y = 0, the tip at y = 1. */
+    geometry.translate(0, 0.5, 0);
+    const position = geometry.getAttribute('position');
+    const colours = new Float32Array(position.count * 3);
+    const dark = new THREE.Color(deep);
+    const bright = new THREE.Color(neon);
+    for (let v = 0; v < position.count; v += 1) {
+      /* Black where the bar meets the edge, neon where it points into the frame. */
+      const t = position.getY(v);
+      const mix = bright.clone().lerp(dark, Math.pow(1 - t, 1.4));
+      colours[v * 3] = mix.r;
+      colours[v * 3 + 1] = mix.g;
+      colours[v * 3 + 2] = mix.b;
     }
-    const mesh = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: new THREE.Color(cream), transparent: true, opacity: 0.9 }),
-    );
-    built.group.add(mesh);
-    built.pieces.push({ mesh, x: 0, y: foot, phase: seed, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
-    built.steps += 1;
-  };
-  line(0.6, 5.4);
-  line(2.4, 6.3);
-  line(4.1, 4.6);
+    geometry.setAttribute('color', new THREE.BufferAttribute(colours, 3));
+
+    for (let i = 0; i < PER_CORNER; i += 1) {
+      const mesh = new THREE.Mesh(
+        geometry,
+        new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }),
+      );
+      const height = LONGEST - ((LONGEST - SHORTEST) / (PER_CORNER - 1)) * i;
+      /* A bar is one unit tall in its geometry, so its height is its scale. */
+      mesh.scale.set(1, height, 1);
+      /* Top corners hang from the top edge, so the bar is turned to point downward. */
+      if (top) mesh.rotation.z = Math.PI;
+      mesh.position.set((left ? -1 : 1) * (8 - STEP * (i + 0.5)), 0, 0);
+      built.group.add(mesh);
+      built.pieces.push({
+        mesh,
+        x: mesh.position.x,
+        y: 0,
+        /* Corner, step and height travel with the piece so the draw can open the iris. */
+        phase: corner * PER_CORNER + i,
+        amp: height,
+        spin: top ? 1 : 0,
+        rotZ: 0,
+        rotX: left ? -1 : 1,
+      });
+      built.steps += 1;
+    }
+  }
 }
 
 function build(chapter: Chapter): Built {
@@ -246,7 +267,7 @@ function build(chapter: Chapter): Built {
        * Flat bars in a stepped ring. No light, no depth, no gloss: the reference draws its shapes, and
        * a lit object was the whole reason this card read as a render instead of a Wrapped frame.
        */
-      stripeBlock(built, '#f4ede1', accent);
+      irisCorners(built, accent, base);
       break;
     }
 
@@ -964,9 +985,19 @@ export function WrappedMasses({
          * edge, so it is cut on three edges on any screen, and the type above it always has clear air.
          */
         const seen = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z * camera.aspect;
-        const sized = (1.06 * seen) / 16;
+        /*
+         * **Portrait fills the width, landscape fills the height.** Sized by width alone, a laptop turned
+         * the bars into wide slabs and cut the staircases down to four steps. The reference is a portrait
+         * format, so on a wide frame the stacks keep their portrait proportions and are cut by the top and
+         * bottom edges instead, which is the same picture at a different crop.
+         */
+        const tall = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z;
+        const wideFrame = camera.aspect >= 1;
+        const sized = wideFrame ? (1.14 * tall) / 16 : (1.06 * seen) / 16;
         const push = 1 + 0.22 * (0.5 - 0.5 * Math.cos((cardTime / CARD_SECONDS) * Math.PI * 2));
         const grow = sized * push * (1 + 0.03 * beat);
+        /* The corner stacks sit on the frame edges, whatever the aspect and whatever the zoom. */
+        built.halfA = tall / 2 / grow;
         built.group.rotation.set(0, 0, 0);
         built.group.scale.setScalar(grow);
         built.group.position.x = Math.sin(cardTime * 0.4 + seed) * 0.02;
@@ -1000,26 +1031,21 @@ export function WrappedMasses({
 
       if (animate && lab) {
         /*
-         * **Bars slide past each other.** A ring that only rotates is a record on a turntable; the
-         * reference's stacks slide and swell, so each bar carries its own wave and its own size, and no
-         * frame of this card is the frame before it.
+         * **The iris opens and closes.** Each bar is anchored on a frame edge, so scaling its length is
+         * the four stacks reaching inward and pulling back, and the steps ripple outward one after
+         * another. Nothing about this card is ever still, which is the reference's own rule.
          */
+        const halfA = built.halfA ?? 8;
         for (const piece of built.pieces) {
-          /*
-           * **The bars pump, the scribble drifts.** Each bar is cut from its foot, so scaling its height
-           * makes it rise and fall out of the bottom edge the way the reference's bars do. The scribble
-           * lines slide across the block instead of stretching.
-           */
-          const isLine = (piece.mesh as THREE.Line).isLine === true;
-          if (isLine) {
-            piece.mesh.position.y = piece.y + Math.sin(cardTime * 0.9 + piece.phase) * 0.18;
-            piece.mesh.position.x = Math.sin(cardTime * 0.5 + piece.phase) * 0.35;
-          } else {
-            const tall = 0.82 + 0.34 * (0.5 + 0.5 * Math.sin(cardTime * 1.6 - piece.phase));
-            piece.mesh.scale.set(1, tall, 1);
-            piece.mesh.position.y = piece.y;
-            piece.mesh.position.x = piece.x;
-          }
+          const corner = Math.floor(piece.phase / 6);
+          const step = piece.phase % 6;
+          const top = corner < 2;
+          const left = corner === 0 || corner === 2;
+          const iris = 0.84 + 0.16 * Math.sin(cardTime * 0.85);
+          const ripple = 1 + 0.05 * Math.sin(cardTime * 1.5 - step * 0.6 + corner);
+          piece.mesh.scale.set(1, piece.amp * iris * ripple, 1);
+          piece.mesh.position.y = (top ? 1 : -1) * halfA;
+          piece.mesh.position.x = (left ? -1 : 1) * (8 - 1.15 * (step + 0.5));
         }
       } else if (animate) {
         for (const piece of built.pieces) {

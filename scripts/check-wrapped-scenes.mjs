@@ -1058,8 +1058,18 @@ for (const scene of present) {
   if (scene.film[0] < scene.stage[0] - 1 || scene.film[1] < scene.stage[1] - 1) {
     failures.push(`${scene.chapter}: the page is not full screen`);
   }
-  if (!scene.ground || !scene.ground.includes('gradient')) {
+  /*
+   * **A black void is a colour field too.** The reference's canvas is pure black and its colour lives in
+   * the geometry, so a flat black ground is allowed - but only when the object itself is loud enough to
+   * carry the chapter. A black page with a dull object still fails, which is the fault this rule exists
+   * to catch.
+   */
+  const isVoid = scene.light <= 6;
+  if (!scene.ground || (!isVoid && !scene.ground.includes('gradient'))) {
     failures.push(`${scene.chapter}: the stage is not a colour field`);
+  }
+  if (isVoid && scene.massChroma < 70) {
+    failures.push(`${scene.chapter}: a black void needs a loud object (form ${Math.round(scene.massChroma)})`);
   }
   if (scene.noWebgl) failures.push(`${scene.chapter}: WebGL did not start, so the object is a fallback`);
   if (!scene.mass) failures.push(`${scene.chapter}: no object could be seen on the page`);
@@ -1069,8 +1079,8 @@ for (const scene of present) {
   if (scene.steps < 5) failures.push(`${scene.chapter}: the body is not built of steps (${scene.steps})`);
   if (!scene.focal) failures.push(`${scene.chapter}: there is nothing to look at but the form`);
   if (!scene.family) failures.push(`${scene.chapter}: the chapter has no colour family`);
-  if (scene.light < 60 && scene.chroma < 50) failures.push(`${scene.chapter}: the field is a tint of black`);
-  if (scene.family !== 'paper' && scene.chroma < 70) {
+  if (!isVoid && scene.light < 60 && scene.chroma < 50) failures.push(`${scene.chapter}: the field is a tint of black`);
+  if (!isVoid && scene.family !== 'paper' && scene.chroma < 70) {
     failures.push(`${scene.chapter}: the field is washed out (chroma ${scene.chroma})`);
   }
   if (scene.family === 'paper' && (scene.light < 200 || scene.massChroma < 70)) {

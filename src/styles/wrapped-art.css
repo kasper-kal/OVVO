@@ -1998,3 +1998,105 @@ video.w-backdrop {
   bottom: auto;
   top: calc(38% + 10.2vh);
 }
+
+/* ---------------------------------------------------------------------------
+ * The counting card, rebuilt on the reference's grammar.
+ *
+ * Black void. Four corner staircases of graded bars framing an open centre. Heavy white type gliding in
+ * from the right into the middle of the frame, with the small line fading in beneath it a beat later.
+ * No wine gradient, no coloured ghost, nothing floating above an empty page.
+ * ------------------------------------------------------------------------- */
+.film2--total .film2-art .w-mass {
+  inset: 0;
+}
+
+.film2--total .film2-head {
+  position: absolute;
+  inset: 0;
+}
+
+.film2--total .film2-line,
+.film2--total .film2-after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: min(86%, 19ch);
+  margin: 0 auto;
+  bottom: auto;
+  top: 31%;
+  color: #ffffff;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: none;
+  transform: none;
+}
+
+.film2--total .film2-line {
+  font-size: clamp(30px, min(9.6vw, 6.2vh), 62px);
+  animation: film-total-a 10s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.film2--total .film2-after {
+  font-size: clamp(32px, min(10.4vw, 6.8vh), 68px);
+  animation: film-total-b 10s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The small line sits directly under the headline, the way the reference sets its caption. */
+.film2--total .film2-sub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: min(74%, 30ch);
+  margin: 0 auto;
+  top: calc(31% + 9.4vh);
+  bottom: auto;
+  color: #ffffff;
+  opacity: 0;
+  font-size: clamp(13px, 3.6vw, 17px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-align: center;
+  transform: none;
+  animation: film-total-sub 10s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/*
+ * The entrance is a glide from the right edge, then a still hold, then a glide out to the left: the
+ * reference moves every headline this way, and never fades it in on the spot.
+ */
+@keyframes film-total-a {
+  0% { opacity: 0; transform: translateX(34px); }
+  6% { opacity: 1; transform: translateX(0); }
+  42% { opacity: 1; transform: translateX(0); }
+  50%, 100% { opacity: 0; transform: translateX(-30px); }
+}
+
+@keyframes film-total-b {
+  0%, 48% { opacity: 0; transform: translateX(34px); }
+  58% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes film-total-sub {
+  0%, 16% { opacity: 0; transform: translateY(10px); }
+  24%, 90% { opacity: 0.74; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+.film2--total[data-hold='1'] .film2-line,
+.film2--total[data-hold='1'] .film2-after,
+.film2--total[data-hold='1'] .film2-sub { animation-play-state: paused; }
+
+.wrapped-stage.is-still .film2--total .film2-line { animation: none; opacity: 1; transform: none; }
+.wrapped-stage.is-still .film2--total .film2-after { animation: none; opacity: 0; }
+.wrapped-stage.is-still .film2--total .film2-sub { animation: none; opacity: 0.74; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .film2--total .film2-line { animation: none; opacity: 1; transform: none; }
+  .film2--total .film2-after { animation: none; opacity: 0; }
+  .film2--total .film2-sub { animation: none; opacity: 0.74; transform: none; }
+}

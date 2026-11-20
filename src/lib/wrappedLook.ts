@@ -67,9 +67,14 @@ const LOOK: Record<string, Look> = {
      * in the frame is bright. A bright field behind a bright shape flattens both. The field still has
      * to pass the deck's own rule against a tint of black, so it runs down into a deep rose.
      */
-    ground: 'linear-gradient(180deg, #180009 0%, #4b0020 100%)',
-    ink: '#fff4ea',
-    mass: ['#3a0018', '#ff3b82'],
+    /*
+     * **A black void, because that is the reference's canvas.** Every one of its frames sits on pure
+     * black, and the colour lives in the geometry, not in the page. The wine gradient that used to be
+     * here was a lit room; the reference is a void with a lit object in it.
+     */
+    ground: '#000000',
+    ink: '#ffffff',
+    mass: ['#b80028', '#ff1e8a'],
   },
   name: {
     family: 'hot',
