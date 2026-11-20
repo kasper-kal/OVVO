@@ -1945,16 +1945,56 @@ video.w-backdrop {
   font-size: clamp(12px, 3.4vw, 17px);
 }
 
+
 /* ---------------------------------------------------------------------------
- * The recurring frame: a stepped lime stack in each corner.
+ * The counting card is set like the reference: flat dark field, cream type, one accent note.
  *
- * The reference wears the same corner ornament on every card of the chapter, and it is what makes a
- * frame read as part of the film instead of as a picture on a page. Four mirrored staircases, drawn
- * behind the flat bars, sit outside the sentence.
+ * The reference's number is printed twice, one copy offset in the accent colour behind the cream one,
+ * which is what gives the type its print-shop depth. The same trick is a text shadow here, so the word
+ * and its ghost are one element and can never drift apart.
  * ------------------------------------------------------------------------- */
-.film2--total .film2-art {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='0' width='90' height='14'/><rect x='0' y='15' width='75' height='14'/><rect x='0' y='30' width='60' height='14'/><rect x='0' y='45' width='45' height='14'/><rect x='0' y='60' width='30' height='14'/><rect x='0' y='75' width='15' height='14'/></g></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='0' width='90' height='14'/><rect x='15' y='15' width='75' height='14'/><rect x='30' y='30' width='60' height='14'/><rect x='45' y='45' width='45' height='14'/><rect x='60' y='60' width='30' height='14'/><rect x='75' y='75' width='15' height='14'/></g></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='76' width='90' height='14'/><rect x='0' y='61' width='75' height='14'/><rect x='0' y='46' width='60' height='14'/><rect x='0' y='31' width='45' height='14'/><rect x='0' y='16' width='30' height='14'/><rect x='0' y='1' width='15' height='14'/></g></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='76' width='90' height='14'/><rect x='15' y='61' width='75' height='14'/><rect x='30' y='46' width='60' height='14'/><rect x='45' y='31' width='45' height='14'/><rect x='60' y='16' width='30' height='14'/><rect x='75' y='1' width='15' height='14'/></g></svg>");
-  background-repeat: no-repeat;
-  background-size: clamp(46px, 13vw, 96px) clamp(46px, 13vw, 96px);
-  background-position: left top, right top, left bottom, right bottom;
+.film2--total .film2-after {
+  font-size: clamp(34px, min(11.4vw, 7.1vh), 84px);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: #f7f1e6;
+  text-shadow: 0.055em 0.055em 0 rgba(255, 59, 130, 0.85);
+}
+
+.film2--total .film2-line {
+  font-size: clamp(28px, min(8.4vw, 5.8vh), 60px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #f7f1e6;
+  text-shadow: 0.055em 0.055em 0 rgba(255, 59, 130, 0.85);
+}
+
+.film2--total .film2-sub {
+  color: #f7f1e6;
+  opacity: 0.72;
+  font-size: clamp(13px, 3.6vw, 18px);
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------------------
+ * The counting card is a full frame, not a picture with a caption band.
+ *
+ * The arcs come up off the bottom edge and the sentence sits above them, which is the reference's own
+ * layout. The canvas covers the whole frame so nothing slices the band with a straight line.
+ * ------------------------------------------------------------------------- */
+.film2--total .film2-art .w-mass {
+  inset: 0;
+}
+
+.film2--total .film2-line,
+.film2--total .film2-after {
+  bottom: auto;
+  top: 34%;
+}
+
+.film2--total .film2-sub {
+  bottom: auto;
+  top: calc(34% + 10.6vh);
 }

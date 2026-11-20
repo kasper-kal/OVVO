@@ -67,7 +67,7 @@ const LOOK: Record<string, Look> = {
      * in the frame is bright. A bright field behind a bright shape flattens both. The field still has
      * to pass the deck's own rule against a tint of black, so it runs down into a deep rose.
      */
-    ground: 'linear-gradient(180deg, #060309 0%, #1d010e 62%, #8a0040 100%)',
+    ground: 'linear-gradient(180deg, #180009 0%, #4b0020 100%)',
     ink: '#fff4ea',
     mass: ['#3a0018', '#ff3b82'],
   },
