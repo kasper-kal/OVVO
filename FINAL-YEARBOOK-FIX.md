@@ -9,7 +9,112 @@
 
 ---
 
-## 1. What was recorded, and how it was cut
+## 1. What I got wrong in the first version of this file
+
+The first version led with brightness, saturation, colour counts and symmetry. The steerer read it and
+said, correctly: *"You are measuring the wrong thing... What's relevant is the overall look. Which is
+completely different."*
+
+He is right. A card can hit every number and still be a different kind of picture. The numbers in the
+appendix describe how much paint is on the page, not what the page is. So this file now leads with the
+look, tile by tile, in plain words, and the measurements are kept only as supporting evidence at the back.
+
+## 2. The look, side by side
+
+Top two rows: eight frames from `artifacts/reference-tenths`, chosen to span the whole video.
+Bottom row: four stills of our counting card, at the same size.
+
+![reference tiles above, our counting card below](artifacts/cmp/look-side.png)
+
+It is not a close call, and no measurement was needed to see it.
+
+**What the reference looks like, in one sentence:** a big, glowing, saturated object fills the frame, the
+words sit inside that object, and everything is at poster scale.
+
+**What ours looks like, in one sentence:** a narrow strip of small cream bars sits at the bottom of a dark,
+empty page, with small words floating above it.
+
+Concretely, the reference does these things on every one of those eight tiles:
+
+1. **The art is the frame.** It runs off all four edges. There is no margin, no empty band, no place where
+   the picture stops and the background begins.
+2. **The art is big.** A panel, a stair, a diamond or a photo takes at least half the card, usually more.
+3. **The art glows.** Neon edges, bloom, gradients, light falling off into black. It looks lit, not printed.
+4. **There is depth or motion implied in the still.** Perspective stairs, exploding shards, a tunnel going
+   back, a ribbon twisting. Even frozen, each frame is mid-movement.
+5. **There is a subject.** A photo of the band, a number, a top artist. The card is about something.
+6. **The words are inside the picture**, centred, at about a third of the frame's height, in heavy white,
+   with a small quieter line directly under them.
+7. **The colours are a saturated field plus a luminous accent plus white.** Red with green. Black with
+   neon blue. Magenta into red.
+8. **The composition is bold and often symmetrical**, but big and loud: giant corner staircases, a full
+   diamond, a full ring.
+
+Our card does the opposite of almost every one of those:
+
+1. **Our art is a band**, one row of bars across the bottom third, with clean empty page above it.
+2. **Our art is small.** It occupies roughly a quarter of the card.
+3. **Our art is matte.** Flat cream bars, no glow, no light, no falloff.
+4. **Our art is still in character.** Even while it moves, a row of bars pumping is not a tunnel, a
+   staircase or an explosion.
+5. **Our card has no subject.** It is an abstract ornament that could sit under any sentence.
+6. **Our words float above the art**, small, with a wide gap between them and the bars.
+7. **Our colours are one family**: rose on wine on rose, with no second colour and no white.
+8. **Our composition is timid**: evenly spaced bars, centred, symmetric, with a thin scribble.
+
+## 3. Tile by tile: what each reference look is, and what ours is instead
+
+Each line names a tile from the folder, what that tile is as a picture, and what our card has in its place.
+
+1. **`010-020s c3 r1`, "Hi there".** A full-frame magenta-to-red gradient with soft out-of-focus depth and
+   perspective bars coming at the viewer. Words mid-frame, small grey line under. *Ours:* flat wine, no
+   depth, no perspective, words high and small.
+2. **`020-030s c7 r2`, "Life moves fast".** Exploding pink and red shards filling every edge, words laid
+   over the shards. *Ours:* nothing explodes; one tidy row.
+3. **`040-050s c5 r4`, "You listened to 273 artists".** Pure black field, four mirrored green staircases of
+   graded bars in the corners, big white two-line sentence in the middle, grey support line. *Ours:* one
+   straight row along the bottom, cream, with no corner stacks and no graded bars.
+4. **`050-060s c1 r5`, "Coldplay was your top artist".** Flat red field, a huge rounded red panel holding a
+   photograph of the band, black type under it, green corner staircases. *Ours:* no photograph, no panel,
+   no inset card, no second colour.
+5. **`070-080s c6 r7`, the stepped diamond.** A giant diamond built of graded green-to-black bars, red
+   field, symmetric, filling the middle of the frame. *Ours:* bars, but as a thin strip, never as a shape.
+6. **`090-100s c4 r3`, "Oh, looks like we have company".** A glowing neon blue frame with perspective stairs
+   climbing into it, words floating in the black centre. *Ours:* no glow, no frame, no centre.
+7. **`110-120s c2 r6`, "Thanks for coming along for the ride".** Huge luminous blue ribbons twisting across
+   a black field, words under them. *Ours:* no ribbon, no glow, no sweep across the frame.
+8. **`120-130s c5 r8`, the summary card.** Black, a photo at the top, dense rows of small text in yellow and
+   green, a giant "7,145", a share pill. *Ours:* one sentence and one small line.
+
+That is the actual gap. It is not brightness. **It is that the reference builds a large, glowing, saturated
+object that owns the frame, and we build a small, matte strip at the bottom of an empty one.**
+
+## 4. The look rules the rebuild must obey
+
+Short enough to check by eye against the side-by-side sheet, which is the only test that matters here.
+
+1. **No empty half.** The art must touch all four edges. If a still shows a clean empty area bigger than a
+   thumb, it fails.
+2. **One big object, not a strip.** A panel, a diamond, a stair, a tunnel or a ribbon: something that owns
+   at least half the card.
+3. **Light it.** Gradients inside the object, a glow at its edges, falloff into black or into the field.
+4. **Two colours and white.** A saturated field, a luminous second colour, white for the words.
+5. **Words inside the picture.** Centred, heavy, at about a third of the height, with the small line
+   directly under, not floating in a gap.
+6. **A subject.** The card must show the thing it is about, even abstractly: a number at hero size, a
+   photograph, a shape that means the sentence.
+7. **Mid-movement in every still.** Any single frame should look like it was caught while moving: tilted,
+   cropped, exploding, pushing in.
+8. **Six or seven distinct looks inside one card**, replacing each other every second or two, as the
+   reference does across its four minutes.
+
+---
+
+# Appendix A: the measurements, for the record
+
+Kept because they were asked for and because they do support the look, but they are **not** the diagnosis.
+
+### A1. What was recorded, and how it was cut
 
 - **Chapter recorded:** the counting card, `total`, in the demo film at `http://127.0.0.1:3000/yearbook?demo=1`.
 - **Method:** a real screen recording of the running page at 430 × 932, one phone frame, 60 fps capture.
@@ -29,7 +134,7 @@
 
 ---
 
-## 2. The headline: our card against the whole reference set
+### A2. The headline numbers, for the record
 
 | measurement | reference p10 | reference median | reference p90 | **our median** | our range |
 | --- | --- | --- | --- | --- | --- |
@@ -75,7 +180,7 @@ half times ours. Watching them side by side, the reference snaps and ours sways.
 
 ---
 
-## 3. The differences, listed
+### A3. The measurements, finding by finding
 
 Written as faults, in the order that matters, each with the evidence from the measurements above or from
 named tiles in `artifacts/reference-tenths/`. "Tile" means one 215 × 480 photo in that folder.
@@ -226,7 +331,7 @@ named tiles in `artifacts/reference-tenths/`. "Tile" means one 215 × 480 photo 
 
 ---
 
-## 4. Frame by frame: all 143 stills, each with its own verdict
+### A4. Frame by frame: all 143 stills
 
 Every row is one 0.1 second of the recording, compared with the reference medians in section 2. The
 last column names the largest single deviation for that frame. This table is the per-frame half of
@@ -380,7 +485,7 @@ last column names the largest single deviation for that frame. This table is the
 
 ---
 
-## 5. The reference, sheet by sheet, then every tile
+### A5. The reference, sheet by sheet, then every tile
 
 Each sheet covers ten seconds of the reference and holds 100 tiles, each 0.1 s from the next.
 
@@ -1757,10 +1862,11 @@ and the fifth row down. Blank tiles at the end of the recording are marked.
 
 ---
 
-## 6. What the final fix must do
+### A6. The metric targets, if they are ever wanted
 
-This is the shortest possible list that answers the numbers above. It is not a wish list; each line
-comes from a measurement that is far outside the reference's range.
+These are the same goals as the look rules in section 4, written as numbers. **The look rules come first.**
+If the numbers and the side-by-side sheet disagree, the sheet wins: that is exactly the mistake this file
+was rewritten to stop making.
 
 1. **Fill the frame.** No horizontal seam, no empty top half. The art must reach the top edge, both sides
    and the bottom. Our row structure has to come down from 52.9 to the reference's 30, and our centre luma
@@ -1782,7 +1888,7 @@ comes from a measurement that is far outside the reference's range.
 Until all eight are true at once, the card is not Wrapped, and no amount of tuning one of them will make
 it Wrapped.
 
-## 7. What this document does not claim
+### A7. What the appendix does not claim
 
 - It measures **one chapter**, the counting card. The other nineteen were not recorded or measured here.
 - The measurements are global statistics (colour count, structure, symmetry, motion). They cannot say
