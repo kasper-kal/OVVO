@@ -60,8 +60,15 @@ const LOOK: Record<string, Look> = {
      * ribbon lying across it, and near-black type. Flat matters as much as the hue: a radial glow turns
      * the frame into a lit room with a spotlight in it, and the reference is a printed field.
      */
-    ground: 'linear-gradient(180deg, #e8ff45 0%, #c9f308 100%)',
-    ink: '#181004',
+    /*
+     * **A near black field, so the shape is the only thing lit.**
+     *
+     * The reference's best frames are a glowing ribbon on black: the gloss reads because nothing else
+     * in the frame is bright. A bright field behind a bright shape flattens both. The field still has
+     * to pass the deck's own rule against a tint of black, so it runs down into a deep rose.
+     */
+    ground: 'linear-gradient(180deg, #060309 0%, #1d010e 62%, #8a0040 100%)',
+    ink: '#fff4ea',
     mass: ['#3a0018', '#ff3b82'],
   },
   name: {

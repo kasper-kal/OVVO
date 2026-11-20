@@ -189,14 +189,17 @@ function blob(
 type Pose = (u: number, v: number) => [number, number, number];
 
 const POSES: Pose[] = [
-  /* 0 - the banner: a wide strip lying across the frame, rippling away from the lens. */
+  /*
+   * 0 - the loop: a band that goes all the way round and rolls twice as it goes, so the ring closes
+   * on itself and the field shows through the middle. The reference's best frame is exactly this, a
+   * ribbon crossed over itself with a hole in it, and a band with no hole in it reads as a squiggle.
+   */
   (u, v) => {
-    const dip = Math.sin(u * Math.PI * 2.1 + 0.5);
-    return [
-      (u - 0.5) * 2.7,
-      (v - 0.5) * 1.9 + dip * 0.45,
-      Math.sin(u * Math.PI * 1.3 + 0.9) * 1.05 + Math.cos(v * Math.PI) * 0.35,
-    ];
+    const a = u * Math.PI * 2;
+    const twist = a * 2;
+    const w = (v - 0.5) * 1.5;
+    const r = 1.0 + w * Math.cos(twist);
+    return [Math.sin(a) * r, Math.cos(a) * r, w * Math.sin(twist)];
   },
   /* 1 - the fan: the ribbon stands up and curls into an arc, folded across its width. */
   (u, v) => {
@@ -275,11 +278,24 @@ function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase
       const bx = b[0] * scaleTo;
       const by = b[1] * scaleTo;
       const bz = b[2] * scaleTo;
+      const x = ax + (bx - ax) * t;
+      const y = ay + (by - ay) * t;
+      const z = az + (bz - az) * t;
+      /*
+       * **Steps on the silhouette, a smooth belly.**
+       *
+       * Snapping every vertex made the whole body a heap of flat cards, which reads as folded paper and
+       * loses the wet plastic the reference is made of: its surface runs smooth and only the outline is
+       * sawn into steps. The lattice is mixed in by how close a vertex is to the border, so the edge
+       * terraces and the middle stays a curve.
+       */
+      const edge = Math.min(u, 1 - u, v, 1 - v);
+      const snapMix = 1 - THREE.MathUtils.smoothstep(edge, 0.015, 0.13);
       attribute.setXYZ(
         at,
-        Math.round((ax + (bx - ax) * t) / SNAP) * SNAP,
-        Math.round((ay + (by - ay) * t) / SNAP) * SNAP,
-        Math.round((az + (bz - az) * t) / SNAP) * SNAP,
+        x + (Math.round(x / SNAP) * SNAP - x) * snapMix,
+        y + (Math.round(y / SNAP) * SNAP - y) * snapMix,
+        z + (Math.round(z / SNAP) * SNAP - z) * snapMix,
       );
       at += 1;
     }
@@ -290,9 +306,9 @@ function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase
 }
 
 function ribbon(built: Built, colour: string): void {
-  /* A coarse grid on purpose: few enough faces that each one reads as a facet, not as a curve. */
-  const US = 34;
-  const VS = 7;
+  /* Enough cells for a smooth skin, few enough that the outline still steps. */
+  const US = 52;
+  const VS = 11;
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array((US + 1) * (VS + 1) * 3), 3));
   const index: number[] = [];
@@ -309,6 +325,34 @@ function ribbon(built: Built, colour: string): void {
   writePose(geometry, US, VS, 0);
 
   /*
+   * **The sheen is part of the body.**
+   *
+   * A hard specular dot on one facet is a glint, not a highlight: the reference has a long bright band
+   * that runs the length of the fold like a wet edge, and no light will draw that on its own. The band
+   * is painted into the vertex colours, thin across the ribbon and fading in and out along it, so it
+   * travels with the shape wherever the pose takes it.
+   */
+  const tint = new THREE.Color(colour);
+  const white = new THREE.Color('#ffffff');
+  const colours = new Float32Array((US + 1) * (VS + 1) * 3);
+  let at = 0;
+  for (let r = 0; r <= VS; r += 1) {
+    const v = r / VS;
+    for (let c = 0; c <= US; c += 1) {
+      const u = c / US;
+      const band = Math.exp(-((v - 0.5) ** 2) / (2 * 0.028 ** 2));
+      const travel = 0.4 + 0.6 * Math.sin(u * Math.PI * 2 + 0.7);
+      const mix = Math.min(0.6, band * travel);
+      const shade = tint.clone().lerp(white, mix);
+      colours[at] = shade.r;
+      colours[at + 1] = shade.g;
+      colours[at + 2] = shade.b;
+      at += 3;
+    }
+  }
+  geometry.setAttribute('color', new THREE.BufferAttribute(colours, 3));
+
+  /*
    * **Glossy, because the reference's shapes are glossy.** The last pass made this body matte to stop
    * it looking like plastic; the reference is plastic, and the matte version read as felt. A low
    * roughness gives the key light a tight, hard highlight, and a little metalness darkens the side
@@ -318,7 +362,8 @@ function ribbon(built: Built, colour: string): void {
   const mesh = new THREE.Mesh(
     geometry,
     new THREE.MeshStandardMaterial({
-      color: new THREE.Color(colour),
+      color: 0xffffff,
+      vertexColors: true,
       /*
        * **A bright body, not a dark one.** The first pass used the chapter's deep tone, and a dark green
        * ribbon on a green field read as a stain. It is the chapter's lit tone instead, matte enough that
@@ -329,8 +374,11 @@ function ribbon(built: Built, colour: string): void {
       metalness: 0.14,
       emissive: new THREE.Color(colour),
       emissiveIntensity: 0.03,
-      /* Flat shading, so every lattice facet keeps its own plane and its own highlight. */
-      flatShading: true,
+      /*
+       * Smooth shading. Flat shading on every facet was the cardboard: the reference is one continuous
+       * skin of plastic, and only its outline steps.
+       */
+      flatShading: false,
       side: THREE.DoubleSide,
     }),
   );
@@ -751,6 +799,8 @@ export function WrappedMasses({
 
     const film = host.closest('.film2') as HTMLElement | null;
     let nominal = 1;
+    /* The authored width of the counting card's body, in world units, so it can be sized from the lens. */
+    let unitW = 1;
     /*
      * **On a laptop the shape is squashed, not shrunk.**
      *
@@ -862,6 +912,7 @@ export function WrappedMasses({
         built.group.updateMatrixWorld(true);
       }
       const local = new THREE.Box3().setFromObject(built.group);
+      unitW = Math.max(0.001, local.max.x - local.min.x);
       /*
        * **A wide body is pushed further past the edges.**
        *
@@ -894,7 +945,7 @@ export function WrappedMasses({
       const croppedOne = chapter.id === 'total';
       squash = frame.width > frame.height ? 0.52 : 1;
       const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.36 : 1.26;
-      const target = croppedOne ? 1.45 * frame.width : overshoot * Math.max(frame.width, frame.height);
+      const target = croppedOne ? 2.2 * frame.width : overshoot * Math.max(frame.width, frame.height);
 
       /*
        * **Scaling is not linear on screen, so the fit is solved, not assumed.**
@@ -1088,13 +1139,24 @@ export function WrappedMasses({
          * Everything here runs on the card's own clock, so it always opens on the broad pose.
          */
         if (built.morph) writePose(built.morph.geometry, built.morph.us, built.morph.vs, cardTime / POSE_SECONDS);
-        built.group.rotation.y = Math.sin(cardTime * 0.62 + seed) * 0.34 + (animate ? (1 - ease) * -0.4 : 0);
-        built.group.rotation.x = 0.16 * Math.sin(cardTime * 0.53 + seed);
+        /* The loop is tilted towards the camera, or it is a flat badge on the page. */
+        built.group.rotation.y = -0.42 + Math.sin(cardTime * 0.62 + seed) * 0.3 + (animate ? (1 - ease) * -0.4 : 0);
+        built.group.rotation.x = 0.3 + 0.12 * Math.sin(cardTime * 0.53 + seed);
         built.group.rotation.z = 0.08 * Math.sin(cardTime * 0.31 + seed);
-        built.group.position.x = fitted.x + Math.sin(cardTime * 0.45 + seed) * 0.06;
-        built.group.position.y = fitted.y + Math.cos(cardTime * 0.39 + seed) * 0.05;
-        built.group.position.z = fitted.z + beat * 0.35;
-        const pulse = nominal * (1 + 0.03 * Math.sin(cardTime * 1.3)) * (1 + (1 - ease) * 0.2);
+        /*
+         * **Sized from the lens, not from a solved rect.**
+         *
+         * The pixel solve fits a silhouette measured through the canvas rectangle, and on a laptop that
+         * kept leaving the body a small blob in the middle while the phone came out huge. The size this
+         * card needs is simple enough to state outright: a little wider than the lens can see, measured at
+         * the body's own depth, so it is always cut by both sides on any screen.
+         */
+        const seen = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z * camera.aspect;
+        const sized = (1.06 * seen) / unitW;
+        built.group.position.x = Math.sin(cardTime * 0.45 + seed) * 0.06;
+        built.group.position.y = Math.cos(cardTime * 0.39 + seed) * 0.05;
+        built.group.position.z = beat * 0.35;
+        const pulse = sized * (1 + 0.03 * Math.sin(cardTime * 1.3)) * (1 + (1 - ease) * 0.2);
         built.group.scale.set(pulse, pulse * squash, pulse);
         camera.position.x = Math.sin(cardTime * 0.37 + seed * 3) * 0.2;
         camera.position.y = 0.2 - through * 0.35 + Math.cos(cardTime * 0.5) * 0.2;

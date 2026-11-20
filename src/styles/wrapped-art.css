@@ -1840,8 +1840,10 @@ video.w-backdrop {
   animation: film-head-a 10s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+/* The reference's statement fills most of the width; this one did not. */
 .film2--total .film2-after {
-  font-size: clamp(27px, 5.4vw, 46px);
+  font-size: clamp(30px, 10.4vw, 78px);
+  width: min(94%, 22ch);
   line-height: 1.04;
   letter-spacing: -0.03em;
   color: var(--ink, #181004);
