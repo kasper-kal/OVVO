@@ -92,6 +92,8 @@ object that owns the frame, and we build a small, matte strip at the bottom of a
 ## 4. The look rules the rebuild must obey
 
 Short enough to check by eye against the side-by-side sheet, which is the only test that matters here.
+Section 5 then gives the reference's full grammar, slide by slide, which is what these rules are distilled
+from.
 
 1. **No empty half.** The art must touch all four edges. If a still shows a clean empty area bigger than a
    thumb, it fails.
@@ -107,6 +109,150 @@ Short enough to check by eye against the side-by-side sheet, which is the only t
    cropped, exploding, pushing in.
 8. **Six or seven distinct looks inside one card**, replacing each other every second or two, as the
    reference does across its four minutes.
+
+---
+
+## 5. The reference, in full: how it is built and how it moves
+
+Written from the full 2024 Wrapped breakdown, in my own words, because this is the thing I have been
+guessing at for weeks. Everything below is the reference's own architecture: what the frames are made of,
+how the light sits on them, how the type arrives, and what happens in each of its twelve slides, in order.
+
+### 5.1 The canvas and the geometry
+
+The player is a full-bleed 9:16 portrait sitting on a **pure black void**. Nothing has a margin. The depth
+is faked rather than modelled: flat slabs and rectangles are stacked, overlapped and extruded so the eye
+reads them as 2.5D, and they are arranged into four recurring families:
+
+- **Stepped ribbons with a sawtooth edge**, which fold, unspool and cross each other in space.
+- **Nested rectangular tunnels**, telescoping frames receding to a glowing vanishing point.
+- **Stacked chevrons and pyramids**, mirrored top against bottom, or corner against corner.
+- **Pixel iris wipes**, where a razor slit opens across the screen and parts into a stepped diamond.
+
+These forms turn, fan out, telescope and travel along curved spline paths. They are never pinned: even when
+the words are holding still, the geometry breathes, drifts or ripples underneath.
+
+### 5.2 How the light sits on them
+
+Every slice carries a **directional linear gradient across its own face**, running from a saturated neon
+highlight, through a midtone, into black. Neighbouring slices fall away from each other rather than
+overlapping flatly, which is what reads as physical relief. The result looks lit from one side, not
+printed.
+
+### 5.3 The colour system, act by act
+
+Three acts, each with its own family, all against the same black:
+
+| act | slides | family | hexes |
+| --- | --- | --- | --- |
+| I | 1 to 4 | hot pink into crimson | `#FF1E8A` magenta, bubblegum pink, `#B80028` crimson |
+| II | 5 to 9 | green and red | `#2BFF4F` lime, `#009E3D` emerald, `#FF1A00` scarlet |
+| III | 10 and 12 | blue | `#00E5FF` cyan, `#1D4ED8` cobalt, `#4F46E5` indigo, with `#FFF200` yellow for the closing emblem |
+
+The rule inside each act is the same: a saturated field, a luminous neighbour, and text in whichever of
+white or black survives on top. Red bodies take black type; black bodies take white.
+
+### 5.4 Motion and easing
+
+Entrances decelerate into place on a firm ease-out curve, with no bounce. Exits accelerate away on an
+ease-in. The motion is high frame rate and continuous; there is no frame anywhere in the four minutes
+where nothing is moving.
+
+### 5.5 How the words arrive
+
+Geometric sans, one heavy display line and one light caption. The display line **glides in horizontally
+from the right edge to the centre**, holds, and leaves to the left. The caption fades in beneath it,
+usually two to three seconds after the headline lands, and never before the headline has settled.
+
+### 5.6 The header that never goes away
+
+One overlay across the top of the black canvas, the same on all twelve slides:
+
+- A **twelve-segment progress track** running the full width. Unplayed segments are translucent grey, the
+  active one fills left to right in white, and finished ones stay solid white.
+- Under it, a **white circular Spotify emblem** on the far left, and three white icons on the far right:
+  pause, sound, close.
+
+### 5.7 The sequence, slide by slide
+
+**Entry.** The story is launched from a hero card in the dark home feed, sitting under a chip row (All,
+Wrapped in `#1ED760`, Music, Podcasts) and a two-by-four grid of recent listens. The card says "Your 2024
+Wrapped is here" with "Find out what ruled your listening this year." beneath, and its artwork is the same
+black field with two opposing diagonal fans of stepped pink-to-crimson ribbon. Tapping it shows a black
+buffer state with a grey eight-spoke spinner, then playback starts at 0:17.
+
+**Slide 1, 0:17 to 0:32.** A pinprick of magenta sparks at dead centre and rushes at the viewer, unfolding
+into a tight vortex of glowing planes. A black polygon punches open in the middle, a blue Spotify disc pops
+into it, and the pink geometry unspools into two great sawtooth ribbons shaped as a "2" over a "4". They
+undulate, then retract off the top and bottom, leaving black. A small crimson square then blooms and
+spirals into a receding tunnel, its vanishing point drifting to the lower left. "Hi there" glides in from
+the right at 0:25, the sub line fades in at 0:28.3, and the tunnel breathes under the hold.
+
+**Slide 2, 0:32 to 0:40.** The tunnel turns, the words leave to the left, and the planes splay like a dealt
+deck before snapping into a tall vertical corridor with its glow at the top right. "Life moves fast" arrives
+at 0:32.5, "Luckily we took notes." at 0:35.8, and the corridor's angle keeps shifting.
+
+**Slide 3, 0:40 to 0:47.** The corridor twists and collapses, then cleaves into two mirrored stepped
+pyramids, one hanging from the top edge, one rising from the bottom, with a wide black band between them.
+The headline "You listened for 7,145 minutes this year" takes the black band, "And you made each one
+count." follows at 0:43.3, and a white "Share this story" pill sits near the bottom margin.
+
+**Slide 4, 0:47 to 0:55.** The two pyramids rotate into the top-right and bottom-left corners, forming
+diagonal stepped borders around a black corridor running corner to corner. The headline is the biggest
+listening day, October 24, 340 minutes; "Where do you find the time?" follows at 0:50.8. Both borders
+retract outward and the frame drops to black.
+
+**Slide 5, 0:55 to 1:04.** The palette switches to green with a pixel iris: a slit of emerald-to-lime bars
+opens across the middle like an eyelid and parts vertically to reveal a sharp black diamond, framed by
+four stepped green columns that grade from neon at the diamond edge to black at the corners. "You listened
+to 273 artists" sits inside the diamond, with the two-line caption "But one had a special place in your
+heart. And ears." at 0:59.5. The bars slide off top and bottom at the end.
+
+**Slide 6, 1:04 to 1:14.** Same iris, now green and red: the green curtains part and a scarlet diamond
+floods the interior. A square photograph of Coldplay against a blue sky slides in from the right, black type
+takes over below it ("Coldplay was your top artist of the year"), and at 1:09 "Your longest listening streak
+was 5 days." fades in with the number emphasised. The picture and diamond stay put; only the words change.
+
+**Slide 7, 1:15 to 1:24.** The same red diamond and the same band photograph are held deliberately, so the
+two slides read as one moment. New black type arrives: top 0.5 per cent fan, 1,742 minutes together, then
+"You overachiever." The photo then slides off left, leaving flat red.
+
+**Slide 8, 1:25 to 1:34.** A black slit opens across that red and parts into a green stepped eye; a red
+diamond expands inside it. "Who else got a lot of play this year?" lands at 1:26.5, "Big reveal in 3... 2...
+1..." at 1:30. The corners slide away and the frame is solid red again.
+
+**Slide 9, 1:34 to 1:42.** The eye becomes a full green stepped gradient, then a red diamond floods it.
+"Your top artists" sits upper left, and five square portraits with names cascade diagonally into a
+left-aligned stack with ranks: Coldplay, Maki, Cha Eun-Woo, Taylor Swift, The Chainsmokers. A low border of
+green stepped ribbon ripples along the bottom before sliding off.
+
+**Slide 10, 1:42 to 1:51.** A green pixel eye swallows the red into black, a cyan outline lights the frame,
+and nested tiers extrude inward to build a deep perspective corridor in cyan, cobalt and indigo around a
+black core. "Oh, looks like we have company" arrives at 1:47.1; the walls darken, dissolve, and a spinner
+blinks before the next beat.
+
+**Slide 11, 1:51 to 2:08.** A full-bleed live-action clip: the four members of Coldplay backstage against
+dark curtains. Chris Martin waves, talks with his hands, rests them on his jacket, gestures outward, clasps
+them, opens his palms and blows a kiss as he bows his head. The others stand and smile. It cuts hard to
+black.
+
+**Slide 12, 2:08 to 2:20.** The opening is mirrored in blue: a cyan spark, a vortex of cyan and violet
+planes, a black core, and "Thanks for coming along for the ride" gliding in. Cyan and cobalt "2" and "4"
+ribbons unspool above and below the words, "Until we meet again..." fades in at 2:14, the ribbons retract,
+the words leave left, and a canary-yellow Spotify emblem pops at centre, shrinks to a point and vanishes.
+
+**The summary carousel, 2:20 to 2:27.** A shareable card glides in with five pagination dots, a white
+"Share" pill and a "Replay from beginning" button. The card carries the Coldplay portrait over a
+stepped-ribbon header and a solid body with Top Artists, Top Songs and Minutes Listened 7,145, the emblem
+bottom left and SPOTIFY.COM/WRAPPED bottom right. Swiping pans horizontally through six colourways: pink on
+black, cyan on red, lime on black, green on red, yellow on yellow, cyan on black.
+
+### 5.8 What this means for our card
+
+Our counting card has none of the skeleton: no twelve-segment track, no black void, no stepped object that
+owns the frame, no gradient inside the geometry, no glide-in headline with a caption two seconds behind it,
+and no exit to black before the next beat. Those are not decoration, they are the grammar. The rebuild
+starts from this section, not from a palette.
 
 ---
 
