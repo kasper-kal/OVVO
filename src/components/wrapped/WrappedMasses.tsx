@@ -250,7 +250,7 @@ const POSE_SCALE = POSES.map((pose) => {
  * reference's own edge: its shapes are visibly built of blocks, and a smooth curve beside them reads
  * as a softer kind of object entirely.
  */
-const SNAP = 0.075;
+const SNAP = 0.2;
 
 /* Write the ribbon's vertices for the pose `phase` poses along the cycle. */
 function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase: number): void {
@@ -1153,8 +1153,12 @@ export function WrappedMasses({
          */
         const seen = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z * camera.aspect;
         const sized = (1.06 * seen) / unitW;
-        built.group.position.x = Math.sin(cardTime * 0.45 + seed) * 0.06;
-        built.group.position.y = Math.cos(cardTime * 0.39 + seed) * 0.05;
+        /*
+         * **The loop leans into a corner.** A body centred in the frame is a badge; the reference puts its
+         * mass off to one side so the frame is cut unevenly and the empty side has air in it.
+         */
+        built.group.position.x = seen * 0.15 + Math.sin(cardTime * 0.45 + seed) * 0.06;
+        built.group.position.y = seen * 0.05 + Math.cos(cardTime * 0.39 + seed) * 0.05;
         built.group.position.z = beat * 0.35;
         const pulse = sized * (1 + 0.03 * Math.sin(cardTime * 1.3)) * (1 + (1 - ease) * 0.2);
         built.group.scale.set(pulse, pulse * squash, pulse);

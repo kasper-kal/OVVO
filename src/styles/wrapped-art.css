@@ -1897,3 +1897,50 @@ video.w-backdrop {
 .film2--total .film2-art .w-mass {
   inset: -8% -14% 24% -14%;
 }
+
+/* ---------------------------------------------------------------------------
+ * The counting card's copy is a printed block, not a caption.
+ *
+ * The reference sets a short label and then a statement of two or three lines that fills the width,
+ * left aligned, on the plain part of the field. This card had one centred line with a whisper under
+ * it, which read as a picture with a caption bar and left a wide dead strip below the words.
+ * ------------------------------------------------------------------------- */
+.film2--total .film2-line,
+.film2--total .film2-after {
+  left: 6vw;
+  right: 6vw;
+  width: auto;
+  max-width: none;
+  bottom: clamp(40px, 6vh, 74px);
+  transform: none;
+  text-align: left;
+  color: #ffffff;
+}
+
+.film2--total .film2-line {
+  font-size: clamp(26px, min(7.6vw, 5.4vh), 54px);
+  line-height: 1.02;
+}
+
+.film2--total .film2-after {
+  font-size: clamp(32px, min(11.5vw, 7.4vh), 84px);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.film2--total .film2-sub {
+  top: calc(76% + clamp(6px, 1.4vh, 14px));
+  bottom: auto;
+  left: 6vw;
+  right: 6vw;
+  width: auto;
+  max-width: none;
+  transform: none;
+  text-align: left;
+  color: #c9f308;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: clamp(10px, 2.6vw, 12px);
+  opacity: 1;
+}
