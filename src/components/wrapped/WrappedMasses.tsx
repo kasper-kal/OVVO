@@ -25,6 +25,7 @@ import { lookFor } from '../../lib/wrappedLook';
 
 type Piece = {
   mesh: THREE.Object3D;
+  x: number;
   y: number;
   phase: number;
   amp: number;
@@ -37,8 +38,6 @@ type Built = {
   group: THREE.Group;
   pieces: Piece[];
   steps: number;
-  /** The counting card's ribbon: one body whose vertices are rewritten per frame. */
-  morph?: { geometry: THREE.BufferGeometry; us: number; vs: number };
 };
 
 const TAU = Math.PI * 2;
@@ -73,6 +72,7 @@ function add(built: Built, mesh: THREE.Object3D, opts: { phase?: number; amp?: n
   built.group.add(mesh);
   built.pieces.push({
     mesh,
+    x: mesh.position.x,
     y: mesh.position.y,
     phase: opts.phase ?? Math.random() * TAU,
     amp: opts.amp ?? 0.1,
@@ -173,223 +173,41 @@ function blob(
 }
 
 /*
- * **The one-chapter lab: a single glossy ribbon, changing pose.**
+ * **Flat, because the reference is flat.**
  *
- * Read against the reference, the last body was wrong in three ways that no colour could fix. It
- * filled the frame edge to edge, so it read as wallpaper instead of an object. It was matte and soft,
- * so it read as an out-of-focus photograph instead of a lit shape. And it held one pose for the whole
- * card, where the reference changes the sculpture every second or two.
- *
- * This is the body the reference actually has: a narrow ribbon, about two and a half units across, so
- * it sits in the middle of the frame with air and a real outline all round it. It is glossy on purpose,
- * low roughness and some metalness, so the key light lays a tight hard highlight on it instead of the
- * broad soft sheen of cloth. And it is written as four poses on one grid, so the same vertices can
- * travel from one pose to the next while the card plays: a banner, a curled fan, a coil and a knot.
+ * Every earlier pass at the counting card built a real object: a mesh with depth, a perspective lens,
+ * two lights and a glossy material, which came out looking like a product render. The reference is not
+ * a render. It is drawn: flat fills, hard edges, steps you can count, and the whole card is always
+ * moving. So this body has no depth and no light at all. It is a grid of flat bars in the plane of the
+ * screen, three tones of the chapter's colour, arranged in a stepped ring with a hole in the middle.
+ * The grid does the stepping; nothing is bevelled, nothing is shaded.
  */
-type Pose = (u: number, v: number) => [number, number, number];
-
-const POSES: Pose[] = [
-  /*
-   * 0 - the loop: a band that goes all the way round and rolls twice as it goes, so the ring closes
-   * on itself and the field shows through the middle. The reference's best frame is exactly this, a
-   * ribbon crossed over itself with a hole in it, and a band with no hole in it reads as a squiggle.
-   */
-  (u, v) => {
-    const a = u * Math.PI * 2;
-    const twist = a * 2;
-    const w = (v - 0.5) * 1.5;
-    const r = 1.0 + w * Math.cos(twist);
-    return [Math.sin(a) * r, Math.cos(a) * r, w * Math.sin(twist)];
-  },
-  /* 1 - the fan: the ribbon stands up and curls into an arc, folded across its width. */
-  (u, v) => {
-    const a = (u - 0.5) * 2.2;
-    const r = 1.45 + (v - 0.5) * 1.55;
-    return [
-      Math.sin(a) * r,
-      Math.cos(a) * r - 1.3,
-      Math.sin(v * Math.PI * 2) * 0.14 + Math.sin(u * Math.PI * 9) * 0.08,
-    ];
-  },
-  /* 2 - the roll: the strip winds up like a rolled sheet, seen end on. */
-  (u, v) => {
-    const a = u * Math.PI * 3.4;
-    const r = 1.35 - 0.9 * u;
-    return [Math.cos(a) * r, Math.sin(a) * r, (v - 0.5) * 0.85 + 0.12];
-  },
-  /* 3 - the knot: a figure of eight, twisted so one lobe turns its edge to the light. */
-  (u, v) => {
-    const a = u * Math.PI * 2;
-    return [
-      Math.sin(a) * 1.35,
-      Math.sin(a * 2) * 0.72 + (v - 0.5) * 1.25,
-      Math.cos(a) * 0.75 + (v - 0.5) * 1.1 * Math.cos(a),
-    ];
-  },
-];
-
-/*
- * **Every pose is the same size.** The four poses are drawn at different radii, so fitting the ribbon
- * to the frame once and then blending would have shrunk it to a scrap of paper on the coil and filled
- * the frame on the banner. Each pose is measured once, here, and scaled to one radius before it is used.
- */
-const POSE_SCALE = POSES.map((pose) => {
-  let reach = 0.001;
-  for (let r = 0; r <= 12; r += 1) {
-    for (let c = 0; c <= 24; c += 1) {
-      const [x, y, z] = pose(c / 24, r / 12);
-      reach = Math.max(reach, Math.hypot(x, y, z));
+function flatBars(built: Built, colour: string, deep: string, bright: string): void {
+  const COLS = 26;
+  const ROWS = 18;
+  const W = 0.6;
+  const H = 0.6;
+  /* One geometry for every bar: the picture is a few hundred flat quads and nothing else. */
+  const quad = new THREE.PlaneGeometry(W * 0.9, H * 0.9);
+  const tones = [colour, deep, bright];
+  for (let r = 0; r < ROWS; r += 1) {
+    for (let c = 0; c < COLS; c += 1) {
+      const x = (c - (COLS - 1) / 2) * W;
+      const y = (r - (ROWS - 1) / 2) * H;
+      const nx = x / ((COLS / 2) * W);
+      const ny = y / ((ROWS / 2) * H);
+      const d = Math.hypot(nx, ny);
+      /* A stepped ring: the hole and the rim are both cut in blocks, because the grid is the step. */
+      if (d > 0.99 || d < 0.46) continue;
+      /* Bands of a tone every second row, so the ring reads as layers rather than as one flat wash. */
+      const tone = tones[Math.floor((r / 2) % 3)];
+      const mesh = new THREE.Mesh(quad, new THREE.MeshBasicMaterial({ color: new THREE.Color(tone) }));
+      mesh.position.set(x, y, 0);
+      built.group.add(mesh);
+      built.pieces.push({ mesh, x, y, phase: c * 0.21 + r * 0.13, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
+      built.steps += 1;
     }
   }
-  return 1.35 / reach;
-});
-
-/*
- * **The lattice the shape is built on.** Every vertex is dropped onto a grid this size, so the surface
- * and the silhouette come out in square terraces instead of a clean curve. That crunch is the
- * reference's own edge: its shapes are visibly built of blocks, and a smooth curve beside them reads
- * as a softer kind of object entirely.
- */
-const SNAP = 0.2;
-
-/* Write the ribbon's vertices for the pose `phase` poses along the cycle. */
-function writePose(geometry: THREE.BufferGeometry, us: number, vs: number, phase: number): void {
-  const attribute = geometry.getAttribute('position') as THREE.BufferAttribute;
-  const step = Math.floor(phase);
-  const count = POSES.length;
-  const indexFrom = ((step % count) + count) % count;
-  const indexTo = (((step + 1) % count) + count) % count;
-  const from = POSES[indexFrom];
-  const to = POSES[indexTo];
-  const scaleFrom = POSE_SCALE[indexFrom];
-  const scaleTo = POSE_SCALE[indexTo];
-  /* The pose holds, then the ribbon travels to the next one: a morph that never rests is a blur. */
-  const t = THREE.MathUtils.smoothstep(phase - step, 0.42, 0.94);
-  let at = 0;
-  for (let r = 0; r <= vs; r += 1) {
-    const v = r / vs;
-    for (let c = 0; c <= us; c += 1) {
-      const u = c / us;
-      const a = from(u, v);
-      const b = to(u, v);
-      const ax = a[0] * scaleFrom;
-      const ay = a[1] * scaleFrom;
-      const az = a[2] * scaleFrom;
-      const bx = b[0] * scaleTo;
-      const by = b[1] * scaleTo;
-      const bz = b[2] * scaleTo;
-      const x = ax + (bx - ax) * t;
-      const y = ay + (by - ay) * t;
-      const z = az + (bz - az) * t;
-      /*
-       * **Steps on the silhouette, a smooth belly.**
-       *
-       * Snapping every vertex made the whole body a heap of flat cards, which reads as folded paper and
-       * loses the wet plastic the reference is made of: its surface runs smooth and only the outline is
-       * sawn into steps. The lattice is mixed in by how close a vertex is to the border, so the edge
-       * terraces and the middle stays a curve.
-       */
-      const edge = Math.min(u, 1 - u, v, 1 - v);
-      const snapMix = 1 - THREE.MathUtils.smoothstep(edge, 0.015, 0.13);
-      attribute.setXYZ(
-        at,
-        x + (Math.round(x / SNAP) * SNAP - x) * snapMix,
-        y + (Math.round(y / SNAP) * SNAP - y) * snapMix,
-        z + (Math.round(z / SNAP) * SNAP - z) * snapMix,
-      );
-      at += 1;
-    }
-  }
-  attribute.needsUpdate = true;
-  geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
-}
-
-function ribbon(built: Built, colour: string): void {
-  /* Enough cells for a smooth skin, few enough that the outline still steps. */
-  const US = 52;
-  const VS = 11;
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array((US + 1) * (VS + 1) * 3), 3));
-  const index: number[] = [];
-  for (let r = 0; r < VS; r += 1) {
-    for (let c = 0; c < US; c += 1) {
-      const a = r * (US + 1) + c;
-      const b = a + 1;
-      const below = a + (US + 1);
-      const beside = below + 1;
-      index.push(a, below, b, b, below, beside);
-    }
-  }
-  geometry.setIndex(index);
-  writePose(geometry, US, VS, 0);
-
-  /*
-   * **The sheen is part of the body.**
-   *
-   * A hard specular dot on one facet is a glint, not a highlight: the reference has a long bright band
-   * that runs the length of the fold like a wet edge, and no light will draw that on its own. The band
-   * is painted into the vertex colours, thin across the ribbon and fading in and out along it, so it
-   * travels with the shape wherever the pose takes it.
-   */
-  const tint = new THREE.Color(colour);
-  const white = new THREE.Color('#ffffff');
-  const colours = new Float32Array((US + 1) * (VS + 1) * 3);
-  let at = 0;
-  for (let r = 0; r <= VS; r += 1) {
-    const v = r / VS;
-    for (let c = 0; c <= US; c += 1) {
-      const u = c / US;
-      const band = Math.exp(-((v - 0.5) ** 2) / (2 * 0.028 ** 2));
-      const travel = 0.4 + 0.6 * Math.sin(u * Math.PI * 2 + 0.7);
-      const mix = Math.min(0.6, band * travel);
-      const shade = tint.clone().lerp(white, mix);
-      colours[at] = shade.r;
-      colours[at + 1] = shade.g;
-      colours[at + 2] = shade.b;
-      at += 3;
-    }
-  }
-  geometry.setAttribute('color', new THREE.BufferAttribute(colours, 3));
-
-  /*
-   * **Glossy, because the reference's shapes are glossy.** The last pass made this body matte to stop
-   * it looking like plastic; the reference is plastic, and the matte version read as felt. A low
-   * roughness gives the key light a tight, hard highlight, and a little metalness darkens the side
-   * turned away from it, which is what puts a bright edge against a dark one and makes the outline
-   * read as a shape rather than a stain.
-   */
-  const mesh = new THREE.Mesh(
-    geometry,
-    new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      vertexColors: true,
-      /*
-       * **A bright body, not a dark one.** The first pass used the chapter's deep tone, and a dark green
-       * ribbon on a green field read as a stain. It is the chapter's lit tone instead, matte enough that
-       * the key light draws a tight highlight on it without going white: a little metalness with no
-       * environment map to reflect is what turned it black.
-       */
-      roughness: 0.14,
-      metalness: 0.14,
-      emissive: new THREE.Color(colour),
-      emissiveIntensity: 0.03,
-      /*
-       * Smooth shading. Flat shading on every facet was the cardboard: the reference is one continuous
-       * skin of plastic, and only its outline steps.
-       */
-      flatShading: false,
-      side: THREE.DoubleSide,
-    }),
-  );
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  built.group.add(mesh);
-  /* No per-piece wobble: the whole shape is one body now, and its motion is the pose change. */
-  built.pieces.push({ mesh, y: 0, phase: 0, amp: 0, spin: 0, rotZ: 0, rotX: 0 });
-  built.morph = { geometry, us: US, vs: VS };
-  /* Every cell of the ribbon is a flat face, and the deck's body rule asks for a body made of faces. */
-  built.steps += US * VS;
 }
 
 function build(chapter: Chapter): Built {
@@ -407,11 +225,10 @@ function build(chapter: Chapter): Built {
 
     case 'total': {
       /*
-       * One glossy ribbon in the middle of the frame, changing pose as the card plays. It is the lit
-       * tone pulled a third of the way back to the chapter's deep one: at full brightness every face
-       * came out the same pale yellow, and a shape with one tone in it has no form left to read.
+       * Flat bars in a stepped ring. No light, no depth, no gloss: the reference draws its shapes, and
+       * a lit object was the whole reason this card read as a render instead of a Wrapped frame.
        */
-      ribbon(built, new THREE.Color(accent).multiplyScalar(0.94).getStyle());
+      flatBars(built, accent, shade(accent, 0.34), shade(accent, 0.42, '#ffffff'));
       break;
     }
 
@@ -802,15 +619,6 @@ export function WrappedMasses({
     /* The authored width of the counting card's body, in world units, so it can be sized from the lens. */
     let unitW = 1;
     /*
-     * **On a laptop the shape is squashed, not shrunk.**
-     *
-     * A phone frame is tall, so the ribbon can be tall too. A laptop frame is wide and shallow, and a body
-     * tall enough to be cut by its left and right edges there is also tall enough to sit under the words
-     * and take the flat band away. Squashing its height keeps the side crop and keeps the band plain; the
-     * reference's shapes are wide bands on that kind of frame anyway.
-     */
-    let squash = 1;
-    /*
      * **A wide body turns less.**
      *
      * The first pass at real motion turned every body by the same angle. On the ranked bar chart and
@@ -943,7 +751,6 @@ export function WrappedMasses({
        * lifted until it hangs across the top of the picture.
        */
       const croppedOne = chapter.id === 'total';
-      squash = frame.width > frame.height ? 0.52 : 1;
       const overshoot = chapter.id === 'ranked' ? 1.55 : wideBody ? 1.36 : 1.26;
       const target = croppedOne ? 2.2 * frame.width : overshoot * Math.max(frame.width, frame.height);
 
@@ -1095,7 +902,6 @@ export function WrappedMasses({
      * half, instead of the deck's slow couple of seconds.
      */
     const BEAT_SECONDS = lab ? 1.15 : 2.4;
-    const POSE_SECONDS = 1.5;
     /*
      * The lab card's body is one shape standing in the frame, so its motion is a turn on the spot and
      * the pose change itself: the ribbon rolls its highlight along, and every new pose lands near a beat.
@@ -1138,32 +944,24 @@ export function WrappedMasses({
          * line a few pixels wide, and the deck check read that as an island too small to be the picture.
          * Everything here runs on the card's own clock, so it always opens on the broad pose.
          */
-        if (built.morph) writePose(built.morph.geometry, built.morph.us, built.morph.vs, cardTime / POSE_SECONDS);
-        /* The loop is tilted towards the camera, or it is a flat badge on the page. */
-        built.group.rotation.y = -0.42 + Math.sin(cardTime * 0.62 + seed) * 0.3 + (animate ? (1 - ease) * -0.4 : 0);
-        built.group.rotation.x = 0.3 + 0.12 * Math.sin(cardTime * 0.53 + seed);
-        built.group.rotation.z = 0.08 * Math.sin(cardTime * 0.31 + seed);
-        /*
-         * **Sized from the lens, not from a solved rect.**
-         *
-         * The pixel solve fits a silhouette measured through the canvas rectangle, and on a laptop that
-         * kept leaving the body a small blob in the middle while the phone came out huge. The size this
-         * card needs is simple enough to state outright: a little wider than the lens can see, measured at
-         * the body's own depth, so it is always cut by both sides on any screen.
-         */
         const seen = 2 * Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.position.z * camera.aspect;
         const sized = (1.06 * seen) / unitW;
         /*
-         * **The loop leans into a corner.** A body centred in the frame is a badge; the reference puts its
-         * mass off to one side so the frame is cut unevenly and the empty side has air in it.
+         * **It moves the whole time, and it moves like a drawing.**
+         *
+         * The lens does not travel and the body never turns out of the plane, so nothing is foreshortened
+         * and nothing is lit: the picture is flat, and every change in it is the picture itself growing,
+         * sliding or snapping. The push runs through the card so it keeps growing while it plays, the
+         * slide keeps the frame cut unevenly, and the beat lurches it a size bigger on the hit.
          */
-        built.group.position.x = seen * 0.15 + Math.sin(cardTime * 0.45 + seed) * 0.06;
-        built.group.position.y = seen * 0.05 + Math.cos(cardTime * 0.39 + seed) * 0.05;
-        built.group.position.z = beat * 0.35;
-        const pulse = sized * (1 + 0.03 * Math.sin(cardTime * 1.3)) * (1 + (1 - ease) * 0.2);
-        built.group.scale.set(pulse, pulse * squash, pulse);
-        camera.position.x = Math.sin(cardTime * 0.37 + seed * 3) * 0.2;
-        camera.position.y = 0.2 - through * 0.35 + Math.cos(cardTime * 0.5) * 0.2;
+        const push = 1 + 0.3 * (0.5 - 0.5 * Math.cos((cardTime / CARD_SECONDS) * Math.PI * 2));
+        built.group.rotation.set(0, 0, 0.1 * Math.sin(cardTime * 0.5 + seed));
+        built.group.scale.setScalar(sized * push * (1 + 0.06 * beat));
+        built.group.position.x = seen * 0.14 + Math.sin(cardTime * 0.55 + seed) * seen * 0.07;
+        built.group.position.y = seen * 0.04 + Math.cos(cardTime * 0.47) * seen * 0.05;
+        built.group.position.z = 0;
+        camera.position.x = 0;
+        camera.position.y = 0;
         camera.position.z = 14 - 0.9 * through;
       } else {
         built.group.rotation.y =
@@ -1185,7 +983,18 @@ export function WrappedMasses({
       camera.lookAt(0, 0, 0);
       key.intensity = (lab ? 4.2 : 3.6) + beat * (lab ? 1.6 : 1.5);
 
-      if (animate) {
+      if (animate && lab) {
+        /*
+         * **Bars slide past each other.** A ring that only rotates is a record on a turntable; the
+         * reference's stacks slide and swell, so each bar carries its own wave and its own size, and no
+         * frame of this card is the frame before it.
+         */
+        for (const piece of built.pieces) {
+          piece.mesh.position.x = piece.x + Math.sin(cardTime * 1.15 + piece.phase) * 0.55;
+          piece.mesh.position.y = piece.y + Math.sin(cardTime * 0.85 + piece.phase * 1.7) * 0.28;
+          piece.mesh.scale.setScalar(0.74 + 0.26 * (0.5 + 0.5 * Math.sin(cardTime * 1.7 - piece.phase)));
+        }
+      } else if (animate) {
         for (const piece of built.pieces) {
           /* A wave that runs along the stack, not every slab humming on its own. */
           const wave = Math.sin(clock * 1.5 - piece.phase * 1.1);

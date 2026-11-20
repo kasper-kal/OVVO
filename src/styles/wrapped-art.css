@@ -1911,9 +1911,9 @@ video.w-backdrop {
   right: 6vw;
   width: auto;
   max-width: none;
-  bottom: clamp(40px, 6vh, 74px);
+  bottom: clamp(84px, 11vh, 120px);
   transform: none;
-  text-align: left;
+  text-align: center;
   color: #ffffff;
 }
 
@@ -1929,18 +1929,32 @@ video.w-backdrop {
 }
 
 .film2--total .film2-sub {
-  top: calc(76% + clamp(6px, 1.4vh, 14px));
-  bottom: auto;
+  top: auto;
+  bottom: clamp(26px, 4.6vh, 46px);
   left: 6vw;
   right: 6vw;
   width: auto;
   max-width: none;
   transform: none;
-  text-align: left;
-  color: #c9f308;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: clamp(10px, 2.6vw, 12px);
-  opacity: 1;
+  text-align: center;
+  color: #ffffff;
+  opacity: 0.78;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  font-size: clamp(12px, 3.4vw, 17px);
+}
+
+/* ---------------------------------------------------------------------------
+ * The recurring frame: a stepped lime stack in each corner.
+ *
+ * The reference wears the same corner ornament on every card of the chapter, and it is what makes a
+ * frame read as part of the film instead of as a picture on a page. Four mirrored staircases, drawn
+ * behind the flat bars, sit outside the sentence.
+ * ------------------------------------------------------------------------- */
+.film2--total .film2-art {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='0' width='90' height='14'/><rect x='0' y='15' width='75' height='14'/><rect x='0' y='30' width='60' height='14'/><rect x='0' y='45' width='45' height='14'/><rect x='0' y='60' width='30' height='14'/><rect x='0' y='75' width='15' height='14'/></g></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='0' width='90' height='14'/><rect x='15' y='15' width='75' height='14'/><rect x='30' y='30' width='60' height='14'/><rect x='45' y='45' width='45' height='14'/><rect x='60' y='60' width='30' height='14'/><rect x='75' y='75' width='15' height='14'/></g></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='76' width='90' height='14'/><rect x='0' y='61' width='75' height='14'/><rect x='0' y='46' width='60' height='14'/><rect x='0' y='31' width='45' height='14'/><rect x='0' y='16' width='30' height='14'/><rect x='0' y='1' width='15' height='14'/></g></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='%23c9f308'><rect x='0' y='76' width='90' height='14'/><rect x='15' y='61' width='75' height='14'/><rect x='30' y='46' width='60' height='14'/><rect x='45' y='31' width='45' height='14'/><rect x='60' y='16' width='30' height='14'/><rect x='75' y='1' width='15' height='14'/></g></svg>");
+  background-repeat: no-repeat;
+  background-size: clamp(46px, 13vw, 96px) clamp(46px, 13vw, 96px);
+  background-position: left top, right top, left bottom, right bottom;
 }
