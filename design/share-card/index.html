@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OVVO share card: WhatsApp and SMS preview</title>
+    <!--
+      **What this page is.**
+
+      This is the share card, shown the way it lands in a chat. The artwork inside both previews is
+      the real card: `public/og-image.jpg`, the 1200 x 630 image the site serves at
+      `https://app.ovvo.us.ci/og-image.jpg?v=5` and names in its own `og:image` tag. The title,
+      description and address beside it are the page's own `og:title`, `og:description` and
+      `og:url`, word for word.
+
+      Nothing in the card is redrawn here. The card is the exported picture itself, and everything
+      around it is the chat chrome: the bubble, the rounded crop, the three lines of text. The
+      picture is read from `public/og-image.jpg` beside this folder, so opening the file from the
+      repo shows it; on a server, where `public` is the root, it falls back to `/og-image.jpg`.
+      If the copy changes, change it in `index.html` first, because that is what a chat actually
+      reads; if the picture changes, nothing here needs touching.
+    -->
+    <style>
+      :root {
+        --page: #0d0d10;
+        --page-ink: #9a9aa3;
+        --page-title: #f4f4f6;
+        --whatsapp-bg: #efeae2;
+        --whatsapp-bubble: #ffffff;
+        --whatsapp-ink: #111b21;
+        --whatsapp-sub: #667781;
+        --sms-bg: #ffffff;
+        --sms-bubble: #e9e9eb;
+        --sms-sub: #8e8e93;
+        --radius: 34px;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 56px 24px 64px;
+        background: var(--page);
+        color: var(--page-title);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 44px;
+      }
+
+      header { max-width: 760px; text-align: center; }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(22px, 3.4vw, 30px);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--page-ink);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .panels {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 44px;
+      }
+
+      .panel { width: 380px; max-width: 100%; }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--page-ink);
+        text-align: center;
+      }
+
+      .phone {
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .chat-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 18px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .chat-head .back { font-size: 19px; font-weight: 400; opacity: 0.75; line-height: 1; }
+
+      .chat-head .who { font-size: 11px; font-weight: 400; opacity: 0.6; display: block; margin-top: 2px; }
+
+      .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #18181b;
+        color: #fff;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+
+      .chat-body { padding: 22px 14px 26px; min-height: 330px; display: flex; align-items: flex-end; }
+
+      /* WhatsApp */
+      .whatsapp .chat-head { background: #f6f6f6; color: #111b21; border-bottom: 1px solid #e6e6e6; }
+      .whatsapp .chat-body { background: var(--whatsapp-bg); }
+
+      .wa-bubble {
+        margin-left: auto;
+        width: 100%;
+        max-width: 322px;
+        background: var(--whatsapp-bubble);
+        border-radius: 10px;
+        padding: 3px 3px 6px;
+        box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+        color: var(--whatsapp-ink);
+      }
+
+      .wa-bubble .art {
+        width: 100%;
+        aspect-ratio: 1200 / 630;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+      }
+
+      .wa-bubble .lines { padding: 7px 8px 0; }
+
+      .wa-bubble .title {
+        font-size: 14.4px;
+        font-weight: 600;
+        line-height: 1.25;
+        margin: 0 0 2px;
+      }
+
+      .wa-bubble .desc {
+        margin: 0 0 2px;
+        font-size: 13px;
+        line-height: 1.3;
+        color: var(--whatsapp-sub);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .wa-bubble .host { font-size: 12px; color: var(--whatsapp-sub); }
+
+      .wa-bubble .time {
+        margin-top: 2px;
+        text-align: right;
+        font-size: 10.5px;
+        color: var(--whatsapp-sub);
+      }
+
+      /* SMS */
+      .sms .chat-head { background: #f7f7f7; color: #000; border-bottom: 1px solid #e2e2e2; }
+      .sms .chat-body { background: var(--sms-bg); }
+
+      .sms-bubble {
+        margin-left: auto;
+        width: 100%;
+        max-width: 300px;
+        background: var(--sms-bubble);
+        border-radius: 18px;
+        overflow: hidden;
+        color: #000;
+        font-size: 15px;
+      }
+
+      .sms-bubble .art { width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; display: block; }
+
+      .sms-bubble .lines {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px 11px;
+      }
+
+      .sms-bubble .text { min-width: 0; }
+
+      .sms-bubble .title {
+        margin: 0;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sms-bubble .host { font-size: 11.5px; color: var(--sms-sub); margin-top: 1px; }
+
+      .sms-bubble .chev { color: #b6b6bb; font-size: 17px; line-height: 1; flex: none; }
+
+      footer {
+        max-width: 640px;
+        text-align: center;
+        color: var(--page-ink);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      footer code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        color: #d6d6dc;
+      }
+
+      @media (max-width: 860px) {
+        body { padding: 36px 16px 48px; gap: 32px; }
+        .panels { gap: 32px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>The share card, in a chat</h1>
+      <p>
+        The picture is the real one: <code>public/og-image.jpg</code>, 1200 × 630. The three lines
+        beside it are the site's own title, description and address.
+      </p>
+    </header>
+
+    <div class="panels">
+      <section class="panel whatsapp">
+        <h2>WhatsApp</h2>
+        <div class="phone">
+          <div class="chat-head">
+            <span class="back">‹</span>
+            <span class="avatar">OVVO</span>
+            <span>
+              OVVO
+              <span class="who">online</span>
+            </span>
+          </div>
+          <div class="chat-body">
+            <div class="wa-bubble">
+              <img class="art" src="../../public/og-image.jpg" onerror="this.onerror=null;this.src='/og-image.jpg'" alt="OVVO share card: the whole journey, in one place" />
+              <div class="lines">
+                <p class="title">OVVO</p>
+                <p class="desc">Plan a journey across the Netherlands with real scheduled times, platforms and transfers.</p>
+                <div class="host">app.ovvo.us.ci</div>
+                <div class="time">12:04</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel sms">
+        <h2>SMS</h2>
+        <div class="phone">
+          <div class="chat-head">
+            <span class="back">‹</span>
+            <span class="avatar">OVVO</span>
+            <span>
+              OVVO
+              <span class="who">Text Message</span>
+            </span>
+          </div>
+          <div class="chat-body">
+            <div class="sms-bubble">
+              <img class="art" src="../../public/og-image.jpg" onerror="this.onerror=null;this.src='/og-image.jpg'" alt="OVVO share card: the whole journey, in one place" />
+              <div class="lines">
+                <div class="text">
+                  <p class="title">OVVO</p>
+                  <div class="host">app.ovvo.us.ci</div>
+                </div>
+                <span class="chev">›</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Title, description and address come from <code>index.html</code>'s <code>og:title</code>,
+      <code>og:description</code> and <code>og:url</code>. Change those first; the picture is
+      <code>public/og-image.jpg</code>, 1200 × 630.
+    </footer>
+  </body>
+</html>
