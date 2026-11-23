@@ -7,20 +7,24 @@ script re-creates it from its own ingredients, so the small type can be changed
 without repainting the picture:
 
   1. The background is the Sprinter photograph, cropped and scaled exactly as
-     the live card does it (measured: x1.7771, offset -0.77 / -751.04), so any
-     text can be lifted off without guessing -- the real pixels underneath are
-     in the photograph itself.
+     the card does it (measured: x1.7771, offset -0.77 / -751.04), so any text
+     can be lifted off without guessing -- the real pixels underneath are in
+     the photograph itself.
+
+The untouched card is kept beside this script as base-card.jpg, because the
+script lifts text off by rebuilding what was underneath it: it must always
+start from the same clean card, never from its own previous output.
   2. The five small texts are re-set 15% larger on the same baselines.
   3. Everything else -- headline, times, mark, route, dots -- keeps the pixels
      the live card already has.
 
 Environment (all optional):
   OVVO_REPO   repository root (default: two levels above this file)
-  OVVO_CARD   source card      (default: $OVVO_REPO/public/og-image.jpg)
+  OVVO_CARD   the untouched card to start from (default: design/share-card/base-card.jpg)
   OVVO_PHOTO  photograph       (default: $OVVO_REPO/public/style-photos/sprinter.jpg)
   OVVO_OUT    output image     (default: $OVVO_REPO/public/og-image.jpg)
   OVVO_PREVIEW  also write a lossless PNG here, for inspection
-  OVVO_GROW   scale for the five texts (default: 1.15)
+  OVVO_GROW   scale for the five texts (default: 1.35)
 
 Needs Pillow, numpy, opencv-python and fonttools:
   python3 -m pip install pillow numpy opencv-python fonttools brotli
@@ -39,11 +43,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.environ.get("OVVO_REPO") or os.path.abspath(os.path.join(HERE, "..", ".."))
-CARD = os.environ.get("OVVO_CARD") or os.path.join(REPO, "public", "og-image.jpg")
+CARD = os.environ.get("OVVO_CARD") or os.path.join(HERE, "base-card.jpg")
 PHOTO = os.environ.get("OVVO_PHOTO") or os.path.join(REPO, "public", "style-photos", "sprinter.jpg")
 FONT = os.path.join(REPO, "public", "fonts", "jakarta-400-latin.woff2")
 OUT = os.environ.get("OVVO_OUT") or os.path.join(REPO, "public", "og-image.jpg")
-GROW = float(os.environ.get("OVVO_GROW", "1.15"))
+GROW = float(os.environ.get("OVVO_GROW", "1.35"))
 
 W, H = 1200, 630
 

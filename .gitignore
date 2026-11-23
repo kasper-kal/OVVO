@@ -39,3 +39,7 @@ tools/
 
 # the searchable graph, built from that archive by `npm run gtfs:graph`: reproducible, and tens of MB
 /public/graph/
+
+# Python bytecode from the share-card generator
+__pycache__/
+*.pyc
