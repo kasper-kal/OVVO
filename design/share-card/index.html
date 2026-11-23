@@ -66,6 +66,27 @@
         line-height: 1.55;
       }
 
+      .card-showcase {
+        width: min(1200px, 100%);
+        margin: 0;
+      }
+
+      .card-showcase img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .card-showcase figcaption {
+        margin-top: 12px;
+        text-align: center;
+        color: var(--page-ink);
+        font-size: 13px;
+      }
+
       .panels {
         display: flex;
         flex-wrap: wrap;
@@ -238,10 +259,21 @@
     <header>
       <h1>The share card, in a chat</h1>
       <p>
-        The picture is the real one: <code>public/og-image.jpg</code>, 1200 × 630. The three lines
-        beside it are the site's own title, description and address.
+        The card is the real picture, and the two phones below show what a chat does with it. The
+        three lines beside it are the site's own title, description and address.
       </p>
     </header>
+
+    <figure class="card-showcase">
+      <img
+        src="../../public/og-image.jpg"
+        onerror="this.onerror=null;this.src='/og-image.jpg'"
+        width="1200"
+        height="630"
+        alt="OVVO share card: a Sprinter at sunset, the OVVO mark, the line The whole journey, in one place, and the route from Utrecht Centraal to Amsterdam Centraal"
+      />
+      <figcaption>The card itself: <code>public/og-image.jpg</code>, 1200 × 630.</figcaption>
+    </figure>
 
     <div class="panels">
       <section class="panel whatsapp">
