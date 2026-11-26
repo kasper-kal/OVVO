@@ -6,7 +6,7 @@ Paste everything below the line into the other project's agent.
 
 ## Goal
 
-Give this project's bottom navigation bar the same physical feel as OVVO's floating dock. Not "some animation" — the exact motion, with the same numbers. Nothing else about the design has to match; this is only about how the bar moves under a thumb.
+Give this project's bottom navigation bar the same physical feel as OVVO's floating dock. Not "some animation" the exact motion, with the same numbers. Nothing else about the design has to match; this is only about how the bar moves under a thumb.
 
 ## The tokens (copy these values exactly)
 
@@ -32,20 +32,20 @@ Do not change these numbers. They were tuned by sampling the real bar frame by f
 
 The bar's movement is not one transition. It is three, and each one owns a different part of the gesture. Every tab is 44×44.
 
-**1. Press — while the finger is down.**
+**1. Press: while the finger is down.**
 `transform: scale(0.97)`, `transition: transform 120ms var(--ease-press)`.
 This is the immediate answer to the touch. Short, no overshoot, so it feels like pressure rather than movement.
 
-**2. Lift — the moment the finger starts the press.**
+**2. Lift: the moment the finger starts the press.**
 `transform: translateY(-4px) scale(1.02)`, `transition: transform 240ms var(--ease-hover)`.
 The overshoot in `--ease-hover` (it passes 1.56 on the way) is what makes this read as a little jump rather than a slide. The tab acknowledges the tap by hopping out of the bar.
 
 Declare the lift rule **before** the `:active` rule. That way a finger that is still down shows the press, and the lift only starts to show as it lifts off.
 
-**3. Settle — the way back down.**
-300–1000ms later the tab returns to its seat on its own. Give the way down its own class, with `transition: transform var(--t-spring) var(--ease-settle)` — 320ms, easing out to rest — and clear the class after 320ms so it lands clean at `transform: none`.
+**3. Settle: the way back down.**
+300–1000ms later the tab returns to its seat on its own. Give the way down its own class, with `transition: transform var(--t-spring) var(--ease-settle)` (320ms, easing out to rest) and clear the class after 320ms so it lands clean at `transform: none`.
 
-This third state is the whole trick, and the one thing to get right: **the way down must not fall back to the 120ms press curve.** That curve starts at full speed, so the tab appears to snap into the bar with no movement at all. A slow, symmetric curve spreads the same 4px across the whole 320ms — gentle leaving, quickest in the middle, gentle arriving. If you skip this, the up-move will feel good and the down-move will feel broken.
+This third state is the whole trick, and the one thing to get right: **the way down must not fall back to the 120ms press curve.** That curve starts at full speed, so the tab appears to snap into the bar with no movement at all. A slow, symmetric curve spreads the same 4px across the whole 320ms: gentle leaving, quickest in the middle, gentle arriving. If you skip this, the up-move will feel good and the down-move will feel broken.
 
 ## The timing, in React (adapt names, keep the numbers)
 
@@ -78,7 +78,7 @@ useEffect(() => () => {
 
 ## Two traps that already bit another project of mine
 
-**A finger keeps `:hover` on forever.** A phone applies `:hover` on a tap and holds it until the next touch somewhere else, so a tab styled with a hover lift stays lifted for as long as the screen is open — the active pill strains out of the bar's top edge. Put every hover-based lift behind:
+**A finger keeps `:hover` on forever.** A phone applies `:hover` on a tap and holds it until the next touch somewhere else, so a tab styled with a hover lift stays lifted for as long as the screen is open: the active pill strains out of the bar's top edge. Put every hover-based lift behind:
 
 ```css
 @media (hover: hover) and (pointer: fine) { … }
@@ -90,7 +90,7 @@ and let `is-lifted` handle fingers.
 
 ## Reduced motion
 
-One switch, four overrides — the app's "reduce motion" setting or `prefers-reduced-motion`:
+One switch, four overrides: the app's "reduce motion" setting or `prefers-reduced-motion`:
 
 ```css
 :root[data-motion='reduced'] {
@@ -110,10 +110,10 @@ Because every rule moves through the tokens, that is enough: no transform, no du
 Measure it, don't eyeball it. In the browser, hold a pointer on one tab and sample `getComputedStyle(tab).transform` every 40ms:
 
 - during press: `matrix(0.97, …)`
-- after the tap: `matrix(1.02, …, -4)` — the `-4` is the lift
+- after the tap: `matrix(1.02, …, -4)`: the `-4` is the lift
 - still lifted at 0.9s, back to `none` by 1.4s
 - the settle should show the 4px spread over the frames, not spent in the first two: roughly `-4.00 → -1.72 → -0.88 → -0.29 → -0.13 → -0.03 → 0.00`
 
-If the first two samples take most of the distance, the settling curve is wrong — the tab is snapping.
+If the first two samples take most of the distance, the settling curve is wrong, the tab is snapping.
 
 Report the sampled numbers back when you are done.

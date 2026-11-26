@@ -12,8 +12,8 @@
 # first round of those libraries in turn needed (libXi, libXrender). Re-run `ldd` after
 # installing to see whether anything else is missing.
 #
-# The browser also dies on the first repaint without fontconfig — `FATAL: SkFontMgr_
-# FontConfigInterface.cpp:163 Not implemented.` — so a fontconfig configuration and one font
+# The browser also dies on the first repaint without fontconfig: `FATAL: SkFontMgr_
+# FontConfigInterface.cpp:163 Not implemented.`, so a fontconfig configuration and one font
 # family come along too, and `FONTCONFIG_FILE` points at the one written here (there is no
 # /etc/fonts to write to).
 set -u
@@ -35,7 +35,7 @@ PACKAGES=(
   # `libcups.so.2` is only needed by the *home* browser (`$H/pw-browsers/chromium-*/chrome`,
   # which the round probes in `$H/pw` launch); the project's headless shell never asks for it, so
   # the first version of this list did not have it and every check that used that browser died
-  # with "error while loading shared libraries: libcups.so.2" — which reads like a test failure
+  # with "error while loading shared libraries: libcups.so.2" which reads like a test failure
   # and is a missing package.
   libcups2t64
   fontconfig-config fonts-dejavu-core

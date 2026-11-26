@@ -7,7 +7,7 @@
 #
 #   ./scripts/dev-preview.sh pv-<id>.style.dev
 #
-# Preview hostname changes after a restore — re-run with the current one, or pin it once in
+# Preview hostname changes after a restore: re-run with the current one, or pin it once in
 # `.env.local` (`PREVIEW_HOST=pv-<id>.style.dev`, ignored by git) and use plain `npm run dev`:
 # `vite.config.ts` reads that file too. This script keeps working for a one-off launch without
 # touching the file, and it wins over it because the environment is checked first.
@@ -22,8 +22,8 @@
 # Same screens, same data, one difference that matters when judging speed: the dev server
 # ships unminified React with the development runtime, and a route change there costs four to
 # eight times what it costs in the build (measured: /stops took 105ms at normal CPU and 607ms on
-# a 6x-throttled CPU in dev, against 23ms and 157ms built). The build has no `#/skeleton` lab —
-# that route is `import.meta.env.DEV` — so the dev server stays the one for judging shapes.
+# a 6x-throttled CPU in dev, against 23ms and 157ms built). The build has no `#/skeleton` lab,
+# that route is `import.meta.env.DEV`: so the dev server stays the one for judging shapes.
 set -euo pipefail
 
 HOSTNAME_ARG="${1:-}"

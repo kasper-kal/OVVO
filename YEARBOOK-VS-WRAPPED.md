@@ -2,7 +2,7 @@
 
 Written 17 November 2026, from the steerer's own capture of Wrapped 2024.
 
-**Phase 5, 18 November 2026 — the film moves.** The re-read scored the deck 6/10 and named three
+**Phase 5, 18 November 2026: the film moves.** The re-read scored the deck 6/10 and named three
 causes. Two are answered here. Every card now runs on three clocks: a sway, a push that brings the
 body a fifth closer across the card, and a pulse on the beat every 2.4 seconds that lurches it at the
 camera with the key light. The slabs ride a wave that travels along the stack. A **small line under
@@ -11,8 +11,8 @@ reference read as written rather than printed. Grain drifts over the field and t
 The card clock is capped at ten and a half seconds.
 
 Measured on a fresh hands-off recording, 0.1 seconds at a time, against the same measurement of the
-old film: **19 cards in 190.9 seconds** (was 295.5), **79 visual changes in 200 seconds** — one every
-2.5 seconds, against the reference's one every 3.4 — and the smallest movement across a card up from
+old film: **19 cards in 190.9 seconds** (was 295.5), **79 visual changes in 200 seconds**: one every
+2.5 seconds, against the reference's one every 3.4, and the smallest movement across a card up from
 nearly nothing to a tenth of the frame. The one gap left is photography: brightness is 124 against
 the reference's 48, because it is all colour field and no photographs, and the deck has no artwork to
 put in them.
@@ -22,12 +22,12 @@ put in them.
 things that would take it to eight: movement on every card, photography, and a second line of copy.
 
 **Corrected.** My first pass kept one frame per card and read maybe a quarter of what is on the
-screen — it threw away the small second line under every card, six of the eight share-card colourways,
+screen: it threw away the small second line under every card, six of the eight share-card colourways,
 and the numbering on the closing card. The steerer caught it. This version reads all 134 seconds at
 full size, state by state, and the contact sheet now shows 20 states instead of 14.
 
 **Corrected again.** The steerer then read my summary of this file and said the biggest gap was not the
-words at all — it was the visuals, and the difference is insane. That is right. I had put the art
+words at all: it was the visuals, and the difference is insane. That is right. I had put the art
 direction last and called it the smallest of the ten. It is now the first thing the list says.
 
 ## The size of the thing
@@ -62,19 +62,19 @@ top-right, "Share this story" along the bottom, dashes across the top and a fain
 | 49–63 s | Coldplay was your top artist of the year | Your longest listening streak was 5 days. |
 | 64–72 s | You're a top 0.5% fan and you spent 1,742 minutes together | You overachiever. |
 | 73–79 s | Who else got a lot of play this year? | Big reveal in 3… 2… 1… |
-| 80–90 s | Your top artists — 1 Coldplay, 2 Maki, 3 Cha Eun-Woo, 4 Taylor Swift, 5 The Chainsmokers, each with cover art | (none) |
+| 80–90 s | Your top artists: 1 Coldplay, 2 Maki, 3 Cha Eun-Woo, 4 Taylor Swift, 5 The Chainsmokers, each with cover art | (none) |
 | 91–95 s | Oh, looks like we have company | (none) |
-| 96–111 s | (no text — fifteen seconds of Coldplay, filmed) | (none) |
+| 96–111 s | (no text: fifteen seconds of Coldplay, filmed) | (none) |
 | 112–119 s | Thanks for coming along for the ride | Until we meet again… |
-| 120–123 s | (no text — the Spotify mark, yellow on black) | (none) |
-| 124–133 s | The summary card, paged through eight colourways | — |
+| 120–123 s | (no text: the Spotify mark, yellow on black) | (none) |
+| 124–133 s | The summary card, paged through eight colourways | n/a |
 
 **The closing card is the share card.** It carries the Coldplay photo in a 3D frame, **Top Artists 1–10
 and Top Songs 1–10** with cover art, "Minutes Listened 7,145", "SPOTIFY.COM/WRAPPED", eight pagination
 dots, a Share button and "Replay from beginning". You can page it before you send it.
 
-**Two more things I got wrong first time.** The list card scrolls — five rows fit, the rest sit under
-the fold inside the card — and the small line is sometimes withheld entirely (the list card, the band
+**Two more things I got wrong first time.** The list card scrolls, five rows fit, the rest sit under
+the fold inside the card, and the small line is sometimes withheld entirely (the list card, the band
 clip and "Oh, looks like we have company" have none). And the eight colourways are not tints of one
 card: magenta and red, cyan and blue, yellow and green, purple and pink, each with the same layout and
 the same ten-plus-ten lists.
@@ -83,7 +83,7 @@ The art direction changes card to card: pink and red diagonals, a red block insi
 frame, a green block inside a red one, a cyan and purple portal, a blue and black one. Every shape is
 one continuous 3D render, cropped hard by the frame, with pixel-stepped edges.
 
-One last detail: the recording ends inside the phone's file player — "De video wordt na 24 uur
+One last detail: the recording ends inside the phone's file player, "De video wordt na 24 uur
 verwijderd", with replay and share buttons in Dutch. So what you sent me is a recording of a Wrapped
 video being played back, which is how it could be cut down in the first place.
 
@@ -92,7 +92,7 @@ video being played back, which is how it could be cut down in the first place.
 **1. The art direction.** This is the biggest gap in this file, and my last version had it last. Every
 card of theirs is a full-screen 3D render: one solid object with real perspective, a light on it,
 shadowed sides and a glow at the edges, framed so close that the picture cuts it off. The edges are
-stepped on purpose, like a small image blown up large. The object moves while you read — the pink wedges
+stepped on purpose, like a small image blown up large. The object moves while you read, the pink wedges
 swing and re-crop from one card to the next, the portal opens and turns. And each card gets its own
 world: hot pink and red diagonals; a red block sitting inside a jagged green staircase; a green mass on
 black; a cyan ring on violet; a blue ribbon on black. Ours is one soft two-colour gradient with one
@@ -110,11 +110,11 @@ is one sentence per chapter, so every chapter stops at its first thought. **A ru
 not a bug.**
 
 **3. A pause.** Their header has pause beside the mute, because the film runs itself. Ours runs itself
-too — the score is the clock — but there is no way to hold a card. When a line lands, your only options
+too (the score is the clock) but there is no way to hold a card. When a line lands, your only options
 are the sound switch and the X.
 
-**4. A ranked list, with artwork.** A card of its own — "Your top artists", numbered, with cover
-pictures, five rows that scroll inside it — and then ten of them printed on the closing card. We name
+**4. A ranked list, with artwork.** A card of its own: "Your top artists", numbered, with cover
+pictures, five rows that scroll inside it, and then ten of them printed on the closing card. We name
 one line and one route and never put anything in order. This is still the biggest content gap.
 
 **5. A rank among other people.** "You're a top 0.5% fan." One number against everyone else, and it is
@@ -130,8 +130,8 @@ total into a habit. We have no streak at all.
 photograph in eighteen chapters and geometry everywhere else.
 
 **9. The closing card is the share card.** Theirs ends on the thing you send, in eight colourways you
-page through, with Share under it and "Replay from beginning" below. Ours is a good sheet — three cards
-plus one per award, hidden station names if you like, previewed at 1080 × 1920 — but it is somewhere you
+page through, with Share under it and "Replay from beginning" below. Ours is a good sheet, three cards
+plus one per award, hidden station names if you like, previewed at 1080 × 1920, but it is somewhere you
 go from a pill, not the end of the story, and there is no rank on it to print.
 
 **10. Progress you can read.** One dash per card across the top, and a rail down the left that moves with
@@ -144,30 +144,30 @@ a surprise.
 
 From Spotify's own 2024 announcement and press coverage. Your edit cut them to save space.
 
-**A story for each kind of listening** — top song, top podcast, top podcast topic, each in its own art
+**A story for each kind of listening**: top song, top podcast, top podcast topic, each in its own art
 direction. Your cut kept minutes, artists and the top artist only.
 
-**Music Evolution** — up to three musical phases across the year, each with descriptors, genres and
+**Music Evolution**: up to three musical phases across the year, each with descriptors, genres and
 artists, plus a playlist built from them. Our "3 eras. A full character arc." is the same idea with one
 line instead of three cards.
 
-**Artist and podcaster clips** — several of your top artists and podcasters record a short message that
+**Artist and podcaster clips**: several of your top artists and podcasters record a short message that
 plays inside your Wrapped.
 
-**An AI podcast about your year** — two synthetic hosts, minutes long, made with Google's NotebookLM.
+**An AI podcast about your year**: two synthetic hosts, minutes long, made with Google's NotebookLM.
 Nothing of ours is listenable.
 
-**An AI DJ who talks you through it** — a voice between the songs, with editorial about the big tracks.
+**An AI DJ who talks you through it**: a voice between the songs, with editorial about the big tracks.
 
-**A hub** — a feed on the Home screen holding the film, the playlists and the extra insights. One place
+**A hub**: a feed on the Home screen holding the film, the playlists and the extra insights. One place
 to start, one place to come back to. We have a cover with Begin.
 
-**Sharing everywhere** — "Share this story" on every card, a Wrapped spin on the normal share button,
+**Sharing everywhere**: "Share this story" on every card, a Wrapped spin on the normal share button,
 and direct export to TikTok and Instagram.
 
-**Fourteen parts** — each with room to breathe.
+**Fourteen parts**: each with room to breathe.
 
-**On a speaker** — "Play top songs 2024".
+**On a speaker**: "Play top songs 2024".
 
 ---
 
@@ -176,7 +176,7 @@ and direct export to TikTok and Instagram.
 This is the part my first pass got wrong in the other direction. At full size our cards are much
 closer to theirs than I described: a full-bleed colour field per chapter, one big centred sentence, a
 "Share this story" pill at the bottom, a close button, a sound switch, and progress dashes. Even the
-placements rhyme. So the list above is not "they have a language and we don't" — it is ten specific
+placements rhyme. So the list above is not "they have a language and we don't" it is ten specific
 moves inside a language we already speak. That is a much cheaper list to act on than it looked.
 
 The differences that survive a close look are: their cards are moving 3D objects cropped hard by the
@@ -186,7 +186,7 @@ three is the one that does the most work, which is why it now leads the list.
 
 ## What the Yearbook has that Wrapped doesn't
 
-- **Eighteen chapters against their fourteen** — more, but only just. My last version claimed this as a
+- **Eighteen chapters against their fourteen**: more, but only just. My last version claimed this as a
   win by counting their edit instead of their run. That was wrong.
 - **Geography.** Wrapped 2024 has no map and no places at all. Our nine places across a blue field is
   something Wrapped cannot do.
@@ -197,20 +197,20 @@ three is the one that does the most work, which is why it now leads the list.
 - **A score of our own, one piece per chapter,** and the song keeps the time.
 - **Nothing to sign into, nothing uploaded.** Their share card carries their address; ours is drawn on
   the device.
-- **One calm sentence per chapter** — the reason the film reads as a film and not a dashboard.
+- **One calm sentence per chapter**: the reason the film reads as a film and not a dashboard.
 
 ## If only three things get built
 
 1. **A real object on every card, and a different world for each chapter.** One 3D form per chapter,
    close enough for the frame to cut it off, stepped edges, a light on it, and a slow move while the
-   line lands — plus one colour world per chapter instead of the same soft gradient everywhere. This is
+   line lands: plus one colour world per chapter instead of the same soft gradient everywhere. This is
    the gap that decides whether the two things read as the same medium at all.
 2. **A ranked five with small pictures.** Five most-visited stations or lines, numbered, each with a
    picture. It becomes the chapter people screenshot, and it gives the share card something to print.
 3. **End on the share card.** Show it full screen on the closing chapter, in three colourways, with
    Share under it, instead of a sheet fetched from a pill.
 
-Then, in order: the small second line (your call — it bends our one-sentence rule), a busiest day ("Your
+Then, in order: the small second line (your call: it bends our one-sentence rule), a busiest day ("Your
 busiest day was 14 March, 9 journeys"), a streak ("You travelled 11 days in a row in October"), a pause
 button, and one chapter with real footage in it.
 
@@ -221,7 +221,7 @@ button, and one chapter with real footage in it.
 The four things above are the same four phases below, with the work written out. They go in this order
 because each one stands on the one before: phase 1 is the medium itself, phase 2 is the colour and the
 legibility, phase 3 is the content that makes a card worth screenshotting, phase 4 is the ending and
-the controls. Nothing is rebuilt from nothing — the twenty chapters, the words, the score and the share
+the controls. Nothing is rebuilt from nothing: the twenty chapters, the words, the score and the share
 sheet already exist, and every phase changes either what is behind the words or what sits beside them.
 
 Each phase follows the same three rules. Build one chapter and look at it before doing the next four.
@@ -229,15 +229,15 @@ Add one assertion to `node scripts/check-wrapped-scenes.mjs`, and show that asse
 deliberate break before trusting it. Finish with `npm run typecheck`, that check, and
 `node scripts/keep.mjs --save`.
 
-### Phase 1 — A lit object, cut off by the edge
+### Phase 1: A lit object, cut off by the edge
 
 **What is wrong.** Our bodies are smooth solids that sit politely inside the card. Theirs are
 stair-stepped volumes that run off all four edges, with one light on them, and they move.
 
 **What changes.**
 
-- `src/components/wrapped/WrappedMasses.tsx`: rebuild the bodies out of **stacked slabs** — six to
-  fourteen boxes of shrinking size, each turned a few degrees — so the outline is a staircase and not a
+- `src/components/wrapped/WrappedMasses.tsx`: rebuild the bodies out of **stacked slabs**: six to
+  fourteen boxes of shrinking size, each turned a few degrees, so the outline is a staircase and not a
   curve. No cylinder, torus or sphere may keep a smooth silhouette; a round body is only allowed if it
   is wrapped in steps.
 - Scale goes up: every mass becomes 110 to 140 per cent of the card's short side, and the camera is
@@ -246,14 +246,14 @@ stair-stepped volumes that run off all four edges, with one light on them, and t
 - Light: one key at roughly 40 degrees, a cold rim opposite, shadows on, so the steps fall on each
   other. A step that casts no shadow on the step below it is not a step yet.
 - Motion: every body drifts or turns on its own twenty-to-forty-second clock, and the chapter's first
-  second adds one quick move — a quarter turn, a rise. The words stay dead still.
+  second adds one quick move: a quarter turn, a rise. The words stay dead still.
 - Every chapter leaves one **flat patch** where the sentence will land, either dark enough or light
   enough for that chapter's ink. The patch is part of the picture, never a scrim laid over it.
 
 **How it is proved.** Three assertions, on the live page, in `scripts/check-wrapped-scenes.mjs`:
-*cropped* — the mass's box must pass the frame on at least two edges, at 1440 and at 360; *stepped* —
+*cropped*: the mass's box must pass the frame on at least two edges, at 1440 and at 360; *stepped*,
 sampling the silhouette every three pixels must find at least five staircase steps on one side;
-*alive* — two shots of the same chapter 1.5 seconds apart must differ by a real share of their pixels.
+*alive*: two shots of the same chapter 1.5 seconds apart must differ by a real share of their pixels.
 Each is shown to fail first: `INSIDE=1` shrinks every mass to 60 per cent, `SMOOTH=1` swaps a body for a
 cylinder, `STILL=1` freezes the clock.
 
@@ -273,22 +273,22 @@ pinned. Then it prints PASS. Two things fell out of the work and were fixed with
 chapter's white share stub swept through its last sentence as the body turned (2.3:1), and reduced
 motion used to stop only the small bobs, so a page meant to be still kept drifting.
 
-### Phase 2 — A world per card, colour that can be read
+### Phase 2: A world per card, colour that can be read
 
 **What is wrong.** Every chapter is the same two-colour blend, so they blur into one another, and a few
 put dark red on magenta. Theirs changes world on every card, and every card has something real to look
-at — a photo, a list — not only a shape.
+at (a photo, a list) not only a shape.
 
 **What changes.**
 
-- `src/lib/wrappedLook.ts`: four families — hot (red, magenta, orange), acid (green, lime, yellow), cold
-  (blue, cyan, violet) and paper (cream with one loud form on it) — rotate so that no two neighbouring
+- `src/lib/wrappedLook.ts`: four families: hot (red, magenta, orange), acid (green, lime, yellow), cold
+  (blue, cyan, violet) and paper (cream with one loud form on it) rotate so that no two neighbouring
   chapters share a family. This is checked in the file, not by eye.
 - Grounds get a chroma floor: no chapter may be a tint of black, and no ground may sit at the same
   temperature as the one before it. The cover, the close and "the look" are the three that still read
   flat, so they get worlds of their own instead of the leftovers.
 - Ink is picked by measurement where the words actually sit. The weakest chapter is about 4.6:1 now;
-  the target is 7:1, and the Creature of Habit card — dark red on magenta — is the first to fix.
+  the target is 7:1, and the Creature of Habit card (dark red on magenta) is the first to fix.
 - Each chapter gets a **focal layer** under its sentence: a picture, a numbered row, or a route line.
   The form alone is never the whole card again.
 - We have no photographs of stations, so a picture here means a drawn tile: the stop's initial in the
@@ -302,20 +302,20 @@ neighbours given one gradient) and `SAME_INK=1` (white ink everywhere, which fai
 **Done when** the sheet of all chapters has no two tiles you could mistake for each other, and no
 sentence needs a plate behind it to be read.
 
-**Built, 18 November 2026.** Every chapter now declares one of four families — hot, acid, cold and
-paper — and the deck's order is solved so no two neighbours share one. Four chapters moved to make
+**Built, 18 November 2026.** Every chapter now declares one of four families: hot, acid, cold and
+paper, and the deck's order is solved so no two neighbours share one. Four chapters moved to make
 that true: the pair became a lime field with a deep red form, direct became cream with navy, the
 look's near-black mat became a deep violet world, and the close ends in ember instead of matching
 the crew's blue. Every ink was then chosen against the stop the words actually sit on, and every
 chapter measures 7.2:1 or better on its own field, sampled from the rendered page with the words
 taken away. Every card also carries a focal object now: the map's pins, the look's photograph, a
 stack of tickets, a rail with two ends, or a small stepped mosaic drawn in the chapter's own accent.
-The check grew three rules and each was shown failing first — a colourless field failed all
+The check grew three rules and each was shown failing first, a colourless field failed all
 eighteen chapters as washed out, one family everywhere failed seventeen neighbouring pairs, and one
 ink everywhere failed eight chapters' contrast. Then it prints PASS with four families, no
 neighbour repeat, every ink over 7:1, and something to look at on every card.
 
-### Phase 3 — The list, and a number on one day
+### Phase 3: The list, and a number on one day
 
 **What is wrong.** We name one line, one route, one hour. Wrapped ranks five things with pictures,
 prints ten, and puts a number on a single day and on a streak. The data is already here: the tally
@@ -324,12 +324,12 @@ board pinned.
 
 **What changes.**
 
-- `src/lib/wrapped.ts`: three small readers over the stored runs — the five most-travelled stops or
+- `src/lib/wrapped.ts`: three small readers over the stored runs, the five most-travelled stops or
   lines with their counts, the busiest single day with its journey count, and the longest run of
   consecutive days with travel. Pure functions, with the demo tally giving the same shapes.
 - `src/lib/wrappedDeck.ts`: two new chapter kinds, `ranked` and `day`, placed after "the look" and
   before "eras" so the story still builds. The chapter count rises, and the deck check's expected
-  counts rise with it — that number is not left to drift.
+  counts rise with it, that number is not left to drift.
 - A new scene and body for `ranked`: five numbered rows, each with a small stepped tile and a count,
   the rows sitting on the colour with no card behind them, the fifth row half out of the frame so the
   list reads as continuing past the edge.
@@ -350,13 +350,13 @@ printed.
 
 **Built, 18 November 2026.** Three readers over the tally now answer the questions a total cannot:
 five places in order, the busiest single day, and the longest run of days with a journey. Two
-chapters are new — `ranked` and `day` — placed after the look and before the eras, so the deck is
+chapters are new (`ranked` and `day`) placed after the look and before the eras, so the deck is
 twenty cards. The list card puts five numbered rows on the colour itself: a lime tile carrying the
 place's own letter, the name, the count, a hairline between the rows, and a fifth row that runs past
 the bottom of the frame so the list reads as the head of a longer one. The day card is a single date
 and a single number in one sentence on a cream page, with a pale gold shaft behind the words. The
 share sheet gained a fourth base card that prints the same five names and counts in the same order,
-plus the longest streak as a sixth row — measured and printed, but not yet a chapter of the film,
+plus the longest streak as a sixth row: measured and printed, but not yet a chapter of the film,
 because a second line on the day card would break the one-sentence rule. **A rank among other people
 stays out**, for the reason written above: OVVO holds this traveller's runs and nobody else's.
 
@@ -368,22 +368,22 @@ two or more journeys whose date and count both appear in its sentence, and the s
 same five in the same order. `SHUFFLE=1` reverses the rows and fails on four of them plus a share
 mismatch; `SHARE_MISMATCH=1` hands the card the five backwards and fails on the comparison alone.
 Two faults came out of proving it. The day's number was still counting up when the card was read, so
-the sentence said "1 journey" for a two-journey day — the day's figure is now stated rather than
+the sentence said "1 journey" for a two-journey day: the day's figure is now stated rather than
 counted up to. And the ranked body's crop came and went between runs: a body much wider than it is
 tall has only a tenth of the frame of overshoot on each side, and the six-per-cent off-centre shove
 ate it, so the shove is now measured against the body's own shape. The demo year also travels on five
 days a month instead of all twenty-eight, which is what a commute looks like: its busiest day is now
 five journeys instead of two.
 
-### Phase 4 — The ending, and the controls around it
+### Phase 4: The ending, and the controls around it
 
 **What is wrong.** Our film ends on a sentence, the share lives behind a pill, nothing can be paused,
 and the progress is eighteen hairlines under that pill.
 
 **What changes.**
 
-- `src/pages/WrappedPage.tsx` and `WrappedScenes.tsx`: the closing chapter becomes the **poster** — the
-  object or the photo, the two columns, Share under it, "Replay from beginning" below — and it is the
+- `src/pages/WrappedPage.tsx` and `WrappedScenes.tsx`: the closing chapter becomes the **poster**, the
+  object or the photo, the two columns, Share under it, "Replay from beginning" below, and it is the
   end of the film rather than a sheet fetched from a pill.
 - `WrappedShareDialog.tsx`: the poster layout is reused as the close, in three colourways you page
   through with arrows or a swipe, and Share sends whichever one is on screen.
@@ -396,7 +396,7 @@ and the progress is eighteen hairlines under that pill.
   element by name rather than switched off.
 
 **How it is proved.** A pause assertion: a chapter held with pause for ten seconds must not move, and
-must move within two seconds of resuming — shown to fail with `NO_PAUSE=1`. Plus a share control that
+must move within two seconds of resuming: shown to fail with `NO_PAUSE=1`. Plus a share control that
 is visible on the closing chapter without opening anything, a dash count equal to the chapter count,
 and the 320-wide phone walk still showing nothing clipped and no sideways scroll.
 
@@ -404,30 +404,30 @@ and the 320-wide phone walk still showing nothing clipped and no sideways scroll
 
 **Built, 18 November 2026.** The last chapter is the poster now. It carries the year's number, the five
 places in order, the busiest day and the longest streak, with Share under the columns and "Replay from
-beginning" under that — and the share pill is gone from that card, so the end of the film is the thing
+beginning" under that, and the share pill is gone from that card, so the end of the film is the thing
 you send rather than a sheet fetched from a button. The card pages through three colourways with two
 arrows (ember, indigo, paper), and Share sends whichever one is on screen; the page and the exported
 1080 × 1920 picture read the same palette table, so they cannot disagree. **Pause sits beside the sound
-switch**, and the space bar does the same thing. It stops the score and the silent page timer together
-— those are the two things that turn a page — and it holds the object where it stands rather than
+switch**, and the space bar does the same thing. It stops the score and the silent page timer together:
+those are the two things that turn a page, and it holds the object where it stands rather than
 snapping it back to its entrance pose, because the loop stops drawing and adds the paused time back
 when it resumes. **Progress can be read**: one dash per chapter across the top with the current one
 drawn wider, and a rail down the left that fills as you go. The dash count is the chapter count, read
 from the page rather than remembered.
 
 The check grew four rules and each was shown failing first. A card held with pause for ten seconds
-must not move a pixel and must move again within two seconds of resuming — `NO_PAUSE=1` swallows the
+must not move a pixel and must move again within two seconds of resuming: `NO_PAUSE=1` swallows the
 pause button's own click, which is exactly the deck as it was before this phase, and the run prints
 **the object moved while the card was held for ten seconds**. The closing card must carry a visible
 poster with its own Share, a Replay, and three colourways that come back round to the first; the dashes
 must equal the chapter count and sit across the top with a rail beside them; and the whole deck is
-walked again at **320 × 568**, which it had never been. The clean run prints **PASS — 20 colour fields,
+walked again at **320 × 568**, which it had never been. The clean run prints **PASS: 20 colour fields,
 … one dash per chapter across the top and a rail down the left, a pause that holds the picture for ten
 seconds and lets it go, a closing poster with three colourways and its own Share and Replay, … 20 phone
 pages fit 360x800 and 320x568**.
 
 Three faults came out of proving it, and two of them were not this phase's. The ranked list's crop
-came and went between runs; the cause was the measurement, not the geometry — two page screenshots
+came and went between runs; the cause was the measurement, not the geometry, two page screenshots
 with the object hidden and shown is blind wherever a lit face happens to land on the field's own
 colour, so the crop is measured from the canvas's own alpha channel now, which is the object and
 nothing else. The origin chapter's sentence was sitting on its own deep-red form and reading at 6.2:1,
@@ -444,5 +444,5 @@ your decision, not a fix: say the word and it is a quieter line under each headl
 Phase 1 is the one that changes how it feels; do not start phase 2 until a single chapter passes it.
 Phases 2 to 4 can each go chapter by chapter, but only in this order: a palette picked before the
 geometry exists gets thrown away, and a share card drawn before the list exists has nothing to print.
-Every phase is looked at on the real page before the next one starts — not from a contact sheet I chose
-and cropped myself — and every phase is saved and pushed the moment its check passes.
+Every phase is looked at on the real page before the next one starts, not from a contact sheet I chose
+and cropped myself, and every phase is saved and pushed the moment its check passes.

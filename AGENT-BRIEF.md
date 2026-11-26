@@ -4,7 +4,7 @@
 
 This file is about a person, not a codebase. It names no product, no language, no framework, no file
 path and no repository. Copy it into any project and it still holds. Its case history is drawn from
-other projects and is marked as evidence at the end, for exactly that reason — precedents about
+other projects and is marked as evidence at the end, for exactly that reason, precedents about
 behaviour, not instructions about your code.
 
 It is also written so that **one prompt is enough**. If you were handed this file and nothing else,
@@ -54,7 +54,7 @@ Two standing constraints that are easy to miss and expensive to break:
 ## 1. The relationship
 
 One person steers. He is not a designer, not a developer, and not a customer with a ticket queue. He
-is the owner, the daily user, and the acceptance test, all at once — and he is the only one.
+is the owner, the daily user, and the acceptance test, all at once, and he is the only one.
 
 That single fact explains everything else:
 
@@ -79,23 +79,23 @@ measurement says otherwise, assume the tolerance is zero.
 
 **a. He gives orders, not tickets.** Every sentence he writes is binding, including the ones that
 sound like thinking out loud, and including the ones that arrive as a complaint rather than an
-instruction. A message that says *"get rid of X and replace it with Y — WHICH I ASKED FOR BEFORE AND
+instruction. A message that says *"get rid of X and replace it with Y, WHICH I ASKED FOR BEFORE AND
 YOU DIDN'T DO"* is one order with two halves, and the complaint is the important half: the order was
 already given and already ignored. Your job starts with finding out why it did not take effect.
 
 **b. A correction outranks everything, and it is retroactive.** When he says a feature "stopped
 making a difference" or is "on while it says it's off", the answer is not a patch on the surface. It
 is: find which change caused it, name that change, undo the mechanism, and prove by measurement that
-the behaviour is back to what it was. A correction does not amend a decision — it kills it, and every
+the behaviour is back to what it was. A correction does not amend a decision, it kills it, and every
 later decision that leaned on it has to be re-checked.
 
 **c. Silence is a failure; so is asking for permission twice.** He does not want a proposal, a plan,
 or a question he did not ask. He wants the thing done, verified, and reported with the number that
 proves it. If you are blocked, name the blocker in one sentence. Never hand authorised work back with
-"say the word" — it was authorised when he asked.
+"say the word" it was authorised when he asked.
 
 **d. Do not improve what he did not name.** This is the trap for capable agents. A helpful extra row,
-a "better" label, a tidier layout, a smarter default — each of those is how a project ends up with
+a "better" label, a tidier layout, a smarter default: each of those is how a project ends up with
 nine rounds of *"everything is inconsistent"*. Make the smallest change that satisfies the order, and
 leave every other value exactly where it was measured.
 
@@ -109,7 +109,7 @@ rule (§5, §8).
 
 ### 3.0 The definition
 
-> **One concept, one name, one glyph, one shape, one place, one word per thing — in every state, at
+> **One concept, one name, one glyph, one shape, one place, one word per thing: in every state, at
 > every width, in every appearance and in every language the product ships.**
 
 An inconsistency is **two or more instances of the same function whose measurable signature differs,
@@ -119,12 +119,12 @@ writes in capitals.
 
 Two steps, both required, before you call anything a defect:
 
-1. **Is it the same function?** Not the same verb, not the same word, not the same visual weight —
+1. **Is it the same function?** Not the same verb, not the same word, not the same visual weight,
    the same *thing the user is trying to do*. "Keep a journey" and "keep a search" are both saving
    something; they are two functions. "Close this panel" and "empty this field" are both a cross; two
    functions. Grouping by verb manufactures findings, which is worse than missing one. (WCAG 3.2.4
    names the *same* function; W3C's COGA guidance names one glyph, one meaning.)
-2. **Does the signature agree — and if not, is the disagreement written down?** If it agrees, no
+2. **Does the signature agree, and if not, is the disagreement written down?** If it agrees, no
    finding. If it disagrees, it is either drift (fix it) or deliberate (in the register, with a
    reason, §4.4). There is no third option, and "it looks fine to me" is not one either.
 
@@ -155,7 +155,7 @@ Each axis: what the defect looks like, the instrument that finds it, the pass co
 judgement that separates a real finding from a false one. The letters are stable; use them in findings
 and in the decision log (`A3: one label table, 41 instances`).
 
-**A1 — Placement drift.**
+**A1: Placement drift.**
 One action in several positions. *Real case:* a toggle at the top-right of one card, the top-left of
 the next, in a footer row on a third, and flipping sides with viewport width. **Instrument:** group
 every control by the action it performs and print the landmark/row/side per instance. **Pass:** one
@@ -163,30 +163,30 @@ landmark+row+side per action, except registered decisions. **Trap:** a page-head
 dialog-footer control cannot occupy the same place; when the *container* forces the difference, it is
 a decision to register, not a defect to "fix" by forcing one global position.
 
-**A2 — Name drift.**
+**A2: Name drift.**
 One function called several things ("Show on map" / "Network map"; "Save" / "Keep this" /
 "Favourite"). **Instrument:** the same grouping, reading accessible names and visible labels; plus a
 capitalisation/wording walk. **Pass:** one phrase per function, everywhere, in every language.
 **Judgement:** a label may name its context ("Plan from here" vs "Plan the return") if the object is
-genuinely different — but the verb and the shape must not drift.
+genuinely different, but the verb and the shape must not drift.
 
-**A3 — Case drift.**
+**A3: Case drift.**
 `metro`, `Metro` and `METRO` for the same class of label; a group name in sentence case where every
 other group name is uppercase; a button in Title Case among sentence-case buttons. **Instrument:** a
 walk of every standalone label, heading, button, placeholder and accessible name, in every language;
 plus the single label tables that turn data values into words. **Pass:** every standalone label and
 sentence starts with a capital; group names share one treatment; no control echoes a raw enum. **False
-positive:** the tail of a sentence, a time, a code, a unit — these are not capitalisation questions
+positive:** the tail of a sentence, a time, a code, a unit: these are not capitalisation questions
 and must not fail the walk.
 
-**A4 — Glyph drift.**
+**A4: Glyph drift.**
 One icon meaning two things, or two icons meaning one thing. *Real case:* a toggle drawn as a pin on
 one screen and as a cross on another; a way back drawn as a route glyph in one bar and an arrow in
-another. **Instrument:** the mechanical rule — same action, same state, two glyphs = failure; it is
+another. **Instrument:** the mechanical rule: same action, same state, two glyphs = failure; it is
 never exempt. **Pass:** one glyph set per action per state. **Related:** a control with no glyph where
 its siblings have one, or a glyph whose meaning is not the action.
 
-**A5 — Shape and geometry drift.**
+**A5: Shape and geometry drift.**
 A 12px inner corner next to a 16px one; two controls on one row measured to different heights; a
 small button inside a capsule of its own size; one card padded 16px and the next 12px; a nested
 surface whose radius does not follow the concentric rule. **Instrument:** the layout audit (targets, declared-square,
@@ -194,32 +194,32 @@ clipping) plus the signature's shape row. **Pass:** one value per role, from the
 nesting radii = outer − padding. **Trap:** density variants exist and change values *together*; a
 single control shrinking alone is drift even inside another density.
 
-**A6 — Word drift.**
+**A6: Word drift.**
 "1 items", "2 item(s)", "Operator(s)", "1 legs", "1 stops shown of 61". **Instrument:** the wording
 walk plus a search of every count site for the project's plural helper. **Pass:** every count goes
 through one helper; no parenthesised plural anywhere; no raw data value printed at a person.
 
-**A7 — Raw data printed.**
+**A7: Raw data printed.**
 `metrostop`, `null`, `draft`, `train` in a chip that should say `Train`. **Instrument:** the rendered
 text walk and the label tables; grep for the enum values. **Pass:** every enum is mapped through one
 table to a human label, in every language.
 
-**A8 — Glyph geometry.**
+**A8: Glyph geometry.**
 An icon squashed on one axis by a tight flex row (15px wide, 11.66px tall), a fractional size, a glyph
 drawn off its own centre, an icon not on the optical centre of the text beside it. **Instrument:** read
-every rendered icon — square, a whole number of pixels, named and weighted, and within ~1.5px of the
+every rendered icon: square, a whole number of pixels, named and weighted, and within ~1.5px of the
 text's optical centre (~2.2px when the reference is a line box, which carries descender space).
 **Pass:** all four, on every screen and width.
 
-**A9 — Sticking and spacing.**
+**A9: Sticking and spacing.**
 Anything touching something it should be separated from: a chip row flush against the canvas it
 labels, a pill flush under the search box, two buttons with no gap, an icon crowded into a title.
 **Instrument:** the dead-name audit first (a class name with no rule is the usual cause), then a
-measured gap — 0px is always a defect — at the narrowest width. **Pass:** the intended gap exists; a
+measured gap (0px is always a defect) at the narrowest width. **Pass:** the intended gap exists; a
 gap that is "almost" (1–2px) is a broken rhythm and also a defect. **Judgement:** a hairline separator
 is not a gap; a deliberate flush edge is registered, not fixed.
 
-**A10 — Overlap and crowding.**
+**A10: Overlap and crowding.**
 A hit area crossing a neighbour by 2px; a chip group ragging around its label; a segmented control
 splitting an option across two lines; a pill wrapping mid-word; a label on a drawing sitting on a
 mark. **Instrument:** the effective-target probe, the wrapped-capsule and clipped-text checks, and
@@ -228,25 +228,25 @@ rows; no clipped text; real air between a label and the marks it sits among. **T
 **screen** coordinates. A box read inside a transformed group is not a screen box and will happily
 report "no overlap" on a collision.
 
-**A11 — Colour and contrast drift.**
+**A11: Colour and contrast drift.**
 Two secondary ink tones that look similar and measure differently; the same "muted" idea at 2.45:1 in
 one place and 4.9:1 in another; a semantic colour (delay, cleared, advice) copied from a light surface
-onto a dark card at 2.2:1. **Instrument:** the contrast sweep — every text and icon against the
-surface it actually sits on, WCAG AA (4.5:1 body, 3:1 large text and icons) — in every appearance and
+onto a dark card at 2.2:1. **Instrument:** the contrast sweep: every text and icon against the
+surface it actually sits on, WCAG AA (4.5:1 body, 3:1 large text and icons) in every appearance and
 on every background mode. **Pass:** AA on every pair that actually occurs. **Rule:** one token per
 role; a semantic hue may change *lightness* per surface, never identity.
 
-**A12 — The claim and the behaviour.**
+**A12: The claim and the behaviour.**
 A setting that says it is off while it is on; a control whose pressed state and stored state disagree;
 a count that does not match the rows; a "saved" toast that saved nothing; a switch whose label names
-the opposite of what it does. **Instrument:** a behavioural probe — set it, read the storage, reload,
+the opposite of what it does. **Instrument:** a behavioural probe: set it, read the storage, reload,
 read the UI and the storage again. **Pass:** label, visual state, stored value and effect all agree
 after a reload. **This is the worst class in any project.** A lie is worse than a missing feature,
 because he trusted it.
 
-**A13 — Repetition (overwhelmingness).** See §3.6.
+**A13: Repetition (overwhelmingness).** See §3.6.
 
-**A14 — Language parity.**
+**A14: Language parity.**
 A string that exists in one language and falls back in the other; a longer translation that breaks a
 layout that fits in the shorter one; a message in one language and its button in the other; an audit
 step that opens a screen by a label that only exists in one language. **Instrument:** every walk runs
@@ -260,7 +260,7 @@ Ask them in this order, and write the answer down before you edit:
 
 1. **Which instance is right?** Not "which looks better": which one matches the rule already on the
    record (a decision-log entry, a token, the shared component, the more numerous instances). If the
-   project has no rule, the answer is **build the rule** — usually by fixing the shared component or
+   project has no rule, the answer is **build the rule**: usually by fixing the shared component or
    token so there is nothing left to choose per screen.
 2. **Is the difference doing work?** A difference is deliberate only if a user can name what it buys
    them (a page-head pill versus a text-only action inside a card's own row; a solid submit inside a
@@ -268,7 +268,7 @@ Ask them in this order, and write the answer down before you edit:
    line. If it is not, fix it.
 
 When two instances disagree and neither is obviously right, **the majority is not the authority and
-neither is the newest** — the shared component is. Change the component, let all instances move, and
+neither is the newest**: the shared component is. Change the component, let all instances move, and
 re-run.
 
 ### 3.4 What is *not* an inconsistency
@@ -276,7 +276,7 @@ re-run.
 Do not "fix" these. Each is a false positive that has already cost a round somewhere:
 
 * **Responsive difference.** At the narrowest width a control may become full-width, move under its
-  label, or stack. That is the same rule responding to the same breakpoint — as long as it is the
+  label, or stack. That is the same rule responding to the same breakpoint, as long as it is the
   *same* breakpoint, and it is measured at the narrowest width as well as in the middle.
 * **Density difference.** A compact density changes paddings, radii and sometimes column counts
   *together*. One value moving alone is drift even inside the other density.
@@ -304,7 +304,7 @@ desktop:
 | clipped | `scrollWidth > clientWidth` (or the vertical equivalent) while overflow is hidden | never |
 
 A zero gap is almost never a design choice. In practice it has always been a **class name with no
-matching rule** — the intended gap silently evaluated to nothing. Run the dead-name audit before you
+matching rule**: the intended gap silently evaluated to nothing. Run the dead-name audit before you
 add a margin.
 
 ### 3.6 Overwhelmingness
@@ -331,8 +331,8 @@ Four tests, each mechanical enough to write down:
 The fix is **deletion, not restructuring**. Colour only where it carries meaning (state, warning,
 error); everything else is ink on surface. Quiet by default, one accent on the thing that matters.
 
-**Edge case:** a *summary widget* the user chose to put on their own home screen is not a restatement
-— they can remove it. A summary directly beneath the controls that set it is.
+**Edge case:** a *summary widget* the user chose to put on their own home screen is not a restatement:
+they can remove it. A summary directly beneath the controls that set it is.
 
 ---
 
@@ -352,7 +352,7 @@ The founding lesson, learned the hard way:
 > and fixed **on the screens he named**, and the same defect reappeared on the next screen. The fault
 > was the method, not the screens.
 
-So before you trust any check — including one you just wrote:
+So before you trust any check, including one you just wrote:
 
 1. **Plant the bug.** Reintroduce the defect (an out-of-rule media query, a raw enum label, a 32px
    button, the wrong glyph for an action, a label measured in the wrong coordinate space).
@@ -368,18 +368,18 @@ that has never failed is an ornament.
 
 An audit means enumerating the axes and testing the product of them:
 
-* **screens** — every route **plus every overlay and state**: dialogs, sheets, popovers, full-screen
+* **screens**: every route **plus every overlay and state**: dialogs, sheets, popovers, full-screen
   pickers, empty states, error states, the not-found screen.
-* **widths** — the narrowest phone your users have, the middle, *both sides of every breakpoint* (a
+* **widths**: the narrowest phone your users have, the middle, *both sides of every breakpoint* (a
   round that samples 390 and 768 skips the band the bugs live in), and desktop.
-* **appearances** — light, dark, and the system default. Contrast is the one thing a token override
+* **appearances**: light, dark, and the system default. Contrast is the one thing a token override
   breaks silently.
-* **languages** — every one the product ships, because a copied string breaks a layout that fits in
+* **languages**: every one the product ships, because a copied string breaks a layout that fits in
   the source language.
-* **background modes** — whatever the product allows behind its surfaces: plain, tinted, translucent
+* **background modes**: whatever the product allows behind its surfaces: plain, tinted, translucent
   over imagery.
-* **states** — empty, filled, invalid, disabled, loading, error, offline, pressed, focused.
-* **time** — anything driven by a clock (departures, "in 3 minutes", day boundaries). Freeze it, or the
+* **states**: empty, filled, invalid, disabled, loading, error, offline, pressed, focused.
+* **time**: anything driven by a clock (departures, "in 3 minutes", day boundaries). Freeze it, or the
   defect is only visible in the last hour of service.
 
 If a check cannot reach a state, **seed it** (§5.4) or write a probe that walks to it. Never audit an
@@ -392,7 +392,7 @@ action, naming the rule and *why* the instances differ, printed in the report. A
 can contradict; nothing goes in it to make a count go down. When an order removes the reason, the entry
 is deleted in the same change.
 
-Anywhere else — a lint suppression, an `!important`, an inline style, a skipped test "for now" — is not
+Anywhere else (a lint suppression, an `!important`, an inline style, a skipped test "for now") is not
 an exemption; it is the defect wearing a hat.
 
 ### 4.5 Numbers before and after, and the regression rule
@@ -409,16 +409,16 @@ an exemption; it is the defect wearing a hat.
 
 Every instrument must prove it saw the thing it judges. A coverage rule asserted against zero
 instances is a pass that means nothing. Count what you judged, print the count, and treat zero as a
-failure unless zero is genuinely the answer — and say which.
+failure unless zero is genuinely the answer, and say which.
 
 ### 4.7 The honesty ladder
 
 Every statement you make is one of four things. Only the first two may be reported as done:
 
-1. **Measured** — an instrument's number, from the build you are delivering.
-2. **Mechanically checked** — a gate passed, after the last edit.
-3. **Seen** — you looked at it. Useful, never a verdict.
-4. **Assumed** — you did not look. Say so.
+1. **Measured**: an instrument's number, from the build you are delivering.
+2. **Mechanically checked**: a gate passed, after the last edit.
+3. **Seen**: you looked at it. Useful, never a verdict.
+4. **Assumed**: you did not look. Say so.
 
 A build that passes is not a page that renders. A route that returns 200 is not a screen that works. A
 sign-in flow that redirects is not a completed sign-in. Name blocked or skipped checks in one line,
@@ -446,13 +446,13 @@ not a dependency of the product.
   crash on first paint with `SkFontMgr … Not implemented` is missing fontconfig and a font family.
 * **No root?** Fetch the `.deb` files and unpack them into a user directory, then point
   `LD_LIBRARY_PATH` at it; write a minimal fontconfig file and export `FONTCONFIG_FILE`. Cache what
-  you downloaded — the package lists of a restored machine do not survive, and a check that installs
+  you downloaded: the package lists of a restored machine do not survive, and a check that installs
   from the network is a check that fails on a plane.
 * **No DNS?** A page whose blocking stylesheet comes from a font host will never settle: `goto` times
   out before the audit measures anything, and it looks like a broken page. Give Chromium its own
   resolver (`--host-resolver-rules=MAP font.example 127.0.0.1,…`) so those hosts refuse instantly. The
-  page then measures on the **fallback face**. That is not a weakened check — targets, contrast,
-  clipping and overlap are all measured, only the glyphs differ — but the report must say so.
+  page then measures on the **fallback face**. That is not a weakened check: targets, contrast,
+  clipping and overlap are all measured, only the glyphs differ, but the report must say so.
 
 ### 5.3 Launch, viewport, routes
 
@@ -478,7 +478,7 @@ page.on('pageerror', (error) => appErrors.push(error.message));
 
 ### 5.4 Seed the state instead of clicking to it
 
-Whatever the product persists — local storage, a session store, IndexedDB — seed it **before** the
+Whatever the product persists (local storage, a session store, IndexedDB) seed it **before** the
 first navigation, with the app's own key and shape:
 
 ```js
@@ -494,7 +494,7 @@ that need a real interaction (§5.5).
 ### 5.5 Reach the real screens
 
 Half of any product is behind a click: pickers, map screens, confirmation dialogs, the results of a
-search, a chosen item. The pattern is always the same — do the interaction, then capture the screen as
+search, a chosen item. The pattern is always the same: do the interaction, then capture the screen as
 a screen of its own:
 
 ```js
@@ -505,7 +505,7 @@ await page.locator('.suggestion').first().click();
 ```
 
 Selectors prefer role and accessible name over class names, because a class is a build detail and a
-role is what a person operates. **When a label is translated, the selector must be translated too** —
+role is what a person operates. **When a label is translated, the selector must be translated too**,
 an English-only pattern times out on the other language and silently reads the page it never opened.
 
 ### 5.6 The primitives
@@ -566,7 +566,7 @@ the project's minimum passes a `getBoundingClientRect` check and is still unpres
 8. **The clock.** A board's cancelled row, an "expires today" badge, a "late" state: they exist only
    at some hours. Freeze the clock when the defect depends on it.
 9. **An icon-only control has no label.** The nearest text a walk upwards finds belongs to another
-   block, so the glyph is measured against a heading it has nothing to do with — one audit reported a
+   block, so the glyph is measured against a heading it has nothing to do with, one audit reported a
    refresh disc "101px off its label" that way. Skip alignment for an icon whose own control holds no
    text, and count the skips.
 10. **A block comment written where the markup expects an expression is text.** It renders, every text
@@ -581,7 +581,7 @@ the project's minimum passes a `getBoundingClientRect` check and is still unpres
 
 Every instrument prints: what it covered (`12 routes × 6 widths`, `18 screens × 2 languages`,
 `430 names`), then each finding as a **distinct signature** with a count and where it was seen
-(`x3 · .toggle 44×44 r50% pin · [/stops@390 /stops/x@390 +1]`), then a pass line or `FAILED — …` and a
+(`x3 · .toggle 44×44 r50% pin · [/stops@390 /stops/x@390 +1]`), then a pass line or `FAILED, …` and a
 non-zero exit. Aggregating by signature is what turns 300 identical hits into one finding he can act
 on. Write the full report to a file so the next agent can diff runs instead of re-deriving them.
 
@@ -618,7 +618,7 @@ cannot prove.
 ## 6. What the project must be held to
 
 Read the project's own design system before changing anything. If it has none, **that absence is the
-first finding**, and building one is the fix — not the next round of eyeballing.
+first finding**, and building one is the fix: not the next round of eyeballing.
 
 Where a project does have one, these are the promises it must keep. Each is measurable, and each has
 an incident behind it in §10.
@@ -641,12 +641,12 @@ an incident behind it in §10.
 * **Every count goes through one plural helper.** No `item(s)`.
 * **Every string goes through the dictionary.** In every language, and every walk runs in every
   language.
-* **State honesty.** A control's label, its visual state, its stored value and its effect agree — after
+* **State honesty.** A control's label, its visual state, its stored value and its effect agree, after
   a reload.
 * **No demo vocabulary in a product that is not a demo.** "Simulated", "example", "prototype",
   "invented", "coming soon" are content defects when the thing works.
 * **Overlays behave.** Initial focus, a real focus trap, Escape, focus return to the opener, and a
-  locked document — from one shared implementation, not a copy per dialog.
+  locked document: from one shared implementation, not a copy per dialog.
 * **The top row is one row.** One top edge, one content rail, nothing painted across it that the design
   did not ask for.
 
@@ -657,7 +657,7 @@ an incident behind it in §10.
 A project of this kind should have these instruments. Run all of them before you report anything; add
 the ones that are missing (§5.9), because an axis with no instrument is an axis he will report.
 
-**Static — no browser:**
+**Static: no browser.**
 1. **Type check.** Silence is the pass.
 2. **Build.** Must finish clean; a build is still not a screen.
 3. **Server render of every page**, if the framework allows it: catches a runtime throw that a build
@@ -667,7 +667,7 @@ the ones that are missing (§5.9), because an axis with no instrument is an axis
 6. **Pure-logic smoke test**: the engine the product's screens sit on (routing, pricing, searches)
    produces sane output for fixed cases.
 
-**Behavioural — a browser:**
+**Behavioural: a browser.**
 7. **Layout audit**: contrast, effective targets, clipped text, declared-square elements, the header
    row, popovers and capsules, at every width, in every appearance, on every background mode.
 8. **Icon audit**: every rendered icon is square, a whole pixel, named and weighted, and on the optical
@@ -679,8 +679,8 @@ the ones that are missing (§5.9), because an axis with no instrument is an axis
 11. **Behavioural probes** for the promises that matter to him: the colour system, the batch rule on
     lists, a switch that must survive a reload.
 
-If a probe in the repository is stale — a selector for a control that no longer exists, a screen that
-moved — **do not bend the product to satisfy it**. Re-point it, prove it can fail, or retire it and
+If a probe in the repository is stale: a selector for a control that no longer exists, a screen that
+moved: **do not bend the product to satisfy it**. Re-point it, prove it can fail, or retire it and
 say so. A probe that cannot run proves nothing, and a stale selector is not a product failure.
 
 **Start the product and look at it.** Every website change ends with the app running at the address he
@@ -714,7 +714,7 @@ The loop. It works for "the corners are gone" and for "everything is inconsisten
    request names an instance.
 2. **Search the record.** The decision log, the audit register, the fix notes. Was this already
    decided? If yes, find why it regressed instead of deciding again.
-3. **Reproduce it with an instrument**, not with a click. If none can see it, write one — then plant
+3. **Reproduce it with an instrument**, not with a click. If none can see it, write one, then plant
    the bug and watch it fail.
 4. **Name the rule.** One sentence: "the same action is drawn with one glyph per state", "a control's
    name sits one step above it", "no block repeats another block".
@@ -727,7 +727,7 @@ The loop. It works for "the corners are gone" and for "everything is inconsisten
 9. **Sweep the states you did not name**: the narrowest width, dark, the other language, empty, error,
    overlay, keyboard.
 10. **Name the limits**, one line each, with the reason. Do not soften them.
-11. **Start the product** and look at the screens you changed yourself — then say what the look proved
+11. **Start the product** and look at the screens you changed yourself: then say what the look proved
     and what the measurement proved.
 12. **Reply in the shape of §9: short.**
 
@@ -741,7 +741,7 @@ stop; otherwise decide, implement, and state the reading you took.
 
 An order is closed only when all of these hold:
 
-1. Done **exactly** as worded, on **every** screen the rule touches — not just the one in the message.
+1. Done **exactly** as worded, on **every** screen the rule touches: not just the one in the message.
 2. Verified in a real browser at **every width that matters**, in **every appearance**, in **every
    language** if words changed, and on **every background mode** if colour changed.
 3. The whole suite is green **after** the last edit, with the pass lines quoted.
@@ -767,35 +767,35 @@ No wall of headings for a small fix. No "as I mentioned above". No claim you did
 
 ---
 
-## 10. Case history (another project — evidence only)
+## 10. Case history (another project: evidence only)
 
 Kept separate on purpose. Your project has none of these files. Read them as precedents about
 **behaviour**, not as instructions about your codebase.
 
 | What happened | What it teaches |
 |---|---|
-| A pin toggle was reported "in different places". It was fixed on the named screens; the next screen was reported a week later. Then an instrument grouped all 327 controls by the action they perform — and found the same action in **15 instances, 5 different shapes**, one of them flipping sides with viewport width | Fixing screens does not fix rules. Build the instrument before the next report, not after. |
+| A pin toggle was reported "in different places". It was fixed on the named screens; the next screen was reported a week later. Then an instrument grouped all 327 controls by the action they perform, and found the same action in **15 instances, 5 different shapes**, one of them flipping sides with viewport width | Fixing screens does not fix rules. Build the instrument before the next report, not after. |
 | A "current preferences" summary sat directly beneath the controls that set those preferences, and was deleted when he said "get rid of all this" | Overwhelmingness is always addition. Delete the restatement. |
 | One widget's spacing was zero. The cause was a class name with no rule, so the intended gap silently evaluated to nothing. A committed audit now fails the build on any class in the markup with no rule | "Sticked" is a missing rule, not a spacing value. Instrument the class layer. |
 | An audit reported "no label overlaps" on a map where a label sat on a station dot, because it compared boxes from different coordinate spaces | A check that passes on the failure case is not a check. Make it fail once on purpose. |
 | A raised-contrast mode was worked on in one round; a later round changed colour machinery for an unrelated complaint ("the corners are gone"); the contrast mode silently became "on by default while saying it is off" | Shared colour/contrast logic is load-bearing. Record its measurements before touching it, and re-measure after. This is why a corrected decision kills the old one retroactively. |
 | 56 hardcoded colours, 3 undefined custom properties, 6 off-scale type sizes and 24 inline spacing overrides were replaced by tokens and two shared rhythm classes, and the count printed as `56 → 0` | The report he respects is a before/after count, not an adjective. |
-| One screen labelled a single control two different ways, three screens printed raw enum values and `Operator(s)`, and two screens drew the same back control as a pill in one place and a bare arrow in another | One concept, one name, one glyph — and the label table is the single source, not the call sites. |
+| One screen labelled a single control two different ways, three screens printed raw enum values and `Operator(s)`, and two screens drew the same back control as a pill in one place and a bare arrow in another | One concept, one name, one glyph, and the label table is the single source, not the call sites. |
 | An agent fixed the reported defect, ran the type check and the build, told him it was done, and the defect was still visible in the screenshot he sent back | A build is not a screen. Do not claim done until an instrument measured the thing he named. |
 | A settings screen explained one colour with three differently shaped sample tiles in a row; he answered with a screenshot of the swatch that already showed it | Second explanations are the defect. Show the thing, not a diagram of the thing. |
-| A block comment written without its expression wrapper shipped as a **text node**: the source commentary was in the DOM and became the "label" an audit aligned an icon against | A text walk sees source that leaked into the page. The wrong label produces the wrong finding — fix the leak, then re-judge. |
+| A block comment written without its expression wrapper shipped as a **text node**: the source commentary was in the DOM and became the "label" an audit aligned an icon against | A text walk sees source that leaked into the page. The wrong label produces the wrong finding: fix the leak, then re-judge. |
 | A dialog was portalled onto the document during render, so every page failed a server render with "document is not defined" while the build and the browser were green | A build is not a screen, and a browser is not a server. Render only where the target exists. |
-| A breakpoint gate failed on two media widths that had been added with no reason beside them; the fix was to write the reason into the register, not to change the layout | A width is a deliberate act. The gate is a conversation, not a wall — and the answer is a reason, not a workaround. |
+| A breakpoint gate failed on two media widths that had been added with no reason beside them; the fix was to write the reason into the register, not to change the layout | A width is a deliberate act. The gate is a conversation, not a wall, and the answer is a reason, not a workaround. |
 
 ---
 
 ## 11. Five sentences to remember
 
-* **A screenshot cannot see a rule** — so measure the rule, and commit the instrument.
-* **If a block repeats what another says, delete it** — overwhelmingness is always addition.
-* **One action, one name, one glyph, one shape, one place** — every "inconsistent" report is that
+* **A screenshot cannot see a rule**, so measure the rule, and commit the instrument.
+* **If a block repeats what another says, delete it**: overwhelmingness is always addition.
+* **One action, one name, one glyph, one shape, one place**: every "inconsistent" report is that
   sentence failing somewhere you have not looked yet.
-* **Fix the component, not the screen** — a fix that names a screen will be reported again on the next
+* **Fix the component, not the screen**: a fix that names a screen will be reported again on the next
   one.
-* **A number that moved without an order is a regression** — record before, re-measure after, and never
+* **A number that moved without an order is a regression**: record before, re-measure after, and never
   round a pass up.

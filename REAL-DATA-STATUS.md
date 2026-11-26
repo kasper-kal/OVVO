@@ -10,8 +10,8 @@ against the live sources on **3 November 2026**, and anything not measured is ma
 
 OpenTripPlanner 2.10.0 is a Java program: its own documentation (v2.10.0, *Basic Tutorial*) states
 that OTP2 is compatible with **Java 25 or later**, and that it wants "several gigabytes" of memory
-for a large input. This app deploys to **Cloudflare Workers** — a JavaScript isolate with no Java
-runtime and no long-lived process — so OTP cannot live in the same deployment as the site.
+for a large input. This app deploys to **Cloudflare Workers**: a JavaScript isolate with no Java
+runtime and no long-lived process, so OTP cannot live in the same deployment as the site.
 
 Three ways forward, and I will not take any of them without being told to:
 
@@ -20,28 +20,28 @@ Three ways forward, and I will not take any of them without being told to:
    timetable refresh. **It is a paid dependency, so it needs your approval.**
 2. **A free container host.** Worth checking, but every free tier I would have to verify sleeps,
    throttles or caps memory below what an OTP graph of the Netherlands needs. If a verified free
-   option exists that stays awake, that is the first choice on cost — but it is not verified yet,
+   option exists that stays awake, that is the first choice on cost, but it is not verified yet,
    and I will not present it as working until it is.
 3. **Stop at the timetable.** Ship stops, lines, platforms and departure boards from the verified
    GTFS inside the Worker (no Java), and say plainly that door-to-door journey planning is not
    available. Honest, free, and less than the plan asks for.
 
 Until one is chosen, the app keeps its current behaviour and **no mock journey is presented as
-real** — that is the rule in section P of the plan and it holds today.
+real**: that is the rule in section P of the plan and it holds today.
 
 ## Verified sources
 
 | Source | What was verified | Evidence |
 | --- | --- | --- |
 | Dutch GTFS, `https://gtfs.ovapi.nl/openov-nl/` | Listing read live; two archives listed, newest `gtfs-openov-nl.zip`, **179M**, last modified **02-Nov-2026 21:20**; download returned **188,146,558 bytes** | `scripts/gtfs-pipeline.mjs` run log |
-| Same archive, contents | `agency.txt` 3,239 B · `stops.txt` 4,152,974 B · `routes.txt` 185,500 B · `trips.txt` 48,826,033 B · `stop_times.txt` 815,126,593 B · `calendar_dates.txt` 607,063 B · `shapes.txt` 238,411,258 B · `feed_info.txt`, `licenses.txt`, two `ticketing_*.txt`. **No `calendar.txt`** — the service dates are declared entirely in `calendar_dates.txt` | `unzip -l` + pipeline validation |
+| Same archive, contents | `agency.txt` 3,239 B · `stops.txt` 4,152,974 B · `routes.txt` 185,500 B · `trips.txt` 48,826,033 B · `stop_times.txt` 815,126,593 B · `calendar_dates.txt` 607,063 B · `shapes.txt` 238,411,258 B · `feed_info.txt`, `licenses.txt`, two `ticketing_*.txt`. **No `calendar.txt`**: the service dates are declared entirely in `calendar_dates.txt` | `unzip -l` + pipeline validation |
 | Same archive, measured rows | **41 agencies · 56,215 stops · 3,019 routes · 702,815 trips · 13,800,102 stop times**; service window **2026-11-01 → 2026-12-12**, from `calendar_dates.txt` | `--revalidate --deep` |
 | Street network, `https://download.geofabrik.de/europe/netherlands-latest.osm.pbf` | Geofabrik Netherlands extract, **1,409,687,325 bytes**, last modified **03-Nov-2026 05:17 GMT** | `curl -I` |
 | OpenTripPlanner | v2.10.0 is the current release in the docs; `otp-shaded-2.10.0.jar` fetched from Maven Central (**191,382,029 bytes**) | `tools/` |
 | Java | OTP 2.10.0 requires **Java 25+**; the official Eclipse Temurin 25 JDK was fetched and installed at `tools/jdk` | `tools/jdk/bin/java -version` |
 
-Coverage statement: the feed is national in scope — 41 operators, 56k stops, and stops across the
-Netherlands — but I have **not** verified that every Dutch carrier is present, and the window is six
+Coverage statement: the feed is national in scope: 41 operators, 56k stops, and stops across the
+Netherlands, but I have **not** verified that every Dutch carrier is present, and the window is six
 weeks long, so anything outside 1 Nov – 12 Dec 2026 is not in this data.
 
 ## The timetable pipeline (working, not a sketch)
@@ -54,7 +54,7 @@ weeks long, so anything outside 1 Nov – 12 Dec 2026 is not in this data.
   1MB;
 * validates before activating: required files present and non-empty, the exact **columns the
   planner reads** present in each header, at least one data row per file, and a declared service
-  window — read from `calendar.txt` or, as here, from `calendar_dates.txt`;
+  window: read from `calendar.txt` or, as here, from `calendar_dates.txt`;
 * unpacks into `staging/`, then rotates `current/` → `previous/` and `staging/` → `current/`, so a
   failure at any point leaves the last working timetable in place;
 * writes `data/gtfs/manifest.json` (source URL, listing stamp, bytes, SHA-256, retrieval time, file
@@ -80,8 +80,8 @@ business, and the facts above live in this file instead.
 | 7 | Stop pages and departure boards | **NOT STARTED** | Can be done from GTFS alone once the index lives beside the Worker |
 | 8 | Preferences and favourites | **PARTIAL** | Stored in this browser today; not yet connected to a real router |
 | 9 | Realtime feeds | **NOT STARTED** | Feed inventory not written yet |
-| 10 | Disruptions and the real map | **NOT STARTED** | — |
-| 11 | Additional 9292-style features | **NOT STARTED** | — |
+| 10 | Disruptions and the real map | **NOT STARTED** | n/a |
+| 11 | Additional 9292-style features | **NOT STARTED** | n/a |
 | 12 | Tests | **PARTIAL** | The UI suite is extensive; there are no real-data integration tests yet, and the pipeline itself has no test |
 | 13 | Documentation | **PARTIAL** | This file; operations and limitations documented as far as they are known |
 

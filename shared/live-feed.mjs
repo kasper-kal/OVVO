@@ -6,7 +6,7 @@
  * module is the one place that fetches and reads it. The worker serves it in production and the dev
  * server serves it through the same code, so what I test locally is what runs live.
  *
- * Only the fields needed are decoded — the trip's identifier and its delay — and only the trips that
+ * Only the fields needed are decoded (the trip's identifier and its delay) and only the trips that
  * were asked about are kept, because the whole feed is far larger than any one page needs.
  *
  * Format reference: GTFS Realtime `FeedMessage`, `FeedEntity`, `TripUpdate`, `TripDescriptor`,
@@ -36,8 +36,8 @@ function readVarint(bytes, at) {
 
 /**
  * A `delay` is a signed 32-bit integer, and a negative one is sent as ten varint bytes holding its
- * two's-complement 64-bit form. Reading that as an ordinary number gave values around 1.8 × 10¹⁹ —
- * a delay of eighteen quintillion seconds — so the low 32 bits are accumulated exactly and only
+ * two's-complement 64-bit form. Reading that as an ordinary number gave values around 1.8 × 10¹⁹,
+ * a delay of eighteen quintillion seconds: so the low 32 bits are accumulated exactly and only
  * then read as signed. Only the low half is kept, which is all an int32 can hold.
  */
 function readVarint32(bytes, at) {

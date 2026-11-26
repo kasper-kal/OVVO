@@ -67,15 +67,15 @@ VITE_FIREBASE_APP_ID=1:454638608003:web:7b15bd9be71177751585b6
   and they are useless without the project. They are copied into the built code at build time.
 - The **Cloudflare token is a credential**. It can deploy and delete. Never in the repository,
   never in a commit, never in a chat.
-- The **account ID is not secret** — it is an account number, not a key.
+- The **account ID is not secret**: it is an account number, not a key.
 
 **Two more values are Worker secrets, not `.env` names.** They live only in Cloudflare, set once
 with `npx wrangler secret put <NAME>`, and never appear in the repository:
 
-- **`FIREBASE_SERVICE_ACCOUNT`** — a JSON key for the Firebase project, used by
+- **`FIREBASE_SERVICE_ACCOUNT`**: a JSON key for the Firebase project, used by
   `worker/firebase-token.js` for the server-side calls the browser cannot make (deleting the
   account, for instance).
-- **`TURNSTILE_SECRET`** — Cloudflare's sign-up challenge. While it is absent the challenge is not
+- **`TURNSTILE_SECRET`**: Cloudflare's sign-up challenge. While it is absent the challenge is not
   enforced, which is what a local copy looks like; on a real site it should be set.
 
 Where the six Firebase values come from, if they are ever lost: Firebase console, project
@@ -90,9 +90,9 @@ and the six lines in `.env` are replaced with the new ones, then redeploy.
 Made at **dash.cloudflare.com → My Profile → API Tokens → Create Token → Custom token**, with three
 permissions:
 
-- **Workers Scripts** — Edit
-- **D1** — Edit
-- **Account Settings** — Read
+- **Workers Scripts**: Edit
+- **D1**: Edit
+- **Account Settings**: Read
 
 Scoped to the account, nothing else. That is the whole token. If it is ever lost, make a new one
 the same way and replace one line in `.env`.
@@ -113,10 +113,10 @@ npx wrangler deploy             # uploads dist/ and worker/, attaches the databa
 
 `wrangler.jsonc` is the file that ties it together and it is worth knowing by name:
 
-- `name: "ovvo"` — the Worker, and therefore the first half of the address.
-- `assets.directory: "./dist"` — what was built.
-- `d1_databases` — the binding called `DB`, and the database id.
-- `vars.FIREBASE_PROJECT_ID` — the one non-secret value the Worker itself needs.
+- `name: "ovvo"`: the Worker, and therefore the first half of the address.
+- `assets.directory: "./dist"`: what was built.
+- `d1_databases`: the binding called `DB`, and the database id.
+- `vars.FIREBASE_PROJECT_ID`: the one non-secret value the Worker itself needs.
 
 The other way to deploy, which needs no token and no computer: connect the GitHub repository to
 Cloudflare (**Workers & Pages → ovvo → Settings → Build**) so that a push to `main` deploys itself.
@@ -128,14 +128,14 @@ It is optional; the manual command is what works today.
 
 - Name `ovvo`, id `ba996f68-d067-46b6-8ea4-3dc05ce38acc`, region WNAM (Western North America).
 - **Five tables**, all defined in **`schema.sql`** at the top of the repository.
-  - `travel_sync` — one row per signed-in traveller: their user id, their email, a document of
+  - `travel_sync`: one row per signed-in traveller: their user id, their email, a document of
     everything they saved, a revision number, and when it last changed.
-  - `passkey` — one row per passkey. The public half only, plus a counter, so nothing here can be
+  - `passkey`: one row per passkey. The public half only, plus a counter, so nothing here can be
     used to sign in on its own.
-  - `passkey_challenge` — the five-minute question a passkey answers. Deleted the moment it is used.
-  - `profile_photo` — the traveller's squared photograph, kept as a JPEG data URL because Cloudflare
+  - `passkey_challenge`: the five-minute question a passkey answers. Deleted the moment it is used.
+  - `profile_photo`: the traveller's squared photograph, kept as a JPEG data URL because Cloudflare
     will not switch on R2 without a payment method. About thirty kilobytes a row.
-  - `api_limit` — how often one caller may do one thing, counted per caller because there is no
+  - `api_limit`: how often one caller may do one thing, counted per caller because there is no
     domain to point Cloudflare's own rate limiting at.
 
 Reading it:
@@ -168,13 +168,13 @@ Firebase console: **console.firebase.google.com/project/ovvo-vibecreations**
 
 Three ways in, all switched on under **Authentication → Sign-in method**:
 
-1. **Google** — no setup beyond the consent screen, which is already configured and in production.
-2. **Email/Password** — with reset mail sent by Firebase itself.
-3. **Email link (passwordless)** — the mail contains a link back to
+1. **Google**: no setup beyond the consent screen, which is already configured and in production.
+2. **Email/Password**: with reset mail sent by Firebase itself.
+3. **Email link (passwordless)**: the mail contains a link back to
    `https://app.ovvo.us.ci/auth/finish`, which is a page of ours.
 
 **Authentication → Settings → Authorized domains** must list `app.ovvo.us.ci`. If the address
-ever changes, that list is the single line to update — the sign-in window
+ever changes, that list is the single line to update, the sign-in window
 travels through Firebase's own addresses too, so those two entries stay.
 
 The mails (reset, verification, sign-in link) are now sent through **Brevo** from
@@ -194,7 +194,7 @@ to leak or rotate.
 
 - **This computer, or Freebuff disappearing:** nothing happens to the site. It is served by
   Cloudflare from its own copy, and the code is on GitHub.
-- **The `.env` note:** only two things are hard to get back — the token (make a new one, five
+- **The `.env` note:** only two things are hard to get back, the token (make a new one, five
   minutes) and the Firebase apiKey (copy it from the console again). Everything else is written in
   this file.
 - **A laptop that dies:** clone the repository on another one and continue. `package-lock.json`

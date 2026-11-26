@@ -1,5 +1,5 @@
 /**
- * `/api/live` — live running times, asked for by trip.
+ * `/api/live`: live running times, asked for by trip.
  *
  * The browser cannot reach the national realtime feed (binary protobuf, no CORS), so the worker
  * reads it and answers with just the few trips the page is showing. Everything comes from the feed;

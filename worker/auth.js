@@ -5,7 +5,7 @@
  * the browser's word for who that is, so it checks the signature itself: Google publishes the
  * public half of the signing key, the token says which key signed it, and the maths either holds
  * or it does not. No secret is stored on the server for this, which is why the Admin SDK is not
- * needed — it would add megabytes to a Worker for one checked signature.
+ * needed: it would add megabytes to a Worker for one checked signature.
  *
  * Three things are checked, and each one closes a real hole:
  *
@@ -29,7 +29,7 @@ const CLOCK_SKEW_SECONDS = 60;
 
 let cached = { keys: null, fetchedAt: 0 };
 
-/** Base64url to bytes — the token's three parts are all base64url, not base64. */
+/** Base64url to bytes: the token's three parts are all base64url, not base64. */
 function base64UrlToBytes(part) {
   const padded = part.length % 4 === 0 ? part : part + '='.repeat(4 - (part.length % 4));
   const normal = padded.replace(/-/g, '+').replace(/_/g, '/');

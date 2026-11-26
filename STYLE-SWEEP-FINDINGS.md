@@ -23,7 +23,7 @@ screens now measures 4.66:1 where it measured 1.03:1.
 
 What still stands below 4.5:1 is a narrower thing: ten styles draw small 11px labels (a mode chip
 reading "Tram", a timezone note reading "UTC") at 3.6–4.0:1. That is a second, smaller ink family
-with its own surface, and it has not been fixed yet — it is finding 2 below, moved from OPEN to
+with its own surface, and it has not been fixed yet: it is finding 2 below, moved from OPEN to
 **PARTLY FIXED** rather than quietly dropped.
 
 ---
@@ -37,17 +37,17 @@ its palette, its shape and its lettering all have to differ, not just its corner
 
 The twenty, in the order the picker draws them:
 
-- **Basic** — Tram (the default, untouched)
-- **Luxe** — Navy and Gold, Midnight Silk, Bordeaux
-- **Modern** — Poppy Blue, Ultraviolet, Cyber Teal
-- **Editorial** — Broadsheet
-- **Dutch** — Spoorboekje, Rijksmuseum, Station Sign
-- **Dark** — Obsidian
-- **Reading** — Contrast, All Black
-- **Soft** — Sage
-- **Loud** — Mustard
-- **Technical** — Terminal, Blueprint
-- **Photo** — Marble, Arches
+- **Basic**: Tram (the default, untouched)
+- **Luxe**: Navy and Gold, Midnight Silk, Bordeaux
+- **Modern**: Poppy Blue, Ultraviolet, Cyber Teal
+- **Editorial**: Broadsheet
+- **Dutch**: Spoorboekje, Rijksmuseum, Station Sign
+- **Dark**: Obsidian
+- **Reading**: Contrast, All Black
+- **Soft**: Sage
+- **Loud**: Mustard
+- **Technical**: Terminal, Blueprint
+- **Photo**: Marble, Arches
 
 Removed: Emerald and Brass, Oxblood, Pearl, Citrus Pop, Bubblegum, Electric, Salon, Monocle,
 Literair, 1974, Polder, Nightbus, Deep Sea, Ink, Sunlight, Linen, Mist, Blush, Vermilion, Klein Blue,
@@ -71,7 +71,7 @@ Re-measured after the cut, twenty styles on ten pages (200 screens):
 |---|---|
 | screens below 3:1 | **0** |
 | screens below 4.5:1 | 18, all of them the 11px `Tram` chip and `UTC` note (finding 2) |
-| header controls under 44px | 2 — Edit and the alerts pill are 48 × 36 and 69 × 36 again, by request |
+| header controls under 44px | 2: Edit and the alerts pill are 48 × 36 and 69 × 36 again, by request |
 | screens spilling past the edge | **0** |
 | text under 11px | 40, down from 100 |
 
@@ -189,8 +189,8 @@ spacing rule, so a style can only be "the same thing at a different radius".
 
 **Answered by subtraction rather than decoration.** The thirty near-duplicates are gone and twenty
 remain, each of which a person can tell from the others by palette, shape, lettering and material
-(see *The catalogue: fifty became twenty* above). One axis was added as well — a card is now flat
-paper in the printed styles and a lifted pane in the soft ones — but the cut is what answers this
+(see *The catalogue: fifty became twenty* above). One axis was added as well, a card is now flat
+paper in the printed styles and a lifted pane in the soft ones, but the cut is what answers this
 finding, not the shadow.
 
 ### 7. Small targets in the header · MEASURED, FIXED, THEN REVERTED ON REQUEST
@@ -202,7 +202,7 @@ from 36px to the 44px touch floor and measured at 48 × 44 and 69 × 44, on ever
 `height` went from `36px` to `var(--target-min)`, and a rule raised the header's buttons to the same
 floor. Both are gone, and the measurement is back to what it was: Edit 48 × 36, alerts pill 69 × 36.
 
-The finding itself still stands as a fact — those two controls are 36px tall — but the decision to
+The finding itself still stands as a fact (those two controls are 36px tall) but the decision to
 change them is not mine to make. It is left here as an open observation, not a fixed item.
 
 `Edit` is 50 × 36 and the alerts pill is 70 × 36. Both are under the 44px comfortable target. They

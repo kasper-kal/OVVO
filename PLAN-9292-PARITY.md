@@ -2,7 +2,7 @@
 
 **One file, from 26 November 2026.** At the steerer's order this file now holds what were two:
 `PLAN-9292-PARITY.md`, the journey page's twenty items, and `PLAN-9292-DATA-PARITY.md`, the data and
-the journeys' fourteen steps. Nothing in either was reworded, merged or dropped — each part is
+the journeys' fourteen steps. Nothing in either was reworded, merged or dropped, each part is
 carried whole, with the day it was last read against the code still written inside it, because a
 status is only worth what the day it was checked is worth.
 
@@ -19,8 +19,8 @@ Read against the code in the OVVO repository on **26 November 2026**.
 - **Part One: seventeen of the twenty are in the code.** Items 1–6, 8–17 and 20 are built; item 18
   (every leg opened at once) is open; items 7 (the price chip) and 19 (the marks in an opened list)
   were not confirmed either way, so they count as open until somebody looks at them on a screen.
-- **Part Two: seven of the fourteen are confirmed in the code** — 1, 2, 3, 5, 6, 8 and 12. The other
-  seven — 4, 7, 9, 10, 11, 13 and 14 — have never had their **Done when** line run, so they stay open
+- **Part Two: seven of the fourteen are confirmed in the code**: 1, 2, 3, 5, 6, 8 and 12. The other
+  seven (4, 7, 9, 10, 11, 13 and 14) have never had their **Done when** line run, so they stay open
   whatever the files look like.
 - **Two defects Part Two names are still there, checked again today.** `src/lib/useDisruptions.ts`
   still returns the simulated list unconditionally, so a production build still shows invented
@@ -28,7 +28,7 @@ Read against the code in the OVVO repository on **26 November 2026**.
   14 November archive while the published month is rebuilt every night.
 - **One thing that reads like a contradiction and is not.** Items 13 and 14 shipped on OpenStreetMap
   foot routing (`src/lib/streetMap.ts`), so a **walk** follows real streets. Step 7 is about the
-  **ride's** line, drawn from `shapes.txt`, which is still read by nothing — so a train's line on the
+  **ride's** line, drawn from `shapes.txt`, which is still read by nothing, so a train's line on the
   map is still a path from stop to stop.
 
 ---
@@ -54,7 +54,7 @@ them.
 #### 1. Departure alarm
 **9292's clock opens a departure alarm: a slider with minus and plus, set to warn you five minutes before you have to leave, and Cancel / Save under it. It tells you when to go. OVVO has no such control.**
 
-- **Build:** a clock control in the journey's top row, opening a sheet that holds a slider with a minus and a plus, the warning set to five minutes to begin with, and Cancel / Save under it. Saving works out the minute you have to leave — the first leg's departure minus the walk to it minus the warning — and sets a reminder for it.
+- **Build:** a clock control in the journey's top row, opening a sheet that holds a slider with a minus and a plus, the warning set to five minutes to begin with, and Cancel / Save under it. Saving works out the minute you have to leave (the first leg's departure minus the walk to it minus the warning) and sets a reminder for it.
 - **Where:** the top row, beside the journey's own controls; the sheet over the page.
 - **Size:** M, a few minutes: a sheet, a slider and a reminder.
 - **Done when:** the slider moves in whole minutes, the plus and minus match the slider, Cancel changes nothing, Save keeps the setting on the journey, and the reminder fires at the minute shown.
@@ -134,7 +134,7 @@ them.
 #### 10. Two possible platforms
 **9292 can print two in red when it is unsure. OVVO always shows one.**
 
-- **Build:** when a service's platform is not yet settled, print both in the warning colour — "Platform 5 or 6" — as 9292 does at Schiphol. Stops already list their platforms; a journey needs a way to say a platform is not decided.
+- **Build:** when a service's platform is not yet settled, print both in the warning colour ("Platform 5 or 6") as 9292 does at Schiphol. Stops already list their platforms; a journey needs a way to say a platform is not decided.
 - **Where:** the rail's departure rows and the arrival row.
 - **Size:** M, a few minutes: a journey has to be able to say a platform is not settled.
 - **Done when:** a journey with an unsettled platform shows two in red, a settled one shows one as today, and the stops list does not have to be edited by hand.
@@ -172,7 +172,7 @@ them.
 - **Done when:** the link opens the walk, the line follows real streets between the two ends, and it still draws when the network is slow.
 
 #### 14. A map button on every ride
-**9292 ends each ride row with a blue map glyph that opens that leg on the map — the route drawn, a "Navigeer" button, and the leg's two times under it. OVVO has nothing per leg.**
+**9292 ends each ride row with a blue map glyph that opens that leg on the map: the route drawn, a "Navigeer" button, and the leg's two times under it. OVVO has nothing per leg.**
 
 - **Build:** the blue glyph at the end of every ride row, opening that leg alone: the route drawn on the street map, a **Navigeer** button, and the leg's two times under it. Navigeer walks the route step by step, from the point you are at.
 - **Where:** every ride row, and the map.
@@ -180,7 +180,7 @@ them.
 - **Done when:** every ride row has the glyph, it opens that leg and no other, the two times under it match the row, and Navigeer steps along the route.
 
 #### 15. Operator and line badge
-**9292 writes the operator before the service and puts the line number in a coloured badge — pink for bus 3, purple for the night bus. OVVO keeps the number inside the name, with no badge.**
+**9292 writes the operator before the service and puts the line number in a coloured badge: pink for bus 3, purple for the night bus. OVVO keeps the number inside the name, with no badge.**
 
 - **Build:** the operator stays in front of the name, and the number comes out of the name into a coloured badge of its own. One colour per mode, a separate one for a night service.
 - **Where:** the service line of every ride row.
@@ -258,14 +258,14 @@ Each group is built, checked at a phone width in both themes, deployed and pushe
 Re-read against the code rather than against the list below. Four items that were open when this file
 was last updated are now built:
 
-- **4. Map thumbnail** — `src/components/journey/JourneyThumbnail.tsx`, drawn from the same canvas the
+- **4. Map thumbnail**: `src/components/journey/JourneyThumbnail.tsx`, drawn from the same canvas the
   map screen uses, with its own arrow into the map.
-- **9. Platform position** and **10. Two possible platforms** — `src/components/journey/LegList.tsx`,
+- **9. Platform position** and **10. Two possible platforms**: `src/components/journey/LegList.tsx`,
   where the platform is beside the station on every row and an unsettled berth is printed "Platform 6
   or 7" in the warning colour.
-- **15. Operator and line badge** — `LegList.tsx` splits the operator from the line number and puts the
+- **15. Operator and line badge**: `LegList.tsx` splits the operator from the line number and puts the
   number in its own coloured badge.
-- **17. The change itself** — `LegList.tsx` prints the wait as a row of its own between two services.
+- **17. The change itself**: `LegList.tsx` prints the wait as a row of its own between two services.
 
 One is still open: **18. Opening.** A service opens one at a time; `stopsOpen` belongs to the service,
 not to the journey, so arriving at a journey does not open every leg.
@@ -280,32 +280,32 @@ unconfirmed.
 
 Built, checked and deployed (the twenty items above are untouched by this list):
 
-- **3. Alert counter** — gone from the top row, on every screen. The count is still the link's own
+- **3. Alert counter**: gone from the top row, on every screen. The count is still the link's own
   accessible name, so a screen reader hears how many alerts there are.
-- **5. Separators between the mode glyphs** — a small dot between each pair.
-- **6. The change count** — the figure, the multiplication sign and the swap glyph, with the words
+- **5. Separators between the mode glyphs**: a small dot between each pair.
+- **6. The change count**: the figure, the multiplication sign and the swap glyph, with the words
   kept for a screen reader.
-- **8. Time weight** — the times are ordinary weight again, still numeral-aligned.
-- **12. The first row** — a journey that begins at an address now says only that this is the
+- **8. Time weight**: the times are ordinary weight again, still numeral-aligned.
+- **12. The first row**: a journey that begins at an address now says only that this is the
   starting point; a journey that begins at a stop still names the stop.
-- **20. The facts line** — the three-fact line is gone; the bicycle stays as one quiet line.
-- **16. Crowding per service** — each service draws its own two or three little people, or a "?" where
+- **20. The facts line**: the three-fact line is gone; the bicycle stays as one quiet line.
+- **16. Crowding per service**: each service draws its own two or three little people, or a "?" where
   nobody has counted; the foot no longer mentions it.
-- **10. Two possible platforms** — an unsettled berth reads "Platform 6 or 7" in the warning colour,
+- **10. Two possible platforms**: an unsettled berth reads "Platform 6 or 7" in the warning colour,
   while a settled one is ordinary ink.
-- **2. Share** — exactly two choices: share the journey, or save it to the calendar.
-- **1. Departure alarm** — a slider with minus and plus from five minutes, Cancel and Save, and the
+- **2. Share**: exactly two choices: share the journey, or save it to the calendar.
+- **1. Departure alarm**: a slider with minus and plus from five minutes, Cancel and Save, and the
   minute you have to leave worked out from the journey.
-- **11. Stop or station** — the ride names the stop you board at with the street the map gives for that
+- **11. Stop or station**: the ride names the stop you board at with the street the map gives for that
   exact place (`scripts/geocode-stops.mjs`, OpenStreetMap), and the arrival row names its own street.
-- **13. The route link** — every walk carries a link that opens it on a real street map, the line
+- **13. The route link**: every walk carries a link that opens it on a real street map, the line
   routed along the streets and dashed, with Navigeer stepping street by street.
-- **14. A map button on every ride** — the blue glyph at the end of each ride opens that leg alone on
+- **14. A map button on every ride**: the blue glyph at the end of each ride opens that leg alone on
   the street map, with its route, its two times and Navigeer.
 ## Part Two · The data and the journeys, closer to 9292
 
 **Version 2, 18 November 2026.** The first version of this file was written from the repository's own
-documents as well as its code, and several of those documents have gone stale — one of them was two
+documents as well as its code, and several of those documents have gone stale, one of them was two
 weeks old and described a feed half the size of the real one. The steerer called that out, correctly.
 This version is built from **the code as it is checked out today** and **the live sources as they
 answered today**, and every number below says which of the two it came from. Where something could
@@ -313,7 +313,7 @@ not be checked, it says so instead of quoting a document.
 
 `PLAN-9292-PARITY.md` is about the journey **page**. This file is about the half underneath it: what
 
-*Merged 26 November 2026: both are now Parts of this one file. The sentence above still reads true — Part One is the page, this part is what is underneath it.*
+*Merged 26 November 2026: both are now Parts of this one file. The sentence above still reads true. Part One is the page, this part is what is underneath it.*
 OVVO **knows**, and what it can **work out**.
 
 ---
@@ -354,11 +354,11 @@ Said plainly, because a plan built on stale numbers is worse than no plan.
    its own. What is true is narrower: only **26 of the 28 requested days** are being published, and
    nobody has said why the last two are missing.
 3. **It repeated "53,612 stops, 608,596 trips, 11.3 million stop times".** Those were measured on the
-   **14 November** archive. Today's archive holds **56,853 stops and 1,089,068 trips** — the national
+   **14 November** archive. Today's archive holds **56,853 stops and 1,089,068 trips**: the national
    feed has roughly **doubled** in trips since the figures the documents quote.
 4. **It repeated "1,133,578 connections" and the search timings built on it.** A day now carries
-   **2,000,205 connections**, so every cost measured in `PLAN-FREE-ROUTING.md` — the 3.96 ms and the
-   12–16 ms — was measured on a graph about **half** this size. None of those timings can be quoted
+   **2,000,205 connections**, so every cost measured in `PLAN-FREE-ROUTING.md`: the 3.96 ms and the
+   12–16 ms: was measured on a graph about **half** this size. None of those timings can be quoted
    as current. That is why step 13 begins with measuring again.
 5. **It said the invented alerts sit behind the sample-data switch "where they already belong".** They
    do not. `src/lib/useDisruptions.ts` returns `DISRUPTIONS` unconditionally, and
@@ -384,7 +384,7 @@ code is a separate request.
   says every alert in it is simulated. A traveller reading it is being told something untrue about
   today's network. The cheapest honest fix is the switch that `src/data/departures.ts` already uses
   (`SAMPLE_DATA_ALLOWED`), so that a production build shows no alert until a real source is connected
-  — which is what step 9 connects.
+, which is what step 9 connects.
 - **The boards are three days behind the graph.** The published month is rebuilt nightly from the
   newest archive; the boards shipped inside the app are regenerated only when somebody runs the
   builder by hand, and were last run on 15 November. Step 12 folds the two into one nightly job.
@@ -411,7 +411,7 @@ fourteen steps depends on them, and none pretends to stand in for one.
 1. **No card, ever.** Every source below is free and needs no account.
 2. **No invention.** A missing delay is said to be missing; a missing fare is left empty; a search
    with no answer says so. `src/lib/dataMode.ts` is the switch that enforces the second rule on
-   everything that consults it — and the defect above is what happens where something does not.
+   everything that consults it, and the defect above is what happens where something does not.
 
 ---
 
@@ -421,14 +421,14 @@ fourteen steps depends on them, and none pretends to stand in for one.
 
 - **The national timetable is in, and it is national.** The archive the app was built from is the
   17 November one: 42 agencies, 56,853 stops, 1,089,068 trips, service dates to 11 December 2027.
-- **The month is built and published every night, by itself** — 26 days, gzipped, on GitHub Pages,
+- **The month is built and published every night, by itself**: 26 days, gzipped, on GitHub Pages,
   free for a public repository. The app fetches one day at a time and keeps it on the device
   (`src/planner/graph.ts`).
 - **The search is real and runs in the browser** over that graph. It returns up to four journeys,
   and it already handles the small hours by searching the previous service day as well, which is why
   a 03:00 bus is found (`planRealJourneys`).
-- **Boards are real for 60 stops** — 17,832 scheduled departures over two days, each row carrying the
-  feed's own trip id — and a stop the feed knows is never answered with an invented time
+- **Boards are real for 60 stops**: 17,832 scheduled departures over two days, each row carrying the
+  feed's own trip id, and a stop the feed knows is never answered with an invented time
   (`boardForStop` in `src/data/departures.ts`).
 - **Live delays are real** for the trips a board or a journey is showing: the worker reads the
   national feed and answers on `/api/live`, which returned **10,678 known trips** when asked today.
@@ -441,18 +441,18 @@ fourteen steps depends on them, and none pretends to stand in for one.
 
 - **A traveller can pick from 61 places.** `src/components/journey/StopPicker.tsx` and
   `src/lib/stopSearch.ts` search `STOPS`; one published day holds **42,937 places** (48,827 raw
-  stops). The data is already published and already cached — the picker simply never looks at it.
+  stops). The data is already published and already cached, the picker simply never looks at it.
   **This is the biggest gap in the product.**
 - **The search leaves at a time; it cannot arrive by one.** `planRealJourneys(day, origin,
   destination, startMinutes)`.
 - **The preferences are not applied.** Modes, walking, changes, step-free and bicycle are stored and
   the search reads none of them.
-- **The alerts are invented** — and shown, which is the defect above. The real feed (`alerts.pb`,
+- **The alerts are invented**, and shown, which is the defect above. The real feed (`alerts.pb`,
   367,620 bytes today) is read by nothing.
 - **The line is not drawn where it runs.** `shapes.txt` is 345,822,458 bytes of real geometry and is
   read by nothing.
 - **Fares are impossible from the feed**, and now that is a measurement rather than an opinion: the
-  archive contains **no `fare_attributes.txt`** and **no `fare_rules.txt`** — only two `ticketing_*`
+  archive contains **no `fare_attributes.txt`** and **no `fare_rules.txt`**: only two `ticketing_*`
   files of 36 and 73 bytes.
 - **Long journeys were measured on a graph half the size of today's**, so whether they still fit the
   free allowance is **unknown until re-measured**.
@@ -468,8 +468,8 @@ line drawn where it runs, and another way round when your train is cancelled.
 ### How the sizes are given
 
 The UI plan measured its sizes in minutes, twice, and those numbers are real; they do not transfer to
-pipeline work. So: **S** an afternoon, **M** a day or two, **L** most of a week, **XL** a week or more
-— every one an estimate, corrected in this file in the same turn it proves wrong.
+pipeline work. So: **S** an afternoon, **M** a day or two, **L** most of a week, **XL** a week or more:
+every one an estimate, corrected in this file in the same turn it proves wrong.
 
 ---
 
@@ -478,14 +478,14 @@ pipeline work. So: **S** an afternoon, **M** a day or two, **L** most of a week,
 This file was written on 18 November and carries no status column, so it is read here against the
 code in the repository today:
 
-- **1 and 2 (every place, a board for every stop)** — `src/data/stops.ts` holds 70 entries with
+- **1 and 2 (every place, a board for every stop)**: `src/data/stops.ts` holds 70 entries with
   `src/data/stop-streets.json` beside it, and every stop has a page (`StopDetailPage.tsx`).
-- **3. Arriving by a time** — `arriveBy` is handled in `src/pages/ResultsPage.tsx`.
-- **5. An address, a postcode or a place** — `StopPicker.tsx` and `LegList.tsx` both geocode, and the
+- **3. Arriving by a time**: `arriveBy` is handled in `src/pages/ResultsPage.tsx`.
+- **5. An address, a postcode or a place**: `StopPicker.tsx` and `LegList.tsx` both geocode, and the
   stops carry street names.
-- **6. Door to door** — walks are legs of their own in `LegList.tsx`.
-- **8. Live delays** — the live feed is read on the server and drawn beside the planned time.
-- **12. The nightly month** — `scripts/gtfs-pipeline.mjs` and `scripts/gtfs/` build the days;
+- **6. Door to door**: walks are legs of their own in `LegList.tsx`.
+- **8. Live delays**: the live feed is read on the server and drawn beside the planned time.
+- **12. The nightly month**: `scripts/gtfs-pipeline.mjs` and `scripts/gtfs/` build the days;
   `scripts/exclude-local-graph.mjs` keeps the local graph out of the build.
 
 The rest of the fourteen were not re-measured on 26 November 2026, and this file's own test is a
@@ -499,14 +499,14 @@ the journey planner is real rather than a plan.
 
 **9292:** any stop, station, village, street or landmark. **OVVO:** 61 places.
 
-**Build.** A place index generated from the same graph the search reads — every stop, station and
-grouped place (`placesOf` in `src/planner/graph.ts`) — with name, town and position, built by the
+**Build.** A place index generated from the same graph the search reads: every stop, station and
+grouped place (`placesOf` in `src/planner/graph.ts`) with name, town and position, built by the
 nightly job so it can never drift from the timetable. The picker keeps `rankStops` as its only
 ranking function, so the short list and the full list cannot disagree.
 **Where.** A new step beside `scripts/gtfs/build-app-data.mjs`; the loader in `src/lib/stopSearch.ts`;
 the picker and combobox read the index and fall back to `STOPS`.
 **Data.** Already published. Nothing new is downloaded.
-**Size.** L — the build is small; the work is every screen that assumes a stop is one of 61.
+**Size.** L: the build is small; the work is every screen that assumes a stop is one of 61.
 **Done when.** A stop outside the 61 is found, plans a journey, and every leg opens. Checked with a
 deliberately obscure stop, not Utrecht.
 
@@ -518,7 +518,7 @@ heavy, shard by first letter and fetch the shard being typed into.
 **9292:** every stop in the country has a board. **OVVO:** 60 stops, two days, 250 departures a stop.
 
 **Build.** Boards generated per stop and per day into static files fetched when a stop opens, instead
-of one 1.6 MB TypeScript module holding all of them — 26 KB a stop cannot become 43,000 stops in one
+of one 1.6 MB TypeScript module holding all of them: 26 KB a stop cannot become 43,000 stops in one
 file. Generated by the nightly job, from the same archive as the graph, so the board and the planner
 can never be describing different timetables.
 **Where.** `scripts/gtfs/build-app-data.mjs` becomes a sharded builder; the board hook reads a shard.
@@ -536,7 +536,7 @@ not allowed. Shard by the first letters of the stop id, and fetch the shard on d
 **Build.** The same search run backwards over the same graph: start at the destination at the arrival
 time and walk the connections in reverse. *Leave at* / *Arrive by* above the time, remembered per
 search. The small-hours rule already in `planRealJourneys` has to hold in both directions.
-**Size.** M — the scan is the easy half; proving it agrees with the forward search on ten known
+**Size.** M: the scan is the easy half; proving it agrees with the forward search on ten known
 journeys is the half that matters.
 **Done when.** "Arrive by 09:00 in Amsterdam" returns only journeys that arrive at or before 09:00,
 and the same journey found forwards and backwards has the same legs.
@@ -546,14 +546,14 @@ and the same journey found forwards and backwards has the same legs.
 **9292:** honours them. **OVVO:** stores them and ignores them.
 
 **Build.** Apply what the graph supports with no new data: allowed modes, maximum changes, walking
-speed and longest walk, bicycle. Step-free stays **not supported** and says so — measured today, only
+speed and longest walk, bicycle. Step-free stays **not supported** and says so, measured today, only
 **2,730 of 56,853 stop rows** carry a `wheelchair_boarding` value at all, so a step-free claim would
 rest on a column that is 95% blank.
 **Size.** M.
 **Done when.** Trains off returns no trains; at most one change returns at most one; every preference
 the search ignores is shown as unsupported with a reason.
 
-#### 5. An address, a postcode, or a place — not only a station
+#### 5. An address, a postcode, or a place: not only a station
 
 **9292:** door number to door number. **OVVO:** stops only, though the lookup behind it already runs.
 
@@ -586,7 +586,7 @@ included in the total.
 
 **Build.** Read `shapes.txt` in the graph builder, keep one decimated polyline per pattern, draw it
 under the journey and on the journey's map. At 345,822,458 bytes it is the largest file in the archive
-and must never reach a phone whole — decimate in the build, not in the browser.
+and must never reach a phone whole: decimate in the build, not in the browser.
 **Size.** M.
 **Done when.** A train's line follows the railway and a bus's follows the roads it is timetabled on,
 checked against the same journey in 9292.
@@ -594,7 +594,7 @@ checked against the same journey in 9292.
 #### 8. Live delays on the journey, and the platform change and the cancellation too
 
 **9292:** a cancelled train is cancelled on screen. **OVVO:** a delay in seconds, per trip, nothing
-else — the decoder in `shared/live-feed.mjs` reads the trip id, its start date, its route and the
+else: the decoder in `shared/live-feed.mjs` reads the trip id, its start date, its route and the
 delay, and skips every other field.
 
 **Build.** Decode the rest of what the feed already carries for each stop of each trip: a skipped
@@ -611,7 +611,7 @@ production, which is the defect above.
 
 **Build.** First make the honest state true: with no real source, a production build shows **no**
 alerts. Then read `alerts.pb` (367,620 bytes today), decode the header, the period and what each alert
-is about — a stop, a line, a trip — and show those. An alert the feed does not name is not shown; a
+is about (a stop, a line, a trip) and show those. An alert the feed does not name is not shown; a
 feed that cannot be read says so.
 **Size.** L.
 **Done when.** The disruptions screen lists only alerts the feed is carrying, an expired one
@@ -631,7 +631,7 @@ and says plainly when there is none.
 
 #### 11. A price, if there is an honest one to show
 
-**9292:** the fare before you travel. **Not one of the four he accepted**, so it stays in scope — with
+**9292:** the fare before you travel. **Not one of the four he accepted**, so it stays in scope, with
 a condition.
 
 **Build, and stop where the truth stops.**
@@ -648,7 +648,7 @@ a condition.
 
 **Size.** M to find out; L to build properly.
 **Done when.** Either a fare appears with its source and date, or the page says fares are unavailable
-— and no number anywhere is a guess dressed as a price.
+, and no number anywhere is a guess dressed as a price.
 
 #### 12. The nightly month: keep it honest, and fold the boards into it
 
@@ -664,7 +664,7 @@ imagined.
    day inside the feed's window is missing.
 2. **Fold the boards in.** The 60-stop board file is generated by hand and is currently three days
    behind the graph. One nightly job, one archive, both outputs, one timestamp.
-3. **Watch it.** A failed night must reach a human — a failed Action is free to notify, and a
+3. **Watch it.** A failed night must reach a human: a failed Action is free to notify, and a
    `builtAt` older than 36 hours should make the app say its timetable is stale rather than plan from
    it silently.
 4. **Say the window.** The app should say which days it can plan, and say plainly that a day past the
@@ -686,8 +686,8 @@ the honest position.
    connections; a day today holds **2,000,205**. Re-run the ten golden journeys and record the real
    cost before any optimisation is planned. The free allowance is 10 ms of processor time per
    request.
-2. **Find the miss.** The known disagreement — Utrecht Centraal → Groningen arriving 30 minutes late
-   against the reference search — was narrowed by elimination and never found. Make the fast search
+2. **Find the miss.** The known disagreement: Utrecht Centraal → Groningen arriving 30 minutes late
+   against the reference search: was narrowed by elimination and never found. Make the fast search
    record the path it took, leg by leg, the way the reference scan does, and compare the two on that
    one journey. A recording shows a missed boarding in one run where tuning failed five times.
 3. **Then the cost**, only once the answer is right: a two-way search that meets in the middle, or a
@@ -719,16 +719,16 @@ By what a traveller notices first, not by what is easiest.
 
 0. **The two defects**, first, because they are small and they are currently telling travellers
    something untrue: production showing invented alerts, and boards three days behind the graph.
-1. **The picker and the boards** — 1, then 2. Until these are done most of the country cannot use the
+1. **The picker and the boards**: 1, then 2. Until these are done most of the country cannot use the
    app, and every later step improves something most people cannot reach.
-2. **The question itself** — 3, then 4.
-3. **What is happening now** — 8, then 9, then 10.
-4. **From a door** — 6, then 5.
-5. **The picture** — 7.
-6. **The price** — 11, only as far as a verified source goes.
-7. **Keeping it alive** — 12. It runs, so this is the smallest step here and the one that protects
+2. **The question itself**: 3, then 4.
+3. **What is happening now**: 8, then 9, then 10.
+4. **From a door**: 6, then 5.
+5. **The picture**: 7.
+6. **The price**: 11, only as far as a verified source goes.
+7. **Keeping it alive**: 12. It runs, so this is the smallest step here and the one that protects
    everything else.
-8. **The hard two** — 13, then 14.
+8. **The hard two**: 13, then 14.
 
 Each group is built, checked at a phone width in both themes, deployed and pushed before the next
 starts. No step is a rewrite: each adds a source or a capability to code that exists.

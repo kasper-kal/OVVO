@@ -37,7 +37,7 @@ why the earlier audits missed it.
 
 On the stop page, every departure row reports **100% overlap** with its alert link: `Intercity 800
 departure` and `Alerts: Intercity 800` occupy the same box, in all twenty styles, ten rows per
-screen. Two links cannot share the same pixels — one of them is unreachable, and it is the row
+screen. Two links cannot share the same pixels: one of them is unreachable, and it is the row
 (200 of 200). This needs a look at the markup, not the colour.
 
 ## 3. Small text still misses the line · HIGH · 36 findings
@@ -74,13 +74,13 @@ name it.
 
 Worth stating, because a strict audit that only lists problems is not evidence of anything:
 
-- **No text clipped by its own box** — 0 across 200 screens.
-- **No child spilling its card** — 0.
-- **No page wider than the screen** — 0.
-- **No control under the floating dock at the end of a page** — 0.
-- **No invisible control edges, no unreadable icons, no duplicate ids** — 0 once the checks stopped
+- **No text clipped by its own box**: 0 across 200 screens.
+- **No child spilling its card**: 0.
+- **No page wider than the screen**: 0.
+- **No control under the floating dock at the end of a page**: 0.
+- **No invisible control edges, no unreadable icons, no duplicate ids**: 0 once the checks stopped
   counting transparent borders and the brand's own white plate as faults.
-- **No console or page errors** — 0.
+- **No console or page errors**: 0.
 
 ## Where this audit is still weak
 

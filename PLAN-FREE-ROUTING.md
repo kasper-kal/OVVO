@@ -1,4 +1,4 @@
-# Plan — real journeys, with no paid service
+# Plan: real journeys, with no paid service
 
 ## Summary (read this and you have the whole plan)
 
@@ -9,7 +9,7 @@ the three live feeds already decode, so the only missing piece is the search its
 The plan is one experiment first, then four build steps. The experiment decides the scope: a free
 serverless function gets very little processor time per request, so step 0 measures whether one
 search across the whole country fits inside it. If it fits, OVVO plans nationwide for free. If it
-does not fit, the same code runs on a smaller region and the app says so on screen — real answers
+does not fit, the same code runs on a smaller region and the app says so on screen, real answers
 either way, and still free.
 
 Nothing in this plan costs money, and any option that does is out of scope permanently.
@@ -45,33 +45,33 @@ browser ──► /api/journey ──► search in the function ─────�
 The graph is built once by a script, not on every request. It is served as ordinary static files,
 which are free and unmetered, so no process has to stay warm and nothing has to be rented.
 
-## Step 0 — the experiment that decides the scope (do this first)
+## Step 0: the experiment that decides the scope (do this first)
 
 **Question:** does one real search fit in 10 ms of processor time and 128 MB of memory?
 
-1. Build a compact graph for one region first — connections sorted by departure, in typed arrays,
+1. Build a compact graph for one region first: connections sorted by departure, in typed arrays,
    with walking links between stops within 400 m.
 2. Write the search (connection scan, the simplest correct algorithm) in plain TypeScript.
-3. Run real queries — Utrecht Centraal to Amsterdam Centraal, a cross-country pair, a short hop —
+3. Run real queries: Utrecht Centraal to Amsterdam Centraal, a cross-country pair, a short hop,
    and measure processor time per query, memory, and the size of the graph each query needs.
 4. Repeat with the national graph and the same three queries.
 
-**Outcome A — it fits.** National journeys on the free tier. Continue to step 3 with national data.
+**Outcome A: it fits.** National journeys on the free tier. Continue to step 3 with national data.
 
-**Outcome B — it does not fit.** Two free remedies, tried in this order:
+**Outcome B: it does not fit.** Two free remedies, tried in this order:
 
 - **Shard the graph.** Load only the region a query touches (a file fetch costs no processor time),
   so one request never scans the whole country.
 - **A different free runtime.** Some serverless free tiers allow more time per request and need no
   card. If a free one does, the same code runs there.
 
-**Outcome C — no free arrangement fits.** Then the first release covers a region, chosen by real
+**Outcome C: no free arrangement fits.** Then the first release covers a region, chosen by real
 usage, and the app states the limit on screen. This is still real data, still free, and is reported
 as PARTIAL rather than dressed up as national.
 
 Nothing is built beyond step 0 until its result is written down here.
 
-### Step 0 — result (measured 14 November 2026)
+### Step 0: result (measured 14 November 2026)
 
 The experiment is done: a real connection-scan search over the real archive, written and run.
 Records: `routing/feasibility-region.json`, `routing/feasibility-national.json`,
@@ -85,10 +85,10 @@ Records: `routing/feasibility-region.json`, `routing/feasibility-national.json`,
 | National, 3-hour slice | ~180,000 | ~3.7 MiB | 8.0 – 11.8 ms | correct |
 
 The journeys it returns are believable against the real timetable: Utrecht Centraal to Amsterdam
-Centraal arriving 08:35, Amsterdam to Rotterdam 08:40, Utrecht to Groningen 10:14 — all from an
+Centraal arriving 08:35, Amsterdam to Rotterdam 08:40, Utrecht to Groningen 10:14, all from an
 08:00 departure.
 
-**Conclusion — outcome A, with a condition.** A national search fits inside the free 10 ms budget
+**Conclusion: outcome A, with a condition.** A national search fits inside the free 10 ms budget
 when the graph is served in **2-hour slices** and the scan stops as soon as nothing later can arrive
 easier. Long journeys do not fit at that window: Utrecht to Groningen needs a 3-hour slice and costs
 11.8 ms, which the free tier would terminate.
@@ -103,7 +103,7 @@ This is measured in Node on this machine, not inside a Worker. The Worker figure
 worse; the comparison is the first check of step 2, and it is not called done until it is measured
 there.
 
-## Step 1 — the graph builder
+## Step 1: the graph builder
 
 A script that turns the verified archive into the files the search reads:
 
@@ -117,7 +117,7 @@ The builder refuses to publish a graph that fails its own checks: every stop ref
 every connection must move forward in time, every date must have a service. A failed build leaves the
 previous graph in place, exactly as the timetable pipeline does.
 
-### Step 1 — result (built 15 November 2026)
+### Step 1: result (built 15 November 2026)
 
 `npm run gtfs:graph:verify` builds the graph and then reads it back. Current build, from the
 verified archive, for Sunday 15 November 2026:
@@ -144,7 +144,7 @@ would have produced a silently wrong planner:
 **Timing a request-shaped search**, loading three slices (392,153 connections, 7.48 MiB) from disk in
 5 ms and then searching: 10.3 ms and 10.5 ms. That is on the line, not under it. The cause is visible
 in the build: a two-hour slice in the middle of the day holds 140,000–150,000 connections, and the
-scan still reads all of them. **This is exactly what step 2 must fix** — visit only stops the search
+scan still reads all of them. **This is exactly what step 2 must fix**: visit only stops the search
 has actually reached instead of every connection in the slice.
 
 Open question for step 1, not yet solved: the graph is built for **one service day**. The feed covers
@@ -152,7 +152,7 @@ Open question for step 1, not yet solved: the graph is built for **one service d
 slices that carry their own date. That decision belongs with step 3, where the request states which
 day it means.
 
-## Step 2 — the search itself
+## Step 2: the search itself
 
 Connection scan first: one forward pass over departure-sorted connections gives the earliest arrival
 for every stop from one origin. That covers "leave at" and, run backwards, "arrive by". It is small,
@@ -163,15 +163,15 @@ it is well understood, and it is easy to test. It handles:
 - walking legs between nearby stops;
 - a limit on the number of changes, and a limit on total walking.
 
-Preferences are only honoured if the search actually applies them. A setting the search ignores —
-step-free routing, bicycle carriage — is not shown as applied; it is reported as not yet supported.
+Preferences are only honoured if the search actually applies them. A setting the search ignores,
+step-free routing, bicycle carriage: is not shown as applied; it is reported as not yet supported.
 
-### Step 2 — result (measured 15 November 2026)
+### Step 2: result (measured 15 November 2026)
 
 A round-based search now exists: `scripts/routing/raptor.mjs`. It stands at stops it has reached,
 takes the trips it can catch on each route serving that stop, and jumps along the route. The whole
 national pattern set is loaded once, 5,593 patterns and 88,255 stop positions, in about 20 ms of
-loading — which costs no processor time on a Worker, because loading is waiting for a file.
+loading, which costs no processor time on a Worker, because loading is waiting for a file.
 
 **Measured against the exhaustive connection scan, same graph, departing 08:00:**
 
@@ -184,7 +184,7 @@ loading — which costs no processor time on a Worker, because loading is waitin
 | Rotterdam Centraal → Groningen | 16.5 ms | 17.1 ms |
 | Utrecht Centraal → Maastricht | 20.7 ms | 17.8 ms |
 
-**What this means, plainly.** Ordinary journeys are now comfortably under the free 10 ms budget —
+**What this means, plainly.** Ordinary journeys are now comfortably under the free 10 ms budget,
 by two to three times. Long cross-country journeys are not: they still cost 14–18 ms, because a
 journey of two hours genuinely has to consider everywhere reachable within two hours. The budget is
 therefore met for the journeys people make most, and not met for the longest ones.
@@ -209,13 +209,13 @@ shorten the search with a two-way search that meets in the middle, or accept tha
 journeys take longer than 10 ms and serve them from a runtime whose free allowance is larger. Neither
 is built. What is built is measured and recorded.
 
-### Step 2 again — stations, places, and what is still wrong (measured 15 November 2026)
+### Step 2 again: stations, places, and what is still wrong (measured 15 November 2026)
 
 A station name used to resolve to a single raw stop. It now resolves to a **place**: every platform a
 traveller can board from. The feed names stops like `[Utrecht Vaartsche Rijn] OV halte Vondellaan
 richting Utrecht Centraal`, so matching on the name sent a journey to a bus stop that merely mentions
-the station. And one physical station can arrive as several parent records — Groningen's platforms
-sit in six of them — so a place joins station groups within 400 m whose names begin the same way.
+the station. And one physical station can arrive as several parent records, Groningen's platforms
+sit in six of them, so a place joins station groups within 400 m whose names begin the same way.
 
 | Journey | Exhaustive scan | Route search | Agree? |
 | --- | --- | --- | --- |
@@ -236,8 +236,8 @@ sit in six of them — so a place joins station groups within 400 m whose names 
 
 **Still not met.** Five of six journeys match the exhaustive scan exactly, and the fast short
 journeys are well under the free 10 ms. Three long journeys are not: 12–16 ms. And Utrecht to
-Groningen is 30 minutes late at every setting tried — one, three and eight trip candidates per route,
-five and eight rounds all return 10:42 — so it is not a tuning problem but a structure the round-based
+Groningen is 30 minutes late at every setting tried: one, three and eight trip candidates per route,
+five and eight rounds all return 10:42, so it is not a tuning problem but a structure the round-based
 search does not see, most likely a journey the scan finds through a connection this search never
 considers. That is not understood yet, and it is not claimed to be fixed.
 
@@ -276,7 +276,7 @@ knows why yet. **The next step is not more tuning.** It is to make the fast sear
 took, the way the exhaustive scan now can, so the boarding that fails can be seen directly. Optimising
 a search that silently takes a worse train would be optimising the wrong thing.
 
-## Step 3 — the contract between search and screen
+## Step 3: the contract between search and screen
 
 `/api/journey` takes origin, destination, date, time, arrival-by or departure-at, and the supported
 preferences, and returns itineraries shaped like the `Journey` the approved UI already draws. The
@@ -286,24 +286,24 @@ Honest answers, in this order of preference: real itineraries; a specific, expla
 route at that time, origin unknown, search timed out); and never an invented journey. The search does
 not guess a station or make up a departure to fill a screen.
 
-## Step 4 — wire it and make invention impossible
+## Step 4: wire it and make invention impossible
 
 - The results screen reads `/api/journey`. In a production build the invented journeys are gone, not
   hidden: `lib/dataMode` already gates sample data, and journeys join that gate.
 - With no engine answer, the screen shows an honest unavailable state, not a plausible timetable.
-- Realtime is applied to the result **only** where a live feed names the same trip — a delay is never
+- Realtime is applied to the result **only** where a live feed names the same trip, a delay is never
   inferred from a route number that looks similar.
 
-## Step 5 — prove it works
+## Step 5: prove it works
 
 - Known journeys with known answers: a direct train, a change, a short bus hop, a late-night service
   after midnight, a date on each side of a daylight-saving change.
 - A Sunday and a holiday, to prove the calendar is read.
 - A query with no route at all, to prove the empty answer is honest.
 - Processor time and memory for each query, recorded in this file, so the scope claim is measured.
-- The full app flow: type a place, pick it, press search, see real legs — checked in a browser.
+- The full app flow: type a place, pick it, press search, see real legs, checked in a browser.
 
-## Step 6 — the map and realtime, in that order
+## Step 6: the map and realtime, in that order
 
 Only after journeys are real: draw the real route geometry, then attach live delays to the trips the
 search actually chose.
@@ -334,7 +334,7 @@ regional; I will stop and report that result before building on it.
 
 The browser does the search, so no server function is needed and nothing is paid for.
 
-* `/plan` — type a station, pick a day and a time, and the page returns real journeys: each leg has
+* `/plan`: type a station, pick a day and a time, and the page returns real journeys: each leg has
   its line, its headsign, both stations, both platforms and the operator, read from the official
   timetable. Departure, arrival, duration and transfers are counted, not estimated.
 * The search is the exhaustive connection scan, ported to the browser (`src/planner/graph.ts`).
@@ -343,7 +343,7 @@ The browser does the search, so no server function is needed and nothing is paid
 * Two service days are built (`20261115`, `20261116`) and `public/graph/index.json` lists exactly
   the days that exist, so the page can only offer days it can really plan for.
 * Departure boards now take a small allowance **per hour** instead of spending a flat 250 per day in
-  file order — the old cap filled the morning and silently dropped the evening.
+  file order: the old cap filled the morning and silently dropped the evening.
 * Walks are modelled as steps of their own, and a walk inside one station is not a leg.
 
 **Live running times.** The national realtime feed is a binary protobuf and sends no CORS headers, so
@@ -354,7 +354,7 @@ states when the feed cannot be read rather than assuming a train is on time. `tr
 day's graph carries the feed's own trip identifiers, which is what makes the join possible.
 
 **The landmark stops.** All 60 stops now have a board. The seven that are landmarks rather than
-stations are matched by **distance** — the nearest stop within 600 m — instead of by name, because
+stations are matched by **distance** (the nearest stop within 600 m) instead of by name, because
 no station in the feed carries the name "Vondelpark". Verified by the builder: 60 matched, none
 unmatched.
 
@@ -380,6 +380,6 @@ exists. It exits non-zero on a mismatch, so it can run before every save.
 
 **What a search downloads.** Measured in the browser, three searches over two service days cost
 117.8 MiB before caching and 67.2 MiB after Cache Storage keeps the timetable on the device. One new
-day is about 17 MB raw — roughly 6 MB compressed, which is what production serving sends — and a
+day is about 17 MB raw (roughly 6 MB compressed, which is what production serving sends) and a
 repeat search on the same day costs nothing. The two-hour slices are why a search does not fetch a
 whole day.

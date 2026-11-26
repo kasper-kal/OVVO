@@ -6,7 +6,7 @@ reproduced stops appearing. A finding that is wanted gets `status: deliberate` a
 
 Open findings: **12** across 2 kinds.
 
-## a control has no 44px tap area — 8
+## a control has no 44px tap area: 8
 
 - wrapped · tram · en · 390px · Disruptions: 14 69x36 narrow short
 - wrapped · tram · en · 390px · Sound on 84x34 wide short
@@ -17,7 +17,7 @@ Open findings: **12** across 2 kinds.
 - wrapped · tram · nl · 1440px · Storingen: 14 69x36 narrow short
 - wrapped · tram · nl · 1440px · Sound off 85x34 wide short
 
-## an icon is off its text line — 4
+## an icon is off its text line: 4
 
 - map · tram · en · 390px · 3.3px beside "Amsterdam Sloterdijk"
 - map · tram · en · 390px · 3.3px beside "Amsterdam, Leidseplein"

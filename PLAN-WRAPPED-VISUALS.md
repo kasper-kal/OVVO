@@ -133,19 +133,19 @@ pushed.
 
 ### What each step produced, and what proves it
 
-1. **Cover** — `WrappedMasses.tsx` case `cover` (two swept ribbon solids) with its ground and mass
+1. **Cover**: `WrappedMasses.tsx` case `cover` (two swept ribbon solids) with its ground and mass
    colours in `lib/wrappedLook.ts`. Proved by the check, which now reads the cover *before* Begin
    (it used to start after and never measure it), and by the first tile of
    `artifacts/wrapped-visuals/sheet-full.png`.
-2. **Total** — case `total`, a six-ticket stepped column starting above the frame. Same check walk.
-3. **The sentence back on** — `WrappedScenes.tsx` keeps one `h1`; `styles/wrapped-film.css` sets it in
+2. **Total**: case `total`, a six-ticket stepped column starting above the frame. Same check walk.
+3. **The sentence back on**: `WrappedScenes.tsx` keeps one `h1`; `styles/wrapped-film.css` sets it in
    `var(--ink)`, still, with the plate removed. Proved by the contrast pass: the stripped page is
    sampled where the sentence sits, and the weakest chapter is **4.6:1**.
-4. **The batches** — all 18 bodies in `WrappedMasses.tsx` and all 18 grounds, inks and mass pairs in
+4. **The batches**: all 18 bodies in `WrappedMasses.tsx` and all 18 grounds, inks and mass pairs in
    `lib/wrappedLook.ts`. Proved by the walk: **18 colour fields, 18 grounds, 18 masses, 18 distinct
    still sentences** at 1440, plus **18 pages inside 360×800** with nothing clipped and no sideways
    scroll.
-5. **The close card** — the ring and the stub are built (case `close`), but the two-column figures
+5. **The close card**: the ring and the stub are built (case `close`), but the two-column figures
    list is **open on a decision**: see the end of section 9.
 
 ## 7. What "close enough" means, in checks
@@ -154,15 +154,15 @@ These are the measurable things that separate the two worlds. They were meant to
 `VISUAL=1` pass; they are now the default assertions in `scripts/check-wrapped-scenes.mjs`, so the
 ordinary run cannot pass a deck that has gone flat again:
 
-- no chapter's stage background is `rgb(5, 5, 6)` — asserted as a gradient on the stage;
-- the art layer covers at least 85 per cent of the frame's area — asserted at 1440 and at 360;
-- at least one edge of the mega-form is cropped by the frame — asserted on `.w-mass`;
-- the largest mass is at least 55 per cent of the frame's short side — asserted on `.w-mass`;
-- no visible `.film2-scrim` or `.film2-glow` — counted and forbidden;
-- the type has no per-word stagger left — the computed `animation-name` must be `none`;
-- the sentence is readable on the field with no plate behind it — the stripped page is sampled where
+- no chapter's stage background is `rgb(5, 5, 6)`: asserted as a gradient on the stage;
+- the art layer covers at least 85 per cent of the frame's area: asserted at 1440 and at 360;
+- at least one edge of the mega-form is cropped by the frame: asserted on `.w-mass`;
+- the largest mass is at least 55 per cent of the frame's short side: asserted on `.w-mass`;
+- no visible `.film2-scrim` or `.film2-glow`: counted and forbidden;
+- the type has no per-word stagger left: the computed `animation-name` must be `none`;
+- the sentence is readable on the field with no plate behind it: the stripped page is sampled where
   the sentence sits, and every chapter must clear 4.5:1 against its own ink;
-- at 360 × 800 nothing clips and there is no sideways scroll — a full 18-chapter phone walk.
+- at 360 × 800 nothing clips and there is no sideways scroll: a full 18-chapter phone walk.
 
 Every one of those has been shown to fail on a deliberate break: `FLAT=1` (black stage),
 `NO_MASS=1` (masses hidden), `WORD_ANIM=1` (words performing), `LOW_CONTRAST=1` (ink forced white),
@@ -197,9 +197,9 @@ sentence and the share stay DOM and are untouched.
 
 **Still open on 26 November 2026, and only you can settle it: the closing card's two-column figures list.**
 
-- The plan line is section 6, item 5 — *"The close card last, as a poster with the small two-column
-  list"* — and the matching row of section 5, row 18: *"the poster: photo, list, share"*.
-- It collides with section 8 — *"One human sentence per chapter"* — the rule you asked me to keep.
+- The plan line is section 6, item 5: *"The close card last, as a poster with the small two-column
+  list"*, and the matching row of section 5, row 18: *"the poster: photo, list, share"*.
+- It collides with section 8 (*"One human sentence per chapter"*) the rule you asked me to keep.
 - It also collides with the check itself: `scripts/check-wrapped-scenes.mjs` counts every visible
   `h1`, `h2` and `p` inside the chapter and fails when the number is not one
   (`"N copy blocks, expected one sentence"`). A figures list is a second block of text, so shipping

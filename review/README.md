@@ -1,4 +1,4 @@
-# review — screenshots and notes from the design review layer
+# review: screenshots and notes from the design review layer
 
 Temporary. Everything here exists so the traveller can point at the interface instead of
 describing it, and so the fix plan can be written against what was actually seen.
@@ -9,8 +9,8 @@ One folder per round, so a capture is never filed with a batch it does not belon
 
 | Folder | What it holds | The plan written from it |
 |---|---|---|
-| `mobile/` | the finished phone batch — 29 screenshots at 378px, `notes.json` beside them | `../MOBILE-FIXES.md` |
-| `desktop/` | the round that has not started — empty until the first Save | `../DESKTOP-FIXES.md`, which now states that it is not started |
+| `mobile/` | the finished phone batch: 29 screenshots at 378px, `notes.json` beside them | `../MOBILE-FIXES.md` |
+| `desktop/` | the round that has not started: empty until the first Save | `../DESKTOP-FIXES.md`, which now states that it is not started |
 
 The dot saves into **one** folder per run: `desktop/` unless the dev server was started with
 `REVIEW_BATCH=mobile`, and the panel says which one it is on ("saving to review/desktop"). The
@@ -21,23 +21,23 @@ screenshot in `mobile/` would be counted by a plan whose numbers were measured o
 ## How a note gets here
 
 1. The floating dot in the bottom-right of the app (dev only) opens the review panel.
-2. Add a screenshot: paste it (`Ctrl/⌘+V`), drop an image file on the panel, or — on a phone,
-   where neither exists — use **Add a screenshot** and pick it from the photo library.
+2. Add a screenshot: paste it (`Ctrl/⌘+V`), drop an image file on the panel, or, on a phone,
+   where neither exists: use **Add a screenshot** and pick it from the photo library.
 3. Point at what you mean, two ways:
-   - **Pin a spot** and tap the picture to drop a numbered pin — one control, one icon, one word.
-   - **Select an area** and drag a box across the picture to mark a whole panel — a card, a row of
+   - **Pin a spot** and tap the picture to drop a numbered pin: one control, one icon, one word.
+   - **Select an area** and drag a box across the picture to mark a whole panel, a card, a row of
      chips, a block that needs to become one thing. The box is drawn over the image the way a
      file manager draws a selection.
    Then type what you think beside its number or its "Area n" label. As many of each per picture as
    you like, no labels or tags.
-4. **Save to review/<round>** — the button names the folder the panel is on — sends the image and
+4. **Save to review/<round>** (the button names the folder the panel is on) sends the image and
    the notes to `review/upload-plugin.mjs`, which writes both files into that round's folder
    (`review/desktop/` today). Nothing leaves the machine.
 
 On a phone the panel fills the screen as a sheet with the picture scrolling between a fixed header
 and a footer that holds Save and Discard, so the button that finishes a note is never off-screen.
 
-Pictures larger than 700 KB — which is every 3x phone screenshot — are re-encoded to a JPEG of at
+Pictures larger than 700 KB (which is every 3x phone screenshot) are re-encoded to a JPEG of at
 most 1600 px on the long edge before they are sent, because a multi-megabyte POST can stall in the
 dev-preview proxy without reaching the dev server. The reduction is recorded in the notes as
 `capture`, so the stored picture is never silently different from the one that was taken:

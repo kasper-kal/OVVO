@@ -1,7 +1,7 @@
-# Colours — the redesign plan
+# Colours: the redesign plan
 
 Status: **implemented** (2026-10-19; rationale in `DESIGN_DECISIONS.md` R113, work log in
-`USER-FIXES.md`). The plan is kept as written — the four answers it was waiting on, and the points
+`USER-FIXES.md`). The plan is kept as written: the four answers it was waiting on, and the points
 where the build differs from it, are recorded at the end under *As built*.
 Everything below marked *(measured)* was measured on the running app, on the current code, at
 1440×1100 and 390×844; the script is `.logs/colours-plan-measure.cjs` and its output is
@@ -17,21 +17,21 @@ currently Eyedropping, a big part of the image gets cropped off, it looks messy 
 ## 1. Screenshots of the section as it stands
 
 Captured by `.logs/colours-plan-shots.cjs` into `review/colours-before/` (tracked, so the plan can
-point at them). Read this section first — the plan is a response to these pictures. The photograph in
+point at them). Read this section first: the plan is a response to these pictures. The photograph in
 them is drawn by the script (sky, sun, three hills, a paved foreground) rather than borrowed, so the
 shots carry no third-party image and the crop is easy to see: every band that is lost is a recognisable
 shape.
 
-### Cream — the baseline, and already a stray pill
+### Cream: the baseline, and already a stray pill
 
 ![Colours section on cream](review/colours-before/colours-cream.png)
 
 Three blocks in one card: **Background** (Cream / Colour / Photo), **Primary colour** (a swatch, a
 button, a chip), **Text selection** (five chips and Custom). The section is 506px tall *(measured)* and
 holds 11 buttons *(measured)*. The empty rounded rectangle under the Background segmented control is
-the preview swatch, drawn with no colour in cream mode — a control-shaped nothing.
+the preview swatch, drawn with no colour in cream mode, a control-shaped nothing.
 
-### A colour page under a different widgets' colour — the "split"
+### A colour page under a different widgets' colour: the "split"
 
 ![The split: a blue page under green widgets](review/colours-before/colours-split.png)
 
@@ -40,7 +40,7 @@ section is therefore painted green. Inside it, the pale-blue chip is the page's 
 describe itself from inside the widgets' colour. Every label, chip and hairline has to survive one
 surface while describing another.
 
-### A photo with solid widgets — a green slab in both appearances
+### A photo with solid widgets: a green slab in both appearances
 
 ![Photo background with solid widgets](review/colours-before/colours-photo-solid.png)
 
@@ -53,7 +53,7 @@ nothing here, because the card is the traveller's colour. The section grows from
 **Widgets** row (Glass / Colour) appears above it only in photo mode. A section that reorders itself
 between three modes is most of the "messy" feeling, independently of the photo.
 
-### The sampler itself — the band
+### The sampler itself: the band
 
 ![The Background block with the sampler](review/colours-before/colours-photo-background-block.png)
 
@@ -70,7 +70,7 @@ the one action that samples anything already visible is the widest control in a 
 
 At 390 the card is **1085px tall** *(measured)* in an 844px viewport, so the section is scrolled like a
 page rather than read like a setting; the app's own header and dock sit over it as they do over any
-page. The two photo actions wrap onto two rows, then the picture, then a full-width **Eyedropper** — four
+page. The two photo actions wrap onto two rows, then the picture, then a full-width **Eyedropper**, four
 stacked controls for one question.
 
 ### The sheet, and where its footer goes
@@ -82,12 +82,12 @@ stacked controls for one question.
 The sheet carries the grid (17 swatches, three rows), the wallpaper sampler, the spectrum, the hue
 strip and the hex field. At 1440 its panel is 968px with a 918px scrolling body *(measured)* and the
 **Done** button is **below the fold** *(measured: `doneVisible: false`)*. At 390 the body is 900px in
-a 743px panel and Done sits at y=1111 in an 844px viewport *(measured)* — two scrolls to finish a
+a 743px panel and Done sits at y=1111 in an 844px viewport *(measured)*, two scrolls to finish a
 colour. This is the surface the full-screen picker replaces.
 
 ---
 
-## 2. What is actually wrong — six things, in order of weight
+## 2. What is actually wrong: six things, in order of weight
 
 1. **There is nowhere to see what you are sampling.** The picture is a 200px band, no loupe, no
    crosshair, no live swatch, and the colour it writes is only visible on the card behind it.
@@ -149,7 +149,7 @@ Settings → Colours                     Settings → Colours (the proposal)
 Each is the existing `FullScreen` primitive (`components/ui/FullScreen.tsx`): back arrow left, centred
 title, right slot for the one thing that finishes. Escape is Back, as it is today on the map.
 
-### 4a. Colour screen — `Background colour`, `Primary colour`
+### 4a. Colour screen: `Background colour`, `Primary colour`
 
 ```
 ┌────────────────────────────────────────────┐
@@ -182,11 +182,11 @@ title, right slot for the one thing that finishes. Escape is Back, as it is toda
 ```
 
 - **One screen for both colours**, with the title naming which one: *Background colour* or *Primary
-  colour*. Same grid, same spectrum, same hex — one component, one set of rules.
+  colour*. Same grid, same spectrum, same hex: one component, one set of rules.
 - **Done lives in the bar's right slot**, so it is on screen at every width and at every scroll
   position. That is the fix for the sheet whose footer measured below the fold at both sizes.
 - **The hero swatch states the consequence**: the hex, saturation/brightness, and *the ink that will
-  be used on it and its measured ratio* — the same two numbers the app derives anyway
+  be used on it and its measured ratio*: the same two numbers the app derives anyway
   (`lib/background.ts`), so a dark choice visibly "keeps its colour and gets light text" before it is
   committed.
 - **From your photo** is a row, not a picture: a 56px thumbnail, one sentence, a chevron. It opens the
@@ -195,7 +195,7 @@ title, right slot for the one thing that finishes. Escape is Back, as it is toda
 - **Writes live.** Every change is the setting (as today), so Back keeps what you saw; there is no
   Cancel/Apply pair to get wrong.
 
-### 4b. Photo screen — where a colour is taken out of the picture
+### 4b. Photo screen: where a colour is taken out of the picture
 
 ```
 ┌────────────────────────────────────────────┐
@@ -226,17 +226,17 @@ title, right slot for the one thing that finishes. Escape is Back, as it is toda
   finger never covers the pixel), showing a 6× magnification of the pixels around the sample point with
   a crosshair. A hex chip is attached to it. Dragging sweeps the picture and the colour updates live.
 - **The colour is shown twice**: the loupe at the point, and a persistent swatch row at the foot
-  (`#4A6F5C`, the words it came from — "the hills" is optional, see open question 3) with the ink
+  (`#4A6F5C`, the words it came from: "the hills" is optional, see open question 3) with the ink
   ratio the app will use on it. Both update while dragging, so the answer is visible *before* letting
   go, which today it is not.
 - **The platform's `EyeDropper`** becomes a secondary button here, for sampling anything else on the
   screen, where the browser has it. It is no longer a full-width row in a settings card.
 - **Keyboard**: arrows nudge the sample 1px (Shift 10px), Enter commits and goes back, Escape backs out
-  without committing (the colour from before the screen opened is restored — see §7).
+  without committing (the colour from before the screen opened is restored, see §7).
 - **Touch**: press-and-hold to sample without committing; the loupe appears on the first move; releasing
   commits. A tap commits immediately.
 
-### 4c. Crop screen — the photograph, framed by the traveller
+### 4c. Crop screen: the photograph, framed by the traveller
 
 ```
 ┌────────────────────────────────────────────┐
@@ -261,7 +261,7 @@ title, right slot for the one thing that finishes. Escape is Back, as it is toda
   longer silently applies a centre crop.
 - **Zoom and position** with wheel/pinch and drag; the area outside the frame is dimmed, not hidden, so
   it is obvious what will be lost. A rule-of-thirds grid fades in while dragging.
-- **Frame chips**: *Fill the screen* (the current behaviour, made visible), *Phone* (9:16), *Free* —
+- **Frame chips**: *Fill the screen* (the current behaviour, made visible), *Phone* (9:16), *Free*,
   drag the frame's corners. Default: the aspect of the viewport the crop screen is open in, because that
   is the surface the photo is drawn on.
 - **Save** bakes the crop at full resolution and only then downscales to the stored maximum edge, so a
@@ -290,7 +290,7 @@ One new setting, one changed flow, no new image:
   (`background-size`, `background-position` and a zoom factor must agree with the crop screen's
   preview at every viewport). Baking is one field, one render path, and re-cropping the stored 1600px
   JPEG is visually indistinguishable at the sizes this app draws. If re-crop quality ever becomes a
-  complaint, that is the moment to revisit it — not before.
+  complaint, that is the moment to revisit it, not before.
 - A **partially sampled colour is not a setting.** The photo screen holds its sample in component state
   and writes once on commit, so dragging across a picture does not write settings on every move (today
   the settings object is rewritten on every pointer move).
@@ -306,7 +306,7 @@ New:
 | `src/components/ui/ColourScreen.tsx` | the full-screen colour picker (§4a). Absorbs the grid, spectrum, hue and hex from `ColorPicker.tsx`. |
 | `src/components/ui/PhotoScreen.tsx` | the full-screen sampler (§4b): contain-fit picture, loupe, live swatch, platform eyedropper, entry to the crop screen. |
 | `src/components/ui/PhotoCropScreen.tsx` | the full-screen crop (§4c): frame, zoom, pan, aspect chips, reset, save. |
-| `src/lib/photoCrop.ts` | pure geometry (frame ↔ image mapping, clamping, aspect maths) and `bakeCrop(bitmap, frame, maxEdge)` — crop at full resolution, then downscale. Testable without a browser. |
+| `src/lib/photoCrop.ts` | pure geometry (frame ↔ image mapping, clamping, aspect maths) and `bakeCrop(bitmap, frame, maxEdge)`: crop at full resolution, then downscale. Testable without a browser. |
 
 Changed:
 
@@ -331,7 +331,7 @@ photo**).
 | question | answer |
 |---|---|
 | Does the screen write as you go, or on Done? | **Colour screen: as you go** (Back keeps it, there is nothing to cancel). **Photo screen: on commit** (the colour under the finger is not a decision; the one you leave with is), with Back restoring what was there when it opened. |
-| What if the browser has no `EyeDropper`? | The loupe and the picture still work — they read canvas pixels, not the platform API. The platform button is simply absent, as it is today. |
+| What if the browser has no `EyeDropper`? | The loupe and the picture still work: they read canvas pixels, not the platform API. The platform button is simply absent, as it is today. |
 | What about `prefers-reduced-motion`? | The loupe appears and follows without a spring; no transitions on the screen's entry. |
 | Screen readers | The photo screen announces the sampled hex through a polite live region, throttled to the value actually committed (not every pixel); the loupe is `aria-hidden`; the picture is a labelled `img` with a keyboard path that does not need the pointer. |
 | Keyboard reach | Every control on all three screens is reachable and operable by keyboard; arrows nudge the sample; Enter commits; Escape backs out. |
@@ -350,7 +350,7 @@ photo**).
 5. `PhotoCropScreen.tsx` after file choice; `backgroundFocus` written and read by `applyBackground`.
 6. Settings card reduced to summary rows; remove the inline sampler, the blank pill, and the
    mode-dependent Widgets row (which becomes a treatment row present only over a photo, below the
-   widgets' colour — same position every time, so nothing above it moves).
+   widgets' colour: same position every time, so nothing above it moves).
 7. Documentation: `DESIGN_DECISIONS.md` (R113), `USER-FIXES.md`, and the probes below.
 
 ---
@@ -384,13 +384,13 @@ photo**).
 
 ## 11. Open questions
 
-1. **Crop frame default** — the viewport's aspect (what the page actually draws), *Phone* (9:16), or
+1. **Crop frame default**: the viewport's aspect (what the page actually draws), *Phone* (9:16), or
    *Fill* (16:9)? The plan assumes the viewport's aspect, with the chips to override.
 2. **Does the photo screen need to say where the colour came from** ("the hills"), or is the hex plus a
    swatch enough? Saying where means naming regions of a photograph, which no code can do honestly;
    the plan leaves it out unless you want a free-text note.
-3. **Should the sampler be reachable from the home screen too** — long-press the background, *Take a
-   colour from the photo* — or is Settings the only door?
+3. **Should the sampler be reachable from the home screen too**: long-press the background, *Take a
+   colour from the photo*, or is Settings the only door?
 4. **Text selection in the same card?** The plan keeps it (it is a colour), but it is the third
    question in a section named for two. Moving it under Appearance would make the Colours card exactly
    two rows on every screen.
@@ -401,7 +401,7 @@ photo**).
 
 The four questions were answered by the order, and the build follows them:
 
-1. **Crop frame default — the screen's own aspect.** *This screen* is the default chip; the preview at
+1. **Crop frame default: the screen's own aspect.** *This screen* is the default chip; the preview at
    the foot is the page's own two-layer drawing at that shape, so what the frame shows is what the page
    draws. Phone (9:16) and Square are the other two.
 2. **Crop is offered, never automatic.** Choosing a file applies the whole picture; **Crop** is a
@@ -418,7 +418,7 @@ Smaller differences from the plan as written, each deliberate:
   cut; a grid on top of a photograph is a second thing to read.
 - **The sampler is reachable from Settings as well** as from the colour screen's *From your photo* row,
   because taking a colour from the picture was the capability the order said had been lost.
-- **`PhotoScreen` commits on Done, not on every pointer move** — the plan said writes would happen on
+- **`PhotoScreen` commits on Done, not on every pointer move**: the plan said writes would happen on
   release; Done is stricter and the probe proves nothing is written while sweeping.
 - **A screenshot review caught two layout defects** the assertions could not: the crop screen's
   `9999px` dimming `box-shadow` painted over the whole viewport (including its own controls), and the

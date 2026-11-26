@@ -266,7 +266,7 @@ Kept because they were asked for and because they do support the look, but they 
 - **Method:** a real screen recording of the running page at 430 × 932, one phone frame, 60 fps capture.
 - **Cut:** `ffmpeg -r 10` on the recording, so **143 stills, one every 0.1 second**, covering 14.3 seconds.
   Files: `artifacts/rec/frames/our-001.png` … `our-143.png`.
-- **Compared against:** **all 1400 tiles** in `artifacts/reference-tenths/` — 14 sheets, each ten seconds
+- **Compared against:** **all 1400 tiles** in `artifacts/reference-tenths/`: 14 sheets, each ten seconds
   long, laid out 10 × 10, every tile 215 × 480 and also exactly 0.1 s after its neighbour. That is the
   whole reference: every single photo in the folder, measured, not sampled.
 - **Sixteen measurements per image:** mean luma, contrast, saturation, distinct colours, edge density,

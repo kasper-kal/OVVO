@@ -4,7 +4,7 @@ Drop a picture in this folder and that style wears it as its background. Nothing
 the site and it is there. No upload, no crop, no build step.
 
 **Every style has this choice, not just a handful.** Each one can wear a photograph, and each one can
-be worn as its own colour instead — that is the **Background** row under the style grid, and the
+be worn as its own colour instead, that is the **Background** row under the style grid, and the
 answer is remembered per style.
 
 **The catalogue is twenty styles now.** It was fifty, and most of them were the same layout

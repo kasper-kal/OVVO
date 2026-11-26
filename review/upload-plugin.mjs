@@ -3,14 +3,14 @@
  *
  * The point of it: a screenshot you paste into the layer should land in the review folder without
  * you touching a file manager. Vite's dev server is the only thing running, so the write happens
- * here — `apply: 'serve'` means this middleware does not exist in a build, and deleting this folder
+ * here: `apply: 'serve'` means this middleware does not exist in a build, and deleting this folder
  * deletes the whole feature.
  *
  * **One folder per round.** The phone batch is finished and archived in `review/mobile/`; the layer
  * now writes to `review/desktop/`, so a desktop capture can never be filed with the phone ones (or
  * counted by `MOBILE-FIXES.md`, whose numbers came from a folder with 29 pictures in it). The batch
- * is chosen when the dev server starts — `REVIEW_BATCH=mobile npm run dev` writes to the old folder
- * again — and it is passed in from `vite.config.ts` so the browser's own labels name the same folder
+ * is chosen when the dev server starts: `REVIEW_BATCH=mobile npm run dev` writes to the old folder
+ * again: and it is passed in from `vite.config.ts` so the browser's own labels name the same folder
  * the middleware writes to.
  *
  * Two files per upload, inside the batch folder:
@@ -25,14 +25,14 @@ import { join } from 'node:path';
 
 const MAX_BYTES = 12 * 1024 * 1024;
 
-/** `mobile`, `desktop`, `desktop-2` — a folder name, never a path. */
+/** `mobile`, `desktop`, `desktop-2`: a folder name, never a path. */
 const BATCH_NAME = /^[a-z0-9][a-z0-9-]{0,40}$/;
 
 /**
  * The batch folder this plugin writes into.
  *
  * The default is `desktop`: the phone round is closed, and a new capture is for the screen that is
- * being looked at next. `process.env.REVIEW_BATCH` is validated rather than trusted — it arrives
+ * being looked at next. `process.env.REVIEW_BATCH` is validated rather than trusted, it arrives
  * from a shell, and a value with a slash in it would let an upload write outside `review/`.
  */
 export function reviewBatchName(requested = process.env.REVIEW_BATCH) {

@@ -1,4 +1,4 @@
-# Going live — the record
+# Going live: the record
 
 Every decision and every fact that matters for putting OVVO on a real account goes in this
 file. It is the one place to look, so that a choice made in a chat three weeks ago is not
@@ -85,7 +85,7 @@ only as the Firebase project ID, because that one has to be unique across all of
 Turned on in Firebase: **Google**, **Email/Password**, and **Email link (passwordless sign-in)**.
 
 All three are the steerer's decision, taken 1 November 2026. More providers can be added at
-any time — clicking Done in the console locks nothing, and existing accounts keep working.
+any time: clicking Done in the console locks nothing, and existing accounts keep working.
 
 **The Google consent screen is already done.** Found on 1 November 2026 to be in production
 already, user type External, no test users, no sign-ins yet. So the whole "set up the consent
@@ -121,7 +121,7 @@ Asked by the steerer what else the free account is worth. Decided and built the 
 - **Three things wait on the steerer, because the deploy token can read but not create them.**
   Listing Turnstile widgets, Web Analytics sites and R2 buckets all answer 200; every create
   answers 403. So each of these needs one click in the dashboard: a Turnstile widget (name OVVO,
-  domain `app.ovvo.us.ci`, Managed — the widget was created for the old address, so add this
+  domain `app.ovvo.us.ci`, Managed: the widget was created for the old address, so add this
   hostname), a Web Analytics site for the same address, and an R2 bucket called `ovvo-photos`.
   The Turnstile secret becomes a Worker secret named `TURNSTILE_SECRET`; the site key and the analytics token are public and go into the page.
 - **Done the same day, once the token had Write.** The token needed three additions, all Write:
@@ -255,14 +255,14 @@ by being baked into the built code, and the token never reaches the site at all.
 
 Expected names:
 
-- `CLOUDFLARE_API_TOKEN` — a custom token with three permissions: Workers Scripts Edit,
+- `CLOUDFLARE_API_TOKEN`: a custom token with three permissions: Workers Scripts Edit,
   D1 Edit, Account Settings Read. Not the ready-made "Edit Cloudflare Workers" template; it
   has no D1.
 - `CLOUDFLARE_ACCOUNT_ID`
 - Firebase web config: `apiKey`, `authDomain`, `projectId`, `storageBucket`,
   `messagingSenderId`, `appId`.
 
-The Firebase values are public by design — they ship in the page. The Cloudflare token is not;
+The Firebase values are public by design: they ship in the page. The Cloudflare token is not;
 it can deploy and delete code, so it never leaves the secrets store.
 
 ## Still missing from the steerer
@@ -270,7 +270,7 @@ it can deploy and delete code, so it never leaves the secrets store.
 - The Cloudflare **account ID** (part 1.4 of the tutorial).
 - The **six Firebase values** (part 4 of the tutorial).
 - The Cloudflare token, pasted into Settings → Secrets, never into chat.
-- **The Firebase service account key for passkeys** — see "Turning passkeys on" above. Until it
+- **The Firebase service account key for passkeys**: see "Turning passkeys on" above. Until it
   arrives, passkeys stay switched off and the site says so by hiding them.
 
 ## The tutorial
@@ -287,10 +287,10 @@ the site's address and it does not exist until the Cloudflare side is named.
 - Verify the token works before using it: a bad token looks exactly like a bad permission.
 - Deploy the Worker and open the address before promising the steerer it works.
 - Test sign-in on a second device, and with storage cleared, before saying the year survives.
-- Then: OVVO Yearbook (planned, not built — see `AGENTS.md`).
+- Then: OVVO Yearbook (planned, not built, see `AGENTS.md`).
 
 
-**Everything needed to run this without me is in [HANDOVER.md](HANDOVER.md)** — accounts, names, ids, the commands, and what happens if something is lost.
+**Everything needed to run this without me is in [HANDOVER.md](HANDOVER.md)**: accounts, names, ids, the commands, and what happens if something is lost.
 
 ## What is live now (15 November 2026)
 
@@ -320,7 +320,7 @@ the site's address and it does not exist until the Cloudflare side is named.
 
 ## How account data is kept (1 November 2026)
 
-Signed out, every value lives in this browser only — that is unchanged, and the account card says so.
+Signed out, every value lives in this browser only, that is unchanged, and the account card says so.
 
 Signed in, the whole store is one document per account in D1 (`travel_sync`), pushed automatically
 1.5 seconds after any change and pulled on every page load. **The account is the copy that counts**
@@ -340,20 +340,20 @@ state of the code that carries them out.
 
 **Built and in the repository:**
 
-- **Sign-in, four ways** — Google, a link by email (landing on `/auth/finish`), email with a password,
+- **Sign-in, four ways**: Google, a link by email (landing on `/auth/finish`), email with a password,
   and a passkey. `src/pages/SignInPage.tsx`, `src/lib/account.ts`, `src/lib/passkeys.ts`, and
   `worker/passkey.js` for the server half of the keys.
-- **The store travels** — one document per account in `travel_sync`, saved with the revision it was
+- **The store travels**: one document per account in `travel_sync`, saved with the revision it was
   built on, so two devices merge rather than overwrite (`worker/index.js`).
-- **A photograph per account** — squared, size-checked, kept in `profile_photo` in the same database
+- **A photograph per account**: squared, size-checked, kept in `profile_photo` in the same database
   (`worker/photos.js`).
-- **Doors are counted** — `api_limit` holds the per-caller window, because Cloudflare's own rate
+- **Doors are counted**: `api_limit` holds the per-caller window, because Cloudflare's own rate
   limiting wants a domain this project deliberately does not have (`worker/limit.js`).
-- **The three lookups are cached at the edge** — `/api/lookup/*`, measured live as a `MISS` then a
+- **The three lookups are cached at the edge**: `/api/lookup/*`, measured live as a `MISS` then a
   `HIT` with the Worker not running for the second (see above).
 - **The sign-up challenge** is Cloudflare Turnstile, enforced only when `TURNSTILE_SECRET` is set
   (`worker/turnstile.js`).
-- **OVVO Yearbook is built** — `/yearbook`, drawn from what the traveller saved and searched.
+- **OVVO Yearbook is built**: `/yearbook`, drawn from what the traveller saved and searched.
 
 **Checked, and how:** the project's own type check, its style audits and a production build all pass
 in a clean checkout (`npm run typecheck`, `npm run build`). That is a statement about the code, not

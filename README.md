@@ -11,10 +11,10 @@ this file.
 
 The name is **OVVO** and the mark is a 2x2 checkerboard: O and V over V and O. The
 artwork's outline lives in `src/components/ui/Icons.tsx` as three paths (`BRAND_INK`) in a
-1024-unit box and is written to `public/favicon.svg` by the same paths — the mark is drawn,
+1024-unit box and is written to `public/favicon.svg` by the same paths, the mark is drawn,
 not rastered, so it is crisp at 16px and at 256px and its two colours come from the palette.
 There is no app bar: `<BrandMark />` sits alone and centred in the top row, and it says the
-name by itself — no wordmark — while the alerts entry keeps the top-right corner it has
+name by itself (no wordmark) while the alerts entry keeps the top-right corner it has
 always had, with nothing painted behind it and nothing pinned in front of the page: the row
 scrolls away with everything else, so there is no band over the content and no logo sitting on
 a heading. The alerts count is one scroll from the top on a long page (the All sections sheet
@@ -33,7 +33,7 @@ npm run typecheck    # TypeScript only
 ```
 
 The app is a single-page React app. Routes are real paths (`/stops/utrecht-centraal`), so
-the host must answer an unknown path with `index.html` — Vite's SPA fallback
+the host must answer an unknown path with `index.html`: Vite's SPA fallback
 (`appType: 'spa'` in `vite.config.ts`) does that for the dev server and for `vite preview`,
 which is how this site is served. An address that still carries a `#/` (an old bookmark)
 is translated to the path on the way in (`src/main.tsx`), so old links keep working.
@@ -55,7 +55,7 @@ no longer honours `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS`, which is why the hos
 goes through the config.)
 
 The same variable can instead be pinned in **`.env.local`**, which Vite loads itself and
-`.gitignore` excludes (`*.local`) — so nothing temporary lands in the repository:
+`.gitignore` excludes (`*.local`) so nothing temporary lands in the repository:
 
 ```bash
 # .env.local
@@ -102,14 +102,14 @@ host is named individually: the allow-list is never `true`, so an unknown `Host`
 | `/results` | Journey results: the search card itself, with Start / End / Leave / Options, then sorting, filters and the journeys |
 | `/journey/:id` | Journey details (full leg timeline, transfers, platforms, delays, occupancy) |
 | `/stops`, `/stops/:id` | Stations & stops list and stop pages (facilities, access, board, alerts, nearby stops) |
-| `/departures` | Departure board for one stop — stop picker, next departures, self-refreshing every 5 seconds by default |
+| `/departures` | Departure board for one stop: stop picker, next departures, self-refreshing every 5 seconds by default |
 | `/disruptions`, `/disruptions/:id` | Service alerts with filters, detail, advice, navigation |
 | `/preferences` | Travel preferences with a live preview of their effect |
 | `/settings` | Display settings, location access, planner defaults and local data management |
 | `/themes` | Themes: twenty-eight whole looks, each with its own page, cards, ink and lettering, and a photograph or its own colour. Default is one button away. `/styles` redirects here |
 | `/map` | The network map on a screen of its own (closed below 10% battery, with Settings) |
 | `/yearbook` | OVVO Yearbook: the traveller's own year, drawn from what they saved and searched (the old `/wrapped` address redirects here) |
-| `/signin`, `/auth/finish` | Signing in, and the page an emailed sign-in link lands on — both outside the shell |
+| `/signin`, `/auth/finish` | Signing in, and the page an emailed sign-in link lands on: both outside the shell |
 | `/developer` | The developer panel, reachable only while its switch in Settings is on |
 | `/skeleton` | Development only: the loading placeholder on a page of its own. Never in a build |
 
@@ -118,20 +118,20 @@ No route scrolls sideways: every screen is checked for horizontal overflow from 
 **One width decides which site you get: mobile under 720px, desktop from 720px.**
 `@media (max-width: 719px)` and `@media (min-width: 720px)` are the only queries that may
 decide a mode, and `scripts/breakpoint-audit.mjs` fails the build when another width
-appears outside the two named exceptions — `1040px`, where the sidebar replaces the dock
+appears outside the two named exceptions: `1040px`, where the sidebar replaces the dock
 (the page is already desktop at 720, this only changes how navigation is drawn), and the
 four density steps (`560`/`559`, `400`/`379`) that redraw a cramped control *inside* mobile
 rather than switching layout. The rule is written out in `src/styles/base.css` (“the one
 breakpoint”) and the boundary is measured: `scripts/ui-audit.mjs` runs every route at both
 **719** and **720**, because the defects this rule replaced were all found in the gap
-between two local widths — a home grid that kept two half cards at 390px, a stop picker
+between two local widths: a home grid that kept two half cards at 390px, a stop picker
 that capped its list as a phone up to 640px, a page head that changed shape at 641px.
 
 Desktop uses a sidebar; mobile uses the floating obsidian dock plus an “All sections”
-sheet. Every visible control performs a real action — nothing is a decorative link.
+sheet. Every visible control performs a real action: nothing is a decorative link.
 
 There is no full-screen page for favourited journeys or recent searches: both are managed
-inside the same home-screen card, **Your journeys** — a filled heart per journey (with an
+inside the same home-screen card, **Your journeys**: a filled heart per journey (with an
 “are you sure?” confirmation before it is unfavourited) and a per-row cross plus a
 delete-all button for the search history.
 
@@ -144,29 +144,29 @@ control; the layout lives in this browser. With customising off, none of that ch
 rendered at all.
 
 The catalogue is what the widget audit (`WIDGET-AUDIT.md`) left: a card has to hold
-something of the traveller’s or do something for them. Seventeen cards became nine — the
+something of the traveller’s or do something for them. Seventeen cards became nine, the
 network counts, the operator list, the About card, the settings echo, the navigation
 duplicate and the “stored on this device” card were cut, the two lists of journeys were
 merged into **Your journeys**, and the alerts card became the alerts that touch a journey
 you saved. The catalogue has since grown back to **sixteen** cards, each admitted on the same
 test rather than on how the old list was arranged. A fresh browser opens with **Plan a journey**, **Next departures** (untied: it
-asks for one station in the card itself) and **Favourite stops** — the three cards that
+asks for one station in the card itself) and **Favourite stops**: the three cards that
 answer the question a traveller arrives with.
 
 The planner widget is the compact two-row card described under *Design invariants* below:
 From and To with a rail beside them and nothing else. Tapping either row opens the
 full-screen picker, choosing the first end moves you to the other, and choosing the second
-runs the search and opens the results — the flow the card is copied from.
+runs the search and opens the results, the flow the card is copied from.
 
 The home screen's **Network map** widget draws the network itself: every stop is placed
 on the map module's 0–100 canvas from its schematic position, each line is drawn between
 the stops it calls at, and the mode chooser (All routes, Bus, Train, Tram, Metro, Ferry)
 filters which services are shown. A corridor shared by several services is drawn once per
-mode — forty-one services over a handful of corridors used to paint the network near-black.
+mode: forty-one services over a handful of corridors used to paint the network near-black.
 Stops open their own page, and a handful of junctions are named: a name takes the first of
 six positions (beside its dot, then above, then below, leaning inwards) whose box clears
 every dot and every name already placed. The names are the traveller’s own where they have
-any — the stops they hearted, then the stops nearest them — and only a traveller who has
+any (the stops they hearted, then the stops nearest them) and only a traveller who has
 chosen nothing and shared no location gets the busiest junctions. The card is eight columns
 because the drawing is capped at 480px square; the line under it names those stops in words
 that cannot collide. Every “map” link in the app jumps to that widget and highlights what
@@ -230,7 +230,7 @@ The interface follows **Warm Tactile Minimalism v2.4** as specified in `DESIGN.p
   style modules, and the micro-UI signatures that apply here (presence dots `#22C55E`, the
   occupancy meter's butter/sage/coral tones).
   The manual also specifies avatar stacks and coral bezier sparklines; both were built and
-  both are **deleted** — they were the two places that drew data nobody had (three invented
+  both are **deleted**: they were the two places that drew data nobody had (three invented
   traveller initials beside a count, and a random per-hour series), so the occupancy module
   is now the level pill and its meter only.
 
@@ -248,7 +248,7 @@ audits check:
   px values outside the scale are optical nudges (the range thumb, `.sr-only`) and SVG
   user units.
 * **A page is named once, and not on screen.** Each route renders its name and description as
-  `sr-only` — assistive technology, the document outline and reader mode get them; the screen
+  `sr-only`: assistive technology, the document outline and reader mode get them; the screen
   does not. There is no breadcrumb line either (`PageHeader` has no such prop, and the
   `.breadcrumbs` rules are gone). Where you are is carried by the navigation, which highlights
   the section you are in, and by the mark at the top. What a page header still draws is that
@@ -256,8 +256,8 @@ audits check:
 * **One rhythm per role.** `--s-6` (24px) between the sections of a page (`.stack-6`),
   `--s-4` (16px) between the items of a column or card list (`.stack-4`), `--s-3` inside a
   card (`.stack`), `--s-2`/`--s-1` inside a label group. Pages do not set their own gap.
-  A control's name sits one 8px step above it — the same step in `.field` and in
-  `.combobox`, so a label is never closer to its box in one place than another — and a
+  A control's name sits one 8px step above it, the same step in `.field` and in
+  `.combobox`, so a label is never closer to its box in one place than another, and a
   chip group is separated from the surface it drives (the map) by 16px, twice the 8px
   between its own rows.
 * **Concentric nesting.** A surface that sits on a parent's padding line takes
@@ -265,22 +265,22 @@ audits check:
   the form input scale (`--r-input` 20px), which the manual defines as its own squircle
   family.
 * **The planner is one card, and it holds nothing else.** The two ends are a From button and a To
-  button inside a single 106px card, with a rail in the left gutter — a hollow ring at the departure
-  end, a line, a filled square at the arrival end — and a hairline between the rows that starts where
+  button inside a single 106px card, with a rail in the left gutter, a hollow ring at the departure
+  end, a line, a filled square at the arrival end, and a hairline between the rows that starts where
   the text does. The card carries no field boxes (the card is the box, so a row is the target), no
   date, no preferences and no search button: the second stop is the search. The rail's two nodes are
   centred on the two row centres *by construction*: the rows are `--planner-row` (52px) each, the
   hairline is a 0-blur inset shadow rather than a border so it cannot add half a pixel, and each node
-  is anchored `row/2` from its own edge — measured identical to the pixel at 320/360/390/768/1440px,
-  in the empty, filled and error states. What is missing on an error is answered on the rail itself —
-  the ring or the square turns coral — rather than by tinting the whole card. The reverse control is
+  is anchored `row/2` from its own edge: measured identical to the pixel at 320/360/390/768/1440px,
+  in the empty, filled and error states. What is missing on an error is answered on the rail itself,
+  the ring or the square turns coral: rather than by tinting the whole card. The reverse control is
   **not** here: two rows a thumb apart can be re-picked, and swapping them is a job for the picker
   screen, where it sits between the two fields of the card the way a finished 9292 search leaves it.
   The destination's placeholder is checked at every width like every other field: at 320px it ends
   inside the field with room to spare, because the row no longer reserves space for a swap control.
-* **Typing lives on the screen built for it.** Tapping a row opens the full-screen picker — back
+* **Typing lives on the screen built for it.** Tapping a row opens the full-screen picker, back
   arrow, centred title, the same card made editable, the reverse control, `Use my current location`
-  and `Choose on the map`, then the ranked stop list with a heart per row (a favourite, which leads every stop list — a pin belongs to the departure board instead). The caret lands in the
+  and `Choose on the map`, then the ranked stop list with a heart per row (a favourite, which leads every stop list: a pin belongs to the departure board instead). The caret lands in the
   row that was tapped, so a phone keyboard is up before the screen has settled; picking the first end
   moves to the other one, and picking the second runs the search. Both the picker and the inline
   combobox that other screens still use rank stops through one function (`rankStops`), so the two can
@@ -295,17 +295,17 @@ audits check:
 * **A segmented control holds two or three short options, and fits the column it is in.** It
   is a flex item, so it shrinks (`min-width: 0`, `max-width: 100%`) instead of dragging the
   page sideways: the journey sort was six options in a segmented control and measured 503px
-  inside a 332px column — 142px of document overflow at 390px, 212px at 320px — and once it
+  inside a 332px column (142px of document overflow at 390px, 212px at 320px) and once it
   did fit the column it still could not sit on one line, so squeezing it into rows turned the
   control into a 150px blob. Six options are a list, so they are a labelled select (the way
   the stops list sorts itself), with the "N of M shown" count beside it.
 * **A tag that can wrap gets room to breathe.** A 24px capsule carries no vertical padding of
-  its own, so the one tag long enough to wrap — the modes line of the preferences summary —
+  its own, so the one tag long enough to wrap: the modes line of the preferences summary,
   sat against its top and bottom edges with its text running into the rounded ends. In that
   list a tag takes one 8px step of vertical padding and a 12px inline inset: the single line
   reads as it did, the wrapped one has air and clears the ends.
 * **The icons are a library's, not ours.** Every glyph comes from **Lucide**
-  (`lucide-react`, ISC) — 24-unit grid, 2-unit stroke, round caps — and one, `walk`, from
+  (`lucide-react`, ISC) (24-unit grid, 2-unit stroke, round caps) and one, `walk`, from
   **Tabler Icons** (MIT), because Lucide has no walking figure at all (a standing person and a
   pair of footprints is what it offers) and a journey planner cannot do without one; its path
   data is copied into `Icons.tsx` with its attribution rather than adding a second dependency
@@ -315,7 +315,7 @@ audits check:
   is exactly where the gear with the off-centre hub, the sprawled walker, the low-slung bicycle
   and a walking figure that read as sitting came from: a build, a type check and a class audit
   are all blind to a glyph drawn half a unit off its own centre, and a measurement that only
-  checks the *box* cannot see it either — the library places its ink a little above the box
+  checks the *box* cannot see it either: the library places its ink a little above the box
   centre on purpose, to sit with a text line. So the audit that guards icons now measures them
   against the text they sit beside, not against box symmetry (`scripts/icon-audit.mjs`), and
   `scripts/icon-sheet.mjs` prints the whole set at every size it is drawn at, so a mapping can
@@ -324,7 +324,7 @@ audits check:
   filled drawing.
 * **An icon is square, whatever its row does.** It is a flex item almost everywhere here, and
   flex items shrink: when a row ran short of space the *width* collapsed while the height held,
-  so a glyph was drawn squashed rather than smaller — the favourites star at size 15 rendered
+  so a glyph was drawn squashed rather than smaller, the favourites star at size 15 rendered
   11.66 × 15 and the departure-board button 14.72 × 15, on a screen whose own layout was
   otherwise right, which is why a screenshot and a build both missed it. `.icon` is `flex: none`
   now, and the audit asserts each icon's box is square and a whole number of pixels.
@@ -335,12 +335,12 @@ audits check:
   box on the line's optical centre, the same rule plain icons get.
 * **Secondary ink is a contrast decision, not a taste one.** The two secondary tones used to
   fail the thing they exist for: the faint tone measured **2.45–3.02:1** across the card
-  surfaces and the tints, at 11–12px, against the WCAG AA requirement of 4.5:1 — and it was
+  surfaces and the tints, at 11–12px, against the WCAG AA requirement of 4.5:1, and it was
   the tone every placeholder, hint line, stop subtitle and platform label was set in. Both
   tones were taken down to values that clear **4.5:1 on white, ivory, sage, coral and butter**
   (`--ink-muted: #5f5f66`, `--ink-faint: #66666d`, still ordered strong > muted > faint). The
   focal coral is a *background* colour: as ink it is 2.49:1 on white, under the 3:1 non-text
-  minimum, so an empty state's glyph is drawn in `--accent-primary-ink` (#d9533a, 4.0:1) —
+  minimum, so an empty state's glyph is drawn in `--accent-primary-ink` (#d9533a, 4.0:1),
   the same hue, dark enough to be read.
 * **A target is 44×44 as measured, not as declared.** Three claims were wrong: the header's
   alerts entry said "36px of paint, 44px of target" but the transparent 1px border ate 2px of
@@ -360,7 +360,7 @@ audits check:
   once per departure offset: the whole-way trip is added by the planner itself (on foot, or
   on a bicycle when both ends asked for one) and the search no longer walks the single link
   from the origin straight to the destination. That link repeated the same foot journey at
-  five-minute intervals — 8 of 14 options on one measured pair — and where it was much
+  five-minute intervals (8 of 14 options on one measured pair) and where it was much
   faster than every service it replaced the services altogether.
 * **Nothing scrolls sideways.** A pill is `min-height` with wrapping text rather than a
   fixed 24px `nowrap` line: the preferences summary lists every mode, and at 320px that one
@@ -397,7 +397,7 @@ nearest-first, and when there is no device fix it uses a coarse country/city-lev
 the public IP: **`ipwho.is`**, then **`freeipapi.com`** as a second provider
 (`src/lib/approximateLocation.ts`), first answer wins, any failure silent. The estimate is cached
 in `localStorage` for **a day** rather than re-asked per visit, and the screen says which of the
-two it is using — *"from an approximate IP location — it can be off by a lot"* — because an
+two it is using (*"from an approximate IP location) it can be off by a lot"*, because an
 estimate presented as a measurement is a different kind of lie from no estimate at all. With the
 device's own fix the estimate is ignored; with neither, the list sorts by city and says so.
 
@@ -459,7 +459,7 @@ node scripts/icon-audit.mjs
 # **A browser check is only worth something in the app's own font.** `index.html` asks Google Fonts
 # for Plus Jakarta Sans, and a browser that cannot reach it does not complain: it draws the page in
 # a fallback, so every number and every picture then describes a font no traveller ever sees. This
-# is not hypothetical — Playwright's WebKit build on this VM has no TLS, so it fell back to
+# is not hypothetical: Playwright's WebKit build on this VM has no TLS, so it fell back to
 # Liberation Sans, whose lopsided ascent put every word 4.5px above the middle of its line box; a
 # correctly aligned row of chips looked broken in a screenshot and cost a round of work.
 # `scripts/font-guard.mjs` is the one call that closes it: `await ensureAppFont(page)` after each
@@ -474,20 +474,20 @@ node -e "import('./scripts/font-guard.mjs').then(m => m.localFontCss())"   # pre
 # contrast, and dark). Two faults lived here that no cream-canvas check could see: the count's ring
 # at 32% left the pill at 1.35:1 when its fill was the page's own colour, and a split palette could
 # draw ivory digits on an ivory pill (1.00:1). It asserts 4.5:1 for the digits and 3:1 for the pill's
-# boundary — its fill or its ring, read off the pixels — and 3:1 for the warning mark.
+# boundary (its fill or its ring, read off the pixels) and 3:1 for the warning mark.
 #   report: .logs/palette-audit.md
 node scripts/palette-audit.mjs
 
-# the consistency audit: every control on every screen — its glyphs, its shape, the landmark
-# and row it sits in and the side of it — grouped by the *action* it performs, so the same action
+# the consistency audit: every control on every screen: its glyphs, its shape, the landmark
+# and row it sits in and the side of it: grouped by the *action* it performs, so the same action
 # wearing a different shape or place on another screen is printed as a finding. The signature is
 # height, radius, border, fill and glyph (a pill's width is what its label says, so it is recorded
 # but not judged), and a control past its landmark's own edge reads `offscreen` rather than `foot`.
 # Report mode is the default (findings are the output, exit 0). `--gate` fails on two things: one
-# action drawn with two glyphs in one state (never exempt — `pin` and `×` for one toggle is what
+# action drawn with two glyphs in one state (never exempt: `pin` and `×` for one toggle is what
 # this audit exists for), and any difference that is not a decision on the record. Those decisions
 # are the `DELIBERATE` map in the script itself, one entry per action with its reason, printed in
-# the report. The standards each finding cites — W3C COGA, WCAG 3.2.3/3.2.4, NN/g 4 — and the rules
+# the report. The standards each finding cites (W3C COGA, WCAG 3.2.3/3.2.4, NN/g 4) and the rules
 # the app follows (one glyph, one place, one word per control; a *kept* stop is a drawing pin that
 # fills; `Customise home` arranges the grid and does not filter it) are in CONSISTENCY-AUDIT.md,
 # with the before/after runs in .logs/audit-before-*.json
@@ -496,7 +496,7 @@ node scripts/consistency-audit.mjs [origin] [--gate]
 # every text and icon against the surface it sits on (WCAG AA, 4.5:1 body / 3:1 large and
 # icons), every control's *effective* target found by probing points (so a pseudo-element's
 # growth counts and a paint box does not), any text wider or taller than its own box, and
-# the header's two promises — that the row *sticks* (scrolled 400px, its top is still at 0)
+# the header's two promises: that the row *sticks* (scrolled 400px, its top is still at 0)
 # and that it *paints nothing* (no background, image or shadow while stuck). Both are
 # behavioural, so both are measured; run UI_AUDIT_THEME=dark and UI_AUDIT_LANGUAGE=nl to
 # audit the other appearance and the longer language
@@ -504,7 +504,7 @@ node scripts/ui-audit.mjs
 
 # **what every screen sounds like.** Contrast, target sizes and layout all pass without saying a
 # word about the interface a screen reader reads, so this takes the browser's own accessibility
-# tree for all thirteen screens — the same tree VoiceOver, TalkBack and NVDA read — and writes each
+# tree for all thirteen screens (the same tree VoiceOver, TalkBack and NVDA read) and writes each
 # one out under `.logs/sr/`, then reports what reads badly or says nothing: a control with no name,
 # a name that is only its placeholder, the same name on two links going to different places (five
 # "Board" links, five boards), a skipped heading level, a picture that carries meaning and says
@@ -527,8 +527,8 @@ node scripts/caps-audit.mjs
 node scripts/icon-sheet.mjs
 ```
 
-Four older instruments — the dashed-enclosure check, the chunk-rule check and the two tint checks
-(`tint-check`, `tint-contrast`) — lived in the gitignored `.logs/` folder and are **not in the
+Four older instruments: the dashed-enclosure check, the chunk-rule check and the two tint checks
+(`tint-check`, `tint-contrast`) lived in the gitignored `.logs/` folder and are **not in the
 repository**, so their commands are no longer printed here. Their measurements are still cited in
 `DESIGN_DECISIONS.md` and in the reports they wrote.
 
@@ -549,29 +549,29 @@ The browser audits are checks, not something that ships.
 
 The browser audits are the ones that earn their keep: everything fixed in R55, R56, R57 and R58 was
 found by one of them and by nothing else, and `caps-audit` (R70) was built for the one question
-no other instrument asked — what the interface says when read as English sentences rather than
+no other instrument asked: what the interface says when read as English sentences rather than
 as layout, and `.logs/round10-check.cjs` (R73) for the one number the interface promises about
 itself: how many items a list loads, which is five rows' worth and is read off the layout rather
-than declared — and it found two live defects on its first honest run, after being proved able to
-fail against three strings planted on purpose — ~7,700 text and icon nodes read for contrast and 625
+than declared, and it found two live defects on its first honest run, after being proved able to
+fail against three strings planted on purpose: ~7,700 text and icon nodes read for contrast and 625
 controls probed for target size per run (`ui-audit`), plus 3537 icons checked for shape, size
 and alignment (`icon-audit`), across 11 routes at 320/390/768/1024/1440.
 
 Layout, colour and geometry claims in this file and in `DESIGN_DECISIONS.md` are measured
 in a real browser (Playwright Chromium against the dev server) at 320/360/390/430/768/1024/
-1440px — including every icon, read out of the DOM on every route (`scripts/icon-audit.mjs`,
+1440px: including every icon, read out of the DOM on every route (`scripts/icon-audit.mjs`,
 3537 icon instances over 11 routes × 5 widths (320/390/768/1024/1440), each checked against the text it sits beside): horizontal overflow per route and per overlay, every control's effective hit area
 (probed by point, so a pseudo-element's target counts and a paint box does not), the sort
 control's options on screen and the dialogs' fields, widget-grid rows without holes, the
 planner card's rail-to-row alignment and its folded/open heights, the label rhythm of a
 control and its box,
-and the map's names — which must keep
+and the map's names, which must keep
 real air from every stop dot, a pad apart from each other and clear of the corridors they
 sit among (measured in the canvas' own 0–100 units, from screen rectangles: `getBBox()` is
 relative to a name's own `<g transform>` and cannot tell whether two names collide). Playwright is a dev dependency, so those
 runs need `npm ci` and `npx playwright install chromium`, but they stay out of the app bundle. Three things about the environment: the VM needs
-system fonts (`/usr/share/fonts` plus a fontconfig) — without them Chromium's renderer
-crashes on any nested form field — and it needs the usual Chromium shared libraries.
+system fonts (`/usr/share/fonts` plus a fontconfig) without them Chromium's renderer
+crashes on any nested form field, and it needs the usual Chromium shared libraries.
 
 The third is DNS. `index.html` loads the Google font as a **blocking** stylesheet, so on a VM
 whose external DNS is dead nothing settles: `page.goto(..., 'load')` times out before a browser
@@ -580,7 +580,7 @@ Chromium has its own resolver, so `/etc/hosts` is not the lever even when it is 
 launch argument is, and a `NODE_OPTIONS` preload can add it without touching any audit:
 `--host-resolver-rules=MAP fonts.googleapis.com 127.0.0.1,MAP fonts.gstatic.com 127.0.0.1,
 MAP ipwho.is 127.0.0.1,MAP freeipapi.com 127.0.0.1`. The font hosts then refuse instantly and
-the audits measure the layout on the **fallback face** — which is what the app looks like
+the audits measure the layout on the **fallback face**: which is what the app looks like
 offline, and not a weakened check: targets, contrast, clipping and overlap are all measured, only
 the glyphs differ. (The two IP providers are in the list so the estimate fails in microseconds
 instead of hanging for its own timeout; checks that *want* an estimate stub it themselves.)
@@ -591,7 +591,7 @@ The interface is written in **two languages** and drawn in **two appearances**, 
 `/settings` and both stored in this browser.
 
 * **Appearance:** System (default, follows the device live), Light, Dark. Dark is a full token
-  override in `styles/tokens.css` applied as `data-theme` on `<html>` — not a filter, and not a
+  override in `styles/tokens.css` applied as `data-theme` on `<html>`: not a filter, and not a
   second set of components. The structural obsidian and the accents are deliberately the same in
   both, because they are the dock, the primary button and the 10% of the palette that carries
   meaning.
@@ -603,7 +603,7 @@ The interface is written in **two languages** and drawn in **two appearances**, 
 * **Language:** English (default) and Nederlands. `src/lib/i18n.ts` holds the dictionary and
   `translate()`; `src/lib/useT.ts` is the hook. Keys are the English sentence itself, so a line
   that has not been translated yet falls back to English rather than to an identifier, and the
-  dictionary reads as a list of sentences. Dates, durations and toasts follow the setting too —
+  dictionary reads as a list of sentences. Dates, durations and toasts follow the setting too,
   weekday and month names come from `Intl`, and `pushToast` translates centrally.
 
 The **interface** is translated. The demonstration data is not, and neither is the longer prose
@@ -616,15 +616,15 @@ real place.
 The app reads the device's battery with the **Battery Status API** (`navigator.getBattery`) and
 saves power on its own, in two steps, with nothing to switch on and nothing stored:
 
-* **At 20% or less — saving.** Every transition and animation is cut to a single step (they still
+* **At 20% or less: saving.** Every transition and animation is cut to a single step (they still
   reach their end state, they just do not travel), the spinner and the skeleton bars stand still,
   the results screen and the stops list stop holding their place with a fake wait, and a deep
   link scrolls instead of gliding.
-* **At 10% or less — super saving.** The above, and the stillness is total: no transition, no
-  animation and no press spring anywhere — the bottom navigation included, which does not lift or
-  squeeze at all — plus no shadows and no frosted glass on any surface, no request spent on the IP
+* **At 10% or less: super saving.** The above, and the stillness is total: no transition, no
+  animation and no press spring anywhere: the bottom navigation included, which does not lift or
+  squeeze at all: plus no shadows and no frosted glass on any surface, no request spent on the IP
   location estimate, and a home screen that keeps only the cards that answer *when does the bus
-  go* — the planner, the next-departures card and the hearted stops — with one line saying so.
+  go* (the planner, the next-departures card and the hearted stops) with one line saying so.
   **Settings is closed** while this mode is on: it is left out of the navigation and `/settings`
   goes home, because it is the most expensive screen in the app and the least about catching a
   bus. Leaving customising, or plugging the phone in, restores the whole interface and Settings
@@ -632,7 +632,7 @@ saves power on its own, in two steps, with nothing to switch on and nothing stor
 
 `src/lib/power.ts` holds the rule (`powerModeFor`: 20% and 10% in, two points above each out, and
 charging is always off); `styles/base.css` and the battery adapter in `styles/tokens.css` are
-where the reduction is drawn, from one attribute on `<html>` — `<html data-power>` — the same
+where the reduction is drawn, from one attribute on `<html>` (`<html data-power>`) the same
 shape as the motion switch; and `useNavigation`/`App.tsx` are where Settings closes. Settings
 shows the mode and the level as a reading, not a control.
 
@@ -667,10 +667,10 @@ journey page and the preference controls.
 
 ## Documents
 
-This file is the front door. The rest, and what each one is for — read a document as a record of
+This file is the front door. The rest, and what each one is for, read a document as a record of
 the day it names, not as a description of the app today:
 
-**Live — keep these true.**
+**Live: keep these true.**
 
 | Document | What it holds |
 | --- | --- |
@@ -684,7 +684,7 @@ the day it names, not as a description of the app today:
 | `CREDITS.md` | Where the music, photographs and fonts came from |
 | `URLS.md` | Every address the app answers, generated from the route table and the data |
 
-**Records of a finished round — kept as written, cited by the audits.**
+**Records of a finished round: kept as written, cited by the audits.**
 
 | Document | The round it records |
 | --- | --- |

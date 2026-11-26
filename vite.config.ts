@@ -18,7 +18,7 @@ declare const process: {
 };
 
 /*
- * Vite blocks requests whose Host header is not localhost/an IP — the private preview hostname
+ * Vite blocks requests whose Host header is not localhost/an IP: the private preview hostname
  * (`pv-<id>.style.dev`) is not localhost, so a browser opening the preview gets
  * *"Blocked request. This host is not allowed"* and the page never loads.
  *
@@ -29,7 +29,7 @@ declare const process: {
  *   1. `PREVIEW_HOST=pv-<id>.style.dev` in the environment, which is what `scripts/dev-preview.sh`
  *      sets for a one-off launch;
  *   2. `PREVIEW_HOST=` in `.env.local`, which Vite loads itself and `.gitignore` excludes (`*.local`)
- *      — so a restored workspace needs one untracked line and then plain `npm run dev` works.
+ *     : so a restored workspace needs one untracked line and then plain `npm run dev` works.
  *
  * Only this one variable is read out of the env file, and only for the server's allow-list: no
  * prefix-free env is handed to the client bundle.
@@ -41,12 +41,12 @@ const previewHostFromEnv = (mode: string) =>
  * The addresses this app is *served* from, which Vite must also allow.
  *
  * `vite preview` runs the built app on Render, and it validates the Host header exactly as the
- * dev server does — so the live site answered **"Blocked request. This host is not allowed"**
+ * dev server does: so the live site answered **"Blocked request. This host is not allowed"**
  * until its own address was named. That address is stable (the Render service's name sets it),
  * so unlike the private preview hostname it can be written here.
  *
- * `RENDER_EXTERNAL_HOSTNAME` is set by Render itself, so a preview deploy of a pull request —
- * served from `ovvo-pr-<n>.onrender.com` — needs no edit to this file. `ALLOWED_HOSTS` takes a
+ * `RENDER_EXTERNAL_HOSTNAME` is set by Render itself, so a preview deploy of a pull request,
+ * served from `ovvo-pr-<n>.onrender.com`: needs no edit to this file. `ALLOWED_HOSTS` takes a
  * comma-separated list for anywhere else. Nothing here weakens the check: each host is named, and
  * the allow-list is never `true`, which would accept any Host header a stranger sends.
  */
@@ -64,7 +64,7 @@ const hostsFromList = (value: string | undefined): string[] =>
  * The phone round is finished and archived in `review/mobile/`; the desktop round starts in
  * `review/desktop/`, which is where a capture goes unless the run says otherwise. The name is
  * chosen once, here, and handed to both halves: the middleware that writes the files and the
- * browser layer that says where they went (`__REVIEW_BATCH__` below) — so the label on the Save
+ * browser layer that says where they went (`__REVIEW_BATCH__` below) so the label on the Save
  * button cannot name a different folder from the one the picture lands in.
  *
  *   REVIEW_BATCH=mobile npm run dev      writes to review/mobile/ again
@@ -132,18 +132,18 @@ export default defineConfig(({ mode }) => {
      * **Every address the router owns must be answered with `index.html`.**
      *
      * The app's routes are real paths now (`/stops/utrecht-centraal`), not a `#` fragment, so a
-     * refresh or a link pasted into a chat asks the host for a file at that path — and a host that
+     * refresh or a link pasted into a chat asks the host for a file at that path, and a host that
      * answers "not found" breaks the screen the traveller was reading. `spa` is Vite's own default
      * and was already the behaviour; it is written here so it is a decision rather than an
      * assumption, and so the dev server and `vite preview` (the two ways this site is served) agree
-     * about it by name. Verified with a real refresh on a deep address — see
+     * about it by name. Verified with a real refresh on a deep address: see
      * `.logs/clean-url-check.cjs`.
      */
     appType: 'spa',
     /*
      * **Safari 14, because that is the iPhone that can no longer update.**
      *
-     * Vite's default target is "safari 16.4 and friends" — the browsers from 2023 that it calls
+     * Vite's default target is "safari 16.4 and friends" the browsers from 2023 that it calls
      * widely available. On an iPhone stuck on iOS 14 that is not a slightly worse page: the browser
      * cannot parse the code at all, so it runs none of it and the screen stays white. The app draws
      * everything with JavaScript, so there is nothing underneath to show instead.
@@ -152,7 +152,7 @@ export default defineConfig(({ mode }) => {
      * oldest browser this is meant to run in. `ios14` covers the iPhone; `safari14` covers the Mac,
      * which ships the same engine. `es2019` is what the two of them understand, so esbuild is told
      * the syntax it may leave in place, and `cssTarget` says the same for the stylesheet's
-     * minifier — without it a shortened value could use a syntax iOS 14 does not read.
+     * minifier: without it a shortened value could use a syntax iOS 14 does not read.
      *
      * `scripts/old-phone-check.mjs` fails when the built files stop being old enough, so this line
      * cannot drift back up unnoticed.

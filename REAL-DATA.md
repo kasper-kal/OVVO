@@ -1,4 +1,4 @@
-# Real data — what is verified, what is built, what is blocked
+# Real data: what is verified, what is built, what is blocked
 
 Last updated: 14 November 2026. Every number in this file was measured in this workspace on this
 date; nothing here is an estimate from memory. Commands that produce each number are given, so any
@@ -8,14 +8,14 @@ line can be re-checked rather than trusted.
 
 The timetable is real: the national Dutch feed is downloaded, checked and active, with 11.3 million
 scheduled stop times. Realtime is real and openly reachable. **The routing engine is blocked**, and
-real journey planning cannot be finished without a decision only the steerer can make — that is the
+real journey planning cannot be finished without a decision only the steerer can make, that is the
 one thing this report asks for.
 
 The journey planner in the app is still the prototype. It has **not** been replaced by real routing,
 and it is not pretending to be: this file says so plainly rather than letting a working UI imply a
 working backend.
 
-## 1. Timetable — verified and active
+## 1. Timetable: verified and active
 
 | What | Measured value |
 | --- | --- |
@@ -36,14 +36,14 @@ working backend.
 Two facts that were assumptions until they were checked:
 
 - **There is no `calendar.txt`.** This feed carries its service dates only in `calendar_dates.txt`.
-  That is legal GTFS — one of the two files is required, not a particular one — but the first run of
+  That is legal GTFS (one of the two files is required, not a particular one) but the first run of
   the pipeline refused the archive over it. The pipeline was wrong, not the feed.
 - **The licence is not one licence.** `licenses.txt` says the default tables are **CC0-1.0**, the
   `shapes` table is **ODbL-1.0** (attribution required, share-alike for derived databases), and
   `ticketing_identifiers` is **CC-BY-NC-ND-4.0** (non-commercial, no derivatives). So route geometry
   may be drawn with attribution, and the ticketing table may not be used commercially.
 
-## 2. Street network — verified, not yet downloaded
+## 2. Street network: verified, not yet downloaded
 
 | What | Measured value |
 | --- | --- |
@@ -55,7 +55,7 @@ Two facts that were assumptions until they were checked:
 It is reachable and current. It was **not** downloaded: nothing here can build a graph from it yet
 (see section 4), and 1.41 GB of data that cannot be used would only take space.
 
-## 3. Realtime — verified reachable, not yet parsed
+## 3. Realtime: verified reachable, not yet parsed
 
 All three answer `200` with no key and no signup, measured 14 November 2026:
 
@@ -80,7 +80,7 @@ OpenStreetMap. That has three consequences measured here:
 | --- | --- |
 | A Java runtime | **No `java` at all**; no root, so none can be installed |
 | RAM for a national graph | 3.9 GB total, 3.3 GB free on 2 cores |
-| A long-running server process | Cloudflare Workers — where OVVO lives — runs no JVM and no daemon; it is request-scoped |
+| A long-running server process | Cloudflare Workers (where OVVO lives) runs no JVM and no daemon; it is request-scoped |
 | Disk for graph + data | 8.5 GB free; GTFS unpacks to ~0.9 GB, the OSM extract is 1.41 GB before graph-building |
 
 A Java process cannot run inside a Cloudflare Worker under any configuration. So the engine has to
@@ -89,7 +89,7 @@ magnitude below what a national Dutch graph needs to build and serve.
 
 **The plan is free, and only free.** OVVO has one rule about this, set by the steerer: no card
 anywhere, no service that has to be paid for, ever. So a paid host is not an option and must not be
-proposed again — not as a "recommendation", not as a fallback, not with a price beside it.
+proposed again: not as a "recommendation", not as a fallback, not with a price beside it.
 
 That leaves exactly one shape, and it is the one that fits the platform OVVO already uses:
 
@@ -108,7 +108,7 @@ nothing but time.
 
 ## 5. What is built and working
 
-`scripts/gtfs/fetch.mjs` — a repeatable timetable pipeline, run for real:
+`scripts/gtfs/fetch.mjs`: a repeatable timetable pipeline, run for real:
 
 ```
 npm run gtfs:update     # download the newest dataset, validate it, activate it
@@ -161,29 +161,29 @@ does not depend on the engine can proceed in this order, and none of it needs a 
    behind a tested boundary rather than a rewrite.
 5. Turn the mention of a mock in production into a hard error, so demo data cannot leak.
 
-## 8. Round two — stops, boards and realtime, same day
+## 8. Round two: stops, boards and realtime, same day
 
 This section supersedes the matrix in section 6 where the two disagree; section 6 is left as it was
 written, so the record shows what was true before this round.
 
 ### Stop pages and departure boards now use the real timetable
 
-The app's stop list is hand-built — 61 stations and landmarks with a schematic map position,
-facilities and operators — and replacing it with 53,612 raw GTFS stops would have thrown away the
+The app's stop list is hand-built: 61 stations and landmarks with a schematic map position,
+facilities and operators, and replacing it with 53,612 raw GTFS stops would have thrown away the
 approved design to gain nothing the traveller can see. So the two are **joined**:
 
 | What | Measured |
 | --- | --- |
 | Stops in the app | 60 (one seed has no coordinate pair, so it is not a map stop) |
 | Matched to a real GTFS stop | **53** |
-| Unmatched | 7 — Vondelpark, Anne Frank House, Binnenhof, Erasmusbrug, Markthal, Domtoren, Buiksloterweg ferry. Six are landmarks, which are not stops in the feed at all; the ferry's name differs in the feed |
+| Unmatched | 7: Vondelpark, Anne Frank House, Binnenhof, Erasmusbrug, Markthal, Domtoren, Buiksloterweg ferry. Six are landmarks, which are not stops in the feed at all; the ferry's name differs in the feed |
 | Real departures generated | 17,457, for the next two service days |
 | Per stop, per day | capped at 250; the cap is filled in file order, so it is a spread across the day rather than a complete board |
 | Generated module | `src/data/generated/boards.ts`, 1,259 KB, holds the feed's name and SHA-256 |
 | Build time | 21 seconds over the cached archive |
 
 Each row carries the real line number, the real headsign, the operator name and the platform the
-feed gives — and **no delay**, because a scheduled time is not a prediction. `boardForStop` returns
+feed gives, and **no delay**, because a scheduled time is not a prediction. `boardForStop` returns
 the real rows when the feed has them; a stop with no real rows gets an empty board, never an
 invented one.
 
@@ -195,7 +195,7 @@ and this file says so rather than letting the screen imply otherwise.
 
 ### Realtime is parsed and inventoried
 
-`scripts/realtime/probe.mjs` decodes all three feeds by hand — no dependency, no schema tool — and
+`scripts/realtime/probe.mjs` decodes all three feeds by hand (no dependency, no schema tool) and
 writes `realtime/inventory.json`. Measured at 14 November 2026, 23:0x UTC:
 
 | Feed | Bytes | Entities | Named trips | Named routes | Age |
@@ -210,7 +210,7 @@ these are live and not an archived snapshot.
 
 **Operational finding: the feeds rate-limit.** Three runs in quick succession answered `429` on all
 three URLs, and only cleared after several minutes. Any integration must cache, back off and poll on
-a schedule — a page that fetched on every view would be blocked. That is measured behaviour, not a
+a schedule: a page that fetched on every view would be blocked. That is measured behaviour, not a
 warning from a document.
 
 ### Prototype data can no longer look real

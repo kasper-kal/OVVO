@@ -1,7 +1,7 @@
 /*
  * The reason the offline strip can be believed.
  *
- * The strip says "OVVO still works — your journeys, boards and saved stops are all here", and until
+ * The strip says "OVVO still works: your journeys, boards and saved stops are all here", and until
  * now that was true only until somebody reloaded: a cold load with no network showed the browser's
  * own error page, because a page the browser has never been given cannot be drawn from nowhere. The
  * app is entirely local (no server, no API of its own), so the whole thing is one shell plus a few
@@ -14,7 +14,7 @@
  *   so a new build is picked up on the next online load rather than being pinned forever.
  * - **Everything else same-origin** is cache-first with a background fill. The bundles are
  *   content-hashed by the build, so a cached hit is the right hit; the fonts and the favicon do not
- *   change either. Nothing here is live data — live times never existed on this app — so there is
+ *   change either. Nothing here is live data (live times never existed on this app) so there is
  *   nothing to keep fresh.
  *
  * Cross-origin requests (the Google font files, the IP estimate) are left to the network and to
@@ -28,7 +28,7 @@
  * anything a bad answer can stick to. Two files a browser reads to decide whether this app can be
  * installed are exactly that: an old copy of `manifest.json` kept here (or of the site's page,
  * served in its place by a host long ago) is handed to Chrome on every visit, and Chrome's answer
- * is the one in its own menu — Installeren, greyed out, "this app cannot be installed" — on a
+ * is the one in its own menu (Installeren, greyed out, "this app cannot be installed") on a
  * build that installs perfectly in a browser that has never seen the old copy.
  *
  * `v2` drops the old cache on activate, so a phone carrying a poisoned one is clean once, and the
