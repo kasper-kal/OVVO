@@ -167,6 +167,26 @@ pipeline work. So: **S** an afternoon, **M** a day or two, **L** most of a week,
 
 ---
 
+## State on 26 November 2026
+
+This file was written on 18 November and carries no status column, so it is read here against the
+code in the repository today:
+
+- **1 and 2 (every place, a board for every stop)** — `src/data/stops.ts` holds 70 entries with
+  `src/data/stop-streets.json` beside it, and every stop has a page (`StopDetailPage.tsx`).
+- **3. Arriving by a time** — `arriveBy` is handled in `src/pages/ResultsPage.tsx`.
+- **5. An address, a postcode or a place** — `StopPicker.tsx` and `LegList.tsx` both geocode, and the
+  stops carry street names.
+- **6. Door to door** — walks are legs of their own in `LegList.tsx`.
+- **8. Live delays** — the live feed is read on the server and drawn beside the planned time.
+- **12. The nightly month** — `scripts/gtfs-pipeline.mjs` and `scripts/gtfs/` build the days;
+  `scripts/exclude-local-graph.mjs` keeps the local graph out of the build.
+
+The rest of the fourteen were not re-measured on 26 November 2026, and this file's own test is a
+**Done when** line that has to be run, so they stay open until somebody runs them. What has changed
+since 18 November is that the search itself ships: `PLAN-FREE-ROUTING.md` is the record of that, and
+the journey planner is real rather than a plan.
+
 ## The fourteen steps
 
 ### 1. Every place in the country, in the picker

@@ -1,3 +1,12 @@
+**Status on 26 November 2026: superseded, not executed.** This plan asked for OpenTripPlanner behind a
+small paid server. `REAL-DATA-STATUS.md` set out why that could not happen in the deployment this app
+uses, and the paid machine it needed was never approved. `PLAN-FREE-ROUTING.md` replaced it and
+shipped: the search runs in the browser over the official timetable, and OVVO plans real journeys
+today. The text below is kept as the record of the road that was not taken, not as work waiting to
+start.
+
+---
+
 The UI of OVVO has been approved.
 We are now beginning the REAL-DATA IMPLEMENTATION PHASE.
 Turn the existing prototype into a genuinely functional, independent Dutch public transport

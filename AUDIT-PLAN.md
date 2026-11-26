@@ -4,6 +4,13 @@
 **Scope:** every route, both appearances (light and dark), desktop 1440 × 950 and phone 390 × 844, every style, plus the interaction and motion layer.
 **Deliverable:** findings and proposed fixes only. No code has been changed for this document.
 
+
+**State on 26 November 2026:** nine findings in this file are marked fixed. The other seventy-two
+carry no fixed mark, and several of those were in fact fixed later without the mark being added here —
+the header, the board and the phone work are recorded in `USER-FIXES.md` and `DESIGN_DECISIONS.md`,
+not in this file. This audit was not re-run today, so a finding below means "written on 15 November",
+not "open now". Where the two disagree, `FIXES-APPLIED.md` and `USER-FIXES.md` are the current record.
+
 ---
 
 ## 0. The short version

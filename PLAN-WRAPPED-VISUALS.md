@@ -195,7 +195,7 @@ away at an edge. The canvas is transparent and larger than the page, and `.film2
 the volumes are still cut off by the frame rather than fitted inside it. The colour field, the
 sentence and the share stay DOM and are untouched.
 
-**Open, and only you can settle it: the closing card's two-column figures list.**
+**Still open on 26 November 2026, and only you can settle it: the closing card's two-column figures list.**
 
 - The plan line is section 6, item 5 — *"The close card last, as a poster with the small two-column
   list"* — and the matching row of section 5, row 18: *"the poster: photo, list, share"*.

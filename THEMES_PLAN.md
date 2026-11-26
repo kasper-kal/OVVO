@@ -3,7 +3,14 @@
 > The screen this plans is called **Themes** now. It was called Styles when the plan was written,
 > and the words below are kept as they were: read "style" as "theme".
 
-Status: **planning only. Nothing here is built yet.**
+Status on 26 November 2026: **built, and it shipped.** The registry is `src/lib/styles.ts` (45 style
+definitions, with retired ids filtered out before the app ever sees them), the picker is
+`src/components/ui/StyleSettings` with its own sheet styles, and the screen is
+`src/pages/StylesPage.tsx` on its own route, so a look is a place you go rather than a row in
+Settings. The Background switch and the photograph rules live in the same picker. What is still open
+is not build work: section 7 asks whether a style may change the app's shape and whether one control
+stays outside a style, and section 8 holds the candidate list waiting on a yes or no. The plan below
+is kept as written.
 
 ---
 

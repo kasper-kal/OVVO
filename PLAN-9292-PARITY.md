@@ -219,6 +219,29 @@ Each group is built, checked at a phone width in both themes, deployed and pushe
 - **The alarm in item 1 is a browser reminder.** It fires while the page is open in a tab. The calendar entry from item 2 is the one that alarms with the site closed, so the alarm sheet offers that as the way to be sure.
 - **Items 13 and 14 need a real street map.** That is a service the app does not have yet, and it costs money; it is the only part of this plan that cannot be built from what the app already holds.
 
+## State on 26 November 2026
+
+Re-read against the code rather than against the list below. Four items that were open when this file
+was last updated are now built:
+
+- **4. Map thumbnail** — `src/components/journey/JourneyThumbnail.tsx`, drawn from the same canvas the
+  map screen uses, with its own arrow into the map.
+- **9. Platform position** and **10. Two possible platforms** — `src/components/journey/LegList.tsx`,
+  where the platform is beside the station on every row and an unsettled berth is printed "Platform 6
+  or 7" in the warning colour.
+- **15. Operator and line badge** — `LegList.tsx` splits the operator from the line number and puts the
+  number in its own coloured badge.
+- **17. The change itself** — `LegList.tsx` prints the wait as a row of its own between two services.
+
+One is still open: **18. Opening.** A service opens one at a time; `stopsOpen` belongs to the service,
+not to the journey, so arriving at a journey does not open every leg.
+
+Two were not confirmed today: **7. The price** (no pale chip class was found in `JourneyCard.tsx`)
+and **19. The marks in an opened list**. Treat those as open until they are looked at on a screen.
+
+So: thirteen items are listed as done below, four more are in the code, one is open, and two are
+unconfirmed.
+
 ## Done so far
 
 Built, checked and deployed (the twenty items above are untouched by this list):
