@@ -169,14 +169,14 @@
 .scene-foot {
   max-width: 34ch;
   margin: 16px 0 0;
-  font: 500 11px/1.4 'IBM Plex Mono', monospace;
+  font: 500 11px/1.4 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.02em;
   opacity: 0.7;
 }
 
 .scene-small {
   margin: 14px 0 0;
-  font: 500 10px/1.4 'IBM Plex Mono', monospace;
+  font: 500 10px/1.4 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.62;
 }
 
@@ -249,7 +249,7 @@
 }
 
 .scene-row__rank {
-  font: 600 18px/1 'IBM Plex Mono', monospace;
+  font: 600 18px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.7;
 }
 
@@ -271,7 +271,7 @@
   align-items: center;
   gap: 18px;
   margin-top: 20px;
-  font: 700 16px/1 'IBM Plex Mono', monospace;
+  font: 700 16px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.8;
 }
 
@@ -286,7 +286,7 @@
   margin: 22px 0 0;
   padding: 8px 10px;
   border: 1px solid rgb(247 243 234 / 0.55);
-  font: 600 11px/1 'IBM Plex Mono', monospace;
+  font: 600 11px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
 }
 
@@ -613,7 +613,7 @@
   margin: 24px 0 0;
   padding-top: 12px;
   border-top: 1px solid rgb(247 243 234 / 0.42);
-  font: 500 12px/1.45 'IBM Plex Mono', monospace;
+  font: 500 12px/1.45 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-shadow: 0 2px 18px rgb(0 0 0 / 0.8);
@@ -848,7 +848,7 @@
 
 .scene-presents {
   margin-bottom: 10px;
-  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font: 600 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.24em;
   opacity: 0;
   animation: scene-fade 700ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -991,7 +991,7 @@
   margin-top: 22px;
   padding-top: 12px;
   border-top: 1px solid rgb(247 243 234 / 0.32);
-  font: 500 9px/1.3 'IBM Plex Mono', monospace;
+  font: 500 9px/1.3 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0;
@@ -1309,7 +1309,7 @@
 
 .art-caption {
   margin: 12px 0 0;
-  font: 500 9px/1.3 'IBM Plex Mono', monospace;
+  font: 500 9px/1.3 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   opacity: 0.62;
@@ -1356,7 +1356,7 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
-  font: 600 8px/1 'IBM Plex Mono', monospace;
+  font: 600 8px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   opacity: 0.55;
   transform: translateX(-50%);
@@ -1404,7 +1404,7 @@
 
 .art-distance text {
   fill: rgb(247 243 234 / 0.7);
-  font: 600 3.2px/1 'IBM Plex Mono', monospace;
+  font: 600 3.2px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1483,7 +1483,7 @@
   gap: 18px;
   padding: 10px 0;
   border-bottom: 1px solid rgb(247 243 234 / 0.22);
-  font: 600 11px/1.2 'IBM Plex Mono', monospace;
+  font: 600 11px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.04em;
   opacity: 0;
   animation: art-line-in 600ms calc(640ms + var(--i) * 110ms) cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -1549,7 +1549,7 @@
 
 .art-dial__label {
   fill: rgb(247 243 234 / 0.55);
-  font: 600 6px/1 'IBM Plex Mono', monospace;
+  font: 600 6px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.16em;
 }
 
@@ -1591,7 +1591,7 @@
 
 .art-gauge__label {
   fill: rgb(247 243 234 / 0.6);
-  font: 600 7px/1 'IBM Plex Mono', monospace;
+  font: 600 7px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.1em;
 }
 
@@ -1655,7 +1655,7 @@
 
 .art-eras__block em {
   padding-bottom: 10px;
-  font: 600 8px/1 'IBM Plex Mono', monospace;
+  font: 600 8px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   opacity: 0.58;
 }
@@ -1700,7 +1700,7 @@
 
 .art-award em {
   margin-bottom: auto;
-  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font: 600 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   opacity: 0.55;
 }
@@ -1712,7 +1712,7 @@
 
 .art-award small {
   margin-top: 9px;
-  font: 500 8px/1.2 'IBM Plex Mono', monospace;
+  font: 500 8px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
   opacity: 0.62;
 }
@@ -1758,7 +1758,7 @@
 .art-bookend em {
   position: absolute;
   bottom: 16px;
-  font: 600 10px/1 'IBM Plex Mono', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   letter-spacing: 0.06em;
 }
@@ -1811,7 +1811,7 @@
 
 .art-compare__bar small {
   padding: 0 10px 10px;
-  font: 500 8px/1.2 'IBM Plex Mono', monospace;
+  font: 500 8px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
   opacity: 0.6;
 }
@@ -1836,7 +1836,7 @@
   aspect-ratio: 1;
   border: 1px solid rgb(247 243 234 / 0.7);
   border-radius: 50%;
-  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font: 600 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
   animation: art-ring-in 900ms 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -1910,7 +1910,7 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font: 600 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   letter-spacing: 0.16em;
   opacity: 0.62;

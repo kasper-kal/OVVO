@@ -122,7 +122,7 @@
   gap: 18px;
   padding-bottom: 9px;
   border-bottom: var(--issue-line) solid currentColor;
-  font: 600 10px/1 'IBM Plex Mono', 'Courier New', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -139,7 +139,7 @@
   padding: 6px 9px 5px;
   background: currentColor;
   color: var(--paper);
-  font: 700 10px/1 'IBM Plex Mono', 'Courier New', monospace;
+  font: 700 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -166,7 +166,7 @@
 .issue-note {
   margin-top: auto;
   max-width: 62ch;
-  font: 500 10px/1.45 'IBM Plex Mono', 'Courier New', monospace;
+  font: 500 10px/1.45 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.02em;
   opacity: 0.62;
 }
@@ -184,7 +184,7 @@
   gap: 16px;
   padding-bottom: 9px;
   border-bottom: var(--issue-line) solid currentColor;
-  font: 600 10px/1 'IBM Plex Mono', 'Courier New', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -329,7 +329,7 @@
 
 .issue-total__chart em {
   padding-top: 6px;
-  font: 600 10px/1 'IBM Plex Mono', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   text-align: center;
 }
@@ -375,7 +375,7 @@
   gap: 8px;
   padding: 7px 10px;
   border: 1px solid currentColor;
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
 }
 
@@ -424,7 +424,7 @@
 
 .issue-map__figure text {
   fill: var(--paper);
-  font: 600 2.6px/1 'IBM Plex Mono', monospace;
+  font: 600 2.6px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -438,7 +438,7 @@
   padding: 7px 9px;
   background: var(--red);
   color: var(--ink);
-  font: 700 9px/1.25 'IBM Plex Mono', monospace;
+  font: 700 9px/1.25 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.08em;
 }
 
@@ -479,7 +479,7 @@
 .issue-map__legend dt,
 .issue-map__legend dd {
   margin: 0;
-  font: 500 9px/1.25 'IBM Plex Mono', monospace;
+  font: 500 9px/1.25 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
 }
 
@@ -534,7 +534,7 @@
 
 .issue-distance__row span,
 .issue-distance__row strong {
-  font: 600 10px/1.2 'IBM Plex Mono', monospace;
+  font: 600 10px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.05em;
 }
 
@@ -559,7 +559,7 @@
 .issue-distance__note {
   max-width: 70ch;
   margin: 8px 0 0;
-  font: 500 9px/1.45 'IBM Plex Mono', monospace;
+  font: 500 9px/1.45 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.7;
 }
 
@@ -615,7 +615,7 @@
 }
 
 .issue-pair__count em {
-  font: 600 11px/1 'IBM Plex Mono', monospace;
+  font: 600 11px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -626,7 +626,7 @@
   margin: 12px 0 0;
   padding-top: 9px;
   border-top: var(--issue-line) solid var(--ink);
-  font: 500 13px/1.3 'IBM Plex Mono', monospace;
+  font: 500 13px/1.3 'Bebas Neue', 'Arial Narrow', sans-serif;
 }
 
 /* ------------------------------------------------------------------ origin */
@@ -676,7 +676,7 @@
   padding: 9px 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--paper) 35%, transparent);
   color: var(--acid);
-  font: 700 10px/1 'IBM Plex Mono', monospace;
+  font: 700 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.14em;
 }
 
@@ -693,7 +693,7 @@
 
 .issue-origin__row span,
 .issue-origin__row em {
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   opacity: 0.65;
 }
@@ -769,7 +769,7 @@
 
 .issue-hour__chart em {
   padding-top: 5px;
-  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font: 600 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
 }
 
@@ -824,7 +824,7 @@
   padding: 10px 12px;
   border: var(--issue-line) solid currentColor;
   transform: rotate(5deg);
-  font: 700 13px/1.1 'IBM Plex Mono', monospace;
+  font: 700 13px/1.1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.08em;
 }
 
@@ -878,7 +878,7 @@
   justify-content: space-between;
   gap: 20px;
   padding-top: 2px;
-  font: 600 11px/1.25 'IBM Plex Mono', monospace;
+  font: 600 11px/1.25 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
 }
 
@@ -958,7 +958,7 @@
 
 .issue-look__caption span {
   grid-column: 1 / -1;
-  font: 600 10px/1 'IBM Plex Mono', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
 }
 
@@ -970,7 +970,7 @@
 }
 
 .issue-look__caption em {
-  font: 600 28px/1 'IBM Plex Mono', monospace;
+  font: 600 28px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
 }
 
@@ -1037,7 +1037,7 @@
 .issue-eras__row span,
 .issue-eras__row em,
 .issue-eras__row b {
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
 }
 
@@ -1091,7 +1091,7 @@
 .issue-lines__count span {
   display: block;
   margin-top: 6px;
-  font: 500 10px/1.3 'IBM Plex Mono', monospace;
+  font: 500 10px/1.3 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
 }
 
@@ -1111,7 +1111,7 @@
   border-bottom: 1px solid color-mix(in srgb, currentColor 32%, transparent);
 }
 
-.issue-lines__ledger span { font: 500 10px/1.2 'IBM Plex Mono', monospace; text-transform: uppercase; }
+.issue-lines__ledger span { font: 500 10px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif; text-transform: uppercase; }
 .issue-lines__ledger strong { font-size: clamp(24px, 2.6vw, 38px); line-height: 1; }
 
 /* ------------------------------------------------------------------ awards */
@@ -1142,7 +1142,7 @@
 .issue-award:nth-child(4) { --issue-award-bg: var(--paper); }
 
 .issue-award__number {
-  font: 600 10px/1 'IBM Plex Mono', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.65;
 }
 
@@ -1172,7 +1172,7 @@
   margin-top: auto;
   padding-top: 8px;
   border-top: 1px solid currentColor;
-  font: 500 8px/1.2 'IBM Plex Mono', monospace;
+  font: 500 8px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 0.72;
@@ -1202,13 +1202,13 @@
 }
 
 .issue-bookend > span {
-  font: 600 10px/1 'IBM Plex Mono', monospace;
+  font: 600 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
 }
 
 .issue-bookend time {
   margin-top: 4px;
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.6;
 }
 
@@ -1232,7 +1232,7 @@
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--ink);
-  font: 500 9px/1.2 'IBM Plex Mono', monospace;
+  font: 500 9px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
   text-transform: uppercase;
 }
@@ -1301,7 +1301,7 @@
 .issue-comparison__score div:first-child span { color: var(--blue); }
 
 .issue-comparison__score em {
-  font: 600 11px/1 'IBM Plex Mono', monospace;
+  font: 600 11px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-style: normal;
 }
 
@@ -1322,7 +1322,7 @@
   border: 1px solid var(--ink);
 }
 
-.issue-comparison__stats span { font: 500 9px/1.2 'IBM Plex Mono', monospace; text-transform: uppercase; }
+.issue-comparison__stats span { font: 500 9px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif; text-transform: uppercase; }
 .issue-comparison__stats strong { font-size: 30px; line-height: 1; }
 
 /* ------------------------------------------------------------------ crew */
@@ -1350,7 +1350,7 @@
 }
 
 .issue-crew__type {
-  font: 700 10px/1 'IBM Plex Mono', monospace;
+  font: 700 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.14em;
 }
 
@@ -1366,7 +1366,7 @@
   margin: 14px 0 0;
   padding-top: 8px;
   border-top: 1px solid var(--ink);
-  font: 500 10px/1 'IBM Plex Mono', monospace;
+  font: 500 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.06em;
 }
 
@@ -1385,7 +1385,7 @@
 .issue-crew dt,
 .issue-crew dd {
   margin: 0;
-  font: 500 9px/1.25 'IBM Plex Mono', monospace;
+  font: 500 9px/1.25 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
 }
 
@@ -1399,7 +1399,7 @@
   border: 2px solid var(--red);
   color: var(--red);
   transform: rotate(7deg);
-  font: 700 9px/1 'IBM Plex Mono', monospace;
+  font: 700 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.1em;
 }
 
@@ -1422,7 +1422,7 @@
   margin-top: 18px;
   padding-top: 8px;
   border-top: 1px solid var(--acid);
-  font: 500 10px/1.4 'IBM Plex Mono', monospace;
+  font: 500 10px/1.4 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
 }
 
@@ -1458,7 +1458,7 @@
 
 .issue-close span {
   margin-top: 10px;
-  font: 500 9px/1.4 'IBM Plex Mono', monospace;
+  font: 500 9px/1.4 'Bebas Neue', 'Arial Narrow', sans-serif;
   opacity: 0.65;
 }
 
@@ -1474,7 +1474,7 @@
   border-radius: 0;
   border: 1px solid currentColor;
   background: transparent;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1518,7 +1518,7 @@
   z-index: 8;
   border-top: 0;
   padding: 6px 0 0;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1935,7 +1935,7 @@
   margin-top: 12px;
   padding: 6px 8px;
   border: 1px solid currentColor;
-  font: 600 9px/1 'IBM Plex Mono', monospace;
+  font: 600 9px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1980,7 +1980,7 @@
   border-right: 1px solid rgb(242 236 220 / 0.35);
   border-radius: 0;
   color: var(--paper);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2008,7 +2008,7 @@
   border: 1px dashed var(--paper);
   border-radius: 0;
   color: var(--paper);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
 }
 
 .wrapped-share .btn {

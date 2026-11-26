@@ -103,7 +103,7 @@ export function drawPoster(data: PosterData, colourway: PosterColourway): string
   ctx.fillRect(0, 0, W, H);
 
   ctx.fillStyle = palette.ink;
-  ctx.font = '700 30px "IBM Plex Mono", monospace';
+  ctx.font = '700 30px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText('OVVO YEARBOOK', PAD, 128);
   ctx.textAlign = 'right';
   ctx.fillText(String(data.year), W - PAD, 128);
@@ -121,7 +121,7 @@ export function drawPoster(data: PosterData, colourway: PosterColourway): string
   ctx.font = '800 250px "Archivo", sans-serif';
   ctx.fillText(String(data.journeys), PAD, 480);
   ctx.fillStyle = palette.ink;
-  ctx.font = '700 26px "IBM Plex Mono", monospace';
+  ctx.font = '700 26px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText('JOURNEYS PLANNED', PAD, 540);
 
   ctx.strokeStyle = palette.soft;
@@ -136,7 +136,7 @@ export function drawPoster(data: PosterData, colourway: PosterColourway): string
   const top = 700;
 
   ctx.fillStyle = palette.soft;
-  ctx.font = '700 22px "IBM Plex Mono", monospace';
+  ctx.font = '700 22px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText('YOUR PLACES', leftX, top);
   ctx.fillText('YOUR YEAR', rightX, top);
 
@@ -162,7 +162,7 @@ export function drawPoster(data: PosterData, colourway: PosterColourway): string
   let factY = top + 76;
   for (const fact of facts) {
     ctx.fillStyle = palette.soft;
-    ctx.font = '600 20px "IBM Plex Mono", monospace';
+    ctx.font = '600 20px "Bebas Neue", "Arial Narrow", sans-serif';
     ctx.fillText(fact.label.toUpperCase(), rightX, factY);
     ctx.fillStyle = palette.ink;
     ctx.font = '700 34px "Archivo", sans-serif';
@@ -177,7 +177,7 @@ export function drawPoster(data: PosterData, colourway: PosterColourway): string
   ctx.lineTo(W - PAD, H - 150);
   ctx.stroke();
   ctx.fillStyle = palette.ink;
-  ctx.font = '600 24px "IBM Plex Mono", monospace';
+  ctx.font = '600 24px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText('PLAN THE NETHERLANDS', PAD, H - 86);
   ctx.textAlign = 'right';
   ctx.fillText('OVVO', W - PAD, H - 86);

@@ -374,7 +374,7 @@ button.wrapped-demo-mark:focus-visible {
 
 .wrapped-stage[data-chapter='map'] .wrapped-kicker {
   color: #8fffd4;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -860,7 +860,7 @@ button.wrapped-demo-mark:focus-visible {
 
 .wrapped-stage[data-chapter='distance'] .wrapped-kicker {
   color: #8fffd4;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -1009,7 +1009,7 @@ button.wrapped-demo-mark:focus-visible {
 
 .wrapped-crew__code code {
   color: #dbe8ff;
-  font: 500 11px/1.45 'IBM Plex Mono', ui-monospace, monospace;
+  font: 500 11px/1.45 'Bebas Neue', 'Arial Narrow', sans-serif;
   overflow-wrap: anywhere;
   word-break: break-all;
 }
@@ -1189,7 +1189,7 @@ button.wrapped-demo-mark:focus-visible {
   border-radius: 50%;
   background: #a84431;
   color: #fff8ec;
-  font: 700 10px/1 'IBM Plex Mono', ui-monospace, monospace;
+  font: 700 10px/1 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.08em;
   transform: translateX(-50%);
   box-shadow: 0 2px 7px rgb(87 38 26 / 0.35);
@@ -1198,7 +1198,7 @@ button.wrapped-demo-mark:focus-visible {
 .wrapped-sealed__kicker {
   margin: 0;
   color: #8b6c48;
-  font: 600 11px/1.2 'IBM Plex Mono', ui-monospace, monospace;
+  font: 600 11px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -1320,7 +1320,7 @@ button.wrapped-demo-mark:focus-visible {
 
 .wrapped-comparison__year > span {
   color: #8b6f50;
-  font: 600 10px/1.2 'IBM Plex Mono', ui-monospace, monospace;
+  font: 600 10px/1.2 'Bebas Neue', 'Arial Narrow', sans-serif;
   letter-spacing: 0.12em;
 }
 

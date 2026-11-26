@@ -39,6 +39,9 @@ const FAMILIES = [
   'jakarta: Plus Jakarta Sans|400;700;800',
   'plex: IBM Plex Sans|400;600',
   'mono: IBM Plex Mono|400;600',
+  /* The label face: the small uppercase labels, never a sentence and never a number that a
+     traveller has to read quickly. One weight, which is all Bebas Neue has. */
+  'label: Bebas Neue|400',
   'work: Work Sans|400;600',
   'figtree: Figtree|400;700',
   'inter: Inter|400;600',

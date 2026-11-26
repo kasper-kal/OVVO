@@ -115,7 +115,7 @@ function short(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): s
  * **The export is a still from the film.**
  *
  * Sharing a card used to put the old yearbook back on screen. These cards carry the scene grammar:
- * black, a neon ribbon, a red field, a huge figure in Archivo and a lean mono masthead.
+ * black, a neon ribbon, a red field, a huge figure in Archivo and a lean condensed masthead.
  */
 function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   const canvas = document.createElement('canvas');
@@ -162,10 +162,10 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   ctx.fillRect(PAD, 300, 190, 300);
 
   ctx.fillStyle = ink;
-  ctx.font = '700 30px "IBM Plex Mono", monospace';
+  ctx.font = '700 30px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText('OVVO YEARBOOK', PAD, 100);
   ctx.textAlign = 'right';
-  ctx.font = '600 26px "IBM Plex Mono", monospace';
+  ctx.font = '600 26px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText(`${year} · IN MOTION`, W - PAD, 100);
   ctx.textAlign = 'left';
 
@@ -177,14 +177,14 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   ctx.stroke();
 
   ctx.fillStyle = ink;
-  ctx.font = '700 24px "IBM Plex Mono", monospace';
+  ctx.font = '700 24px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText(card.eyebrow.toUpperCase(), PAD, 210);
 
   if (demo) {
     ctx.fillStyle = acid;
     ctx.fillRect(W - PAD - 150, 180, 150, 42);
     ctx.fillStyle = ink;
-    ctx.font = '700 18px "IBM Plex Mono", monospace';
+    ctx.font = '700 18px "Bebas Neue", "Arial Narrow", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('DEMO', W - PAD - 75, 208);
     ctx.textAlign = 'left';
@@ -202,7 +202,7 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   ctx.fillText(short(ctx, card.stat, W - PAD * 2), PAD, 850);
 
   ctx.fillStyle = ink;
-  ctx.font = '700 24px "IBM Plex Mono", monospace';
+  ctx.font = '700 24px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText(card.statLabel.toUpperCase(), PAD, 910);
 
   ctx.strokeStyle = ink;
@@ -241,7 +241,7 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
     ctx.lineTo(W - PAD, rowY - 34);
     ctx.stroke();
     ctx.fillStyle = ranked ? ink : 'rgba(247, 243, 234, 0.62)';
-    ctx.font = ranked ? '700 26px "Archivo", sans-serif' : '600 20px "IBM Plex Mono", monospace';
+    ctx.font = ranked ? '700 26px "Archivo", sans-serif' : '600 20px "Bebas Neue", "Arial Narrow", sans-serif';
     ctx.fillText(ranked ? short(ctx, row.label, W * 0.62) : row.label.toUpperCase(), PAD, rowY);
     ctx.fillStyle = ranked ? red : ink;
     ctx.font = ranked ? '700 30px "Archivo", sans-serif' : '700 28px "Archivo", sans-serif';
@@ -258,7 +258,7 @@ function drawIssueCard(card: ShareCard, year: number, demo: boolean): string {
   ctx.lineTo(W - PAD, 1780);
   ctx.stroke();
   ctx.fillStyle = ink;
-  ctx.font = '600 22px "IBM Plex Mono", monospace';
+  ctx.font = '600 22px "Bebas Neue", "Arial Narrow", sans-serif';
   ctx.fillText('PLAN THE NETHERLANDS', PAD, 1840);
   ctx.textAlign = 'right';
   ctx.fillText('OVVO', W - PAD, 1840);
@@ -491,6 +491,7 @@ export function WrappedShareDialog({
           document.fonts.load('700 126px "Archivo"'),
           document.fonts.load('600 28px "Space Grotesk"'),
           document.fonts.load('500 32px "Space Grotesk"'),
+          document.fonts.load('400 30px "Bebas Neue"'),
         ]).catch(() => undefined);
       }
       const next = cards.map((card) => drawCard(card, palette, year, demo));
