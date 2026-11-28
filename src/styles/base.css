@@ -152,6 +152,26 @@ body {
   background-image: none;
 }
 
+/*
+ * **The VibeBrass line.** 3px of company jade across the very top of every screen, sitting in the
+ * page's own flow. Because it is part of the page and not pinned to the window, the first pixel of
+ * scrolling takes it away; nothing has to watch the scroll to make that happen.
+ *
+ * It hangs off `#root` rather than `body::before`, because `body::before` is the wallpaper layer and
+ * a second thing on it would fight the photograph. Every screen starts 3px lower instead, which is
+ * the point of the line: the page sits below it, never under it.
+ *
+ * The colour is the company jade and not one of the app's own greens. This line is the one mark every
+ * VibeBrass surface shares, so it does not take part in the theme system and never changes with a
+ * traveller's chosen colours.
+ */
+#root::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: #146b52;
+}
+
 :root[data-background='photo'] body::before {
   content: '';
   position: fixed;
